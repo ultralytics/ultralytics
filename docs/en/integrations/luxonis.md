@@ -28,11 +28,7 @@ This guide covers the two current OAK hardware generations, [`RVC2`](https://doc
     - On-device output decoding with `DetectionNetwork` covers detection, instance segmentation, and pose models. Other tasks use a generic `NeuralNetwork` node with a Luxonis parser node or host-side parsing; see the Luxonis [inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
     - Converted models are generation-specific: an `RVC2` artifact does not run on `RVC4`, and an `RVC4` artifact does not run on `RVC2`.
 
-## Why YOLO Models Need Conversion
-
-Ultralytics `.pt` checkpoints are not directly executable on OAK cameras. They must be packaged as an [NN Archive](https://docs.luxonis.com/software-v3/ai-inference/nn-archive), which bundles the compiled model for the target generation together with the metadata DepthAI needs to preprocess inputs and decode outputs into detections, masks, or keypoints.
-
-Two conversion paths produce this archive: cloud conversion with Luxonis Hub, and local conversion with Luxonis [Tools](https://github.com/luxonis/tools) and [ModelConverter](https://github.com/luxonis/modelconverter). Both start from a `.pt` checkpoint, either custom-trained with [Train mode](../modes/train.md) or an official Ultralytics model such as those on the [YOLO26 models page](../models/yolo26.md#performance-metrics).
+Ultralytics `.pt` checkpoints must be packaged as an [NN Archive](https://docs.luxonis.com/software-v3/ai-inference/nn-archive), which bundles the compiled model for the target generation with the metadata DepthAI needs to preprocess inputs and decode outputs. Either conversion path below produces this archive from a `.pt` checkpoint, custom-trained with [Train mode](../modes/train.md) or an official Ultralytics model such as those on the [YOLO26 models page](../models/yolo26.md#performance-metrics).
 
 ## Conversion Path 1: Luxonis Hub
 
@@ -178,11 +174,3 @@ No. `RVC2` uses `.superblob` artifacts in an OpenVINO-based runtime and `RVC4` u
 ### Should I use quantization for `RVC4`?
 
 `RVC4` conversion supports several modes, including `INT8_STANDARD` (default, requires calibration data) and `FP16_STANDARD` (no calibration). INT8 gives higher throughput and a smaller model; FP16 preserves more of the original accuracy. With INT8, calibration images should be representative of the deployment scene.
-
-### What input size should I use?
-
-The converted model has a fixed input size. Keep the aspect ratio used during training, for example `640x640` for models trained on square inputs. Lower input sizes increase FPS at the cost of small-object [accuracy](https://www.ultralytics.com/glossary/accuracy), which matters most on `RVC2`.
-
-### Do I need to configure OpenVINO or SNPE versions?
-
-Usually not; the defaults chosen by the Luxonis conversion tools are appropriate. If an `RVC4` model fails to load, see the Luxonis [SNPE compatibility troubleshooting table](https://docs.luxonis.com/software-v3/ai-inference/conversion/troubleshooting/#Troubleshooting-SNPE%20Compatibility).

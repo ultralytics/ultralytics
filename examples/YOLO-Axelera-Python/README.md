@@ -95,9 +95,10 @@ The compiled models are saved to `yolo26n-pose_axelera_model/` and
 > class names and configuration. You can load this info directly to avoid manual
 > label entry in your own application.
 
-> [!IMPORTANT] Re-export any `.axm` you compiled with an earlier SDK. Voyager SDK
-> 1.8 raises the compiled model format, and older files are rejected at load time
-> with `Unsupported model version: 4.0, expected at least 5.0`.
+> [!IMPORTANT]
+> Re-export any `.axm` you compiled with an earlier SDK. Voyager SDK 1.8 raises the
+> compiled model format, and older files are rejected at load time with
+> `Unsupported model version: 4.0, expected at least 5.0`.
 
 ### Run
 

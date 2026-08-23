@@ -86,8 +86,7 @@ Depth estimation is not supported: the depth head emits operators the Metis AIPU
     - **Operating System**: Linux only (Ubuntu 22.04/24.04 recommended)
     - **Hardware**: Axelera AI accelerator ([Metis devices](https://store.axelera.ai/))
     - **Python**: Versions 3.10, 3.11, 3.12, and 3.13
-    - **PyTorch**: `torch<2.13`; a newer version is downgraded when the SDK installs, and the export then asks you to rerun it
-    - **Voyager SDK**: 1.8.0, installed automatically when no SDK is present. An SDK you installed yourself is used as-is, and a warning names the version this release targets
+    - **Voyager SDK**: 1.8.0, installed automatically on first use
     - **Metis kernel driver**: `metis-dkms` 1.6.2 or newer, installed separately from `pip`
     - **System dependency**: `sudo apt install libgl1` (required by OpenCV, not included via `pip`)
 
@@ -269,8 +268,6 @@ The Metis AIPU maximizes throughput while minimizing energy consumption.
 
 _Benchmarks based on Axelera AI data. Actual FPS depends on model size, batching, and input resolution._
 
-These are host throughput figures, measured by the [model zoo](https://docs.axelera.ai/sdk/reference/models/model-zoo) with the Voyager SDK's streaming pipeline over a 720p video file. A single `predict` call reports per-image latency instead, which is a different quantity.
-
 ## Real-World Applications
 
 Ultralytics YOLO on Axelera hardware enables advanced edge computing solutions:
@@ -301,7 +298,7 @@ For detailed diagnostics, see the [AxDevice documentation](https://docs.axelera.
 
 ## Maximum Performance
 
-Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler, so `batch>1` runs correctly, though measured end to end on a single device it is no faster than `batch=1`:
+Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler (Voyager SDK 1.8 or newer), so `batch>1` runs correctly, though measured end to end on a single device it is no faster than `batch=1`:
 
 ```bash
 yolo predict model=yolo26n_axelera_model source=path/to/images batch=8

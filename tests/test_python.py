@@ -1469,7 +1469,6 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
-    monkeypatch.setattr(checks, "ARM64", True)
     monkeypatch.setattr(checks, "AUTOINSTALL", True)
     monkeypatch.setattr(checks, "ONLINE", True)
     commands = []

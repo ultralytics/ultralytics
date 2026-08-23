@@ -623,7 +623,6 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     if pkgs:
         packages = [*pkgs, *constrain]
         if install and AUTOINSTALL:  # check environment variable
-            # Note uv fails on arm64 macOS and Raspberry Pi runners
             n = len(pkgs)  # number of packages updates
             LOGGER.info(f"{prefix} Ultralytics requirement{'s' * (n > 1)} {pkgs} not found, attempting AutoUpdate...")
             try:

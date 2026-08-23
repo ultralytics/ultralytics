@@ -1916,8 +1916,8 @@ class RefineDetect(Detect):
 
     Each branch reads the neck features and predicts a class logit delta for its classes plus a box distribution delta
     gated by their confidence, so an attached head starts out numerically identical to the head it replaces. Heads are
-    converted in place with `attach`, which stacks a further branch on an already converted head so classes can be
-    added over several training sessions while the base head stays frozen.
+    converted in place with `attach`, which stacks a further branch on an already converted head so classes can be added
+    over several training sessions while the base head stays frozen.
 
     Attributes:
         refine_index (torch.Tensor): Class indices of all branches, concatenated in branch order.

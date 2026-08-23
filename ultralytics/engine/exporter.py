@@ -809,14 +809,14 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
-        if self.args.quantize in {8, "w8a16"} and not self.args.data:
+        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
+        if self.qat:
+            assert fmt in {"onnx", "engine"}, "QAT models can only be exported to TensorRT or ONNX."
+        elif self.args.quantize in {8, "w8a16"} and not self.args.data:  # QAT graphs need no calibration data
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
             )
-        self.qat = hasattr(model, "_modelopt_state") and model._modelopt_state[0][0] == "quantize"
-        if self.qat:
-            assert fmt in {"onnx", "engine"}, "QAT models can only be exported to TensorRT or ONNX."
 
         # Recommend OpenVINO if export and Intel CPU
         if SETTINGS.get("openvino_msg"):

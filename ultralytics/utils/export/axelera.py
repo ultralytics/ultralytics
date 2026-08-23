@@ -51,12 +51,11 @@ def torch2axelera(
     # Serialize within the process: the steps below mutate process-global state (the protobuf and PATH env vars,
     # plus any working-directory files the compiler writes), so concurrent in-process exports must not overlap.
     with _AXELERA_EXPORT_LOCK:
-        prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
-        prev_path = os.environ.get("PATH")
+        prev_env = os.environ.copy()
         os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
         # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched by absolute
         # path instead of through an activated environment. Prepend so this environment's devkit wins.
-        os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), prev_path)))
+        os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), prev_env.get("PATH"))))
         try:
             check_requirements(
                 f"axelera-devkit=={AXELERA_SDK}",
@@ -119,12 +118,5 @@ def torch2axelera(
 
             return str(output_dir)
         finally:
-            # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION and PATH values
-            if prev_protobuf is None:
-                os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
-            else:
-                os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf
-            if prev_path is None:
-                os.environ.pop("PATH", None)
-            else:
-                os.environ["PATH"] = prev_path
+            os.environ.clear()
+            os.environ.update(prev_env)  # restore PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION and PATH

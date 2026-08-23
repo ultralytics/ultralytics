@@ -326,7 +326,8 @@ class RefineDetectionTrainer(DetectionTrainer):
         super()._setup_train()
         head = unwrap_model(self.model).model[-1]
         tuned = set(head.refine_classes[-1].tolist())
-        self.untuned_rows = rows = torch.tensor([c for c in range(head.nc) if c not in tuned], device=self.device)
+        cls = [c for c in range(head.nc) if c not in tuned]
+        self.untuned_rows = rows = torch.tensor(cls, dtype=torch.long, device=self.device)
         self.untuned_weights = []
         # the EMA is restored too: it is what gets validated and saved, and it would otherwise average in the rows of
         # the live model, which the optimizer moves for the length of a step

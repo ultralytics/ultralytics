@@ -27,14 +27,11 @@ class AxeleraBackend(BaseBackend):
         """
         from ultralytics.utils.export.axelera import AXELERA_SDK
 
-        try:
-            from axelera.runtime import op
-        except ImportError:
-            check_requirements(
-                f"axelera-rt=={AXELERA_SDK}",
-                cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-            )
-            from axelera.runtime import op
+        check_requirements(
+            f"axelera-rt=={AXELERA_SDK}",
+            cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
+        )
+        from axelera.runtime import op
 
         w = Path(weight)
         found = next(w.rglob("*.axm"), None)

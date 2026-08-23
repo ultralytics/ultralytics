@@ -56,18 +56,13 @@ def torch2axelera(
         os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
         # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched by absolute
         # path instead of through an activated environment. Prepend so this environment's devkit wins.
-        scripts_dir = sysconfig.get_path("scripts")
-        if scripts_dir not in (prev_path or "").split(os.pathsep):
-            os.environ["PATH"] = os.pathsep.join(filter(None, (scripts_dir, prev_path)))
+        os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), prev_path)))
         try:
-            try:
-                from axelera import compiler
-            except ImportError:
-                check_requirements(
-                    f"axelera-devkit=={AXELERA_SDK}",
-                    cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-                )
-                from axelera import compiler
+            check_requirements(
+                f"axelera-devkit=={AXELERA_SDK}",
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
+            )
+            from axelera import compiler
 
             check_requirements("omnimalloc==0.5.0")
             from axelera.compiler import CompilerConfig

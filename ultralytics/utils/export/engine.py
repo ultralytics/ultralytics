@@ -121,9 +121,7 @@ def torch2onnx(
                 3: 32 * torch.export.Dim("width", min=1),
             }
             if im.shape[2] == 32:
-                im = torch.empty(
-                    *im.shape[:2], 64, 64, device=im.device, dtype=im.dtype
-                )  # dynamo requires at least (1, 3, 64, 64) to infer dynamic shapes
+                im = im.new_zeros(*im.shape[:2], 64, 64)  # dynamo needs >=(1, 3, 64, 64) to infer dynamic shapes
         kwargs = {
             "dynamo": True,
             "external_data": False,  # do not create .onnx.data file

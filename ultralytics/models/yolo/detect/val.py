@@ -105,11 +105,11 @@ class DetectionValidator(BaseValidator):
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
 
-    def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
+    def postprocess(self, preds: torch.Tensor | list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (torch.Tensor): Raw predictions from the model.
+            preds (torch.Tensor | list[torch.Tensor]): Raw predictions from the model, or (inference, loss) outputs.
 
         Returns:
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',

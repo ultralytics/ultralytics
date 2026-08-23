@@ -277,7 +277,7 @@ class TTSTrack(BOTrack):
         self.mean, self.covariance = kalman_filter.initiate(self.convert_coords(self._tlwh))
         self._history.append((frame_id, self.xyxy))
         self.tracklet_len = 0
-        self.state = TrackState.Tracked if len(self._history) >= self.min_track_len else TrackState.New
+        self.state = TrackState.Tracked if self.min_track_len <= 1 else TrackState.New
         self.is_activated = frame_id == 1 or self.state == TrackState.Tracked
         self.frame_id = self.start_frame = frame_id
 
@@ -483,10 +483,7 @@ class TRACKTRACK:
                 del_boxes = np.concatenate([del_xywh[mask], -np.ones((mask.sum(), 1))], axis=-1)
                 dets_recovered = [_new_track(b, s, c) for b, s, c in zip(del_boxes, del_conf[mask], del_cls[mask])]
 
-        # Route by `state`, not `is_activated`: the frame_id == 1 bootstrap exception in `activate()` sets
-        # `is_activated=True` on a still-`New` track so it is visible in that frame's output, but it must still
-        # go through the unconfirmed path (`update()`, which gates on `min_track_len`) rather than the main pool
-        # (whose `re_activate()` branch promotes to `Tracked` unconditionally) on its next association.
+        # Route by state: frame-1 tracks are visible (is_activated) but still New, so they must stay unconfirmed
         unconfirmed, tracked = [], []
         for track in self.tracked_stracks:
             (tracked if track.state == TrackState.Tracked else unconfirmed).append(track)

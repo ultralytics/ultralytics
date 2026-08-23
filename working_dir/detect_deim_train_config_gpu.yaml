@@ -25,7 +25,7 @@ amp: False
 sync_bn: True
 
 # Output and logging
-project: detect_trainings
+project: detr_trainings
 name: yolo26_ultravit_repmixer_fastvitffn_attn2_detect_coco
 exist_ok: True
 verbose: True

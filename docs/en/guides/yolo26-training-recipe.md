@@ -1,28 +1,101 @@
 ---
 comments: true
-description: Learn how YOLO26 models were trained on COCO, including optimizer settings, augmentation pipelines, loss weights, and fine-tuning guidance for each model size.
-keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation, loss weights, COCO, model card, hyperparameters, Ultralytics, object detection, deep learning, data augmentation
+description: Learn how YOLO26 models were trained, from Objects365 pretraining to COCO fine-tuning, including optimizer settings, augmentation pipelines, loss weights, embedded training logs, and fine-tuning guidance for each model size.
+keywords: YOLO26, training recipe, pretraining, fine-tuning, MuSGD, augmentation, loss weights, COCO, Objects365, training logs, reproducibility, model card, hyperparameters, Ultralytics, object detection, deep learning, data augmentation
 ---
 
 # YOLO26 Training Recipe
 
 ## Introduction
 
-This guide documents the exact [training](../modes/train.md) recipe used to produce the official [YOLO26](../models/yolo26.md) pretrained checkpoints on [COCO](../datasets/detect/coco.md). Every [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) shown here is already embedded in the released `.pt` weights and can be inspected programmatically.
+This guide documents the exact [training](../modes/train.md) recipe used to produce the official [YOLO26](../models/yolo26.md) pretrained checkpoints on [COCO](../datasets/detect/coco.md). Every [hyperparameter](https://www.ultralytics.com/glossary/hyperparameter-tuning) shown here is already embedded in the released `.pt` weights, together with the per-epoch training log and the code revision of the run, and all of it can be inspected programmatically.
 
 Knowing what went into the official checkpoints — not just the architecture, but the [learning rate](https://www.ultralytics.com/glossary/learning-rate) schedules, augmentation pipelines, and loss weights that shaped their performance — helps you make better decisions when [fine-tuning](https://www.ultralytics.com/glossary/fine-tuning): which [data augmentations](./yolo-data-augmentation.md) to keep, which [loss function](https://www.ultralytics.com/glossary/loss-function) weights to adjust, and what optimizer settings work best for your dataset size.
 
+!!! note "Read the paper for the full picture"
+
+    This page covers the hyperparameters recorded in the released checkpoints. For the reasoning behind them, including the architecture, the loss and label assignment changes, and the ablations, read [Ultralytics YOLO26: Unified Real-Time End-to-End Vision Models](https://arxiv.org/abs/2606.03748).
+
 ## Training Overview
 
-All YOLO26 base models were trained on COCO at **640x640** resolution using the **MuSGD** optimizer with **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. Rather than starting from random weights in a single run, models were initialized from intermediate pretrained weights and refined with hyperparameters found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are available on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
+All YOLO26 base models were trained in two stages: **[Objects365v1](../datasets/detect/objects365.md) pretraining** for 150 epochs, followed by **COCO fine-tuning**. Both stages ran at **640x640** resolution with the **MuSGD** optimizer and **[batch size](https://www.ultralytics.com/glossary/batch-size) 128**. No YOLO26 checkpoint was trained on COCO from random weights, which is why the COCO stage is short for most sizes, and the COCO-stage hyperparameters were found via [evolutionary search](./hyperparameter-tuning.md#genetic-evolution-and-mutation). Full training logs and metrics for every model size are stored inside the released checkpoints and rendered as charts on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26).
 
 Key design choices across all sizes:
 
+- **[Objects365](../datasets/detect/objects365.md) pretraining** for every size before the COCO stage
 - **End-to-end training** (`end2end=True`) with NMS-free one-to-one head
 - **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (2D linear weights and 4D conv filters, which are reshaped to 2D)
-- **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled in the last 10 epochs (`close_mosaic=10`)
+- **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled for the final epochs (`close_mosaic=8` in pretraining, `close_mosaic=10` on COCO)
 - **Aggressive scale augmentation** (0.56-0.95) to handle objects at different sizes
 - **Minimal rotation/shear** for most sizes, keeping geometric distortion low
+
+## Stage 1: Objects365 Pretraining
+
+Every YOLO26 COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the same size. Those pretrained weights are published too, and are documented on the [Objects365 dataset page](../datasets/detect/objects365.md). Each COCO checkpoint names its starting weights in the training configuration embedded in the `.pt` file, which [Inspecting YOLO26 Checkpoint Training Args](#inspecting-yolo26-checkpoint-training-args) below shows how to read:
+
+| COCO checkpoint | Starting weights       |
+| --------------- | ---------------------- |
+| `yolo26n.pt`    | `yolo26n-objv1-150.pt` |
+| `yolo26s.pt`    | `yolo26s-objv1-150.pt` |
+| `yolo26m.pt`    | `yolo26m-objv1-150.pt` |
+| `yolo26l.pt`    | `yolo26l-objv1-150.pt` |
+| `yolo26x.pt`    | `yolo26x-objv1-150.pt` |
+
+Pretraining used mostly default settings rather than searched values. `lr0`, `lrf`, `momentum`, `weight_decay`, `box`, and `cls` match `default.yaml`, while `warmup_epochs`, `close_mosaic`, and `dfl` were overridden. Settings are shared across sizes apart from `warmup_epochs` on X, the augmentation strengths, and the internal MuSGD and head weights listed after the tables:
+
+| Setting               | Value           |
+| --------------------- | --------------- |
+| `data`                | Objects365v1    |
+| `epochs`              | 150             |
+| `imgsz`               | 640             |
+| `batch`               | 128             |
+| `optimizer`           | MuSGD           |
+| `lr0` / `lrf`         | 0.01 / 0.01     |
+| `momentum`            | 0.937           |
+| `weight_decay`        | 0.0005          |
+| `warmup_epochs`       | 1 (2 for X)     |
+| `close_mosaic`        | 8               |
+| `box` / `cls` / `dfl` | 7.5 / 0.5 / 6.0 |
+
+| Augmentation | N   | S    | M    | L    | X   |
+| ------------ | --- | ---- | ---- | ---- | --- |
+| `mosaic`     | 1.0 | 1.0  | 1.0  | 1.0  | 1.0 |
+| `mixup`      | 0.0 | 0.05 | 0.15 | 0.15 | 0.2 |
+| `copy_paste` | 0.1 | 0.15 | 0.4  | 0.5  | 0.6 |
+| `scale`      | 0.5 | 0.9  | 0.9  | 0.9  | 0.9 |
+
+These tables cover the settings that shape pretraining, not the full configuration. The checkpoints record over 100 arguments, so print `train_args` as shown below for the authoritative list.
+
+??? note "Advanced: internal pretraining parameters"
+
+    Pretraining also varied the same kind of experimental-branch parameters described in [Internal Training Parameters](#internal-training-parameters). `cls_w` was 1.0 for every size:
+
+    | Setting | N    | S   | M    | L    | X   |
+    | ------- | ---- | --- | ---- | ---- | --- |
+    | `muon_w` | 0.45 | 0.5 | 0.45 | 0.45 | 0.5 |
+    | `sgd_w`  | 0.55 | 0.5 | 0.55 | 0.55 | 0.6 |
+    | `o2m`    | 0.1  | 0.1 | 0.1  | 1.0  | 1.0 |
+
+!!! tip "Start from the Objects365 weights"
+
+    You do not need the Objects365 dataset to reuse stage 1. The pretrained checkpoints download automatically like any other Ultralytics asset, so you can fine-tune them on your own dataset:
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26s-objv1-150.pt")
+        results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26s-objv1-150.pt data=your-dataset.yaml epochs=100 imgsz=640
+        ```
+
+    To rerun the COCO stage instead, start from the same weights and pass the stage 2 optimizer, loss, and augmentation values for that size from the tables below. Those tables leave out smaller non-default arguments such as `warmup_momentum`, `warmup_bias_lr`, `perspective`, `flipud`, and `cutmix`, so print `train_args` from the checkpoint for the exact configuration. The internal parameters are rejected by the released package and need the experimental branch.
 
 ## Inspecting YOLO26 Checkpoint Training Args
 
@@ -74,9 +147,33 @@ optimizer: MuSGD
 
 This works for any `.pt` checkpoint — official releases and your own fine-tuned models alike. For the full list of configurable training arguments, see the [training configuration reference](../usage/cfg.md).
 
+### Viewing the Training Curves
+
+`train_args` is not the only thing stored. Every checkpoint also carries the complete per-epoch `results.csv` of the run that produced it, along with its final validation metrics. The curves for the official YOLO26 checkpoints are published on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26), and any `.pt` file can be [dragged and dropped onto a project](../platform/train/models.md#upload-model) to chart the same data, with the metadata parsed out of the file automatically.
+
+Each checkpoint covers the stage that produced it, so the COCO curves are in `yolo26s.pt` and the 150-epoch Objects365 curves are in `yolo26s-objv1-150.pt`.
+
+### Checking the Code Revision
+
+`ckpt["git"]` records the commit that produced the checkpoint, and those commits live on public experimental branches of the Ultralytics repository, so you can check out the exact training code:
+
+```python
+from ultralytics import YOLO
+
+print(YOLO("yolo26n.pt").ckpt["git"])
+# {'root': ..., 'branch': 'exp-main', 'commit': 'cb13d5f9cfbd6f299da3620c625f81d721dc2849', ...}
+```
+
+```bash
+git fetch origin cb13d5f9cfbd6f299da3620c625f81d721dc2849
+git checkout cb13d5f9cfbd6f299da3620c625f81d721dc2849
+```
+
+Experimental branches carry work that never landed on `main`, such as configurable `o2m` and `cls_w`. Training on `main` with the hyperparameters documented below will not be bit-identical, but it lands within a negligible distance of the published metrics.
+
 ## YOLO26 Training Hyperparameters per Model Size
 
-The tables below group the recipe by category — optimizer and schedule, loss weights, and augmentation. Every value comes straight from the `train_args` embedded in the released checkpoints.
+These are the stage 2 values, applied on top of the Objects365 weights above. The tables below group the recipe by category: optimizer and schedule, loss weights, and augmentation. Every value comes straight from the `train_args` embedded in the released checkpoints.
 
 ### Optimizer and Learning Rate
 
@@ -137,7 +234,7 @@ Larger models use more aggressive augmentation overall (higher mixup, copy-paste
 
 ??? note "Advanced: internal pipeline parameters"
 
-    The checkpoints also contain parameters that were used in the internal training pipeline but are **not** exposed as user-configurable settings in `default.yaml`:
+    The checkpoints also contain parameters that were used on the experimental training branch but are **not** exposed as user-configurable settings in `default.yaml`:
 
     | Setting | Description | N | S | M | L | X |
     |---|---|---|---|---|---|---|
@@ -221,16 +318,20 @@ Load the checkpoint with `torch.load()` and access the `train_args` key, or use 
 
 ### Why are the epoch counts different for each model size?
 
-Larger models generally needed fewer epochs on COCO because their greater capacity speeds up convergence — the X model trained for 40 epochs versus 245 for N — though the counts are not strictly monotonic (S used 70, M used 80). When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
-
-### Should I use MuSGD for fine-tuning?
-
-Usually you don't need to choose: with the default `optimizer=auto`, Ultralytics automatically selects **MuSGD** for longer training runs (>10,000 iterations) and **AdamW** for shorter ones. You can explicitly set `optimizer=MuSGD` if you prefer. For more on how MuSGD works, see the [training documentation](../modes/train.md#musgd-optimizer).
+Every size received the same 150 epochs of Objects365 pretraining, so the COCO counts only cover the fine-tuning stage. Larger models converge on COCO in fewer of those epochs, 40 for X versus 245 for N. The counts are not strictly monotonic (S used 70, M used 80) because they came out of the per-size hyperparameter search. When fine-tuning on your own dataset, the optimal number of epochs depends on your dataset size and complexity, not the model size. Use early stopping (`patience`) to find the right stopping point automatically.
 
 ### What are `muon_w`, `sgd_w`, `cls_w`, `o2m`, and `topk` in the checkpoint?
 
-These are internal parameters from the training pipeline that produced the base checkpoints, recorded in `train_args` for reproducibility. They are not user-configurable settings in `default.yaml`, and passing them to `model.train()` raises an invalid-argument error — the public package does not read them. You do not need to set them when fine-tuning; see [Internal Training Parameters](#internal-training-parameters) for their values per model size.
+These come from the experimental branch that produced the base checkpoints, recorded in `train_args` for reproducibility. They are not user-configurable settings in `default.yaml`, and passing them to `model.train()` raises an invalid-argument error because the released package does not read them. You do not need to set them when fine-tuning; see [Internal Training Parameters](#internal-training-parameters) for their values per model size.
 
-### Can I replicate the exact pretraining from scratch?
+### Were the YOLO26 models trained on COCO from scratch?
 
-Not exactly — the checkpoints were produced using an internal training branch with additional features not in the public codebase (like configurable `o2m` weights and `cls_w`). You can get very close results using the hyperparameters documented on this page with the public Ultralytics package, but an exact reproduction requires the internal branch.
+No. Each COCO checkpoint was fine-tuned from an Objects365v1 checkpoint of the same size that had already trained for 150 epochs, as described in [Stage 1: Objects365 Pretraining](#stage-1-objects365-pretraining) and in the [YOLO26 paper](https://arxiv.org/abs/2606.03748). There is no from-scratch COCO run behind the published numbers, so a from-scratch comparison against those numbers is not like for like.
+
+### Where are the full training logs and loss curves?
+
+Inside the checkpoints, and charted on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/yolo26). Every checkpoint stores the complete per-epoch `results.csv` of its run, so dropping a `.pt` file onto a Platform project plots the losses, mAP progression, and learning rates without any code. See [Viewing the Training Curves](#viewing-the-training-curves). The Objects365 stage has its own log in the `yolo26*-objv1-150.pt` checkpoints.
+
+### Can I reproduce the published COCO metrics with the released package?
+
+You will land close to the published metrics, but not identical to them. For an identical setup, check out the commit recorded in the checkpoint and train on that branch. See [Checking the Code Revision](#checking-the-code-revision).

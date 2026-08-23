@@ -3,7 +3,7 @@ title: PASCAL VOC Detection Dataset
 comments: true
 creator:
     name: PASCAL Visual Object Classes
-    url: http://host.robots.ox.ac.uk/pascal/VOC/
+    url: https://www.robots.ox.ac.uk/~vgg/projects/pascal/VOC/
 license:
     name: None
 description: Train YOLO26 on the PASCAL VOC detection dataset - 16,551 training and 4,952 validation images across 20 object classes with automatic download.
@@ -12,7 +12,7 @@ keywords: PASCAL VOC, VOC dataset, VOC2007, VOC2012, object detection dataset, Y
 
 # PASCAL VOC Dataset
 
-The [PASCAL VOC](http://host.robots.ox.ac.uk/pascal/VOC/) (Visual Object Classes) dataset is a classic [object detection](../../tasks/detect.md) benchmark with 20 everyday object classes. The Ultralytics `VOC.yaml` configuration combines the VOC2007 and VOC2012 trainval splits into a 16,551-image training set, validates on the 4,952 publicly annotated VOC2007 test images, and downloads everything automatically (2.8 GB) on first use.
+The [PASCAL VOC](https://www.robots.ox.ac.uk/~vgg/projects/pascal/VOC/) (Visual Object Classes) dataset is a classic [object detection](../../tasks/detect.md) benchmark with 20 everyday object classes. The Ultralytics `VOC.yaml` configuration combines the VOC2007 and VOC2012 trainval splits into a 16,551-image training set, validates on the 4,952 publicly annotated VOC2007 test images, and downloads everything automatically (2.8 GB) on first use.
 
 <p align="center">
   <br>
@@ -104,7 +104,7 @@ To train a YOLO26n model on the VOC dataset for 100 [epochs](https://www.ultraly
 
 The image below shows a mosaiced training batch from the VOC dataset. Mosaicing combines multiple images into a single training sample, increasing the variety of objects, scales, and scene contexts the model sees in each batch — see the [YOLO data augmentation guide](../../guides/yolo-data-augmentation.md) for details.
 
-![Pascal VOC dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-voc-dataset-sample.avif)
+![Pascal VOC dataset mosaic training batch](https://cdn.ul.run/i/30425ce7ba0182b8991e90eaf1c31e38.avif)
 
 ## Citations and Acknowledgments
 
@@ -126,7 +126,7 @@ If you use the VOC dataset in your research or development work, please cite the
           doi={10.1007/s11263-009-0275-4}}
         ```
 
-We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](http://host.robots.ox.ac.uk/pascal/VOC/).
+We would like to acknowledge the PASCAL VOC Consortium for creating and maintaining this valuable resource for the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) community. For more information about the VOC dataset and its creators, visit the [PASCAL VOC dataset website](https://www.robots.ox.ac.uk/~vgg/projects/pascal/VOC/).
 
 ## FAQ
 

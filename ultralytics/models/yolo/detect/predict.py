@@ -51,7 +51,7 @@ class DetectionPredictor(BasePredictor):
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
-        save_logits = getattr(self.args, "logits", False)
+        save_logits = self.args.logits
 
         raw_scores = getattr(self, "_raw_scores", None)
         if save_logits and raw_scores is None:
@@ -59,7 +59,7 @@ class DetectionPredictor(BasePredictor):
         self._raw_scores = None
         if save_logits and raw_scores is None:
             LOGGER.warning("Disabling logits: model output lacks raw class scores (end2end or exported model).")
-            save_logits = False
+            self.args.logits = save_logits = False  # warn once per predict call rather than once per batch
 
         preds = nms.non_max_suppression(
             preds,

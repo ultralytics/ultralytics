@@ -145,7 +145,8 @@ class ConsoleLogger:
             lines.pop()
 
         for line in lines:
-            line = line.rstrip()
+            if not (line := line.rstrip()):
+                continue  # a bare newline carries nothing once timestamped
 
             # Rate-limit progress bar redraws, always keeping the completed bar
             if "─" in line or "╸" in line:  # unfilled glyphs mark an incomplete bar

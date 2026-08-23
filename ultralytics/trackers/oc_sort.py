@@ -228,10 +228,9 @@ class OCSORT(BYTETracker):
         """
         if not tracks or not dets:
             return list(range(len(tracks))), list(range(len(dets)))
-        ocr_dists = self._ocr_distance(tracks, dets)
-        if self.args.fuse_score:
-            ocr_dists = matching.fuse_score(ocr_dists, dets)
-        ocr_dists = self._fuse_appearance(ocr_dists, tracks, dets)
+        iou_dists = self._ocr_distance(tracks, dets)
+        ocr_dists = matching.fuse_score(iou_dists, dets) if self.args.fuse_score else iou_dists
+        ocr_dists = self._fuse_appearance(ocr_dists, tracks, dets, iou_dists=iou_dists)
         matches, u_track, u_det = matching.linear_assignment(ocr_dists, thresh=self.args.match_thresh)
         for itracked, idet in matches:
             track, det = tracks[itracked], dets[idet]

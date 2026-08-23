@@ -20,7 +20,7 @@ This guide walks you through building a **semantic image search** engine using [
   <strong>Watch:</strong> How Similarity Search Works | Visual Search Using OpenAI CLIP and the Ultralytics Package 🎉
 </p>
 
-![Flask webpage with semantic search results overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/flask-ui.avif)
+![Flask webpage with semantic search results overview](https://cdn.ul.run/i/7d8a865264e506cc0aa075e4bf0cf896.avif)
 
 The Ultralytics Python package wraps this entire pipeline behind two classes, so you can launch a working search app or run queries programmatically in a few lines. This guide covers [why semantic search is useful](#why-use-semantic-image-search), [how it works](#how-semantic-image-search-works), [running the web app](#run-the-semantic-search-web-app), [searching programmatically](#search-images-programmatically), and [configuring parameters](#configure-visualaisearch-parameters).
 
@@ -42,7 +42,7 @@ The pipeline combines three components, each handling one stage of turning image
 - **NumPy** stores the image embeddings as a single array and ranks them against a query embedding with one matrix multiplication, returning the closest vectors by cosine similarity with no extra indexing dependency.
 - **Flask** provides a simple web interface to submit natural language queries and display semantically matched images from the index.
 
-![OpenAI Clip image retrieval workflow](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clip-image-retrieval.avif)
+![OpenAI Clip image retrieval workflow](https://cdn.ul.run/i/875b3fa7610c254e28e14e293593d26b.avif)
 
 Because both images and text land in the same vector space, retrieval is zero-shot: you don't need labels or categories, just image data and a good prompt.
 

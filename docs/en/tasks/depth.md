@@ -7,7 +7,7 @@ model_name: yolo26n-depth
 
 # Monocular Depth Estimation
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/depth-estimation-examples.avif" alt="Monocular depth estimation examples">
+<img width="1024" src="https://cdn.ul.run/i/7a53b502cdffcaa1bbf61ca1690a2dde.avif" alt="Monocular depth estimation examples">
 
 Monocular depth estimation predicts a per-pixel depth map from a single RGB image. Each output pixel holds a depth value in meters representing the estimated distance from the camera to that surface point.
 

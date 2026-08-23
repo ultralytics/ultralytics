@@ -237,7 +237,7 @@ def onnx2engine(
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
         hw_compat (str | None, optional): TensorRT hardware compatibility level, i.e. 'ampere_plus' or
-            'same_compute_capability'. None or 'none' builds an engine for the export GPU only.
+            'same_compute_capability'. None (default) builds an engine for the export GPU only.
 
     Returns:
         (str): Path to the exported engine file.
@@ -254,12 +254,10 @@ def onnx2engine(
         `modelopt_quantize_onnx`. Both INT8 paths keep Sigmoid at higher precision to preserve
         confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
-    hw_compat = (hw_compat or "none").lower()
-
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports, except when hardware
     # compatibility is requested as Jetson Thor <-> DGX Spark interop is only validated on TensorRT 10.13.3.9
     # https://github.com/ultralytics/ultralytics/issues/22873
-    if (is_jetson(jetpack=7) or is_dgx()) and hw_compat == "none":
+    if (is_jetson(jetpack=7) or is_dgx()) and not hw_compat:
         check_tensorrt("10.15")
 
     try:
@@ -270,11 +268,7 @@ def onnx2engine(
     check_version(trt.__version__, ">=7.0.0", hard=True)
     check_version(trt.__version__, "!=10.2.0", msg="https://github.com/ultralytics/ultralytics/pull/24367")
 
-    if (
-        hw_compat != "none"
-        and (is_jetson(jetpack=7) or (is_dgx() and ARM64))
-        and not trt.__version__.startswith("10.13.3.9")
-    ):
+    if hw_compat and (is_jetson(jetpack=7) or (is_dgx() and ARM64)) and not trt.__version__.startswith("10.13.3.9"):
         raise ValueError(
             f"hw_compat='{hw_compat}' on Jetson Thor or DGX Spark (ARM64) requires TensorRT 10.13.3.9, "
             f"but found {trt.__version__}."
@@ -290,7 +284,7 @@ def onnx2engine(
     # Engine builder
     builder = trt.Builder(logger)
     config = builder.create_builder_config()
-    if hw_compat != "none":
+    if hw_compat:
         level = getattr(getattr(trt, "HardwareCompatibilityLevel", None), hw_compat.upper(), None)
         if level is None:
             raise ValueError(f"TensorRT {trt.__version__} does not support hw_compat='{hw_compat}'.")

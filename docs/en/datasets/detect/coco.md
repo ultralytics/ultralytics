@@ -61,7 +61,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-The COCO2017 training and validation data (20.3 GB) downloads automatically the first time you start training. To train a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
+The COCO2017 training and validation data (20.3 GB) downloads automatically the first time you start training. To train a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017).
 
 !!! example "Train Example"
 
@@ -88,7 +88,7 @@ The COCO2017 training and validation data (20.3 GB) downloads automatically the 
 
 The COCO dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![COCO dataset mosaic training batch with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-coco-dataset-sample.avif)
+![COCO dataset mosaic training batch with object detection](https://cdn.ul.run/i/f9843f887d8186a8b43fdec6f570dcba.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

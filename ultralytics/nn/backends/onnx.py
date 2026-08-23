@@ -136,27 +136,21 @@ class ONNXBackend(BaseBackend):
 
         Args:
             im (torch.Tensor | dict): Input image tensor in BCHW format, normalized to [0, 1], or a dictionary mapping
-                input names to tensors/arrays for multi-input models.
+                input names to tensors/arrays for multi-input ONNX Runtime models.
 
         Returns:
             (torch.Tensor | list[torch.Tensor] | np.ndarray): Model predictions as tensor(s) or numpy array(s).
         """
         if self.format == "dnn":
-            # OpenCV DNN - only supports single input
-            if isinstance(im, dict):
-                if len(im) > 1:
-                    LOGGER.warning("OpenCV DNN only supports single input; using the first dictionary value.")
-                im = next(iter(im.values()))
-            self.net.setInput(im.cpu().numpy() if isinstance(im, torch.Tensor) else im)
+            # OpenCV DNN
+            self.net.setInput(im.cpu().numpy())
             return self.net.forward()
 
         # ONNX Runtime
-        if isinstance(im, dict):
-            # Multi-input mode
-            input_dict = {k: v.cpu().numpy() if isinstance(v, torch.Tensor) else v for k, v in im.items()}
-            return self.session.run(self.output_names, input_dict)
+        if isinstance(im, dict):  # multi-input model
+            im = {k: v.cpu().numpy() if isinstance(v, torch.Tensor) else v for k, v in im.items()}
+            return self.session.run(self.output_names, im)
 
-        # Single input mode
         if self.use_io_binding:
             if self.device.type == "cpu":
                 im = im.cpu()
@@ -171,10 +165,7 @@ class ONNXBackend(BaseBackend):
             self.session.run_with_iobinding(self.io)
             return self.bindings
         else:
-            return self.session.run(
-                self.output_names,
-                {self.session.get_inputs()[0].name: im.cpu().numpy() if isinstance(im, torch.Tensor) else im},
-            )
+            return self.session.run(self.output_names, {self.session.get_inputs()[0].name: im.cpu().numpy()})
 
 
 class ONNXIMXBackend(ONNXBackend):

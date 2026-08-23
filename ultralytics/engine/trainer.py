@@ -1019,7 +1019,7 @@ class BaseTrainer:
         self.best_fitness = ckpt.get("best_fitness")
         if ckpt.get("best_epoch") is not None:  # restore early stopping state for accurate patience countdown
             self.stopper.best_epoch = ckpt["best_epoch"]
-            self.stopper.best_fitness = self.best_fitness
+            self.stopper.best_fitness = self.best_fitness or 0.0
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint."""

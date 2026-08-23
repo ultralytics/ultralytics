@@ -23,4 +23,4 @@
 | [LiteRT]({{ integrations_path or "../integrations" }}/litert.md) | `litert` | `{{ model_name or "yolo26n" }}.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
 | [Hailo]({{ integrations_path or "../integrations" }}/hailo.md) | `hailo` | `{{ model_name or "yolo26n" }}_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
 | [Huawei Ascend]({{ integrations_path or "../integrations" }}/ascend.md) | `ascend` | `{{ model_name or "yolo26n" }}_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`{{ tip1 }} |
-| [Safetensors]({{ integrations_path or "../integrations" }}/safetensors.md) | `safetensors` | `{{ model_name or "yolo26n" }}.safetensors` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
+| [SafeTensors]({{ integrations_path or "../integrations" }}/safetensors.md) | `safetensors` | `{{ model_name or "yolo26n" }}.safetensors` | ✅ | `imgsz`, `quantize`, `batch`, `device` |

@@ -11,7 +11,7 @@ import torch
 from ultralytics.utils import IS_JETSON, LOGGER, PYTHON_VERSION
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 
-from .base import BaseBackend, read_engine_metadata
+from .base import BaseBackend
 
 
 class TensorRTBackend(BaseBackend):
@@ -48,10 +48,11 @@ class TensorRTBackend(BaseBackend):
         logger = trt.Logger(trt.Logger.INFO)
 
         # Read engine file
+        offset, metadata = self.engine_header(weight)
         with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
-            metadata = read_engine_metadata(f)
-            if metadata and metadata.get("dla") is not None:
-                runtime.DLA_core = int(metadata["dla"])
+            f.seek(offset)  # skip the metadata header, if any, that precedes the engine
+            if (dla := metadata.get("dla")) is not None:
+                runtime.DLA_core = int(dla)
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
         try:

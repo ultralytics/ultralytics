@@ -530,7 +530,7 @@ SAM 3 provides accurate counting by segmenting all instances, a common requireme
 
 ## SAM 3 vs SAM 2 vs YOLO Comparison
 
-Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models:
+Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models. For real-time open-vocabulary detection and segmentation from the same kinds of prompt, see [YOLOE](./yoloe.md):
 
 | Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg      |
 | ---------------------------- | ------------------------------------- | -------------------- | ---------------- |

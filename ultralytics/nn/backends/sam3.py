@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.nn.backends.base import read_engine_metadata
+from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.backends.onnx import _ORT_DTYPES
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
@@ -233,7 +233,7 @@ class SAM3Backend:
 
         for stem in stems:
             with open(paths[stem], "rb") as f, trt.Runtime(logger) as runtime:
-                read_engine_metadata(f)  # skip the optional metadata header
+                f.seek(BaseBackend.engine_header(paths[stem])[0])  # skip the optional metadata header
                 engine = runtime.deserialize_cuda_engine(f.read())
 
             ctx = engine.create_execution_context()

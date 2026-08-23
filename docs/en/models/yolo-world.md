@@ -25,6 +25,8 @@ The YOLO-World Model introduces an advanced, real-time [Ultralytics](https://www
 
 YOLO-World tackles the challenges faced by traditional Open-Vocabulary detection models, which often rely on cumbersome [Transformer](https://www.ultralytics.com/glossary/transformer) models requiring extensive computational resources. These models' dependence on pre-defined object categories also restricts their utility in dynamic scenarios. YOLO-World revitalizes the YOLOv8 framework with open-vocabulary detection capabilities, employing vision-[language modeling](https://www.ultralytics.com/glossary/language-modeling) and pre-training on expansive datasets to excel at identifying a broad array of objects in zero-shot scenarios with unmatched efficiency.
 
+For open-vocabulary work that also needs instance masks, visual prompts, or a prompt-free mode, see [YOLOE](yoloe.md), which keeps the same `set_classes()` API.
+
 ## Key Features
 
 1. **Real-time Solution:** Harnessing the computational speed of CNNs, YOLO-World delivers a swift open-vocabulary detection solution, catering to industries in need of immediate results.

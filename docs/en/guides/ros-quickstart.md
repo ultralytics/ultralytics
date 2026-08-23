@@ -50,7 +50,7 @@ In ROS, communication between nodes is facilitated through [messages](https://wi
 The ROS1 examples were tested using [this ROS environment](https://github.com/ambitious-octopus/rosbot_ros/tree/noetic), a fork of the [ROSbot ROS repository](https://github.com/husarion/rosbot_ros). The same YOLO and NumPy processing applies in ROS2; only the node lifecycle and message conversion differ.
 
 <p align="center">
-  <img width="50%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/husarion-rosbot-2-pro.avif" alt="Husarion ROSbot 2 PRO autonomous robot platform">
+  <img width="50%" src="https://cdn.ul.run/i/d64082c887f43fb28afc113e3e9a8494.avif" alt="Husarion ROSbot 2 PRO autonomous robot platform">
 </p>
 
 ### Dependencies Installation
@@ -144,7 +144,7 @@ points = points.reshape(message.height, message.width, 4)
 The `sensor_msgs/Image` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/Image.html) is commonly used in ROS for representing image data. It contains fields for encoding, height, width, and pixel data, making it suitable for transmitting images captured by cameras or other sensors. Image messages are widely used in robotic applications for tasks such as visual perception, [object detection](https://www.ultralytics.com/glossary/object-detection), and navigation.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/detection-segmentation-ros-gazebo.avif" alt="Detection and Segmentation in ROS Gazebo">
+  <img width="100%" src="https://cdn.ul.run/i/5bddc48098ffe7f81fb8c8a0ff89abe3.avif" alt="Detection and Segmentation in ROS Gazebo">
 </p>
 
 ### Image Step-by-Step Usage
@@ -421,7 +421,7 @@ while True:
 ## Use Ultralytics with ROS `sensor_msgs/PointCloud2`
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/detection-segmentation-ros-gazebo-1.avif" alt="Detection and Segmentation in ROS Gazebo">
+  <img width="100%" src="https://cdn.ul.run/i/27d4f01eaee71ee9f3754eb0ef5ea4aa.avif" alt="Detection and Segmentation in ROS Gazebo">
 </p>
 
 The `sensor_msgs/PointCloud2` [message type](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html) is a data structure used in ROS to represent 3D point cloud data. This message type is integral to robotic applications, enabling tasks such as 3D mapping, object recognition, and localization.
@@ -585,7 +585,7 @@ for index, class_id in enumerate(classes):
     ```
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/point-cloud-segmentation-ultralytics.avif" alt="Point Cloud Segmentation with Ultralytics ">
+  <img width="100%" src="https://cdn.ul.run/i/64dcd540f380254f5a98e570b34c64f2.avif" alt="Point Cloud Segmentation with Ultralytics ">
 </p>
 
 ## Conclusion

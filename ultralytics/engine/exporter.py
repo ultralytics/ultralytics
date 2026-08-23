@@ -1474,8 +1474,8 @@ class Exporter:
 
         return torch2exported_program(
             model=self.model,
-            file=self.file,
-            sample_input=self.im,
+            im=self.im,
+            output_file=self.file.with_suffix(".pt2"),
             metadata=self.metadata,
             prefix=prefix,
         )

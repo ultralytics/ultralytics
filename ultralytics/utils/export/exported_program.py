@@ -7,35 +7,32 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import LOGGER
+from ultralytics.utils import LOGGER, TORCH_VERSION
 
 
 def torch2exported_program(
     model: torch.nn.Module,
-    file: Path | str,
-    sample_input: torch.Tensor,
+    im: torch.Tensor,
+    output_file: Path | str,
     metadata: dict | None = None,
     prefix: str = "",
-) -> Path:
+) -> str:
     """Export a PyTorch model to torch.export ExportedProgram (.pt2) format.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
-        file (Path | str): Source model file path used to derive output names.
-        sample_input (torch.Tensor): Example input tensor for tracing/export.
+        im (torch.Tensor): Example input tensor for tracing/export.
+        output_file (Path | str): Path to save the exported ExportedProgram.
         metadata (dict | None): Optional metadata to embed in the PT2 archive.
-        prefix (str, optional): Prefix for log messages.
+        prefix (str): Prefix for log messages.
 
     Returns:
-        (Path): Path to the exported ``.pt2`` file.
+        (str): Path to the exported ``.pt2`` file.
     """
-    LOGGER.info(f"\n{prefix} starting export with ExportedProgram {torch.__version__}...")
+    LOGGER.info(f"\n{prefix} starting export with torch {TORCH_VERSION}...")
 
-    file = Path(file)
-    f = file.with_suffix(".pt2")
-
-    exported_program = torch.export.export(model, (sample_input,))
+    output_file = str(output_file)
+    exported_program = torch.export.export(model, (im,))
     extra_files = {"config.txt": json.dumps(metadata or {})}
-    torch.export.save(exported_program, str(f), extra_files=extra_files)
-
-    return f
+    torch.export.save(exported_program, output_file, extra_files=extra_files)
+    return output_file

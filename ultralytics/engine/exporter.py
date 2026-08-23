@@ -773,6 +773,11 @@ class Exporter:
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
         if fmt == "coreml":
+            if self.args.nms and model.task != "detect" and self.args.quantize == 32:
+                # CoreML evaluates NMSModel's data-dependent shapes only on its FP16 path, silently dropping
+                # detections from an FP32 ML Program. Detect is unaffected, its NMS is an Apple pipeline stage.
+                LOGGER.warning(f"CoreML 'nms=True' requires FP16 for {model.task} models. Forcing 'quantize=16'.")
+                self.args.quantize = 16
             if self.args.batch > 1:
                 assert self.args.dynamic, (
                     "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."

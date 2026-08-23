@@ -28,7 +28,7 @@ keywords: COCO128-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, mod
 
     The default YAML points train and val at the same 128 images, so validation metrics measure fit on the training set rather than generalization on held-out data. Duplicate or customize the split if you need a true held-out set.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco128-seg) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -69,7 +69,7 @@ To train a YOLO26n-seg model on the COCO128-Seg dataset for 100 [epochs](https:/
 
 Here are some examples of images from the COCO128-Seg dataset, along with their corresponding annotations:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-2.avif" alt="COCO128-seg instance segmentation dataset mosaic" width="800">
+<img src="https://cdn.ul.run/i/ef2102eee716563150eb0ceeb43f4fbd.avif" alt="COCO128-seg instance segmentation dataset mosaic" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

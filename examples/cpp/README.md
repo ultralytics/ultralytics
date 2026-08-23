@@ -1,10 +1,10 @@
-<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+<a href="https://www.ultralytics.com" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
 
 # Ultralytics YOLO C++ Examples
 
-<img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <a href="https://docs.ultralytics.com/" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
+<img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <a href="https://docs.ultralytics.com" target="_blank"><img alt="Ultralytics Docs" src="https://img.shields.io/badge/Ultralytics-Docs-042AFF.svg?logo=ultralytics&logoColor=white"></a>
 
-This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models/) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models against a different inference backend.
+This directory groups all of the C++ inference examples for [Ultralytics YOLO](https://docs.ultralytics.com/models) models in one place. Each subfolder is a self-contained project showing how to run [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8) models against a different inference backend.
 
 Every backend supports **every task** ([detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and [Ultralytics YOLO26 semantic segmentation](https://docs.ultralytics.com/tasks/semantic), selecting the task automatically from the model metadata or output shapes. Most also handle both grid (YOLOv8/11) and end-to-end (YOLO26) outputs; **OpenCV-DNN** supports the same tasks but only on **grid** models, because the OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
 
@@ -21,7 +21,7 @@ Every backend supports **every task** ([detect](https://docs.ultralytics.com/tas
 
 ## ✅ How to Test
 
-All examples follow the same flow: **export a model → build the C++ project → run the executable**. Install the [Ultralytics package](https://docs.ultralytics.com/quickstart/) first (`pip install ultralytics`) so the `yolo export` command is available, then pick an example below.
+All examples follow the same flow: **export a model → build the C++ project → run the executable**. Install the [Ultralytics package](https://docs.ultralytics.com/quickstart) first (`pip install ultralytics`) so the `yolo export` command is available, then pick an example below.
 
 The **ONNXRuntime**, **OpenVINO**, **LibTorch**, **MNN**, and **Triton** examples support every task (detect, segment, pose, OBB, classify, semantic) and read the task and class names from the model metadata (or, for Triton, infer the task from the output shapes), so the same binary handles any model. They take the model and image as `--model` / `--source` arguments.
 

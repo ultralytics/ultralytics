@@ -207,7 +207,7 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 
 ### Why should I use Ultralytics Platform for my dataset?
 
-[Ultralytics Platform](https://platform.ultralytics.com/) offers powerful features for dataset management and analysis, including:
+[Ultralytics Platform](https://platform.ultralytics.com) offers powerful features for dataset management and analysis, including:
 
 - **Seamless Dataset Management**: Upload, organize, and manage your datasets in one place.
 - **Immediate Training Integration**: Use uploaded datasets directly for model training without additional setup.

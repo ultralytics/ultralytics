@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER
 
 from .base import BaseBackend
 
@@ -46,10 +46,7 @@ class AscendBackend(BaseBackend):
 
         self.model = InferSession(getattr(self.device, "index", None) or 0, str(found))
 
-        # Load metadata
-        metadata_file = found.parent / "metadata.yaml"
-        if metadata_file.exists():
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(found))
 
     def __del__(self):
         """Release the Ascend device-side resources held by the inference session."""

@@ -758,8 +758,10 @@ class Exporter:
         if self.args.nms and model.task in {"semantic", "depth"}:
             LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
             self.args.nms = False
-        if fmt == "coreml" and self.args.nms and model.task != "detect":
-            LOGGER.warning("CoreML 'nms=True' is only supported for detect models. Forcing 'nms=False'.")
+        if fmt == "coreml" and self.args.nms and model.task not in {"detect", "segment", "pose"}:
+            LOGGER.warning(
+                "CoreML 'nms=True' is only supported for detect, segment and pose models. Forcing 'nms=False'."
+            )
             self.args.nms = False
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
@@ -775,6 +777,11 @@ class Exporter:
             if model.task not in {"detect", "pose"}:
                 raise ValueError("Alibaba MNN export with 'nms=True' only supports detect and pose models.")
         if fmt == "coreml":
+            if self.args.nms and model.task != "detect" and self.args.quantize == 32:
+                # CoreML evaluates NMSModel's data-dependent shapes only on its FP16 path, silently dropping
+                # detections from an FP32 ML Program. Detect is unaffected, its NMS is an Apple pipeline stage.
+                LOGGER.warning(f"CoreML 'nms=True' requires FP16 for {model.task} models. Forcing 'quantize=16'.")
+                self.args.quantize = 16
             if self.args.batch > 1:
                 assert self.args.dynamic, (
                     "batch sizes > 1 are not supported without 'dynamic=True' for CoreML export. Please retry at 'dynamic=True'."
@@ -873,7 +880,9 @@ class Exporter:
                 )
                 m.max_det = min(self.args.max_det, available)
                 m.agnostic_nms = self.args.agnostic_nms
-                m.xyxy = self.args.nms and fmt != "coreml"
+                # CoreML detect keeps IOSDetectModel's own xywh handling; segment/pose route through
+                # NMSModel like every other format, which expects xyxy boxes.
+                m.xyxy = self.args.nms and (fmt != "coreml" or model.task != "detect")
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
@@ -1300,8 +1309,12 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)
 
-        # TODO CoreML Segment and Pose model pipelining; 'nms=True' is forced off for non-detect tasks upstream
-        model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel) if self.args.nms else self.model
+        if self.args.nms and self.model.task == "detect":
+            model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
+        elif self.args.nms:  # segment, pose: NMS baked into the trace instead of Apple's NMS pipeline,
+            model = NMSModel(self.model, self.args)  # which can't carry masks/keypoints through suppression
+        else:
+            model = self.model
 
         if self.args.dynamic:
             h, w = self.imgsz
@@ -1338,7 +1351,7 @@ class Exporter:
             prefix=prefix,
         )
 
-        if self.args.nms:
+        if self.args.nms and self.model.task == "detect":
             ct_model = pipeline_coreml(
                 ct_model,
                 self.output_shape,
@@ -1934,7 +1947,9 @@ class NMSModel(torch.nn.Module):
             dets = torch.cat(
                 [box[keep], score[keep].view(-1, 1), cls[keep].view(-1, 1).to(out.dtype), extra[keep]], dim=-1
             )
-            # Zero-pad to max_det size to avoid reshape error
-            pad = (0, 0, 0, self.args.max_det - dets.shape[0])
-            out[i] = torch.nn.functional.pad(dets, pad)
+            # Zero-pad to max_det size to avoid reshape error. Padded on a flattened 1D view (rather than
+            # dim 0 of the 2D tensor) since CoreML's MIL conversion only supports dynamic padding on rank-1 tensors.
+            c = dets.shape[-1]
+            pad = (0, (self.args.max_det - dets.shape[0]) * c)
+            out[i] = torch.nn.functional.pad(dets.reshape(-1), pad).reshape(self.args.max_det, c)
         return (out[:bs], preds[1]) if self.model.task == "segment" else out[:bs]

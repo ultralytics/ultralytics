@@ -64,7 +64,7 @@ Construction-PPE powers a variety of safety-focused computer vision applications
 - **Robotics and autonomous systems**: Enable drones or robots to perform PPE checks across large sites, supporting faster and safer inspections.
 - **Research and education**: Provide a real-world dataset for students and researchers exploring workplace safety and human-object interactions.
 
-To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com).
+To label, train, and deploy a PPE detection model without managing local infrastructure, run the full workflow in your browser with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/construction-ppe).
 
 ## Dataset YAML
 
@@ -104,7 +104,7 @@ You can train a YOLO26n model on the Construction-PPE dataset for 100 epochs wit
 
 The dataset captures construction workers across varied environments, lighting conditions, and postures. Both **compliant** and **non-compliant** cases are included.
 
-![Construction-PPE dataset sample with safety gear detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/construction-ppe-dataset-sample.avif)
+![Construction-PPE dataset sample with safety gear detection](https://cdn.ul.run/i/418af109d0e7ae2491be83c8af32592f.avif)
 
 ## License and Attribution
 

@@ -80,9 +80,6 @@ class TorchVisionVideoClassifier:
 
     def preprocess(self, crops: list) -> torch.Tensor:
         """Preprocess video crops for classification."""
-        if not crops:
-            return torch.empty(0, device=self.device)
-
         # TorchVision video transforms expect a clip in (T, C, H, W) RGB layout.
         clip = torch.stack([torch.from_numpy(c[..., ::-1].copy()).permute(2, 0, 1) for c in crops])
         return self.transform(clip).unsqueeze(0).to(self.device)
@@ -131,7 +128,6 @@ class ActionRecognition(BaseSolution):
         """
         if "classes" not in kwargs:
             kwargs["classes"] = [0]  # Default to person class
-        kwargs["model"] = kwargs.get("model", "yolo26n.pt")
         super().__init__(**kwargs)
 
         self.crop_margin_percentage = int(self.CFG["crop_margin_percentage"])

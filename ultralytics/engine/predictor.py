@@ -320,14 +320,12 @@ class BasePredictor:
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
-            # Reset FPS tracking for new source
-            self.last_frame_process_time = {}
-
             # Check if save_dir/ label file exists
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
             self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            self.last_frame_process_time = {}  # last show() timestamp per source, for show_fps
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -541,17 +539,12 @@ class BasePredictor:
         """Display an image in a window."""
         im = self.plotted_img
 
-        # FPS calculation - only for video/stream sources
-        if getattr(self.args, "show_fps", False):
-            mode = getattr(self.dataset, "mode", None)
-            if mode in {"video", "stream"}:
-                current_frame_process_time = time.perf_counter()
-                if last_frame_process_time := self.last_frame_process_time.get(p):
-                    fps = 1 / max(current_frame_process_time - last_frame_process_time, 1e-6)
-                    cv2.putText(
-                        im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA
-                    )
-                self.last_frame_process_time[p] = current_frame_process_time
+        if self.args.show_fps and self.dataset.mode in {"video", "stream"}:  # overlay display FPS
+            t = time.perf_counter()
+            if last := self.last_frame_process_time.get(p):
+                fps = 1 / max(t - last, 1e-6)
+                cv2.putText(im, f"FPS: {fps:.2f}", (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 0), 2, cv2.LINE_AA)
+            self.last_frame_process_time[p] = t
 
         if platform.system() in {"Linux", "Windows"} and p not in self.windows:  # macOS scales natively
             self.windows.append(p)

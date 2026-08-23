@@ -817,9 +817,6 @@ class BaseTrainer:
                 data = check_det_dataset(self.args.data)
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
-            else:
-                # Try to load as YAML anyway
-                data = check_det_dataset(self.args.data)
         except Exception as e:
             raise RuntimeError(emojis(f"Dataset '{clean_url(self.args.data)}' error ❌ {e}")) from e
         if self.args.single_cls:

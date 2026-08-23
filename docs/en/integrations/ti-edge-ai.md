@@ -24,7 +24,7 @@ The [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) 
 
 TI MPU processors combine a powerful application CPU with dedicated AI accelerators and are the platform of choice for industrial, automotive, and robotics applications:
 
-- **Dedicated AI accelerators**: The C7 NPU deliver significantly higher throughput than CPU-only inference — important for real-time camera pipelines and always-on monitoring.
+- **Dedicated AI accelerators**: The C7 NPU delivers significantly higher throughput than CPU-only inference — important for real-time camera pipelines and always-on monitoring.
 - **Industrial-grade reliability**: TI TDA4x and Jacinto-family devices are qualified for automotive (ADAS) and industrial applications, with long supply lifecycles and safety certifications.
 - **Standard ONNX input**: TIDL compiles from ONNX, so the Ultralytics standard export workflow feeds directly into the TI toolchain without format conversion.
 - **Broad model support**: TIDL supports detection, classification, segmentation, and pose estimation with standard post-processing provided by the TI toolchain.
@@ -46,7 +46,7 @@ The TI Edge AI Model Hub currently provides the following Ultralytics YOLO model
 | :----- | :--------------- | :------------ | :--------- | :----------- | :------- |
 | YOLO26 | Object Detection | n, s, m, l, x | 640×640    | 40.9 – 57.5  | AGPL 3.0 |
 | YOLO11 | Object Detection | n, s, m, l, x | 640×640    | 39.5 – 54.7  | AGPL 3.0 |
-| YOLOv8 | Object Detection | n, m          | 640×640    | 37.3 - 53.9  | AGPL 3.0 |
+| YOLOv8 | Object Detection | n, m          | 640×640    | 37.3 – 53.9  | AGPL 3.0 |
 
 ## Deploying YOLO Models on TI Hardware
 
@@ -86,16 +86,16 @@ tidlrunner-cli evaluate --target_device TDA4VH --config_path yolo26n_model_confi
 2. **Export the model** — use `prepare_model.py` from the [TI Edge AI HuggingFace page](https://huggingface.co/TIEdgeAI/models) or from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub); the script exports to ONNX, fixes shapes, and validates the graph.
 3. **Compile** on PC for your target TI device with `tidlrunner-cli compile`, passing the per-model config YAML.
 4. **Evaluate** on your target TI device with `tidlrunner-cli evaluate`, passing the per-model config YAML.
-5. **Integrate into your application** — run the compiled TIDL artifact in your production pipeline using the [TIDL Runner Python API](https://github.com/TexasInstruments/edgeai-tidlrunner) for frame-by-frame inference, or wire it into a GStreamer pipeline for camera-to-display/camera-to-encode workflows, or applications can use TIDL with ONNXRT API's (refer [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for more details).
+5. **Integrate into your application** — run the compiled TIDL artifact in your production pipeline using the [TIDL Runner Python API](https://github.com/TexasInstruments/edgeai-tidlrunner) for frame-by-frame inference, or wire it into a GStreamer pipeline for camera-to-display/camera-to-encode workflows, or call TIDL through the ONNX Runtime APIs (see [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for more details).
 
 ## Real-World Applications
 
 YOLO models running on TI MPU hardware are well suited for a wide range of embedded and industrial vision applications:
 
-- **Automotive ADAS**: Pedestrian detection, lane monitoring, and occupant sensing on Jacinto-family SoCs(TDAx) inside vehicles.
+- **Automotive ADAS**: Pedestrian detection, lane monitoring, and occupant sensing on Jacinto-family SoCs (TDAx) inside vehicles.
 - **Industrial Automation**: High-speed quality inspection and defect detection on factory lines where cloud round-trips are unacceptable.
 - **Smart Surveillance**: Real-time multi-camera object detection on edge gateways without central server dependency.
-- **Robotics**: On-board perception for autonomous mobile robots (AMRs) and collaborative arms running on TI industrial MPUs(AM6xa).
+- **Robotics**: On-board perception for autonomous mobile robots (AMRs) and collaborative arms running on TI industrial MPUs (AM6xa).
 - **IoT Vision**: Always-on scene monitoring in smart cameras, drones, and embedded systems deployed in the field.
 
 ## Summary
@@ -108,7 +108,7 @@ The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and the 
 
 ### How do I deploy a YOLO model on TI Edge AI hardware?
 
-Download the model and configuration files from the [TI Edge AI HuggingFace page](https://huggingface.co/TIEdgeAI/models) or run `prepare_model.py` from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) — the script handles ONNX export, static shape fixing, and graph validation in one go. Then follow [Step 2](#step-2--compile-and-evaluate-with-tidl-runner) to compile and evaluate on your target device.
+Download the model and configuration files from the [TI Edge AI HuggingFace page](https://huggingface.co/TIEdgeAI/models) or run `prepare_model.py` from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) — the script handles ONNX export, static shape fixing, and graph validation in one go. Then follow [Step 3](#step-3--compile-with-tidl-runner) and [Step 4](#step-4--evaluate-with-tidl-runner) to compile and evaluate on your target device.
 
 ### What is the difference between edgeai-tidl-tools and edgeai-tidlrunner?
 
@@ -116,7 +116,7 @@ Download the model and configuration files from the [TI Edge AI HuggingFace page
 
 ### Do I need a TI device to compile a model?
 
-Compilation with `tidlrunner-cli compile` produces device artifacts on PC itself. It does not require a connected or emulated TI target for compilation.
+Compilation with `tidlrunner-cli compile` produces device artifacts on the host PC. It does not require a connected or emulated TI target for compilation.
 
 ### Where can I find pre-compiled models for TI devices?
 

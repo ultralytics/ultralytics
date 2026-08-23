@@ -65,7 +65,7 @@ To train a YOLO26n-pose model on the COCO8-Pose dataset for 100 [epochs](https:/
 
 Here are some examples of images from the COCO8-Pose dataset, along with their corresponding annotations:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-5.avif" alt="COCO8-pose keypoint estimation dataset mosaic" width="800">
+<img src="https://cdn.ul.run/i/eb6f56550b33208e86f392e2554394e2.avif" alt="COCO8-pose keypoint estimation dataset mosaic" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

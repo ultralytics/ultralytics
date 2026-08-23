@@ -80,7 +80,7 @@ You can also manage classification datasets and run training in the cloud with [
 
 The ImageNet dataset spans the 1,000 ILSVRC-2012 classes, providing a diverse and extensive resource for training and evaluating computer vision models. Here are some example images from the dataset:
 
-![ImageNet classification dataset sample images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenet-sample-images.avif)
+![ImageNet classification dataset sample images](https://cdn.ul.run/i/fc463fccb79964636891f8c095d175ed.avif)
 
 ## Citations and Acknowledgments
 

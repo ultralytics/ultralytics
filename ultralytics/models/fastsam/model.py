@@ -52,10 +52,10 @@ class FastSAM(Model):
         self,
         source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
         stream: bool = False,
-        bboxes: list | None = None,
-        points: list | None = None,
-        labels: list | None = None,
-        texts: list | None = None,
+        bboxes: list[Any] | None = None,
+        points: list[Any] | None = None,
+        labels: list[Any] | None = None,
+        texts: list[Any] | None = None,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on image or video source.

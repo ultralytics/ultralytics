@@ -455,7 +455,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
         refer_image: str | Path | Image.Image | np.ndarray | None = None,
-        predictor: type[BasePredictor] = yolo.yoloe.YOLOEVPDetectPredictor,
+        predictor: type[BasePredictor] | None = yolo.yoloe.YOLOEVPDetectPredictor,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Run prediction on images, videos, directories, streams, etc.
@@ -469,7 +469,7 @@ class YOLOE(Model):
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
                 image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type[BasePredictor]): Custom predictor class for visual prompt predictions. Defaults to
+            predictor (type[BasePredictor], optional): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 

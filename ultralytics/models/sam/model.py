@@ -93,9 +93,9 @@ class SAM(Model):
         self,
         source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None,
         stream: bool = False,
-        bboxes: list[list[float]] | None = None,
-        points: list[list[float]] | None = None,
-        labels: list[int] | None = None,
+        bboxes: np.ndarray | list[Any] | None = None,
+        points: np.ndarray | list[Any] | None = None,
+        labels: np.ndarray | list[Any] | None = None,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on the given image or video source.
@@ -104,9 +104,9 @@ class SAM(Model):
             source (str | PIL.Image | np.ndarray): Path to the image or video file, or a PIL.Image object, or a
                 np.ndarray object.
             stream (bool): If True, enables real-time streaming.
-            bboxes (list[list[float]] | None): List of bounding box coordinates for prompted segmentation.
-            points (list[list[float]] | None): List of points for prompted segmentation.
-            labels (list[int] | None): List of labels for prompted segmentation.
+            bboxes (np.ndarray | list | None): List of bounding box coordinates for prompted segmentation.
+            points (np.ndarray | list | None): List of points for prompted segmentation.
+            labels (np.ndarray | list | None): List of labels for prompted segmentation.
             **kwargs (Any): Additional keyword arguments for prediction.
 
         Returns:
@@ -127,9 +127,9 @@ class SAM(Model):
         self,
         source: str | Path | int | Image.Image | list[Any] | tuple[Any, ...] | np.ndarray | torch.Tensor | None = None,
         stream: bool = False,
-        bboxes: list[list[float]] | None = None,
-        points: list[list[float]] | None = None,
-        labels: list[int] | None = None,
+        bboxes: np.ndarray | list[Any] | None = None,
+        points: np.ndarray | list[Any] | None = None,
+        labels: np.ndarray | list[Any] | None = None,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform segmentation prediction on the given image or video source.
@@ -141,9 +141,9 @@ class SAM(Model):
             source (str | PIL.Image | np.ndarray | None): Path to the image or video file, or a PIL.Image object, or a
                 np.ndarray object.
             stream (bool): If True, enables real-time streaming.
-            bboxes (list[list[float]] | None): List of bounding box coordinates for prompted segmentation.
-            points (list[list[float]] | None): List of points for prompted segmentation.
-            labels (list[int] | None): List of labels for prompted segmentation.
+            bboxes (np.ndarray | list | None): List of bounding box coordinates for prompted segmentation.
+            points (np.ndarray | list | None): List of points for prompted segmentation.
+            labels (np.ndarray | list | None): List of labels for prompted segmentation.
             **kwargs (Any): Additional keyword arguments to be passed to the predict method.
 
         Returns:

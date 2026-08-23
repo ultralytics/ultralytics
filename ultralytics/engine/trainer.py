@@ -1001,10 +1001,9 @@ class BaseTrainer:
                 if ckpt_args.get("augmentations") and "augmentations" not in overrides:
                     # Augmentations were saved in checkpoint as reprs and can't be restored automatically
                     LOGGER.warning(
-                        "Custom Albumentations transforms were used in the original training run but are not "
-                        "being restored. To preserve custom augmentations when resuming, you need to pass the "
-                        "'augmentations' parameter again to get expected results. Example: \n"
-                        f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
+                        f"Custom Albumentations transforms {ckpt_args['augmentations']} were used in the original "
+                        "training run but cannot be restored from the checkpoint. To preserve them, pass the original "
+                        "transform objects again, i.e. model.train(resume=True, augmentations=[A.Blur(p=0.01), ...])"
                     )
                     self.args.augmentations = None
 

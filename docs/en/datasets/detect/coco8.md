@@ -83,7 +83,7 @@ The COCO8 dataset (1 MB) downloads automatically the first time you start traini
 
 Below is an example of a mosaiced training batch from the COCO8 dataset:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-1.avif" alt="COCO8 object detection dataset mosaic training batch" width="800">
+<img src="https://cdn.ul.run/i/0ad1322ce67942909904ccc1e57afd4e.avif" alt="COCO8 object detection dataset mosaic training batch" width="800">
 
 - **Mosaiced Image**: This image illustrates a training batch where multiple dataset images are combined using mosaic augmentation. Mosaic augmentation increases the diversity of objects and scenes within each batch, helping the model generalize better to various object sizes, aspect ratios, and backgrounds.
 

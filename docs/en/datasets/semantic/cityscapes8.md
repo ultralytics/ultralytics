@@ -74,7 +74,7 @@ To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https:/
         yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
-You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com).
+You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cityscapes8).
 
 ## Citations, License and Acknowledgments
 

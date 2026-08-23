@@ -502,6 +502,38 @@ def test_track_second_association_low_conf_keeps_id(tracker_type):
     assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
 
 
+def test_tracktrack_new_lifecycle():
+    """TrackTrack predicts New tracks and confirms them once their history reaches min_track_len."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / "cfg/trackers/tracktrack.yaml"), "gmc_method": "none", "min_track_len": 4}
+    tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+    tracker.update(Boxes(torch.empty((0, 6)), (640, 640)))  # avoid first-frame auto-activation
+    outputs = []
+    for center_x in (100, 135, 170, 205):
+        box = torch.tensor([[center_x - 50, 50, center_x + 50, 150, 0.9, 0]], dtype=torch.float32)
+        outputs.append(tracker.update(Boxes(box, (640, 640))))
+    assert [len(output) for output in outputs] == [0, 0, 0, 1]
+    for min_track_len in (0, 1):
+        cfg["min_track_len"] = min_track_len
+        tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+        tracker.update(Boxes(torch.empty((0, 6)), (640, 640)))
+        assert len(tracker.update(Boxes(box, (640, 640)))) == 1
+
+    from ultralytics.trackers.basetrack import TrackState
+
+    cfg["min_track_len"] = 4
+    tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+    for center_x in (100, 135, 170, 205):  # frame_id == 1 carries a real detection, not an empty warm-up frame
+        box = torch.tensor([[center_x - 50, 50, center_x + 50, 150, 0.9, 0]], dtype=torch.float32)
+        tracker.update(Boxes(box, (640, 640)))
+        if tracker.frame_id == 2:
+            assert tracker.tracked_stracks[0].state != TrackState.Tracked, "frame_id==1 track confirmed after 2 hits"
+    assert tracker.tracked_stracks[0].state == TrackState.Tracked
+
+
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):
     """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""

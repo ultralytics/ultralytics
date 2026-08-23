@@ -26,9 +26,9 @@ K-Fold Cross Validation can be useful across YOLO tasks when data is limited, no
 | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `detect`   | Split at the image level and keep object/class distributions balanced across folds. Use group-aware folds when images are linked by patient, video, sequence, camera, site, or subject. |
 | `segment`  | Follow detection-style image-level splitting while preserving mask/class coverage in each fold. Use group-aware folds for related samples.                                              |
+| `classify` | Use stratified folds when possible so class frequencies remain balanced across train and validation splits.                                                                             |
 | `pose`     | Split by image or subject group so the same person, animal, patient, or sequence does not appear in both train and validation folds.                                                    |
 | `obb`      | Split at the image level and preserve object/class coverage across folds, especially for aerial or tiled imagery from the same scene.                                                   |
-| `classify` | Use stratified folds when possible so class frequencies remain balanced across train and validation splits.                                                                             |
 
 For all tasks, avoid placing near-duplicate or related samples in both the training and validation folds, since such leakage can make validation metrics look better than real-world performance.
 

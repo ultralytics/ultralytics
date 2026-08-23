@@ -45,7 +45,8 @@ def read_export_metadata(file: str | Path) -> dict:
 
     Directory-based formats write a `metadata.yaml` sidecar, while single-file formats embed it in a length-prefixed
     JSON header (`.engine`), a zip entry (`.torchscript`, `.tflite`) or protobuf string map entries (`.onnx`,
-    `.mlpackage`, `_imx_model`). MNN keeps it in a flatbuffer `bizCode` field and Triton serves it over HTTP, so neither is read here.
+    `.mlpackage`, `_imx_model`). MNN keeps it in a flatbuffer `bizCode` field and Triton serves it over HTTP, so neither
+    is read here.
 
     Args:
         file (str | Path): Path to an exported model file or directory.

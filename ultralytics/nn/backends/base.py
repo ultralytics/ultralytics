@@ -152,7 +152,7 @@ class BaseBackend(ABC):
             if p.suffix == ".engine":  # 4-byte little-endian length then that many bytes of JSON
                 with open(p, "rb") as f:
                     n = int.from_bytes(f.read(4), byteorder="little")
-                    return json.loads(f.read(n)) if 0 < n < 1 << 20 else {}  # bound a garbage length
+                    return json.loads(f.read(n)) if 0 < n <= p.stat().st_size - 4 else {}  # reject a bad length
             if p.suffix in {".tflite", ".torchscript"}:  # metadata appended to or saved inside the model zip
                 with zipfile.ZipFile(p) as z:
                     names = z.namelist()

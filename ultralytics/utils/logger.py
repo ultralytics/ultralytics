@@ -149,7 +149,7 @@ class ConsoleLogger:
                 continue  # a bare newline carries nothing once timestamped
 
             # Rate-limit progress bar redraws, always keeping the completed bar
-            if "─" in line or "╸" in line:  # unfilled glyphs mark an incomplete bar
+            if any(pair in line for pair in ("──", "━─", "━╸", "╸─")):  # an unfilled cell inside the bar
                 if current_time - self.last_progress_time < self.progress_interval:
                     continue
                 self.last_progress_time = current_time

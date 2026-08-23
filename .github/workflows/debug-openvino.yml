@@ -1,0 +1,65 @@
+name: Debug OpenVINO
+on:
+  push:
+    branches: [fix-links-openvino]
+jobs:
+  Bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v7
+      - run: uv pip install --system -e ".[export-base]" --torch-backend cpu
+      - run: lscpu | grep -E "Model name|^CPU\(s\)"
+      - run: |
+          cat > /tmp/bench.py <<'PY'
+          import shutil, subprocess, sys, time
+          from pathlib import Path
+          import numpy as np
+
+          if len(sys.argv) == 1:
+              from ultralytics import YOLO
+              for name, kw in {"int8": dict(quantize=8), "fp16": dict(quantize=16)}.items():
+                  out = YOLO("yolo26n.pt").export(format="openvino", imgsz=640, batch=8, dynamic=True, data="coco8.yaml", verbose=False, **kw)
+                  path = str(shutil.move(out, f"{name}_openvino_model"))
+                  for mode in ["dynamic-throughput-async", "dynamic-latency-sync", "static-latency-sync", "static-throughput-async"]:
+                      r = subprocess.run([sys.executable, __file__, path, mode], capture_output=True, text=True, timeout=600)
+                      print(f"{name} {mode:26} {r.stdout.strip() if r.returncode == 0 else f'rc={r.returncode}'}", flush=True)
+              sys.exit()
+
+          import openvino as ov
+          path, mode = sys.argv[1:]
+          static, hint, sync = mode.startswith("static"), mode.split("-")[1].upper(), mode.endswith("sync")
+          n, sz = 8, 640
+          core = ov.Core()
+          model = core.read_model(next(Path(path).glob("*.xml")))
+          if static:
+              model.reshape([n if sync else 1, 3, sz, sz])
+          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": hint})
+          im = np.random.rand(n, 3, sz, sz).astype(np.float32)
+          name = cm.input().get_any_name()
+
+          def run():
+              if sync:
+                  return cm(im)
+              q = ov.AsyncInferQueue(cm)
+              q.set_callback(lambda req, i: None)
+              for i in range(n):
+                  q.start_async(inputs={name: im[i:i+1]}, userdata=i)
+              q.wait_all()
+
+          for _ in range(3):
+              run()
+          t = time.perf_counter()
+          for _ in range(10):
+              run()
+          print(f"{(time.perf_counter() - t) / 10 / n * 1000:.1f} ms/img")
+          PY
+          python /tmp/bench.py

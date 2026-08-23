@@ -497,6 +497,7 @@ def on_train_end(trainer):
     _send(
         "training_complete",
         {
+            "trainArgs": {k: str(v) for k, v in vars(trainer.args).items() if k != "data"},
             "results": {
                 "metrics": {**trainer.metrics, "fitness": trainer.fitness},
                 "bestEpoch": best_epoch,

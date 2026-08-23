@@ -575,7 +575,7 @@ class Exporter:
         t = time.time()
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
-            fmt = "engine"
+            fmt = self.args.format = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases

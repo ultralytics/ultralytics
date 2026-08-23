@@ -605,7 +605,6 @@ class BaseTrainer:
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
             else:
-                self.metrics = {k: "" for k in self.metrics}
                 self.fitness = None
 
             # NaN recovery
@@ -614,7 +613,8 @@ class BaseTrainer:
 
             self.nan_recovery_attempts = 0
             if RANK in {-1, 0}:
-                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **self.metrics, **self.lr})
+                val_metrics = self.metrics if should_val else dict.fromkeys(self.metrics, "")  # blank skipped epochs
+                self.save_metrics(metrics={**self.label_loss_items(self.tloss), **val_metrics, **self.lr})
                 if should_val:
                     self.stop |= self.stopper(epoch + 1, self.fitness)
                 self.stop |= final_epoch

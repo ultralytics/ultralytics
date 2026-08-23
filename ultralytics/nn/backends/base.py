@@ -9,6 +9,8 @@ from typing import Any
 
 import torch
 
+from ultralytics.utils import YAML
+
 
 def read_tflite_metadata(file: str | Path) -> dict | None:
     """Read Ultralytics metadata embedded in a ``.tflite`` file.
@@ -36,6 +38,45 @@ def read_tflite_metadata(file: str | Path) -> dict | None:
     except (zipfile.BadZipFile, SyntaxError, ValueError, KeyError, json.JSONDecodeError):
         return None
     return None
+
+
+def read_export_metadata(file: str | Path) -> dict:
+    """Read the metadata an Ultralytics export embeds, resolving a model's task and head without its filename.
+
+    Args:
+        file (str | Path): Path to an exported model file or directory.
+
+    Returns:
+        (dict): Export metadata, empty when the file carries none.
+    """
+    import json
+    import zipfile
+
+    path = Path(file)
+    try:
+        if path.suffix == ".engine":  # length-prefixed JSON header
+            with open(path, "rb") as f:
+                return json.loads(f.read(int.from_bytes(f.read(4), "little", signed=True)))
+        if path.suffix == ".tflite":
+            return read_tflite_metadata(path) or {}
+        if path.suffix == ".torchscript":  # extra file written by torch.jit.save
+            with zipfile.ZipFile(path) as zf:
+                return json.loads(zf.read(next(n for n in zf.namelist() if n.endswith("extra/config.txt"))))
+        if path.suffix == ".onnx" or path.name.endswith("_imx_model"):  # IMX packages its ONNX in a directory
+            import onnx
+
+            model = onnx.load(str(next(path.glob("*.onnx"), path) if path.is_dir() else path), load_external_data=False)
+            return {prop.key: prop.value for prop in model.metadata_props}
+        if path.suffix in {".mlpackage", ".mlmodel"}:
+            import coremltools as ct
+
+            return dict(ct.utils.load_spec(str(path)).description.metadata.userDefined)
+    except Exception:  # third-party, truncated or pre-metadata exports carry no header, so fall back to the filename
+        return {}
+    sidecar = (path if path.is_dir() else path.parent) / "metadata.yaml"  # openvino, paddle, ncnn, saved_model, ...
+    if path.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
+        sidecar = next(path.resolve().parent.rglob(f"{path.stem}_saved_model*/metadata.yaml"), sidecar)
+    return YAML.load(sidecar) if sidecar.exists() else {}
 
 
 class BaseBackend(ABC):

@@ -10,7 +10,7 @@ import torch
 from ultralytics.utils import ARM64, LINUX, LOGGER
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend
+from .base import BaseBackend, read_export_metadata
 
 
 class OpenVINOBackend(BaseBackend):
@@ -49,12 +49,7 @@ class OpenVINOBackend(BaseBackend):
         if ov_model.get_parameters()[0].get_layout().empty:
             ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
-        # Load metadata
-        metadata_file = w.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(read_export_metadata(w))
 
         # Set inference mode
         self.inference_mode = (

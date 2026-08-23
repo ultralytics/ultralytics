@@ -9,7 +9,7 @@ import torch
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements, is_rockchip
 
-from .base import BaseBackend
+from .base import BaseBackend, read_export_metadata
 
 
 class RKNNBackend(BaseBackend):
@@ -49,12 +49,7 @@ class RKNNBackend(BaseBackend):
         if ret != 0:
             raise RuntimeError(f"Failed to init RKNN runtime: {ret}")
 
-        # Load metadata
-        metadata_file = w.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(read_export_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference on the Rockchip NPU.

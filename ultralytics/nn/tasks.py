@@ -90,8 +90,6 @@ from ultralytics.utils import (
     emojis,
 )
 from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_requirements, check_suffix, check_yaml
-
-# Lazy import stereo-specific module for parse_model() resolution
 from ultralytics.utils.loss import (
     DepthLoss26,
     E2ELoss,

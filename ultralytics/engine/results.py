@@ -572,10 +572,7 @@ class Results(SimpleClass, DataExportMixin):
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
-        if self.boxes3d is not None:
-            pred_boxes3d = self.boxes3d
-        else:
-            pred_boxes3d = None
+        pred_boxes3d = self.boxes3d
         if pred_boxes is not None and (show_boxes or (pred_masks and show_masks)):
             pred_boxes = pred_boxes.cpu()  # one host transfer avoids per-box GPU syncs in the color and label loops
         annotator = Annotator(

@@ -351,9 +351,9 @@ def build_dataloader(
     """
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
+    seed = torch.initial_seed() - RANK - 1
     # `is not None`, not truthiness: a Sampler defines __len__, so one that happens to be empty is falsy
     # and would silently fall through to the default behavior.
-    seed = torch.initial_seed() - RANK - 1
     sampler = (
         sampler
         if sampler is not None

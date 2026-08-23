@@ -20,9 +20,9 @@ class TextStudentEncoder(nn.Module):
 
     Three backbone variants are available:
 
-    - **S0** (``backbone_type="S0"``): MobileCLIP-T variant (``model_name="mct"``), dim=512, 4 layers, ~42 M params.
-    - **S1** (``backbone_type="S1"``): Base transformer, dim=512, 12 layers, ~64 M params.
-    - **L** (``backbone_type="L"``): Base transformer, dim=768, 12 layers, ~124 M params.
+    - **S0**: MobileCLIP-T variant (``model_name="mct"``), dim=512, 4 layers, ~42 M params.
+    - **S1**: Base transformer, dim=512, 12 layers, ~64 M params.
+    - **L**: Base transformer, dim=768, 12 layers, ~124 M params.
 
     Args:
         cfg (dict): MobileCLIP configuration dictionary passed directly to :class:`MobileCLIPTextTransformer`.

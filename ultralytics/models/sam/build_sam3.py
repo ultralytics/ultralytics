@@ -433,8 +433,7 @@ def build_sam3_image_model(
     # Load checkpoint
     model = _load_checkpoint(model, checkpoint_path)
 
-    # For LiteText models the checkpoint stores positional embeddings at context_length=77
-    # (the pre-training context). Truncate them to the operational context length now.
+    # Truncate the loaded positional embeddings to the operational context length.
     if litetext_backbone is not None:
         model.backbone.language_backbone.set_context_length(litetext_context_length)
 

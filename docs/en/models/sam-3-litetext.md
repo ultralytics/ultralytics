@@ -148,7 +148,7 @@ The backbone is a `MobileCLIPTextTransformer` with three variants:
 | S1      | `base`       |     12 |     8 |        512 | Standard multi-head attention |
 | L       | `base`       |     12 |    12 |        768 | Standard multi-head attention |
 
-The `mct` architecture (S0) wraps the first and last two transformer layers with **RepMixer** blocks — a re-parameterisable depthwise-separable structure that is fast at inference after calling `reparameterize()`.
+The `mct` architecture (S0) adds a **RepMixer** block before the first and after the last transformer layer — a re-parameterisable depthwise-separable structure that is fast at inference after calling `reparameterize()`.
 
 ### TextStudentEncoder (`text_encoder_student.py`)
 

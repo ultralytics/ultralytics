@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import partial
 from pathlib import Path
 
 import numpy as np
@@ -56,6 +57,23 @@ class OpenVINOBackend(BaseBackend):
 
             self.apply_metadata(YAML.load(metadata_file))
 
+        # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
+        # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by
+        # reshaping and recompiling per input shape in forward() instead
+        cpuinfo = Path("/proc/cpuinfo")
+        self.read_model = (
+            partial(core.read_model, model=str(w), weights=w.with_suffix(".bin"))
+            if LINUX
+            and device_name in {"CPU", "AUTO"}
+            and ov_model.input().get_partial_shape().is_dynamic
+            and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
+            and cpuinfo.exists()
+            and "amx_int8" in cpuinfo.read_text()
+            else None
+        )
+        if self.read_model is not None:
+            self.dynamic = False  # fixed letterbox shapes so recompiles stay rare
+
         # Set inference mode
         self.inference_mode = (
             ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
@@ -73,11 +91,8 @@ class OpenVINOBackend(BaseBackend):
         ):
             config["NPU_TURBO"] = "YES"
 
-        self.ov_compiled_model = core.compile_model(
-            ov_model,
-            device_name=device_name,
-            config=config,
-        )
+        self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
+        self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(
             f"Using OpenVINO {self.inference_mode} mode for batch={self.batch} inference on "
             f"{', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}..."
@@ -95,6 +110,12 @@ class OpenVINOBackend(BaseBackend):
             (list[np.ndarray]): Model predictions as a list of numpy arrays, one per output layer.
         """
         im = im.cpu().numpy().astype(np.float32, copy=False)
+        if self.read_model is not None and self.ov_compiled_model.input().get_partial_shape() != self.ov.PartialShape(
+            im.shape
+        ):
+            ov_model = self.read_model()
+            ov_model.reshape(list(im.shape))
+            self.ov_compiled_model = self.compile_model(ov_model)
 
         if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
             # Async inference for larger batch sizes

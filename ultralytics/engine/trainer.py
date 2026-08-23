@@ -38,7 +38,6 @@ from ultralytics.utils import (
     RANK,
     TQDM,
     YAML,
-    IterableSimpleNamespace,
     callbacks,
     clean_url,
     colorstr,
@@ -130,6 +129,10 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
+            import albumentations as A
+
+            self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
@@ -146,7 +149,7 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            YAML.save(self.save_dir / "args.yaml", self.serialized_args())  # save run args
+            YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
@@ -705,13 +708,6 @@ class BaseTrainer:
             if any(filter(lambda f: f in n, self.freeze_layer_names)) and isinstance(m, nn.BatchNorm2d):
                 m.eval()
 
-    def serialized_args(self) -> dict:
-        """Return a copy of the training args with custom augmentation transforms replaced by their reprs."""
-        args = vars(self.args).copy()
-        if args.get("augmentations") is not None:
-            args["augmentations"] = [repr(t) for t in args["augmentations"]]
-        return args
-
     def save_model(self):
         """Save model training checkpoints with additional metadata."""
         import io
@@ -736,10 +732,6 @@ class BaseTrainer:
             if isinstance(v, torch.Tensor) and v.is_floating_point():
                 torch.nan_to_num_(v)
 
-        train_args = self.serialized_args()
-        if hasattr(ema, "args"):
-            ema.args = IterableSimpleNamespace(**train_args)  # drop custom transform objects pickled via model.args
-
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
         torch.save(
@@ -751,7 +743,7 @@ class BaseTrainer:
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
-                "train_args": train_args,  # save as dict
+                "train_args": vars(self.args),  # save as dict
                 "train_metrics": {**self.metrics, "fitness": self.fitness},
                 "train_results": self.read_results_csv(),
                 "date": datetime.now().astimezone().isoformat(),
@@ -997,15 +989,6 @@ class BaseTrainer:
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
-
-                if ckpt_args.get("augmentations") and "augmentations" not in overrides:
-                    # Augmentations were saved in checkpoint as reprs and can't be restored automatically
-                    LOGGER.warning(
-                        f"Custom Albumentations transforms {ckpt_args['augmentations']} were used in the original "
-                        "training run but cannot be restored from the checkpoint. To preserve them, pass the original "
-                        "transform objects again, i.e. model.train(resume=True, augmentations=[A.Blur(p=0.01), ...])"
-                    )
-                    self.args.augmentations = None
 
             except Exception as e:
                 raise FileNotFoundError(

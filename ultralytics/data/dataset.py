@@ -35,7 +35,6 @@ from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
-    IMG_FORMATS,
     check_file_speeds,
     get_hash,
     img2label_paths,
@@ -1532,10 +1531,7 @@ class MultiLabelClassificationDataset:
         try:
             im = Image.open(im_file)
             im.verify()
-            if im_file.lower().endswith(tuple(f".{fmt}" for fmt in IMG_FORMATS)):
-                nf = 1
-            else:
-                nf = 1  # still accept if PIL can open it
+            nf = 1
         except Exception as e:
             nc = 1
             msg = f"{prefix}WARNING ⚠️ {im_file}: ignoring corrupt image: {e}"

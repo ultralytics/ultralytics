@@ -18,11 +18,11 @@ from PIL import Image
 _imshow = cv2.imshow  # copy to avoid recursion errors
 
 
-def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
+def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """Read an image from a file with multilanguage filename support.
 
     Args:
-        filename (str): Path to the file to read.
+        filename (str | Path): Path to the file to read.
         flags (int, optional): Flag that can take values of cv2.IMREAD_*. Controls how the image is read.
 
     Returns:
@@ -32,6 +32,7 @@ def imread(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
+    filename = str(filename)
     try:
         file_bytes = np.fromfile(filename, np.uint8)
     except (FileNotFoundError, OSError):

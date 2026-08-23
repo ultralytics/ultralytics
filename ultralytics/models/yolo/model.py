@@ -81,8 +81,8 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            module = getattr(self.model, "model", None)  # None for exported models, which are held as a path
-            head = module[-1]._get_name() if module is not None else read_export_metadata(self.model).get("head")
+            module = getattr(self.model, "model", None)  # exported models are held as a path instead
+            head = module[-1]._get_name() if module else read_export_metadata(self.model).get("head")
             if head == "RTDETRDecoder":  # if RTDETR head
                 from ultralytics import RTDETR
 

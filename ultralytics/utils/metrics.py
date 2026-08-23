@@ -1120,13 +1120,11 @@ class DetMetrics(SimpleClass, DataExportMixin):
         summary: Generate a summarized representation of per-class detection metrics as a list of dictionaries.
     """
 
-    def __init__(self, names: dict[int, str] | None = None, iou_metrics: list[float] | None = None) -> None:
+    def __init__(self, names: dict[int, str] | None = None) -> None:
         """Initialize a DetMetrics instance with class names.
 
         Args:
             names (dict[int, str], optional): Dictionary of class names.
-            iou_metrics (list[float], optional): Extra IoU thresholds to report mAP at, e.g. [0.75, 0.90, 0.95]. Valid
-                range is 0.50–0.95 in steps of 0.05. Thresholds outside this range are clamped.
         """
         self.names = names if names is not None else {}
         self.box = Metric()
@@ -1134,7 +1132,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
         self.stats = {"tp": [], "conf": [], "pred_cls": [], "target_cls": [], "target_img": []}
         self.nt_per_class = None
         self.nt_per_image = None
-        self.iou_metrics = list(iou_metrics) if iou_metrics else []  # normalized via property setter
+        self.iou_metrics = None
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1213,8 +1211,6 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     def _extra_maps(self) -> list[float]:
         """Return mean AP at each threshold in self.iou_metrics, or zeros when no data is available."""
-        if not self.iou_metrics:
-            return []
         if not len(self.box.all_ap):
             return [0.0] * len(self.iou_metrics)
         return [float(self.box.all_ap[:, self._iou_idx(t)].mean()) for t in self.iou_metrics]
@@ -1231,13 +1227,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
 
     def class_result(self, i: int) -> tuple:
         """Return the result of evaluating the performance of an object detection model on a specific class."""
-        base = self.box.class_result(i)
-        if not self.iou_metrics:
-            return base
-        if not len(self.box.all_ap):
-            return base + (0.0,) * len(self.iou_metrics)
-        extra = tuple(float(self.box.all_ap[i, self._iou_idx(t)]) for t in self.iou_metrics)
-        return base + extra
+        return self.box.class_result(i) + tuple(float(self.box.all_ap[i, self._iou_idx(t)]) for t in self.iou_metrics)
 
     @property
     def maps(self) -> np.ndarray:

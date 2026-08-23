@@ -228,7 +228,7 @@ Fine-tune any released checkpoint on your own YOLO dataset. This mostly follows 
 
 !!! tip "Training a detection model instead"
 
-    Every released checkpoint is a segmentation model. To train a detector, build the model from the matching YAML, load the segmentation weights of the same scale, and swap in the detection trainer. Everything else is unchanged, including the freeze list from the Linear Probing tab above.
+    Every released checkpoint is a segmentation model. To train a detector, build the model from the matching YAML, load the segmentation weights of the same scale, and swap in the detection trainer. Everything else is unchanged; this example fine-tunes the full model, and the Linear Probing freeze list above works with this trainer too if you pass `freeze=freeze`.
 
     ```python
     from ultralytics import YOLOE

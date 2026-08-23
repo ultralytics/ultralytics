@@ -5,7 +5,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 import torch
@@ -27,9 +27,6 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.torch_utils import unwrap_model
-
-if TYPE_CHECKING:
-    from ultralytics.engine.predictor import BasePredictor
 
 
 class Model(torch.nn.Module):
@@ -140,7 +137,7 @@ class Model(torch.nn.Module):
 
     def __call__(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
@@ -150,9 +147,9 @@ class Model(torch.nn.Module):
         with the required arguments.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple, optional): The source of
-                the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or
-                a list/tuple of these.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+                to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or a list/tuple
+                of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
@@ -422,7 +419,7 @@ class Model(torch.nn.Module):
 
     def embed(
         self,
-        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         **kwargs: Any,
     ) -> Iterator[torch.Tensor] | list[torch.Tensor]:
@@ -433,8 +430,8 @@ class Model(torch.nn.Module):
         select specific layers.
 
         Args:
-            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): The source of the image for
-                generating embeddings. Can be a file path, URL, numpy array, etc.
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor): The source of the image for generating
+                embeddings. Can be a file path, URL, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
@@ -463,9 +460,9 @@ class Model(torch.nn.Module):
 
     def predict(
         self,
-        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor | None = None,
+        source: str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
-        predictor: type[BasePredictor] | None = None,
+        predictor=None,
         **kwargs: Any,
     ) -> Iterator[Results | torch.Tensor] | list[Results] | list[torch.Tensor]:
         """Perform predictions on the given image source using the YOLO model.
@@ -475,12 +472,12 @@ class Model(torch.nn.Module):
         of image sources and can operate in a streaming mode.
 
         Args:
-            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple, optional): The source of
-                the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy
-                arrays, and torch tensors.
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): The source of the image(s)
+                to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy arrays, and
+                torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
-            predictor (type[BasePredictor], optional): A custom predictor class for making predictions. If None, the
-                method uses a default predictor.
+            predictor (BasePredictor, optional): An instance of a custom predictor class for making predictions. If
+                None, the method uses a default predictor.
             **kwargs (Any): Additional keyword arguments for configuring the prediction process. These include `embed`
                 for returning feature embeddings from specified layers.
 
@@ -540,7 +537,7 @@ class Model(torch.nn.Module):
 
     def track(
         self,
-        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor | None = None,
+        source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         persist: bool = False,
         **kwargs: Any,

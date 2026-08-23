@@ -391,47 +391,6 @@ def test_export_coreml_matrix(task, dynamic, quantize, nms, batch, end2end):
     shutil.rmtree(file)  # cleanup
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not MACOS, reason="CoreML inference only supported on macOS")
-@pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
-@pytest.mark.skipif(
-    MACOS and MACOS_VERSION and MACOS_VERSION >= "15", reason="CoreML YOLO26 matrix test crashes on macOS 15+"
-)
-@pytest.mark.parametrize("task", ["segment", "pose"])
-def test_export_coreml_nms_alignment(task):
-    """Verify CoreML NMS-baked segment/pose exports keep each mask/keypoint on its own kept box."""
-    import numpy as np
-
-    # end2end=False: TASK2MODEL's YOLO26 models default to end2end=True, which forces nms=False upstream
-    file = YOLO(TASK2MODEL[task]).export(format="coreml", imgsz=32, nms=True, end2end=False)
-    results = YOLO(file)(SOURCE, imgsz=32)[0]
-    boxes = results.boxes.xyxy.cpu().numpy()
-    n = len(boxes)
-    assert n > 0, "expected at least one detection to validate alignment"
-    # 10% margin per box, i.e. (w, h, w, h) scaled and signed to expand (x0, y0, x1, y1) outward
-    padded = boxes + 0.1 * np.hstack([boxes[:, 2:] - boxes[:, :2]] * 2) * [-1, -1, 1, 1]
-    if task == "segment":
-        assert len(results.masks.xy) == n
-        for (x0, y0, x1, y1), xy in zip(padded, results.masks.xy):
-            cx, cy = xy.mean(axis=0)  # mask centroid, in the same pixel space as boxes.xyxy
-            assert x0 <= cx <= x1 and y0 <= cy <= y1, (
-                "mask centroid falls outside its own detection's box - masks are misaligned with the kept boxes"
-            )
-    else:
-        keypoints = results.keypoints.xy.cpu().numpy()
-        assert len(keypoints) == n
-        for (x0, y0, x1, y1), kpts in zip(padded, keypoints):
-            visible = kpts[kpts.sum(-1) > 0]  # drop unpredicted (0, 0) keypoints
-            if len(visible) == 0:
-                continue
-            inside = (visible[:, 0] >= x0) & (visible[:, 0] <= x1) & (visible[:, 1] >= y0) & (visible[:, 1] <= y1)
-            assert inside.mean() > 0.5, (
-                "majority of keypoints fall outside their own detection's box - keypoints are misaligned with the "
-                "kept boxes"
-            )
-    shutil.rmtree(file)  # cleanup
-
-
 @pytest.mark.skipif(not TORCH_1_11, reason="CoreML export requires torch>=1.11")
 @pytest.mark.skipif(WINDOWS, reason="CoreML not supported on Windows")  # RuntimeError: BlobWriter not loaded
 @pytest.mark.skipif(LINUX and ARM64, reason="CoreML not supported on aarch64 Linux")

@@ -73,7 +73,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
   <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
   <a href="https://www.youtube.com/ultralytics?sub_confirmation=1"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-youtube.png" width="3%" alt="Ultralytics YouTube"></a>
   <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
-  <a href="https://xhslink.com/m/crF3XX1dmn"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-rednote.png" width="3%" alt="Ultralytics RedNote"></a>
+  <a href="https://www.xiaohongshu.com/user/profile/69119aab00000000370023db"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-rednote.png" width="3%" alt="Ultralytics RedNote"></a>
   <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">
   <a href="https://www.tiktok.com/@ultralytics"><img src="https://github.com/ultralytics/assets/raw/main/social/logo-social-tiktok.png" width="3%" alt="Ultralytics TikTok"></a>
   <img width="3%" src="https://github.com/ultralytics/assets/raw/main/social/logo-transparent.png" alt="">

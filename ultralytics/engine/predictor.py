@@ -60,7 +60,7 @@ from ultralytics.utils.torch_utils import attempt_compile, select_device, smart_
 
 STREAM_WARNING = """
 Inference results will accumulate in RAM unless `stream=True` is passed, which can cause out-of-memory errors for large
-sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict/ for help.
+sources or long-running streams and videos. See https://docs.ultralytics.com/modes/predict for help.
 
 Example:
     results = model(source=..., stream=True)  # generator of Results objects

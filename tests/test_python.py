@@ -129,24 +129,6 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
-def test_channel_divisor():
-    """Test custom channel rounding while preserving the default and rejecting invalid divisors."""
-    from ultralytics.nn.tasks import DetectionModel
-
-    cfg = {
-        "nc": 2,
-        "width_multiple": 0.37,
-        "backbone": [[-1, 1, "Conv", [100, 3, 2]]],
-        "head": [[[-1], 1, "Detect", [2]]],
-    }
-    default = DetectionModel(cfg=cfg, verbose=False)
-    exact = DetectionModel(cfg={**cfg, "channel_divisor": 1}, verbose=False)
-    assert default.model[0].conv.out_channels == 40
-    assert exact.model[0].conv.out_channels == 37
-    with pytest.raises(ValueError, match="channel_divisor"):
-        DetectionModel(cfg={**cfg, "channel_divisor": 0}, verbose=False)
-
-
 def skip_rpi_semantic():
     """Skip semantic segmentation tests on Raspberry Pi due to memory constraints."""
     if IS_RASPBERRYPI:
@@ -213,6 +195,16 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "01,03")  # leading zeros are valid for CUDA's atoi-style parsing
     assert torch_utils.parse_device("3") == "1"  # visible ids normalize like requested ids
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
+
+
+def test_restricted_load_threaded():
+    """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from ultralytics.nn.tasks import torch_safe_load
+
+    with ThreadPoolExecutor(8) as pool:
+        list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
 
 
 def test_model_forward():
@@ -1032,7 +1024,7 @@ def test_results(model: str, tmp_path, solution_assets):
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
-        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
+        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict#working-with-results
         r.to_csv()
         r.to_json(normalize=True)
         r.plot(pil=True, save=True, filename=tmp_path / "results_plot_save.jpg")

@@ -3,7 +3,7 @@ title: Medical Pills Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -109,7 +109,7 @@ To train a YOLO26n model on the Medical Pills dataset for 100 [epochs](https://w
 
 The Medical Pills dataset features labeled images showcasing the diversity of pills. Below is an example of a labeled image from the dataset:
 
-![Medical Pills dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/medical-pills-dataset-sample-image.avif)
+![Medical Pills dataset sample image](https://cdn.ul.run/i/70a06a40bd512ead35b4f4fb8bcd7966.avif)
 
 - **Mosaiced Image**: Displayed is a training batch comprising mosaiced dataset images. Mosaicing enhances training diversity by consolidating multiple images into one, improving model generalization.
 
@@ -133,7 +133,7 @@ If you use the Medical Pills dataset in your research or development work, pleas
             license = {AGPL-3.0},
             month = {Dec},
             title = {Ultralytics Datasets: Medical-pills Detection Dataset},
-            url = {https://docs.ultralytics.com/datasets/detect/medical-pills/},
+            url = {https://docs.ultralytics.com/datasets/detect/medical-pills},
             version = {1.0.0},
             year = {2024}
         }

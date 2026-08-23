@@ -369,7 +369,7 @@ def test_export_torchscript_matrix(task, dynamic, batch, nms, end2end, tmp_path)
         for task, dynamic, quantize, nms, batch, end2end in product(
             sorted(TASKS), [True, False], [8, 16], [True, False], [1], [True, False]
         )
-        if not (task != "detect" and nms)
+        if not (task not in {"detect", "segment", "pose"} and nms)
         and not (dynamic and nms)
         and not (task == "classify" and dynamic)
         and not (end2end and nms)
@@ -459,27 +459,6 @@ def test_export_coreml_rtdetr():
     output = stdout.getvalue() + stderr.getvalue()
     assert "Error" not in output, f"RTDETR CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "RTDETR CoreML export has predict() error"
-
-
-@pytest.mark.parametrize(
-    "model, expected_nms",
-    [("yolo11n.yaml", True), ("yolo11n-seg.yaml", False), ("yolo11n-pose.yaml", False)],
-)
-def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
-    """Test CoreML 'nms=True' stays enabled for detect but warns and is forced off for other tasks."""
-    captured = {}
-    warnings = []
-
-    def stub(self):
-        captured["nms"] = self.args.nms
-        captured["metadata_nms"] = self.metadata["args"]["nms"]
-
-    monkeypatch.setattr(Exporter, "export_coreml", stub)  # skip the actual CoreML export
-    monkeypatch.setattr("ultralytics.engine.exporter.LOGGER.warning", warnings.append)
-    YOLO(model).export(format="coreml", nms=True, imgsz=32)
-    assert captured["nms"] is expected_nms
-    assert captured["metadata_nms"] is expected_nms
-    assert any("only supported for detect models" in warning for warning in warnings) is not expected_nms
 
 
 @pytest.mark.skipif(True, reason="Test disabled")

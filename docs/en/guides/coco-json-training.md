@@ -7,7 +7,7 @@ keywords: COCO JSON training, train YOLO on COCO JSON, COCO JSON without convers
 
 # How to Train YOLO on COCO JSON Without Converting
 
-[Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com/) training without converting to `.txt` files first. This works by subclassing [`YOLODataset`](../reference/data/dataset.md#ultralytics.data.dataset.YOLODataset) to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
+[Annotations](https://www.ultralytics.com/glossary/data-labeling) in [COCO JSON](https://cocodataset.org/#format-data) format can be used directly for [Ultralytics YOLO](https://www.ultralytics.com) training without converting to `.txt` files first. This works by subclassing [`YOLODataset`](../reference/data/dataset.md#ultralytics.data.dataset.YOLODataset) to parse COCO JSON on the fly and wiring it into the training pipeline through a custom trainer.
 
 ## Why Train Directly on COCO JSON
 

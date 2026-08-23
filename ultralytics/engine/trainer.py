@@ -998,7 +998,7 @@ class BaseTrainer:
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
-                if ckpt_args.get("augmentations") is not None and "augmentations" not in overrides:
+                if ckpt_args.get("augmentations") and "augmentations" not in overrides:
                     # Augmentations were saved in checkpoint as reprs and can't be restored automatically
                     LOGGER.warning(
                         "Custom Albumentations transforms were used in the original training run but are not "

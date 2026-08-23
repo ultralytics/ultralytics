@@ -22,7 +22,7 @@ Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking 
     - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-100-overview.avif" alt="Roboflow 100 diverse object detection benchmark">
+  <img width="640" src="https://cdn.ul.run/i/282413c77a0a549c9d21f70e9a3e44c6.avif" alt="Roboflow 100 diverse object detection benchmark">
 </p>
 
 ## Key Features
@@ -121,7 +121,7 @@ The Roboflow 100 dataset, including metadata and download links, is available on
 Roboflow 100 consists of datasets with diverse images captured from various angles and domains. Below are examples of annotated images included in the RF100 benchmark, showcasing the variety of objects and scenes. Techniques like [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) can further enhance the diversity during training.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sample-data-annotations.avif" alt="Roboflow 100 sample images with annotations">
+  <img width="640" src="https://cdn.ul.run/i/11156b9901f5734b8ff74e7a8995126b.avif" alt="Roboflow 100 sample images with annotations">
 </p>
 
 The diversity seen in the Roboflow 100 benchmark represents a significant advancement from traditional benchmarks, which often focus on optimizing a single metric within a limited domain. This comprehensive approach aids in developing more robust and versatile [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models capable of performing well across a multitude of different scenarios.

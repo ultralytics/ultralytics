@@ -8,7 +8,7 @@ keywords: Coral Edge TPU, Raspberry Pi, YOLO26, Ultralytics, TensorFlow Lite, tf
 # How to Run Ultralytics YOLO26 on a Raspberry Pi with a Coral Edge TPU
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/edge-tpu-usb-accelerator-and-pi.avif" alt="Raspberry Pi with Edge TPU accelerator">
+  <img width="800" src="https://cdn.ul.run/i/d92f346ad0fe56e927a81fa17fff78b2.avif" alt="Raspberry Pi with Edge TPU accelerator">
 </p>
 
 A [Raspberry Pi](raspberry-pi.md) is a power-efficient, affordable platform for running computer vision at the edge, but on-device inference is slow even with optimized formats like [ONNX](../integrations/onnx.md) or [OpenVINO](../integrations/openvino.md). Pairing the Pi with a Coral Edge TPU coprocessor offloads inference to dedicated hardware and dramatically speeds it up. This guide shows you how to install the runtime, export an Ultralytics YOLO26 model to the Edge TPU format, and run accelerated inference.

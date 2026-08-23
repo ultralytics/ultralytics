@@ -9,12 +9,12 @@ keywords: YOLO26, ClearML, MLOps, Ultralytics, machine learning, object detectio
 
 MLOps bridges the gap between creating and deploying [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models in real-world settings. It focuses on efficient deployment, scalability, and ongoing management to ensure models perform well in practical applications.
 
-[Ultralytics YOLO26](https://www.ultralytics.com/) effortlessly integrates with ClearML, streamlining and enhancing your [object detection](https://www.ultralytics.com/glossary/object-detection) model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
+[Ultralytics YOLO26](https://www.ultralytics.com) effortlessly integrates with ClearML, streamlining and enhancing your [object detection](https://www.ultralytics.com/glossary/object-detection) model's training and management. This guide will walk you through the integration process, detailing how to set up ClearML, manage experiments, automate model management, and collaborate effectively.
 
 ## ClearML
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-overview.avif" alt="ClearML MLOps platform dashboard">
+  <img width="100%" src="https://cdn.ul.run/i/d20155d7401dfbd70a5e486371ff32f1.avif" alt="ClearML MLOps platform dashboard">
 </p>
 
 [ClearML](https://clear.ml/) is an innovative open-source MLOps platform that is skillfully designed to automate, monitor, and orchestrate machine learning workflows. Its key features include automated logging of all training and inference data for full experiment reproducibility, an intuitive web UI for easy [data visualization](https://www.ultralytics.com/glossary/data-visualization) and analysis, advanced hyperparameter [optimization algorithms](https://www.ultralytics.com/glossary/optimization-algorithm), and robust model management for efficient deployment across various platforms.
@@ -171,7 +171,7 @@ This setup is applicable to cloud VMs, local GPUs, or laptops. [ClearML Autoscal
 ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of tasks. Users can clone an existing experiment, adjust parameters or other details through the UI, and enqueue the task for execution. This streamlined process ensures that the ClearML Agent executing the task uses updated configurations, making it ideal for iterative experimentation and model fine-tuning.
 
 <p align="center"><br>
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/cloning-editing-enqueuing-clearml.avif" alt="Cloning, Editing, and Enqueuing with ClearML">
+  <video width="100%" src="https://cdn.ul.run/v/0bda035ae9950163a7148c89b28e5023.mp4" autoplay loop muted playsinline aria-label="Cloning, Editing, and Enqueuing with ClearML"></video>
 </p>
 
 ## Dataset Version Management

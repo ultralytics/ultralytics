@@ -186,8 +186,7 @@ class SafeTensorsBackend(BaseBackend):
             "depth": DepthModel,
         }.get(metadata.get("task"), DetectionModel)
         model = model_cls(yaml_dict, ch=yaml_dict.get("channels", 3), verbose=False)
-        if metadata.get("fused") == "True":  # weights come from a fused export
-            model = model.fuse(verbose=False)
+        model = model.fuse(verbose=False)  # exports are always fused, so the state dict carries no BatchNorm
         # Extra tensors are tolerated (legacy checkpoints carry weights the current architecture no longer uses),
         # but every parameter of the rebuilt model must come from the file.
         missing, _ = model.load_state_dict(load_file(str(weight), device=str(self.device)), strict=False)

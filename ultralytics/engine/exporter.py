@@ -1780,7 +1780,6 @@ class Exporter:
 
         # SafeTensors metadata only accepts string values, so serialize everything to str
         metadata = {k: str(v) for k, v in self.metadata.items()}
-        metadata["fused"] = "True"  # weights come from the fused model built in __call__
         yaml_data = dict(model.yaml)
         yaml_data["nc"] = getattr(model, "nc", None) or len(model.names)
         metadata["model_yaml"] = json.dumps(yaml_data)

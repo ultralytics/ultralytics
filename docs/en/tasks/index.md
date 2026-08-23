@@ -1,15 +1,15 @@
 ---
 title: YOLO26 Computer Vision Tasks Overview
 comments: true
-description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, and OBB with high accuracy and speed. Learn how to apply each task.
-keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, computer vision, AI framework
+description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, OBB, and person re-identification with high accuracy and speed. Learn how to apply each task.
+keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, person re-identification, ReID, computer vision, AI framework
 ---
 
 # Computer Vision Tasks Supported by Ultralytics YOLO26
 
 <img width="1024" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, and [OBB](obb.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
+Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, [OBB](obb.md), and [person re-identification (ReID)](reid.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
 <p align="center">
   <br>

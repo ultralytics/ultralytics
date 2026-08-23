@@ -5,7 +5,6 @@ from __future__ import annotations
 from copy import copy
 from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from ultralytics.data.utils import add_polygon_background
@@ -114,6 +113,8 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         Samples up to 1000 mask files from the training dataset, accumulates per-class pixel
         counts, and plots a bar chart of class distribution saved to 'labels.jpg'.
         """
+        import matplotlib.pyplot as plt
+
         LOGGER.info(f"Plotting labels to {self.save_dir / 'labels.jpg'}...")
         nc = self.data["nc"]
         names = self.data["names"]

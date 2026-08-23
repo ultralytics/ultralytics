@@ -799,7 +799,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
             break
 
     if not kpt_lengths or len(set(kpt_lengths)) != 1:
-        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
     n = kpt_lengths[0]
 
@@ -811,7 +811,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     if n % 2 == 0 and n % 3 != 0:
         return [n // 2, 2]
 
-    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
 async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:

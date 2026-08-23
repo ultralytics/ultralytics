@@ -552,7 +552,6 @@ nav:
   - Integrations:
       - Integrations: integrations/index.md
       - Agent Skills: integrations/agent-skills.md
-      - Contribute a Hardware Integration: integrations/hardware-integration.md
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Ambarella: integrations/ambarella.md
@@ -560,6 +559,7 @@ nav:
       - Axelera: integrations/axelera.md
       - ClearML: integrations/clearml.md
       - Comet ML: integrations/comet.md
+      - Contribute a Hardware Integration: integrations/hardware-integration.md
       - Core AI: integrations/coreai.md
       - CoreML: integrations/coreml.md
       - DEEPX: integrations/deepx.md

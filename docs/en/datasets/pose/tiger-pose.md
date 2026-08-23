@@ -19,7 +19,7 @@ keywords: Ultralytics, Tiger-Pose, dataset, pose estimation, YOLO26, training da
 
 Despite its manageable training split of 210 images, the Tiger-Pose dataset offers diversity, making it suitable for assessing training pipelines, identifying potential errors, and serving as a valuable preliminary step before working with larger datasets for [pose estimation](../../tasks/pose.md).
 
-Once your pipeline trains clean on this small set, swap in your own animal or object keypoints and scale up training on [Ultralytics Platform](https://platform.ultralytics.com) without leaving the browser.
+Once your pipeline trains clean on this small set, swap in your own animal or object keypoints and scale up training on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/tiger-pose) without leaving the browser.
 
 ## Dataset Structure
 
@@ -78,7 +78,7 @@ To train a YOLO26n-pose model on the Tiger-Pose dataset for 100 [epochs](https:/
 
 Here are some examples of images from the Tiger-Pose dataset, along with their corresponding annotations:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-4.avif" alt="Tiger pose estimation dataset mosaic training batch" width="100%">
+<img src="https://cdn.ul.run/i/49a3eec513e5b20c708b49eacc8e6b1d.avif" alt="Tiger pose estimation dataset mosaic training batch" width="100%">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

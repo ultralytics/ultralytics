@@ -921,7 +921,7 @@ class MobileCLIPTextTransformer(nn.Module):
             raise ValueError(f"Unrecognized text encoder variant: {variant!r}")
 
         self.final_layer_norm = get_normalization_layer(num_features=model_dim, norm_type=norm_layer)
-        self.projection_layer = nn.Parameter(torch.empty(model_dim, self.projection_dim))
+        self.projection_layer = nn.Parameter(torch.randn(model_dim, self.projection_dim) * self.projection_dim**-0.5)
         self.model_dim = model_dim
         self.causal_masking = cfg["causal_masking"]
 

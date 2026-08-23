@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO, depth estimation, SUN RGB-D, indoor RGB-D, multi-se
 
 # SUN RGB-D Depth Dataset
 
-[SUN RGB-D](https://rgbd.cs.princeton.edu/) is a real-world indoor scene-understanding benchmark captured with four different RGB-D sensors: Intel RealSense, Asus Xtion, and Microsoft Kinect v1 and v2. Its multi-sensor design makes it a valuable source of real indoor depth diversity for [monocular depth estimation](index.md).
+[SUN RGB-D](https://openaccess.thecvf.com/content_cvpr_2015/html/Song_SUN_RGB-D_A_2015_CVPR_paper.html) is a real-world indoor scene-understanding benchmark captured with four different RGB-D sensors: Intel RealSense, Asus Xtion, and Microsoft Kinect v1 and v2. Its multi-sensor design makes it a valuable source of real indoor depth diversity for [monocular depth estimation](index.md).
 
 Explore [SUN RGB-D on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/depth-sunrgbd) to preview its RGB-depth pairs, inspect dataset statistics, and clone it for training.
 

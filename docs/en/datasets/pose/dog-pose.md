@@ -15,7 +15,7 @@ keywords: Dog-Pose, Ultralytics, pose estimation dataset, YOLO26, machine learni
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation, providing 6,773 training and 1,703 validation images.
+The [Ultralytics](https://www.ultralytics.com) Dog-Pose dataset is a high-quality and extensive dataset specifically curated for dog keypoint estimation, providing 6,773 training and 1,703 validation images.
 
 <p align="center">
   <br>
@@ -30,9 +30,9 @@ The [Ultralytics](https://www.ultralytics.com/) Dog-Pose dataset is a high-quali
 
 Each annotated image includes 24 keypoints with 3 dimensions per keypoint (x, y, visibility), making it a valuable resource for advanced research and development in computer vision.
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-dogs.avif" alt="Ultralytics Dog-Pose display image" width="800">
+<img src="https://cdn.ul.run/i/552d36d65c7964875d28eff3c299c8cd.avif" alt="Ultralytics Dog-Pose display image" width="800">
 
-For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com/) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
+For a specific breed or a different animal altogether, [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dog-pose) handles uploading, labeling, and training a custom keypoint model on your own data without managing infrastructure.
 
 ## Dataset Structure
 
@@ -86,7 +86,7 @@ To train a YOLO26n-pose model on the Dog-Pose dataset for 100 [epochs](https://w
 
 Here are some examples of images from the Dog-Pose dataset, along with their corresponding annotations:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-2-dog-pose.avif" alt="Dog pose estimation dataset mosaic training batch" width="800">
+<img src="https://cdn.ul.run/i/537ea9073be94b3e950bfa899fc1078c.avif" alt="Dog pose estimation dataset mosaic training batch" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

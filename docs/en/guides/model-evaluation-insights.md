@@ -39,7 +39,7 @@ The confidence score represents the model's certainty that a detected object bel
 [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) is a metric in [object detection](https://www.ultralytics.com/glossary/object-detection) that measures how well the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
+  <img width="100%" src="https://cdn.ul.run/i/178fd224a437a4d2acd73be593ffed6a.avif" alt="Intersection over Union Overview">
 </p>
 
 ### Mean Average Precision
@@ -54,7 +54,7 @@ Two mAP metrics are most commonly reported:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mean-average-precision-overview.avif" alt="Mean average precision mAP metric">
+  <img width="100%" src="https://cdn.ul.run/i/d05182a0bc6cf4f2f45a598e9f414496.avif" alt="Mean average precision mAP metric">
 </p>
 
 ## Evaluating a YOLO26 Model

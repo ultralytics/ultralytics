@@ -13,7 +13,7 @@ class SolutionConfig:
     """Manages configuration parameters for Ultralytics Vision AI solutions.
 
     The SolutionConfig class serves as a centralized configuration container for all the Ultralytics solution modules:
-    https://docs.ultralytics.com/solutions/#solutions. It leverages Python `dataclass` for clear, type-safe, and
+    https://docs.ultralytics.com/solutions#solutions. It leverages Python `dataclass` for clear, type-safe, and
     maintainable parameter definitions.
 
     Attributes:
@@ -110,7 +110,7 @@ class SolutionConfig:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                url = "https://docs.ultralytics.com/solutions/#solutions-arguments"
+                url = "https://docs.ultralytics.com/solutions#solutions-arguments"
                 raise ValueError(f"{key} is not a valid solution argument, see {url}")
 
         return self

@@ -482,8 +482,8 @@ The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9
 
 **Compatibility Notes:**
 
-- Compatible with all YOLO detection and segmentation tasks
-- Not applicable for classification tasks (classification uses a different augmentation pipeline)
+- Compatible with all YOLO tasks: detect, segment, semantic, depth, classify, pose, and obb
+- Classification applies the transforms inside the torchvision pipeline, so use pixel-level transforms there
 
 For more information about Albumentations and available transforms, visit the [official Albumentations documentation](https://albumentations.ai/docs/).
 

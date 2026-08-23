@@ -2904,6 +2904,38 @@ def classify_transforms(
 
 
 # Classification training augmentations --------------------------------------------------------------------------------
+class AlbumentationsTransform:
+    """Apply Albumentations transforms to a PIL image inside a torchvision classification pipeline.
+
+    Attributes:
+        transform (albumentations.Compose): Composed Albumentations transforms applied to every image.
+
+    Examples:
+        >>> import albumentations as A
+        >>> transform = AlbumentationsTransform([A.Blur(p=0.5), A.CLAHE(p=0.3)])
+        >>> augmented_image = transform(original_image)
+    """
+
+    def __init__(self, transforms: list) -> None:
+        """Initialize the wrapper with custom Albumentations transforms.
+
+        Args:
+            transforms (list): Albumentations transforms, either objects or `A.to_dict()` dicts as stored in
+                checkpoints.
+        """
+        import albumentations as A  # scope for faster 'import ultralytics'
+
+        if isinstance(transforms[0], dict):
+            transforms = [A.from_dict(t) for t in transforms]  # restore transforms serialized by the trainer
+        self.transform = A.Compose(transforms)
+        prefix = colorstr("albumentations: ")
+        LOGGER.info(prefix + ", ".join(f"{x}".replace("always_apply=False, ", "") for x in transforms if x.p))
+
+    def __call__(self, img: Image.Image) -> Image.Image:
+        """Apply the transforms to a PIL image and return the augmented PIL image."""
+        return Image.fromarray(self.transform(image=np.asarray(img))["image"])
+
+
 def classify_augmentations(
     size: int = 224,
     mean: tuple[float, float, float] = DEFAULT_MEAN,
@@ -2919,6 +2951,7 @@ def classify_augmentations(
     force_color_jitter: bool = False,
     erasing: float = 0.0,
     interpolation: str = "BILINEAR",
+    augmentations: list | None = None,
 ):
     """Create a composition of image augmentation transforms for classification tasks.
 
@@ -2940,6 +2973,7 @@ def classify_augmentations(
         force_color_jitter (bool): Whether to apply color jitter even if auto augment is enabled.
         erasing (float): Probability of random erasing.
         interpolation (str): Interpolation method of either 'NEAREST', 'BILINEAR' or 'BICUBIC'.
+        augmentations (list | None): Custom Albumentations transforms applied after the primary transforms.
 
     Returns:
         (torchvision.transforms.Compose): A composition of image augmentation transforms.
@@ -2947,6 +2981,10 @@ def classify_augmentations(
     Examples:
         >>> transforms = classify_augmentations(size=224, auto_augment="randaugment")
         >>> augmented_image = transforms(original_image)
+
+        >>> # With custom albumentations
+        >>> import albumentations as A
+        >>> transforms = classify_augmentations(size=224, augmentations=[A.Blur(p=0.5), A.CLAHE(p=0.3)])
     """
     # Transforms to apply if Albumentations not installed
     import torchvision.transforms as T  # scope for faster 'import ultralytics'
@@ -2962,7 +3000,7 @@ def classify_augmentations(
     if vflip > 0.0:
         primary_tfl.append(T.RandomVerticalFlip(p=vflip))
 
-    secondary_tfl = []
+    secondary_tfl = [AlbumentationsTransform(augmentations)] if augmentations else []
     disable_color_jitter = False
     if auto_augment:
         assert isinstance(auto_augment, str), f"Provided argument should be string, but got type {type(auto_augment)}"

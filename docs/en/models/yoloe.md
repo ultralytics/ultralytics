@@ -165,7 +165,7 @@ Every YOLOE example below runs from the [Python API](../usage/python.md). Text-p
 
 ### Train Usage
 
-Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default `YOLOESegTrainer` keeps the open-vocabulary recipe.
+Fine-tune any released `*-seg.pt` checkpoint on your own YOLO dataset. This mostly follows the [standard YOLO training procedure](../modes/train.md); the difference is which trainer you pass. `YOLOEPESegTrainer` fuses your class names into the head and fine-tunes from there, which is what you want on your own labels; the default trainer is the open-vocabulary pretraining path and does not train against your class names.
 
 <p align="center">
   <br>

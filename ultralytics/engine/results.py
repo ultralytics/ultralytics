@@ -172,20 +172,26 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
-class SemanticMask(BaseTensor):
+class _DenseResultTensor(BaseTensor):
+    """A BaseTensor representing zero or one dense per-image result, immune to row-wise indexing."""
+
+    def __len__(self) -> int:
+        """Return 1 if the map holds data, 0 if a prior indexing emptied it."""
+        return int(self.data.shape[0] > 0)
+
+    def __getitem__(self, idx):
+        """Return the intact map for any index selecting the one result, or an emptied map for an empty selection."""
+        idx = idx.cpu().numpy() if isinstance(idx, torch.Tensor) else idx  # NumPy reads a raw bool tensor as an int
+        empty = np.size(np.arange(len(self))[idx]) == 0  # bounds-checks idx of any type against the logical length
+        return self.__class__(self.data[:0] if empty else self.data, self.orig_shape)
+
+
+class SemanticMask(_DenseResultTensor):
     """Semantic segmentation class map for one image."""
 
-    def __len__(self) -> int:
-        """Return one semantic segmentation result per image."""
-        return 1
 
-
-class DepthMap(BaseTensor):
+class DepthMap(_DenseResultTensor):
     """Per-pixel depth map (meters) for one image, shape (H, W)."""
-
-    def __len__(self) -> int:
-        """Return one depth map per image."""
-        return 1
 
 
 class Results(SimpleClass, DataExportMixin):
@@ -586,14 +592,14 @@ class Results(SimpleClass, DataExportMixin):
             annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
         # Plot Semantic Segmentation results
-        if self.semantic_mask is not None and show_masks:
+        if self.semantic_mask and show_masks:
             sem_mask = self.semantic_mask.data
             if isinstance(sem_mask, torch.Tensor):
                 sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
         # Plot Depth results — blend colorized depth heatmap over the image
-        if self.depth is not None and show_masks:
+        if self.depth and show_masks:
             d = self.depth.data
             d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
             annotator.depth_map(d)

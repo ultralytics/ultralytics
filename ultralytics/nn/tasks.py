@@ -2257,8 +2257,13 @@ def guess_model_task(model):
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
-    # Guess from model filename
     if isinstance(model, (str, Path)):
+        from ultralytics.nn.backends.base import BaseBackend
+
+        if task := BaseBackend.read_metadata(model).get("task"):  # exports embed their task, i.e. a renamed best.onnx
+            return task
+
+        # Guess from model filename
         model = Path(model)
         if "-sem" in model.stem or "semantic" in model.parts:
             return "semantic"

@@ -50,12 +50,7 @@ class OpenVINOBackend(BaseBackend):
         if ov_model.get_parameters()[0].get_layout().empty:
             ov_model.get_parameters()[0].set_layout(ov.Layout("NCHW"))
 
-        # Load metadata
-        metadata_file = w.parent / "metadata.yaml"
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(w))
 
         # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
         # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by

@@ -5,11 +5,11 @@ keywords: Ultralytics, coming soon, under construction, new features, AI updates
 
 # Under Construction 🏗️🌟
 
-Welcome to the [Ultralytics](https://www.ultralytics.com/) "Under Construction" page! Here, we're hard at work developing the [next generation](https://www.ultralytics.com/glossary/foundation-model) of [AI](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [ML](https://www.ultralytics.com/glossary/machine-learning-ml) innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
+Welcome to the [Ultralytics](https://www.ultralytics.com) "Under Construction" page! Here, we're hard at work developing the [next generation](https://www.ultralytics.com/glossary/foundation-model) of [AI](https://www.ultralytics.com/glossary/artificial-intelligence-ai) and [ML](https://www.ultralytics.com/glossary/machine-learning-ml) innovations. This page serves as a teaser for the exciting updates and new features we're eager to share with you!
 
 ## Exciting New Features on the Way 🎉
 
-- **Innovative Breakthroughs:** Get ready for [advanced features](https://docs.ultralytics.com/) and services designed to [transform your AI and ML experience](https://www.ultralytics.com/solutions).
+- **Innovative Breakthroughs:** Get ready for [advanced features](https://docs.ultralytics.com) and services designed to [transform your AI and ML experience](https://www.ultralytics.com/solutions).
 - **New Horizons:** Anticipate novel products that [redefine AI and ML capabilities](https://docs.ultralytics.com/tasks).
 - **Enhanced Services:** We're upgrading our [services](https://platform.ultralytics.com) for greater [efficiency](https://docs.ultralytics.com/modes/benchmark) and user-friendliness.
 
@@ -17,7 +17,7 @@ Welcome to the [Ultralytics](https://www.ultralytics.com/) "Under Construction" 
 
 This page is your go-to resource for the latest integration updates and feature rollouts. Stay connected through:
 
-- **Newsletter:** Subscribe to [our Ultralytics newsletter](https://www.ultralytics.com/#newsletter) for announcements, releases, and early access updates.
+- **Newsletter:** Subscribe to [our Ultralytics newsletter](https://www.ultralytics.com#newsletter) for announcements, releases, and early access updates.
 - **Social Media:** Follow [Ultralytics on LinkedIn](https://www.linkedin.com/company/ultralytics) for behind-the-scenes content, product news, and community highlights.
 - **Blog:** Dive into the [Ultralytics AI blog](https://www.ultralytics.com/blog) for in-depth articles, tutorials, and use-case spotlights.
 

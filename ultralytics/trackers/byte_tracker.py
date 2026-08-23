@@ -224,6 +224,7 @@ class BYTETracker:
         frame_id (int): The current frame ID.
         args (Namespace): Command-line arguments.
         max_frames_lost (int): The maximum frames for a track to be considered as 'lost'.
+        min_hits (int): Consecutive detections required before an unconfirmed track is confirmed and given an ID.
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
 
     Methods:
@@ -260,6 +261,7 @@ class BYTETracker:
         self.frame_id = 0
         self.args = args
         self.max_frames_lost = args.track_buffer
+        self.min_hits = getattr(args, "min_hits", 2)  # absent from user tracker YAMLs predating this option
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
 
@@ -464,7 +466,7 @@ class BYTETracker:
         for itracked, idet in matches:
             track = unconfirmed[itracked]
             track.update(detections[idet], self.frame_id)
-            if track.tracklet_len + 1 >= self.args.min_hits:  # hits == tracklet_len + the activating detection
+            if track.tracklet_len + 1 >= self.min_hits:  # hits == tracklet_len + the activating detection
                 track.confirm()
             activated.append(track)
         for it in u_unconfirmed:

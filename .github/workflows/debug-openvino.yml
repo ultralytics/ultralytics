@@ -9,18 +9,51 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        run: [1, 2, 3]
+        run: [1, 2, 3, 4]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - uses: astral-sh/setup-uv@v7
-      - run: uv pip install --system -e ".[export-base]" pytest pytest-xdist --torch-backend cpu
-      - run: lscpu | grep -E "Model name|Flags" | cut -c1-400
+      - run: uv pip install --system -e ".[export-base]" --torch-backend cpu
+      - run: lscpu | grep -E "Model name"
       - run: |
-          PYTHONFAULTHANDLER=1 timeout 600 python -m pytest -vv -s --slow -p no:cacheprovider \
-            "tests/test_exports.py::test_export_openvino_matrix[detect-True-8-2-False-True]" \
-            "tests/test_exports.py::test_export_openvino_matrix[detect-True-8-1-False-True]" \
-            "tests/test_exports.py::test_export_openvino_matrix[detect-False-8-2-False-True]" \
-            "tests/test_exports.py::test_export_openvino_matrix[detect-True-16-2-False-True]" 2>&1 | tail -60
+          cat > /tmp/ov_debug.py <<'PY'
+          import subprocess, sys
+          import numpy as np
+          from ultralytics import YOLO
+
+          if len(sys.argv) == 1:
+              models = {}
+              for name, kw in {
+                  "int8-dynamic": dict(quantize=8, dynamic=True),
+                  "fp16-dynamic": dict(quantize=16, dynamic=True),
+                  "int8-static": dict(quantize=8, dynamic=False),
+              }.items():
+                  models[name] = str(YOLO("yolo26n.pt").export(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, end2end=True, verbose=False, **kw))
+              for name, path in models.items():
+                  for hint in ["LATENCY", "THROUGHPUT"]:
+                      for mode in ["sync", "async"]:
+                          r = subprocess.run([sys.executable, __file__, path, hint, mode, name], capture_output=True, text=True, timeout=300)
+                          print(f"{name:13} {hint:11} {mode:6} -> rc={r.returncode} {r.stderr.strip().splitlines()[-1][:80] if r.returncode else 'OK'}", flush=True)
+              sys.exit()
+
+          import openvino as ov
+          path, hint, mode, name = sys.argv[1:]
+          core = ov.Core()
+          model = core.read_model(next(__import__('pathlib').Path(path).glob('*.xml')))
+          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": hint})
+          im = np.random.rand(2, 3, 64 if "dynamic" in name else 32, 64 if "dynamic" in name else 32).astype(np.float32)
+          for _ in range(3):
+              if mode == "sync":
+                  cm(im)
+              else:
+                  q = ov.AsyncInferQueue(cm)
+                  res = [None, None]
+                  q.set_callback(lambda req, i: res.__setitem__(i, req.results))
+                  for i in range(2):
+                      q.start_async(inputs={cm.input().get_any_name(): im[i:i+1]}, userdata=i)
+                  q.wait_all()
+          PY
+          python /tmp/ov_debug.py

@@ -18,7 +18,7 @@ data = {
         "date": "2026-01-14",
         "arxiv": None,
         "github": "https://github.com/ultralytics/ultralytics",
-        "docs": "https://docs.ultralytics.com/models/yolo26/",
+        "docs": "https://docs.ultralytics.com/models/yolo26",
         "performance": {
             "n": {"size": 640, "map": 40.9, "cpu": "", "t4": 1.7, "params": 2.4, "flops": 5.4},
             "s": {"size": 640, "map": 48.6, "cpu": "", "t4": 2.5, "params": 9.5, "flops": 20.7},
@@ -33,7 +33,7 @@ data = {
         "date": "2025-02-18",
         "arxiv": "https://arxiv.org/abs/2502.12524",
         "github": "https://github.com/sunsmarterjie/yolov12",
-        "docs": "https://docs.ultralytics.com/models/yolo12/",
+        "docs": "https://docs.ultralytics.com/models/yolo12",
         "performance": {
             "n": {"size": 640, "map": 40.6, "cpu": "", "t4": 1.64, "params": 2.6, "flops": 6.5},
             "s": {"size": 640, "map": 48.0, "cpu": "", "t4": 2.61, "params": 9.3, "flops": 21.4},
@@ -48,7 +48,7 @@ data = {
         "date": "2024-09-27",
         "arxiv": None,
         "github": "https://github.com/ultralytics/ultralytics",
-        "docs": "https://docs.ultralytics.com/models/yolo11/",
+        "docs": "https://docs.ultralytics.com/models/yolo11",
         "performance": {
             "n": {"size": 640, "map": 39.5, "cpu": 56.1, "t4": 1.5, "params": 2.6, "flops": 6.5},
             "s": {"size": 640, "map": 47.0, "cpu": 90.0, "t4": 2.5, "params": 9.4, "flops": 21.5},
@@ -63,7 +63,7 @@ data = {
         "date": "2024-05-23",
         "arxiv": "https://arxiv.org/abs/2405.14458",
         "github": "https://github.com/THU-MIG/yolov10",
-        "docs": "https://docs.ultralytics.com/models/yolov10/",
+        "docs": "https://docs.ultralytics.com/models/yolov10",
         "performance": {
             "n": {"size": 640, "map": 39.5, "cpu": "", "t4": 1.56, "params": 2.3, "flops": 6.7},
             "s": {"size": 640, "map": 46.7, "cpu": "", "t4": 2.66, "params": 7.2, "flops": 21.6},
@@ -79,7 +79,7 @@ data = {
         "date": "2024-02-21",
         "arxiv": "https://arxiv.org/abs/2402.13616",
         "github": "https://github.com/WongKinYiu/yolov9",
-        "docs": "https://docs.ultralytics.com/models/yolov9/",
+        "docs": "https://docs.ultralytics.com/models/yolov9",
         "performance": {
             "t": {"size": 640, "map": 38.3, "cpu": "", "t4": 2.3, "params": 2.0, "flops": 7.7},
             "s": {"size": 640, "map": 46.8, "cpu": "", "t4": 3.54, "params": 7.1, "flops": 26.4},
@@ -94,7 +94,7 @@ data = {
         "date": "2023-01-10",
         "arxiv": None,
         "github": "https://github.com/ultralytics/ultralytics",
-        "docs": "https://docs.ultralytics.com/models/yolov8/",
+        "docs": "https://docs.ultralytics.com/models/yolov8",
         "performance": {
             "n": {"size": 640, "map": 37.3, "cpu": 80.4, "t4": 1.47, "params": 3.2, "flops": 8.7},
             "s": {"size": 640, "map": 44.9, "cpu": 128.4, "t4": 2.66, "params": 11.2, "flops": 28.6},
@@ -109,7 +109,7 @@ data = {
         "date": "2022-07-06",
         "arxiv": "https://arxiv.org/abs/2207.02696",
         "github": "https://github.com/WongKinYiu/yolov7",
-        "docs": "https://docs.ultralytics.com/models/yolov7/",
+        "docs": "https://docs.ultralytics.com/models/yolov7",
         "performance": {
             "l": {"size": 640, "map": 51.4, "cpu": "", "t4": 6.84, "params": 36.9, "flops": 104.7},
             "x": {"size": 640, "map": 53.1, "cpu": "", "t4": 11.57, "params": 71.3, "flops": 189.9},
@@ -121,7 +121,7 @@ data = {
         "date": "2023-01-13",
         "arxiv": "https://arxiv.org/abs/2301.05586",
         "github": "https://github.com/meituan/YOLOv6",
-        "docs": "https://docs.ultralytics.com/models/yolov6/",
+        "docs": "https://docs.ultralytics.com/models/yolov6",
         "performance": {
             "n": {"size": 640, "map": 37.5, "cpu": "", "t4": 1.17, "params": 4.7, "flops": 11.4},
             "s": {"size": 640, "map": 45.0, "cpu": "", "t4": 2.66, "params": 18.5, "flops": 45.3},
@@ -135,7 +135,7 @@ data = {
         "date": "2020-06-26",
         "arxiv": None,
         "github": "https://github.com/ultralytics/yolov5",
-        "docs": "https://docs.ultralytics.com/models/yolov5/",
+        "docs": "https://docs.ultralytics.com/models/yolov5",
         "performance": {
             "n": {"size": 640, "map": 28.0, "cpu": 73.6, "t4": 1.12, "params": 2.6, "flops": 7.7},
             "s": {"size": 640, "map": 37.4, "cpu": 120.7, "t4": 1.92, "params": 9.1, "flops": 24.0},
@@ -256,7 +256,7 @@ data = {
         "date": "2024-01-30",
         "arxiv": "https://arxiv.org/abs/2401.17270",
         "github": "https://github.com/AILab-CVC/YOLO-World",
-        "docs": "https://docs.ultralytics.com/models/yolo-world/",
+        "docs": "https://docs.ultralytics.com/models/yolo-world",
         "performance": {
             "s": {"size": 640, "map": 46.1, "cpu": "", "t4": 3.46, "params": 12.7, "flops": 51.0},
             "m": {"size": 640, "map": 51.0, "cpu": "", "t4": 7.26, "params": 28.4, "flops": 110.5},
@@ -285,7 +285,7 @@ data = {
         "date": "2023-05-03",
         "arxiv": None,
         "github": "https://github.com/Deci-AI/super-gradients/blob/master/YOLONAS.md",
-        "docs": "https://docs.ultralytics.com/models/yolo-nas/",
+        "docs": "https://docs.ultralytics.com/models/yolo-nas",
         "performance": {
             "s": {"size": 640, "map": 47.5, "cpu": "", "t4": 3.09, "params": 12.2, "flops": 32.8},
             "m": {"size": 640, "map": 51.6, "cpu": "", "t4": 6.07, "params": 31.9, "flops": 88.9},

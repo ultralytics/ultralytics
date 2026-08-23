@@ -10,7 +10,7 @@ import torch
 from ultralytics.utils import LOGGER, NUM_THREADS
 from ultralytics.utils.checks import check_requirements
 
-from .base import BaseBackend, read_tflite_metadata
+from .base import BaseBackend
 
 
 class LiteRTBackend(BaseBackend):
@@ -42,10 +42,7 @@ class LiteRTBackend(BaseBackend):
         # load through this backend (the detection/proto outputs share the same layout for either export path).
         self.nhwc = self.input_details[0]["shape"][-1] == 3
 
-        # Load the metadata.json embedded in the .tflite (single self-contained file)
-        metadata = read_tflite_metadata(tflite_file)
-        if metadata:
-            self.apply_metadata(metadata)
+        self.apply_metadata(self.read_metadata(tflite_file))
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
         """Run inference using the LiteRT interpreter.

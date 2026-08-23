@@ -103,7 +103,7 @@ YOLOE keeps the standard YOLO structure — a convolutional **backbone** for fea
 
 ## Available Models
 
-Every checkpoint below is an [instance segmentation](../tasks/segment.md) model and supports [train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md) and [track](../modes/track.md). Load a `*-seg.pt` file for text or visual prompting and a `*-seg-pf.pt` file for prompt-free inference; they are not interchangeable, see [Choosing a Prompting Mode](#choosing-a-prompting-mode).
+Every checkpoint below is an [instance segmentation](../tasks/segment.md) model and supports [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md) and [track](../modes/track.md). Load a `*-seg.pt` file for text or visual prompting and a `*-seg-pf.pt` file for prompt-free inference; they are not interchangeable, see [Choosing a Prompting Mode](#choosing-a-prompting-mode). Only the `*-seg.pt` files support [train](../modes/train.md); a prompt-free checkpoint is produced from a trained text-prompt model, see [Training the Official Models from Scratch](#training-the-official-models-from-scratch).
 
 | Model     | Text / visual prompt                                                                                | Prompt-free                                                                                               |
 | --------- | --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
@@ -502,7 +502,7 @@ YOLOE trades accuracy for the ability to change classes at inference time. The c
 ## Deployment Notes
 
 - **Hardware.** Inference needs an NVIDIA GPU with 4-8 GB of VRAM; the `n` and `s` scales run on edge GPUs such as [Jetson](../guides/nvidia-jetson.md) or on CPU at reduced resolution. Fine-tuning needs a single GPU.
-- **NMS is class-agnostic by default.** YOLOE predicts with `agnostic_nms=True`, suppressing lower-scoring overlapping boxes across different classes rather than only within the same class, which prevents duplicates when one object matches several categories. On end-to-end YOLOE-26 models this only removes IoU=1.0 duplicates and performs no IoU-threshold suppression between distinct boxes. Pass `agnostic_nms=False` to override.
+- **NMS is class-agnostic by default.** YOLOE predicts with `agnostic_nms=True`. On YOLOE-11 and YOLOE-v8 this suppresses lower-scoring overlapping boxes across different classes rather than only within the same class, which prevents duplicates when one object matches several categories. End-to-end YOLOE-26 models apply no IoU suppression at all; there, agnostic mode only keeps the single best class per anchor instead of letting one anchor emit several class labels. Pass `agnostic_nms=False` to override.
 - **Batching.** [Batch inference](../modes/predict.md) works directly, and visual prompts can differ per image in the same call.
 
 ## Training the Official Models from Scratch

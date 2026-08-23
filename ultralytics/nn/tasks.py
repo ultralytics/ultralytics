@@ -333,8 +333,8 @@ class BaseModel(torch.nn.Module):
             if ch == h and cw == w:
                 c1 = min(c1, cc1)
                 first_weight = csd[first_conv][:c1]
-                if c2 != cc2:  # tile the input-channel mean so every new channel inherits pretrained filters
-                    first_weight = first_weight.mean(dim=1, keepdim=True).repeat(1, c2, 1, 1)
+                if c2 != cc2:  # tile the rescaled input-channel mean to preserve pretrained activation magnitude
+                    first_weight = first_weight.mean(dim=1, keepdim=True).repeat(1, c2, 1, 1) * (cc2 / c2)
                 state_dict[first_conv][:c1] = first_weight
                 len_updated_csd += 1
         if verbose:

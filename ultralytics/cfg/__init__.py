@@ -195,7 +195,7 @@ QUANTIZE_ALIASES = {
     "w8a16": "w8a16",
     "w8a32": "w8a32",
 }
-QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
+QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export#quantization-options"
 QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w8a16', or 'w8a32'"
 
 # Define keys for arg type checks
@@ -744,9 +744,9 @@ def handle_yolo_settings(args: list[str]) -> None:
         - The function will check for alignment between the provided settings and the existing ones.
         - After processing, the updated settings will be displayed.
         - For more information on handling YOLO settings, visit:
-          https://docs.ultralytics.com/quickstart/#ultralytics-settings
+          https://docs.ultralytics.com/quickstart#ultralytics-settings
     """
-    url = "https://docs.ultralytics.com/quickstart/#ultralytics-settings"  # help URL
+    url = "https://docs.ultralytics.com/quickstart#ultralytics-settings"  # help URL
     try:
         if any(args):
             if args[0] == "reset":

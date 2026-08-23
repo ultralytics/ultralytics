@@ -8,7 +8,7 @@ keywords: YOLO26, LiteRT, TFLite, TensorFlow Lite, LiteRT.js, model export, edge
 # Export YOLO Models to LiteRT for Edge and Web Deployment
 
 <p align="center">
-  <img width="75%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tflite-logo.avif" alt="LiteRT edge deployment framework">
+  <img width="75%" src="https://cdn.ul.run/i/77f69836dfc1d1e96a7e9c9968fa98fd.avif" alt="LiteRT edge deployment framework">
 </p>
 
 [LiteRT](https://developers.google.com/edge/litert/overview) (short for _Lite Runtime_) is Google's high-performance runtime for on-device AI. It is the next generation and the new name for TensorFlow Lite (TFLite), and it runs the same `.tflite` model format. With LiteRT, a single exported [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) model deploys across **mobile, embedded, edge, and the browser** — covering everything that the older `tflite` and `tfjs` export formats handled separately, now under one umbrella.

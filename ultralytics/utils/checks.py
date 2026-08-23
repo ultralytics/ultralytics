@@ -1095,7 +1095,7 @@ def check_multiple_install():
         )
         install_msg = (
             f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
-            "issues. See https://docs.ultralytics.com/quickstart/"
+            "issues. See https://docs.ultralytics.com/quickstart"
         )
         if result.returncode != 0:
             if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported

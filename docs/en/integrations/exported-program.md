@@ -46,16 +46,16 @@ ExportedProgram export requires PyTorch 2.9 or higher. No extra dependencies bey
         from ultralytics import YOLO
 
         # Load a YOLO model
-        model = YOLO("yolo11n.pt")
+        model = YOLO("yolo26n.pt")
 
         # Export to ExportedProgram format
-        model.export(format="exported_program")  # creates 'yolo11n.pt2'
+        model.export(format="exported_program")  # creates 'yolo26n.pt2'
         ```
 
     === "CLI"
 
         ```bash
-        yolo export model=yolo11n.pt format=exported_program # creates 'yolo11n.pt2'
+        yolo export model=yolo26n.pt format=exported_program # creates 'yolo26n.pt2'
         ```
 
 ### Export Arguments
@@ -71,7 +71,7 @@ ExportedProgram export requires PyTorch 2.9 or higher. No extra dependencies bey
 The export produces a single `.pt2` file with metadata embedded inside:
 
 ```text
-yolo11n.pt2              # ExportedProgram with embedded metadata
+yolo26n.pt2              # ExportedProgram with embedded metadata
 ```
 
 ## Using Exported Models
@@ -81,7 +81,7 @@ Load the `.pt2` file with standard PyTorch APIs:
 ```python
 import torch
 
-ep = torch.export.load("yolo11n.pt2")
+ep = torch.export.load("yolo26n.pt2")
 
 # Inspect the graph
 print(ep.graph_module.graph)

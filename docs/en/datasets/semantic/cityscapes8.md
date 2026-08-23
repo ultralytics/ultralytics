@@ -3,7 +3,7 @@ title: Cityscapes8 Semantic Segmentation Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: Research-Only
     url: https://www.cityscapes-dataset.com/license/
@@ -15,7 +15,7 @@ keywords: Cityscapes8, Ultralytics, dataset, semantic segmentation, YOLO26, sema
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset with 8 images sampled from the [Cityscapes](cityscapes.md) dataset: 4 for training and 4 for validation. It is designed for rapid testing, debugging, and experimentation with [YOLO](../../models/yolo26.md) semantic segmentation models and training pipelines. Its urban-scene content provides a useful pipeline check before scaling to the full Cityscapes dataset.
+The [Ultralytics](https://www.ultralytics.com) Cityscapes8 dataset is a compact [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) dataset with 8 images sampled from the [Cityscapes](cityscapes.md) dataset: 4 for training and 4 for validation. It is designed for rapid testing, debugging, and experimentation with [YOLO](../../models/yolo26.md) semantic segmentation models and training pipelines. Its urban-scene content provides a useful pipeline check before scaling to the full Cityscapes dataset.
 
 Cityscapes8 uses the same 19 evaluation classes and the same `label_mapping` behavior as the full Cityscapes dataset, and is fully compatible with [YOLO26](../../models/yolo26.md) semantic segmentation workflows.
 
@@ -74,7 +74,7 @@ To train a YOLO26n-sem model on the Cityscapes8 dataset for 100 [epochs](https:/
         yolo semantic train data=cityscapes8.yaml model=yolo26n-sem.pt epochs=100 imgsz=1024
         ```
 
-You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
+You can also manage Cityscapes8 and train semantic segmentation models in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/cityscapes8).
 
 ## Citations, License and Acknowledgments
 

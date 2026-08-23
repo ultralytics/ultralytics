@@ -144,7 +144,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
     [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so install PyTorch first by following the instructions at [PyTorch](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pytorch-installation-instructions.avif">
+        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.ul.run/i/afbbb2da0266468e5371291bbfed0ab3.avif">
     </a>
 
 ## Headless Server Installation

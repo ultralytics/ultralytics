@@ -6,7 +6,7 @@ keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, expor
 
 # Model Benchmarking with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Benchmark Visualization
 

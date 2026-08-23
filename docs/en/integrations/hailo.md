@@ -66,7 +66,7 @@ Hailo-8 and Hailo-8L use DFC v3.x. Hailo-10H and Hailo-15 use DFC v5.x. Install 
 
 !!! tip "Export in Ultralytics Platform"
 
-    [Ultralytics Platform](https://platform.ultralytics.com/) provides managed Hailo export, so no local Hailo account or DFC installation is required.
+    [Ultralytics Platform](https://platform.ultralytics.com) provides managed Hailo export, so no local Hailo account or DFC installation is required.
 
 ## Export a Hailo HEF Model
 
@@ -357,7 +357,7 @@ If export reports that `hailo_sdk_client` is missing, install the DFC wheel for 
 
 ### Unsupported Operating System or Architecture
 
-HEF compilation is supported on Linux x86_64. Export through [Ultralytics Platform](https://platform.ultralytics.com/) or use a compatible workstation if the local computer is macOS, Windows, Raspberry Pi, or another ARM system.
+HEF compilation is supported on Linux x86_64. Export through [Ultralytics Platform](https://platform.ultralytics.com) or use a compatible workstation if the local computer is macOS, Windows, Raspberry Pi, or another ARM system.
 
 ### Export Takes a Long Time
 

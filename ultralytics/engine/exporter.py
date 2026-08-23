@@ -572,7 +572,7 @@ class Exporter:
         if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
             LOGGER.warning(
                 f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
-                f"format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert/"
+                f"format. Exporting format='litert' instead. See https://docs.ultralytics.com/integrations/litert"
             )
             fmt = self.args.format = "litert"
         fmts_dict = export_formats()
@@ -693,7 +693,7 @@ class Exporter:
                         model.end2end = False
                         LOGGER.warning(
                             "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson/#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
+                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
                             ""
                         )
                 except ImportError:
@@ -736,7 +736,7 @@ class Exporter:
             if not str(self.args.name).startswith("Ascend"):
                 raise ValueError(
                     f"Invalid Ascend SoC name='{self.args.name}'. Expected a CANN --soc_version such as "
-                    f"'Ascend310P3' or 'Ascend310B4'. See https://docs.ultralytics.com/integrations/ascend/"
+                    f"'Ascend310P3' or 'Ascend310B4'. See https://docs.ultralytics.com/integrations/ascend"
                 )
             if self.args.quantize is None:
                 self.args.quantize = 16  # Ascend AI Core convolutions accept only FP16/INT8 inputs, never FP32
@@ -812,7 +812,7 @@ class Exporter:
             if is_intel():
                 LOGGER.info(
                     "💡 ProTip: Export to OpenVINO format for best performance on Intel hardware."
-                    " Learn more at https://docs.ultralytics.com/integrations/openvino/"
+                    " Learn more at https://docs.ultralytics.com/integrations/openvino"
                 )
             SETTINGS["openvino_msg"] = False
 
@@ -1607,7 +1607,7 @@ class Exporter:
             f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
             'Pass data="path/to/dataset.yaml". '
-            "See https://docs.ultralytics.com/integrations/hailo/#export-a-hailo-hef-model"
+            "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"
         )
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]

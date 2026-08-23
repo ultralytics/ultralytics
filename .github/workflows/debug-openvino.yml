@@ -28,27 +28,20 @@ jobs:
               from ultralytics import YOLO
               kw = dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False, quantize=8, dynamic=True, end2end=True)
               path = str(shutil.move(YOLO("yolo26n.pt").export(**kw), "int8dyn_openvino_model"))
-              for shape in ["none", "[2,3,64,64]", "[-1,3,64,64]", "[2,3,-1,-1]", "[1,3,-1,-1]", "[-1,3,-1,-1]", "range"]:
-                  rcs = [subprocess.run([sys.executable, __file__, path, shape], capture_output=True, text=True, timeout=600).returncode for _ in range(2)]
-                  print(f"shape={shape:16} rcs={rcs}", flush=True)
-              r = subprocess.run(["gdb", "-batch", "-ex", "run", "-ex", "bt 25", "--args", sys.executable, __file__, path, "none"], capture_output=True, text=True, timeout=900)
-              out = r.stdout + r.stderr
-              i = out.find("SIGSEGV")
-              print(out[i:i+4000], flush=True)
+              for cfg in [{}, {"SNIPPETS_MODE": "DISABLE"}, {"CPU_RUNTIME_CACHE_CAPACITY": "0"}, {"LP_TRANSFORMS_MODE": False}, {"ENABLE_CPU_PINNING": False}, {"KEY_CPU_DENORMALS_OPTIMIZATION": "NO"}, {"stage": "compile"}]:
+                  rs = [subprocess.run([sys.executable, __file__, path, json.dumps(cfg)], capture_output=True, text=True, timeout=600) for _ in range(2)]
+                  print(f"cfg={json.dumps(cfg):40} rcs={[r.returncode for r in rs]} {[r.stderr.strip().splitlines()[-1][:100] for r in rs if r.returncode and r.stderr.strip()]}", flush=True)
               sys.exit()
 
           import openvino as ov
-          path, shape = sys.argv[1], sys.argv[2]
+          path, cfg = sys.argv[1], json.loads(sys.argv[2])
+          stage = cfg.pop("stage", "infer")
           core = ov.Core()
           model = core.read_model(next(Path(path).glob("*.xml")))
-          if shape == "range":
-              model.reshape(ov.PartialShape([ov.Dimension(1, 4), 3, ov.Dimension(32, 128), ov.Dimension(32, 128)]))
-          elif shape != "none":
-              model.reshape(json.loads(shape))
-          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY"})
-          n = 1 if shape.startswith("[1") else 2
+          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY", **cfg})
+          if stage == "compile":
+              sys.exit(0)
           for _ in range(3):
-              cm(np.random.rand(n, 3, 64, 64).astype(np.float32))
+              cm(np.random.rand(2, 3, 64, 64).astype(np.float32))
           PY
-          sudo apt-get install -y -qq gdb >/dev/null 2>&1
           python /tmp/ov_debug.py

@@ -56,7 +56,7 @@ python train.py --img 640 --batch 16 --epochs 5 --data coco128.yaml --weights yo
 
 That's it! Comet will automatically log your hyperparameters, command line arguments, training and validation metrics. You can visualize and analyze your runs in the Comet UI.
 
-![Comet dashboard showing YOLOv5 training metrics and experiment tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-ui.avif)
+![Comet dashboard showing YOLOv5 training metrics and experiment tracking](https://cdn.ul.run/i/1e8e86c44786988ad132d37dc01c7c01.avif)
 
 ## Try out an Example!
 
@@ -181,15 +181,15 @@ python train.py \
 
 You can find the uploaded dataset in the Artifacts tab in your Comet Workspace:
 
-![Comet artifacts panel for dataset versioning](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-panel.avif)
+![Comet artifacts panel for dataset versioning](https://cdn.ul.run/i/9abb2ffd65d433fe573c3948581bc068.avif)
 
 You can preview the data directly in the Comet UI:
 
-![Comet dataset preview and version history](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/comet-artifact-versions.avif)
+![Comet dataset preview and version history](https://cdn.ul.run/i/fa7c79fb101fec38a4d3305c4ea76d44.avif)
 
 Artifacts are versioned and also support adding metadata about the dataset. Comet will automatically log the metadata from your dataset `yaml` file:
 
-![Comet Artifact Metadata](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/artifact-metadata-logging.avif)
+![Comet Artifact Metadata](https://cdn.ul.run/i/305aa6db7ab9c364980a2cfd25ec1793.avif)
 
 ### Using a saved Artifact
 
@@ -213,7 +213,7 @@ python train.py \
 
 Artifacts also allow you to track the lineage of data as it flows through your experimentation workflow. Here you can see a graph that shows you all the experiments that have used your uploaded dataset:
 
-![Comet Artifact Lineage Graph](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/artifact-lineage-graph.avif)
+![Comet Artifact Lineage Graph](https://cdn.ul.run/i/f7bccd454c16445f9dfc0bad6cd76e41.avif)
 
 ## Resuming a Training Run
 
@@ -254,4 +254,4 @@ python utils/loggers/comet/hpo.py \
 
 Comet provides a number of ways to visualize the results of your sweep. Take a look at a [project with a completed sweep here](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github).
 
-![Comet Hyperparameter Visualization](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hyperparameter-yolo.avif)
+![Comet Hyperparameter Visualization](https://cdn.ul.run/i/9d78fed3421a57006224ecd94dcd5696.avif)

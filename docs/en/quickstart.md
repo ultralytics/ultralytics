@@ -110,7 +110,7 @@ Swap `coco8.yaml` for your own dataset's YAML to train on your data — see [Tra
 
 ## Next Steps
 
-Check out [YOLO26](models/yolo26.md) for benchmarks and every model variant, or browse [Tasks](tasks/index.md) to find the one that matches your problem — detection, segmentation, pose, OBB, or classification. To train on your own data, format it with the [Datasets guide](datasets/index.md) and run [Train mode](modes/train.md). For deeper API coverage beyond this page, see the [Python Guide](usage/python.md) and [CLI Guide](usage/cli.md), or skip straight to a ready-made pipeline with [Solutions](solutions/index.md).
+Check out [YOLO26](models/yolo26.md) for benchmarks and every model variant, or browse [Tasks](tasks/index.md) to find the one that matches your problem — detection, segmentation, semantic segmentation, depth, classification, pose, or OBB. To train on your own data, format it with the [Datasets guide](datasets/index.md) and run [Train mode](modes/train.md). For deeper API coverage beyond this page, see the [Python Guide](usage/python.md) and [CLI Guide](usage/cli.md), or skip straight to a ready-made pipeline with [Solutions](solutions/index.md).
 
 ## FAQ
 

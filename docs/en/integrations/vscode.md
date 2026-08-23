@@ -33,7 +33,7 @@ If you use Visual Studio Code and answered 'yes' to any of the above, then the U
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/snippet-prediction-preview.avif" alt="Snippet Prediction Preview">
+    <img src="https://cdn.ul.run/i/07d3e04cb13dba09300a4c01c7661531.avif" alt="Snippet Prediction Preview">
   <br>
   Run example code using Ultralytics YOLO in under 20 seconds! 🚀
 </p>
@@ -44,7 +44,7 @@ The inspiration to build this extension came from the Ultralytics Community. Que
 
 ## Why VS Code?
 
-[Visual Studio Code](https://code.visualstudio.com/) is extremely popular with developers worldwide and has ranked most popular by the Stack Overflow Developer Survey in [2021](https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment), [2022](https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment), [2023](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment), and [2024](https://survey.stackoverflow.co/2024/technology#1-integrated-development-environment). Due to VS Code's high level of customization, built-in features, broad compatibility, and extensibility, it's no surprise that so many developers are using it. Given the popularity in the wider developer community and within the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Discourse](https://community.ultralytics.com/), [Reddit](https://www.reddit.com/r/ultralytics/), and [GitHub](https://github.com/ultralytics) Communities, it made sense to build a VS Code extension to help streamline your workflow and boost your productivity.
+[Visual Studio Code](https://code.visualstudio.com/) is extremely popular with developers worldwide and has ranked most popular by the Stack Overflow Developer Survey in [2021](https://survey.stackoverflow.co/2021#section-most-popular-technologies-integrated-development-environment), [2022](https://survey.stackoverflow.co/2022/#section-most-popular-technologies-integrated-development-environment), [2023](https://survey.stackoverflow.co/2023/#section-most-popular-technologies-integrated-development-environment), and [2024](https://survey.stackoverflow.co/2024/technology#1-integrated-development-environment). Due to VS Code's high level of customization, built-in features, broad compatibility, and extensibility, it's no surprise that so many developers are using it. Given the popularity in the wider developer community and within the Ultralytics [Discord](https://discord.com/invite/ultralytics), [Discourse](https://community.ultralytics.com), [Reddit](https://www.reddit.com/r/ultralytics/), and [GitHub](https://github.com/ultralytics) Communities, it made sense to build a VS Code extension to help streamline your workflow and boost your productivity.
 
 Want to let us know what you use for developing code? Head over to our Discourse [community poll](https://community.ultralytics.com/t/what-do-you-use-to-write-code/89/1) and let us know! While you're there, maybe check out some of our favorite computer vision, machine learning, AI, and developer [memes](https://community.ultralytics.com/c/off-topic/memes-jokes/11), or even post your favorite!
 
@@ -62,7 +62,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vs-code-extension-menu.avif" alt="VS Code extension menu">
+    <img src="https://cdn.ul.run/i/379d837d9716e9a7cb626d6775fe4c71.avif" alt="VS Code extension menu">
   <br>
 </p>
 
@@ -76,7 +76,7 @@ Want to let us know what you use for developing code? Head over to our Discourse
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vscode-marketplace-extension-install.avif" alt="VS Code marketplace extension install">
+    <img src="https://cdn.ul.run/i/822c0af8237e90eb1d0f2243b46bc9da.avif" alt="VS Code marketplace extension install">
   <br>
   Visual Studio Code Extension Marketplace page for <a href="https://marketplace.visualstudio.com/items?itemName=Ultralytics.ultralytics-snippets">Ultralytics-Snippets</a>
 </p>
@@ -101,7 +101,7 @@ Many snippets have "fields" with default placeholder values or names. For instan
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multi-update-field-and-options.avif" alt="Multi-update field and options">
+    <img src="https://cdn.ul.run/i/cf3f13b46116c7c266c8099243fe1b6d.avif" alt="Multi-update field and options">
   <br>
   After inserting snippet, renaming <code>model</code> as <code>world_model</code> updates all instances. Pressing <kbd>Tab ⇥</kbd> moves to the next field, which opens a dropdown menu and allows for selection of a model scale, and moving to the next field provides another dropdown to choose either <code>world</code> or <code>worldv2</code> model variant.
 </p>
@@ -116,7 +116,7 @@ The snippets are named in the most descriptive way possible, but this means ther
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/incomplete-snippet-example.avif" alt="VS Code incomplete code snippet preview">
+    <img src="https://cdn.ul.run/i/ab2313210377225f79bce3987a08f165.avif" alt="VS Code incomplete code snippet preview">
   <br>
   Typing <code>ex-yolo-p</code> will <em>still</em> arrive at the correct snippet.
 </p>
@@ -162,7 +162,7 @@ The aim for snippets other than the `ultra.examples` are for making development 
     Using the `ultra.result-loop` will insert the following default code (including comments).
 
     ```python
-    # reference https://docs.ultralytics.com/modes/predict/#working-with-results
+    # reference https://docs.ultralytics.com/modes/predict#working-with-results
 
     for result in results:
         result.boxes.data  # torch.Tensor array
@@ -172,7 +172,7 @@ However, since Ultralytics supports numerous [tasks](../tasks/index.md), when [w
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/results-loop-options.avif" alt="VS Code YOLO results visualization options">
+    <img src="https://cdn.ul.run/i/6e43761497c176d82df8b17272ce0c61.avif" alt="VS Code YOLO results visualization options">
   <br>
   Once tabbed to the <code>boxes</code> field, a dropdown menu appears to allow selection of another attribute as required.
 </p>
@@ -252,6 +252,6 @@ Like any other VS Code extension, you can uninstall it by navigating to the Exte
 
 <p align="center">
   <br>
-    <img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vscode-extension-menu.avif" alt="VS Code extension menu">
+    <img src="https://cdn.ul.run/i/06d437f7d868ca47d303e1fe9f01fd6e.avif" alt="VS Code extension menu">
   <br>
 </p>

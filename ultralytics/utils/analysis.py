@@ -195,7 +195,8 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         fig.savefig(out_dir / "correlation_heatmap.png", dpi=120)
         plt.close(fig)
 
-        worst = sorted((v for v in scored if v.get("im_file")), key=_worst_record_score)[:n_strip]
+        candidates = (v for v in scored if v.get("im_file") and isinstance(v.get("f1"), (int, float)))
+        worst = sorted(candidates, key=_worst_record_score)[:n_strip]
         if worst:
             from matplotlib.patches import Rectangle  # scope for faster 'import ultralytics'
 

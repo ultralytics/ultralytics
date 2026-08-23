@@ -6,7 +6,7 @@ keywords: Ultralytics, image property analysis, dataset analysis, brightness, bl
 
 # Image Property Analysis
 
-The [`ImagePropertyExtractor`](../reference/utils/analysis.md) turns a `YOLODataset` into per-image properties with no model, no metrics, and no I/O. It augments each `dataset.labels[i]` in place with a single `im_properties` dict of **27 properties** across three groups: 8 pixel-reading (brightness, contrast, entropy, edge density, ...), 17 cache-derived (object counts in COCO size buckets, class entropy, edge proximity, ...), and 2 annotation-interaction (max/mean pairwise IoU).
+The [`ImagePropertyExtractor`](../reference/utils/analysis.md) turns a `YOLODataset` into per-image properties with no model and no metrics, reading only the dataset images and their existing annotations. It augments each `dataset.labels[i]` in place with a single `im_properties` dict of **27 properties** across three groups: 8 pixel-reading (brightness, contrast, entropy, edge density, ...), 17 cache-derived (object counts in COCO size buckets, class entropy, edge proximity, ...), and 2 annotation-interaction (max/mean pairwise IoU).
 
 The design is deliberately model-free: because the extractor needs no predictions, you can compute properties once and reuse them across many model evaluations, or explore a dataset's characteristics before training anything. The `im_properties` dict is all-scalar, so it serializes straight to JSON for a JS/TS front-end or the [Ultralytics Platform](https://platform.ultralytics.com/).
 

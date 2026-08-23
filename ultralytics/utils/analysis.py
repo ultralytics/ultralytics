@@ -3,7 +3,7 @@
 
 ``ImagePropertyExtractor(yolo_dataset)`` augments each ``dataset.labels`` entry in place with an
 ``im_properties`` dict of per-image properties (brightness, blurriness, crowdedness, object-size counts, ...).
-No model, no metrics, no I/O. The ``im_properties`` dicts are all-scalar and platform-consumable as JSON for
+No model and no metrics dependency, and nothing is written to disk. The ``im_properties`` dicts are all-scalar and platform-consumable as JSON for
 JS/TS plotting.
 
 References:
@@ -33,7 +33,7 @@ from ultralytics.utils.patches import imread
 
 COCO_AREA_SMALL = 32**2  # COCO small-object area threshold (px^2), Lin et al. 2014
 COCO_AREA_MEDIUM = 96**2  # COCO medium/large boundary, Lin et al. 2014
-EDGE_PROXIMITY_FRAC = 0.05  # near-edge tolerance as fraction of min(W,H), motivates num_near_edge
+EDGE_PROXIMITY_FRAC = 0.05  # near-edge tolerance as a fraction of each image side, motivates num_near_edge
 
 _PIXEL_PROPERTIES = (
     "brightness",
@@ -56,7 +56,7 @@ class ImagePropertyExtractor:
     ``dataset.labels`` gains a single ``im_properties`` sub-dict; the ``dataset.labels`` list is mutated in place and
     re-exposed as ``self.labels`` for chaining.
 
-    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize the ``im_properties``
+    Has no model or metrics dependency and writes no files: the property step is platform-consumable. Serialize the ``im_properties``
     dicts (all scalar, JSON-ready) to feed a JS/TS visualizer.
 
     Attributes:

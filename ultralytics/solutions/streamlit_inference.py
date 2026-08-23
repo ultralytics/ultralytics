@@ -119,9 +119,8 @@ class Inference:
         self.iou = float(self.st.sidebar.slider("IoU Threshold", 0.0, 1.0, self.iou, 0.01))  # Slider for NMS threshold
 
         if self.source == "image":
-            self.show_json = self.st.sidebar.checkbox("Show JSON Output")
-
-        if self.source != "image":  # Only create columns for video/webcam
+            self.show_json = self.st.sidebar.checkbox("Show JSON Output")  # Toggle raw prediction output
+        else:  # Only create columns for video/webcam
             col1, col2 = self.st.columns(2)  # Create two columns for displaying frames
             self.org_frame = col1.empty()  # Container for original frame
             self.ann_frame = col2.empty()  # Container for annotated frame

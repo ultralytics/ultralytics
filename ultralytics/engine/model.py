@@ -151,8 +151,8 @@ class Model(torch.nn.Module):
 
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple, optional): The source of
-                the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor,
-                or a list/tuple of these.
+                the image(s) to make predictions on. Can be a file path, URL, PIL image, numpy array, PyTorch tensor, or
+                a list/tuple of these.
             stream (bool): If True, treat the input source as a continuous stream for predictions.
             **kwargs (Any): Additional keyword arguments to configure the prediction process.
 
@@ -433,8 +433,8 @@ class Model(torch.nn.Module):
         select specific layers.
 
         Args:
-            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): The source of the image
-                for generating embeddings. Can be a file path, URL, numpy array, etc.
+            source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): The source of the image for
+                generating embeddings. Can be a file path, URL, numpy array, etc.
             stream (bool): If True, predictions are streamed.
             **kwargs (Any): Additional keyword arguments for configuring the embedding process.
 
@@ -476,8 +476,8 @@ class Model(torch.nn.Module):
 
         Args:
             source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple, optional): The source of
-                the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL images,
-                numpy arrays, and torch tensors.
+                the image(s) to make predictions on. Accepts various types including file paths, URLs, PIL images, numpy
+                arrays, and torch tensors.
             stream (bool): If True, treats the input source as a continuous stream for predictions.
             predictor (type[BasePredictor], optional): A custom predictor class for making predictions. If None, the
                 method uses a default predictor.

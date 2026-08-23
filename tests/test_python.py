@@ -502,6 +502,38 @@ def test_track_second_association_low_conf_keeps_id(tracker_type):
     assert int(frame2[0, 4]) == tid, f"id switched on low-confidence frame: {tid} -> {int(frame2[0, 4])}\n{frame2}"
 
 
+def test_tracktrack_new_lifecycle():
+    """TrackTrack predicts New tracks and confirms them once their history reaches min_track_len."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / "cfg/trackers/tracktrack.yaml"), "gmc_method": "none", "min_track_len": 4}
+    tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+    tracker.update(Boxes(torch.empty((0, 6)), (640, 640)))  # avoid first-frame auto-activation
+    outputs = []
+    for center_x in (100, 135, 170, 205):
+        box = torch.tensor([[center_x - 50, 50, center_x + 50, 150, 0.9, 0]], dtype=torch.float32)
+        outputs.append(tracker.update(Boxes(box, (640, 640))))
+    assert [len(output) for output in outputs] == [0, 0, 0, 1]
+    for min_track_len in (0, 1):
+        cfg["min_track_len"] = min_track_len
+        tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+        tracker.update(Boxes(torch.empty((0, 6)), (640, 640)))
+        assert len(tracker.update(Boxes(box, (640, 640)))) == 1
+
+    from ultralytics.trackers.basetrack import TrackState
+
+    cfg["min_track_len"] = 4
+    tracker = TRACKER_MAP["tracktrack"](IterableSimpleNamespace(**cfg))
+    for center_x in (100, 135, 170, 205):  # frame_id == 1 carries a real detection, not an empty warm-up frame
+        box = torch.tensor([[center_x - 50, 50, center_x + 50, 150, 0.9, 0]], dtype=torch.float32)
+        tracker.update(Boxes(box, (640, 640)))
+        if tracker.frame_id == 2:
+            assert tracker.tracked_stracks[0].state != TrackState.Tracked, "frame_id==1 track confirmed after 2 hits"
+    assert tracker.tracked_stracks[0].state == TrackState.Tracked
+
+
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):
     """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""
@@ -516,6 +548,31 @@ def test_track_reid_auto_user_detections(tracker_type):
     for _ in range(3):  # frame 2 used to crash in embedding_distance after storing image rows as track features
         tracks = tracker.update(Boxes(data, (640, 640)), img)
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
+
+
+@pytest.mark.parametrize("fuse_score", [True, False])
+def test_deepocsort_ocr_proximity_gate(fuse_score):
+    """DeepOCSORT OCR rejects a zero-IoU pair even when its appearance is identical, under both fuse_score settings."""
+    from types import SimpleNamespace
+
+    from ultralytics.trackers.basetrack import TrackState
+    from ultralytics.trackers.deep_oc_sort import DeepOCSORT
+
+    tracker = object.__new__(DeepOCSORT)
+    tracker.args = SimpleNamespace(fuse_score=fuse_score, match_thresh=0.8)
+    tracker.encoder, tracker.appearance_thresh, tracker.proximity_thresh, tracker.frame_id = object(), 0.9, 0.5, 2
+    track = SimpleNamespace(
+        angle=None,
+        last_observation=np.array([0, 0, 10, 10]),
+        smooth_feat=np.array([1.0, 0.0]),
+        state=TrackState.Tracked,
+        update=lambda *_: None,
+    )
+    detection = SimpleNamespace(xyxy=np.array([20, 20, 30, 30]), curr_feat=np.array([1.0, 0.0]), score=1.0)
+    # proves appearance is active and would override (ungated) this exact pair, so the OCR result below is caused by
+    # the proximity gate, not by appearance being unavailable
+    assert tracker._fuse_appearance(np.array([[1.0]]), [track], [detection]) == 0.0
+    assert tracker._ocr_associate([track], [detection], [], []) == ([0], [0])
 
 
 def test_reid_invalid_crops():
@@ -998,6 +1055,41 @@ def test_annotator_depth_map():
     ann = Annotator(np.zeros((16, 16, 3), dtype=np.uint8))
     ann.depth_map(np.zeros((16, 16), dtype=np.float32))  # no valid pixels → must not divide-by-zero
     assert ann.result().shape == (16, 16, 3)
+
+
+def test_dense_result_tensor_indexing():
+    """Valid indices keep the intact map on SemanticMask/DepthMap; out-of-range raises; empty selections zero len."""
+    from ultralytics.engine.results import DepthMap, SemanticMask
+
+    data = torch.arange(20, dtype=torch.float32).reshape(4, 5)
+    valid = (0, -1, [0], np.array([0]), torch.tensor(0), torch.tensor([0]), [True], torch.tensor([True]), slice(0, 1))
+    invalid = (1, -2, [1], torch.tensor(1))
+    empty = ([False], torch.tensor([False]), slice(1, None), slice(0, 0))
+    for cls in (SemanticMask, DepthMap):
+        dense = cls(data, orig_shape=(4, 5))
+        for idx in valid:
+            sel = dense[idx]
+            assert len(sel) == 1 and torch.equal(torch.as_tensor(sel.data), data), f"{cls.__name__}[{idx!r}]"
+        for idx in invalid:
+            with pytest.raises(IndexError):
+                dense[idx]
+        for idx in empty:
+            assert len(dense[idx]) == 0, f"{cls.__name__}[{idx!r}] should be empty"
+
+
+def test_results_plot_empty_dense_selection():
+    """result[1:].plot() on a one-result dense (semantic/depth) Results returns the plain image, no overlay."""
+    from ultralytics.engine.results import Results
+
+    img = np.zeros((16, 16, 3), dtype=np.uint8)
+    dense_map = np.ones((16, 16), dtype=np.float32)
+    plain = Results(orig_img=img, path="x.jpg", names={}).plot()
+    for kwargs in ({"semantic_mask": dense_map.astype(np.uint8)}, {"depth": dense_map}):
+        r = Results(orig_img=img, path="x.jpg", names={0: "a"}, **kwargs)
+        assert len(r[1:]) == 0
+        np.testing.assert_array_equal(r[1:].plot(), plain)
+        with pytest.raises(IndexError):
+            r[1]
 
 
 def test_annotator_tensor_image():

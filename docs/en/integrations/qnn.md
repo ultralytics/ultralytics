@@ -23,7 +23,7 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
 ## What is Qualcomm QNN?
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/qnn_cover.avif" alt="Qualcomm QNN on-device inference">
+  <img width="640" src="https://cdn.ul.run/i/5c35f602ba85ec719d394a1231415225.avif" alt="Qualcomm QNN on-device inference">
 </p>
 
 [Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for [Snapdragon](https://www.qualcomm.com/products) processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated [neural network](https://www.ultralytics.com/glossary/neural-network-nn) processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older [Snapdragon Neural Processing Engine (SNPE)](https://www.qualcomm.com/developer/software/neural-processing-sdk-for-ai) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
@@ -88,7 +88,7 @@ Adreno GPU, and Hexagon NPU (HTP v81).
 
 This historical sweep used pre-standard v73 QNN binaries; semantic and OBB used 1024px inputs. It ran on a Lenovo
 laptop with 32 GB memory and Windows 11. Its
-[Snapdragon X Elite](https://www.qualcomm.com/products/mobile/snapdragon/pcs-and-tablets/snapdragon-x-elite)
+[Snapdragon X Elite](https://www.qualcomm.com/laptops/products/snapdragon-x-elite)
 (X1E78100) has a 12-core Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v73); the exact Lenovo model was not
 recorded. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop
 developers start from against the ONNX Runtime QNN Hexagon HTP path. Each cell shows the **full

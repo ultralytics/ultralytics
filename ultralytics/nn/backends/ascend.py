@@ -34,7 +34,7 @@ class AscendBackend(BaseBackend):
         except ImportError as e:
             raise ImportError(
                 "Ascend inference requires the CANN runtime and `ais_bench` Python package. "
-                "See https://docs.ultralytics.com/integrations/ascend/#runtime-installation for instructions."
+                "See https://docs.ultralytics.com/integrations/ascend#runtime-installation for instructions."
             ) from e
 
         LOGGER.info(f"Loading {weight} for Huawei Ascend inference...")

@@ -20,7 +20,7 @@ pip install -r requirements.txt # Install dependencies
 
 ## Train On Custom Data
 
-[![Ultralytics active learning loop diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif)](https://platform.ultralytics.com)
+[![Ultralytics active learning loop diagram](https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif)](https://platform.ultralytics.com)
 
 Developing a custom [object detection](../../tasks/detect.md) model is an iterative process:
 
@@ -98,11 +98,11 @@ The YOLO format `*.txt` file specifications are precise:
 - Coordinates must be **normalized** to a range between 0 and 1. To achieve this, divide the pixel values of `x_center` and `width` by the image's total width, and divide `y_center` and `height` by the image's total height.
 - Class indices are zero-indexed (i.e., the first class is represented by `0`, the second by `1`, and so forth).
 
-<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="Example image with two persons and a tie annotated"></p>
+<p align="center"><img width="750" src="https://cdn.ul.run/i/19e1e6d0c5d85a19d97d5f3f731cdf83.avif" alt="Example image with two persons and a tie annotated"></p>
 
 The label file corresponding to the image above, containing two 'person' objects (class index `0`) and one 'tie' object (class index `27`), would look like this:
 
-<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO format label file content example"></p>
+<p align="center"><img width="428" src="https://cdn.ul.run/i/f83deecdabe2c1c3131e718ae6040cb6.avif" alt="YOLO format label file content example"></p>
 
 ### 1.3 Organize Directories
 
@@ -134,13 +134,13 @@ The recommended directory structure is:
             └── ...
 ```
 
-<p align="center"><img width="700" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-dataset-structure.avif" alt="YOLOv5 recommended dataset directory structure"></p>
+<p align="center"><img width="700" src="https://cdn.ul.run/i/08e7ac4ccad33b342dfe6c658e811009.avif" alt="YOLOv5 recommended dataset directory structure"></p>
 
 ## 2. Select a Model
 
 Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available [models](../../models/index.md).
 
-<p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-comparison.avif"></p>
+<p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 
 ## 3. Train
 
@@ -187,7 +187,7 @@ python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 
 
 Dive deeper into the supported features in our [Comet Integration Guide](../../integrations/comet.md). Learn more about Comet's capabilities from their official [documentation](https://bit.ly/yolov5-colab-comet-docs). Try the Comet Colab Notebook for a live demo: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
 
-<img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-ui.avif">
+<img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.ul.run/i/1e8e86c44786988ad132d37dc01c7c01.avif">
 
 ### ClearML Logging and Automation
 
@@ -199,7 +199,7 @@ Dive deeper into the supported features in our [Comet Integration Guide](../../i
 ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can easily schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [ClearML Integration Guide](../../integrations/clearml.md) for comprehensive details.
 
 <a href="https://clear.ml/">
-<img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-experiment-management-ui.avif" width="1280"></a>
+<img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.ul.run/i/7ab2511e18fbad3150d5ae8e9df4d4c4.avif" width="1280"></a>
 
 ### Local Logging
 
@@ -211,7 +211,7 @@ Training results are automatically logged using [TensorBoard](../../integrations
 - Key evaluation metrics such as [Precision](https://www.ultralytics.com/glossary/precision)-[Recall](https://www.ultralytics.com/glossary/recall) (PR) curves.
 - [Confusion matrices](https://www.ultralytics.com/glossary/confusion-matrix) for detailed class-wise performance analysis.
 
-<img alt="YOLOv5 local logging results with charts and mosaics" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/local-logging-results.avif" width="1280">
+<img alt="YOLOv5 local logging results with charts and mosaics" src="https://cdn.ul.run/i/6af7893c9ca7250dc16c904d36c62ab7.avif" width="1280">
 
 The `results.csv` file is updated after every epoch and is plotted as `results.png` once training concludes. You can also plot any `results.csv` file manually using the provided utility function:
 
@@ -222,7 +222,7 @@ from utils.plots import plot_results
 plot_results("runs/train/exp/results.csv")  # This will generate 'results.png' in the same directory
 ```
 
-<p align="center"><img width="800" alt="YOLOv5 results.png training metrics plot" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-training-results-plot.avif"></p>
+<p align="center"><img width="800" alt="YOLOv5 results.png training metrics plot" src="https://cdn.ul.run/i/0768dc2a9718b2fe69f2945bec326602.avif"></p>
 
 ## 5. Next Steps
 
@@ -236,7 +236,7 @@ Upon successful completion of training, the best performing model checkpoint (`b
 
 ## Supported Environments
 
-Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
+Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
 
 - **Free GPU Notebooks**:
     - <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
@@ -284,7 +284,7 @@ Training YOLOv5 on a custom dataset involves several key steps:
 - **Collaboration Features**: Facilitates teamwork through shared resources, project management tools, and easy model sharing.
 - **No-Code Deployment**: Deploy trained models directly to various targets.
 
-For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub).
+For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform).
 
 ### How do I convert my annotated data to the YOLOv5 format?
 

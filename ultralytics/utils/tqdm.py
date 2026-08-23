@@ -282,22 +282,22 @@ class TQDM:
 
         bar = self._generate_bar()
 
-        # Compose progress line via f-strings (two shapes: with/without total)
+        # Compose progress fields via f-strings (two shapes: with/without total)
         if self.total:
             if self.is_bytes and self.n >= self.total:
                 # Completed bytes: show only final size
-                progress_str = f"{self.desc}: {percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
+                fields = f"{percent:.0f}% {bar} {t_str} {rate_str} {elapsed_str}"
             else:
-                progress_str = (
-                    f"{self.desc}: {percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
-                )
+                fields = f"{percent:.0f}% {bar} {n_str}/{t_str} {rate_str} {elapsed_str}{remaining_str}"
         else:
-            progress_str = f"{self.desc}: {bar} {n_str} {rate_str} {elapsed_str}"
+            fields = f"{bar} {n_str} {rate_str} {elapsed_str}"
 
         # Write to output, fitting real terminals only so redirected logs keep full lines
         try:
-            if self.file.isatty():
-                progress_str = self._fit(progress_str, shutil.get_terminal_size().columns - 1)
+            progress_str = f"{self.desc}: {fields}"
+            if self.file.isatty():  # description yields its cells first so the progress fields survive
+                width = shutil.get_terminal_size().columns - 1
+                progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
             # Non-interactive environments avoid the carriage return which creates empty lines
             self.file.write(progress_str if self.noninteractive else f"\r\033[K{progress_str}")
             self.file.flush()

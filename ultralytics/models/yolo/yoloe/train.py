@@ -10,7 +10,8 @@ import torch
 from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadVisualPrompt
 from ultralytics.models.yolo.detect import DetectionTrainer, DetectionValidator
-from ultralytics.nn.tasks import YOLOEModel
+from ultralytics.models.yolo.segment import SegmentationValidator
+from ultralytics.nn.tasks import YOLOEModel, YOLOESegModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.torch_utils import unwrap_model
 
@@ -107,11 +108,12 @@ class YOLOEPETrainer(DetectionTrainer):
     datasets while preserving pretrained features.
 
     Methods:
-        get_model: Initialize YOLOEModel with frozen layers except projection layers.
+        get_model: Initialize a YOLOE model with frozen layers except projection layers.
+        get_validator: Return a task-appropriate validator.
     """
 
     def get_model(self, cfg=None, weights=None, verbose: bool = True):
-        """Return YOLOEModel initialized with specified config and weights.
+        """Return a task-appropriate YOLOE model initialized with specified config and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration.
@@ -119,9 +121,9 @@ class YOLOEPETrainer(DetectionTrainer):
             verbose (bool): Whether to display model information.
 
         Returns:
-            (YOLOEModel): Initialized model with frozen layers except for specific projection layers.
+            (YOLOEModel | YOLOESegModel): Initialized model with frozen layers except for specific projection layers.
         """
-        model = YOLOEModel(
+        model = (YOLOESegModel if self.args.task == "segment" else YOLOEModel)(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
             nc=self.data["nc"],
@@ -153,6 +155,11 @@ class YOLOEPETrainer(DetectionTrainer):
         model.train()
 
         return model
+
+    def get_validator(self):
+        """Return a task-appropriate validator without the text prompts the YOLOE validators require."""
+        validator = SegmentationValidator if self.args.task == "segment" else DetectionValidator
+        return validator(self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks)
 
 
 class YOLOETrainerFromScratch(YOLOETrainer, WorldTrainerFromScratch):
@@ -214,16 +221,9 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
     require text prompts during inference.
 
     Methods:
-        get_validator: Return standard DetectionValidator for validation.
         preprocess_batch: Preprocess batches without text features.
         set_text_embeddings: Set text embeddings for datasets (no-op for prompt-free).
     """
-
-    def get_validator(self):
-        """Return a DetectionValidator for YOLO model validation."""
-        return DetectionValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
-        )
 
     def preprocess_batch(self, batch):
         """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""

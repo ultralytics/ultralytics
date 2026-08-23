@@ -1,12 +1,12 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from copy import copy, deepcopy
+from copy import copy
 
 from ultralytics.models.yolo.segment import SegmentationTrainer
 from ultralytics.nn.tasks import YOLOESegModel
 from ultralytics.utils import RANK
 
-from .train import YOLOETrainer, YOLOETrainerFromScratch, YOLOEVPTrainer
+from .train import YOLOEPETrainer, YOLOETrainer, YOLOETrainerFromScratch, YOLOEVPTrainer
 from .val import YOLOESegValidator
 
 
@@ -58,58 +58,9 @@ class YOLOESegTrainer(YOLOETrainer, SegmentationTrainer):
 
 
 class YOLOEPESegTrainer(SegmentationTrainer):
-    """Fine-tune YOLOESeg model in linear probing way.
+    """Fine-tune YOLOE segmentation models in linear probing way."""
 
-    This trainer specializes in fine-tuning YOLOESeg models using a linear probing approach, which involves freezing
-    most of the model and only training specific layers for efficient adaptation to new tasks.
-
-    Attributes:
-        data (dict): Dataset configuration containing channels, class names, and number of classes.
-    """
-
-    def get_model(self, cfg=None, weights=None, verbose=True):
-        """Return YOLOESegModel initialized with specified config and weights for linear probing.
-
-        Args:
-            cfg (dict | str, optional): Model configuration dictionary or YAML file path.
-            weights (str, optional): Path to pretrained weights file.
-            verbose (bool): Whether to display model information.
-
-        Returns:
-            (YOLOESegModel): Initialized YOLOE segmentation model configured for linear probing.
-        """
-        model = YOLOESegModel(
-            cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
-            ch=self.data["channels"],
-            nc=self.data["nc"],
-            verbose=verbose and RANK == -1,
-        )
-
-        del model.model[-1].savpe
-
-        assert weights is not None, "Pretrained weights must be provided for linear probing."
-        if weights:
-            model.load(weights)
-
-        model.eval()
-        names = list(self.data["names"].values())
-        # NOTE: `get_text_pe` related to text model and YOLOEDetect.reprta,
-        # it'd get correct results as long as loading proper pretrained weights.
-        tpe = model.get_text_pe(names)
-        model.set_classes(names, tpe)
-        model.model[-1].fuse(model.pe)
-        model.model[-1].cv3[0][2] = deepcopy(model.model[-1].cv3[0][2]).requires_grad_(True)
-        model.model[-1].cv3[1][2] = deepcopy(model.model[-1].cv3[1][2]).requires_grad_(True)
-        model.model[-1].cv3[2][2] = deepcopy(model.model[-1].cv3[2][2]).requires_grad_(True)
-
-        if getattr(model.model[-1], "one2one_cv3", None) is not None:
-            model.model[-1].one2one_cv3[0][2] = deepcopy(model.model[-1].one2one_cv3[0][2]).requires_grad_(True)
-            model.model[-1].one2one_cv3[1][2] = deepcopy(model.model[-1].one2one_cv3[1][2]).requires_grad_(True)
-            model.model[-1].one2one_cv3[2][2] = deepcopy(model.model[-1].one2one_cv3[2][2]).requires_grad_(True)
-
-        model.train()
-
-        return model
+    get_model = YOLOEPETrainer.get_model  # shared linear-probing builder; SegmentationTrainer stays the sole base
 
 
 class YOLOESegTrainerFromScratch(YOLOETrainerFromScratch, YOLOESegTrainer):

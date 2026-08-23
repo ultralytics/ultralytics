@@ -20,35 +20,38 @@ jobs:
       - run: lscpu | grep -E "Model name"
       - run: |
           cat > /tmp/ov_debug.py <<'PY'
-          import os, shutil, subprocess, sys
+          import json, os, shutil, subprocess, sys
           from pathlib import Path
           import numpy as np
-          from ultralytics import YOLO
 
           if len(sys.argv) == 1:
-              models = {}
-              for name, kw in {
-                  "int8-dyn-e2e": dict(quantize=8, dynamic=True, end2end=True),
-                  "int8-dyn-noe2e": dict(quantize=8, dynamic=True, end2end=False),
-                  "int8-dyn-e2e-nms": dict(quantize=8, dynamic=True, end2end=True, nms=True),
-                  "int8-static-e2e": dict(quantize=8, dynamic=False, end2end=True),
-                  "fp16-dyn-e2e": dict(quantize=16, dynamic=True, end2end=True),
-              }.items():
-                  kw = {**dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False), **kw}
-                  models[name] = str(shutil.move(YOLO("yolo26n.pt").export(**kw), f"{name}_openvino_model"))
-              for name, path in models.items():
-                  for sz in ([32, 64] if "dyn" in name else [32]):
-                      for isa in ["", "AVX512_CORE_AMX", "AVX512_CORE_VNNI", "AVX2"]:
-                          env = {**os.environ, "ONEDNN_MAX_CPU_ISA": isa} if isa else os.environ
-                          rcs = [subprocess.run([sys.executable, __file__, path, str(sz)], capture_output=True, text=True, timeout=600, env=env).returncode for _ in range(2)]
-                          print(f"{name:18} sz={sz} isa={isa or 'default':16} rcs={rcs}", flush=True)
+              from ultralytics import YOLO
+              kw = dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False, quantize=8, dynamic=True, end2end=True)
+              path = str(shutil.move(YOLO("yolo26n.pt").export(**kw), "int8dyn_openvino_model"))
+              for cfg in [{}, {"INFERENCE_NUM_THREADS": 1}, {"INFERENCE_PRECISION_HINT": "f32"}, {"DYNAMIC_QUANTIZATION_GROUP_SIZE": "0"}, {"EXECUTION_MODE_HINT": "ACCURACY"}, {"reshape": 1}]:
+                  rcs = [subprocess.run([sys.executable, __file__, path, json.dumps(cfg)], capture_output=True, text=True, timeout=600).returncode for _ in range(2)]
+                  print(f"cfg={json.dumps(cfg):45} rcs={rcs}", flush=True)
+              r = subprocess.run(["gdb", "-batch", "-ex", "run", "-ex", "bt 30", "--args", sys.executable, __file__, path, "{}"], capture_output=True, text=True, timeout=900)
+              print("\n".join(l[:200] for l in r.stdout.splitlines() if l.startswith("#") or "SIG" in l), flush=True)
+              for ver in ["2026.2.0", "2026.1.0", "2025.4.0", "2025.3.0"]:
+                  subprocess.run([sys.executable, "-m", "pip", "install", "-q", f"openvino=={ver}"], capture_output=True)
+                  shutil.rmtree("int8dyn_openvino_model", ignore_errors=True)
+                  r = subprocess.run([sys.executable, "-c", "from ultralytics import YOLO; import shutil; shutil.move(YOLO('yolo26n.pt').export(format='openvino', imgsz=32, batch=2, data='coco8.yaml', nms=False, verbose=False, quantize=8, dynamic=True, end2end=True), 'int8dyn_openvino_model')"], capture_output=True, text=True, timeout=900)
+                  if r.returncode:
+                      print(f"openvino=={ver} export failed: {r.stderr.strip().splitlines()[-1][:150]}", flush=True); continue
+                  rcs = [subprocess.run([sys.executable, __file__, path, "{}"], capture_output=True, text=True, timeout=600).returncode for _ in range(2)]
+                  print(f"openvino=={ver} rcs={rcs}", flush=True)
               sys.exit()
 
           import openvino as ov
-          path, sz = sys.argv[1], int(sys.argv[2])
+          path, cfg = sys.argv[1], json.loads(sys.argv[2])
           core = ov.Core()
-          cm = core.compile_model(core.read_model(next(Path(path).glob("*.xml"))), "CPU", {"PERFORMANCE_HINT": "LATENCY"})
+          model = core.read_model(next(Path(path).glob("*.xml")))
+          if cfg.pop("reshape", 0):
+              model.reshape([2, 3, 64, 64])
+          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY", **cfg})
           for _ in range(3):
-              cm(np.random.rand(2, 3, sz, sz).astype(np.float32))
+              cm(np.random.rand(2, 3, 64, 64).astype(np.float32))
           PY
+          sudo apt-get install -y -qq gdb >/dev/null 2>&1
           python /tmp/ov_debug.py

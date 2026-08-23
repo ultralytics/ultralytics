@@ -466,8 +466,8 @@ class YOLOE(Model):
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
                 image for an explicit list, tuple, or 4-D tensor source with no refer_image.
-            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a
-                list to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
+            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a list
+                to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.

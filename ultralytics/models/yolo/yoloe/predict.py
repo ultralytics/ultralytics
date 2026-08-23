@@ -108,12 +108,34 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return super().inference(im, *args, vpe=self.visuals, **kwargs)
 
     def get_vpe(self, source):
-        """Extract visual prompt embeddings from one source image."""
+        """Extract visual prompt embeddings from one or more reference images.
+
+        Reference images are embedded in one batch and merged class-wise, so each class embedding averages every
+        reference example prompted for that class.
+
+        Args:
+            source (str | Path | int | PIL.Image | np.ndarray | torch.Tensor | list | tuple): One reference image, or a
+                list of them holding one set of 'bboxes' and 'cls' prompts each.
+
+        Returns:
+            (torch.Tensor): The visual prompt embeddings with shape (1, num_classes, embed).
+        """
         self.setup_source(source)
-        assert len(self.dataset) == 1, "get_vpe only supports one image!"
+        multi = self.is_per_image(self.prompts)  # one set of prompts per reference image
+        assert len(self.dataset) == (self.dataset.bs if multi else 1), (
+            "get_vpe only supports one image, or a list of images with one set of prompts each!"
+        )
         for _, im0s, _ in self.dataset:
-            im = self.preprocess(im0s)
-            return self.model(im, vpe=self.visuals, return_vpe=True)
+            vpe = self.model(self.preprocess(im0s), vpe=self.visuals, return_vpe=True)
+            if not multi:  # one embedding per class already
+                return vpe
+            cls = self.prompts["cls"]
+            merged = [
+                # An image embeds class i only if prompted for it, at the index of i in its sorted unique classes
+                torch.stack([v[np.unique(c).tolist().index(i)] for v, c in zip(vpe, cls) if i in c]).mean(0)
+                for i in range(max(int(c.max()) for c in cls) + 1)  # class IDs are shared across reference images
+            ]
+            return torch.nn.functional.normalize(torch.stack(merged), p=2, dim=-1)[None]
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

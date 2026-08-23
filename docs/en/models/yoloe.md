@@ -298,6 +298,33 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         model.export(format="onnx")  # And the export keeps them
         ```
 
+        `refer_image` also takes a list of images, with one `bboxes` array and one `cls` array **per reference image**. Class IDs are shared across the references, so each class embedding averages every example given for it, and several views of an object make the match more robust:
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        model = YOLOE("yoloe-26l-seg.pt")
+
+        visual_prompts = {
+            "bboxes": [
+                np.array([[150, 200, 1150, 700]]),  # zidane.jpg: person
+                np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),  # bus.jpg: person, glasses
+            ],
+            "cls": [np.array([0]), np.array([0, 1])],  # class 0 is prompted twice, class 1 once
+        }
+
+        results = model.predict(
+            "ultralytics/assets/bus.jpg",  # Target image
+            refer_image=["ultralytics/assets/zidane.jpg", "ultralytics/assets/bus.jpg"],  # Reference images
+            visual_prompts=visual_prompts,
+            predictor=YOLOEVPSegPredictor,
+        )
+        results[0].show()
+        ```
+
         !!! note
 
             When `source` is a video or stream, the first frame becomes the `refer_image` automatically, so the prompts you pass are applied to that frame and carried through the rest of the video. Pass `refer_image` explicitly to choose a different frame.

@@ -466,7 +466,8 @@ class YOLOE(Model):
             visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
                 image for an explicit list, tuple, or 4-D tensor source with no refer_image.
-            refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
+            refer_image (str | PIL.Image | np.ndarray | list, optional): Reference image for visual prompts. Pass a
+                list to merge prompts from multiple reference images, with one set of 'bboxes' and 'cls' per image.
             predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
                 YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
@@ -493,17 +494,23 @@ class YOLOE(Model):
             )
             assert len(bboxes) == len(classes) > 0, "Expected an equal, non-zero number of boxes and classes"
             nested = yolo.yoloe.YOLOEVPDetectPredictor.is_per_image(visual_prompts)  # one prompt array per image
+            refer_images = isinstance(refer_image, (list, tuple))  # merge prompts from multiple reference images
             assert not isinstance(source, np.ndarray) or source.ndim != 4, "4-D NumPy sources are not supported"
             per_image_source = isinstance(source, (list, tuple)) or (
                 isinstance(source, torch.Tensor) and source.ndim == 4
             )
-            assert not nested or (refer_image is None and per_image_source), (
-                "Expected flat 'bboxes' and 'cls' arrays for a non-sequence source or when refer_image is set"
+            assert nested or not refer_images, (
+                "Expected one set of 'bboxes' and 'cls' arrays per image for a list of reference images"
+            )
+            assert not nested or refer_images or (refer_image is None and per_image_source), (
+                "Expected flat 'bboxes' and 'cls' arrays for a non-sequence source or a single refer_image"
             )
             multi = nested
             pairs = list(zip(bboxes, classes)) if multi else [(bboxes, classes)]
-            assert not multi or len(pairs) == len(source), (
-                f"Expected one prompt per source image, but got {len(pairs)} prompts for {len(source)} images"
+            images = refer_image if refer_images else source
+            assert not multi or len(pairs) == len(images), (
+                f"Expected one prompt per {'reference' if refer_images else 'source'} image, but got {len(pairs)} "
+                f"prompts for {len(images)} images"
             )
             assert all(
                 getattr(b, "ndim", 2) == 2
@@ -515,7 +522,12 @@ class YOLOE(Model):
             ), "Expected non-string scalar class indices for each bounding box"
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
-            num_cls = max(per_image)
+            if refer_images:  # reference images share one class set, so their indices are global, not per image
+                shared = {int(x) for _, c in pairs for x in c}
+                num_cls = max(shared) + 1
+                assert len(shared) == num_cls, "Expected reference image class indices sequential from 0"
+            else:
+                num_cls = max(per_image)
             if type(self.predictor) is not predictor:
                 args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(

@@ -79,10 +79,10 @@ class OpenVINOBackend(BaseBackend):
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
         self.ov_model = (
             ov_model
-            if device_name == "CPU"
+            if LINUX
+            and device_name == "CPU"
             and ov_model.input().get_partial_shape().is_dynamic
             and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
-            and LINUX
             and "amx_int8" in Path("/proc/cpuinfo").read_text()
             else None
         )

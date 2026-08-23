@@ -74,7 +74,7 @@ Keep these points in mind when splitting:
 - **Better use of data**: Every annotated image yields multiple training variations.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-data-augmentations.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
+  <img width="100%" src="https://cdn.ul.run/i/8da4cad7272d62a9ac02b9d8b8a083f8.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
 </p>
 
 With YOLO26, augmentation is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags — **not** by editing the dataset YAML, which defines dataset metadata such as paths, class names, and splits. The built-in augmentations include:
@@ -136,7 +136,7 @@ Visualizations reveal patterns that summary statistics miss, such as class imbal
 
 ### Ultralytics Platform for EDA
 
-For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
+For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
 
 ## Conclusion
 

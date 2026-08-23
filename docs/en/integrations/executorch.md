@@ -9,15 +9,7 @@ keywords: Ultralytics, YOLO26, ExecuTorch, model export, PyTorch, edge AI, iOS, 
 
 Deploying computer vision models on edge devices like smartphones, tablets, and embedded systems requires an optimized runtime that balances performance with resource constraints. ExecuTorch, PyTorch's solution for edge computing, enables efficient on-device inference for [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models.
 
-This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, enabling you to deploy your models on the following mobile and edge devices with optimized performance:
-
-- **Mobile Applications**: Deploy on iOS and Android applications with native performance, enabling real-time object detection in mobile apps.
-
-- **Embedded Systems**: Run on embedded Linux devices like Raspberry Pi, NVIDIA Jetson, and other ARM-based systems with optimized performance.
-
-- **Edge AI Devices**: Deploy on specialized edge AI hardware with custom delegates for accelerated inference.
-
-- **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
+This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, enabling you to deploy your models on mobile and edge devices with optimized performance.
 
 ## Why export to ExecuTorch?
 

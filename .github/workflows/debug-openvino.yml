@@ -20,36 +20,35 @@ jobs:
       - run: lscpu | grep -E "Model name"
       - run: |
           cat > /tmp/ov_debug.py <<'PY'
-          import shutil, subprocess, sys
+          import os, shutil, subprocess, sys
           from pathlib import Path
           import numpy as np
           from ultralytics import YOLO
-          from ultralytics.utils import ASSETS
-          SOURCE = str(ASSETS / "bus.jpg")
-          KW = dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, end2end=True, dynamic=True, quantize=8, verbose=False)
-
-          def ov_infer(path):
-              import openvino as ov
-              core = ov.Core()
-              cm = core.compile_model(core.read_model(next(Path(path).glob("*.xml"))), "CPU", {"PERFORMANCE_HINT": "LATENCY"})
-              for _ in range(3):
-                  cm(np.random.rand(2, 3, 64, 64).astype(np.float32))
 
           if len(sys.argv) == 1:
-              path = str(shutil.move(YOLO("yolo26n.pt").export(**KW), "pre_openvino_model"))
-              for mode in ["export+predict", "export+infer", "predict", "infer", "torchpredict+predict"]:
-                  rcs = [subprocess.run([sys.executable, __file__, mode, path], capture_output=True, text=True, timeout=600).returncode for _ in range(4)]
-                  print(f"{mode:22} crashes={sum(rc != 0 for rc in rcs)}/4 rcs={rcs}", flush=True)
+              models = {}
+              for name, kw in {
+                  "int8-dyn-e2e": dict(quantize=8, dynamic=True, end2end=True),
+                  "int8-dyn-noe2e": dict(quantize=8, dynamic=True, end2end=False),
+                  "int8-dyn-e2e-nms": dict(quantize=8, dynamic=True, end2end=True, nms=True),
+                  "int8-static-e2e": dict(quantize=8, dynamic=False, end2end=True),
+                  "fp16-dyn-e2e": dict(quantize=16, dynamic=True, end2end=True),
+              }.items():
+                  kw = {**dict(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False), **kw}
+                  models[name] = str(shutil.move(YOLO("yolo26n.pt").export(**kw), f"{name}_openvino_model"))
+              for name, path in models.items():
+                  for sz in ([32, 64] if "dyn" in name else [32]):
+                      for isa in ["", "AVX512_CORE_AMX", "AVX512_CORE_VNNI", "AVX2"]:
+                          env = {**os.environ, "ONEDNN_MAX_CPU_ISA": isa} if isa else os.environ
+                          rcs = [subprocess.run([sys.executable, __file__, path, str(sz)], capture_output=True, text=True, timeout=600, env=env).returncode for _ in range(2)]
+                          print(f"{name:18} sz={sz} isa={isa or 'default':16} rcs={rcs}", flush=True)
               sys.exit()
 
-          mode, path = sys.argv[1:]
-          if mode.startswith("export"):
-              path = YOLO("yolo26n.pt").export(**KW)
-          if mode.startswith("torchpredict"):
-              YOLO("yolo26n.pt")([SOURCE] * 2, imgsz=64, batch=2, verbose=False)
-          if mode.endswith("predict"):
-              YOLO(path)([SOURCE] * 2, imgsz=64, batch=2, verbose=False)
-          else:
-              ov_infer(path)
+          import openvino as ov
+          path, sz = sys.argv[1], int(sys.argv[2])
+          core = ov.Core()
+          cm = core.compile_model(core.read_model(next(Path(path).glob("*.xml"))), "CPU", {"PERFORMANCE_HINT": "LATENCY"})
+          for _ in range(3):
+              cm(np.random.rand(2, 3, sz, sz).astype(np.float32))
           PY
           python /tmp/ov_debug.py

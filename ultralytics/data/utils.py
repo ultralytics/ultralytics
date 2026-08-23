@@ -626,14 +626,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             r = None  # success
             if s.startswith("http") and s.endswith(".zip"):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
-            elif (ROOT / "cfg" / "datasets") not in file.resolve().parents:  # scripts only trusted from packaged YAMLs
-                raise PermissionError(
-                    emojis(
-                        f"Dataset '{name}' download script blocked ❌. 'download' scripts only auto-run from YAMLs "
-                        f"packaged in '{ROOT / 'cfg' / 'datasets'}', but '{file}' is user-supplied. Review its "
-                        f"'download' field, run it manually, and place the dataset in '{DATASETS_DIR}'."
-                    )
-                )
+            elif (ROOT / "cfg" / "datasets") not in file.resolve().parents:  # only packaged YAMLs may run scripts
+                raise PermissionError(f"Dataset '{name}' download script in '{file}' is untrusted, run it manually.")
             elif s.startswith("bash "):  # bash script
                 LOGGER.info(f"Running {s} ...")
                 subprocess.run(s.split(), check=True)

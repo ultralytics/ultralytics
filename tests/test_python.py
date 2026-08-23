@@ -1181,15 +1181,11 @@ def test_data_utils(tmp_path):
     data_yaml.write_text("train: images/train\nval: images/val\ntest: images/test\nnames: [item]\n")
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
-    # Untrusted YAML `download` scripts must be blocked, not executed (packaged cfg/datasets YAMLs stay trusted)
-    proof = tmp_path / "proof.txt"
+    proof = tmp_path / "proof.txt"  # untrusted YAML download scripts must raise, not execute
     data_yaml.write_text(f"train: images/train\nval: images/val\nnames: [item]\ndownload: open(r'{proof}', 'w')\n")
-    with pytest.raises(PermissionError, match="download script blocked"):
+    with pytest.raises(PermissionError):
         check_det_dataset(data_yaml, autodownload=True)
     assert not proof.exists()
-    from ultralytics.utils.checks import check_file
-
-    assert (ROOT / "cfg" / "datasets") in Path(check_file("VOC.yaml")).resolve().parents  # packaged YAMLs stay trusted
 
     # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
     # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask

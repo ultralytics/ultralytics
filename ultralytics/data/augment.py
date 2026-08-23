@@ -2076,7 +2076,8 @@ class Albumentations(BaseTransform):
 
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
-            transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
+            transforms (list | None): Custom Albumentations transforms, either objects or `A.to_dict()` dicts as stored
+                in checkpoints. If None, uses default transforms.
             flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
         self.p = p
@@ -2091,6 +2092,8 @@ class Albumentations(BaseTransform):
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
+            if transforms and isinstance(transforms[0], dict):
+                transforms = [A.from_dict(t) for t in transforms]  # restore transforms serialized by the trainer
             topology_changing = getattr(A, "RandomGridShuffle", ())
 
             def transform_types(t) -> tuple[bool, list]:

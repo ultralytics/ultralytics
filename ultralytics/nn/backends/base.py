@@ -45,7 +45,7 @@ def read_export_metadata(file: str | Path) -> dict:
 
     Directory-based formats write a `metadata.yaml` sidecar, while single-file formats embed it in a length-prefixed
     JSON header (`.engine`), a zip entry (`.torchscript`, `.tflite`) or protobuf string map entries (`.onnx`,
-    `.mlpackage`). MNN keeps it in a flatbuffer `bizCode` field and Triton serves it over HTTP, so neither is read here.
+    `.mlpackage`, `_imx_model`). MNN keeps it in a flatbuffer `bizCode` field and Triton serves it over HTTP, so neither is read here.
 
     Args:
         file (str | Path): Path to an exported model file or directory.
@@ -68,8 +68,8 @@ def read_export_metadata(file: str | Path) -> dict:
             with zipfile.ZipFile(path) as zf:
                 name = next((n for n in zf.namelist() if n.endswith("extra/config.txt")), "")
                 return json.loads(zf.read(name)) if name else {}
-        if path.suffix == ".onnx":
-            return _read_proto_metadata(path, (14,))  # ModelProto.metadata_props
+        if path.suffix == ".onnx" or path.name.endswith("_imx_model"):  # IMX packages its ONNX in a directory
+            return _read_proto_metadata(next(path.glob("*.onnx"), path) if path.is_dir() else path, (14,))
         if path.suffix in {".mlpackage", ".mlmodel"}:  # Model.description.metadata.userDefined
             return _read_proto_metadata(next(path.rglob("*.mlmodel"), path) if path.is_dir() else path, (2, 100, 100))
     except (OSError, ValueError, LookupError, zipfile.BadZipFile):

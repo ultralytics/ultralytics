@@ -143,7 +143,7 @@ class ImagePropertyExtractor:
         out["num_small"] = int(np.sum(area_px < COCO_AREA_SMALL))
         out["num_medium"] = int(np.sum((area_px >= COCO_AREA_SMALL) & (area_px < COCO_AREA_MEDIUM)))
         out["num_large"] = int(np.sum(area_px >= COCO_AREA_MEDIUM))
-        out["small_object_ratio"] = out["num_small"] / max(n, 1)
+        out["small_object_ratio"] = out["num_small"] / n
 
         xyxy_n = xywh2xyxy(bboxes_n)
         min_edge = np.minimum(np.minimum(xyxy_n[:, 0], xyxy_n[:, 1]), np.minimum(1 - xyxy_n[:, 2], 1 - xyxy_n[:, 3]))
@@ -231,7 +231,5 @@ class ImagePropertyExtractor:
         """Max and mean upper-triangular pairwise IoU among boxes (CrowdHuman 2018 crowdedness proxy)."""
         t = torch.as_tensor(xyxy_pixels, dtype=torch.float32)
         n = t.shape[0]
-        if n < 2:
-            return 0.0, 0.0
         iou = box_iou(t, t).triu_(diagonal=1)
         return float(iou.max()), float(iou.sum() / (n * (n - 1) / 2))

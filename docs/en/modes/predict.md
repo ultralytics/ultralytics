@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 # Model Prediction with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 
@@ -25,10 +25,10 @@ In the world of [machine learning](https://www.ultralytics.com/glossary/machine-
 
 ## Real-world Applications
 
-|                   Manufacturing                   |                        Sports                        |                   Safety                    |
-| :-----------------------------------------------: | :--------------------------------------------------: | :-----------------------------------------: |
-| ![Vehicle Spare Parts Detection][car spare parts] | ![Football Player Detection][football player detect] | ![People Fall Detection][human fall detect] |
-|           Vehicle Spare Parts Detection           |              Football Player Detection               |            People Fall Detection            |
+|                                                                       Manufacturing                                                                        |                                                                         Sports                                                                         |                                                                       Safety                                                                       |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <video src="https://cdn.ul.run/v/8d51dbecda9c18cb76881aecc63869de.mp4" autoplay loop muted playsinline aria-label="Vehicle Spare Parts Detection"></video> | <video src="https://cdn.ul.run/v/592d7c8102fbf2ea8fa76560a757d476.mp4" autoplay loop muted playsinline aria-label="Football Player Detection"></video> | <video src="https://cdn.ul.run/v/3257bdeaf9a10c56220491608c1582f0.mp4" autoplay loop muted playsinline aria-label="People Fall Detection"></video> |
+|                                                               Vehicle Spare Parts Detection                                                                |                                                               Football Player Detection                                                                |                                                               People Fall Detection                                                                |
 
 ## Why Use Ultralytics YOLO for Inference?
 
@@ -955,10 +955,6 @@ Here's a Python script using OpenCV (`cv2`) and YOLO to run inference on video f
     ```
 
 This script will run predictions on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
-
-[car spare parts]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/car-parts-detection-for-predict.avif
-[football player detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/football-players-detection.avif
-[human fall detect]: https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/person-fall-detection.avif
 
 ## What's Next
 

@@ -15,7 +15,7 @@ This comprehensive guide provides a detailed walkthrough for deploying [Ultralyt
 
 ## What is Intel DL Streamer?
 
-[Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://gitlab.freedesktop.org/gstreamer/gstreamer) multimedia framework, designed for creating complex media analytics pipelines for the Cloud or at the Edge.
+[Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://github.com/GStreamer/gstreamer) multimedia framework, designed for creating complex media analytics pipelines for the Cloud or at the Edge.
 
 DL Streamer enables analysis of audio and video streams to detect, classify, track, identify, and count objects, events, and people. It is
 optimized for Intel hardware and provides interoperability between GStreamer plugins built on various backend libraries:
@@ -155,7 +155,7 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
 - [DL Streamer Elements](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/elements/elements.html)
 - [OpenVINO™ Toolkit](https://docs.openvino.ai/)
 - [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26)
-- [GStreamer Framework](https://gitlab.freedesktop.org/gstreamer/gstreamer)
+- [GStreamer Framework](https://github.com/GStreamer/gstreamer)
 - [Supported Models Table](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/supported_models.html)
 
 ## FAQ

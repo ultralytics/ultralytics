@@ -18,33 +18,10 @@ jobs:
       - uses: astral-sh/setup-uv@v7
       - run: uv pip install --system -e ".[export-base]" --torch-backend cpu
       - run: lscpu | grep -E "Model name"
+      - run: uv pip install --system pytest pytest-xdist
       - run: |
-          cat > /tmp/ov_debug.py <<'PY'
-          import shutil, subprocess, sys
-          import numpy as np
-          from ultralytics import YOLO
-
-          if len(sys.argv) == 1:
-              for name, kw in {
-                  "int8-dynamic-e2e": dict(quantize=8, dynamic=True, end2end=True),
-                  "int8-dynamic-noe2e": dict(quantize=8, dynamic=True, end2end=False),
-                  "int8-static-e2e": dict(quantize=8, dynamic=False, end2end=True),
-                  "fp16-dynamic-e2e": dict(quantize=16, dynamic=True, end2end=True),
-              }.items():
-                  out = YOLO("yolo26n.pt").export(format="openvino", imgsz=32, batch=2, data="coco8.yaml", nms=False, verbose=False, **kw)
-                  path = str(shutil.move(out, f"{name}_openvino_model"))
-                  rcs = [subprocess.run([sys.executable, __file__, path, name], capture_output=True, text=True, timeout=300).returncode for _ in range(20)]
-                  print(f"{name:20} crashes={sum(rc != 0 for rc in rcs)}/20 rcs={set(rcs)}", flush=True)
-              sys.exit()
-
-          import openvino as ov
-          path, name = sys.argv[1:]
-          core = ov.Core()
-          model = core.read_model(next(__import__('pathlib').Path(path).glob('*.xml')))
-          cm = core.compile_model(model, "CPU", {"PERFORMANCE_HINT": "LATENCY"})
-          sz = 64 if "dynamic" in name else 32
-          im = np.random.rand(2, 3, sz, sz).astype(np.float32)
-          for _ in range(3):
-              cm(im)
-          PY
-          python /tmp/ov_debug.py
+          for i in 1 2 3 4 5; do
+            PYTHONFAULTHANDLER=1 timeout 600 python -m pytest -q -s --slow -p no:cacheprovider \
+              "tests/test_exports.py::test_export_openvino_matrix[detect-True-8-2-False-True]" > /tmp/out_$i.log 2>&1
+            echo "RUN $i rc=$? $(grep -c 'Segmentation fault' /tmp/out_$i.log) segfault-lines"
+          done

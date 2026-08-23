@@ -976,6 +976,11 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
         if "val" not in splits:
+            if local_mode:  # images stay where the caller put them, so a val split cannot be carved out here
+                raise ValueError(
+                    "Local-path datasets keep the caller's image layout and cannot be auto-split. "
+                    "Assign a 'val' split to images in the NDJSON."
+                )
             train_records = [r for r in image_records if r.get("split") == "train"]
             if len(train_records) < 2:
                 raise ValueError(

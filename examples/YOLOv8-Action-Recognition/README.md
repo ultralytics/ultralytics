@@ -111,7 +111,7 @@ Additionally, you can choose between different video classification models:
 
 ### 4. Can I Employ Other YOLO Versions?
 
-Certainly! While this example defaults to `yolo11n.pt`, you have the flexibility to specify different Ultralytics YOLO model weights using the `--weights` option. For instance, you could use `yolo11s.pt`, `yolo11m.pt`, `yolo11l.pt`, or `yolo11x.pt` for potentially higher detection accuracy at the cost of inference speed. You can even use models trained for other tasks if applicable, though detection models are standard here. Check the [Ultralytics documentation](https://docs.ultralytics.com/) for available models and their performance metrics.
+Certainly! While this example defaults to `yolo11n.pt`, you have the flexibility to specify different Ultralytics YOLO model weights using the `--weights` option. For instance, you could use `yolo11s.pt`, `yolo11m.pt`, `yolo11l.pt`, or `yolo11x.pt` for potentially higher detection accuracy at the cost of inference speed. You can even use models trained for other tasks if applicable, though detection models are standard here. Check the [Ultralytics documentation](https://docs.ultralytics.com) for available models and their performance metrics.
 
 ---
 

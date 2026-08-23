@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import math
+
 import torch
 import torch.nn.functional as F
 from torch import nn
@@ -2042,14 +2044,11 @@ class RealNVP(nn.Module):
         """Get the translation model in a single invertible mapping."""
         return nn.Sequential(nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 2))
 
-    @property
-    def prior(self):
-        """The prior distribution."""
-        return torch.distributions.MultivariateNormal(self.loc, self.cov)
-
     def __init__(self):
         super().__init__()
 
+        # loc/cov are no longer read (the prior is the closed-form standard normal in log_prob) but stay registered so
+        # checkpoints saved before 8.4.126 still resume: the EMA state is loaded strictly.
         self.register_buffer("loc", torch.zeros(2))
         self.register_buffer("cov", torch.eye(2))
         self.register_buffer("mask", torch.tensor([[0, 1], [1, 0]] * 3, dtype=torch.float32))
@@ -2082,4 +2081,5 @@ class RealNVP(nn.Module):
         if x.dtype == torch.float32 and self.s[0][0].weight.dtype != torch.float32:
             self.float()
         z, log_det = self.backward_p(x)
-        return self.prior.log_prob(z) + log_det
+        # Closed-form log N(z; 0, I) in 2-D; fp32 keeps z**2 from overflowing under AMP.
+        return -0.5 * (z.float() ** 2).sum(-1) - math.log(2 * math.pi) + log_det

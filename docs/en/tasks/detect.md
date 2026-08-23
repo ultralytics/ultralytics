@@ -6,7 +6,7 @@ keywords: object detection, Ultralytics YOLO, YOLO26, pretrained models, trainin
 
 # Object Detection with Ultralytics YOLO {#object-detection}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/object-detection-examples.avif" alt="Ultralytics YOLO object detection with bounding boxes">
+<img width="1024" src="https://cdn.ul.run/i/3072f66ad6b2cc3c423a81128af9842f.avif" alt="Ultralytics YOLO object detection with bounding boxes">
 
 [Object detection](https://www.ultralytics.com/glossary/object-detection) is a task that involves identifying the location and class of objects in an image or video stream.
 

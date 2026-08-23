@@ -48,6 +48,10 @@ keywords: Ultralytics, engine results, BaseTensor, Results class, Boxes, Masks, 
 
 <br><br><hr><br>
 
+## ::: ultralytics.engine.results.Logits
+
+<br><br><hr><br>
+
 ## ::: ultralytics.engine.results.OBB
 
 <br><br>

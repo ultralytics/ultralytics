@@ -197,6 +197,16 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
+def test_restricted_load_threaded():
+    """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    from ultralytics.nn.tasks import torch_safe_load
+
+    with ThreadPoolExecutor(8) as pool:
+        list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
+
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)
@@ -919,7 +929,7 @@ def test_results(model: str, tmp_path, solution_assets):
         r = r.to(device="cpu", dtype=torch.float32)
         r.save_txt(txt_file=tmp_path / "runs/tests/label.txt", save_conf=True)
         r.save_crop(save_dir=tmp_path / "runs/tests/crops/")
-        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict/#working-with-results
+        r.to_df(decimals=3)  # Align to_ methods: https://docs.ultralytics.com/modes/predict#working-with-results
         r.to_csv()
         r.to_json(normalize=True)
         r.plot(pil=True, save=True, filename=tmp_path / "results_plot_save.jpg")

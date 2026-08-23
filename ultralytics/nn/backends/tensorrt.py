@@ -50,10 +50,9 @@ class TensorRTBackend(BaseBackend):
         # Read engine file
         metadata = self.read_metadata(weight)
         with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
-            if metadata:  # seek past the 4-byte length prefix and the metadata header itself
-                f.seek(4 + int.from_bytes(f.read(4), byteorder="little"))
-                if (dla := metadata.get("dla")) is not None:
-                    runtime.DLA_core = int(dla)
+            f.seek(self.engine_offset(weight))  # skip the metadata header, if any, that precedes the engine
+            if (dla := metadata.get("dla")) is not None:
+                runtime.DLA_core = int(dla)
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
         try:

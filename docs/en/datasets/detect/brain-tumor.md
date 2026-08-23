@@ -3,7 +3,7 @@ title: Brain Tumor Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -117,7 +117,7 @@ To train a [YOLO26](../../models/yolo26.md) model on the brain tumor dataset for
 
 The brain tumor dataset contains MRI and CT brain scans with and without tumors. Below is an example image from the dataset with its annotations.
 
-![Brain tumor dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/brain-tumor-dataset-sample-image.avif)
+![Brain tumor dataset sample image](https://cdn.ul.run/i/711abf9c822ccd3db614c073b6c976c8.avif)
 
 - **Mosaiced Image**: This training batch shows mosaiced dataset images. Mosaicing combines multiple images into one during training, increasing batch diversity so the model generalizes better across tumor sizes, shapes, and locations for [medical image analysis](https://www.ultralytics.com/blog/using-yolo11-for-tumor-detection-in-medical-imaging).
 
@@ -137,7 +137,7 @@ If you use this dataset in your research or development work, please cite it app
             title = {Brain Tumor Detection Dataset},
             year = {2023},
             publisher = {Ultralytics},
-            url = {https://docs.ultralytics.com/datasets/detect/brain-tumor/}
+            url = {https://docs.ultralytics.com/datasets/detect/brain-tumor}
         }
         ```
 

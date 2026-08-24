@@ -128,7 +128,7 @@ Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_tra
 
 !!! warning "The cache key is the JSON's file size, not its contents"
 
-    `get_hash()` hashes file sizes and paths rather than file contents, so a re-run re-parses the JSON only when the JSON's byte count changes, or when images are added to or removed from the image directory. An edit that preserves the byte count — nudging a coordinate, flipping `iscrowd`, swapping two equal-length class names — leaves the stale cache in place and trains on the old annotations with no warning, and replacing an image in place is invisible for the same reason. Delete the `.cache` file after editing annotations or images in place.
+    `get_hash()` hashes file sizes and paths rather than file contents, so a re-run re-parses the JSON only when the JSON's byte count changes. Adding or removing images may also shift the image directory's own size and trigger a rebuild, but do not rely on it — the hash never inspects individual image files, so swapping one image for another can leave the size unchanged. An edit that preserves the byte count — nudging a coordinate, flipping `iscrowd`, swapping two equal-length class names — leaves the stale cache in place and trains on the old annotations with no warning, and replacing an image in place is invisible for the same reason. Delete the `.cache` file after editing annotations or images in place.
 
 ## Connecting the Dataset to the Training Pipeline
 

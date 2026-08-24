@@ -132,27 +132,28 @@ Then launch the training with the Python API:
 
 Every Ultralytics YOLO augmentation parameter, its typical range, and its default value. Each name links to the section below that explains the transform in detail and shows its visual effect.
 
-| Parameter                                                          | Range                                                | Default                   | Effect                                                         |
-| ------------------------------------------------------------------ | ---------------------------------------------------- | ------------------------- | -------------------------------------------------------------- |
-| [`hsv_h`](#hue-adjustment-hsv_h)                                   | `0.0` - `1.0`                                        | `{{ hsv_h }}`             | Shifts hue around the color wheel                              |
-| [`hsv_s`](#saturation-adjustment-hsv_s)                            | `0.0` - `1.0`                                        | `{{ hsv_s }}`             | Varies color intensity                                         |
-| [`hsv_v`](#brightness-adjustment-hsv_v)                            | `0.0` - `1.0`                                        | `{{ hsv_v }}`             | Varies image brightness                                        |
-| [`degrees`](#rotation-degrees)                                     | `0.0` - `180`                                        | `{{ degrees }}`           | Rotates the image                                              |
-| [`translate`](#translation-translate)                              | `0.0` - `1.0`                                        | `{{ translate }}`         | Shifts the image on both axes                                  |
-| [`scale`](#scale-scale)                                            | `0.0` - `1.0`, or an explicit `(min, max)` tuple     | `{{ scale }}`             | Zooms in or out                                                |
-| [`shear`](#shear-shear)                                            | `-180` - `+180`                                      | `{{ shear }}`             | Skews the image along both axes                                |
-| [`perspective`](#perspective-perspective)                          | `0.0` - `0.001`                                      | `{{ perspective }}`       | Applies a perspective warp                                     |
-| [`flipud`](#flip-up-down-flipud)                                   | `0.0` - `1.0`                                        | `{{ flipud }}`            | Probability of a vertical flip                                 |
-| [`fliplr`](#flip-left-right-fliplr)                                | `0.0` - `1.0`                                        | `{{ fliplr }}`            | Probability of a horizontal flip                               |
-| [`bgr`](#bgr-channel-swap-bgr)                                     | `0.0` - `1.0`                                        | `{{ bgr }}`               | Probability of swapping RGB to BGR                             |
-| [`mosaic`](#mosaic-mosaic)                                         | `0.0` - `1.0`                                        | `{{ mosaic }}`            | Probability of tiling 4 images into one                        |
-| [`mixup`](#mixup-mixup)                                            | `0.0` - `1.0`                                        | `{{ mixup }}`             | Probability of blending two images                             |
-| [`cutmix`](#cutmix-cutmix)                                         | `0.0` - `1.0`                                        | `{{ cutmix }}`            | Probability of pasting a region from another image             |
-| [`copy_paste`](#copy-paste-copy_paste)                             | `0.0` - `1.0`                                        | `{{ copy_paste }}`        | Fraction of segmented objects copied (segmentation only)       |
-| [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode)              | `'flip'`, `'mixup'`                                  | `'{{ copy_paste_mode }}'` | Whether copied objects come from the same image or another one |
-| [`auto_augment`](#auto-augment-auto_augment)                       | `'randaugment'`, `'autoaugment'`, `'augmix'`, `None` | `'{{ auto_augment }}'`    | Automated augmentation policy (classification only)            |
-| [`erasing`](#random-erasing-erasing)                               | `0.0` - `1.0`                                        | `{{ erasing }}`           | Probability of erasing a region (classification only)          |
-| [`augmentations`](#custom-albumentations-transforms-augmentations) | `list` of Albumentations transforms                  | `None`                    | Replaces the default Albumentations set                        |
+| Parameter                                                          | Range                                                | Default                   | Effect                                                              |
+| ------------------------------------------------------------------ | ---------------------------------------------------- | ------------------------- | ------------------------------------------------------------------- |
+| [`hsv_h`](#hue-adjustment-hsv_h)                                   | `0.0` - `1.0`                                        | `{{ hsv_h }}`             | Shifts hue around the color wheel                                   |
+| [`hsv_s`](#saturation-adjustment-hsv_s)                            | `0.0` - `1.0`                                        | `{{ hsv_s }}`             | Varies color intensity                                              |
+| [`hsv_v`](#brightness-adjustment-hsv_v)                            | `0.0` - `1.0`                                        | `{{ hsv_v }}`             | Varies image brightness                                             |
+| [`degrees`](#rotation-degrees)                                     | `0.0` - `180`                                        | `{{ degrees }}`           | Rotates the image                                                   |
+| [`translate`](#translation-translate)                              | `0.0` - `1.0`                                        | `{{ translate }}`         | Shifts the image on both axes                                       |
+| [`scale`](#scale-scale)                                            | `0.0` - `1.0`, or an explicit `(min, max)` tuple     | `{{ scale }}`             | Zooms in or out                                                     |
+| [`shear`](#shear-shear)                                            | `-180` - `+180`                                      | `{{ shear }}`             | Skews the image along both axes                                     |
+| [`perspective`](#perspective-perspective)                          | `0.0` - `0.001`                                      | `{{ perspective }}`       | Applies a perspective warp                                          |
+| [`flipud`](#flip-up-down-flipud)                                   | `0.0` - `1.0`                                        | `{{ flipud }}`            | Probability of a vertical flip                                      |
+| [`fliplr`](#flip-left-right-fliplr)                                | `0.0` - `1.0`                                        | `{{ fliplr }}`            | Probability of a horizontal flip                                    |
+| [`bgr`](#bgr-channel-swap-bgr)                                     | `0.0` - `1.0`                                        | `{{ bgr }}`               | Probability of swapping RGB to BGR                                  |
+| [`mosaic`](#mosaic-mosaic)                                         | `0.0` - `1.0`                                        | `{{ mosaic }}`            | Probability of tiling 4 images into one                             |
+| [`close_mosaic`](#mosaic-mosaic)                                   | `0` - `epochs`                                       | `{{ close_mosaic }}`      | Final epochs with mosaic, mixup, cutmix and copy-paste switched off |
+| [`mixup`](#mixup-mixup)                                            | `0.0` - `1.0`                                        | `{{ mixup }}`             | Probability of blending two images                                  |
+| [`cutmix`](#cutmix-cutmix)                                         | `0.0` - `1.0`                                        | `{{ cutmix }}`            | Probability of pasting a region from another image                  |
+| [`copy_paste`](#copy-paste-copy_paste)                             | `0.0` - `1.0`                                        | `{{ copy_paste }}`        | Fraction of segmented objects copied (segmentation only)            |
+| [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode)              | `'flip'`, `'mixup'`                                  | `'{{ copy_paste_mode }}'` | Whether copied objects come from the same image or another one      |
+| [`auto_augment`](#auto-augment-auto_augment)                       | `'randaugment'`, `'autoaugment'`, `'augmix'`, `None` | `'{{ auto_augment }}'`    | Automated augmentation policy (classification only)                 |
+| [`erasing`](#random-erasing-erasing)                               | `0.0` - `1.0`                                        | `{{ erasing }}`           | Probability of erasing a region (classification only)               |
+| [`augmentations`](#custom-albumentations-transforms-augmentations) | `list` of Albumentations transforms                  | `None`                    | Replaces the default Albumentations set                             |
 
 ## Color Space Augmentations
 
@@ -309,7 +310,7 @@ Every Ultralytics YOLO augmentation parameter, its typical range, and its defaul
 - **Note**:
     - Even if the `mosaic` augmentation makes the model more robust, it can also make the training process more challenging.
     - The `mosaic` augmentation can be disabled near the end of training by setting `close_mosaic` to the number of epochs before completion when it should be turned off. For example, if `epochs` is set to `200` and `close_mosaic` is set to `20`, the `mosaic` augmentation will be disabled after `180` epochs. If `close_mosaic` is set to `0`, the `mosaic` augmentation will be enabled for the entire training process.
-    - Closing the mosaic also disables `copy_paste`, `mixup`, and `cutmix` at the same epoch, since all four combine multiple images.
+    - Closing the mosaic also disables `copy_paste`, `mixup`, and `cutmix` at the same epoch. All four are switched off together so the final epochs train on plain images; note that `copy_paste` in its default `flip` mode works within a single image rather than combining several.
     - The center of the generated mosaic is determined using random values, and can either be inside the image or outside of it.
     - The current implementation of the `mosaic` augmentation combines the current image with 3 others, drawn from a buffer of recently loaded images, or from anywhere in the dataset when `cache='ram'`. Either way they are sampled with replacement, so the same image can appear more than once in a single mosaic.
 

@@ -76,7 +76,10 @@ class BaseDataset(Dataset):
             """Pack images and their layouts into contiguous NumPy arrays."""
             self.shapes = np.array([im.shape for im in images])
             self.offsets = np.concatenate(([0], np.cumsum([im.size for im in images])))
-            self.buffer = np.concatenate([im.reshape(-1) for im in images])
+            self.buffer = np.empty(self.offsets[-1], dtype=images[0].dtype)
+            for i, im in enumerate(images):
+                self.buffer[self.offsets[i] : self.offsets[i + 1]] = im.reshape(-1)
+                images[i] = None
 
         def __getitem__(self, i: int) -> np.ndarray:
             """Return an image view by index."""

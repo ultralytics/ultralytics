@@ -385,7 +385,6 @@ class Predictor(BasePredictor):
             points_scale = np.array([[w, h]])  # w, h
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
-            # Encode each crop once without consulting full-image features cached by set_image().
             crop_features = self.get_im_features(crop_im)
             # (num_points, 2)
             points_for_image = point_grids[layer_idx] * points_scale

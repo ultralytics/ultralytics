@@ -1259,7 +1259,6 @@ class DepthLoss26:
         self.grad_weight = h.dgrad
         self.silog_lambda = h.dlam  # 1.0 = scale-invariant, 0.0 = log-RMSE
         self.grad_scales = 4
-        self.loss_names = "dlog_loss", "dgrad_loss"
 
     @staticmethod
     def _grad_l1(pred_log: torch.Tensor, gt_log: torch.Tensor, valid_f: torch.Tensor) -> torch.Tensor:
@@ -1285,7 +1284,7 @@ class DepthLoss26:
 
         Returns:
             loss_sum (torch.Tensor): Total loss scaled by batch size.
-            loss_items (dict[str, torch.Tensor]): Detached silog/gradient losses keyed by loss_names.
+            loss_items (torch.Tensor): Detached silog and gradient losses.
         """
         loss = torch.zeros(2, device=self.device)
         pred_depth = preds["depth"] if isinstance(preds, dict) else preds
@@ -1300,7 +1299,7 @@ class DepthLoss26:
         valid = gt_depth > 0.001
         if valid.sum() < 10:
             # Keep the result attached so BaseTrainer's unconditional backward() works.
-            return pred_depth.sum() * 0.0, dict(zip(self.loss_names, loss.detach()))
+            return pred_depth.sum() * 0.0, loss.detach()
 
         pred_valid = pred_depth[valid]
         gt_valid = gt_depth[valid]
@@ -1322,16 +1321,19 @@ class DepthLoss26:
             if pred_log.shape[-1] < 4 or pred_log.shape[-2] < 4:
                 break
             vp = F.avg_pool2d(valid_f, 2)
-            if vp.mean() < 0.5:  # skip sparse GT (LiDAR)
+            occupied = vp > 0
+            # Continue per image while its occupied cells are mostly full: contiguous padding is, LiDAR scatter is not
+            keep = (vp.sum(dim=(1, 2, 3)) > 0.7 * occupied.sum(dim=(1, 2, 3))).view(-1, 1, 1, 1)
+            if not keep.any():
                 break
             denom = vp.clamp(min=1e-6)
             pred_log = F.avg_pool2d(pred_log * valid_f, 2) / denom
             gt_log = F.avg_pool2d(gt_log * valid_f, 2) / denom
-            valid_f = (vp > 0).float()
+            valid_f = occupied.float() * keep  # zeroed images cannot re-enter deeper levels
             grad_loss = grad_loss + self._grad_l1(pred_log, gt_log, valid_f)
         loss[1] = grad_loss * self.grad_weight
 
-        return loss * pred_depth.shape[0], dict(zip(self.loss_names, loss.detach()))
+        return loss * pred_depth.shape[0], loss.detach()  # loss(dlog, dgrad)
 
 
 class E2EDetectLoss:

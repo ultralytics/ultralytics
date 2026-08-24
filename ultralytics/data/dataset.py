@@ -41,6 +41,7 @@ from .utils import (
     check_file_speeds,
     get_hash,
     img2label_paths,
+    DEPTH_PNG_SCALE,
     load_dataset_cache_file,
     load_depth,
     polygons2masks_overlap,
@@ -374,21 +375,22 @@ class YOLODataset(BaseDataset):
 class DepthDataset(YOLODataset):
     """Dataset for monocular depth estimation with paired RGB + depth map loading.
 
-    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as 16-bit PNGs in a
-    parallel directory structure (images/train/*.jpg → depth/train/*.png).
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as PNG or NPY files
+    in a parallel directory structure (images/train/*.jpg → depth/train/*.{png,npy}).
 
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
     """
 
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth PNG."""
+        """Map an image path to its companion PNG or NPY depth target."""
         parts = list(Path(im_file).parts)
         for i in range(len(parts) - 1, -1, -1):
             if parts[i] == "images":
                 parts[i] = "depth"
                 break
-        return str(Path(*parts).with_suffix(".png"))
+        path = Path(*parts).with_suffix(".png")
+        return str(path if path.is_file() else path.with_suffix(".npy"))
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict[str, Any]:
         """Cache image-depth pairing metadata, verifying images and depth maps in one pass.
@@ -406,7 +408,12 @@ class DepthDataset(YOLODataset):
         with ThreadPool(NUM_THREADS) as pool:
             results = pool.imap(
                 func=verify_image_depth,
-                iterable=zip(self.im_files, self.depth_files, repeat(self.prefix)),
+                iterable=zip(
+                    self.im_files,
+                    self.depth_files,
+                    repeat(self.prefix),
+                    repeat(self.data.get("depth_scale", DEPTH_PNG_SCALE)),
+                ),
             )
             pbar = TQDM(results, desc=desc, total=total)
             for im_file, shape, nf_f, nm_f, nc_f, msg in pbar:
@@ -431,7 +438,7 @@ class DepthDataset(YOLODataset):
             pbar.close()
         if msgs:
             LOGGER.info("\n".join(msgs))
-        x["hash"] = get_hash(self.depth_files + self.im_files)
+        x["hash"] = get_hash(self.depth_files + self.im_files + [str(self.data.get("depth_scale", DEPTH_PNG_SCALE))])
         x["results"] = nf, nm, nc, total
         x["msgs"] = msgs
         if x["labels"]:
@@ -449,7 +456,9 @@ class DepthDataset(YOLODataset):
         try:
             cache, exists = load_dataset_cache_file(cache_path), True
             assert cache["version"] == DATASET_CACHE_VERSION
-            assert cache["hash"] == get_hash(self.depth_files + self.im_files)
+            assert cache["hash"] == get_hash(
+                self.depth_files + self.im_files + [str(self.data.get("depth_scale", DEPTH_PNG_SCALE))]
+            )
         except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
             cache, exists = self.cache_labels(cache_path), False
 
@@ -460,19 +469,20 @@ class DepthDataset(YOLODataset):
             if cache["msgs"]:
                 LOGGER.info("\n".join(cache["msgs"]))
 
-        [cache.pop(k) for k in ("hash", "version", "msgs")]
         labels = cache["labels"]
         if not labels:
             raise FileNotFoundError(
-                f"{self.prefix}No valid image-depth pairs found in {cache_path}. Expected readable 16-bit PNG files "
-                f"in a 'depth/' tree parallel to 'images/' (images/train/x.jpg → depth/train/x.png). {HELP_URL}"
+                f"{self.prefix}No valid image-depth pairs found in {cache_path}. Expected readable uint16 PNG or "
+                f"float NPY maps in a 'depth/' tree parallel to 'images/' (images/train/x.jpg → "
+                f"depth/train/x.png). {HELP_URL}"
             )
+        [cache.pop(k) for k in ("hash", "version", "msgs")]
         self.im_files = [lb["im_file"] for lb in labels]
         return labels
 
     def _load_depth(self, index):
         """Return the native-resolution depth map for an image."""
-        return load_depth(self._depth_path_for(self.im_files[index]))
+        return load_depth(self._depth_path_for(self.im_files[index]), self.data.get("depth_scale", DEPTH_PNG_SCALE))
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""

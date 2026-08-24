@@ -357,7 +357,7 @@ class BaseDataset(Dataset):
             return False
         return True
 
-    def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
+    def check_cache_ram(self, safety_margin: float = 1.0) -> bool:
         """Check if there's enough RAM for caching images.
 
         Args:

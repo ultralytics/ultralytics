@@ -927,7 +927,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
             if local_path:
                 if source_name != Path(source_name).name:
                     raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
-                label_stem = split, Path(source_name).stem
+                label_stem = split, Path(source_name).stem.casefold()
                 if label_stem in label_stems:
                     raise ValueError(f"Duplicate NDJSON label stem: {label_stem!r}")
                 label_stems.add(label_stem)

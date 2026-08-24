@@ -1149,15 +1149,12 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
-        img_cache (np.ndarray): Contiguous uint8 buffer holding all cached images when caching in RAM.
-        img_offsets (np.ndarray): Flat offset of each image within img_cache.
-        img_shapes (list): (h, w, c) shape of each cached image.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
-        cache_images: Decode all images once into a single contiguous RAM buffer.
+        cache_images: Decode images into one contiguous RAM cache.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -1223,9 +1220,7 @@ class ClassificationDataset:
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            h, w, c = self.img_shapes[i]
-            pos = self.img_offsets[i]
-            im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)  # zero-copy view
+            im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
@@ -1257,9 +1252,7 @@ class ClassificationDataset:
                     disable=LOCAL_RANK > 0,
                 )
             )
-        self.img_shapes = [im.shape for im in ims]
-        self.img_offsets = np.cumsum([0] + [im.size for im in ims[:-1]])
-        self.img_cache = np.concatenate([im.reshape(-1) for im in ims])
+        self.img_cache = BaseDataset._ImageCache(ims)
 
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.

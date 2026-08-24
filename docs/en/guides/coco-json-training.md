@@ -128,7 +128,7 @@ Parsed labels are saved to a `.cache` file next to the JSON (e.g. `instances_tra
 
 !!! warning "The cache key is the JSON's file size, not its contents"
 
-    `get_hash()` hashes file sizes and paths rather than file contents, so a re-run re-parses the JSON only when the JSON's byte count or the image directory changes. An edit that preserves the byte count — nudging a coordinate, flipping `iscrowd`, swapping two equal-length class names — leaves the stale cache in place and trains on the old annotations with no warning. Delete the `.cache` file after editing annotations in place.
+    `get_hash()` hashes file sizes and paths rather than file contents, so a re-run re-parses the JSON only when the JSON's byte count changes, or when images are added to or removed from the image directory. An edit that preserves the byte count — nudging a coordinate, flipping `iscrowd`, swapping two equal-length class names — leaves the stale cache in place and trains on the old annotations with no warning, and replacing an image in place is invisible for the same reason. Delete the `.cache` file after editing annotations or images in place.
 
 ## Connecting the Dataset to the Training Pipeline
 
@@ -219,7 +219,7 @@ The full [training](../modes/train.md) pipeline runs as expected, including in-t
 
 !!! note "Standalone `model.val()` needs its own override"
 
-    Only training-time validation goes through `COCOTrainer.build_dataset`. A separate `model.val()` call builds the stock `YOLODataset`, finds no `.txt` labels, and reports zero metrics with a warning instead of an error. To validate outside a training run, override `build_dataset` on the validator the same way.
+    Only training-time validation goes through `COCOTrainer.build_dataset`. A separate `model.val()` call builds the stock `YOLODataset`, which scans for `.txt` labels beside the images and finds none. It does not raise: the images are counted as backgrounds, so validation runs to completion and reports every metric as `0`, warning `No labels found in ...` and `no labels found in detect set, cannot compute metrics without labels`. To validate outside a training run, subclass the validator with the same `build_dataset` override and pass it to `model.val(validator=...)`.
 
 ## Full Implementation
 

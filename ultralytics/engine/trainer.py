@@ -173,7 +173,7 @@ class BaseTrainer:
         else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU
             world_size = len(self.args.device.split(",")) if self.args.device else 1
 
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.ddp = world_size > 1 and LOCAL_RANK == -1  # spawn DDP workers unless this process already is one
         self.world_size = world_size
         # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
         if RANK in {-1, 0} and not self.ddp:

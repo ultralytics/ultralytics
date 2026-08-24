@@ -1285,14 +1285,14 @@ def test_sam_generate_encodes_each_crop_once(monkeypatch):
 
     calls, original = [], predictor.get_im_features
     monkeypatch.setattr(predictor, "get_im_features", lambda x: calls.append(1) or original(x))
-    with torch.inference_mode():
+    with torch.no_grad():  # torch.inference_mode() needs torch>=1.10, below the repo's 1.8 floor
         predictor.generate(im, crop_n_layers=0, points_stride=2, points_batch_size=1)
 
     assert len(calls) == 1  # 4 point batches (2x2 points, batch_size=1) must share a single encode
 
-    predictor.features = original(im)  # simulate a stale cache left by a prior set_image() call
-    calls.clear()
-    with torch.inference_mode():
+    with torch.no_grad():
+        predictor.features = original(im)  # simulate a stale cache left by a prior set_image() call
+        calls.clear()
         predictor.generate(im, crop_n_layers=1, points_stride=2, points_batch_size=1)
 
     assert len(calls) == 5  # 1 full image + 4 sub-crops, each must re-encode instead of reusing self.features

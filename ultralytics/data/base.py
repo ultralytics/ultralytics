@@ -20,20 +20,6 @@ from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
 from ultralytics.utils.patches import imread
 
 
-class ImageCache:
-    """Store images in one contiguous array to preserve copy-on-write sharing between workers."""
-
-    def __init__(self, images: list[np.ndarray]):
-        """Pack images and their layouts into contiguous NumPy arrays."""
-        self.shapes = np.array([im.shape for im in images])
-        self.offsets = np.concatenate(([0], np.cumsum([im.size for im in images])))
-        self.buffer = np.concatenate([im.reshape(-1) for im in images])
-
-    def __getitem__(self, i: int) -> np.ndarray:
-        """Return an image view by index."""
-        return self.buffer[self.offsets[i] : self.offsets[i + 1]].reshape(self.shapes[i])
-
-
 class BaseDataset(Dataset):
     """Base dataset class for loading and processing image data.
 
@@ -82,6 +68,19 @@ class BaseDataset(Dataset):
         build_transforms: Build transformation pipeline to be implemented by subclasses.
         get_labels: Get labels method to be implemented by subclasses.
     """
+
+    class _ImageCache:
+        """Store images in one contiguous array to preserve copy-on-write sharing between workers."""
+
+        def __init__(self, images: list[np.ndarray]):
+            """Pack images and their layouts into contiguous NumPy arrays."""
+            self.shapes = np.array([im.shape for im in images])
+            self.offsets = np.concatenate(([0], np.cumsum([im.size for im in images])))
+            self.buffer = np.concatenate([im.reshape(-1) for im in images])
+
+        def __getitem__(self, i: int) -> np.ndarray:
+            """Return an image view by index."""
+            return self.buffer[self.offsets[i] : self.offsets[i + 1]].reshape(self.shapes[i])
 
     def __init__(
         self,
@@ -307,7 +306,7 @@ class BaseDataset(Dataset):
                 pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
             pbar.close()
         if self.cache == "ram":
-            self.ims = ImageCache(self.ims)
+            self.ims = self._ImageCache(self.ims)
 
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""

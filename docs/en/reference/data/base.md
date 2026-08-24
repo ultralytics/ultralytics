@@ -12,10 +12,6 @@ keywords: Ultralytics, BaseDataset, image processing, data augmentation, YOLO, d
 
 <br>
 
-## ::: ultralytics.data.base.ImageCache
-
-<br><br><hr><br>
-
 ## ::: ultralytics.data.base.BaseDataset
 
 <br><br>

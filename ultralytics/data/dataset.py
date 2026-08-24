@@ -31,7 +31,7 @@ from .augment import (
     classify_transforms,
     v8_transforms,
 )
-from .base import BaseDataset, ImageCache
+from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
@@ -1147,7 +1147,6 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
-        img_cache (ImageCache): Contiguous RAM image cache.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
@@ -1251,7 +1250,7 @@ class ClassificationDataset:
                     disable=LOCAL_RANK > 0,
                 )
             )
-        self.img_cache = ImageCache(ims)
+        self.img_cache = BaseDataset._ImageCache(ims)
 
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.

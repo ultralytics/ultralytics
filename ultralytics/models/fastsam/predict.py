@@ -121,7 +121,9 @@ class FastSAMPredictor(SegmentationPredictor):
                 points = points[None] if points.ndim == 1 else points
                 # Same reasoning as bboxes above: clip on a clone so an out-of-bounds point
                 # can't wrap into a negative Python index and silently index an unrelated mask.
-                clipped_points = clip_coords(points.clone(), result.orig_shape)
+                # Unlike bboxes (slice endpoints, valid up to shape), points index masks directly
+                # below, so the max valid value is shape - 1.
+                clipped_points = clip_coords(points.clone(), (result.orig_shape[0] - 1, result.orig_shape[1] - 1))
                 if labels is None:
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)

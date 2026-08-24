@@ -195,6 +195,17 @@ def test_fastsam(
     )
     assert torch.equal(in_bounds_pt[0].masks.data, out_of_bounds_pt[0].masks.data)
 
+    # A point prompt exactly at the right edge (x == image width) must clip to the last valid
+    # pixel and not raise IndexError: points index masks directly, unlike bboxes which are
+    # slice endpoints valid up to width/height.
+    in_bounds_edge_pt = sam_model(
+        source, points=[[809, 400]], labels=[1], device="cpu", retina_masks=True, imgsz=640, conf=0.25, iou=0.9
+    )
+    at_edge_pt = sam_model(
+        source, points=[[810, 400]], labels=[1], device="cpu", retina_masks=True, imgsz=640, conf=0.25, iou=0.9
+    )
+    assert torch.equal(in_bounds_edge_pt[0].masks.data, at_edge_pt[0].masks.data)
+
 
 def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point and box prompts using Ultralytics."""

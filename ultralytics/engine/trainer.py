@@ -166,6 +166,8 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        # Device count from args.device in the launching process; distinct from utils.WORLD_SIZE, the env var
+        # torch.distributed.run exports inside each spawned DDP worker
         if self.device.type in {"cpu", "mps"}:
             world_size = 0
         else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU

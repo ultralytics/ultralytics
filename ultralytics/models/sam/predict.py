@@ -386,7 +386,6 @@ class Predictor(BasePredictor):
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
             crop_features = self.get_im_features(crop_im)
-            # (num_points, 2)
             points_for_image = point_grids[layer_idx] * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):

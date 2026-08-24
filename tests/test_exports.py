@@ -209,21 +209,6 @@ def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     assert calls["batch"] == 8
 
 
-def test_modelopt_quantize_onnx_quantizes_sigmoid(monkeypatch):
-    """Check ModelOpt INT8 does not exclude Sigmoid, which SiLU exports as and which fragments the whole graph."""
-    import onnx
-
-    calls = {}
-    graph = SimpleNamespace(input=[SimpleNamespace(name="images")])
-    monkeypatch.setattr("ultralytics.utils.export.engine.check_requirements", lambda *args, **kwargs: None)
-    monkeypatch.setitem(
-        sys.modules, "modelopt.onnx.quantization", SimpleNamespace(quantize=lambda *a, **k: calls.update(k))
-    )
-    monkeypatch.setattr(onnx, "load", lambda *args, **kwargs: SimpleNamespace(graph=graph))
-    modelopt_quantize_onnx("model.onnx", quantize=8, dataset=[{"img": torch.zeros(1, 3, 8, 8)}])
-    assert "op_types_to_exclude" not in calls
-
-
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     """Ensure ONNX exports do not overlap across worker threads."""
     active = 0

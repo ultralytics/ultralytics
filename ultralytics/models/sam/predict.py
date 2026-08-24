@@ -207,7 +207,9 @@ class Predictor(BasePredictor):
 
         return self.prompt_inference(im, bboxes, points, labels, masks, multimask_output)
 
-    def prompt_inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False):
+    def prompt_inference(
+        self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, features=None
+    ):
         """Perform image segmentation inference based on input cues using SAM's specialized architecture.
 
         This internal function leverages the Segment Anything Model (SAM) for prompt-based, real-time segmentation. It
@@ -222,6 +224,9 @@ class Predictor(BasePredictor):
                 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+            features (torch.Tensor | dict[str, Any] | None): Precomputed features for `im` (e.g. a crop-local encoding
+                from `generate()`). Takes priority over the cached `self.features`, which belongs to whatever image
+                `set_image()` last encoded and must never be assumed to match `im`.
 
         Returns:
             pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
@@ -233,7 +238,8 @@ class Predictor(BasePredictor):
             >>> bboxes = [[100, 100, 200, 200]]
             >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
-        features = self.get_im_features(im) if self.features is None else self.features
+        if features is None:
+            features = self.get_im_features(im) if self.features is None else self.features
 
         prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
         return self._inference_features(features, *prompts, multimask_output)
@@ -386,11 +392,17 @@ class Predictor(BasePredictor):
             points_scale = np.array([[w, h]])  # w, h
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
+            # Encode this crop once and reuse it for every point batch below. Each crop is a distinct image (a
+            # different region resized to `imgsz`), so it must never fall back to `self.features`, which
+            # `set_image()` may have cached for the full, un-cropped image.
+            crop_features = self.get_im_features(crop_im)
             # (num_points, 2)
             points_for_image = point_grids[layer_idx] * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):
-                pred_mask, pred_score = self.prompt_inference(crop_im, points=points, multimask_output=True)
+                pred_mask, pred_score = self.prompt_inference(
+                    crop_im, points=points, multimask_output=True, features=crop_features
+                )
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask[None], (h, w), mode="bilinear", align_corners=False)[0]
                 idx = pred_score > conf_thres

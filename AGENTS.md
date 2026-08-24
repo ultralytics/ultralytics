@@ -23,6 +23,8 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 - Delete mock tests. Prefer focused validation of the real code path, adding only minimal regression coverage for a high-risk gap.
 - Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
 - Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.
+- Preserve an existing implementation when a maintainer explicitly requests it remain temporarily disabled at its owner
+  with a linked tracking issue; require the issue to document the evidence needed to re-enable it.
 - Require production-ready behavior across supported tasks, platforms, versions, and integrations affected by the owner change.
 - Remind unsigned contributors to complete the CLA. Do not close PRs opened by Ultralytics organization team members.
 - Merge only the exact cold-reviewed live head after terminal-green checks and zero unresolved review threads.

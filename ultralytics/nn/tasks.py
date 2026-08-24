@@ -992,10 +992,14 @@ class RTDETRDetectionModel(DetectionModel):
         has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf"))
         if has_dfine_gain:
             loss_cfg = dict(loss_cfg)
-            # Train-time CLI arg wins over the model yaml only when the yaml doesn't pin aux_loss itself
-            args = self.args if hasattr(self, "args") else None
-            aux_loss = args.get("aux_loss", True) if isinstance(args, dict) else getattr(args, "aux_loss", True)
-            loss_cfg.setdefault("aux_loss", aux_loss)
+            is_task_head = isinstance(self.model[-1], (DeimSegmentDecoder, DeimPoseDecoder, DeimOBBDecoder))
+            if is_task_head:
+                # The train-time aux_loss arg toggles only the task-head aux supervision (mask/pose/obb) on
+                # earlier decoder layers; box/cls aux losses stay governed by DfineLoss's own aux_loss (yaml or
+                # class default). A model yaml pinning task_aux_loss in its loss section takes precedence.
+                args = self.args if hasattr(self, "args") else None
+                aux_loss = args.get("aux_loss", False) if isinstance(args, dict) else getattr(args, "aux_loss", False)
+                loss_cfg.setdefault("task_aux_loss", aux_loss)
             if isinstance(self.model[-1], DeimSegmentDecoder):
                 overlap_mask = args.get("overlap_mask", True) if isinstance(args, dict) else getattr(args, "overlap_mask", True)
                 loss_cfg.setdefault("overlap_mask", overlap_mask)

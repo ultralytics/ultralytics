@@ -823,25 +823,29 @@ class DeimSegmentationLoss(DfineLoss):
     The mask loss follows the YOLO segmentation convention: per-image matched query coefficients are combined with
     the shared proto via einsum and supervised with a box-cropped BCE against the GT masks. Mask supervision uses
     the one-to-one Hungarian matches of every decoder layer: the final layer drives `loss_mask` and, when
-    `aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches aggregated
-    into `loss_mask_aux` (no denoising mask losses). The semantic segmentation aux loss supervises the
-    training-only semseg head of Proto26 with a BCEDice loss, mirroring v8SegmentationLoss.
+    `task_aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches
+    aggregated into `loss_mask_aux` (no denoising mask losses; the box/cls aux losses are governed separately by
+    DfineLoss's `aux_loss`). The semantic segmentation aux loss supervises the training-only semseg head of Proto26
+    with a BCEDice loss, mirroring v8SegmentationLoss.
     """
 
     supports_seg = True
 
-    def __init__(self, *args, overlap_mask: bool = True, **kwargs):
+    def __init__(self, *args, overlap_mask: bool = True, task_aux_loss: bool = False, **kwargs):
         """Initialize the DEIM segmentation loss.
 
         Args:
             overlap_mask (bool): Whether GT masks use the overlap index-map convention (bs, H, W) with instance
                 ranks starting at 1, as opposed to a per-instance stack (N, H, W).
+            task_aux_loss (bool): Whether to supervise the mask heads of earlier decoder layers with their
+                per-layer Hungarian matches (`loss_mask_aux`), in addition to the final layer.
             *args (Any): Positional arguments forwarded to DfineLoss.
             **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `mask` entry of `loss_gain` (default 5.0)
                 weights the instance-mask loss; the `bbox` gain weights the semseg aux loss.
         """
         super().__init__(*args, **kwargs)
         self.overlap = overlap_mask
+        self.task_aux_loss = task_aux_loss
         self.mask_gain = self.loss_gain.get("mask", 5.0)
         self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
@@ -954,8 +958,9 @@ class DeimSegmentationLoss(DfineLoss):
         """Compute the detection losses plus the instance-mask and semseg losses when mask inputs are provided.
 
         `dec_masks` stacks per-decoder-layer o2o mask coefficients with shape (L, bs, nq, nm); the final layer is
-        supervised as `loss_mask` and, when `self.aux_loss` is enabled, earlier layers are supervised with their
-        per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder row) as `loss_mask_aux`.
+        supervised as `loss_mask` and, when `self.task_aux_loss` is enabled, earlier layers are supervised with
+        their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder row) as
+        `loss_mask_aux`.
         """
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
@@ -963,7 +968,7 @@ class DeimSegmentationLoss(DfineLoss):
         if dec_masks is not None and proto is not None and gt_masks is not None:
             total_loss["loss_mask"] = self._get_loss_mask(dec_masks[-1], proto, gt_masks, batch)
             if (
-                self.aux_loss
+                self.task_aux_loss
                 and dec_masks.shape[0] > 1
                 and self.aux_indices
                 and len(self.aux_indices) >= dec_masks.shape[0]
@@ -986,24 +991,27 @@ class DeimPoseLoss(DfineLoss):
     KeypointLoss on the sigmoid-decoded keypoint xy coordinates against normalized GT keypoints, weighted by the
     matched GT box area, plus a BCE-with-logits loss on the visibility channel. Keypoint supervision uses the
     one-to-one Hungarian matches of every decoder layer: the final layer drives `loss_pose`/`loss_kobj` and, when
-    `aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches aggregated
-    into `loss_pose_aux`/`loss_kobj_aux` (no denoising pose losses); the Hungarian matcher itself stays box+cls
-    only.
+    `task_aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches
+    aggregated into `loss_pose_aux`/`loss_kobj_aux` (no denoising pose losses; the box/cls aux losses are governed
+    separately by DfineLoss's `aux_loss`); the Hungarian matcher itself stays box+cls only.
     """
 
     supports_pose = True
 
-    def __init__(self, *args, kpt_shape: tuple = (17, 3), **kwargs):
+    def __init__(self, *args, kpt_shape: tuple = (17, 3), task_aux_loss: bool = False, **kwargs):
         """Initialize the DEIM pose loss.
 
         Args:
             kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
+            task_aux_loss (bool): Whether to supervise the keypoint heads of earlier decoder layers with their
+                per-layer Hungarian matches (`loss_pose_aux`/`loss_kobj_aux`), in addition to the final layer.
             *args (Any): Positional arguments forwarded to DfineLoss.
             **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `pose` (default 12.0) and `kobj`
                 (default 1.0) entries of `loss_gain` weight the keypoint and visibility losses.
         """
         super().__init__(*args, **kwargs)
         self.kpt_shape = list(kpt_shape)
+        self.task_aux_loss = task_aux_loss
         self.pose_gain = self.loss_gain.get("pose", 12.0)
         self.kobj_gain = self.loss_gain.get("kobj", 1.0)
         nkpt = self.kpt_shape[0]  # number of keypoints
@@ -1079,9 +1087,9 @@ class DeimPoseLoss(DfineLoss):
         """Compute the detection losses plus the keypoint and visibility losses when keypoint inputs are provided.
 
         `dec_kpts` stacks per-decoder-layer o2o keypoint predictions with shape (L, bs, nq, nk); the final layer is
-        supervised as `loss_pose`/`loss_kobj` and, when `self.aux_loss` is enabled, earlier layers are supervised
-        with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder row) as
-        `loss_pose_aux`/`loss_kobj_aux`.
+        supervised as `loss_pose`/`loss_kobj` and, when `self.task_aux_loss` is enabled, earlier layers are
+        supervised with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder
+        row) as `loss_pose_aux`/`loss_kobj_aux`.
         """
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
@@ -1089,7 +1097,7 @@ class DeimPoseLoss(DfineLoss):
         if dec_kpts is not None and gt_keypoints is not None:
             total_loss["loss_pose"], total_loss["loss_kobj"] = self._get_loss_pose(dec_kpts[-1], gt_keypoints, batch)
             if (
-                self.aux_loss
+                self.task_aux_loss
                 and dec_kpts.shape[0] > 1
                 and self.aux_indices
                 and len(self.aux_indices) >= dec_kpts.shape[0]
@@ -1112,9 +1120,10 @@ class DeimOBBLoss(DfineLoss):
 
     The angle loss is a wrap-invariant 1-cos(delta) term (delta wrapped mod pi to (-pi/2, pi/2]) weighted by an
     aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the one-to-one Hungarian matches of
-    every decoder layer: the final layer drives `loss_angle`/`loss_probiou` and, when `aux_loss` is enabled, all
-    earlier decoder layers are supervised with their own per-layer matches aggregated into
-    `loss_angle_aux`/`loss_probiou_aux` (no denoising angle losses). It deliberately differs from v8OBBLoss's
+    every decoder layer: the final layer drives `loss_angle`/`loss_probiou` and, when `task_aux_loss` is enabled,
+    all earlier decoder layers are supervised with their own per-layer matches aggregated into
+    `loss_angle_aux`/`loss_probiou_aux` (no denoising angle losses; the box/cls aux losses are governed separately
+    by DfineLoss's `aux_loss`). It deliberately differs from v8OBBLoss's
     sin(2*delta)^2 in two ways: (1) sin(2*delta)^2 has period pi/2 and cannot distinguish theta from theta+90deg;
     (2) 1-cos(delta) has maximal gradient at delta=90deg, whereas sin(delta)^2 is flat there, so wrong-branch
     predictions are actively repelled instead of sitting on a gradient-free plateau. Additionally, a probiou IoU
@@ -1127,15 +1136,18 @@ class DeimOBBLoss(DfineLoss):
 
     supports_obb = True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, task_aux_loss: bool = False, **kwargs):
         """Initialize the DEIM OBB loss.
 
         Args:
+            task_aux_loss (bool): Whether to supervise the angle heads of earlier decoder layers with their
+                per-layer Hungarian matches (`loss_angle_aux`/`loss_probiou_aux`), in addition to the final layer.
             *args (Any): Positional arguments forwarded to DfineLoss.
             **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `angle` entry of `loss_gain` (default 1.0)
                 weights the rotation-angle loss; the `probiou` entry (default 1.0) weights the rotated-IoU loss.
         """
         super().__init__(*args, **kwargs)
+        self.task_aux_loss = task_aux_loss
         self.angle_gain = self.loss_gain.get("angle", 1.0)
         self.probiou_gain = self.loss_gain.get("probiou", 1.0)
 
@@ -1263,7 +1275,7 @@ class DeimOBBLoss(DfineLoss):
         """Compute the detection losses plus the rotation-angle and rotated-IoU losses when angle inputs are given.
 
         `dec_angles` stacks per-decoder-layer o2o angle predictions with shape (L, bs, nq, 1); the final layer is
-        supervised as `loss_angle`/`loss_probiou` and, when `self.aux_loss` is enabled, earlier layers are
+        supervised as `loss_angle`/`loss_probiou` and, when `self.task_aux_loss` is enabled, earlier layers are
         supervised with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder
         row) as `loss_angle_aux`/`loss_probiou_aux`, pairing each layer's angles with its boxes in `preds[0]`
         (encoder row first, so decoder layer i sits at index i + 1).
@@ -1275,7 +1287,7 @@ class DeimOBBLoss(DfineLoss):
             total_loss["loss_angle"] = self._get_loss_angle(dec_angles[-1], gt_bboxes)
             total_loss["loss_probiou"] = self._get_loss_probiou(preds[0][-1], dec_angles[-1], gt_bboxes)
             if (
-                self.aux_loss
+                self.task_aux_loss
                 and dec_angles.shape[0] > 1
                 and self.aux_indices
                 and len(self.aux_indices) >= dec_angles.shape[0]

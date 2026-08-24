@@ -110,7 +110,7 @@ fresh_lr_ratio: 1.0 # (float) LR multiplier for parameters missing from pretrain
 sta_exclusion: True # (bool) exclude STA/SPM params from backbone low-LR grouping in RT-DETR optimizer
 strict_loss_fp32: False # (bool) cast floating RT-DETR loss inputs to FP32 before the main criterion call
 debug_new_giou_loss: False # (bool) use newer aligned GIoU loss for RT-DETR/DFine experiments
-aux_loss: False # (bool) supervise auxiliary decoder layers with per-layer matched losses in DFine/DEIM losses
+aux_loss: False # (bool) supervise the task heads (mask/pose/obb) of auxiliary decoder layers with per-layer matched losses in DEIM seg/pose/obb models; box/cls aux losses are unaffected
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 muon_w: 0.45 # (float) Muon scaling factor for MuSGD optimizer (0.2 recommended)

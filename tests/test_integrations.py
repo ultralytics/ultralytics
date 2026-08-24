@@ -25,7 +25,14 @@ def test_tensorboard():
 def test_model_ray_tune():
     """Tune YOLO model using Ray for hyperparameter optimization."""
     YOLO("yolo26n-cls.yaml").tune(
-        use_ray=True, data="imagenet10", grace_period=1, iterations=1, imgsz=32, epochs=1, plots=False, device="cpu"
+        use_ray=True,
+        data=["imagenet10", "imagenet10"],
+        grace_period=1,
+        iterations=1,
+        imgsz=32,
+        epochs=1,
+        plots=False,
+        device="cpu",
     )
 
 

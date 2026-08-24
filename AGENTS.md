@@ -71,6 +71,8 @@ The user-facing `Model` facade in `ultralytics/engine/model.py` (`.train()`, `.v
 - `ultralytics/cfg/` — `default.yaml` defines ALL train/val/predict/export args (the `overrides` dict flows through `get_cfg` everywhere), plus model/dataset/tracker YAMLs, the `yolo` CLI `entrypoint`, and arg deprecation via `_handle_deprecation`.
 - `ultralytics/data/`, `ultralytics/utils/`, `ultralytics/solutions/`, `ultralytics/trackers/` — datasets/augmentation, shared utilities and lifecycle `callbacks/` (integration loggers, excluded from coverage), end-user apps, and BoT-SORT/ByteTrack.
 
+Never branch on `self.format` in `ultralytics/nn/modules/head.py`. Heads keep one portable implementation, and export-format behavior lives in that format's module under `ultralytics/utils/export/`, bound onto the head at export time the way `tf_wrapper` swaps `kpts_decode` and `_get_decode_boxes`. A format that needs a different value rather than different code sets an attribute the head reads.
+
 Adding a task or family means a Trainer/Validator/Predictor triplet wired into `task_map`, a model class in `nn/tasks.py`, and a YAML in `cfg/models/`.
 
 ## Conventions

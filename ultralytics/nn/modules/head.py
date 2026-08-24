@@ -251,11 +251,10 @@ class Detect(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + extra) and last
                 dimension format [x1, y1, x2, y2, max_class_prob, class_index, extra].
         """
-        scores, conf, idx = self.get_topk_index(preds[..., 4 : 4 + self.nc], self.max_det)
-        out = [self._gather(preds[..., :4], idx), scores, conf]
-        if preds.shape[-1] > 4 + self.nc:  # Segment, Pose and OBB append their task channels
-            out.append(self._gather(preds[..., 4 + self.nc :], idx))
-        return torch.cat(out, dim=-1)
+        # Segment, Pose and OBB carry task channels after the class scores, Detect has none
+        boxes, scores, *extra = preds.split([s for s in (4, self.nc, preds.shape[-1] - 4 - self.nc) if s], dim=-1)
+        scores, conf, idx = self.get_topk_index(scores, self.max_det)
+        return torch.cat([self._gather(boxes, idx), scores, conf, *(self._gather(e, idx) for e in extra)], dim=-1)
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.

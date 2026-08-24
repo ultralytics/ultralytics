@@ -102,35 +102,29 @@ class FastSAMPredictor(SegmentationPredictor):
             # bboxes prompt
             idx = torch.zeros(len(result), dtype=torch.bool, device=self.device)
             if bboxes is not None:
-                bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
-                bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-                # Clone before clipping because torch.as_tensor() may alias a caller-owned tensor.
-                clipped_bboxes = clip_boxes(bboxes.clone(), result.orig_shape)
-                bbox_areas = (clipped_bboxes[:, 3] - clipped_bboxes[:, 1]) * (
-                    clipped_bboxes[:, 2] - clipped_bboxes[:, 0]
-                )
-                mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in clipped_bboxes])
+                boxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device).clone()
+                boxes = boxes[None] if boxes.ndim == 1 else boxes
+                boxes = clip_boxes(boxes, result.orig_shape)
+                bbox_areas = (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0])
+                mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in boxes])
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
                 idx[torch.argmax(mask_areas / union, dim=1)] = True
             if points is not None:
-                points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
-                points = points[None] if points.ndim == 1 else points
-                # Points index pixels directly, so their maximum is shape - 1 rather than a valid slice endpoint.
-                clipped_points = clip_coords(points.clone(), (result.orig_shape[0] - 1, result.orig_shape[1] - 1))
+                coords = torch.as_tensor(points, dtype=torch.int32, device=self.device).clone()
+                coords = coords[None] if coords.ndim == 1 else coords
+                coords = clip_coords(coords, tuple(x - 1 for x in result.orig_shape))
                 if labels is None:
-                    labels = torch.ones(points.shape[0])
+                    labels = torch.ones(coords.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
-                assert len(labels) == len(points), (
-                    f"Expected `labels` to have the same length as `points`, but got {len(labels)} and {len(points)}."
-                )
+                assert len(labels) == len(coords), "Labels and points must contain the same number of items."
                 point_idx = (
                     torch.ones(len(result), dtype=torch.bool, device=self.device)
                     if labels.sum() == 0  # all negative points
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
-                for point, label in zip(clipped_points, labels):
+                for point, label in zip(coords, labels):
                     point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
                 idx |= point_idx
             if texts is not None:

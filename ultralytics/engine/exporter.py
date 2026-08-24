@@ -829,7 +829,14 @@ class Exporter:
             SETTINGS["openvino_msg"] = False
 
         # Input
-        im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
+        is_s3d = getattr(model, "task", None) == "s3d" and getattr(model, "_siamese", False)
+        if is_s3d:
+            im = (
+                torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device),
+                torch.zeros(self.args.batch, 3, *self.imgsz).to(self.device),
+            )
+        else:
+            im = torch.zeros(self.args.batch, model.yaml.get("channels", 3), *self.imgsz).to(self.device)
         file = Path(
             getattr(model, "pt_path", None) or getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")
         )
@@ -899,13 +906,29 @@ class Exporter:
             # predict/val accept both forms.
             model = ClassMapModel(model)
 
+        # Swap forward for s3d two-input export
+        if is_s3d and hasattr(model, "forward_export"):
+            model.forward = model.forward_export
+
         y = None
         for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
+            if self.args.nms and fmt not in {"coreml", "imx"}:
+                y = NMSModel(model, self.args)(im)
+            elif isinstance(im, tuple):
+                y = model(*im)  # s3d two-input forward
+            else:
+                y = model(im)
         if self.args.quantize == 16 and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
-            im, model = im.half(), model.half()  # to FP16
+            if isinstance(im, tuple):
+                im = tuple(t.half() for t in im)
+            else:
+                im = im.half()
+            model = model.half()  # to FP16
 
-        # Assign
+        # Assign — for tuple inputs (s3d stereo), store tuple for ONNX but expose first tensor as self.im
+        self._im_tuple = im if isinstance(im, tuple) else None
+        if isinstance(im, tuple):
+            im = im[0]  # use left image as representative for shape/device queries
         self.im = im
         self.model = model
         self.file = file
@@ -1061,15 +1084,24 @@ class Exporter:
 
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
+        is_s3d = getattr(self.model, "task", None) == "s3d" and getattr(self.model, "_siamese", False)
+        input_names = ["left_img", "right_img"] if is_s3d else ["images"]
         dynamic = self.args.dynamic
         if dynamic:
-            dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
+            if is_s3d:
+                dynamic = {
+                    "left_img": {0: "batch", 2: "height", 3: "width"},
+                    "right_img": {0: "batch", 2: "height", 3: "width"},
+                    "output0": {0: "batch", 2: "anchors"},
+                }
+            else:
+                dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
             if isinstance(self.model, SegmentationModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 116, 8400)
                 dynamic["output1"] = {0: "batch", 2: "mask_height", 3: "mask_width"}  # shape(1,32,160,160)
             elif isinstance(self.model, DepthModel):
                 dynamic["output0"] = {0: "batch", 2: "height", 3: "width"}  # shape(1,1,640,640) dense map, not anchors
-            elif isinstance(self.model, DetectionModel):
+            elif not is_s3d and isinstance(self.model, DetectionModel):
                 dynamic["output0"] = {0: "batch", 2: "anchors"}  # shape(1, 84, 8400)
             if self.args.nms:
                 dynamic["output0"].pop(2)
@@ -1097,12 +1129,13 @@ class Exporter:
             )
 
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
+            im_export = getattr(self, "_im_tuple", None) or self.im
             torch2onnx(
                 model,
-                self.im,
+                im_export,
                 f,
                 opset=opset,
-                input_names=["images"],
+                input_names=input_names,
                 output_names=output_names,
                 dynamic=dynamic or None,
             )

@@ -253,6 +253,7 @@ class Results(SimpleClass, DataExportMixin):
         probs: torch.Tensor | None = None,
         keypoints: torch.Tensor | None = None,
         obb: torch.Tensor | None = None,
+        boxes3d: list | None = None,
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
@@ -269,6 +270,8 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
+            boxes3d (list | None): A list of Box3D objects for 3D detection results (stereo 3D detection), which will be
+                wrapped in a Boxes3D object.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
@@ -292,7 +295,35 @@ class Results(SimpleClass, DataExportMixin):
         self.names = names
         self.path = path
         self.save_dir = None
-        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
+        self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "boxes3d", "depth"
+        # 3D boxes for stereo 3D detection
+        self.boxes3d: Boxes3D | None = Boxes3D(boxes3d, self.orig_shape) if boxes3d is not None else None
+
+    @property
+    def boxes3d_numpy(self) -> np.ndarray:
+        """Get boxes3d as numpy array [N, 9] (x, y, z, l, w, h, orientation, cls, conf).
+
+        Returns:
+            (np.ndarray): Array of shape (N, 9) containing 3D box data, or empty array if no boxes.
+        """
+        if self.boxes3d is None or len(self.boxes3d) == 0:
+            return np.empty((0, 9), dtype=np.float32)
+
+        data = []
+        for box in self.boxes3d:
+            x, y, z = box.center_3d
+            length, w, h = box.dimensions
+            data.append([x, y, z, length, w, h, box.orientation, float(box.class_id), box.confidence])
+        return np.array(data, dtype=np.float32)
+
+    @property
+    def boxes3d_tensor(self) -> torch.Tensor:
+        """Get boxes3d as tensor [N, 9] (x, y, z, l, w, h, orientation, cls, conf).
+
+        Returns:
+            (torch.Tensor): Tensor of shape (N, 9) containing 3D box data, or empty tensor if no boxes.
+        """
+        return torch.from_numpy(self.boxes3d_numpy)
 
     def __getitem__(self, idx):
         """Return a Results object for a specific index of inference results.
@@ -492,6 +523,7 @@ class Results(SimpleClass, DataExportMixin):
         labels: bool = True,
         boxes: bool = True,
         masks: bool = True,
+        boxes3d: bool = True,
         probs: bool = True,
         show: bool = False,
         save: bool = False,
@@ -514,6 +546,7 @@ class Results(SimpleClass, DataExportMixin):
             labels (bool): Whether to plot labels of bounding boxes.
             boxes (bool): Whether to plot bounding boxes.
             masks (bool): Whether to plot masks.
+            boxes3d (bool): Whether to plot 3D bounding boxes, when the result carries them.
             probs (bool): Whether to plot classification probabilities.
             show (bool): Whether to display the annotated image.
             save (bool): Whether to save the annotated image.
@@ -539,6 +572,7 @@ class Results(SimpleClass, DataExportMixin):
         pred_boxes, show_boxes = self.obb if is_obb else self.boxes, boxes
         pred_masks, show_masks = self.masks, masks
         pred_probs, show_probs = self.probs, probs
+        pred_boxes3d = self.boxes3d
         if pred_boxes is not None and (show_boxes or (pred_masks and show_masks)):
             pred_boxes = pred_boxes.cpu()  # one host transfer avoids per-box GPU syncs in the color and label loops
         annotator = Annotator(
@@ -584,6 +618,24 @@ class Results(SimpleClass, DataExportMixin):
                         True,
                     ),
                 )
+
+        # Plot Boxes3D results (3D wireframe on image)
+        if pred_boxes3d is not None and boxes3d:
+            _calib = getattr(self, "_calib", None)
+            if _calib is not None:
+                # Local import: the stereo-3D renderer lives under models/yolo/s3d/, and engine/ must not
+                # import models/ at module scope. Only reached when an s3d predictor has attached `_calib`,
+                # so non-s3d results never pay for it.
+                from ultralytics.models.yolo.s3d.plotting import plot_boxes3d
+
+                img_np = np.asarray(annotator.im)
+                canvas = plot_boxes3d(img_np, list(pred_boxes3d), _calib)
+                if isinstance(annotator.im, np.ndarray):
+                    annotator.im = canvas
+                else:
+                    import cv2
+
+                    annotator.fromarray(cv2.cvtColor(canvas, cv2.COLOR_BGR2RGB))
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
@@ -704,12 +756,19 @@ class Results(SimpleClass, DataExportMixin):
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
             return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+        if self.boxes3d is not None and len(self.boxes3d) > 0:
+            from collections import Counter
+
+            counts = Counter(box.class_id for box in self.boxes3d)
+            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in sorted(counts.items()) if n > 0)
         if self.depth is not None:
             d = self.depth.data
             d = d[d > 0]
             return f"depth {float(d.min()):.2f}-{float(d.max()):.2f}m, " if len(d) else "depth (no valid pixels), "
         if self.semantic_mask is not None:
             return ""
+
+        return ""
 
     def save_txt(self, txt_file: str | Path, save_conf: bool = False) -> str:
         """Save detection results to a text file.
@@ -1620,3 +1679,113 @@ class OBB(BaseTensor):
             if isinstance(x, torch.Tensor)
             else np.stack([x.min(1), y.min(1), x.max(1), y.max(1)], -1)
         )
+
+
+class Boxes3D(SimpleClass):
+    """3D bounding box container for stereo 3D detection results.
+
+    Stores a list of Box3D dataclass objects (not tensors). The cpu/numpy/cuda/to methods are no-ops returning shallow
+    copies, for API compatibility with Results._apply().
+
+    Attributes:
+        data (list[Box3D]): List of 3D bounding box objects.
+        orig_shape (tuple[int, int]): Original image dimensions (height, width).
+    """
+
+    def __init__(self, boxes: list, orig_shape: tuple[int, int]) -> None:
+        """Initialize Boxes3D with a list of Box3D objects and original image shape."""
+        if not isinstance(boxes, list):
+            raise TypeError(f"boxes must be a list, got {type(boxes)}")
+        self.data = boxes
+        self.orig_shape = orig_shape
+
+    def __len__(self) -> int:
+        """Return the number of 3D bounding boxes."""
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        """Return a Box3D object (int index) or new Boxes3D (slice)."""
+        result = self.data[idx]
+        if isinstance(result, list):
+            return Boxes3D(result, self.orig_shape)
+        return result
+
+    def __iter__(self):
+        """Iterate over Box3D objects."""
+        return iter(self.data)
+
+    def tolist(self) -> list:
+        """Return the list of Box3D objects."""
+        return self.data
+
+    def _aggregate(self, attr, shape=(0,)):
+        """Aggregate a numeric attribute from all boxes into a numpy array."""
+        if not self.data:
+            return np.empty(shape, dtype=np.float32)
+        return np.array([getattr(box, attr) for box in self.data], dtype=np.float32)
+
+    def _aggregate_optional(self, attr):
+        """Aggregate an optional attribute, filtering None values."""
+        if not self.data:
+            return np.empty((0,), dtype=np.float32)
+        vals = [getattr(box, attr) for box in self.data if getattr(box, attr) is not None]
+        return np.array(vals, dtype=np.float32) if vals else np.empty((0,), dtype=np.float32)
+
+    @property
+    def center_3d(self) -> np.ndarray:
+        """3D center positions [N, 3]."""
+        return self._aggregate("center_3d", shape=(0, 3))
+
+    @property
+    def dimensions(self) -> np.ndarray:
+        """Object dimensions [N, 3]."""
+        return self._aggregate("dimensions", shape=(0, 3))
+
+    @property
+    def orientation(self) -> np.ndarray:
+        """Orientation angles [N]."""
+        return self._aggregate("orientation")
+
+    @property
+    def class_label(self) -> list:
+        """Class names for all boxes."""
+        return [box.class_label for box in self.data]
+
+    @property
+    def class_id(self) -> np.ndarray:
+        """Class IDs [N]."""
+        if not self.data:
+            return np.empty((0,), dtype=np.float32)
+        return np.array([float(box.class_id) for box in self.data], dtype=np.float32)
+
+    @property
+    def confidence(self) -> np.ndarray:
+        """Confidence scores [N]."""
+        return self._aggregate("confidence")
+
+    @property
+    def truncated(self) -> np.ndarray:
+        """Truncation levels [N], filtering None values."""
+        return self._aggregate_optional("truncated")
+
+    @property
+    def occluded(self) -> np.ndarray:
+        """Occlusion levels [N], filtering None values."""
+        return self._aggregate_optional("occluded")
+
+    # Device-transfer no-ops for API compatibility with Results._apply()
+    def cpu(self):
+        """Return a shallow copy (no-op, data is not on GPU)."""
+        return self.__class__(self.data.copy(), self.orig_shape)
+
+    def numpy(self):
+        """Return a shallow copy (no-op, data is already Python objects)."""
+        return self.__class__(self.data.copy(), self.orig_shape)
+
+    def cuda(self):
+        """Return a shallow copy (no-op, data is not a tensor)."""
+        return self.__class__(self.data.copy(), self.orig_shape)
+
+    def to(self, *args, **kwargs):
+        """Return a shallow copy (no-op, data is not a tensor)."""
+        return self.__class__(self.data.copy(), self.orig_shape)

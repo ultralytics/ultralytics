@@ -135,6 +135,13 @@ class YOLO(Model):
                 "validator": yolo.semantic.SemanticSegmentationValidator,
                 "predictor": yolo.semantic.SemanticSegmentationPredictor,
             },
+            # Stereo 3D detection
+            "s3d": {
+                "model": yolo.s3d.Stereo3DDetModel,
+                "trainer": yolo.s3d.Stereo3DDetTrainer,
+                "validator": yolo.s3d.Stereo3DDetValidator,
+                "predictor": yolo.s3d.Stereo3DDetPredictor,
+            },
         }
 
 

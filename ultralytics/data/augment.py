@@ -2264,7 +2264,8 @@ class Albumentations(BaseTransform):
 
 
 class Format(BaseTransform):
-    """A class for formatting image annotations for object detection, instance segmentation, and pose estimation tasks.
+    """A class for formatting image annotations for object detection, instance segmentation, pose estimation, and stereo
+    3D detection tasks.
 
     This class standardizes image and instance annotations to be used by the `collate_fn` in PyTorch DataLoader.
 
@@ -2274,6 +2275,7 @@ class Format(BaseTransform):
         return_mask (bool): Whether to return instance masks for segmentation.
         return_keypoint (bool): Whether to return keypoints for pose estimation.
         return_obb (bool): Whether to return oriented bounding boxes.
+        return_stereo (bool): Whether to return stereo 3D detection data.
         mask_ratio (int): Downsample ratio for masks.
         mask_overlap (bool): Whether to overlap masks.
         batch_idx (bool): Whether to keep batch indexes.
@@ -2299,6 +2301,7 @@ class Format(BaseTransform):
         return_mask: bool = False,
         return_keypoint: bool = False,
         return_obb: bool = False,
+        return_stereo: bool = False,
         mask_ratio: int = 4,
         mask_overlap: bool = True,
         batch_idx: bool = True,
@@ -2306,8 +2309,8 @@ class Format(BaseTransform):
     ):
         """Initialize the Format class with given parameters for image and instance annotation formatting.
 
-        This class standardizes image and instance annotations for object detection, instance segmentation, and pose
-        estimation tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
+        This class standardizes image and instance annotations for object detection, instance segmentation, pose
+        estimation, and stereo 3D detection tasks, preparing them for use in PyTorch DataLoader's `collate_fn`.
 
         Args:
             bbox_format (str): Format for bounding boxes. Options are 'xywh', 'xyxy', etc.
@@ -2315,6 +2318,8 @@ class Format(BaseTransform):
             return_mask (bool): If True, returns instance masks for segmentation tasks.
             return_keypoint (bool): If True, returns keypoints for pose estimation tasks.
             return_obb (bool): If True, returns oriented bounding boxes.
+            return_stereo (bool): If True, returns stereo 3D detection data including right_bboxes, dimensions_3d,
+                location_3d, rotation_y, and optionally vertices, truncated, occluded.
             mask_ratio (int): Downsample ratio for masks.
             mask_overlap (bool): If True, allows mask overlap.
             batch_idx (bool): If True, keeps batch indexes.
@@ -2325,6 +2330,7 @@ class Format(BaseTransform):
         self.return_mask = return_mask  # set False when training detection only
         self.return_keypoint = return_keypoint
         self.return_obb = return_obb
+        self.return_stereo = return_stereo
         self.mask_ratio = mask_ratio
         self.mask_overlap = mask_overlap
         self.batch_idx = batch_idx  # keep the batch indexes
@@ -2426,9 +2432,39 @@ class Format(BaseTransform):
         if self.return_obb:
             labels["bboxes"] = xyxyxyxy2xywhr(torch.from_numpy(instances.segments))
         # NOTE: need to normalize obb in xywhr format for width-height consistency
+        if self.return_stereo:
+            # Right bboxes - same format/normalization as left bboxes
+            if instances.right_bboxes is not None and nl:
+                labels["right_bboxes"] = torch.from_numpy(instances.right_bboxes)
+            else:
+                labels["right_bboxes"] = torch.zeros((nl, 4))
+
+            # 3D geometry (absolute units, not normalized)
+            labels["dimensions_3d"] = (
+                torch.from_numpy(instances.dimensions_3d)
+                if instances.dimensions_3d is not None and nl
+                else torch.zeros((nl, 3))
+            )
+            labels["location_3d"] = (
+                torch.from_numpy(instances.location_3d)
+                if instances.location_3d is not None and nl
+                else torch.zeros((nl, 3))
+            )
+            labels["rotation_y"] = (
+                torch.from_numpy(instances.rotation_y) if instances.rotation_y is not None and nl else torch.zeros(nl)
+            )
+
+            # Optional metadata passthrough
+            if "truncated" in labels:
+                labels["truncated"] = torch.from_numpy(labels["truncated"]) if nl else torch.zeros(nl)
+            if "occluded" in labels:
+                labels["occluded"] = torch.from_numpy(labels["occluded"]) if nl else torch.zeros(nl)
         if self.normalize:
             labels["bboxes"][:, [0, 2]] /= w
             labels["bboxes"][:, [1, 3]] /= h
+            if self.return_stereo and labels.get("right_bboxes") is not None and len(labels["right_bboxes"]):
+                labels["right_bboxes"][:, [0, 2]] /= w
+                labels["right_bboxes"][:, [1, 3]] /= h
         # Then we can use collate_fn
         if self.batch_idx:
             labels["batch_idx"] = torch.zeros(nl)

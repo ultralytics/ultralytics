@@ -181,17 +181,21 @@ class Bboxes:
 
 
 class Instances:
-    """Container for bounding boxes, segments, and keypoints of detected objects in an image.
+    """Container for bounding boxes, segments, keypoints, and 3D data of detected objects in an image.
 
     This class provides a unified interface for handling different types of object annotations including bounding boxes,
-    segmentation masks, and keypoints. It supports various operations like scaling, normalization, clipping, and format
-    conversion.
+    segmentation masks, keypoints, and stereo 3D detection data. It supports various operations like scaling,
+    normalization, clipping, and format conversion.
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
         keypoints (np.ndarray): Keypoints with shape (N, 17, 3) in format (x, y, visible).
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
         segments (np.ndarray): Segments array with shape (N, M, 2) after resampling.
+        right_bboxes (np.ndarray): Right camera bounding boxes for stereo with shape (N, 4), same format as bboxes.
+        dimensions_3d (np.ndarray): 3D object dimensions with shape (N, 3) as [length, width, height].
+        location_3d (np.ndarray): 3D object location with shape (N, 3) as [x, y, z].
+        rotation_y (np.ndarray): Object yaw rotation angles with shape (N,).
 
     Methods:
         convert_bbox: Convert bounding box format.
@@ -213,6 +217,15 @@ class Instances:
         ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
         ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
         ... )
+
+        Create instances with stereo 3D data
+        >>> instances = Instances(
+        ...     bboxes=np.array([[0.5, 0.5, 0.1, 0.2]]),
+        ...     right_bboxes=np.array([[0.45, 0.5, 0.1, 0.2]]),
+        ...     dimensions_3d=np.array([[4.5, 1.8, 1.5]]),
+        ...     location_3d=np.array([[5.0, 1.0, 20.0]]),
+        ...     rotation_y=np.array([0.5]),
+        ... )
     """
 
     def __init__(
@@ -222,8 +235,13 @@ class Instances:
         keypoints: np.ndarray = None,
         bbox_format: str = "xywh",
         normalized: bool = True,
+        # Optional stereo 3D attributes
+        right_bboxes: np.ndarray = None,
+        dimensions_3d: np.ndarray = None,
+        location_3d: np.ndarray = None,
+        rotation_y: np.ndarray = None,
     ) -> None:
-        """Initialize the Instances object with bounding boxes, segments, and keypoints.
+        """Initialize the Instances object with bounding boxes, segments, keypoints, and optional 3D data.
 
         Args:
             bboxes (np.ndarray): Bounding boxes with shape (N, 4).
@@ -231,11 +249,20 @@ class Instances:
             keypoints (np.ndarray, optional): Keypoints with shape (N, 17, 3) in format (x, y, visible).
             bbox_format (str): Format of bboxes.
             normalized (bool): Whether the coordinates are normalized.
+            right_bboxes (np.ndarray, optional): Right camera bboxes with shape (N, 4) for stereo detection.
+            dimensions_3d (np.ndarray, optional): 3D dimensions with shape (N, 3) as [length, width, height].
+            location_3d (np.ndarray, optional): 3D location with shape (N, 3) as [x, y, z].
+            rotation_y (np.ndarray, optional): Yaw rotation angles with shape (N,).
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments if segments is not None else np.zeros((0, 0, 2), dtype=np.float32)
+        # Stereo 3D attributes
+        self.right_bboxes = right_bboxes
+        self.dimensions_3d = dimensions_3d
+        self.location_3d = location_3d
+        self.rotation_y = rotation_y
 
     def convert_bbox(self, format: str) -> None:
         """Convert bounding box format.
@@ -243,7 +270,18 @@ class Instances:
         Args:
             format (str): Target format for conversion, one of 'xyxy', 'xywh', or 'ltwh'.
         """
+        old_format = self._bboxes.format
         self._bboxes.convert(format=format)
+
+        # Also convert right_bboxes if present (stereo 3D detection)
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0 and old_format != format:
+            if old_format == "xyxy":
+                func = xyxy2xywh if format == "xywh" else xyxy2ltwh
+            elif old_format == "xywh":
+                func = xywh2xyxy if format == "xyxy" else xywh2ltwh
+            else:  # ltwh
+                func = ltwh2xyxy if format == "xyxy" else ltwh2xywh
+            self.right_bboxes = func(self.right_bboxes)
 
     @property
     def bbox_areas(self) -> np.ndarray:
@@ -261,11 +299,18 @@ class Instances:
         self._bboxes.mul(scale=(scale_w, scale_h, scale_w, scale_h))
         if bbox_only:
             return
-        self.segments[..., 0] *= scale_w
-        self.segments[..., 1] *= scale_h
+        if self.segments is not None and len(self.segments):
+            self.segments[..., 0] *= scale_w
+            self.segments[..., 1] *= scale_h
         if self.keypoints is not None:
             self.keypoints[..., 0] *= scale_w
             self.keypoints[..., 1] *= scale_h
+        # Handle right_bboxes for stereo 3D detection
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
+            self.right_bboxes[:, 0] *= scale_w
+            self.right_bboxes[:, 1] *= scale_h
+            self.right_bboxes[:, 2] *= scale_w
+            self.right_bboxes[:, 3] *= scale_h
 
     def denormalize(self, w: int, h: int) -> None:
         """Convert normalized coordinates to absolute coordinates.
@@ -277,11 +322,18 @@ class Instances:
         if not self.normalized:
             return
         self._bboxes.mul(scale=(w, h, w, h))
-        self.segments[..., 0] *= w
-        self.segments[..., 1] *= h
+        if self.segments is not None and len(self.segments):
+            self.segments[..., 0] *= w
+            self.segments[..., 1] *= h
         if self.keypoints is not None:
             self.keypoints[..., 0] *= w
             self.keypoints[..., 1] *= h
+        # Handle right_bboxes for stereo 3D detection
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
+            self.right_bboxes[:, 0] *= w
+            self.right_bboxes[:, 1] *= h
+            self.right_bboxes[:, 2] *= w
+            self.right_bboxes[:, 3] *= h
         self.normalized = False
 
     def normalize(self, w: int, h: int) -> None:
@@ -294,11 +346,18 @@ class Instances:
         if self.normalized:
             return
         self._bboxes.mul(scale=(1 / w, 1 / h, 1 / w, 1 / h))
-        self.segments[..., 0] /= w
-        self.segments[..., 1] /= h
+        if self.segments is not None and len(self.segments):
+            self.segments[..., 0] /= w
+            self.segments[..., 1] /= h
         if self.keypoints is not None:
             self.keypoints[..., 0] /= w
             self.keypoints[..., 1] /= h
+        # Handle right_bboxes for stereo 3D detection
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
+            self.right_bboxes[:, 0] /= w
+            self.right_bboxes[:, 1] /= h
+            self.right_bboxes[:, 2] /= w
+            self.right_bboxes[:, 3] /= h
         self.normalized = True
 
     def add_padding(self, padw: int, padh: int) -> None:
@@ -310,11 +369,19 @@ class Instances:
         """
         assert not self.normalized, "you should add padding with absolute coordinates."
         self._bboxes.add(offset=(padw, padh, padw, padh))
-        self.segments[..., 0] += padw
-        self.segments[..., 1] += padh
+        if self.segments is not None and len(self.segments):
+            self.segments[..., 0] += padw
+            self.segments[..., 1] += padh
         if self.keypoints is not None:
             self.keypoints[..., 0] += padw
             self.keypoints[..., 1] += padh
+        # Handle right_bboxes for stereo 3D detection
+        # right_bboxes follow the same format as main bboxes (converted together)
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
+            self.right_bboxes[:, 0] += padw
+            self.right_bboxes[:, 1] += padh
+            self.right_bboxes[:, 2] += padw
+            self.right_bboxes[:, 3] += padh
 
     def __getitem__(self, index: int | np.ndarray | slice) -> Instances:
         """Retrieve a specific instance or a set of instances using indexing.
@@ -323,22 +390,32 @@ class Instances:
             index (int | slice | np.ndarray): The index, slice, or boolean array to select the desired instances.
 
         Returns:
-            (Instances): A new Instances object containing the selected boxes, segments, and keypoints if present.
+            (Instances): A new Instances object containing the selected boxes, segments, keypoints, and 3D data if
+                present.
 
         Notes:
             When using boolean indexing, make sure to provide a boolean array with the same length as the number of
             instances.
         """
-        segments = self.segments[index] if len(self.segments) else self.segments
+        segments = self.segments[index] if self.segments is not None and len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
+        # Handle 3D attributes
+        right_bboxes = self.right_bboxes[index] if self.right_bboxes is not None else None
+        dimensions_3d = self.dimensions_3d[index] if self.dimensions_3d is not None else None
+        location_3d = self.location_3d[index] if self.location_3d is not None else None
+        rotation_y = self.rotation_y[index] if self.rotation_y is not None else None
         return Instances(
             bboxes=bboxes,
             segments=segments,
             keypoints=keypoints,
             bbox_format=bbox_format,
             normalized=self.normalized,
+            right_bboxes=right_bboxes,
+            dimensions_3d=dimensions_3d,
+            location_3d=location_3d,
+            rotation_y=rotation_y,
         )
 
     def flipud(self, h: int) -> None:
@@ -354,9 +431,19 @@ class Instances:
             self.bboxes[:, 3] = h - y1
         else:
             self.bboxes[:, 1] = h - self.bboxes[:, 1]
-        self.segments[..., 1] = h - self.segments[..., 1]
+        if self.segments is not None and len(self.segments):
+            self.segments[..., 1] = h - self.segments[..., 1]
         if self.keypoints is not None:
             self.keypoints[..., 1] = h - self.keypoints[..., 1]
+        # Handle right_bboxes for stereo 3D detection
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
+            if self._bboxes.format == "xyxy":
+                y1 = self.right_bboxes[:, 1].copy()
+                y2 = self.right_bboxes[:, 3].copy()
+                self.right_bboxes[:, 1] = h - y2
+                self.right_bboxes[:, 3] = h - y1
+            else:
+                self.right_bboxes[:, 1] = h - self.right_bboxes[:, 1]
 
     def fliplr(self, w: int) -> None:
         """Flip coordinates horizontally.
@@ -371,9 +458,22 @@ class Instances:
             self.bboxes[:, 2] = w - x1
         else:
             self.bboxes[:, 0] = w - self.bboxes[:, 0]
-        self.segments[..., 0] = w - self.segments[..., 0]
+        if self.segments is not None and len(self.segments):
+            self.segments[..., 0] = w - self.segments[..., 0]
         if self.keypoints is not None:
             self.keypoints[..., 0] = w - self.keypoints[..., 0]
+        # Handle right_bboxes for stereo 3D detection
+        if self.right_bboxes is not None and len(self.right_bboxes) > 0:
+            if self._bboxes.format == "xyxy":
+                x1 = self.right_bboxes[:, 0].copy()
+                x2 = self.right_bboxes[:, 2].copy()
+                self.right_bboxes[:, 0] = w - x2
+                self.right_bboxes[:, 2] = w - x1
+            else:
+                self.right_bboxes[:, 0] = w - self.right_bboxes[:, 0]
+        # Mirror rotation_y (yaw angle) for stereo 3D detection
+        if self.rotation_y is not None and len(self.rotation_y) > 0:
+            self.rotation_y = np.arctan2(np.sin(-self.rotation_y), np.cos(-self.rotation_y))
 
     def clip(self, w: int, h: int, preserve_obb: bool = False) -> None:
         """Clip coordinates to stay within image boundaries.
@@ -431,6 +531,7 @@ class Instances:
             ] = 0.0
             self.keypoints[..., 0] = self.keypoints[..., 0].clip(0, w)
             self.keypoints[..., 1] = self.keypoints[..., 1].clip(0, h)
+        # right_bboxes are not clipped so truncated objects keep full projected box (width can be > 1)
 
     def remove_zero_area_boxes(self) -> np.ndarray:
         """Remove zero-area boxes, i.e. after clipping some boxes may have zero width or height.
@@ -445,21 +546,51 @@ class Instances:
                 self.segments = self.segments[good]
             if self.keypoints is not None:
                 self.keypoints = self.keypoints[good]
+            # Handle 3D attributes
+            if self.right_bboxes is not None:
+                self.right_bboxes = self.right_bboxes[good]
+            if self.dimensions_3d is not None:
+                self.dimensions_3d = self.dimensions_3d[good]
+            if self.location_3d is not None:
+                self.location_3d = self.location_3d[good]
+            if self.rotation_y is not None:
+                self.rotation_y = self.rotation_y[good]
         return good
 
-    def update(self, bboxes: np.ndarray, segments: np.ndarray = None, keypoints: np.ndarray = None):
+    def update(
+        self,
+        bboxes: np.ndarray,
+        segments: np.ndarray = None,
+        keypoints: np.ndarray = None,
+        right_bboxes: np.ndarray = None,
+        dimensions_3d: np.ndarray = None,
+        location_3d: np.ndarray = None,
+        rotation_y: np.ndarray = None,
+    ):
         """Update instance variables.
 
         Args:
             bboxes (np.ndarray): New bounding boxes.
             segments (np.ndarray, optional): New segments.
             keypoints (np.ndarray, optional): New keypoints.
+            right_bboxes (np.ndarray, optional): New right camera bounding boxes for stereo.
+            dimensions_3d (np.ndarray, optional): New 3D dimensions.
+            location_3d (np.ndarray, optional): New 3D locations.
+            rotation_y (np.ndarray, optional): New yaw rotation angles.
         """
         self._bboxes = Bboxes(bboxes, format=self._bboxes.format)
         if segments is not None:
             self.segments = segments
         if keypoints is not None:
             self.keypoints = keypoints
+        if right_bboxes is not None:
+            self.right_bboxes = right_bboxes
+        if dimensions_3d is not None:
+            self.dimensions_3d = dimensions_3d
+        if location_3d is not None:
+            self.location_3d = location_3d
+        if rotation_y is not None:
+            self.rotation_y = rotation_y
 
     def __len__(self) -> int:
         """Return the number of instances."""
@@ -474,8 +605,8 @@ class Instances:
             axis (int, optional): The axis along which the arrays will be concatenated.
 
         Returns:
-            (Instances): A new Instances object containing the concatenated bounding boxes, segments, and keypoints if
-                present.
+            (Instances): A new Instances object containing the concatenated bounding boxes, segments, keypoints, and 3D
+                data if present.
 
         Notes:
             The `Instances` objects in the list should have the same properties, such as the format of the bounding
@@ -490,26 +621,60 @@ class Instances:
             return instances_list[0]
 
         use_keypoint = instances_list[0].keypoints is not None
+        use_segments = instances_list[0].segments is not None
         bbox_format = instances_list[0]._bboxes.format
         normalized = instances_list[0].normalized
 
         cat_boxes = np.concatenate([ins.bboxes for ins in instances_list], axis=axis)
-        seg_len = [b.segments.shape[1] for b in instances_list]
-        if len(frozenset(seg_len)) > 1:  # resample segments if there's different length
-            max_len = max(seg_len)
-            cat_segments = np.concatenate(
-                [
-                    resample_segments(list(b.segments), max_len)
-                    if len(b.segments)
-                    else np.zeros((0, max_len, 2), dtype=np.float32)  # re-generating empty segments
-                    for b in instances_list
-                ],
-                axis=axis,
-            )
+
+        # Handle segments (can be None)
+        if use_segments:
+            seg_len = [b.segments.shape[1] if b.segments is not None and len(b.segments) else 0 for b in instances_list]
+            if len(frozenset(seg_len)) > 1:  # resample segments if there's different length
+                max_len = max(seg_len)
+                cat_segments = np.concatenate(
+                    [
+                        resample_segments(list(b.segments), max_len)
+                        if b.segments is not None and len(b.segments)
+                        else np.zeros((0, max_len, 2), dtype=np.float32)  # re-generating empty segments
+                        for b in instances_list
+                    ],
+                    axis=axis,
+                )
+            else:
+                cat_segments = np.concatenate([b.segments for b in instances_list if b.segments is not None], axis=axis)
         else:
-            cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
+            cat_segments = None
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+
+        # Handle 3D attributes
+        use_right_bboxes = instances_list[0].right_bboxes is not None
+        use_dimensions_3d = instances_list[0].dimensions_3d is not None
+        use_location_3d = instances_list[0].location_3d is not None
+        use_rotation_y = instances_list[0].rotation_y is not None
+
+        cat_right_bboxes = (
+            np.concatenate([b.right_bboxes for b in instances_list], axis=axis) if use_right_bboxes else None
+        )
+        cat_dimensions_3d = (
+            np.concatenate([b.dimensions_3d for b in instances_list], axis=axis) if use_dimensions_3d else None
+        )
+        cat_location_3d = (
+            np.concatenate([b.location_3d for b in instances_list], axis=axis) if use_location_3d else None
+        )
+        cat_rotation_y = np.concatenate([b.rotation_y for b in instances_list], axis=axis) if use_rotation_y else None
+
+        return cls(
+            cat_boxes,
+            cat_segments,
+            cat_keypoints,
+            bbox_format,
+            normalized,
+            right_bboxes=cat_right_bboxes,
+            dimensions_3d=cat_dimensions_3d,
+            location_3d=cat_location_3d,
+            rotation_y=cat_rotation_y,
+        )
 
     @property
     def bboxes(self) -> np.ndarray:

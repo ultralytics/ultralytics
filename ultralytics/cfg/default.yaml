@@ -3,7 +3,7 @@
 # Global configuration YAML with settings and hyperparameters for YOLO training, validation, prediction and export
 # For documentation see https://docs.ultralytics.com/usage/cfg
 
-task: detect # (str) YOLO task, i.e. detect, segment, semantic, depth, classify, pose, obb
+task: detect # (str) YOLO task, i.e. detect, segment, semantic, depth, classify, pose, obb, s3d
 mode: train # (str) YOLO mode, i.e. train, val, predict, export, track, benchmark
 
 # Train settings -------------------------------------------------------------------------------------------------------
@@ -50,6 +50,7 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) run validation/testing during training
+val_period: 1 # (int) run validation every N epochs (1 = every epoch); disabled if < 1 or val=False
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
 save_json: False # (bool) save results to COCO JSON (detect/segment/pose) or PNG masks (semantic) for external evaluation
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
@@ -59,6 +60,8 @@ quantize: # (int|str, optional) precision: predict/val use 16/fp16 for FP16 or 3
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export
+score_k: 2.5 # (float) s3d: temperature for uncertainty-based confidence weighting (exp(-score_k * depth_sigma)); 0 disables. Worth +2.68 Car AP3D@0.7 Mod (+15.4%) over k=0 on the drive-disjoint Chen split, free at inference. Optimum cross-validated on two disjoint halves of the val set and confirmed on two independently trained checkpoints, both peaking here; the curve is flat over k=1.5-3.0 and still beats k=0 at k=7, so the exact value is not delicate
+depth_var_scale: 1.0 # (float) s3d: multiplier on the direct-depth cue's variance in the inverse-variance depth fusion
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam
@@ -120,6 +123,7 @@ hsv_v: 0.4 # (float) HSV value (brightness) augmentation fraction
 degrees: 0.0 # (float) rotation degrees (+/-)
 translate: 0.1 # (float) translation fraction (+/-)
 scale: 0.5 # (float | tuple) scale gain (+/-) as float, or explicit (min, max) tuple
+scale_jitter: 0.0 # (float) s3d stereo zoom jitter (+/-); zoom range (1-j, 1+j) with crop/pad back to canvas. 0.30 measured best on KITTI (+58% Car AP3D@0.5 Mod, +104% @0.7); keep 0.0 for constant-dimension data like cube, where it measured negative
 shear: 0.0 # (float) shear degrees (+/-)
 perspective: 0.0 # (float) perspective fraction (0–0.001 typical)
 flipud: 0.0 # (float) vertical flip probability

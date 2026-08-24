@@ -152,6 +152,14 @@ class BaseTrainer:
             YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
+        self.val_period = self.args.val_period
+        if not self.args.val and RANK in {-1, 0}:
+            LOGGER.warning(
+                "val=False disables model selection. Fitness is never computed, so 'best.pt' is rewritten every "
+                "epoch and ends up identical to 'last.pt', early stopping (patience) never triggers, and the "
+                "reported metrics describe the final epoch rather than the best one. Set val=True to select a "
+                "checkpoint on a held-out split."
+            )
 
         self.batch_size = self.args.batch
         self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
@@ -287,7 +295,9 @@ class BaseTrainer:
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
         final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
-        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+        imgsz = self.args.imgsz
+        min_imgsz = min(imgsz) if isinstance(imgsz, (list, tuple)) else imgsz  # s3d uses rectangular [h, w] imgsz
+        if min_imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
             raise ValueError(
                 f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
                 f"change batch or use imgsz >= {2 * self.stride}"
@@ -383,7 +393,11 @@ class BaseTrainer:
             )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        # NOTE: allow rectangular train imgsz=[h,w] for s3d (letterbox already supports (H,W))
+        if getattr(self.args, "task", None) == "s3d":
+            self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, min_dim=2, max_dim=2)
+        else:
+            self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
         self.stride = gs  # for multiscale training
 
         # resume training would directly load DistillationModel so check here
@@ -446,6 +460,7 @@ class BaseTrainer:
         self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
             self.epoch = epoch
+            self.fitness = None  # only validation sets this, so best.pt cannot be saved on a non-validating epoch
             self.run_callbacks("on_train_epoch_start")
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
@@ -552,9 +567,9 @@ class BaseTrainer:
                     if self.args.time:
                         self.stop = (time.time() - self.train_time_start) > (self.args.time * 3600)
                         if RANK != -1:  # if DDP training
-                            broadcast_list = [self.stop if RANK == 0 else None]
-                            dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                            self.stop = broadcast_list[0]
+                            flag = torch.tensor(int(self.stop), device=self.device)
+                            dist.broadcast(flag, src=0)
+                            self.stop = bool(flag.item())
                         if self.stop:  # training time exceeded
                             break
 
@@ -596,7 +611,14 @@ class BaseTrainer:
 
             # Validation
             final_epoch = epoch + 1 >= self.epochs
-            if self.args.val or final_epoch or self.stopper.possible_stop or self.stop:
+            # Run validation if: val=True AND (val_period matches OR final epoch OR early stopping)
+            should_val = self.args.val and (
+                (self.val_period > 0 and (epoch + 1) % self.val_period == 0)
+                or final_epoch
+                or self.stopper.possible_stop
+                or self.stop
+            )
+            if should_val:
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
 
@@ -632,9 +654,9 @@ class BaseTrainer:
 
             # Early Stopping
             if RANK != -1:  # if DDP training
-                broadcast_list = [self.stop if RANK == 0 else None]
-                dist.broadcast_object_list(broadcast_list, 0)  # broadcast 'stop' to all ranks
-                self.stop = broadcast_list[0]
+                flag = torch.tensor(int(self.stop), device=self.device)
+                dist.broadcast(flag, src=0)
+                self.stop = bool(flag.item())
             if self.stop:
                 break  # must break all DDP ranks
             epoch += 1
@@ -790,6 +812,7 @@ class BaseTrainer:
                 "pose",
                 "obb",
                 "semantic",
+                "s3d",
                 "depth",
             }:
                 data = check_det_dataset(self.args.data)
@@ -1011,15 +1034,19 @@ class BaseTrainer:
         self.best_fitness = ckpt.get("best_fitness")
 
     def _handle_nan_recovery(self, epoch):
-        """Detect and recover from NaN/Inf loss by loading last checkpoint."""
+        """Detect and recover from NaN/Inf loss by loading last checkpoint.
+
+        Args:
+            epoch (int): Current epoch index.
+        """
         loss_nan = self.loss is not None and not self.loss.isfinite()
         fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
         corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan)
         reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf"
         if RANK != -1:  # DDP: broadcast to all ranks
-            broadcast_list = [corrupted if RANK == 0 else None]
-            dist.broadcast_object_list(broadcast_list, 0)
-            corrupted = broadcast_list[0]
+            flag = torch.tensor(int(corrupted), device=self.device)
+            dist.broadcast(flag, src=0)
+            corrupted = bool(flag.item())
         if not corrupted:
             return False
         if epoch == self.start_epoch:
@@ -1029,7 +1056,7 @@ class BaseTrainer:
             raise RuntimeError(f"{reason} detected but no valid last.pt is available for recovery")
         self.nan_recovery_attempts += 1
         if self.nan_recovery_attempts > 3:
-            raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
+            raise RuntimeError(f"Training failed: {reason} persisted for {self.nan_recovery_attempts} epochs")
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
         _, ckpt = load_checkpoint(self.last)

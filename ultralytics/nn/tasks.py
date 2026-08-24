@@ -70,6 +70,7 @@ from ultralytics.nn.modules import (
     Segment,
     Segment26,
     SemanticSegment,
+    StereoCostVolume,
     TorchVision,
     WorldDetect,
     YOLOEDetect,
@@ -1962,6 +1963,13 @@ def parse_model(d, ch, verbose=True):
     """
     import ast
 
+    # The stereo-3D head lives under models/yolo/s3d/ so that stereo-only code stays out of nn/, and
+    # models/ imports nn/ — so this cannot be a module-scope import. parse_model runs once per model
+    # build, and sys.modules caches the rest. Importing here rather than behind a sentinel global keeps
+    # a broken s3d module loud: it raises with the real traceback instead of resolving to None and
+    # surfacing later as KeyError: 'Stereo3DDetHead' from an unrelated line.
+    from ultralytics.models.yolo.s3d.head import Stereo3DDetHead
+
     # Args
     legacy = True  # backward compatibility for v3/v5/v8/v9 models
     max_channels = float("inf")
@@ -2050,6 +2058,8 @@ def parse_model(d, ch, verbose=True):
             if m.startswith("nn.")
             else getattr(__import__("torchvision").ops, m[16:])
             if m.startswith("torchvision.ops.")
+            else Stereo3DDetHead
+            if m == "Stereo3DDetHead"
             else globals()[m]
         )  # get module
         if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
@@ -2080,7 +2090,7 @@ def parse_model(d, ch, verbose=True):
                 n = 1
             if m is C3k2:  # for M/L/X sizes
                 legacy = False
-                if scale in "mlx":
+                if scale and scale in "mlx":
                     args[3] = True
             if m is A2C2f:
                 legacy = False
@@ -2102,25 +2112,32 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m in frozenset(
-            {
-                Detect,
-                WorldDetect,
-                YOLOEDetect,
-                Segment,
-                Segment26,
-                YOLOESegment,
-                YOLOESegment26,
-                Pose,
-                Pose26,
-                OBB,
-                OBB26,
-            }
+        elif (
+            m
+            in frozenset(
+                {
+                    Detect,
+                    WorldDetect,
+                    YOLOEDetect,
+                    Segment,
+                    Segment26,
+                    YOLOESegment,
+                    YOLOESegment26,
+                    Pose,
+                    Pose26,
+                    OBB,
+                    OBB26,
+                }
+            )
+            or m is Stereo3DDetHead
         ):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if (
+                m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}
+                or m is Stereo3DDetHead
+            ):
                 m.legacy = legacy
         elif m is Depth:
             args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
@@ -2134,16 +2151,20 @@ def parse_model(d, ch, verbose=True):
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
-            c1 = ch[f]
+            c1 = ch[f] if isinstance(f, int) else ch[f[0]]
             args = [c1, c2, *args[1:]]
+        elif m is StereoCostVolume:
+            c1 = ch[f]
+            c2 = args[0] + 1  # refined channels (NOT width-scaled) + the soft-argmin disparity channel
+            args = [c1, *args]
         elif m is CBFuse:
             c2 = ch[f[-1]]
         elif m in frozenset({TorchVision, Index}):
             c2 = args[0]
-            c1 = ch[f]
+            c1 = ch[f] if isinstance(f, int) else ch[f[0]]
             args = [*args[1:]]
         else:
-            c2 = ch[f]
+            c2 = ch[f] if isinstance(f, int) else ch[f[0]]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
         t = str(m)[8:-2].replace("__main__.", "")  # module type
@@ -2174,10 +2195,14 @@ def yaml_model_load(path):
         LOGGER.warning(f"Ultralytics YOLO P6 models now use -p6 suffix. Renaming {path.stem} to {new_stem}.")
         path = path.with_name(new_stem + path.suffix)
 
+    # Strip scale suffix to find base file: yolo26n-s3d.yaml -> yolo26-s3d.yaml
+    # Also handles: yolo11n.yaml -> yolo11.yaml
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
     yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
     d = YAML.load(yaml_file)  # model dict
-    d["scale"] = guess_model_scale(path)
+    # Preserve scale from YAML if filename doesn't contain scale pattern
+    guessed_scale = guess_model_scale(path)
+    d["scale"] = guessed_scale if guessed_scale else d.get("scale")
     d["yaml_file"] = str(path)
     return d
 
@@ -2204,11 +2229,15 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
+        (str): Task of the model ('detect', 'segment', 'semantic', 'depth', 'classify', 'pose', 'obb', 's3d').
     """
 
     def cfg2task(cfg):
         """Guess from YAML dictionary."""
+        # Check for stereo flag first (highest priority)
+        if cfg.get("stereo") is True:
+            return "s3d"
+
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
@@ -2261,7 +2290,9 @@ def guess_model_task(model):
 
         # Guess from model filename
         model = Path(model)
-        if "-sem" in model.stem or "semantic" in model.parts:
+        if "-s3d" in model.stem.lower() or "s3d" in model.parts:
+            return "s3d"
+        elif "-sem" in model.stem or "semantic" in model.parts:
             return "semantic"
         elif "-seg" in model.stem or "segment" in model.parts:
             return "segment"

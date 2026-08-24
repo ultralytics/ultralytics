@@ -137,7 +137,11 @@ class BaseValidator:
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
-        self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
+        # NOTE: allow rectangular val imgsz=[h,w] for s3d
+        if getattr(self.args, "task", None) == "s3d":
+            self.args.imgsz = check_imgsz(self.args.imgsz, min_dim=2, max_dim=2)
+        else:
+            self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -206,14 +210,25 @@ class BaseValidator:
                 )
             if channels_last:
                 model.to(memory_format=torch.channels_last)
-            imgsz = check_imgsz(self.args.imgsz, stride=stride)
+            imgsz = check_imgsz(self.args.imgsz, stride=stride, min_dim=2 if self.args.task == "s3d" else 1)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 if hasattr(model, "imgsz"):
                     self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
-                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+                if self.args.task == "s3d" and isinstance(imgsz, (list, tuple)) and len(imgsz) == 2:
+                    LOGGER.info(
+                        f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz[0]}, {imgsz[1]})"
+                    )
+                else:
+                    LOGGER.info(
+                        f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})"
+                    )
 
-            if self.args.task == "classify":
+            if self.args.task == "s3d" and str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"}:
+                # For s3d, use task-specific get_dataset() to handle stereo paths/metadata
+                if not (isinstance(self.data, dict) and self.data.get("channels") == 6):
+                    self.data = self.get_dataset()
+            elif self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
@@ -237,7 +252,10 @@ class BaseValidator:
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device, mode=self.args.compile)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+            if self.args.task == "s3d" and isinstance(imgsz, (list, tuple)) and len(imgsz) == 2:
+                model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz[0], imgsz[1]))  # warmup
+            else:
+                model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

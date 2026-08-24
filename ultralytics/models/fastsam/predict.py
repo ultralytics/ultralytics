@@ -8,7 +8,7 @@ from PIL import Image
 from ultralytics.models.yolo.segment import SegmentationPredictor
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.metrics import box_iou
-from ultralytics.utils.ops import scale_masks
+from ultralytics.utils.ops import clip_boxes, clip_coords, scale_masks
 from ultralytics.utils.torch_utils import TORCH_1_10
 
 from .utils import adjust_bboxes_to_image_border
@@ -104,8 +104,14 @@ class FastSAMPredictor(SegmentationPredictor):
             if bboxes is not None:
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
                 bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-                bbox_areas = (bboxes[:, 3] - bboxes[:, 1]) * (bboxes[:, 2] - bboxes[:, 0])
-                mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in bboxes])
+                # Clip on a clone so an out-of-bounds prompt (e.g. x1 < 0) can't wrap into a
+                # negative Python index and silently slice/area an empty or wrong region; a
+                # clone keeps the caller's tensor and the per-result orig_shape untouched.
+                clipped_bboxes = clip_boxes(bboxes.clone(), result.orig_shape)
+                bbox_areas = (clipped_bboxes[:, 3] - clipped_bboxes[:, 1]) * (
+                    clipped_bboxes[:, 2] - clipped_bboxes[:, 0]
+                )
+                mask_areas = torch.stack([masks[:, b[1] : b[3], b[0] : b[2]].sum(dim=(1, 2)) for b in clipped_bboxes])
                 full_mask_areas = torch.sum(masks, dim=(1, 2))
 
                 union = bbox_areas[:, None] + full_mask_areas - mask_areas
@@ -113,6 +119,9 @@ class FastSAMPredictor(SegmentationPredictor):
             if points is not None:
                 points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
                 points = points[None] if points.ndim == 1 else points
+                # Same reasoning as bboxes above: clip on a clone so an out-of-bounds point
+                # can't wrap into a negative Python index and silently index an unrelated mask.
+                clipped_points = clip_coords(points.clone(), result.orig_shape)
                 if labels is None:
                     labels = torch.ones(points.shape[0])
                 labels = torch.as_tensor(labels, dtype=torch.int32, device=self.device)
@@ -124,7 +133,7 @@ class FastSAMPredictor(SegmentationPredictor):
                     if labels.sum() == 0  # all negative points
                     else torch.zeros(len(result), dtype=torch.bool, device=self.device)
                 )
-                for point, label in zip(points, labels):
+                for point, label in zip(clipped_points, labels):
                     point_idx[torch.nonzero(masks[:, point[1], point[0]], as_tuple=True)[0]] = bool(label)
                 idx |= point_idx
             if texts is not None:

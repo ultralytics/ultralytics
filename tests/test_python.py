@@ -139,7 +139,9 @@ def test_dataset_split_fraction():
     assert len(build_yolo_dataset(split, data["train"], 1, data, mode="train")) == 2  # 4 images * 0.5
     assert len(build_yolo_dataset(split, data["val"], 1, data, mode="val")) == 1  # 4 images * 0.25
     cls = check_cls_dataset("imagenet10")
-    assert len(ClassificationDataset(cls["train"], args=split, augment=True).samples) == 6  # 12 images * 0.5
+    assert len(ClassificationDataset(cls["train"], args=split, prefix="train").samples) == 6  # 12 images * 0.5
+    assert len(ClassificationDataset(cls["val"], args=split, prefix="val").samples) == 3  # 12 images * 0.25
+    assert len(ClassificationDataset(cls["val"], args=scalar, prefix="val").samples) == 12  # scalar: val untouched
 
 
 def skip_rpi_semantic():

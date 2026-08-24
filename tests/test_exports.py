@@ -181,7 +181,7 @@ def test_int8_calibration_validates_split():
     """Check INT8 calibration rejects dataset splits that do not exist."""
     exporter = object.__new__(Exporter)
     exporter.model = SimpleNamespace(task="obb")
-    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval")
+    exporter.args = SimpleNamespace(data="coco8.yaml", split="trainval", fraction=1.0)
     exporter.imgsz = [32]
     with pytest.raises(FileNotFoundError, match="trainval"):
         exporter.get_int8_calibration_dataloader()

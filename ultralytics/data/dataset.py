@@ -1184,7 +1184,7 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
-        if augment and (fraction := get_split_fraction(args.fraction, "train")) < 1.0:  # reduce training fraction
+        if (fraction := get_split_fraction(args.fraction, prefix)) < 1.0:  # reduce split fraction
             self.samples = self.samples[: round(len(self.samples) * fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM

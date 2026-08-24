@@ -128,33 +128,6 @@ Then launch the training with the Python API:
         yolo detect train model="yolo26n.pt" cfg=train_custom.yaml
         ```
 
-## Augmentation Parameters at a Glance
-
-The augmentation parameters covered on this page, with their typical range and default value. Each name links to the section below that explains the transform in detail and shows its visual effect. Training controls that change the input size rather than its content, such as `multi_scale`, live in the [train settings](../usage/cfg.md#train-settings) reference.
-
-| Parameter                                                          | Range                                                | Default                   | Effect                                                              |
-| ------------------------------------------------------------------ | ---------------------------------------------------- | ------------------------- | ------------------------------------------------------------------- |
-| [`hsv_h`](#hue-adjustment-hsv_h)                                   | `0.0` - `1.0`                                        | `{{ hsv_h }}`             | Shifts hue around the color wheel                                   |
-| [`hsv_s`](#saturation-adjustment-hsv_s)                            | `0.0` - `1.0`                                        | `{{ hsv_s }}`             | Varies color intensity                                              |
-| [`hsv_v`](#brightness-adjustment-hsv_v)                            | `0.0` - `1.0`                                        | `{{ hsv_v }}`             | Varies image brightness                                             |
-| [`degrees`](#rotation-degrees)                                     | `0.0` - `180`                                        | `{{ degrees }}`           | Rotates the image                                                   |
-| [`translate`](#translation-translate)                              | `0.0` - `1.0`                                        | `{{ translate }}`         | Shifts the image on both axes                                       |
-| [`scale`](#scale-scale)                                            | `0.0` - `1.0`, or an explicit `(min, max)` tuple     | `{{ scale }}`             | Zooms in or out                                                     |
-| [`shear`](#shear-shear)                                            | `-180` - `+180`                                      | `{{ shear }}`             | Skews the image along both axes                                     |
-| [`perspective`](#perspective-perspective)                          | `0.0` - `0.001`                                      | `{{ perspective }}`       | Applies a perspective warp                                          |
-| [`flipud`](#flip-up-down-flipud)                                   | `0.0` - `1.0`                                        | `{{ flipud }}`            | Probability of a vertical flip                                      |
-| [`fliplr`](#flip-left-right-fliplr)                                | `0.0` - `1.0`                                        | `{{ fliplr }}`            | Probability of a horizontal flip                                    |
-| [`bgr`](#bgr-channel-swap-bgr)                                     | `0.0` - `1.0`                                        | `{{ bgr }}`               | Probability of swapping RGB to BGR                                  |
-| [`mosaic`](#mosaic-mosaic)                                         | `0.0` - `1.0`                                        | `{{ mosaic }}`            | Probability of tiling 4 images into one                             |
-| [`close_mosaic`](#mosaic-mosaic)                                   | `0` - `epochs`                                       | `{{ close_mosaic }}`      | Final epochs with mosaic, mixup, cutmix and copy-paste switched off |
-| [`mixup`](#mixup-mixup)                                            | `0.0` - `1.0`                                        | `{{ mixup }}`             | Probability of blending two images                                  |
-| [`cutmix`](#cutmix-cutmix)                                         | `0.0` - `1.0`                                        | `{{ cutmix }}`            | Probability of pasting a region from another image                  |
-| [`copy_paste`](#copy-paste-copy_paste)                             | `0.0` - `1.0`                                        | `{{ copy_paste }}`        | Fraction of segmented objects copied (segmentation only)            |
-| [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode)              | `'flip'`, `'mixup'`                                  | `'{{ copy_paste_mode }}'` | Whether copied objects come from the same image or another one      |
-| [`auto_augment`](#auto-augment-auto_augment)                       | `'randaugment'`, `'autoaugment'`, `'augmix'`, `None` | `'{{ auto_augment }}'`    | Automated augmentation policy (classification only)                 |
-| [`erasing`](#random-erasing-erasing)                               | `0.0` - `1.0`                                        | `{{ erasing }}`           | Probability of erasing a region (classification only)               |
-| [`augmentations`](#custom-albumentations-transforms-augmentations) | `list` of Albumentations transforms                  | `None`                    | Replaces the default Albumentations set                             |
-
 ## Color Space Augmentations
 
 ### Hue Adjustment (`hsv_h`)

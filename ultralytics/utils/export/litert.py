@@ -14,6 +14,12 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.export.engine import _NormalizeCoords
 
 
+def _litert_grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select the top k of x along dim 1 with int32 indices, which GPU delegates accept and int64 they do not."""
+    values, index = Detect._grouped_topk(x, k, groups)
+    return values, index.int()
+
+
 def _litert_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
     """Select index (batch, k) rows of x along dim 1 without gather_nd, which GPU delegates do not implement."""
     b, n = x.shape[:2]
@@ -75,7 +81,7 @@ def torch2litert(
 
     for m in model.modules():  # int32 indices and a gather_nd-free gather keep the head on the GPU delegate
         if isinstance(m, Detect):
-            m.index_dtype = torch.int32
+            m._grouped_topk = _litert_grouped_topk
             m._gather = types.MethodType(_litert_gather, m)
 
     # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement

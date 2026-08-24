@@ -85,7 +85,6 @@ class Detect(nn.Module):
     strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
     xyxy = False  # xyxy or xywh output
-    index_dtype = torch.int64  # index dtype, narrowed by export formats that reject int64 index math
 
     @staticmethod
     def _grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
@@ -265,14 +264,12 @@ class Detect(nn.Module):
         k = min(max_det, anchors)
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1)
-            scores, index = scores.topk(k, dim=1)
-            index = index.to(self.index_dtype)
+            scores, index = self._grouped_topk(scores, k, 1)
             return scores[..., None], self._gather(labels[..., None].float(), index), index
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].to(self.index_dtype)
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1]
         scores = self._gather(scores, ori_index)
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)
-        index = index.to(self.index_dtype)
         return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
 
     def fuse(self) -> None:

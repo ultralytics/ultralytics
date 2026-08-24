@@ -69,7 +69,13 @@ class OpenVINOBackend(BaseBackend):
         if self.read_model is not None:
             self.dynamic = False  # fixed letterbox shapes so recompiles stay rare
 
-        # Submit the full batch synchronously to avoid native AsyncInferQueue hangs and per-image request overhead
+        # THROUGHPUT and CUMULATIVE_THROUGHPUT are disabled because AsyncInferQueue can hang indefinitely on Intel and
+        # AMD CPUs. See benchmark results at https://github.com/ultralytics/ultralytics/issues/25923.
+        # self.inference_mode = (
+        #     ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
+        #     if self.dynamic and self.batch > 1
+        #     else "LATENCY"
+        # )
         config = {"PERFORMANCE_HINT": "LATENCY"}
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
@@ -84,6 +90,7 @@ class OpenVINOBackend(BaseBackend):
         self.compile_model = partial(core.compile_model, device_name=device_name, config=config)
         self.ov_compiled_model = self.compile_model(ov_model)
         LOGGER.info(f"Using OpenVINO on {', '.join(self.ov_compiled_model.get_property('EXECUTION_DEVICES'))}...")
+        # self.input_name = self.ov_compiled_model.input().get_any_name()  # Used only by the disabled async path below
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
@@ -103,4 +110,19 @@ class OpenVINOBackend(BaseBackend):
             ov_model.reshape(list(im.shape))
             self.ov_compiled_model = self.compile_model(ov_model)
 
+        # if self.inference_mode in {"THROUGHPUT", "CUMULATIVE_THROUGHPUT"}:
+        #     n = im.shape[0]
+        #     results = [None] * n
+        #
+        #     def callback(request, userdata):
+        #         """Store async inference result in the preallocated results list at the given index."""
+        #         results[userdata] = request.results
+        #
+        #     async_queue = self.ov.AsyncInferQueue(self.ov_compiled_model)
+        #     async_queue.set_callback(callback)
+        #     for i in range(n):
+        #         async_queue.start_async(inputs={self.input_name: im[i : i + 1]}, userdata=i)
+        #     async_queue.wait_all()
+        #     y = [list(r.values()) for r in results]
+        #     return [np.concatenate(x) for x in zip(*y)]
         return list(self.ov_compiled_model(im).values())

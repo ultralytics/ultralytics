@@ -173,11 +173,11 @@ class Bboxes:
             When using boolean indexing, make sure to provide a boolean array with the same length as the number of
             bounding boxes.
         """
-        if isinstance(index, int):
-            return Bboxes(self.bboxes[index].reshape(1, -1))
         b = self.bboxes[index]
+        if b.ndim == 1:
+            b = b.reshape(1, -1)
         assert b.ndim == 2, f"Indexing on Bboxes with {index} failed to return a matrix!"
-        return Bboxes(b)
+        return Bboxes(b, format=self.format)
 
 
 class Instances:

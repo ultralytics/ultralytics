@@ -82,6 +82,7 @@ class ConsoleLogger:
         self.last_line = ""
         self.last_time = 0.0
         self.progress = {}  # live progress bar frames by bar id, held as state instead of buffered as log lines
+        self.progress_sent = {}
 
     def start_capture(self):
         """Start capturing console output and redirect stdout/stderr.
@@ -190,11 +191,11 @@ class ConsoleLogger:
     def _flush_buffer(self):
         """Flush buffered lines and current progress bar frames to destination and/or callback."""
         with self.buffer_lock:
-            if not self.buffer and not self.progress:
-                return
+            if not self.buffer and self.progress == self.progress_sent:
+                return  # nothing new: an idle bar must not flush a chunk of its own
             lines = self.buffer.copy()
             self.buffer.clear()
-            progress = dict(self.progress)
+            progress = self.progress_sent = dict(self.progress)
             self.chunk_id += 1
             chunk_id = self.chunk_id  # Capture under lock to avoid race
 

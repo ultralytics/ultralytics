@@ -100,12 +100,13 @@ class Detect(nn.Module):
         return values, winners // k * size + index.flatten(1).gather(1, winners)
 
     def _gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
-        """Select index (batch, k) rows of x (batch, n, channels) along dim 1 without gather_nd."""
-        if self.format == "coreml":  # MIL types gather outputs as fp32 and then rejects them as gather indices
-            return x[torch.arange(x.shape[0])[..., None], index.long()]
-        b, n = x.shape[:2]
-        offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
-        return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
+        """Select index (batch, k) rows of x (batch, n, channels) along dim 1."""
+        if self.format == "litert":  # gather lowers to gather_nd, which GPU delegates do not implement
+            b, n = x.shape[:2]
+            offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
+            return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
+        index = index.long()
+        return x.gather(1, index if x.ndim == 2 else index[..., None].expand(-1, -1, x.shape[-1]))
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.

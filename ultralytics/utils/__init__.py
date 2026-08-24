@@ -52,12 +52,10 @@ def env_bool(name: str, default: bool = False) -> bool:
     return default if v is None else v.strip().lower() in {"1", "true", "yes", "on", "y", "t"}
 
 
-# PyTorch Multi-GPU DDP Constants, trusted only when WORLD_SIZE marks a real DDP worker (torch.distributed.run exports
-# it alongside RANK) so stray RANK/LOCAL_RANK left by an unrelated launcher are not mistaken for one.
-# https://github.com/ultralytics/ultralytics/issues/16446
+# PyTorch Multi-GPU DDP Constants, trusted only in real DDP workers, i.e. WORLD_SIZE > 1 (#16446)
 WORLD_SIZE = int(os.getenv("WORLD_SIZE", "1"))
 RANK = int(os.getenv("RANK", "-1")) if WORLD_SIZE > 1 else -1
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1")) if WORLD_SIZE > 1 else -1  # DDP workers only
+LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1")) if WORLD_SIZE > 1 else -1
 
 # Other Constants
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []

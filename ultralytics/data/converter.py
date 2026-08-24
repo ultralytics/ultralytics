@@ -902,8 +902,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
-    user_path = dataset_record.pop("path", None)
-    local_path = user_path if user_path and not (is_classification or is_depth) else None
+    local_path = dataset_record.pop("path", None) if not (is_classification or is_depth) else None
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()

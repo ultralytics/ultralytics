@@ -34,7 +34,7 @@ Data augmentation serves multiple critical purposes in training computer vision 
 - **Reduced Overfitting**: By introducing variability in the training data, models are less likely to memorize specific image characteristics.
 - **Enhanced Performance**: Models trained with proper augmentation typically achieve better [accuracy](https://www.ultralytics.com/glossary/accuracy) on validation and test sets.
 
-Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide will explore each augmentation parameter in detail, helping you understand when and how to use them effectively in your projects.
+Ultralytics YOLO's implementation provides a comprehensive suite of augmentation techniques, each serving specific purposes and contributing to model performance in different ways. This guide explores the augmentation settings below, helping you understand when and how to use them effectively in your projects.
 
 ### Example Configurations
 

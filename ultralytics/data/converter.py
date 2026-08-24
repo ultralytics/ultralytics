@@ -850,34 +850,24 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
-    source_path = Path(source)
-    source_path = source_path.resolve() if source_path.is_file() else None
-    source_id = str(source_path.resolve()) if source_path else clean_url(source)
+    local = Path(source).is_file()
+    source_id = str(Path(source).resolve()) if local else clean_url(source)
     source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
-    local_path = None
-    if source_path:
-        with source_path.open() as file:
-            dataset_record = next(json.loads(line) for line in file if line.strip())
-        if dataset_record.get("task", "detect") not in {"classify", "depth"}:
-            local_path = dataset_record.get("path")
-    lock_path = (
-        (source_path.parent / local_path).resolve() / ".ndjson.lock" if local_path else cache_path.with_suffix(".lock")
-    )
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(source_path or Path(check_file(source)), output_path, local_path)
-        cache_path.write_text(str(result.resolve()))
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local)
+        cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
     try:
-        async with AsyncFileLock(lock_path, timeout=0):
+        async with AsyncFileLock(cache_path.with_suffix(".lock"), timeout=0):
             return await convert()
     except Timeout:
         pass
 
-    async with AsyncFileLock(lock_path):
+    async with AsyncFileLock(cache_path.with_suffix(".lock")):
         if cache_path.is_file():
             result = output_path / cache_path.read_text()
             marker = result / ".ndjson.yaml" if result.is_dir() else result
@@ -886,7 +876,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_path: str | None) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -913,11 +903,10 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
-    dataset_record.pop("path", None)
+    local_path = dataset_record.pop("path", None) if local and not is_classification else None
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
-    label_stems = set()
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
@@ -926,22 +915,16 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             if local_path:
-                if source_name != Path(source_name).name:
-                    raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
-                label_stem = split, Path(source_name).stem.casefold()
-                if label_stem in label_stems:
-                    raise ValueError(f"Duplicate NDJSON label stem: {label_stem!r}")
-                label_stems.add(label_stem)
-            else:
-                # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
-                # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
-                suffix = source_name.rsplit(".", 1)[-1]
-                stems = (Path(clean_url(r.get("url") or "")).stem, Path(source_name).stem)
-                content_hash = next(
-                    (s.lower() for s in stems if len(s) == 32 and all(c in "0123456789abcdef" for c in s)), None
-                )
-                stem = f"{content_hash}_{i}" if content_hash else i
-                r["file"] = f"{stem}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{stem}.jpg"
+                r["url"] = (ndjson_path.parent / local_path / "images" / split / source_name).resolve()
+            # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
+            # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
+            suffix = source_name.rsplit(".", 1)[-1]
+            stems = (Path(clean_url(r.get("url") or "")).stem, Path(source_name).stem)
+            content_hash = next(
+                (s.lower() for s in stems if len(s) == 32 and all(c in "0123456789abcdef" for c in s)), None
+            )
+            stem = f"{content_hash}_{i}" if content_hash else i
+            r["file"] = f"{stem}.{suffix}" if suffix.isalnum() and len(suffix) <= 10 else f"{stem}.jpg"
             if is_classification:
                 ids = r.get("annotations", {}).get("classification", [])
                 class_id = ids[0] if ids else 0
@@ -969,13 +952,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
-    dataset_dir = (
-        (ndjson_path.parent / local_path).resolve() if local_path else output_path / f"{ndjson_path.stem}-{_hash}"
-    )
-    if local_path:
-        found = sum((dataset_dir / "images" / r["split"] / r["file"]).is_file() for r in image_records)
-        if found < len(image_records):
-            raise RuntimeError(f"Found {found}/{len(image_records)} local images from {ndjson_path}")
+    dataset_dir = output_path / f"{ndjson_path.stem}-{_hash}"
     metadata_path = dataset_dir / (".ndjson.yaml" if is_classification else "data.yaml")
     if metadata_path.is_file():
         try:
@@ -988,11 +965,6 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
         if "train" not in splits:
             raise ValueError(f"Dataset missing required 'train' split. Found splits: {sorted(splits)}")
         if "val" not in splits:
-            if local_path:  # images stay where the caller put them, so a val split cannot be carved out here
-                raise ValueError(
-                    "Local-path datasets keep the caller's image layout and cannot be auto-split. "
-                    "Assign a 'val' split to images in the NDJSON."
-                )
             train_records = [r for r in image_records if r.get("split") == "train"]
             if len(train_records) < 2:
                 raise ValueError(
@@ -1048,14 +1020,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
         for split in sorted(splits):
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
-            if local_path:
-                image_list = f".ndjson-{split}.txt"
-                (dataset_dir / image_list).write_text(
-                    "".join(f"./images/{split}/{r['file']}\n" for r in image_records if r["split"] == split)
-                )
-                data_yaml[split] = image_list
-            else:
-                data_yaml[split] = f"images/{split}"
+            data_yaml[split] = f"images/{split}"
 
     async def ensure_file(session, path, url):
         """Return True when the file exists locally, otherwise download one URL with the retry policy."""
@@ -1064,6 +1029,11 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(url, Path):
+            if not url.is_file():
+                return False
+            await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, url, path)
+            return True
         for attempt in range(3):
             error = None
             try:
@@ -1112,7 +1082,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local_pa
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            image_ok = True if local_path else await ensure_file(session, image_path, record.get("url"))
+            image_ok = await ensure_file(session, image_path, record.get("url"))
             if not is_depth:
                 return image_ok
 

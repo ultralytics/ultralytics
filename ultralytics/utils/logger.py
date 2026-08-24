@@ -126,7 +126,8 @@ class ConsoleLogger:
                 pass
             self._log_handler = None
 
-        # Final flush
+        # Final flush, without the frames of any bar that outlived the capture
+        self.progress.clear()
         self._flush_buffer()
 
     def _queue_log(self, text):
@@ -174,6 +175,8 @@ class ConsoleLogger:
 
     def _queue_progress(self, bar_id, frame):
         """Hold a live progress bar frame as state, promoting the last frame to a log line when the bar closes."""
+        if not self.active:
+            return  # a bar outliving the capture must not repopulate the state
         with self.buffer_lock:
             if frame is not None:
                 self.progress[str(bar_id)] = frame.split("\r")[-1].replace("\x1b[K", "").rstrip()

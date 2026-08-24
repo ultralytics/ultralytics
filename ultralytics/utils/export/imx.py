@@ -12,7 +12,6 @@ from shutil import which
 import numpy as np
 import torch
 
-from ultralytics.nn.modules import Detect, Pose, Segment
 from ultralytics.utils import IS_DEBIAN_BOOKWORM, IS_DEBIAN_TRIXIE, IS_RASPBERRYPI, IS_UBUNTU, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_apt_requirements, check_requirements
 from ultralytics.utils.patches import onnx_export_patch
@@ -97,6 +96,12 @@ class FXModel(torch.nn.Module):
         Returns:
             (torch.Tensor): The output tensor from the model.
         """
+        from ultralytics.nn.modules import (
+            Detect,
+            Pose,
+            Segment,
+        )  # imported here, a module level import cycles back through nn.modules
+
         y = []  # outputs
         for m in self.model:
             if m.f != -1:  # if not from previous layer
@@ -127,6 +132,8 @@ def _inference(self, x: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Te
 
 def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Forward pass for imx pose estimation, including keypoint decoding."""
+    from ultralytics.nn.modules import Detect  # imported here, a module level import cycles back through nn.modules
+
     bs = x[0].shape[0]  # batch size
     nk_out = getattr(self, "nk_output", self.nk)
     kpt = torch.cat([self.cv4[i](x[i]).view(bs, nk_out, -1) for i in range(self.nl)], -1)
@@ -144,6 +151,8 @@ def pose_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tenso
 
 def segment_forward(self, x: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
     """Forward pass for imx segmentation."""
+    from ultralytics.nn.modules import Detect  # imported here, a module level import cycles back through nn.modules
+
     p = self.proto(x[0])  # mask protos
     bs = p.shape[0]  # batch size
     mc = torch.cat([self.cv4[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)  # mask coefficients

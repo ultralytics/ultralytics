@@ -9,7 +9,6 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.nn.modules import Detect, Pose, Pose26
 from ultralytics.utils import LINUX, LOGGER, MACOS
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_13,
@@ -24,6 +23,12 @@ from ultralytics.utils.tal import make_anchors
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
     """A wrapper for TensorFlow export compatibility (TF-specific handling is now in head modules)."""
+    from ultralytics.nn.modules import (
+        Detect,
+        Pose,
+        Pose26,
+    )  # imported here, a module level import cycles back through nn.modules
+
     for m in model.modules():
         if not isinstance(m, Detect):
             continue

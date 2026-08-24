@@ -7,7 +7,6 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.nn.modules import Pose, Pose26
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_executorch_requirements
 
@@ -15,6 +14,11 @@ from ultralytics.utils.checks import check_executorch_requirements
 def executorch_wrapper(model: torch.nn.Module) -> torch.nn.Module:
     """Apply ExecuTorch-specific model patches required for export/runtime compatibility."""
     import types
+
+    from ultralytics.nn.modules import (
+        Pose,
+        Pose26,
+    )  # imported here, a module level import cycles back through nn.modules
 
     for m in model.modules():
         if not isinstance(m, Pose):

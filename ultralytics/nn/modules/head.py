@@ -11,6 +11,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
+from ultralytics.utils.export.format import gather, index_dtype, topk_groups
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -98,16 +99,6 @@ class Detect(nn.Module):
         values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
         values, winners = values.flatten(1).topk(k, dim=1)
         return values, winners // k * size + index.flatten(1).gather(1, winners)
-
-    def _gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
-        """Select index (batch, k) rows of x (batch, n, channels) along dim 1."""
-        if self.format == "litert":  # gather lowers to gather_nd, which GPU delegates do not implement
-            b, n = x.shape[:2]
-            offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
-            return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
-        if self.format == "coreml":  # MIL types int64 gather indices as fp32 and then rejects them
-            return x[torch.arange(x.shape[0])[..., None], index]
-        return x.gather(1, index if x.ndim == 2 else index[..., None].expand(-1, -1, x.shape[-1]))
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -254,7 +245,9 @@ class Detect(nn.Module):
         # Segment, Pose and OBB carry task channels after the class scores, Detect has none
         boxes, scores, *extra = preds.split([s for s in (4, self.nc, preds.shape[-1] - 4 - self.nc) if s], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        return torch.cat([self._gather(boxes, idx), scores, conf, *(self._gather(e, idx) for e in extra)], dim=-1)
+        return torch.cat(
+            [gather(boxes, idx, self.format), scores, conf, *(gather(e, idx, self.format) for e in extra)], dim=-1
+        )
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.
@@ -268,18 +261,18 @@ class Detect(nn.Module):
         """
         anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
         k = min(max_det, anchors)
-        dtype = torch.int32 if self.format == "litert" else torch.int64  # GPU delegates reject int64 index math
+        dtype = index_dtype(self.format)
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1)
             scores, index = scores.topk(k, dim=1)
             index = index.to(dtype)
-            return scores[..., None], self._gather(labels[..., None].float(), index), index
-        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+            return scores[..., None], gather(labels[..., None].float(), index, self.format), index
+        groups = topk_groups(self.format, self.export, self.dynamic)
         ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].to(dtype)
-        scores = self._gather(scores, ori_index)
+        scores = gather(scores, ori_index, self.format)
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)
         index = index.to(dtype)
-        return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
+        return scores[..., None], (index % nc)[..., None].float(), gather(ori_index, index // nc, self.format)
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
@@ -1641,7 +1634,7 @@ class RTDETRDecoder(nn.Module):
                 export, and last dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
-        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        groups = topk_groups(self.format, self.export, self.dynamic)
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
         query_idx = torch.div(index, self.nc, rounding_mode="floor")
@@ -1745,7 +1738,7 @@ class RTDETRDecoder(nn.Module):
 
         # Query selection
         # (bs*num_queries,)
-        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        groups = topk_groups(self.format, self.export, self.dynamic)
         topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
         # (bs*num_queries,)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)

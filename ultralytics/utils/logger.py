@@ -103,10 +103,9 @@ class ConsoleLogger:
         except Exception:
             pass
 
-        # Start background flush thread for batched mode
-        if self.batch_size > 1:
-            self.flush_thread = threading.Thread(target=self._flush_worker, daemon=True)
-            self.flush_thread.start()
+        # Background flush thread: carries live progress frames in every mode, batched lines when batching
+        self.flush_thread = threading.Thread(target=self._flush_worker, daemon=True)
+        self.flush_thread.start()
 
     def stop_capture(self):
         """Stop capturing console output and flush remaining buffer."""

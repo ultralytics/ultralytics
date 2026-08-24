@@ -915,6 +915,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
             if local_path:
+                if source_name != Path(source_name).name:
+                    raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
                 r["url"] = (ndjson_path.parent / local_path / "images" / split / source_name).resolve()
             # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
             # Depth targets use the same stem, so image and target URLs follow the same output mechanics.

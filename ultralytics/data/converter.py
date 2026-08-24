@@ -19,7 +19,7 @@ from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
-from ultralytics.utils.downloads import download, zip_directory
+from ultralytics.utils.downloads import download, is_url, zip_directory
 from ultralytics.utils.files import increment_path
 
 
@@ -850,13 +850,14 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
-    source_id = clean_url(source) if "://" in source else str(Path(source).resolve())
+    local = not is_url(source)
+    source_id = str(Path(source).resolve()) if local else clean_url(source)
     source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local)
         cache_path.write_text(str(result.resolve()))
         return result
 
@@ -875,7 +876,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -902,7 +903,9 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
-    local_path = dataset_record.pop("path", None) if not (is_classification or is_depth) else None
+    local_path = dataset_record.pop("path", None)
+    if not local or is_classification or is_depth:
+        local_path = None
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
@@ -1028,7 +1031,14 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
         for split in sorted(splits):
             (dataset_dir / "images" / split).mkdir(parents=True, exist_ok=True)
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
-            data_yaml[split] = f"images/{split}"
+            if local_path:
+                image_list = f".ndjson-{split}.txt"
+                (dataset_dir / image_list).write_text(
+                    "".join(f"./images/{split}/{r['file']}\n" for r in image_records if r["split"] == split)
+                )
+                data_yaml[split] = image_list
+            else:
+                data_yaml[split] = f"images/{split}"
 
     async def ensure_file(session, path, url):
         """Return True when the file exists locally, otherwise download one URL with the retry policy."""

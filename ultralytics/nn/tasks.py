@@ -991,12 +991,16 @@ class RTDETRDetectionModel(DetectionModel):
         loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
         has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf"))
         if has_dfine_gain:
+            loss_cfg = dict(loss_cfg)
+            # Train-time CLI arg wins over the model yaml only when the yaml doesn't pin aux_loss itself
+            args = self.args if hasattr(self, "args") else None
+            aux_loss = args.get("aux_loss", True) if isinstance(args, dict) else getattr(args, "aux_loss", True)
+            loss_cfg.setdefault("aux_loss", aux_loss)
             if isinstance(self.model[-1], DeimSegmentDecoder):
-                loss_cfg = dict(loss_cfg)
-                loss_cfg.setdefault("overlap_mask", getattr(self.args, "overlap_mask", True))
+                overlap_mask = args.get("overlap_mask", True) if isinstance(args, dict) else getattr(args, "overlap_mask", True)
+                loss_cfg.setdefault("overlap_mask", overlap_mask)
                 return DeimSegmentationLoss(nc=self.nc, **loss_cfg)
             if isinstance(self.model[-1], DeimPoseDecoder):
-                loss_cfg = dict(loss_cfg)
                 loss_cfg.setdefault("kpt_shape", getattr(self.model[-1], "kpt_shape", [17, 3]))
                 return DeimPoseLoss(nc=self.nc, **loss_cfg)
             if isinstance(self.model[-1], DeimOBBDecoder):

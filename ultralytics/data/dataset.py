@@ -297,8 +297,6 @@ class YOLODataset(BaseDataset):
             issues = "\n  ".join(sorted(set(cache["msgs"]))) or "no error details"
             raise RuntimeError(f"No valid images found in {cache_path}.\n  {issues}\n{HELP_URL}")
         [cache.pop(k) for k in ("hash", "version", "msgs")]  # remove items
-        sampled = set(self.im_files)
-        labels = [lb for lb in labels if lb["im_file"] in sampled]  # drop cached labels outside the sampled fraction
         self.im_files = [lb["im_file"] for lb in labels]  # update im_files
         self.verify_labels(labels, cache_path)
         return labels
@@ -1169,8 +1167,6 @@ class ClassificationDataset:
         """
         import torchvision  # scope for faster 'import ultralytics'
 
-        from ultralytics.data.build import get_split_fraction  # scope to avoid a circular import
-
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
         if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
             self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
@@ -1181,8 +1177,8 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
-        if (fraction := get_split_fraction(args.fraction, prefix)) < 1.0:  # reduce split fraction
-            self.samples = self.samples[: round(len(self.samples) * fraction)]
+        if augment and args.fraction < 1.0:  # reduce training fraction
+            self.samples = self.samples[: round(len(self.samples) * args.fraction)]
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files

@@ -52,9 +52,10 @@ def env_bool(name: str, default: bool = False) -> bool:
     return default if v is None else v.strip().lower() in {"1", "true", "yes", "on", "y", "t"}
 
 
-# PyTorch Multi-GPU DDP Constants
-RANK = int(os.getenv("RANK", "-1"))
-LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1"))  # https://pytorch.org/docs/stable/elastic/run.html
+# PyTorch Multi-GPU DDP Constants, trusted only in real DDP workers, i.e. WORLD_SIZE > 1 (#16446)
+WORLD_SIZE = int(os.getenv("WORLD_SIZE", "1"))
+RANK = int(os.getenv("RANK", "-1")) if WORLD_SIZE > 1 else -1
+LOCAL_RANK = int(os.getenv("LOCAL_RANK", "-1")) if WORLD_SIZE > 1 else -1
 
 # Other Constants
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -1416,7 +1417,7 @@ class SettingsManager(JSONDict):
         self.help_msg = (
             f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
             "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
-            "For help see https://docs.ultralytics.com/quickstart/#ultralytics-settings."
+            "For help see https://docs.ultralytics.com/quickstart#ultralytics-settings."
         )
 
         with torch_distributed_zero_first(LOCAL_RANK):

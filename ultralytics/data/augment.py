@@ -1189,14 +1189,13 @@ class RandomPerspective(BaseTransform):
         img = labels["img"]
         M = params["M"]
         size = params["size"]
-        if (size[0] != img.shape[1] or size[1] != img.shape[0]) or (M != np.eye(3)).any():  # image changed
-            # 4 values: cv2 tiles borderValue in blocks of 4, so a 3-tuple zeroes every 4th multispectral channel
-            if self.perspective:
-                img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114, 114))
-            else:  # affine
-                img = cv2.warpAffine(img, M[:2], dsize=size, borderValue=(114, 114, 114, 114))
-            if img.ndim == 2:
-                img = img[..., None]
+        # 4 values: cv2 tiles borderValue in blocks of 4, so a 3-tuple zeroes every 4th multispectral channel
+        if self.perspective:
+            img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114, 114))
+        else:  # affine
+            img = cv2.warpAffine(img, M[:2], dsize=size, borderValue=(114, 114, 114, 114))
+        if img.ndim == 2:
+            img = img[..., None]
         labels["img"] = img
         labels["resized_shape"] = img.shape[:2]
         return labels
@@ -2076,7 +2075,8 @@ class Albumentations(BaseTransform):
 
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
-            transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
+            transforms (list | None): Custom Albumentations transforms, either objects or `A.to_dict()` dicts as stored
+                in checkpoints. If None, uses default transforms.
             flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
         self.p = p
@@ -2091,6 +2091,8 @@ class Albumentations(BaseTransform):
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
+            if transforms and isinstance(transforms[0], dict):
+                transforms = [A.from_dict(t) for t in transforms]  # restore transforms serialized by the trainer
             topology_changing = getattr(A, "RandomGridShuffle", ())
 
             def transform_types(t) -> tuple[bool, list]:

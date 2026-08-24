@@ -131,6 +131,10 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
+            import albumentations as A
+
+            self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
@@ -147,12 +151,7 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            # Save run args, serializing augmentations as reprs for resume compatibility
-            args_dict = vars(self.args).copy()
-            if args_dict.get("augmentations") is not None:
-                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
-                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
-            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
+            YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
@@ -169,12 +168,13 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        # Device count in the launching process; distinct from utils.WORLD_SIZE set in spawned DDP workers
         if self.device.type in {"cpu", "mps"}:
             world_size = 0
         else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU
             world_size = len(self.args.device.split(",")) if self.args.device else 1
 
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.ddp = world_size > 1 and LOCAL_RANK == -1  # spawn DDP workers unless already one
         self.world_size = world_size
         # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
         if RANK in {-1, 0} and not self.ddp:
@@ -992,16 +992,6 @@ class BaseTrainer:
                 ):  # allow arg updates to reduce memory or update device on resume
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
-
-                # Handle augmentations parameter for resume: check if user provided custom augmentations
-                if ckpt_args.get("augmentations") is not None:
-                    # Augmentations were saved in checkpoint as reprs but can't be restored automatically
-                    LOGGER.warning(
-                        "Custom Albumentations transforms were used in the original training run but are not "
-                        "being restored. To preserve custom augmentations when resuming, you need to pass the "
-                        "'augmentations' parameter again to get expected results. Example: \n"
-                        f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
-                    )
 
             except Exception as e:
                 raise FileNotFoundError(

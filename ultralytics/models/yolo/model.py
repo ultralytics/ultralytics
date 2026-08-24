@@ -13,6 +13,7 @@ from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
 from ultralytics.models import yolo
 from ultralytics.nn.autobackend import check_class_names
+from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.tasks import (
     ClassificationModel,
     DepthModel,
@@ -24,7 +25,6 @@ from ultralytics.nn.tasks import (
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
-    guess_model_family,
 )
 from ultralytics.utils import ROOT, YAML
 
@@ -70,20 +70,7 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        family = guess_model_family(path)
-        if family == "yolodetr":
-            from ultralytics import YOLODETR
-
-            new_instance = YOLODETR(path)
-            self.__class__ = type(new_instance)
-            self.__dict__ = new_instance.__dict__
-        elif family == "rtdetr":
-            from ultralytics import RTDETR
-
-            new_instance = RTDETR(path)
-            self.__class__ = type(new_instance)
-            self.__dict__ = new_instance.__dict__
-        elif "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
@@ -94,22 +81,20 @@ class YOLO(Model):
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
-            if hasattr(self.model, "model"):
-                head_name = self.model.model[-1]._get_name()
-                # YOLO-DETR family check must precede the broad "RTDETR in head_name" substring match
-                # since "RTDETRDecoderEfficient" would otherwise be routed to RTDETR.
-                if head_name in {"DeimDecoder", "RTDETRDecoderEfficient"}:  # YOLO-DETR head
-                    from ultralytics import YOLODETR
+            head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
+            head = head or BaseBackend.read_metadata(self.model).get("head", "")
+            if head in {"DeimDecoder", "RTDETRDecoderEfficient"}:  # if YOLO-DETR head
+                from ultralytics import YOLODETR
 
-                    new_instance = YOLODETR(self)
-                    self.__class__ = type(new_instance)
-                    self.__dict__ = new_instance.__dict__
-                elif "RTDETR" in head_name:  # RT-DETR head
-                    from ultralytics import RTDETR
+                new_instance = YOLODETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
+            elif "RTDETR" in head:  # if RT-DETR head
+                from ultralytics import RTDETR
 
-                    new_instance = RTDETR(self)
-                    self.__class__ = type(new_instance)
-                    self.__dict__ = new_instance.__dict__
+                new_instance = RTDETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

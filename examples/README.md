@@ -1,4 +1,4 @@
-<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+<a href="https://www.ultralytics.com" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
 
 # Ultralytics YOLO Examples
 
@@ -55,7 +55,7 @@ All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and gen
 
 ## 🤝 How to Contribute
 
-We actively encourage contributions from our vibrant community! Sharing your examples, applications, and guides helps others learn and build amazing things with [Ultralytics](https://www.ultralytics.com/). If you have a project you'd like to share, please follow these steps:
+We actively encourage contributions from our vibrant community! Sharing your examples, applications, and guides helps others learn and build amazing things with [Ultralytics](https://www.ultralytics.com). If you have a project you'd like to share, please follow these steps:
 
 1.  **Fork the Repository:** Start by forking the main [Ultralytics repository](https://github.com/ultralytics/ultralytics) on [GitHub](https://github.com/).
 2.  **Create Your Example:** Add your project folder within the `examples/` directory of your forked repository.

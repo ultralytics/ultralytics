@@ -35,8 +35,8 @@ class CoreMLBackend(BaseBackend):
         # backbones are MPSGraph-safe and ~3x faster on the GPU (ALL) path; the YOLO CSP trunk aborts the MLIR pass
         # manager on GPU (and gains nothing from the Neural Engine), so it uses CPU_AND_NE. That needs macOS >= 13,
         # so the fallback below covers older hosts and packages exported before this field existed.
-        meta = dict(ct.utils.load_spec(str(weight)).description.metadata.userDefined)
-        unit_name = meta.get("coreml_compute_units", "CPU_AND_NE")
+        meta = self.read_metadata(weight)
+        unit_name = meta.get("coreml_compute_units", "ALL" if meta.get("head") == "RTDETRDecoder" else "CPU_AND_NE")
         default_unit = getattr(ct.ComputeUnit, unit_name, ct.ComputeUnit.CPU_AND_NE)
         try:
             self.model = ct.models.MLModel(weight, compute_units=default_unit)
@@ -46,8 +46,7 @@ class CoreMLBackend(BaseBackend):
         self.input_name = spec.description.input[0].name
         self.dynamic = spec.description.input[0].type.HasField("multiArrayType")
 
-        # Load metadata
-        self.apply_metadata(dict(self.model.user_defined_metadata))
+        self.apply_metadata(meta)
 
     def forward(self, im: torch.Tensor) -> np.ndarray | list[np.ndarray]:
         """Run CoreML inference with automatic input format handling.

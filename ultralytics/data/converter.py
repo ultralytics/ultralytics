@@ -959,6 +959,10 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     dataset_dir = (
         (ndjson_path.parent / local_path).resolve() if local_path else output_path / f"{ndjson_path.stem}-{_hash}"
     )
+    if local_path:
+        found = sum((dataset_dir / "images" / r["split"] / r["file"]).is_file() for r in image_records)
+        if found < len(image_records):
+            raise RuntimeError(f"Found {found}/{len(image_records)} local images from {ndjson_path}")
     metadata_path = dataset_dir / (".ndjson.yaml" if is_classification else "data.yaml")
     if metadata_path.is_file():
         try:
@@ -1095,7 +1099,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
                         break
                     label_path.write_text("\n".join(lines_to_write) + "\n" if lines_to_write else "")
 
-            image_ok = await ensure_file(session, image_path, None if local_path else record.get("url"))
+            image_ok = True if local_path else await ensure_file(session, image_path, record.get("url"))
             if not is_depth:
                 return image_ok
 

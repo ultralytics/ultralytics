@@ -104,9 +104,7 @@ class FastSAMPredictor(SegmentationPredictor):
             if bboxes is not None:
                 bboxes = torch.as_tensor(bboxes, dtype=torch.int32, device=self.device)
                 bboxes = bboxes[None] if bboxes.ndim == 1 else bboxes
-                # Clip on a clone so an out-of-bounds prompt (e.g. x1 < 0) can't wrap into a
-                # negative Python index and silently slice/area an empty or wrong region; a
-                # clone keeps the caller's tensor and the per-result orig_shape untouched.
+                # Clone before clipping because torch.as_tensor() may alias a caller-owned tensor.
                 clipped_bboxes = clip_boxes(bboxes.clone(), result.orig_shape)
                 bbox_areas = (clipped_bboxes[:, 3] - clipped_bboxes[:, 1]) * (
                     clipped_bboxes[:, 2] - clipped_bboxes[:, 0]
@@ -119,10 +117,7 @@ class FastSAMPredictor(SegmentationPredictor):
             if points is not None:
                 points = torch.as_tensor(points, dtype=torch.int32, device=self.device)
                 points = points[None] if points.ndim == 1 else points
-                # Same reasoning as bboxes above: clip on a clone so an out-of-bounds point
-                # can't wrap into a negative Python index and silently index an unrelated mask.
-                # Unlike bboxes (slice endpoints, valid up to shape), points index masks directly
-                # below, so the max valid value is shape - 1.
+                # Points index pixels directly, so their maximum is shape - 1 rather than a valid slice endpoint.
                 clipped_points = clip_coords(points.clone(), (result.orig_shape[0] - 1, result.orig_shape[1] - 1))
                 if labels is None:
                     labels = torch.ones(points.shape[0])

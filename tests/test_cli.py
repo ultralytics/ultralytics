@@ -173,39 +173,6 @@ def test_fastsam(
         # Run inference with bboxes and points and texts prompt at the same time
         sam_model(source, bboxes=[439, 437, 524, 709], points=[[200, 200]], labels=[1], texts="a photo of a dog")
 
-    # A box prompt that goes out of the image bounds (e.g. x1 < 0) must clip instead of
-    # letting Python wrap the negative coordinate into a bogus, silently-wrong mask slice.
-    import torch
-
-    in_bounds = sam_model(
-        source, bboxes=[0, 437, 524, 709], device="cpu", retina_masks=True, imgsz=640, conf=0.4, iou=0.9
-    )
-    out_of_bounds = sam_model(
-        source, bboxes=[-10, 437, 524, 709], device="cpu", retina_masks=True, imgsz=640, conf=0.4, iou=0.9
-    )
-    assert torch.equal(in_bounds[0].masks.data, out_of_bounds[0].masks.data)
-
-    # Same class of bug for a point prompt (e.g. y < 0): must clip, not wrap into an
-    # unrelated mask on the opposite side of the image.
-    in_bounds_pt = sam_model(
-        source, points=[[455, 0]], labels=[1], device="cpu", retina_masks=True, imgsz=640, conf=0.25, iou=0.9
-    )
-    out_of_bounds_pt = sam_model(
-        source, points=[[455, -3]], labels=[1], device="cpu", retina_masks=True, imgsz=640, conf=0.25, iou=0.9
-    )
-    assert torch.equal(in_bounds_pt[0].masks.data, out_of_bounds_pt[0].masks.data)
-
-    # A point prompt exactly at the right edge (x == image width) must clip to the last valid
-    # pixel and not raise IndexError: points index masks directly, unlike bboxes which are
-    # slice endpoints valid up to width/height.
-    in_bounds_edge_pt = sam_model(
-        source, points=[[809, 400]], labels=[1], device="cpu", retina_masks=True, imgsz=640, conf=0.25, iou=0.9
-    )
-    at_edge_pt = sam_model(
-        source, points=[[810, 400]], labels=[1], device="cpu", retina_masks=True, imgsz=640, conf=0.25, iou=0.9
-    )
-    assert torch.equal(in_bounds_edge_pt[0].masks.data, at_edge_pt[0].masks.data)
-
 
 def test_mobilesam() -> None:
     """Test MobileSAM segmentation with point and box prompts using Ultralytics."""

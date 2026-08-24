@@ -105,8 +105,9 @@ class ConsoleLogger:
             pass
 
         # Background flush thread: carries live progress frames in every mode, batched lines when batching
-        self.flush_thread = threading.Thread(target=self._flush_worker, daemon=True)
-        self.flush_thread.start()
+        if not (self.flush_thread and self.flush_thread.is_alive()):  # a worker still sleeping resumes on its own
+            self.flush_thread = threading.Thread(target=self._flush_worker, daemon=True)
+            self.flush_thread.start()
 
     def stop_capture(self):
         """Stop capturing console output and flush remaining buffer."""

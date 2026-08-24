@@ -324,11 +324,8 @@ class Instances:
 
         Returns:
             (Instances): A new Instances object containing the selected boxes, segments, and keypoints if present.
-
-        Notes:
-            When using boolean indexing, make sure to provide a boolean array with the same length as the number of
-            instances.
         """
+        index = [index] if isinstance(index, (int, np.integer)) else index
         segments = self.segments[index] if len(self.segments) else self.segments
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]

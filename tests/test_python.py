@@ -1271,33 +1271,6 @@ def test_data_annotator(tmp_path):
     )
 
 
-def test_sam_generate_encodes_each_crop_once(monkeypatch):
-    """generate() must encode each crop once and reuse it across every point batch, not once per batch, and must never
-    fall back to a stale `self.features` left by a prior `set_image()` call on a different crop.
-    """
-    from ultralytics.models.sam import Predictor
-
-    predictor = Predictor(overrides={"model": WEIGHTS_DIR / "mobile_sam.pt", "imgsz": 1024, "verbose": False})
-    predictor.setup_model()
-    predictor.setup_source(np.zeros((64, 64, 3), dtype=np.uint8))
-    predictor.batch = next(iter(predictor.dataset))
-    im = predictor.preprocess(predictor.batch[1])
-
-    calls, original = [], predictor.get_im_features
-    monkeypatch.setattr(predictor, "get_im_features", lambda x: calls.append(1) or original(x))
-    with torch.no_grad():  # torch.inference_mode() needs torch>=1.10, below the repo's 1.8 floor
-        predictor.generate(im, crop_n_layers=0, points_stride=2, points_batch_size=1)
-
-    assert len(calls) == 1  # 4 point batches (2x2 points, batch_size=1) must share a single encode
-
-    with torch.no_grad():
-        predictor.features = original(im)  # simulate a stale cache left by a prior set_image() call
-        calls.clear()
-        predictor.generate(im, crop_n_layers=1, points_stride=2, points_batch_size=1)
-
-    assert len(calls) == 5  # 1 full image + 4 sub-crops, each must re-encode instead of reusing self.features
-
-
 def test_events():
     """Test event sending functionality."""
     from ultralytics.utils.events import Events

@@ -32,8 +32,8 @@ from .block import (
     SPPF,
     A2C2f,
     AConv,
-    ADown,
     Add,
+    ADown,
     Attention,
     BNContrastiveHead,
     Bottleneck,
@@ -59,13 +59,9 @@ from .block import (
     RepNCSPELAN5,
     RepVGGDW,
     ResNetLayer,
+    Scale,
     SCDown,
     TorchVision,
-    Scale,
-)
-from .vit_blocks import (
-    MHSABlock,
-    RepUltraViTBlock,
 )
 from .conv import (
     CBAM,
@@ -115,6 +111,10 @@ from .transformer import (
     TransformerBlock,
     TransformerEncoderLayer,
     TransformerLayer,
+)
+from .vit_blocks import (
+    MHSABlock,
+    RepUltraViTBlock,
 )
 
 __all__ = (
@@ -193,6 +193,7 @@ __all__ = (
     "RepVGGDW",
     "ResNetLayer",
     "SCDown",
+    "Scale",
     "Segment",
     "Segment26",
     "SemanticSegment",
@@ -206,5 +207,4 @@ __all__ = (
     "YOLOESegment",
     "YOLOESegment26",
     "v10Detect",
-    "Scale",
 )

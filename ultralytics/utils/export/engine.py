@@ -285,17 +285,7 @@ def _pin_deim_fp32_layers(network, trt) -> int:
         layer = network.get_layer(i)
         name = layer.name or ""
         pin = False
-        if layer.type == softmax_type:
-            pin = True
-        elif layer.type == normalization_type:
-            pin = True
-        elif norm_re.search(name) and layer.type == reduce_type:
-            pin = True
-        elif norm_re.search(name) and layer.type == unary_type and sqrt_re.search(name):
-            pin = True
-        elif norm_re.search(name) and layer.type == elementwise_type and pow_re.search(name):
-            pin = True
-        elif norm_re.search(name) and layer.type in compute_types:
+        if layer.type == softmax_type or layer.type == normalization_type or (norm_re.search(name) and layer.type == reduce_type) or (norm_re.search(name) and layer.type == unary_type and sqrt_re.search(name)) or (norm_re.search(name) and layer.type == elementwise_type and pow_re.search(name)) or (norm_re.search(name) and layer.type in compute_types):
             pin = True
 
         if pin:

@@ -1,11 +1,14 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from typing import List
-from .transformer import MLP
-import torch.nn.init as init
-import math
+from __future__ import annotations
+
 import copy
+import math
+
+import torch
+import torch.nn.functional as F
+from torch import nn
+from torch.nn import init
+
+from .transformer import MLP
 from .utils import (
     bias_init_with_prob,
     distance2bbox,
@@ -51,7 +54,7 @@ class MSDeformableAttention(nn.Module):
             method (str): Sampling mode; discrete freezes the sampling offsets so only the weights are learned.
             offset_scale (float): Multiplier applied to the predicted sampling offsets.
         """
-        super(MSDeformableAttention, self).__init__()
+        super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.num_levels = num_levels
@@ -103,7 +106,7 @@ class MSDeformableAttention(nn.Module):
                 query: torch.Tensor,
                 reference_points: torch.Tensor,
                 value: torch.Tensor,
-                value_spatial_shapes: List[int]):
+                value_spatial_shapes: list[int]):
         """Sample the value tensor at the predicted offsets and combine the samples with the attention weights.
 
         Args:
@@ -136,8 +139,7 @@ class MSDeformableAttention(nn.Module):
             sampling_locations = reference_points[:, :, None, :, :2] + offset
         else:
             raise ValueError(
-                "Last dim of reference_points must be 2 or 4, but get {} instead.".
-                format(reference_points.shape[-1]))
+                f"Last dim of reference_points must be 2 or 4, but get {reference_points.shape[-1]} instead.")
 
         value = value.reshape(value.shape[0], value.shape[1], self.num_heads, self.head_dim)
         output = multi_scale_deformable_attn_pytorch(
@@ -163,7 +165,7 @@ class Integral(nn.Module):
         Args:
             reg_max (int): Max number of the discrete bins.
         """
-        super(Integral, self).__init__()
+        super().__init__()
         self.reg_max = reg_max
 
     def forward(self, x, project):
@@ -182,7 +184,7 @@ class Integral(nn.Module):
         # that model.half() does not convert, so under FP16 export a `.to(x.device)`-only cast leaves it fp32 and
         # F.linear hits "mat1 and mat2 must have the same dtype" (Half != float).
         x = F.linear(x, project.to(device=x.device, dtype=x.dtype).reshape(1, -1)).reshape(-1, 4)
-        return x.reshape(list(shape[:-1]) + [-1])
+        return x.reshape([*list(shape[:-1]), -1])
 
 
 class LQE(nn.Module):
@@ -204,7 +206,7 @@ class LQE(nn.Module):
             reg_max (int): Max number of the discrete bins.
             act (nn.Module): Activation used by the quality head.
         """
-        super(LQE, self).__init__()
+        super().__init__()
         self.k = k
         self.reg_max = reg_max
         self.reg_conf = MLP(4 * (k + 1), hidden_dim, 1, num_layers, act=act)
@@ -266,7 +268,7 @@ class DFineTransformerDecoder(nn.Module):
             layer_scale (int): Width multiplier applied to the layers after eval_idx.
             act (nn.Module): Activation used by the location quality estimators.
         """
-        super(DFineTransformerDecoder, self).__init__()
+        super().__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.layer_scale = layer_scale

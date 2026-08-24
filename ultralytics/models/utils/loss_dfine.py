@@ -13,8 +13,8 @@ from typing import Any
 
 import torch
 import torch.distributed as dist
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.nn.modules.utils import bbox2distance
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss

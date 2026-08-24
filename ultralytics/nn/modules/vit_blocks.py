@@ -8,8 +8,8 @@ import math
 import os
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from ultralytics.nn.modules.conv import RepConv
 from ultralytics.utils.torch_utils import fuse_conv_and_bn

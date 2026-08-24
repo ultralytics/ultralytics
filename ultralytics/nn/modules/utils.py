@@ -189,6 +189,7 @@ def weighting_function(reg_max, up, reg_scale, deploy=False):
 
     Returns:
         (torch.Tensor): Non-uniform bin centers with shape (reg_max + 1,).
+
     References:
         https://github.com/Peterande/D-FINE
     """
@@ -198,7 +199,7 @@ def weighting_function(reg_max, up, reg_scale, deploy=False):
         step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
         left_values = [-(step) ** i + 1 for i in range(reg_max // 2 - 1, 0, -1)]
         right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
+        values = [-upper_bound2, *left_values, torch.zeros_like(up[0][None]), *right_values, upper_bound2]
         return torch.tensor(values, dtype=up.dtype, device=up.device)
     else:
         upper_bound1 = abs(up[0]) * abs(reg_scale)
@@ -206,7 +207,7 @@ def weighting_function(reg_max, up, reg_scale, deploy=False):
         step = (upper_bound1 + 1) ** (2 / (reg_max - 2))
         left_values = [-(step) ** i + 1 for i in range(reg_max // 2 - 1, 0, -1)]
         right_values = [(step) ** i - 1 for i in range(1, reg_max // 2)]
-        values = [-upper_bound2] + left_values + [torch.zeros_like(up[0][None])] + right_values + [upper_bound2]
+        values = [-upper_bound2, *left_values, torch.zeros_like(up[0][None]), *right_values, upper_bound2]
         return torch.cat(values, 0)
 
 
@@ -227,6 +228,7 @@ def translate_gt(gt, reg_max, reg_scale, up):
         indices (torch.Tensor): Index of the left bin closest to each GT value, shape (N,).
         weight_right (torch.Tensor): Weight assigned to the right bin, shape (N,).
         weight_left (torch.Tensor): Weight assigned to the left bin, shape (N,).
+
     References:
         https://github.com/Peterande/D-FINE
     """
@@ -284,6 +286,7 @@ def distance2bbox(points, distance, reg_scale):
 
     Returns:
         (torch.Tensor): Boxes in xywh format with the same leading dimensions as points.
+
     References:
         https://github.com/Peterande/D-FINE
     """
@@ -313,6 +316,7 @@ def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):
         four_lens (torch.Tensor): Flattened bin targets clamped to [0, reg_max - eps].
         weight_right (torch.Tensor): Weight assigned to the right bin.
         weight_left (torch.Tensor): Weight assigned to the left bin.
+
     References:
         https://github.com/Peterande/D-FINE
     """

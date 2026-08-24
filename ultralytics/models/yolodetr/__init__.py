@@ -3,4 +3,4 @@
 from .model import YOLODETR
 from .train import YOLODETRDataset, YOLODETRTrainer, YOLODETRValidator
 
-__all__ = ("YOLODETR", "YOLODETRTrainer", "YOLODETRDataset", "YOLODETRValidator")
+__all__ = ("YOLODETR", "YOLODETRDataset", "YOLODETRTrainer", "YOLODETRValidator")

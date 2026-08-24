@@ -28,6 +28,18 @@ keywords: Ultralytics, TensorRT export, ONNX export, PyTorch to ONNX, quantizati
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.export.engine._set_precision_constraint_flag
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.engine._add_deim_fusion_barrier
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.export.engine._pin_deim_fp32_layers
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.export.engine.onnx2engine
 
 <br><br>

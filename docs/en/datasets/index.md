@@ -73,16 +73,6 @@ Monocular depth estimation predicts a per-pixel depth map in meters from a singl
 - [KITTI](depth/kitti.md): Real-world outdoor autonomous-driving scenes with Velodyne LiDAR depth.
 - [Depth8](depth/depth8.md): A compact 8-image SUN RGB-D subset for quick pipeline checks.
 
-## [Pose Estimation](pose/index.md)
-
-Pose estimation is a technique used to determine the pose of the object relative to the camera or the world coordinate system. This involves identifying key points or joints on objects, particularly humans or animals.
-
-- [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
-- [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
-- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
-- [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
-- [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
-
 ## [Classification](classify/index.md)
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.
@@ -98,6 +88,16 @@ Pose estimation is a technique used to determine the pose of the object relative
 - [Imagewoof](classify/imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
 - [MNIST](classify/mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
 - [MNIST160](classify/mnist.md): First 8 images of each digit (0-9) from both the MNIST train and test splits. Dataset contains 160 images total.
+
+## [Pose Estimation](pose/index.md)
+
+Pose estimation is a technique used to determine the pose of the object relative to the camera or the world coordinate system. This involves identifying key points or joints on objects, particularly humans or animals.
+
+- [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
+- [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
+- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
+- [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
+- [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
 
 ## [Oriented Bounding Boxes (OBB)](obb/index.md)
 

@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from .block import DFL
 from .conv import Conv
@@ -14,10 +14,9 @@ from .head import Detect
 class DetectPruned(Detect):
     """YOLOv8 Detect head whose internal branch widths come from pruning masks.
 
-    Subclassing the official :class:`Detect` is intentional: the official
-    ``DistillationModel`` locates the three neck features through the Detect
-    head's ``f`` indices. The forward/loss output contract therefore remains
-    the official Ultralytics contract; only the branch construction differs.
+    Subclassing the official :class:`Detect` is intentional: the official ``DistillationModel`` locates the three neck
+    features through the Detect head's ``f`` indices. The forward/loss output contract therefore remains the official
+    Ultralytics contract; only the branch construction differs.
     """
 
     legacy = True

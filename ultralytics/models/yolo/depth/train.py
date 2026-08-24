@@ -116,7 +116,7 @@ class DepthTrainer(DetectionTrainer):
             ha="right",
             va="top",
             fontsize=9,
-            bbox=dict(boxstyle="round", facecolor="white", alpha=0.6, edgecolor="none"),
+            bbox={"boxstyle": "round", "facecolor": "white", "alpha": 0.6, "edgecolor": "none"},
         )
         for spine in ax.spines.values():
             spine.set_visible(False)

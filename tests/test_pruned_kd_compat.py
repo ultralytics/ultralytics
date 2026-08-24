@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.modules.head import Detect

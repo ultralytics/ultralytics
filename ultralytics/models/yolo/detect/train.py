@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
@@ -200,8 +200,7 @@ class DetectionTrainer(BaseTrainer):
             maskbndict = getattr(weights, "maskbndict", None)
             if maskbndict is None:
                 raise ValueError(
-                    "Structured-pruned checkpoint is missing maskbndict; "
-                    "use the original raw-pruned .pt checkpoint."
+                    "Structured-pruned checkpoint is missing maskbndict; use the original raw-pruned .pt checkpoint."
                 )
             model = DetectionModelPruned(
                 maskbndict,
@@ -211,9 +210,7 @@ class DetectionTrainer(BaseTrainer):
                 verbose=verbose and RANK == -1,
             )
         else:
-            model = DetectionModel(
-                cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1
-            )
+            model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         model = self.set_model_names_for_load(model)
         if weights:
             model.load(weights)

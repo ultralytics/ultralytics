@@ -466,7 +466,7 @@ def try_export(inner_func):
                 else ""
             )
             LOGGER.error(f"{prefix} export failure {dt.t:.1f}s: {e}{dependency_help}")
-            raise e
+            raise
 
     return outer_func
 
@@ -1760,7 +1760,7 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        kwargs = dict(device=pred.device, dtype=pred.dtype)
+        kwargs = {"device": pred.device, "dtype": pred.dtype}
         bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose

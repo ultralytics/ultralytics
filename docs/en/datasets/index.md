@@ -6,7 +6,7 @@ keywords: Ultralytics, datasets, computer vision, object detection, instance seg
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes (OBB). Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets. [Track mode](../modes/track.md) runs on top of these task models and reuses their datasets; see [tracking datasets](track/index.md).
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes (OBB). Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets. [Track mode](../modes/track.md) runs on top of detection, segmentation, pose and OBB models without tracker-specific training; see [tracking datasets](track/index.md).
 
 <p align="center">
   <br>

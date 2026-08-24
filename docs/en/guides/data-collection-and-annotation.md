@@ -103,7 +103,7 @@ Regularly reviewing and updating your labeling rules will help keep your annotat
 
 ### Annotation Tools
 
-A good annotation tool lets you label every type your task needs, enforces consistent guidelines, and exports labels in a training-ready format. [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) covering detection, instance segmentation, semantic segmentation, classification, pose, and OBB, with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) that turns a single click into a mask for detection, instance segmentation, semantic segmentation, and OBB tasks. Because every annotation is saved in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format), your labeled dataset moves straight into [training](../modes/train.md) with no conversion step.
+A good annotation tool lets you label every type your task needs, enforces consistent guidelines, and exports labels in a training-ready format. [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) covering detection, instance segmentation, semantic segmentation, classification, pose, and OBB, with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) that turns a single click into a mask for detection, instance segmentation, semantic segmentation, and OBB tasks. Because annotations are saved in the layout each task expects — [YOLO `.txt` rows](../datasets/detect/index.md#ultralytics-yolo-format) for the spatial tasks and [class folders](../datasets/classify/index.md) for classification — your labeled dataset moves straight into [training](../modes/train.md) with no conversion step.
 
 ### Annotation Quality: Accuracy, Precision, and Outliers
 
@@ -171,7 +171,7 @@ A few hundred annotated objects per class is enough to start experimenting with 
 
 ### Does Ultralytics provide a data annotation tool?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) includes a built-in [annotation editor](../platform/data/annotation.md) that supports bounding boxes, polygons, keypoints, oriented boxes, and classification labels in a single workspace. [SAM-powered smart annotation](https://www.ultralytics.com/annotate) speeds up labeling for detection, instance segmentation, semantic segmentation, and OBB tasks by generating masks from a single click, while pose and classification are annotated manually. Every annotation is stored in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format), ready for [training](../modes/train.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) includes a built-in [annotation editor](../platform/data/annotation.md) that supports bounding boxes, polygons, keypoints, oriented boxes, and classification labels in a single workspace. [SAM-powered smart annotation](https://www.ultralytics.com/annotate) speeds up labeling for detection, instance segmentation, semantic segmentation, and OBB tasks by generating masks from a single click, while pose and classification are annotated manually. Annotations are stored in the layout each task expects — [YOLO `.txt` rows](../datasets/detect/index.md#ultralytics-yolo-format) for the spatial tasks, [class folders](../datasets/classify/index.md) for classification — ready for [training](../modes/train.md).
 
 ### Which annotation type should I choose for my project?
 

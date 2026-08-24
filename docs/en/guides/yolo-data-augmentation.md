@@ -310,7 +310,7 @@ Every Ultralytics YOLO augmentation parameter, its typical range, and its defaul
 - **Note**:
     - Even if the `mosaic` augmentation makes the model more robust, it can also make the training process more challenging.
     - The `mosaic` augmentation can be disabled near the end of training by setting `close_mosaic` to the number of epochs before completion when it should be turned off. For example, if `epochs` is set to `200` and `close_mosaic` is set to `20`, the `mosaic` augmentation will be disabled after `180` epochs. If `close_mosaic` is set to `0`, the `mosaic` augmentation will be enabled for the entire training process.
-    - Closing the mosaic also disables `copy_paste`, `mixup`, and `cutmix` at the same epoch. All four are switched off together so the final epochs train on plain images; note that `copy_paste` in its default `flip` mode works within a single image rather than combining several.
+    - Closing the mosaic also disables `copy_paste`, `mixup`, and `cutmix` at the same epoch. The four are switched off together, so the final epochs train without them while every other augmentation — the geometric transforms, HSV, flips, and Albumentations — keeps running. Note that `copy_paste` in its default `flip` mode works within a single image rather than combining several.
     - The center of the generated mosaic is determined using random values, and can either be inside the image or outside of it.
     - The current implementation of the `mosaic` augmentation combines the current image with 3 others, drawn from a buffer of recently loaded images, or from anywhere in the dataset when `cache='ram'`. Either way they are sampled with replacement, so the same image can appear more than once in a single mosaic.
 

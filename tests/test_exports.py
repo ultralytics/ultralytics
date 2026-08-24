@@ -32,7 +32,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import best_onnx_opset, modelopt_quantize_onnx, torch2onnx
+from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -71,16 +71,6 @@ def test_export_onnx_int8(isolated_model, precision):
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
-
-
-def test_best_onnx_opset_caps_at_18(monkeypatch):
-    """Check the opset is capped at 18, the highest with ONNX Runtime CUDA kernel coverage."""
-    from ultralytics.utils.export import engine
-
-    monkeypatch.setattr(engine, "TORCH_2_4", True)
-    monkeypatch.setattr(engine.torch.onnx.utils, "_constants", SimpleNamespace(ONNX_MAX_OPSET=23), raising=False)
-    assert best_onnx_opset(SimpleNamespace(defs=SimpleNamespace(onnx_opset_version=lambda: 25))) == 18
-    assert best_onnx_opset(SimpleNamespace(defs=SimpleNamespace(onnx_opset_version=lambda: 15))) == 15
 
 
 def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):

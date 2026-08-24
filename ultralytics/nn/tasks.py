@@ -86,6 +86,7 @@ from ultralytics.nn.modules import (
     RTDETRDecoderEfficient,
     RTDETRDecoderv2,
     SCDown,
+    Scale,
     SpatialPriorModulev2,
     Segment,
     Segment26,

@@ -18,6 +18,7 @@ from torch.utils.data import Dataset, dataloader, distributed
 
 from ultralytics.cfg import IterableSimpleNamespace
 from ultralytics.data.dataset import (
+    DepthDataset,
     GroundingDataset,
     PolygonSemanticDataset,
     SemanticDataset,
@@ -245,7 +246,10 @@ def build_yolo_dataset(
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
     pad = 0.0 if mode == "train" else 0.5
-    if cfg.task == "semantic":
+    if cfg.task == "depth":
+        dataset = DepthDataset
+        pad = 0.0  # depth val letterbox stretches, so pad is ignored
+    elif cfg.task == "semantic":
         data_path = Path(data.get("path", ""))
         if "masks_dir" in data:
             dataset = SemanticDataset

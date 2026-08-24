@@ -411,7 +411,7 @@ Set `class_mode` when initializing the model to control how the class embeddings
                         [120, 425, 160, 445],  # Box enclosing glasses
                     ]
                 ),
-                "cls": [0],  # an int cls stores a visual-only entry named "object0" in the memory bank
+                "cls": [0],  # an int cls stores a visual-only entry, detected as class "object0"
             },
             predictor=YOLOEVPSegPredictor,
         )

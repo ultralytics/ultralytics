@@ -18,8 +18,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         model (torch.nn.Module): The YOLO model for inference.
         device (torch.device): Device to run the model on (CPU or CUDA).
         prompts (dict): Visual prompts containing class indices and bounding boxes or masks.
-        visuals (torch.Tensor | None): The prompts rasterized against the shapes of the batch being preprocessed, or
-            None once get_vpe has consumed them.
+        visuals (torch.Tensor): The prompts rasterized against the shapes of the batch being preprocessed.
 
     Methods:
         setup_model: Initialize the YOLO model and set it to evaluation mode.
@@ -60,9 +59,6 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
     def preprocess(self, im):
         """Preprocess a batch and rasterize its visual prompts."""
         imgs = super().preprocess(im)
-        if not self.prompts:  # consumed by get_vpe, so inference falls back to the model class embeddings
-            self.visuals = None
-            return imgs
         dst_shape = tuple(imgs.shape[2:])  # one letterboxed shape per batch, since preprocess stacks the images
         # tensor sources skip letterboxing, so their src and dst shapes are identical
         src_shapes = [dst_shape] * len(im) if isinstance(im, torch.Tensor) else [x.shape[:2] for x in im]
@@ -112,18 +108,12 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         return super().inference(im, *args, vpe=self.visuals, **kwargs)
 
     def get_vpe(self, source):
-        """Extract visual prompt embeddings from one source image.
-
-        The prompts are cleared afterwards so a reused predictor falls back to the model class embeddings instead of
-        the consumed prompts.
-        """
+        """Extract visual prompt embeddings from one source image."""
         self.setup_source(source)
         assert len(self.dataset) == 1, "get_vpe only supports one image!"
         for _, im0s, _ in self.dataset:
             im = self.preprocess(im0s)
-            vpe = self.model(im, vpe=self.visuals, return_vpe=True)
-            self.prompts = None  # clear prompts after getting vpe
-            return vpe
+            return self.model(im, vpe=self.visuals, return_vpe=True)
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):

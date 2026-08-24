@@ -657,8 +657,13 @@ class YOLOE(Model):
             # update the vp_weight dict
             self.vp_weight_dict.update(vp_weight or {})
 
-            # set classes based on the memory bank, where non-string classes are visual-only prompts
-            text_cls = [cls for cls in self.memory_bank if isinstance(cls, str)]
+            # set classes based on the memory bank, where non-string classes are visual-only prompts and named
+            # classes are encoded once, skipping the text encoder entirely for pure visual prototypes
+            text_cls = [
+                cls
+                for cls in self.memory_bank
+                if isinstance(cls, str) and (self.class_mode != "prototype" or self.vp_weight_dict.get(cls, 1) < 1)
+            ]
             text_pe = dict(zip(text_cls, self.get_text_pe(text_cls).squeeze(0))) if text_cls else {}
             names, memory_pe_list = [], []
             if self.class_mode == "prototype":  # each class only has unique prototype embedding

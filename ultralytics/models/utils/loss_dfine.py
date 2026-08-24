@@ -120,6 +120,7 @@ class DfineLoss(nn.Module):
         self.matcher_epoch = 0
         self.training_progress = 0.0
         self.main_indices = None  # final-layer Hungarian matches of the last forward pass
+        self.aux_indices = None  # per-aux-layer Hungarian matches of the last forward pass (index 0 = encoder row)
 
     def _clear_local_cache(self) -> None:
         """Clear per-forward local-loss caches."""
@@ -128,6 +129,7 @@ class DfineLoss(nn.Module):
         self.num_pos = None
         self.num_neg = None
         self.main_indices = None
+        self.aux_indices = None
 
     def _aligned_giou_loss(self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
         """Compute the configured aligned GIoU loss vector for matched xywh boxes."""
@@ -664,6 +666,7 @@ class DfineLoss(nn.Module):
         main_indices = self._match(pred_bboxes[-1], pred_scores[-1], gt_bboxes, gt_cls, gt_groups)
         self.main_indices = main_indices  # exposed for subclasses (e.g. instance-mask losses)
         aux_indices = self._prepare_aux_indices(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
+        self.aux_indices = aux_indices  # exposed for subclasses; aux_indices[i+1] matches decoder layer i
         pre_bboxes, pre_logits, pre_indices = self._prepare_pre_indices(dfine_meta, gt_bboxes, gt_cls, gt_groups)
 
         box_union_indices = None
@@ -819,9 +822,10 @@ class DeimSegmentationLoss(DfineLoss):
 
     The mask loss follows the YOLO segmentation convention: per-image matched query coefficients are combined with
     the shared proto via einsum and supervised with a box-cropped BCE against the GT masks. Mask supervision uses
-    the final-layer one-to-one Hungarian matches only (no denoising or auxiliary-layer mask losses). The semantic
-    segmentation aux loss supervises the training-only semseg head of Proto26 with a BCEDice loss, mirroring
-    v8SegmentationLoss.
+    the one-to-one Hungarian matches of every decoder layer: the final layer drives `loss_mask` and, when
+    `aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches aggregated
+    into `loss_mask_aux` (no denoising mask losses). The semantic segmentation aux loss supervises the
+    training-only semseg head of Proto26 with a BCEDice loss, mirroring v8SegmentationLoss.
     """
 
     supports_seg = True
@@ -842,33 +846,41 @@ class DeimSegmentationLoss(DfineLoss):
         self.bcedice_loss = BCEDiceLoss(weight_bce=0.5, weight_dice=0.5)
 
     def _get_loss_mask(
-        self, masks_coeff: torch.Tensor, proto: torch.Tensor, gt_masks: torch.Tensor, batch: dict[str, Any]
+        self,
+        masks_coeff: torch.Tensor,
+        proto: torch.Tensor,
+        gt_masks: torch.Tensor,
+        batch: dict[str, Any],
+        match_indices: list[tuple[torch.Tensor, torch.Tensor]] | None = None,
     ) -> torch.Tensor:
-        """Compute the instance-mask loss from final-layer o2o matches (port of v8SegmentationLoss).
+        """Compute the instance-mask loss from one-to-one matches (port of v8SegmentationLoss).
 
         Args:
-            masks_coeff (torch.Tensor): Final-layer o2o mask coefficients with shape (bs, nq, nm).
+            masks_coeff (torch.Tensor): Mask coefficients for one decoder layer with shape (bs, nq, nm).
             proto (torch.Tensor): Mask prototypes with shape (bs, nm, H, W).
             gt_masks (torch.Tensor): GT masks, an overlap index-map with shape (bs, H, W) when `self.overlap` is
                 True, otherwise a per-instance stack with shape (N, H, W).
             batch (dict[str, Any]): Targets dict with `bboxes` (normalized cxcywh), `batch_idx`, and `gt_groups`.
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]], optional): Matches to supervise; defaults to
+                the final-layer o2o matches (`self.main_indices`).
 
         Returns:
             (torch.Tensor): Weighted instance-mask loss.
         """
+        indices = self.main_indices if match_indices is None else match_indices
         bs, _, mask_h, mask_w = proto.shape
         gt_masks = gt_masks.to(proto.device)
         if gt_masks.shape[-2:] != (mask_h, mask_w):  # match proto resolution to GT masks
             proto = F.interpolate(proto, gt_masks.shape[-2:], mode="bilinear", align_corners=False)
             mask_h, mask_w = proto.shape[-2:]
         gt_xyxy = box_cxcywh_to_xyxy(batch["bboxes"])  # normalized xyxy
-        total = sum(len(src) for src, _ in self.main_indices)
+        total = sum(len(src) for src, _ in indices)
         if not total:
             # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
             return (masks_coeff.sum() + proto.sum()) * 0.0
         loss = masks_coeff.new_zeros(())
         offset = 0
-        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+        for i, (src_idx, dst_idx) in enumerate(indices):
             # Matcher indices are CPU tensors; move them to the model device
             src_idx = src_idx.to(proto.device)
             dst_idx = dst_idx.to(proto.device)
@@ -933,18 +945,35 @@ class DeimSegmentationLoss(DfineLoss):
         dfine_meta: dict[str, Any] | None = None,
         matcher_epoch: int = 0,
         training_progress: float = 0.0,
-        masks_coeff: torch.Tensor | None = None,
+        dec_masks: torch.Tensor | None = None,
         proto: torch.Tensor | None = None,
         semseg: torch.Tensor | None = None,
         gt_masks: torch.Tensor | None = None,
         sem_masks: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Compute the detection losses plus the instance-mask and semseg losses when mask inputs are provided."""
+        """Compute the detection losses plus the instance-mask and semseg losses when mask inputs are provided.
+
+        `dec_masks` stacks per-decoder-layer o2o mask coefficients with shape (L, bs, nq, nm); the final layer is
+        supervised as `loss_mask` and, when `self.aux_loss` is enabled, earlier layers are supervised with their
+        per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder row) as `loss_mask_aux`.
+        """
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
         )
-        if masks_coeff is not None and proto is not None and gt_masks is not None:
-            total_loss["loss_mask"] = self._get_loss_mask(masks_coeff, proto, gt_masks, batch)
+        if dec_masks is not None and proto is not None and gt_masks is not None:
+            total_loss["loss_mask"] = self._get_loss_mask(dec_masks[-1], proto, gt_masks, batch)
+            if (
+                self.aux_loss
+                and dec_masks.shape[0] > 1
+                and self.aux_indices
+                and len(self.aux_indices) >= dec_masks.shape[0]
+            ):
+                loss_mask_aux = dec_masks.new_zeros(())
+                for i in range(dec_masks.shape[0] - 1):
+                    loss_mask_aux = loss_mask_aux + self._get_loss_mask(
+                        dec_masks[i], proto, gt_masks, batch, match_indices=self.aux_indices[i + 1]
+                    )
+                total_loss["loss_mask_aux"] = loss_mask_aux
         if semseg is not None and sem_masks is not None and gt_masks is not None:
             total_loss["loss_semseg"] = self._get_loss_semseg(semseg, sem_masks, gt_masks, batch)
         return self._sanitize_losses(total_loss)
@@ -956,8 +985,10 @@ class DeimPoseLoss(DfineLoss):
     The pose loss follows the YOLO pose convention (port of v8PoseLoss.calculate_keypoints_loss): an OKS-form
     KeypointLoss on the sigmoid-decoded keypoint xy coordinates against normalized GT keypoints, weighted by the
     matched GT box area, plus a BCE-with-logits loss on the visibility channel. Keypoint supervision uses the
-    final-layer one-to-one Hungarian matches only (no denoising or auxiliary-layer pose losses); the Hungarian
-    matcher itself stays box+cls only.
+    one-to-one Hungarian matches of every decoder layer: the final layer drives `loss_pose`/`loss_kobj` and, when
+    `aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches aggregated
+    into `loss_pose_aux`/`loss_kobj_aux` (no denoising pose losses); the Hungarian matcher itself stays box+cls
+    only.
     """
 
     supports_pose = True
@@ -980,28 +1011,35 @@ class DeimPoseLoss(DfineLoss):
         self.sigmas = torch.from_numpy(OKS_SIGMA) if is_pose else torch.ones(nkpt) / nkpt
 
     def _get_loss_pose(
-        self, kpts: torch.Tensor, gt_keypoints: torch.Tensor, batch: dict[str, Any]
+        self,
+        kpts: torch.Tensor,
+        gt_keypoints: torch.Tensor,
+        batch: dict[str, Any],
+        match_indices: list[tuple[torch.Tensor, torch.Tensor]] | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute the keypoint and visibility losses from final-layer o2o matches (port of v8PoseLoss).
+        """Compute the keypoint and visibility losses from one-to-one matches (port of v8PoseLoss).
 
         Args:
-            kpts (torch.Tensor): Final-layer o2o raw keypoint predictions with shape (bs, nq, nk).
+            kpts (torch.Tensor): Raw keypoint predictions for one decoder layer with shape (bs, nq, nk).
             gt_keypoints (torch.Tensor): GT keypoints with shape (N, nkpt, ndim), xy normalized to the image.
             batch (dict[str, Any]): Targets dict with `bboxes` (normalized cxcywh) used for the OKS area term.
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]], optional): Matches to supervise; defaults to
+                the final-layer o2o matches (`self.main_indices`).
 
         Returns:
             (tuple[torch.Tensor, torch.Tensor]): Weighted keypoint loss and weighted visibility loss.
         """
+        indices = self.main_indices if match_indices is None else match_indices
         device = kpts.device
         gt_keypoints = gt_keypoints.to(device).float()
         keypoint_loss = KeypointLoss(sigmas=self.sigmas.to(device))
-        total = sum(len(src) for src, _ in self.main_indices)
+        total = sum(len(src) for src, _ in indices)
         if not total:
             # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
             return kpts.sum() * 0.0, kpts.sum() * 0.0
         loss_pose = kpts.new_zeros(())
         loss_kobj = kpts.new_zeros(())
-        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+        for i, (src_idx, dst_idx) in enumerate(indices):
             # Matcher indices are CPU tensors; move them to the model device
             src_idx = src_idx.to(device)
             dst_idx = dst_idx.to(device)
@@ -1017,9 +1055,7 @@ class DeimPoseLoss(DfineLoss):
                 area = batch["bboxes"][dst_idx][:, 2:4].prod(1, keepdim=True)  # normalized box area (w * h of cxcywh)
                 loss_pose += keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area) * len(src_idx)
                 if pred_kpt.shape[-1] == 3:
-                    loss_kobj += (
-                        F.binary_cross_entropy_with_logits(pred_kpt[..., 2], kpt_mask.float()) * len(src_idx)
-                    )
+                    loss_kobj += F.binary_cross_entropy_with_logits(pred_kpt[..., 2], kpt_mask.float()) * len(src_idx)
             else:
                 # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
                 zero = kpts[i].sum() * 0.0
@@ -1037,15 +1073,37 @@ class DeimPoseLoss(DfineLoss):
         dfine_meta: dict[str, Any] | None = None,
         matcher_epoch: int = 0,
         training_progress: float = 0.0,
-        kpts: torch.Tensor | None = None,
+        dec_kpts: torch.Tensor | None = None,
         gt_keypoints: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Compute the detection losses plus the keypoint and visibility losses when keypoint inputs are provided."""
+        """Compute the detection losses plus the keypoint and visibility losses when keypoint inputs are provided.
+
+        `dec_kpts` stacks per-decoder-layer o2o keypoint predictions with shape (L, bs, nq, nk); the final layer is
+        supervised as `loss_pose`/`loss_kobj` and, when `self.aux_loss` is enabled, earlier layers are supervised
+        with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder row) as
+        `loss_pose_aux`/`loss_kobj_aux`.
+        """
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
         )
-        if kpts is not None and gt_keypoints is not None:
-            total_loss["loss_pose"], total_loss["loss_kobj"] = self._get_loss_pose(kpts, gt_keypoints, batch)
+        if dec_kpts is not None and gt_keypoints is not None:
+            total_loss["loss_pose"], total_loss["loss_kobj"] = self._get_loss_pose(dec_kpts[-1], gt_keypoints, batch)
+            if (
+                self.aux_loss
+                and dec_kpts.shape[0] > 1
+                and self.aux_indices
+                and len(self.aux_indices) >= dec_kpts.shape[0]
+            ):
+                loss_pose_aux = dec_kpts.new_zeros(())
+                loss_kobj_aux = dec_kpts.new_zeros(())
+                for i in range(dec_kpts.shape[0] - 1):
+                    pose_i, kobj_i = self._get_loss_pose(
+                        dec_kpts[i], gt_keypoints, batch, match_indices=self.aux_indices[i + 1]
+                    )
+                    loss_pose_aux = loss_pose_aux + pose_i
+                    loss_kobj_aux = loss_kobj_aux + kobj_i
+                total_loss["loss_pose_aux"] = loss_pose_aux
+                total_loss["loss_kobj_aux"] = loss_kobj_aux
         return self._sanitize_losses(total_loss)
 
 
@@ -1053,16 +1111,18 @@ class DeimOBBLoss(DfineLoss):
     """DfineLoss extended with a rotation-angle loss for DeimOBBDecoder.
 
     The angle loss is a wrap-invariant 1-cos(delta) term (delta wrapped mod pi to (-pi/2, pi/2]) weighted by an
-    aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the final-layer one-to-one Hungarian
-    matches only. It deliberately differs from v8OBBLoss's sin(2*delta)^2 in two ways: (1) sin(2*delta)^2 has period
-    pi/2 and cannot distinguish theta from theta+90deg; (2) 1-cos(delta) has maximal gradient at delta=90deg, whereas
-    sin(delta)^2 is flat there, so wrong-branch predictions are actively repelled instead of sitting on a
-    gradient-free plateau. Additionally, a probiou IoU term on the full rotated boxes (same o2o matches, final layer)
-    couples the (w, h, theta) prediction jointly: DOTA label polygons extending beyond image borders are clipped by
-    the augmentation pipeline and their recomputed minAreaRect can flip to the perpendicular representation, and only
-    an angle-aware box loss keeps (w, h, theta) consistent through such label noise (this is what makes YOLO OBB
-    robust to it). The axis-aligned box losses (Hungarian cost, L1, GIoU, FGL/DDF) still run on the xywh part of the
-    xywhr GT.
+    aspect-ratio factor exp(-(log(w/h))^2/lambda^2) with lambda=3, computed on the one-to-one Hungarian matches of
+    every decoder layer: the final layer drives `loss_angle`/`loss_probiou` and, when `aux_loss` is enabled, all
+    earlier decoder layers are supervised with their own per-layer matches aggregated into
+    `loss_angle_aux`/`loss_probiou_aux` (no denoising angle losses). It deliberately differs from v8OBBLoss's
+    sin(2*delta)^2 in two ways: (1) sin(2*delta)^2 has period pi/2 and cannot distinguish theta from theta+90deg;
+    (2) 1-cos(delta) has maximal gradient at delta=90deg, whereas sin(delta)^2 is flat there, so wrong-branch
+    predictions are actively repelled instead of sitting on a gradient-free plateau. Additionally, a probiou IoU
+    term on the full rotated boxes couples the (w, h, theta) prediction jointly: DOTA label polygons extending
+    beyond image borders are clipped by the augmentation pipeline and their recomputed minAreaRect can flip to the
+    perpendicular representation, and only an angle-aware box loss keeps (w, h, theta) consistent through such
+    label noise (this is what makes YOLO OBB robust to it). The axis-aligned box losses (Hungarian cost, L1, GIoU,
+    FGL/DDF) still run on the xywh part of the xywhr GT.
     """
 
     supports_obb = True
@@ -1080,9 +1140,13 @@ class DeimOBBLoss(DfineLoss):
         self.probiou_gain = self.loss_gain.get("probiou", 1.0)
 
     def _get_loss_angle(
-        self, angles: torch.Tensor, gt_bboxes: torch.Tensor, lambda_val: int = 3
+        self,
+        angles: torch.Tensor,
+        gt_bboxes: torch.Tensor,
+        lambda_val: int = 3,
+        match_indices: list[tuple[torch.Tensor, torch.Tensor]] | None = None,
     ) -> torch.Tensor:
-        """Compute the rotation-angle loss from final-layer o2o matches.
+        """Compute the rotation-angle loss from one-to-one matches.
 
         Uses 1-cos(delta) (delta wrapped mod pi) rather than v8OBBLoss's sin(2*delta)^2: the latter has period pi/2
         and scores a 90-degree angle error as zero, which only works when an angle-aware box loss (probiou/DFL)
@@ -1090,21 +1154,24 @@ class DeimOBBLoss(DfineLoss):
         1-cos(delta) additionally has maximal gradient there (sin(delta)^2 is flat at 90deg).
 
         Args:
-            angles (torch.Tensor): Final-layer o2o raw angle predictions with shape (bs, nq, 1).
+            angles (torch.Tensor): Raw angle predictions for one decoder layer with shape (bs, nq, 1).
             gt_bboxes (torch.Tensor): GT rotated boxes with shape (N, 5), normalized xywhr.
             lambda_val (int): Controls the sensitivity to aspect ratio.
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]], optional): Matches to supervise; defaults to
+                the final-layer o2o matches (`self.main_indices`).
 
         Returns:
             (torch.Tensor): Weighted rotation-angle loss.
         """
+        indices = self.main_indices if match_indices is None else match_indices
         device = angles.device
         gt_bboxes = gt_bboxes.to(device).float()
-        total = sum(len(src) for src, _ in self.main_indices)
+        total = sum(len(src) for src, _ in indices)
         if not total:
             # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
             return angles.sum() * 0.0
         loss = angles.new_zeros(())
-        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+        for i, (src_idx, dst_idx) in enumerate(indices):
             # Matcher indices are CPU tensors; move them to the model device
             src_idx = src_idx.to(device)
             dst_idx = dst_idx.to(device)
@@ -1122,20 +1189,30 @@ class DeimOBBLoss(DfineLoss):
                 loss += angles[i].sum() * 0.0
         return loss / total * self.angle_gain
 
-    def _get_loss_probiou(self, pred_boxes: torch.Tensor, angles: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
-        """Compute the rotated-IoU (probiou) loss from final-layer o2o matches.
+    def _get_loss_probiou(
+        self,
+        pred_boxes: torch.Tensor,
+        angles: torch.Tensor,
+        gt_bboxes: torch.Tensor,
+        match_indices: list[tuple[torch.Tensor, torch.Tensor]] | None = None,
+    ) -> torch.Tensor:
+        """Compute the rotated-IoU (probiou) loss from one-to-one matches.
 
         Args:
-            pred_boxes (torch.Tensor): Final-layer o2o predicted boxes with shape (bs, nq, 4), normalized cxcywh.
-            angles (torch.Tensor): Final-layer o2o raw angle predictions with shape (bs, nq, 1).
+            pred_boxes (torch.Tensor): Predicted boxes for one decoder layer with shape (bs, nq, 4), normalized
+                cxcywh.
+            angles (torch.Tensor): Raw angle predictions for the same decoder layer with shape (bs, nq, 1).
             gt_bboxes (torch.Tensor): GT rotated boxes with shape (N, 5), normalized xywhr.
+            match_indices (list[tuple[torch.Tensor, torch.Tensor]], optional): Matches to supervise; defaults to
+                the final-layer o2o matches (`self.main_indices`).
 
         Returns:
             (torch.Tensor): Rotated-IoU loss coupling the (w, h, theta) prediction jointly.
         """
+        indices = self.main_indices if match_indices is None else match_indices
         device = angles.device
         gt_bboxes = gt_bboxes.to(device).float()
-        total = sum(len(src) for src, _ in self.main_indices)
+        total = sum(len(src) for src, _ in indices)
         if not total:
             # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
             return angles.sum() * 0.0
@@ -1143,7 +1220,7 @@ class DeimOBBLoss(DfineLoss):
         # probiou is scale-invariant; upscale normalized boxes to pixel-ish units for numerical conditioning
         # (tiny normalized w/h make the covariance determinants eps-dominated, saturating IoU at ~1 with no signal)
         scale = angles.new_tensor([1024.0, 1024.0, 1024.0, 1024.0, 1.0])
-        for i, (src_idx, dst_idx) in enumerate(self.main_indices):
+        for i, (src_idx, dst_idx) in enumerate(indices):
             # Matcher indices are CPU tensors; move them to the model device
             src_idx = src_idx.to(device)
             dst_idx = dst_idx.to(device)
@@ -1157,7 +1234,9 @@ class DeimOBBLoss(DfineLoss):
                     tgt = target[valid] * scale
                     pred_xywhr = pred_xywhr * scale
                     # Clamp w/h to >= 1px: near-zero widths/heights make probiou's sqrt backward explode (inf/NaN)
-                    pred_xywhr = torch.cat([pred_xywhr[:, :2], pred_xywhr[:, 2:4].clamp(min=1.0), pred_xywhr[:, 4:]], dim=-1)
+                    pred_xywhr = torch.cat(
+                        [pred_xywhr[:, :2], pred_xywhr[:, 2:4].clamp(min=1.0), pred_xywhr[:, 4:]], dim=-1
+                    )
                     tgt = torch.cat([tgt[:, :2], tgt[:, 2:4].clamp(min=1.0), tgt[:, 4:]], dim=-1)
                     loss += (1.0 - probiou(pred_xywhr, tgt)).sum()
                 else:
@@ -1178,14 +1257,38 @@ class DeimOBBLoss(DfineLoss):
         dfine_meta: dict[str, Any] | None = None,
         matcher_epoch: int = 0,
         training_progress: float = 0.0,
-        angles: torch.Tensor | None = None,
+        dec_angles: torch.Tensor | None = None,
         gt_bboxes: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
-        """Compute the detection losses plus the rotation-angle and rotated-IoU losses when angle inputs are given."""
+        """Compute the detection losses plus the rotation-angle and rotated-IoU losses when angle inputs are given.
+
+        `dec_angles` stacks per-decoder-layer o2o angle predictions with shape (L, bs, nq, 1); the final layer is
+        supervised as `loss_angle`/`loss_probiou` and, when `self.aux_loss` is enabled, earlier layers are
+        supervised with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder
+        row) as `loss_angle_aux`/`loss_probiou_aux`, pairing each layer's angles with its boxes in `preds[0]`
+        (encoder row first, so decoder layer i sits at index i + 1).
+        """
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
         )
-        if angles is not None and gt_bboxes is not None:
-            total_loss["loss_angle"] = self._get_loss_angle(angles, gt_bboxes)
-            total_loss["loss_probiou"] = self._get_loss_probiou(preds[0][-1], angles, gt_bboxes)
+        if dec_angles is not None and gt_bboxes is not None:
+            total_loss["loss_angle"] = self._get_loss_angle(dec_angles[-1], gt_bboxes)
+            total_loss["loss_probiou"] = self._get_loss_probiou(preds[0][-1], dec_angles[-1], gt_bboxes)
+            if (
+                self.aux_loss
+                and dec_angles.shape[0] > 1
+                and self.aux_indices
+                and len(self.aux_indices) >= dec_angles.shape[0]
+            ):
+                loss_angle_aux = dec_angles.new_zeros(())
+                loss_probiou_aux = dec_angles.new_zeros(())
+                for i in range(dec_angles.shape[0] - 1):
+                    loss_angle_aux = loss_angle_aux + self._get_loss_angle(
+                        dec_angles[i], gt_bboxes, match_indices=self.aux_indices[i + 1]
+                    )
+                    loss_probiou_aux = loss_probiou_aux + self._get_loss_probiou(
+                        preds[0][i + 1], dec_angles[i], gt_bboxes, match_indices=self.aux_indices[i + 1]
+                    )
+                total_loss["loss_angle_aux"] = loss_angle_aux
+                total_loss["loss_probiou_aux"] = loss_probiou_aux
         return self._sanitize_losses(total_loss)

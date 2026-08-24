@@ -1068,17 +1068,14 @@ class RTDETRDetectionModel(DetectionModel):
         split_outputs = self._split_decoder_predictions(dec_bboxes, dec_scores, dn_meta)
         supports_dfine = getattr(self.criterion, "supports_dfine", False)
         dfine_meta_o2m = None
-        proto = semseg = masks_coeff = kpts = angles = None
+        proto = semseg = dec_masks = dec_kpts = dec_angles = None
         if supports_dfine and dfine_meta is not None:
             proto = dfine_meta.pop("proto", None)  # image-level, not dn-split
             semseg = dfine_meta.pop("semseg", None)  # image-level semseg aux logits, not dn-split
             dfine_meta, dfine_meta_o2m = self._split_dfine_meta(dfine_meta, dn_meta)
-            dec_masks = dfine_meta.pop("dec_masks", None)
-            masks_coeff = dec_masks[-1] if dec_masks is not None else None  # final-layer o2o coefficients
-            dec_kpts = dfine_meta.pop("dec_kpts", None)
-            kpts = dec_kpts[-1] if dec_kpts is not None else None  # final-layer o2o keypoints
-            dec_angles = dfine_meta.pop("dec_angles", None)
-            angles = dec_angles[-1] if dec_angles is not None else None  # final-layer o2o rotation angles
+            dec_masks = dfine_meta.pop("dec_masks", None)  # (L, bs, nq, nm) per-decoder-layer o2o coefficients
+            dec_kpts = dfine_meta.pop("dec_kpts", None)  # (L, bs, nq, nk) per-decoder-layer o2o keypoints
+            dec_angles = dfine_meta.pop("dec_angles", None)  # (L, bs, nq, 1) per-decoder-layer o2o rotation angles
         matcher_epoch = 0
         training_progress = 0.0
         if supports_dfine and "epoch" in batch:
@@ -1121,16 +1118,16 @@ class RTDETRDetectionModel(DetectionModel):
             loss_kwargs["matcher_epoch"] = matcher_epoch
             loss_kwargs["training_progress"] = training_progress
         if getattr(self.criterion, "supports_seg", False):
-            loss_kwargs["masks_coeff"] = masks_coeff
+            loss_kwargs["dec_masks"] = dec_masks
             loss_kwargs["proto"] = proto
             loss_kwargs["semseg"] = semseg
             loss_kwargs["gt_masks"] = batch.get("masks")
             loss_kwargs["sem_masks"] = batch.get("sem_masks")
         if getattr(self.criterion, "supports_pose", False):
-            loss_kwargs["kpts"] = kpts
+            loss_kwargs["dec_kpts"] = dec_kpts
             loss_kwargs["gt_keypoints"] = batch.get("keypoints")
         if getattr(self.criterion, "supports_obb", False):
-            loss_kwargs["angles"] = angles
+            loss_kwargs["dec_angles"] = dec_angles
             loss_kwargs["gt_bboxes"] = gt_bboxes_obb
         loss_inputs = (dec_bboxes, dec_scores)
         loss_targets = targets
@@ -1188,21 +1185,21 @@ class RTDETRDetectionModel(DetectionModel):
                 for k in ["loss_giou_o2m", "loss_class_o2m", "loss_bbox_o2m"]:
                     loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_seg", False):
-            loss_keys.extend(["loss_mask", "loss_semseg"])
-            # Fill with zeros when absent (e.g. semseg is only produced during training)
-            for k in ["loss_mask", "loss_semseg"]:
+            loss_keys.extend(["loss_mask", "loss_semseg", "loss_mask_aux"])
+            # Fill with zeros when absent (e.g. semseg and the per-layer aux terms are only produced during training)
+            for k in ["loss_mask", "loss_semseg", "loss_mask_aux"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_pose", False):
-            loss_keys.extend(["loss_pose", "loss_kobj"])
+            loss_keys.extend(["loss_pose", "loss_kobj", "loss_pose_aux", "loss_kobj_aux"])
             # Fill with zeros when absent
-            for k in ["loss_pose", "loss_kobj"]:
+            for k in ["loss_pose", "loss_kobj", "loss_pose_aux", "loss_kobj_aux"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_obb", False):
-            loss_keys.extend(["loss_angle", "loss_probiou"])
+            loss_keys.extend(["loss_angle", "loss_probiou", "loss_angle_aux", "loss_probiou_aux"])
             # Fill with zeros when absent
-            for k in ["loss_angle", "loss_probiou"]:
+            for k in ["loss_angle", "loss_probiou", "loss_angle_aux", "loss_probiou_aux"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)

@@ -1850,6 +1850,11 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
             )
         )
     model = candidate.float()  # FP32 model
+    if ckpt.get("maskbndict") is not None:
+        # Structured-pruned YOLOv8 checkpoints keep the reconstruction masks
+        # beside the serialized model. Preserve them on the module so the
+        # latest trainer can rebuild the head for a new dataset class count.
+        model.maskbndict = ckpt["maskbndict"]
 
     # Model compatibility updates
     model.args = args  # attach args to model

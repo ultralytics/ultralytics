@@ -97,7 +97,6 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
-        assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -150,12 +149,10 @@ class YOLODataset(BaseDataset):
     def get_label_files(self) -> list[str]:
         """Return the companion label files for the dataset's images, storing them on the instance.
 
-        The label directory defaults to 'labels' and may be overridden with the dataset YAML 'labels_dir' key.
-
         Returns:
             (list[str]): List of label file paths.
         """
-        self.label_files = img2label_paths(self.im_files, label_dir=self.data.get("labels_dir", "labels"))
+        self.label_files = img2label_paths(self.im_files)
         return self.label_files
 
     def get_cache_hash(self) -> str:

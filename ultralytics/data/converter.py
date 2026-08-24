@@ -19,7 +19,7 @@ from PIL import Image
 
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
-from ultralytics.utils.downloads import download, is_url, zip_directory
+from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
@@ -850,7 +850,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
-    source_path = None if is_url(source) else Path(check_file(source))
+    source_path = Path(source)
+    source_path = source_path.resolve() if source_path.is_file() else None
     source_id = str(source_path.resolve()) if source_path else clean_url(source)
     source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"

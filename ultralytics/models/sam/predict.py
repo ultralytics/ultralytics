@@ -222,6 +222,7 @@ class Predictor(BasePredictor):
                 0 for background.
             masks (np.ndarray | None): Low-res masks from previous predictions with shape (N, H, W). For SAM, H=W=256.
             multimask_output (bool): Flag to return multiple masks for ambiguous prompts.
+
         Returns:
             pred_masks (torch.Tensor): Output masks with shape (C, H, W), where C is the number of generated masks.
             pred_scores (torch.Tensor): Quality scores predicted by the model for each mask, with length C.

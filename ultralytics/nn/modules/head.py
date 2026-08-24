@@ -246,8 +246,8 @@ class Detect(nn.Module):
                 keypoints or angle of the Segment, Pose and OBB heads and is empty for Detect.
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + extra) and
-                last dimension format [x1, y1, x2, y2, max_class_prob, class_index, extra].
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + extra) and last
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, extra].
         """
         scores, conf, idx = self.get_topk_index(preds[..., 4 : 4 + self.nc], self.max_det)
         out = [self._gather(preds[..., :4], idx), scores, conf]

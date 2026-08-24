@@ -704,6 +704,11 @@ class Exporter:
         if fmt == "axelera" and min(self.imgsz) < 64:
             raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if fmt == "rknn":
+            if self.args.quantize == 8 and model.task != "detect":
+                raise ValueError(
+                    "Rockchip RKNN INT8 export is only supported for detection models. "
+                    "Use FP16 (quantize=16) for other tasks."
+                )
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "

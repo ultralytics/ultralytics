@@ -605,8 +605,8 @@ class YOLOE(Model):
         the embeddings already in the memory bank.
 
         Args:
-            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. When visual prompts are
-                given, only a single image is supported for extraction, e.g. an image path, PIL image, or numpy array.
+            source (str | int | PIL.Image | np.ndarray, optional): Source for prediction. When visual prompts are given,
+                only a single image is supported for extraction, e.g. an image path, PIL image, or numpy array.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
                 are computed.
             visual_prompts (dict[str, list]): Dictionary containing visual prompts for the model. Must include 'bboxes'

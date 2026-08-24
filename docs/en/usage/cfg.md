@@ -46,7 +46,7 @@ Ultralytics commands use the following syntax:
 
 Where:
 
-- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [semantic](../tasks/semantic.md), [depth](../tasks/depth.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md))
+- `TASK` (optional) is one of ([detect](../tasks/detect.md), [segment](../tasks/segment.md), [semantic](../tasks/semantic.md), [depth](../tasks/depth.md), [classify](../tasks/classify.md), [pose](../tasks/pose.md), [obb](../tasks/obb.md), [reid](../tasks/reid.md))
 - `MODE` (required) is one of ([train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), [track](../modes/track.md), [benchmark](../modes/benchmark.md))
 - `ARGS` (optional) are `arg=value` pairs like `imgsz=640` that override defaults.
 
@@ -63,10 +63,11 @@ Ultralytics YOLO models can perform a variety of computer vision tasks, includin
 - **Classify**: [Image classification](../tasks/classify.md) predicts the class label of an input image.
 - **Pose**: [Pose estimation](../tasks/pose.md) identifies objects and estimates their keypoints in an image or video.
 - **OBB**: [Oriented Bounding Boxes](../tasks/obb.md) uses rotated bounding boxes, suitable for satellite or medical imagery.
+- **ReID**: [Person Re-Identification](../tasks/reid.md) produces embedding vectors for matching people across camera views.
 
-| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                               |
-| -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for instance segmentation, `semantic` for semantic segmentation, `depth` for monocular depth estimation, `classify` for classification, `pose` for pose estimation, and `obb` for oriented bounding boxes. Each task is tailored to specific outputs and problems in image and video analysis. |
+| Argument | Default    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task`   | `'detect'` | Specifies the YOLO task: `detect` for [object detection](https://www.ultralytics.com/glossary/object-detection), `segment` for instance segmentation, `semantic` for semantic segmentation, `depth` for monocular depth estimation, `classify` for classification, `pose` for pose estimation, `obb` for oriented bounding boxes, and `reid` for person re-identification. Each task is tailored to specific outputs and problems in image and video analysis. |
 
 [Tasks Guide](../tasks/index.md){ .md-button }
 

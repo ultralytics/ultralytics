@@ -58,8 +58,10 @@ from ultralytics.nn.modules import (
     ImagePoolingAttn,
     Index,
     LRPCHead,
+    MHSABlock,
     Pose,
     Pose26,
+    ReID,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -71,6 +73,7 @@ from ultralytics.nn.modules import (
     Segment26,
     SemanticSegment,
     TorchVision,
+    UltraViTBlock,
     WorldDetect,
     YOLOEDetect,
     YOLOESegment,
@@ -93,6 +96,7 @@ from ultralytics.utils.loss import (
     DepthLoss26,
     E2ELoss,
     PoseLoss26,
+    ReIDLoss,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
     v8DetectionLoss,
@@ -885,6 +889,130 @@ class ClassificationModel(BaseModel):
     def init_criterion(self):
         """Initialize the loss criterion for the ClassificationModel."""
         return v8ClassificationLoss()
+
+
+class ReidModel(BaseModel):
+    """YOLO person re-identification model.
+
+    This class implements the YOLO ReID architecture for person re-identification tasks.
+
+    Attributes:
+        yaml (dict): Model configuration dictionary.
+        model (torch.nn.Sequential): The neural network model.
+        stride (torch.Tensor): Model stride values.
+        names (dict): Identity names dictionary.
+    """
+
+    def __init__(
+        self,
+        cfg="yolo26n-reid.yaml",
+        ch=3,
+        nc=None,
+        verbose=True,
+        triplet_margin: float = 0.3,
+        label_smoothing: float = 0.1,
+        triplet_weight: float = 1.0,
+        ce_weight: float = 1.0,
+        center_weight: float = 0.0,
+        center_momentum: float = 0.9,
+        focal_gamma: float = 0.0,
+        supcon_temp: float = 0.0,
+        reid_arcface: bool = False,
+    ):
+        """Initialize ReidModel with YAML, channels, number of identities, verbose flag.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of identity classes.
+            verbose (bool): Whether to display model information.
+            triplet_margin (float): Margin for triplet loss.
+            label_smoothing (float): Label smoothing factor for CE loss.
+            triplet_weight (float): Weight for triplet/supcon loss.
+            ce_weight (float): Weight for cross-entropy loss.
+            center_weight (float): Weight for center loss (0 = disabled).
+            center_momentum (float): EMA momentum for updating class centers.
+            focal_gamma (float): Focal loss gamma (0 = standard CE).
+            supcon_temp (float): SupCon temperature (0 = use triplet).
+            reid_arcface (bool): Use sub-center ArcFace angular-margin identity loss instead of plain CE.
+        """
+        super().__init__()
+        self._from_yaml(cfg, ch, nc, verbose)
+        # Store ReID loss hparams so init_criterion does not depend on trainer side-effects.
+        self.triplet_margin = triplet_margin
+        self.label_smoothing = label_smoothing
+        self.triplet_weight = triplet_weight
+        self.ce_weight = ce_weight
+        self.center_weight = center_weight
+        self.center_momentum = center_momentum
+        self.focal_gamma = focal_gamma
+        self.supcon_temp = supcon_temp
+        self.reid_arcface = reid_arcface
+
+    def _from_yaml(self, cfg, ch, nc, verbose):
+        """Set model configurations and define the model architecture.
+
+        Args:
+            cfg (str | dict): Model configuration file path or dictionary.
+            ch (int): Number of input channels.
+            nc (int, optional): Number of identity classes.
+            verbose (bool): Whether to display model information.
+        """
+        self.yaml = cfg if isinstance(cfg, dict) else yaml_model_load(cfg)
+
+        # Define model
+        ch = self.yaml["channels"] = self.yaml.get("channels", ch)
+        if nc and nc != self.yaml["nc"]:
+            LOGGER.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
+            self.yaml["nc"] = nc
+        elif not nc and not self.yaml.get("nc", None):
+            raise ValueError("nc not specified. Must specify nc in model.yaml or function arguments.")
+        self.model, self.save = parse_model(deepcopy(self.yaml), ch=ch, verbose=verbose)
+        self.stride = torch.Tensor([1])
+        self.names = {i: f"{i}" for i in range(self.yaml["nc"])}
+        self.info()
+
+    @staticmethod
+    def reshape_outputs(model, nc, arcface=False, sub_centers=3):
+        """Update ReID model to specified identity count.
+
+        Args:
+            model (torch.nn.Module): Model to update.
+            nc (int): New number of identity classes.
+            arcface (bool): Size the classifier for sub-center ArcFace (nc * sub_centers) and enable cosine logits.
+            sub_centers (int): ArcFace prototypes per identity (used only when arcface is True).
+        """
+        _, m = list((model.model if hasattr(model, "model") else model).named_children())[-1]
+        if isinstance(m, ReID):
+            out = nc * sub_centers if arcface else nc
+            if m.classifier.out_features != out:
+                m.classifier = torch.nn.Linear(m.embed_dim, out, bias=False)
+            m.cosine = arcface
+            m.sub_centers = sub_centers if arcface else 1
+        elif isinstance(m, Classify):  # fallback
+            if m.linear.out_features != nc:
+                m.linear = torch.nn.Linear(m.linear.in_features, nc)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the ReidModel.
+
+        Hparams are read from ``self.args`` (set by ``ReidTrainer.set_model_attributes``)
+        when available, otherwise from attributes stored on ``self`` during ``__init__``.
+        This lets hub-loaded / resumed / exported models build the loss without a trainer.
+        """
+        src = getattr(self, "args", self)
+        return ReIDLoss(
+            nc=self.yaml["nc"],
+            triplet_margin=getattr(src, "triplet_margin", self.triplet_margin),
+            label_smooth=getattr(src, "label_smoothing", self.label_smoothing),
+            triplet_weight=getattr(src, "triplet_weight", self.triplet_weight),
+            ce_weight=getattr(src, "ce_weight", self.ce_weight),
+            center_weight=getattr(src, "center_weight", self.center_weight),
+            center_momentum=getattr(src, "center_momentum", self.center_momentum),
+            focal_gamma=getattr(src, "focal_gamma", self.focal_gamma),
+            supcon_temp=getattr(src, "supcon_temp", self.supcon_temp),
+            arcface=getattr(src, "reid_arcface", self.reid_arcface),
+        )
 
 
 class RTDETRDetectionModel(DetectionModel):
@@ -1990,6 +2118,7 @@ def parse_model(d, ch, verbose=True):
     base_modules = frozenset(
         {
             Classify,
+            ReID,
             Conv,
             ConvTranspose,
             GhostConv,
@@ -2062,7 +2191,7 @@ def parse_model(d, ch, verbose=True):
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]
-            if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
+            if m not in {Classify, ReID}:  # task outputs must stay at nc; every other layer scales by width
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
@@ -2088,7 +2217,7 @@ def parse_model(d, ch, verbose=True):
                     args.extend((True, 1.2))
             if m is C2fCIB:
                 legacy = False
-        elif m is AIFI:
+        elif m in frozenset({AIFI, UltraViTBlock, MHSABlock}):
             args = [ch[f], *args]
         elif m in frozenset({HGStem, HGBlock}):
             c1, cm, c2 = ch[f], args[0], args[1]
@@ -2212,6 +2341,8 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
+        if m == "reid":
+            return "reid"
         if "detect" in m:
             return "detect"
         if "semanticsegment" in m:
@@ -2242,6 +2373,8 @@ def guess_model_task(model):
                 return "semantic"
             elif isinstance(m, (Segment, YOLOESegment)):
                 return "segment"
+            elif isinstance(m, ReID):
+                return "reid"
             elif isinstance(m, Classify):
                 return "classify"
             elif isinstance(m, Pose):
@@ -2267,6 +2400,8 @@ def guess_model_task(model):
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"
+        elif "-reid" in model.stem or "reid" in model.parts:
+            return "reid"
         elif "-pose" in model.stem or "pose" in model.parts:
             return "pose"
         elif "-obb" in model.stem or "obb" in model.parts:

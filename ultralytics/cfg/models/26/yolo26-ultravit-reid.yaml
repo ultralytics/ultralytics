@@ -1,0 +1,35 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# YOLO26-UltraViT-reid: product/SKU re-identification with the UltraViT backbone
+# (RepMixer stages 1-3 + MHSA stage 4, ultralytics/nn/modules/vit_blocks.py).
+# Backbone == yolo26-ultravit-cls.yaml layers 0-8, so ImageNet-CE cls weights cover the
+# whole backbone. The MHSA stage-4 provides P5 self-attention, so the conv reid neck
+# (2x C2PSA) is dropped and the BNNeck ReID head reads the MHSA output directly.
+
+# Parameters
+nc: 751 # identity classes (overridden by data=*.yaml -> nc; default tracks Market-1501)
+
+scales:
+  # [depth, width, max_channels]  (UltraViT scale table, NOT the conv reid table)
+  n: [0.20, 0.25, 1152]
+  s: [0.20, 0.50, 1152]
+  m: [0.25, 1.00, 512]
+  l: [0.35, 1.00, 512]
+  x: [0.35, 1.50, 512]
+
+# UltraViT backbone: RepMixer stages 1-3 + MHSA stage 4, strides 4/8/16/32
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0 P1/2 stem
+  - [-1, 1, Conv, [96, 3, 2]] # 1 P2/4 stem
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 2 stage1 P2/4
+  - [-1, 1, Conv, [192, 3, 2]] # 3 P3/8 downsample
+  - [-1, 5, UltraViTBlock, [3, True, 0.00001]] # 4 stage2 P3/8
+  - [-1, 1, Conv, [384, 3, 2]] # 5 P4/16 downsample
+  - [-1, 20, UltraViTBlock, [3, True, 0.00001]] # 6 stage3 P4/16
+  - [-1, 1, Conv, [1152, 3, 2]] # 7 P5/32 downsample
+  - [-1, 5, MHSABlock, [0, 4, True, 0.00001, True, 32]] # 8 stage4 P5/32
+
+# Head
+head:
+  - [-1, 1, ReID, [nc]] # 9 ReID head (BNNeck)

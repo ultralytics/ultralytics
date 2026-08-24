@@ -104,6 +104,8 @@ class Detect(nn.Module):
         if self.format == "coreml":  # MIL types gather outputs as fp32 and then rejects them as gather indices
             return x[torch.arange(x.shape[0])[..., None], index.long()]
         b, n = x.shape[:2]
+        if b == 1 and not self.dynamic:  # skip the batch offset, which a dynamic trace would bake in as batch 1
+            return x[0].index_select(0, index[0])[None]
         offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
         return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
 

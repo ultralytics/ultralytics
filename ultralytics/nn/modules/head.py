@@ -105,7 +105,8 @@ class Detect(nn.Module):
             b, n = x.shape[:2]
             offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
             return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
-        index = index.long()
+        if self.format == "coreml":  # MIL types int64 gather indices as fp32 and then rejects them
+            return x[torch.arange(x.shape[0])[..., None], index]
         return x.gather(1, index if x.ndim == 2 else index[..., None].expand(-1, -1, x.shape[-1]))
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
@@ -268,16 +269,17 @@ class Detect(nn.Module):
         """
         anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
         k = min(max_det, anchors)
+        dtype = torch.int32 if self.format == "litert" else torch.int64  # GPU delegates reject int64 index math
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1)
             scores, index = scores.topk(k, dim=1)
-            index = index.int()
+            index = index.to(dtype)
             return scores[..., None], self._gather(labels[..., None].float(), index), index
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].int()
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].to(dtype)
         scores = self._gather(scores, ori_index)
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)
-        index = index.int()  # int64 index math is unsupported by GPU delegates, e.g. LiteRT WebGPU
+        index = index.to(dtype)
         return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
 
     def fuse(self) -> None:

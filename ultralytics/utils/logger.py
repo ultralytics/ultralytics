@@ -38,8 +38,8 @@ class ConsoleLogger:
         >>> logger.start_capture()
 
         Custom callback with batching:
-        >>> def my_handler(content, line_count, chunk_id):
-        ...     print(f"Received {line_count} lines")
+        >>> def my_handler(content, line_count, chunk_id, progress):
+        ...     print(f"Received {line_count} lines and {len(progress)} live progress bars")
         >>> logger = ConsoleLogger(on_flush=my_handler, batch_size=5)
         >>> logger.start_capture()
     """
@@ -51,7 +51,8 @@ class ConsoleLogger:
             destination (str | Path | None): API endpoint URL (http/https), local file path, or None.
             batch_size (int): Lines to accumulate before flush (1 = immediate, higher = batched).
             flush_interval (float): Max seconds between flushes when batching.
-            on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
+            on_flush (callable | None): Callback(content, line_count, chunk_id, progress) where progress maps live
+                progress bar ids to their latest frame.
         """
         if isinstance(destination, str) and destination.startswith("http://"):
             LOGGER.warning("ConsoleLogger destination uses plaintext HTTP; captured logs are sent unencrypted.")
@@ -80,8 +81,7 @@ class ConsoleLogger:
         # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
-        self.last_progress_time = 0.0
-        self.progress_interval = 1.0
+        self.progress = {}  # live progress bar frames by bar id, held as state instead of buffered as log lines
 
     def start_capture(self):
         """Start capturing console output and redirect stdout/stderr.
@@ -93,8 +93,8 @@ class ConsoleLogger:
             return
 
         self.active = True
-        sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
-        sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
+        sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log, self._queue_progress)
+        sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log, self._queue_progress)
 
         # Hook Ultralytics logger
         try:
@@ -148,12 +148,6 @@ class ConsoleLogger:
             if not (line := line.rstrip()):
                 continue  # a bare newline carries nothing once timestamped
 
-            # Rate-limit progress bar redraws, always keeping the completed bar
-            if any(pair in line for pair in ("──", "━─", "━╸", "╸─")):  # an unfilled cell inside the bar
-                if current_time - self.last_progress_time < self.progress_interval:
-                    continue
-                self.last_progress_time = current_time
-
             # General deduplication
             if line == self.last_line and current_time - self.last_time < 0.1:
                 continue
@@ -177,6 +171,16 @@ class ConsoleLogger:
             if should_flush:
                 self._flush_buffer()
 
+    def _queue_progress(self, bar_id, frame):
+        """Hold a live progress bar frame as state, promoting the last frame to a log line when the bar closes."""
+        with self.buffer_lock:
+            if frame is not None:
+                self.progress[str(bar_id)] = frame.split("\r")[-1].replace("\x1b[K", "").rstrip()
+                return
+            frame = self.progress.pop(str(bar_id), None)  # bar closed
+        if frame:
+            self._queue_log(frame + "\n")  # the completed bar is real log content
+
     def _flush_worker(self):
         """Background worker that flushes buffer periodically."""
         while self.active:
@@ -185,12 +189,13 @@ class ConsoleLogger:
                 self._flush_buffer()
 
     def _flush_buffer(self):
-        """Flush buffered lines to destination and/or callback."""
+        """Flush buffered lines and current progress bar frames to destination and/or callback."""
         with self.buffer_lock:
-            if not self.buffer:
+            if not self.buffer and not self.progress:
                 return
             lines = self.buffer.copy()
             self.buffer.clear()
+            progress = dict(self.progress)
             self.chunk_id += 1
             chunk_id = self.chunk_id  # Capture under lock to avoid race
 
@@ -200,12 +205,12 @@ class ConsoleLogger:
         # Call custom callback if provided
         if self.on_flush:
             try:
-                self.on_flush(content, line_count, chunk_id)
+                self.on_flush(content, line_count, chunk_id, progress)
             except Exception:
                 pass  # Silently ignore callback errors to avoid flooding stderr
 
         # Write to destination (file or API)
-        if self.destination is not None:
+        if self.destination is not None and lines:
             self._write_destination(content)
 
     def _write_destination(self, content):
@@ -226,17 +231,23 @@ class ConsoleLogger:
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
 
-        __slots__ = ("callback", "original")
+        __slots__ = ("callback", "original", "progress_callback")
 
-        def __init__(self, original, callback):
+        def __init__(self, original, callback, progress_callback):
             """Initialize a stream wrapper that redirects writes to a callback while preserving the original."""
             self.original = original
             self.callback = callback
+            self.progress_callback = progress_callback
 
         def write(self, text):
             """Write text to the original stream and forward it to the capture callback."""
             self.original.write(text)
             self.callback(text)
+
+        def progress(self, bar_id, frame):
+            """Write a TQDM frame to the original stream and report it as bar state instead of a log line."""
+            self.original.write(frame or "")
+            self.progress_callback(bar_id, frame)
 
         def flush(self):
             """Flush the wrapped stream to propagate buffered output promptly during console capture."""

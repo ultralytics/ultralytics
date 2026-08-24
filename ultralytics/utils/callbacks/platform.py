@@ -303,12 +303,12 @@ def on_pretrain_routine_start(trainer):
     trainer.platform = ctx
 
     # Create callback to send console output to Platform
-    def send_console_output(content, line_count, chunk_id):
-        """Send batched console output to Platform webhook."""
+    def send_console_output(content, line_count, chunk_id, progress):
+        """Send batched console output and live progress bar frames to Platform webhook."""
         _executor.submit(
             _send,
             "console_output",
-            {"chunkId": chunk_id, "content": content, "lineCount": line_count},
+            {"chunkId": chunk_id, "content": content, "lineCount": line_count, "progress": progress},
             project,
             name,
             ctx["model_id"],

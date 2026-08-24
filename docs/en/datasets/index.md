@@ -6,7 +6,7 @@ keywords: Ultralytics, datasets, computer vision, object detection, instance seg
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes (OBB). Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets. [Track mode](../modes/track.md) runs on top of these task models and reuses their datasets; see [tracking datasets](track/index.md).
 
 <p align="center">
   <br>
@@ -106,13 +106,6 @@ Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angle
 - [DOTA-v2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
 - [DOTA8](obb/dota8.md): A smaller subset of the first 8 images from the DOTAv1 split set, 4 for training and 4 for validation, suitable for quick tests.
 - [DOTA128](obb/dota128.md): A 128-image subset of the DOTA dataset with 128 images for training and validation, providing a good balance between size and diversity for testing OBB models.
-
-## [Multi-Object Tracking](track/index.md)
-
-Multi-object tracking is a computer vision technique that involves detecting and tracking multiple objects over time in a video sequence. This task extends object detection by maintaining consistent identities of objects across frames.
-
-- [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations for multi-object tracking tasks.
-- [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 
 ## Contribute New Datasets
 

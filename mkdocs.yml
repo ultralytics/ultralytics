@@ -847,7 +847,6 @@ nav:
               - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
               - executorch: reference/utils/export/executorch.md
-              - format: reference/utils/export/format.md
               - imx: reference/utils/export/imx.md
               - litert: reference/utils/export/litert.md
               - mnn: reference/utils/export/mnn.md

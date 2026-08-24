@@ -130,7 +130,7 @@ Then launch the training with the Python API:
 
 ## Augmentation Parameters at a Glance
 
-Every Ultralytics YOLO augmentation parameter, its typical range, and its default value. Each name links to the section below that explains the transform in detail and shows its visual effect.
+The augmentation parameters covered on this page, with their typical range and default value. Each name links to the section below that explains the transform in detail and shows its visual effect. Training controls that change the input size rather than its content, such as `multi_scale`, live in the [train settings](../usage/cfg.md#train-settings) reference.
 
 | Parameter                                                          | Range                                                | Default                   | Effect                                                              |
 | ------------------------------------------------------------------ | ---------------------------------------------------- | ------------------------- | ------------------------------------------------------------------- |

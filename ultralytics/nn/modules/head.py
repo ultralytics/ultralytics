@@ -99,6 +99,14 @@ class Detect(nn.Module):
         values, winners = values.flatten(1).topk(k, dim=1)
         return values, winners // k * size + index.flatten(1).gather(1, winners)
 
+    def _gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+        """Select index (batch, k) rows of x (batch, n, channels) along dim 1 without gather_nd."""
+        if self.format == "coreml":  # MIL types gather outputs as fp32 and then rejects them as gather indices
+            return x[torch.arange(x.shape[0])[..., None], index.long()]
+        b, n = x.shape[:2]
+        offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
+        return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, -1, *x.shape[2:])
+
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
 
@@ -242,7 +250,7 @@ class Detect(nn.Module):
         """
         boxes, scores = preds.split([4, self.nc], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
+        boxes = self._gather(boxes, idx)
         return torch.cat([boxes, scores, conf], dim=-1)
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
@@ -255,23 +263,19 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
+        anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
         k = min(max_det, anchors)
         if self.agnostic_nms:
-            scores, labels = scores.max(dim=-1, keepdim=True)
-            scores, indices = scores.topk(k, dim=1)
-            labels = labels.gather(1, indices)
-            return scores, labels.float(), indices
+            scores, labels = scores.max(dim=-1)
+            scores, index = scores.topk(k, dim=1)
+            index = index.int()
+            return scores[..., None], self._gather(labels[..., None].float(), index), index
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
-        scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].int()
+        scores = self._gather(scores, ori_index)
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)
-        idx = (
-            ori_index[torch.arange(batch_size)[..., None], index // nc]
-            if self.format == "coreml"
-            else ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
-        )
-        return scores[..., None], (index % nc)[..., None].float(), idx
+        index = index.int()  # int64 index math is unsupported by GPU delegates, e.g. LiteRT WebGPU
+        return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
@@ -373,8 +377,8 @@ class Segment(Detect):
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
+        boxes = self._gather(boxes, idx)
+        mask_coefficient = self._gather(mask_coefficient, idx)
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self) -> None:
@@ -528,8 +532,8 @@ class OBB(Detect):
         """
         boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        angle = angle.gather(dim=1, index=idx.expand(-1, -1, self.ne))
+        boxes = self._gather(boxes, idx)
+        angle = self._gather(angle, idx)
         return torch.cat([boxes, scores, conf, angle], dim=-1)
 
     def fuse(self) -> None:
@@ -649,8 +653,8 @@ class Pose(Detect):
         """
         boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        kpts = kpts.gather(dim=1, index=idx.expand(-1, -1, self.nk))
+        boxes = self._gather(boxes, idx)
+        kpts = self._gather(kpts, idx)
         return torch.cat([boxes, scores, conf, kpts], dim=-1)
 
     def fuse(self) -> None:
@@ -1434,8 +1438,8 @@ class YOLOESegment(YOLOEDetect):
         """
         boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
+        boxes = self._gather(boxes, idx)
+        mask_coefficient = self._gather(mask_coefficient, idx)
         return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self, txt_feats: torch.Tensor = None):

@@ -64,6 +64,10 @@ def torch2litert(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )
 
+    # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement
+    litert_torch.fx_infra.decomp.add_pre_lower_decomp(
+        torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
+    )
     edge_model = litert_torch.convert(model, (im,))
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)

@@ -367,7 +367,7 @@ Using these results, you can make more informed decisions for future model train
     # Load the winning hyperparameters from the tuning run
     best = YAML.load("runs/detect/tune/best_hyperparameters.yaml")
 
-    # Train for real with the tuned values, naming the same optimizer the tuning run used
+    # Name the optimizer the tuning run used - AdamW here, matching the examples above
     model = YOLO("yolo26n.pt")
     results = model.train(data="coco8.yaml", epochs=100, imgsz=640, optimizer="AdamW", **best)
     ```
@@ -380,7 +380,7 @@ Using these results, you can make more informed decisions for future model train
     optimizer: 'optimizer=auto' found, ignoring 'lr0=0.01' and 'momentum=0.937' and determining best 'optimizer', 'lr0' and 'momentum' automatically...
     ```
 
-    Name the optimizer explicitly and the tuned values are applied instead:
+    Name the optimizer explicitly — the same one the tuning run used, since a tuned `lr0` and `momentum` only transfer to the optimizer they were searched against — and the tuned values are applied instead:
 
     ```plaintext
     optimizer: AdamW(lr=0.01, momentum=0.937) with parameter groups 114 weight(decay=0.0), 126 weight(decay=0.0005), 126 bias(decay=0.0)

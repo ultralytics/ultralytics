@@ -199,7 +199,7 @@ This approach is particularly useful when the target domain differs significantl
 
 !!! warning "`resume` does not extend a finished run"
 
-    `resume=True` continues a run that was interrupted mid-training, and `epochs` is not one of the arguments it accepts as an override. Once a run completes, its `last.pt` no longer carries optimizer or epoch state, so `resume=True` logs a warning about a non-resumable checkpoint and quietly starts a fresh run in a new directory using the checkpoint's saved argument values. To train an already-converged model further, chain a new run from its weights the way stage 2 does above, pointing at `best.pt` and lowering `lr0` because the model is no longer starting cold. See [Resuming Interrupted Trainings](../modes/train.md#resuming-interrupted-trainings) for the interrupted-run case.
+    `resume=True` continues a run that was interrupted mid-training, and `epochs` is not one of the arguments it accepts as an override. Once a run completes, its `last.pt` no longer carries optimizer or epoch state, so `resume=True` logs a warning about a non-resumable checkpoint and quietly starts a fresh run in a new directory. That run keeps only `imgsz`, `data`, `task`, and `single_cls` from the checkpoint; every other setting reverts to its default unless you pass it again. To train an already-converged model further, chain a new run from its weights the way stage 2 does above, pointing at `best.pt` and lowering `lr0` because the model is no longer starting cold. See [Resuming Interrupted Trainings](../modes/train.md#resuming-interrupted-trainings) for the interrupted-run case.
 
 ## Common Pitfalls
 

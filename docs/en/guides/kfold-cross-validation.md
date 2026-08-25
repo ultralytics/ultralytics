@@ -122,6 +122,29 @@ dtype: float64
 
 An image with no objects produces an all-zero row, which is correct — a background image is legitimate training data, not missing data.
 
+## Watch for Duplicate and Near-Duplicate Images
+
+Cross validation assumes the folds are independent. Duplicated or near-duplicated images break that assumption: a copy in training and its twin in validation inflates that fold's metrics, and no amount of averaging removes the bias.
+
+This is not a hypothetical for the example dataset. Hashing the folded pool finds **25 groups of byte-identical images covering 50 files**, none of them detectable from the filenames. Deduplicate before splitting:
+
+```python
+import hashlib
+from collections import defaultdict
+
+by_hash = defaultdict(list)
+for key, image in img_by_key.items():
+    by_hash[hashlib.md5(image.read_bytes()).hexdigest()].append(key)
+duplicates = {h: s for h, s in by_hash.items() if len(s) > 1}
+print(f"{len(duplicates)} duplicate groups covering {sum(len(s) for s in duplicates.values())} images")
+```
+
+```text
+25 duplicate groups covering 50 images
+```
+
+Either drop the extras before building `labels_df`, or keep them together by assigning one fold per hash group with `GroupKFold`. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image — group them, or the folds are not independent.
+
 ## Splitting into K Folds
 
 `KFold` shuffles the rows and partitions them into `k` groups. `random_state` is what makes the split reproducible; the global `random` module plays no part in it.
@@ -243,12 +266,12 @@ Note that `save_path` sits **beside** the dataset, not inside it. A fold directo
 
 !!! tip "Why not copy the images into fold directories?"
 
-    Copying works and gives you self-contained fold directories, but it duplicates the dataset `k` times. Measured on this dataset at `k=5`:
+    Copying works and gives you self-contained fold directories, but it duplicates the folded pool `k` times. Measured on the 1,277 pooled images and their labels at `k=5`:
 
     | Approach   | Disk    | Files  |
     | ---------- | ------- | ------ |
-    | Copy files | ~525 MB | 15,040 |
-    | Text lists | 500 KB  | 15     |
+    | Copy files | ~445 MB | 12,770 |
+    | Text lists | 402 KB  | 15     |
 
     Both produce identical folds and identical training scans. If you do need real directories — to ship a fold elsewhere, or to hand it to a tool that cannot read a path list — copy by iterating the stem-keyed dictionaries rather than zipping two lists:
 
@@ -318,29 +341,6 @@ print(summary.agg(["mean", "std"]).round(4))
 ```
 
 Report the **mean** as your headline number and the **standard deviation** as its uncertainty. A large spread means the metric was never stable enough to compare two models on a single split. Note that `fitness` is a property on the returned object while `box.fitness` is a method — printing the latter without `()` gives a `<bound method>` repr rather than a value.
-
-## Watch for Duplicate and Near-Duplicate Images
-
-Cross validation assumes the folds are independent. Duplicated or near-duplicated images break that assumption: a copy in training and its twin in validation inflates that fold's metrics, and no amount of averaging removes the bias.
-
-This is not a hypothetical for the example dataset. Hashing the folded pool finds **25 groups of byte-identical images covering 50 files**, none of them detectable from the filenames. Deduplicate before splitting:
-
-```python
-import hashlib
-from collections import defaultdict
-
-by_hash = defaultdict(list)
-for key, image in img_by_key.items():
-    by_hash[hashlib.md5(image.read_bytes()).hexdigest()].append(key)
-duplicates = {h: s for h, s in by_hash.items() if len(s) > 1}
-print(f"{len(duplicates)} duplicate groups covering {sum(len(s) for s in duplicates.values())} images")
-```
-
-```text
-25 duplicate groups covering 50 images
-```
-
-Either drop the extras before building `labels_df`, or keep them together by assigning one fold per hash group with `GroupKFold`. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image — group them, or the folds are not independent.
 
 !!! tip "Just need a single train/val split?"
 

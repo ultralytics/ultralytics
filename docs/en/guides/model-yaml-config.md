@@ -222,7 +222,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     - `768`: Expected output channels
     - `convnext_tiny`: Model architecture ([available models](https://docs.pytorch.org/vision/stable/models.html))
     - `DEFAULT`: Use pretrained weights
-    - `True`: Unwrap the model into a flat `nn.Sequential` of its child layers. This is what makes the next two arguments possible; setting it to `False` instead replaces the model's own classification head with `nn.Identity` and forces the split argument off.
+    - `True`: Unwrap the model into a flat `nn.Sequential` of its child layers. This is what makes the next two arguments possible. Setting it to `False` forces the split argument off and assigns `nn.Identity` to the attributes named `head` and `heads` only — which is not a general way to strip a classifier: `resnet18` keeps its `fc` and `convnext_tiny` keeps its `classifier`, so both still return 1000 class logits rather than a feature map, and the next layer fails on shape. Keep `unwrap=True` unless your model's classifier really is called `head` or `heads`.
     - `2`: Truncate the last 2 of those layers
     - `False`: Return a single tensor rather than a list of intermediate feature maps
 

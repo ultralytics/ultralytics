@@ -48,7 +48,7 @@ Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic
 
 Before you begin the tuning process, it's important to:
 
-1. **Identify the Metrics**: The tuner ranks trials by a single fixed fitness score for the task (mAP50-95 for detection), which is not configurable. Decide up front which secondary metrics you will inspect when comparing the surviving candidates, such as AP50 or F1-score.
+1. **Identify the Metrics**: The tuner ranks trials by the built-in `fitness` score for the task, and no argument lets you swap in a different objective. Decide up front which secondary metrics you will inspect when comparing the surviving candidates, such as AP50 or F1-score.
 2. **Set the Tuning Budget**: Define how much computational resources you're willing to allocate. Hyperparameter tuning can be computationally intensive.
 3. **Trust the Split**: Fitness is measured on a single validation split, so on a small dataset the difference between two candidates can be split noise rather than signal. [K-fold cross-validation](kfold-cross-validation.md) is the way to check that before committing to a long search.
 
@@ -147,7 +147,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
 
 ## Tuning Across Multiple Datasets
 
-Pass a list to `data` to score every candidate on more than one dataset. Each iteration trains the same mutated hyperparameters once per dataset, and the built-in tuner selects on the mean of the per-dataset `fitness` values, so the search favors hyperparameters that transfer rather than ones that overfit a single domain. With `use_ray=True` the averaging happens over the task metric instead, which is the same number for detection:
+Pass a list to `data` to score every candidate on more than one dataset. Each iteration trains the same mutated hyperparameters once per dataset, and the built-in tuner (`use_ray=False`) selects on the mean of the per-dataset `fitness` values, so the search favors hyperparameters that transfer rather than ones that overfit a single domain. The `use_ray=True` path averages the task metric instead, and the output layout described below is the built-in tuner's:
 
 !!! example "Tune on two datasets at once"
 
@@ -219,7 +219,7 @@ runs/
             └── best.pt
 ```
 
-Only the best-fitness iteration directory survives the run by default. Every other iteration directory is deleted as soon as a better one is found, so a completed 300-iteration tune leaves one training directory behind rather than 300 — one per dataset when tuning across several.
+Only the best-fitness iteration directory survives the run by default. Every other iteration directory is deleted as soon as a better one is found, so a completed 300-iteration tune leaves one training directory behind rather than 300 — one per dataset when tuning across several. A session started with `resume=True` begins with empty cleanup bookkeeping, so the best directory from the earlier session can survive alongside the new one.
 
 ### File Descriptions
 

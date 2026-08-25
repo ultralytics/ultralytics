@@ -102,10 +102,7 @@ class SAM3Backend:
             if self._format == "engine":
                 lo, _, hi = self._trt_engines[stem].get_tensor_profile_shape("images", 0)
                 return int(lo[2]), int(hi[2])
-            import onnx
-
-            f = self._model_dir / f"{stem}.onnx"
-            meta = {p.key: p.value for p in onnx.load(str(f), load_external_data=False).metadata_props}
+            meta = BaseBackend.read_metadata(self._model_dir / f"{stem}.onnx")
             return json.loads(meta["min_imgsz"])[0], json.loads(meta["imgsz"])[0]
         except Exception:  # an export without a recorded range simply has no bound to check against
             return None
@@ -121,11 +118,10 @@ class SAM3Backend:
             if self._format == "engine":
                 size = int(self._trt_engines[stem].get_tensor_shape("images")[2])
             else:
-                import onnx
-
-                f = self._model_dir / f"{stem}.onnx"
-                shape = onnx.load(str(f), load_external_data=False).graph.input[0].type.tensor_type.shape
-                size = int(shape.dim[2].dim_value)
+                # The export records min_imgsz only when it traced a dynamic graph, so its absence is what
+                # marks a baked size. Reading that from the metadata avoids parsing a multi gigabyte graph.
+                meta = BaseBackend.read_metadata(self._model_dir / f"{stem}.onnx")
+                size = 0 if "min_imgsz" in meta else json.loads(meta["imgsz"])[0]
             return size if size > 0 else None  # a dynamic axis reports 0 in ONNX and -1 in TensorRT
         except Exception:  # an unreadable shape must not stop the model from loading
             return None

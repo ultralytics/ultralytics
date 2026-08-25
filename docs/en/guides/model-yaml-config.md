@@ -1,15 +1,12 @@
 ---
-title: "YOLO Model YAML: Architecture Reference"
 comments: true
-description: Reference for the Ultralytics YOLO model YAML - nc and scales, backbone and head sections, the [from, repeats, module, args] layer format, and custom modules.
-keywords: Ultralytics, YOLO, model architecture, YAML configuration, parse_model, backbone, head, scales, max_channels, custom modules, C3k2, C2PSA, TorchVision backbone
+description: Learn how to structure and customize model architectures using Ultralytics YAML configuration files. Master module definitions, connections, and scaling parameters.
+keywords: Ultralytics, YOLO, model architecture, YAML configuration, neural networks, deep learning, backbone, head, modules, custom models
 ---
 
 # Model YAML Configuration Guide
 
-An Ultralytics model YAML is the architectural blueprint for a YOLO network: it declares the class count and scaling factors, then lists every backbone and head layer as `[from, repeats, module, args]`. Ultralytics YOLO26 builds the network straight from that file — `YOLO("my_model.yaml")` needs no Python model code.
-
-This reference covers each section of the file, the modules you can reference by name, how [`parse_model`](../reference/nn/tasks.md) resolves those names, and how to register a custom module of your own.
+The model YAML configuration file serves as the architectural blueprint for Ultralytics neural networks. It defines how layers connect, what parameters each module uses, and how the entire network scales across different model sizes.
 
 <img width="1024" src="https://cdn.ul.run/i/a563b72f7404e71fb4c61b7710d28acf.avif" alt="Model YAML configuration workflow.">
 
@@ -25,49 +22,17 @@ The **parameters** section specifies the model's global characteristics and scal
 # Parameters
 nc: 80 # number of classes
 scales: # compound scaling constants [depth, width, max_channels]
-    n: [0.50, 0.25, 1024] # nano: half depth, quarter width
-    s: [0.50, 0.50, 1024] # small: half depth, half width
-    m: [0.50, 1.00, 512] # medium: half depth, full width, channels capped at 512
+    n: [0.50, 0.25, 1024] # nano: shallow layers, narrow channels
+    s: [0.50, 0.50, 1024] # small: shallow depth, standard width
+    m: [0.50, 1.00, 512] # medium: moderate depth, full width
     l: [1.00, 1.00, 512] # large: full depth and width
-    x: [1.00, 1.50, 512] # extra-large: full depth, 1.5x width
+    x: [1.00, 1.50, 512] # extra-large: maximum performance
 kpt_shape: [17, 3] # pose models only
 ```
 
 - `nc` sets the number of classes the model predicts.
-- `scales` define compound scaling factors as `[depth, width, max_channels]`, producing different size variants (nano through extra-large) from one file.
+- `scales` define compound scaling factors that adjust model depth, width, and maximum channels to produce different size variants (nano through extra-large).
 - `kpt_shape` applies to pose models. It can be `[N, 2]` for `(x, y)` keypoints or `[N, 3]` for `(x, y, visibility)`.
-
-Shipped YAMLs also use four further top-level keys:
-
-| Key          | Used by                 | Purpose                                                                                                                                                                              |
-| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `end2end`    | YOLO26 detection family | Enables the NMS-free one-to-one head, in the detect, segment, pose and OBB configs. Absent from `yolo26-cls`, `-depth` and `-sem`. See [End-to-End Detection](end2end-detection.md). |
-| `reg_max`    | YOLO26 detection family | Number of DFL bins. Those same configs ship `reg_max: 1`, which is what makes them DFL-free.                                                                                         |
-| `channels`   | classification          | Input channel count, i.e. `1` for grayscale. Only classification reads it here — see below.                                                                                          |
-| `activation` | `yolov6.yaml`           | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`.                                                                                              |
-
-!!! warning "`channels` in a detection model YAML is ignored"
-
-    `ClassificationModel` reads the key (`self.yaml.get("channels", ch)`), but detection, segmentation, pose and OBB models are built through `_initialize_yolo_model`, which does `model.yaml["channels"] = ch` unconditionally — so the constructor argument always wins and a `channels: 1` line in such a YAML has no effect. Set the channel count on the **dataset** YAML instead: the trainer passes `ch=self.data["channels"]` when it builds the model, which is how a grayscale dataset produces a single-channel first convolution.
-
-### How Width Scaling Actually Computes Channels
-
-Channel counts are **not** the number written in `args`. For `parse_model`'s base-module set — the convolution and block modules such as `Conv`, `C3k2`, `C2PSA`, `C2f` and `SPPF` — each layer's output channels are clamped to `max_channels`, multiplied by `width`, then rounded up to the nearest multiple of 8:
-
-```python
-c2 = make_divisible(min(c2, max_channels) * width, 8)
-```
-
-| YAML `out_ch` | `width` | `max_channels` | Actual channels |
-| ------------- | ------- | -------------- | --------------- |
-| 1024          | 1.00    | 512            | 512             |
-| 1024          | 1.50    | 512            | 768             |
-| 1024          | 0.25    | 1024           | 256             |
-| 100           | 0.50    | 1024           | 56              |
-
-The last row is the one that surprises people: `100 x 0.5` is `50`, which rounds up to `56`. This is why `m`, `l` and `x` carry `max_channels: 512` while `n` and `s` carry `1024` — the larger scales would otherwise produce very wide layers.
-
-The formula does not reach every layer. `Classify` is exempt so its output stays at `nc`; `Concat` sums the channels of its sources; `TorchVision` and `Index` use the bookkeeping value you wrote; and heads take `nc` rather than a channel count. Compute expected channels this way only for the base modules.
 
 !!! tip "Reduce redundancy with `scales`"
 
@@ -88,16 +53,16 @@ backbone:
     # [from, repeats, module, args]
     - [-1, 1, Conv, [64, 3, 2]] # 0: Initial convolution
     - [-1, 1, Conv, [128, 3, 2]] # 1: Downsample
-    - [-1, 3, C3k2, [128, True]] # 2: Feature processing
+    - [-1, 3, C2f, [128, True]] # 2: Feature processing
 
 head:
     - [-1, 1, nn.Upsample, [None, 2, nearest]] # 3: Upsample
-    - [[-1, 0], 1, Concat, [1]] # 4: Skip connection to layer 0
-    - [-1, 3, C3k2, [256, False]] # 5: Process features
+    - [[-1, 0], 1, Concat, [1]] # 4: Spatially compatible skip connection
+    - [-1, 3, C2f, [256]] # 5: Process features
     - [[5], 1, Detect, [nc]] # 6: Detection layer
 ```
 
-Layer indices run continuously across both sections — the head does not restart at 0 — and a `from` index must name a layer that already exists. A skip connection also has to be spatially compatible: layer 0 is the only source the upsampled layer 3 can concatenate with here.
+Layer indices continue across the backbone and head, and concatenated feature maps must have matching spatial dimensions.
 
 ## Layer Specification Format
 
@@ -145,13 +110,7 @@ The `repeats` parameter creates deeper network sections:
 - [-1, 1, Conv, [64, 3, 2]] # Single convolution layer
 ```
 
-The repetition count is multiplied by the `depth` scaling factor, rounded, and floored at 1 — but only when it is greater than 1, so `repeats: 1` is never scaled:
-
-```python
-n = max(round(n * depth), 1) if n > 1 else n
-```
-
-At `depth=0.33` a `repeats: 3` block collapses to a single block and `repeats: 6` becomes 2. Only modules that accept an internal repeat count consume `n` this way; any other module is simply stacked `n` times in an `nn.Sequential`.
+The actual repetition count gets multiplied by the depth scaling factor from your model size configuration.
 
 ## Available Modules
 
@@ -167,13 +126,11 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### Composite Blocks
 
-| Module   | Purpose                                                           | Source                                                                                           | Arguments                                          |
-| -------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| `C3k2`   | CSP block in the standard YOLO11 and YOLO26 backbones             | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, c3k, expansion, attn, groups, shortcut]` |
-| `C2PSA`  | Position-sensitive attention block, last backbone layer in YOLO26 | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, expansion]`                              |
-| `C2f`    | CSP bottleneck with 2 convolutions, used by YOLOv8                | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]`            |
-| `SPPF`   | Spatial Pyramid Pooling (fast)                                    | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`                            |
-| `Concat` | Channel-wise concatenation                                        | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                                      |
+| Module   | Purpose                            | Source                                                                                           | Arguments                               |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| `C2f`    | CSP bottleneck with 2 convolutions | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]` |
+| `SPPF`   | Spatial Pyramid Pooling (fast)     | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`                 |
+| `Concat` | Channel-wise concatenation         | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                           |
 
 ### Specialized Modules
 
@@ -182,15 +139,10 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 | `TorchVision` | Load any torchvision model        | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, model_name, weights, unwrap, truncate, split]` |
 | `Index`       | Extract specific tensor from list | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[out_ch, index]`                                        |
 | `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc]`                                                   |
-| `Classify`    | Classification head, must be last | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc]`                                                   |
 
 !!! info "Complete Module List"
 
-    This is a subset. For the full list of modules and their parameters, explore the [modules directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules).
-
-!!! note "Which modules receive an injected input-channel argument"
-
-    For the convolution and block modules — `Conv`, `C3k2`, `C2PSA`, `C2f`, `SPPF` and the rest of `parse_model`'s base-module set — input channels are injected from whatever layer `from` points at, so the args you write start at `c2`. That rule does **not** extend to the other modules in the tables above, each of which `parse_model` handles specially: `nn.Upsample` and `nn.MaxPool2d` take their `torch.nn` arguments unchanged, `Concat` takes a dimension, `Detect` and `Classify` take `nc`, and `Index` takes a leading `out_ch` that exists purely for channel bookkeeping while its constructor reads only the index. A module you register yourself gets no injection at all until you add it, which is what [step 5](#custom-module-integration) is for.
+    This represents a subset of available modules. For the full list of modules and their parameters, explore the [modules directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules).
 
 ## Advanced Features
 
@@ -205,7 +157,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 
     # Model with ConvNeXt backbone
     model = YOLO("convnext_backbone.yaml")
-    results = model.train(data="imagenet10", epochs=100)  # a Classify head needs a classification dataset directory
+    results = model.train(data="imagenet10", epochs=100)
     ```
 
 === "YAML Configuration"
@@ -224,9 +176,9 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     - `768`: Expected output channels
     - `convnext_tiny`: Model architecture ([available models](https://docs.pytorch.org/vision/stable/models.html))
     - `DEFAULT`: Use pretrained weights
-    - `True`: Unwrap the model into a flat `nn.Sequential` of its child layers. This is what makes the next two arguments possible. Setting it to `False` forces the split argument off and assigns `nn.Identity` to the attributes named `head` and `heads` only — which is not a general way to strip a classifier: `resnet18` keeps its `fc` and `convnext_tiny` keeps its `classifier`, so both still return 1000 class logits rather than a feature map, and the next layer fails on shape. Keep `unwrap=True` unless your model's classifier really is called `head` or `heads`.
-    - `2`: Truncate the last 2 of those layers
-    - `False`: Return a single tensor rather than a list of intermediate feature maps
+    - `True`: Unwrap child layers before truncating them; `False` keeps the model structure and sets `head` and `heads` to `nn.Identity`
+    - `2`: Truncate last 2 layers
+    - `False`: Return single tensor (not list)
 
 !!! tip "Multi-Scale Features"
 
@@ -267,11 +219,9 @@ m = (
 )  # get module
 ```
 
-1. **PyTorch modules**: names starting with `nn.` → `torch.nn` namespace
-2. **TorchVision operations**: names starting with `torchvision.ops.` → `torchvision.ops` namespace
-3. **Ultralytics modules**: all other names → the `tasks.py` global namespace, populated by the imports below
-
-A fourth gate applies under restricted loading: a name that resolves to something which is not an `nn.Module` subclass raises `TypeError` instead of being built.
+1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace
+2. **TorchVision operations**: Names starting with `'torchvision.ops.'` → `torchvision.ops` namespace
+3. **Ultralytics modules**: All other names → global namespace via imports
 
 ### Module Import Chain
 
@@ -279,9 +229,8 @@ Standard modules become available through imports in [`tasks.py`](https://github
 
 ```python
 from ultralytics.nn.modules import (  # noqa: F401
-    C2PSA,
     SPPF,
-    C3k2,
+    C2f,
     Conv,
     Detect,
     # ... many more modules
@@ -326,7 +275,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
     from ultralytics.nn.modules import CustomBlock  # noqa
     ```
 
-5. **Handle channel injection** inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py) in `ultralytics/nn/tasks.py`. This step is required, not optional: `parse_model` injects input channels only for modules it knows about, so an unregistered module receives its YAML args verbatim and fails with `TypeError: CustomBlock.__init__() missing 1 required positional argument: 'c2'`.
+5. **Handle channel injection** inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). This is required for a custom block whose constructor expects both input and output channels:
 
     ```python
     # Add this condition in the parse_model() function
@@ -363,8 +312,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
 # Simple YOLO detection model
 nc: 80
 scales:
-    n: [0.50, 0.25, 1024]
-    s: [0.50, 0.50, 1024]
+    n: [0.33, 0.25, 1024]
 
 backbone:
     - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
@@ -378,10 +326,6 @@ head:
     - [-1, 1, Conv, [256, 3, 1]] # 6
     - [[6], 1, Detect, [nc]] # 7
 ```
-
-!!! warning "A `scales` block needs a scale letter in the filename"
-
-    Ultralytics reads the scale from the file name with the pattern `yolo` + digits + one of `nslmx`. Saved as `simple_detect.yaml` the file above logs `WARNING no model scale passed. Assuming scale='n'.` and silently uses the first entry. Worse, a name that merely looks scalable is not: `mynet26n.yaml` and `mynet26s.yaml` build the **identical** model, because neither stem contains `yolo`. Name a scalable config `myyolo26n.yaml` / `myyolo26s.yaml` and keep the base file unscaled (`myyolo26.yaml`). Every letter you use needs its own `scales` entry — `myyolo26s.yaml` against a block defining only `n` raises `KeyError: 's'`.
 
 ### TorchVision Backbone Model
 
@@ -408,27 +352,39 @@ nc: 1000
 backbone:
     - [-1, 1, Conv, [64, 7, 2, 3]]
     - [-1, 1, nn.MaxPool2d, [3, 2, 1]]
-    - [-1, 4, C3k2, [64, True]]
+    - [-1, 4, C2f, [64, True]]
     - [-1, 1, Conv, [128, 3, 2]]
-    - [-1, 8, C3k2, [128, True]]
+    - [-1, 8, C2f, [128, True]]
 
 head:
     - [-1, 1, Classify, [nc]]
 ```
 
-`Classify` pools internally, so do not add an `nn.AdaptiveAvgPool2d` before it. Collapsing the feature map to 1x1 first starves the head's own convolution and makes training with `batch=1` fail with `ValueError: Expected more than 1 value per channel when training`.
+`Classify` already performs adaptive average pooling internally.
 
 ## Best Practices
 
-| Practice                         | What it means for your YAML                                                                                                                                                                                                               |
-| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Start from a shipped config**  | Copy a YAML from [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) and change one thing at a time rather than writing a backbone from scratch.                                      |
-| **Match channels across layers** | For a base module, actual output channels are `make_divisible(min(out_ch, max_channels) * width, 8)`, not the number you wrote. Compute the scaled value before assuming two layers line up, and note the other modules do not follow it. |
-| **Reuse features with `Concat`** | `[[-1, N], 1, Concat, [1]]` merges an earlier feature map into the current one, the standard FPN pattern for multi-scale detection. Both sources must share spatial dimensions.                                                           |
-| **Pick a scale for your target** | Use `n` for edge devices, `s` for a balanced tradeoff, `m`/`l`/`x` when accuracy matters more than latency.                                                                                                                               |
-| **Verify after every change**    | `model.info()` must report non-zero FLOPs; see [Debugging Tips](#debugging-tips).                                                                                                                                                         |
+### Architecture Design Tips
 
-For the reasoning behind depth, width and bottleneck choices, see [YOLO architecture explained](yolo-architecture.md).
+**Start Simple**: Begin with proven architectures before customizing. Use existing YOLO configurations as templates and modify incrementally rather than building from scratch.
+
+**Test Incrementally**: Validate each modification step-by-step. Add one custom module at a time and verify it works before proceeding to the next change.
+
+**Monitor Channels**: Ensure channel dimensions match between connected layers. The output channels (`c2`) of one layer must match the input channels (`c1`) of the next layer in the sequence.
+
+**Use Skip Connections**: Leverage feature reuse with `[[-1, N], 1, Concat, [1]]` patterns. These connections help with gradient flow and allow the model to combine features from different scales.
+
+**Scale Appropriately**: Choose model scales based on your computational constraints. Use nano (`n`) for edge devices, small (`s`) for balanced performance, and larger scales (`m`, `l`, `x`) for maximum accuracy.
+
+### Performance Considerations
+
+**Depth vs Width**: Deep networks capture complex hierarchical features through multiple transformation layers, while wide networks process more information in parallel at each layer. Balance these based on your task complexity.
+
+**Skip Connections**: Improve gradient flow during training and enable feature reuse throughout the network. They're particularly important in deeper architectures to prevent vanishing gradients.
+
+**Bottleneck Blocks**: Reduce computational cost while maintaining model expressiveness. Modules like `C2f` use fewer parameters than standard convolutions while preserving feature learning capacity.
+
+**Multi-Scale Features**: Essential for detecting objects at different sizes in the same image. Use Feature Pyramid Network (FPN) patterns with multiple detection heads at different scales.
 
 ## Troubleshooting
 
@@ -445,20 +401,19 @@ For the reasoning behind depth, width and bottleneck choices, see [YOLO architec
 
 When developing custom architectures, systematic debugging helps identify issues early:
 
-#### Use an Identity Head to Isolate the Backbone
+**Use Identity Head for Testing**
 
 Replace complex heads with `nn.Identity` to isolate backbone issues:
 
 ```yaml
-# debug_model.yaml
 nc: 1
 backbone:
-    - [-1, 1, Conv, [64, 3, 2]]
+    - [-1, 1, CustomBlock, [64]]
 head:
     - [-1, 1, nn.Identity, []] # Pass-through for debugging
 ```
 
-An identity head gives `parse_model` no head to infer the task from, so pass `task=` explicitly or model loading fails with `NotImplementedError` for task `None`:
+This allows direct inspection of backbone outputs:
 
 ```python
 import torch
@@ -467,12 +422,10 @@ from ultralytics import YOLO
 
 model = YOLO("debug_model.yaml", task="detect")
 output = model.model(torch.randn(1, 3, 640, 640))
-print(f"Output shape: {output.shape}")  # torch.Size([1, 64, 320, 320])
+print(f"Output shape: {output.shape}")  # Should match expected dimensions
 ```
 
-The identity head is what makes `output` a plain tensor. Swap in a real `Detect` head and the forward pass returns a dict of `boxes`, `scores` and `feats` instead, so `output.shape` raises `AttributeError`.
-
-#### Inspect the Built Architecture
+**Model Architecture Inspection**
 
 Checking the FLOPs count and printing out each layer can also help debug issues with your custom model config. FLOPs count should be non-zero for a valid model. If it's zero, then there's likely an issue with the forward pass. Running a simple forward pass should show the exact error being encountered.
 
@@ -490,7 +443,7 @@ for i, layer in enumerate(model.model.model):
     print(f"Layer {i}: {layer}")
 ```
 
-#### Validate Step by Step
+**Step-by-Step Validation**
 
 1. **Start minimal**: Test with simplest possible architecture first
 2. **Add incrementally**: Build complexity layer by layer
@@ -509,28 +462,37 @@ nc: 5 # 5 classes
 
 ### Can I use a custom backbone in my model YAML?
 
-Yes. Use any supported module, including [TorchVision backbones](#torchvision-integration), or define your own and register it as described in [Custom Module Integration](#custom-module-integration).
-
-### How do I see the YAML for a pretrained model like yolo26n.pt?
-
-Load the checkpoint and read `model.model.yaml`, which holds the parsed architecture the weights were built from. The source files also ship with the package under [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) — copying one from there is the recommended starting point for a custom architecture.
-
-### Why does my layer have fewer channels than the number in my YAML?
-
-For a base module, `max_channels` caps the value before the width multiplier is applied, and the result is rounded up to a multiple of 8. With `m: [0.50, 1.00, 512]`, a layer declaring `[1024, 3, 2]` is clamped to 512 first, so it builds 512 channels rather than 1024. Other modules — `Concat`, `TorchVision`, `Index`, the heads — do not go through that formula. See [How Width Scaling Actually Computes Channels](#how-width-scaling-actually-computes-channels).
-
-### Can I train a model YAML from scratch without pretrained weights?
-
-Yes. Passing a YAML instead of a `.pt` file to `YOLO()` builds randomly initialized weights, so `YOLO("custom_model.yaml").train(data="coco8.yaml")` trains from scratch. Expect to need substantially more data and epochs than fine-tuning a pretrained checkpoint — see the [training mode guide](../modes/train.md).
+Yes. You can use any supported module, including [TorchVision backbones](#torchvision-integration), or define your own custom module and import it as described in [Custom Module Integration](#custom-module-integration).
 
 ### How do I scale my model for different sizes (nano, small, medium, etc.)?
 
 Use the [`scales` section](#parameters-section) in your YAML to define scaling factors for depth, width, and max channels. The model will automatically apply these when you load the base YAML file with the scale appended to the filename (e.g., `yolo26n.yaml`).
 
+### What does the `[from, repeats, module, args]` format mean?
+
+This format specifies how each layer is constructed:
+
+- `from`: input source(s)
+- `repeats`: number of times to repeat the module
+- `module`: the layer type
+- `args`: arguments for the module
+
 ### How do I troubleshoot channel mismatch errors?
 
 Check that the output channels of one layer match the expected input channels of the next. Use `print(model.model.model)` to inspect your model's architecture.
 
+### Where can I find a list of available modules and their arguments?
+
+Check the source code in the [`ultralytics/nn/modules` directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules) for all available modules and their arguments.
+
+### How do I add a custom module to my YAML configuration?
+
+Define your module in the source code, import it as shown in [Source Code Modification](#source-code-modification), and reference it by name in your YAML file.
+
 ### Can I use pretrained weights with a custom YAML?
 
 Yes, you can use `model.load("path/to/weights")` to load weights from a pretrained checkpoint. However, only weights for layers that match would load successfully.
+
+### How do I validate my model configuration?
+
+Use `model.info()` to check whether FLOPs count is non-zero. A valid model should show non-zero FLOPs count. If it's zero, follow the suggestions in [Debugging Tips](#debugging-tips) to find the issue.

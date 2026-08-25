@@ -236,7 +236,9 @@ class SAM3Backend:
                 f.seek(BaseBackend.engine_header(paths[stem])[0])  # skip the optional metadata header
                 engine = runtime.deserialize_cuda_engine(f.read())
 
+            assert engine is not None, f"{paths[stem].name} failed to load, the GPU is likely out of memory"
             ctx = engine.create_execution_context()
+            assert ctx is not None, f"{paths[stem].name} got no execution context, the GPU is likely out of memory"
             # Only per-tensor dtypes are needed at load time; _run_trt sets shapes and
             # allocates all output buffers at runtime (outputs can be dynamic).
             io_dt = {

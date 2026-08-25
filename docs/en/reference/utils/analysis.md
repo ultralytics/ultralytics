@@ -38,4 +38,4 @@ keywords: Ultralytics, image property analysis, actionable insights, correlation
 
 ## ::: ultralytics.utils.analysis._rankdata
 
-<br><br><hr><br>
+<br><br>

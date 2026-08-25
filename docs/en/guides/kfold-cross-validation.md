@@ -74,7 +74,6 @@ Let's get started.
             sources.extend(source if isinstance(source, list) else [source])
     dataset = YOLODataset(sources, data=data, augment=False)
     images = [Path(p) for p in dataset.im_files]
-    labels = [Path(p) for p in dataset.label_files]
     ```
 
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
@@ -97,13 +96,8 @@ Let's get started.
     ```python
     from collections import Counter
 
-    for image, label in zip(images, labels):
-        if not label.exists():  # missing labels are valid background images
-            continue
-        lbl_counter = Counter()
-        for line in label.read_text().splitlines():
-            if line.strip():
-                lbl_counter[int(line.split()[0])] += 1
+    for image, label in zip(images, dataset.labels):
+        lbl_counter = Counter(label["cls"].flatten().astype(int))
         labels_df.loc[image, list(lbl_counter)] = list(lbl_counter.values())
     ```
 
@@ -124,7 +118,7 @@ Let's get started.
     'fffe28b31f2a70d4_jpg.rf.7ea16bd637ba0711c53b540...'  0.0  6.0  0.0  0.0  0.0  0.0
     ```
 
-The rows index images by their path relative to `images/`, and the columns correspond to class-label indices. Missing labels remain all-zero background rows. This data structure enables the application of [K-Fold Cross Validation](https://www.ultralytics.com/glossary/cross-validation) to an object detection dataset.
+The rows use absolute image paths, and the columns correspond to class-label indices. Missing labels remain all-zero background rows. This data structure enables the application of [K-Fold Cross Validation](https://www.ultralytics.com/glossary/cross-validation) to an object detection dataset.
 
 ## K-Fold Dataset Split
 

@@ -1186,14 +1186,16 @@ class BaseTrainer:
         if use_muon:
             target = unwrap_model(model)
             head = getattr(target, "student_model", target).model[-1]
-            heads = (getattr(head, "cv3", None), getattr(head, "one2one_cv3", None))
-            boosted = {id(p) for m in heads if m for p in m.parameters()}
+            # Head branches that start from scratch when the head is swapped for another task. Matched against the
+            # head's direct children only, so same-named blocks elsewhere (C3k2.cv3, RepC3.cv4, ...) cannot match.
+            branches = ("cv3", "cv4", "flow_model", "proto", "classifier", "aux_head")  # cv4 covers cv4_kpts/_sigma
+            branches += tuple(f"one2one_{b}" for b in branches)
+            boosted = {id(p) for n, m in head.named_children() if n.startswith(branches) for p in m.parameters()}
             g_ = []  # new param groups
             for x in g:
-                p = x.pop("params")
                 p1, p2 = [], []
-                for k, v in p.items():
-                    (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
+                for v in x.pop("params").values():
+                    (p1 if id(v) in boosted else p2).append(v)
                 g_.extend([{"params": p1, **x, "lr": lr * self.args.cls_lr_mult}, {"params": p2, **x}])
             g = g_
         optimizer = getattr(optim, name, partial(MuSGD, muon=muon, sgd=sgd))(params=g)

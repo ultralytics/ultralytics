@@ -3,12 +3,9 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import numpy as np
 import torch
 from PIL import Image
-
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
@@ -25,18 +22,11 @@ class ImagePropertyExtractor:
         labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
     """
 
-    def __init__(self, dataset: Any):
-        """Extract per-image properties and mutate ``dataset.labels`` in place.
-
-        Args:
-            dataset (Any): A ``YOLODataset`` with non-empty labels.
-        """
-        labels = getattr(dataset, "labels", None)
-        if not labels:
-            raise ValueError("ImagePropertyExtractor requires a YOLODataset with non-empty labels.")
-        for label in labels:
+    def __init__(self, dataset):
+        """Extract properties into dataset labels."""
+        self.labels = dataset.labels
+        for label in self.labels:
             self._augment_label(label)
-        self.labels = labels
 
     @staticmethod
     def _augment_label(lbl: dict) -> None:

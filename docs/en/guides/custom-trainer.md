@@ -390,7 +390,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=RTDETRBackboneLRTrainer)
 
 !!! note "Learning Rate Scheduler"
 
-    The built-in learning rate scheduler (`cosine` or `linear`) still applies on top of the per-group base learning rates. Both the backbone and head learning rates will follow the same decay schedule, maintaining the ratio between them throughout training.
+    The built-in learning rate scheduler (`cosine` or `linear`) still applies on top of the per-group base learning rates, so backbone and head follow the same decay schedule and hold `backbone_lr_ratio` between them. Warmup is the exception: `BaseTrainer` ramps bias groups *down* from `warmup_bias_lr` instead of up from zero, so with an explicit optimizer the two bias groups start warmup sharing one learning rate and only reach the ratio by the end of it — weight and BatchNorm groups hold it from the first batch. `optimizer="auto"` sets `warmup_bias_lr=0.0`, and then every group holds the ratio throughout.
 
 !!! tip "Combining Techniques"
 

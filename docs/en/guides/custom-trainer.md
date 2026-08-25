@@ -442,6 +442,7 @@ import torch
 
 from ultralytics import RTDETR
 from ultralytics.models.rtdetr.train import RTDETRTrainer
+from ultralytics.utils.torch_utils import TORCH_2_0
 
 
 class CustomClipTrainer(RTDETRTrainer):
@@ -452,8 +453,9 @@ class CustomClipTrainer(RTDETRTrainer):
     def optimizer_step(self):
         """Run an optimizer step with a configurable gradient-norm clip."""
         self.scaler.unscale_(self.optimizer)
-        if self.clip_grad_norm > 0:
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_grad_norm)
+        if self.clip_grad_norm > 0:  # BaseTrainer clips at a fixed 10.0, and passes foreach=False on Ascend NPU
+            npu = {"foreach": False} if self.device.type == "npu" and TORCH_2_0 else {}
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_grad_norm, **npu)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()

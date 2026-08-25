@@ -2234,6 +2234,16 @@ def test_objectlab_actionable_label_issues():
         gt_cls=np.zeros(0),
     )
     assert 0 < missing["overlooked_score"] < 0.5
+    incidental_overlap = compute_objectlab_scores(
+        iou=np.array([[0.01]]),
+        pred_bb=np.array([[20, 20, 30, 30]], dtype=np.float32),
+        pred_cls=np.array([0]),
+        pred_conf=np.array([0.99]),
+        gt_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
+        gt_cls=np.array([0]),
+    )
+    assert incidental_overlap["overlooked_score"] < 0.5
+    assert incidental_overlap["badloc_score"] == 1.0
     insights = CorrelationAnalysis._build_insights(
         {"swap.jpg": swap, "box.jpg": {"badloc_score": 0.49}, "missing.jpg": missing}, {}
     )

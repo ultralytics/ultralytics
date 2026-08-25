@@ -35,6 +35,7 @@ _OBJECTLAB_TEMPERATURE = 0.1
 _OBJECTLAB_ALPHA = 0.9  # similarity = alpha*IoU + (1-alpha)*(1 - centroid_distance)
 _OBJECTLAB_HIGH_PROB = 0.95
 _OBJECTLAB_LOW_PROB = 0.5
+_OBJECTLAB_MIN_IOU = 0.1  # ignore incidental overlap between different object instances
 _OBJECTLAB_TINY = 1e-100  # log-clip floor in label_quality_score aggregation
 _IMAGE_PROPERTIES = (
     "num_objects",
@@ -465,14 +466,14 @@ def compute_objectlab_scores(
     sim = _OBJECTLAB_ALPHA * iou + (1 - _OBJECTLAB_ALPHA) * (1.0 - np.clip(cd, 0, 1))
     same_class = gt_cls[:, None] == pred_cls[None, :]
 
-    keep_pred = (pred_conf >= _OBJECTLAB_HIGH_PROB) & (iou.max(axis=0) == 0)
+    keep_pred = (pred_conf >= _OBJECTLAB_HIGH_PROB) & (iou.max(axis=0) < _OBJECTLAB_MIN_IOU)
     sim_same = np.where(same_class, sim, -np.inf)
     best_same_per_pred = sim_same.max(axis=0)
     min_similarity = float(sim[sim > 0].min()) if np.any(sim > 0) else 1.0
     per_pred = np.where(same_class.any(axis=0), best_same_per_pred, min_similarity * (1.0 - pred_conf))
     overlooked = _softmin1d(per_pred[keep_pred], _OBJECTLAB_TEMPERATURE)
 
-    cand_low = same_class & (pred_conf[None, :] >= _OBJECTLAB_LOW_PROB) & (iou > 0)
+    cand_low = same_class & (pred_conf[None, :] >= _OBJECTLAB_LOW_PROB) & (iou >= _OBJECTLAB_MIN_IOU)
     rowmax_low = np.where(cand_low, sim, -np.inf).max(axis=1)
     badloc_per_box = np.where(cand_low.any(axis=1), rowmax_low, 1.0)
     badloc = _softmin1d(badloc_per_box, _OBJECTLAB_TEMPERATURE)

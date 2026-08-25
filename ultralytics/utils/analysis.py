@@ -1,21 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Per-image property extraction and correlation analysis for object detection.
-
-Two single-purpose pieces:
-    - ``ImagePropertyExtractor(yolo_dataset)``: augment each ``dataset.labels`` entry in place with six scalar
-      properties from image headers and annotations. No model, metrics, pixel decoding, or output.
-    - ``CorrelationAnalysis(labels, metrics).run()``: join properties with per-image F1 from ``model.val()`` and
-      return a compact report whose default exports are actionable issues and next steps.
-
-References:
-    - Lin et al., ECCV 2014 (COCO small-object area threshold).
-    - Shao et al., CrowdHuman 2018 (per-image crowdedness via pairwise IoU).
-    - Pearson, Proc. Royal Society 1895. Spearman, Am. J. Psychology 1904 (correlation coefficients).
-"""
+"""Extract image properties and map F1 correlations to dataset actions."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -55,15 +43,14 @@ class AnalysisReport(SimpleClass, DataExportMixin):
 
     Attributes:
         per_image (dict[str, dict]): Per-image evidence keyed by image basename.
-        correlations (dict[str, dict]): Per-property correlation summary against F1. Each entry has ``pearson_r``,
-            ``pearson_p``, ``spearman_r``, ``spearman_p``, ``n``, ``effect_band``, ``direction``.
+        correlations (dict[str, dict]): Per-property Spearman correlation and sample count against F1.
         insights (list[dict]): Flat actionable records with ``target``, ``issue``, ``score``, ``evidence``, and
             ``action``.
     """
 
-    per_image: dict[str, dict] = field(default_factory=dict)
-    correlations: dict[str, dict] = field(default_factory=dict)
-    insights: list[dict] = field(default_factory=list)
+    per_image: dict[str, dict]
+    correlations: dict[str, dict]
+    insights: list[dict]
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict]:
         """Return actionable insight rows for ``DataExportMixin``.
@@ -77,12 +64,8 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         """
         return [{**x, "score": round(x["score"], decimals)} for x in self.insights]
 
-    def plot(self, save: bool = False, filename: str = "analysis.png") -> np.ndarray | None:
+    def plot(self) -> np.ndarray | None:
         """Return one compact plot of the strongest actionable F1 drivers.
-
-        Args:
-            save (bool, optional): Save the plot to ``filename``.
-            filename (str, optional): Output filename when ``save`` is enabled.
 
         Returns:
             (np.ndarray | None): RGB plot image, or None when no property has a meaningful negative correlation.
@@ -113,8 +96,6 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         fig.tight_layout()
         fig.canvas.draw()
         image = np.asarray(fig.canvas.buffer_rgba())[..., :3].copy()
-        if save:
-            fig.savefig(filename, dpi=120)
         plt.close(fig)
         return image
 
@@ -122,30 +103,18 @@ class AnalysisReport(SimpleClass, DataExportMixin):
 class ImagePropertyExtractor:
     """Augment a ``YOLODataset``'s labels in place with six per-image properties.
 
-    Computes object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise
-    IoU from image headers and annotations. Each label in ``dataset.labels`` gains an ``im_properties`` dict, and the
-    same label list is exposed as ``self.labels`` for chaining.
+    Compute object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise
+    IoU from image headers and annotations.
 
     Attributes:
         labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
-
-    Examples:
-        >>> from ultralytics.cfg import get_cfg
-        >>> from ultralytics.data.build import build_yolo_dataset
-        >>> from ultralytics.data.utils import check_det_dataset
-        >>> from ultralytics.utils.analysis import ImagePropertyExtractor
-        >>> data = check_det_dataset("coco128.yaml")
-        >>> cfg = get_cfg(overrides={"task": "detect", "imgsz": 320})
-        >>> ds = build_yolo_dataset(cfg, data["val"], 1, data, mode="val", rect=False, stride=32)
-        >>> labels = ImagePropertyExtractor(ds).labels
-        >>> num_objects = labels[0]["im_properties"]["num_objects"]
     """
 
     def __init__(self, dataset: Any):
         """Extract per-image properties and mutate ``dataset.labels`` in place.
 
         Args:
-            dataset (Any): A ``YOLODataset`` instance with non-empty ``labels`` and ``im_file`` per entry.
+            dataset (Any): A ``YOLODataset`` with non-empty labels.
         """
         labels = getattr(dataset, "labels", None)
         if not labels:
@@ -155,13 +124,13 @@ class ImagePropertyExtractor:
         self.labels = labels
 
     @staticmethod
-    def _augment_label(lbl: dict) -> dict:
+    def _augment_label(lbl: dict) -> None:
         """Compute the six properties for one label into its ``im_properties`` dict."""
-        cls_arr = np.asarray(lbl.get("cls", np.zeros((0, 1)))).reshape(-1).astype(int)
-        bboxes_n = np.asarray(lbl.get("bboxes", np.zeros((0, 4)))).reshape(-1, 4)
+        cls_arr = lbl["cls"].reshape(-1)
+        bboxes_n = lbl["bboxes"].reshape(-1, 4)
         with Image.open(lbl["im_file"]) as image:
             w, h = image.size
-        n = int(bboxes_n.shape[0])
+        n = len(bboxes_n)
         areas_n = bboxes_n[:, 2] * bboxes_n[:, 3]
         lbl["im_properties"] = {
             "num_objects": n,
@@ -171,7 +140,6 @@ class ImagePropertyExtractor:
             "center_spread": (float(np.sqrt(np.var(bboxes_n[:, 0]) + np.var(bboxes_n[:, 1]))) if n else np.nan),
             "max_pairwise_iou": (ImagePropertyExtractor._max_pairwise_iou(xywh2xyxy(bboxes_n)) if n >= 2 else np.nan),
         }
-        return lbl
 
     @staticmethod
     def _max_pairwise_iou(xyxy: np.ndarray) -> float:
@@ -182,23 +150,11 @@ class ImagePropertyExtractor:
 
 
 class CorrelationAnalysis:
-    """Join image properties with validation metrics and return actionable performance insights.
-
-    Consumes the labels returned by :class:`ImagePropertyExtractor` together with a metrics object from ``model.val()``.
-    Computes Pearson + Spearman correlations against per-image F1 and translates the three strongest meaningful
-    F1-lowering relationships into plain-language issues and next actions. Raw evidence remains on the returned report.
+    """Join image properties with per-image F1 and return up to three dataset actions.
 
     Attributes:
         labels (list[dict]): Property-augmented label dicts from ``ImagePropertyExtractor.labels``.
         metrics: A metrics object exposing ``.box.image_metrics`` (e.g. ``DetMetrics``).
-
-    Examples:
-        >>> from ultralytics import YOLO
-        >>> from ultralytics.utils.analysis import ImagePropertyExtractor, CorrelationAnalysis
-        >>> m = YOLO("yolo11n.pt")
-        >>> metrics = m.val(data="coco128.yaml")
-        >>> labels = ImagePropertyExtractor(m.validator.dataloader.dataset).labels
-        >>> report = CorrelationAnalysis(labels, metrics).run()
     """
 
     def __init__(self, labels: list[dict], metrics: Any):
@@ -235,7 +191,7 @@ class CorrelationAnalysis:
         return AnalysisReport(
             per_image=per_image,
             correlations=correlations,
-            insights=self._build_insights(per_image, correlations),
+            insights=self._build_insights(correlations),
         )
 
     @staticmethod
@@ -249,9 +205,7 @@ class CorrelationAnalysis:
         per_image: dict[str, dict] = {}
         dup_names: list[str] = []
         for lbl in labels:
-            im_file = lbl.get("im_file")
-            if im_file is None:
-                continue
+            im_file = lbl["im_file"]
             im_name = Path(im_file).name
             if im_name in per_image:
                 dup_names.append(im_name)
@@ -272,56 +226,23 @@ class CorrelationAnalysis:
 
     @staticmethod
     def _compute_correlations(per_image: dict) -> dict[str, dict]:
-        """Compute Pearson + Spearman per property vs F1 with effect-size band and direction string.
-
-        Uses SciPy for exact two-sided p-values when installed, otherwise falls back to NumPy correlation
-        coefficients with p-values left None, matching the optional-SciPy convention in ops.py.
-        """
-        try:
-            from scipy.stats import (  # exact p-values when SciPy is installed
-                pearsonr,
-                spearmanr,
-            )
-        except ImportError:
-            pearsonr = spearmanr = None
-
+        """Compute Spearman correlation between each image property and F1."""
         f1 = np.array([rec.get("f1", np.nan) for rec in per_image.values()], dtype=float)
         out: dict[str, dict] = {}
         for prop in _IMAGE_PROPERTIES:
             xs = np.array([rec.get(prop, np.nan) for rec in per_image.values()], dtype=float)
             m = np.isfinite(xs) & np.isfinite(f1)
             if m.sum() < 30 or np.std(xs[m]) == 0 or np.std(f1[m]) == 0:
-                out[prop] = {
-                    "pearson_r": None,
-                    "pearson_p": None,
-                    "spearman_r": None,
-                    "spearman_p": None,
-                    "n": int(m.sum()),
-                    "effect_band": "n/a",
-                    "direction": "n/a",
-                }
+                out[prop] = {"spearman_r": None, "n": int(m.sum())}
                 continue
-            if pearsonr is not None:
-                pr, sr = pearsonr(xs[m], f1[m]), spearmanr(xs[m], f1[m])
-                pearson_r, pearson_p = float(pr.statistic), float(pr.pvalue)
-                spearman_r, spearman_p = float(sr.correlation), float(sr.pvalue)
-            else:
-                pearson_r = float(np.corrcoef(xs[m], f1[m])[0, 1])
-                spearman_r = float(np.corrcoef(_rankdata(xs[m]), _rankdata(f1[m]))[0, 1])
-                pearson_p = spearman_p = None  # t-distribution p-values need SciPy; r drives band/direction
             out[prop] = {
-                "pearson_r": pearson_r,
-                "pearson_p": pearson_p,
-                "spearman_r": spearman_r,
-                "spearman_p": spearman_p,
+                "spearman_r": float(np.corrcoef(_rankdata(xs[m]), _rankdata(f1[m]))[0, 1]),
                 "n": int(m.sum()),
-                "effect_band": _strength_band(spearman_r),
-                "direction": _direction_phrase(prop, spearman_r),
             }
         return out
 
     @staticmethod
-    def _build_insights(_per_image: dict, correlations: dict) -> list[dict]:
+    def _build_insights(correlations: dict) -> list[dict]:
         """Translate the strongest F1-lowering correlations into specific dataset actions."""
         return [
             {
@@ -333,27 +254,6 @@ class CorrelationAnalysis:
             }
             for prop, corr in _performance_drivers(correlations)
         ]
-
-
-def _strength_band(r: float | None) -> str:
-    """Map a Spearman r magnitude to a strength descriptor (negligible/weak/moderate/strong)."""
-    if r is None:
-        return "n/a"
-    a = abs(r)
-    if a >= 0.5:
-        return "strong"
-    if a >= 0.3:
-        return "moderate"
-    if a >= 0.1:
-        return "weak"
-    return "negligible"
-
-
-def _direction_phrase(prop: str, r: float | None) -> str:
-    """Render a correlation direction using the raw property name (`higher num_objects -> lower F1`)."""
-    if r is None or abs(r) < 0.1:
-        return "no clear effect"
-    return f"higher {prop} -> lower F1" if r < 0 else f"higher {prop} -> higher F1"
 
 
 def _performance_drivers(correlations: dict) -> list[tuple[str, dict]]:

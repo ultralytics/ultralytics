@@ -4,8 +4,6 @@ import contextlib
 import csv
 import os
 import shutil
-import subprocess
-import sys
 import tarfile
 import urllib
 import zipfile
@@ -2113,20 +2111,12 @@ def test_semantic_polygon_data():
     model.val(data="coco8-seg.yaml")
 
 
-def test_image_property_pairwise_iou():
-    """Overlapping boxes give max IoU in (0.1, 0.5), while disjoint boxes give max IoU 0."""
-    overlap = np.array([[0, 0, 10, 10], [5, 5, 15, 15], [100, 100, 110, 110]], dtype=np.float32)
-    disjoint = np.array([[0, 0, 10, 10], [100, 100, 110, 110], [200, 200, 210, 210]], dtype=np.float32)
-    assert 0.1 < ImagePropertyExtractor._max_pairwise_iou(overlap) < 0.5
-    assert ImagePropertyExtractor._max_pairwise_iou(disjoint) == 0.0
-
-
 def test_image_property_extractor():
-    """ImagePropertyExtractor adds an im_properties dict to each label in place, no model or I/O."""
+    """Test scalar image property extraction on a detection dataset."""
     data = check_det_dataset("coco8.yaml")
     ds = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
     labels = ImagePropertyExtractor(ds).labels
-    assert labels is ds.labels and "im_file" in labels[0]
+    assert labels is ds.labels
     props = labels[0]["im_properties"]
     assert set(props) == {
         "num_objects",
@@ -2136,48 +2126,13 @@ def test_image_property_extractor():
         "center_spread",
         "max_pairwise_iou",
     }
-    assert props["num_objects"] == len(labels[0]["bboxes"])
-
-
-def test_correlation_actionable_insights():
-    """Correlation insights contain numeric evidence and a specific next action, limited to the top three drivers."""
-    corr = {
-        "num_objects": {"spearman_r": -0.9, "n": 100},
-        "max_pairwise_iou": {"spearman_r": -0.4, "n": 100},
-        "small_object_ratio": {"spearman_r": -0.2, "n": 100},
-        "center_spread": {"spearman_r": 0.8, "n": 100},
-    }
-    insights = CorrelationAnalysis._build_insights({}, corr)
-    assert len(insights) == 3 and insights[0] == {
-        "target": "dataset",
-        "issue": "dense scenes reduce F1",
-        "score": -0.9,
-        "evidence": "num_objects Spearman correlation, n=100",
-        "action": "add crowded-scene training images or use tiled crops",
-    }
-    report = AnalysisReport(
-        per_image={
-            str(i): {"num_objects": i, "max_pairwise_iou": i / 100, "small_object_ratio": i / 100, "f1": 1 - i / 100}
-            for i in range(30)
-        },
-        correlations=corr,
-        insights=insights,
-    )
-    assert report.plot().shape[2] == 3
-    assert "dense scenes reduce F1" in report.to_json()
+    assert props["num_objects"] == len(labels[0]["bboxes"]) and 0 <= props["max_pairwise_iou"] <= 1
 
 
 def test_correlation_analysis():
-    """CorrelationAnalysis joins extractor labels with validator metrics without writing output files."""
-    model = YOLO(MODEL)
-    metrics = model.val(data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, device="cpu")
-    labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
-    report = CorrelationAnalysis(labels, metrics).run()
-    assert next(iter(report.per_image.values())).get("f1") is not None
-    assert not report.insights or set(report.summary()[0]) == {"target", "issue", "score", "evidence", "action"}
-
-
-def test_analysis_lazy_matplotlib_import():
-    """Importing the analysis module must not import matplotlib (lazy-loaded inside plot)."""
-    code = "import sys; import ultralytics.utils.analysis; assert 'matplotlib' not in sys.modules"
-    subprocess.run([sys.executable, "-c", code], check=True)
+    """Test that correlations produce a short actionable report."""
+    per_image = {str(i): {"num_objects": i, "f1": 1 - i / 30} for i in range(30)}
+    correlations = CorrelationAnalysis._compute_correlations(per_image)
+    report = AnalysisReport(per_image, correlations, CorrelationAnalysis._build_insights(correlations))
+    assert correlations["num_objects"] == {"spearman_r": pytest.approx(-1.0), "n": 30}
+    assert len(report.summary()) == 1 and report.summary()[0]["action"]

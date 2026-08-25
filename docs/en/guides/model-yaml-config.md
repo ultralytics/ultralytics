@@ -182,9 +182,9 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
     This is a subset. For the full list of modules and their parameters, explore the [modules directory](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/modules).
 
-!!! note "The first YAML argument is the OUTPUT channel count"
+!!! note "Which modules receive an injected input-channel argument"
 
-    Input channels are injected by `parse_model` from whatever layer `from` points at, so the args you write start at `c2`. `Index` is the exception that proves the rule: its constructor takes only an index, and the leading `out_ch` exists purely so channel bookkeeping stays correct for the layers that read it.
+    For the convolution and block modules — `Conv`, `C3k2`, `C2PSA`, `C2f`, `SPPF` and the rest of `parse_model`'s base-module set — input channels are injected from whatever layer `from` points at, so the args you write start at `c2`. That rule does **not** extend to the other modules in the tables above, each of which `parse_model` handles specially: `nn.Upsample` and `nn.MaxPool2d` take their `torch.nn` arguments unchanged, `Concat` takes a dimension, `Detect` and `Classify` take `nc`, and `Index` takes a leading `out_ch` that exists purely for channel bookkeeping while its constructor reads only the index. A module you register yourself gets no injection at all until you add it, which is what [step 5](#custom-module-integration) is for.
 
 ## Advanced Features
 

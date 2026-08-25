@@ -21,13 +21,13 @@ This walkthrough uses the [African Wildlife](../datasets/detect/african-wildlife
 
 | Class Label | Instance Count |
 | :---------- | -------------: |
-| buffalo     |            554 |
-| elephant    |            748 |
-| rhino       |            559 |
-| zebra       |            824 |
-| **Total**   |      **2,685** |
+| buffalo     |            488 |
+| elephant    |            649 |
+| rhino       |            484 |
+| zebra       |            689 |
+| **Total**   |      **2,310** |
 
-The dataset ships 1,504 images split into `train`, `val` and `test` directories. K-Fold **pools all three** and re-partitions them, which is the point — the shipped boundary is exactly what cross validation replaces.
+The dataset ships 1,504 images split into `train`, `val` and `test`. This guide folds the 1,277 `train` and `val` images and **leaves `test` untouched** — cross validation replaces the train/val boundary, not the held-out set. The counts above are for the folded pool, not the whole dataset. Keeping a split out of the folds is what lets you evaluate once at the end on data that took no part in choosing anything.
 
 Install Ultralytics and the two helper libraries this guide uses:
 
@@ -60,25 +60,31 @@ from pathlib import Path
 from ultralytics.data.utils import IMG_FORMATS
 
 dataset_path = Path(data["path"])  # from check_det_dataset above
+pool = ("train", "val")  # the shipped test split stays out of the folds
 
-labels = sorted((dataset_path / "labels").rglob("*.txt"))
-images = sorted(p for p in (dataset_path / "images").rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS)
+images = sorted(p for s in pool for p in (dataset_path / "images" / s).rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS)
+labels = sorted(p for s in pool for p in (dataset_path / "labels" / s).rglob("*.txt"))
 
-img_by_stem = {p.stem: p for p in images}
-lbl_by_stem = {p.stem: p for p in labels}
-assert not (set(img_by_stem) ^ set(lbl_by_stem)), "every image needs exactly one label file, matched by filename"
-print(f"{len(images)} images, {len(labels)} labels")
+# key by path relative to images/ and labels/, so the same basename in two splits stays distinct
+img_by_key = {p.relative_to(dataset_path / "images").with_suffix(""): p for p in images}
+lbl_by_key = {p.relative_to(dataset_path / "labels").with_suffix(""): p for p in labels}
+
+orphans = sorted(set(lbl_by_key) - set(img_by_key))
+assert not orphans, f"label files with no matching image: {orphans[:3]}"
+backgrounds = set(img_by_key) - set(lbl_by_key)
+print(f"{len(images)} images, {len(labels)} labels, {len(backgrounds)} background images")
 ```
 
 ```text
-1504 images, 1504 labels
+1277 images, 1277 labels, 0 background images
 ```
 
 !!! warning "Three details this block gets right on purpose"
 
     - **Scope the label glob to `labels/`.** Ultralytics datasets nest labels as `labels/train/`, `labels/val/`, `labels/test/`, and a pattern that expects them one level up returns nothing at all. A glob rooted at the dataset directory instead re-reads its own output on a second run.
     - **Use `IMG_FORMATS` rather than a hand-written extension list.** Ultralytics accepts 13 image formats, and on Linux and macOS `Path.rglob` matches extensions case-sensitively regardless of the filesystem — so a hardcoded `[".jpg", ".jpeg", ".png"]` silently drops the three `.JPG` files in this dataset, and every `.webp` or `.tif` in yours.
-    - **Pair by filename stem, never by position.** The two lists are produced by different globs, so any dropped or extra file shifts one relative to the other and every later pair is wrong. That failure trains cleanly and reports meaningless metrics, because images end up in one fold with another image's labels.
+    - **Pair by key, never by position, and make the key the path under `images`/`labels` rather than the bare filename.** The two lists come from different globs, so any dropped or extra file shifts one relative to the other and every later pair is wrong — a failure that trains cleanly and reports meaningless metrics. The bare stem is not enough either: Ultralytics maps `images/train/0001.jpg` to `labels/train/0001.txt`, so the same basename is legal in two splits, and keying on `0001` would silently keep one of them while the assertion still passed.
+    - **An image with no label file is a background, not an error.** Ultralytics reads a missing label file as an empty label array, so the check above rejects only *orphan labels* — a `.txt` with no image, which really is a mistake.
 
 Now count the instances per class:
 
@@ -90,23 +96,23 @@ import pandas as pd
 classes = data["names"]  # {0: 'buffalo', 1: 'elephant', 2: 'rhino', 3: 'zebra'}
 cls_idx = sorted(classes)
 
-labels_df = pd.DataFrame(0.0, index=sorted(img_by_stem), columns=cls_idx)
-for stem, label_file in lbl_by_stem.items():
+labels_df = pd.DataFrame(0.0, index=sorted(img_by_key), columns=cls_idx)
+for key, label_file in lbl_by_key.items():  # images with no label file keep their all-zero row
     counter = Counter()
     for line in label_file.read_text().splitlines():
         if line.strip():  # skip blank lines; split() also handles tabs and leading whitespace
             counter[int(line.split()[0])] += 1
     for cls, n in counter.items():
-        labels_df.loc[stem, cls] = n
+        labels_df.loc[key, cls] = n
 
 print(labels_df.sum().rename(classes))
 ```
 
 ```text
-buffalo     554.0
-elephant    748.0
-rhino       559.0
-zebra       824.0
+buffalo     488.0
+elephant    649.0
+rhino       484.0
+zebra       689.0
 dtype: float64
 ```
 
@@ -134,11 +140,11 @@ for fold in folds:
 ```
 
 ```text
-fold_1: train=1203 val=301
-fold_2: train=1203 val=301
-fold_3: train=1203 val=301
-fold_4: train=1203 val=301
-fold_5: train=1204 val=300
+fold_1: train=1021 val=256
+fold_2: train=1021 val=256
+fold_3: train=1022 val=255
+fold_4: train=1022 val=255
+fold_5: train=1022 val=255
 ```
 
 !!! warning "Assign with `.loc[rows, column]`, not `df[column].loc[rows]`"
@@ -160,14 +166,14 @@ print(fold_distrb.round(3))
 
 ```text
         buffalo  elephant  rhino  zebra
-fold_1    0.265     0.324  0.265  0.232
-fold_2    0.300     0.228  0.213  0.235
-fold_3    0.164     0.226  0.265  0.268
-fold_4    0.256     0.249  0.262  0.260
-fold_5    0.274     0.228  0.248  0.256
+fold_1    0.235     0.303  0.264  0.271
+fold_2    0.229     0.253  0.241  0.217
+fold_3    0.268     0.176  0.267  0.222
+fold_4    0.208     0.288  0.213  0.224
+fold_5    0.315     0.239  0.267  0.322
 ```
 
-Each cell is the ratio of validation instances to training instances for that class. With `k` folds the expected value is `1 / (k - 1)`, so `0.25` here. Every cell above sits within about a third of that, which is fine — with 554 instances in the rarest class, plain `KFold` spreads them adequately.
+Each cell is the ratio of validation instances to training instances for that class. With `k` folds the expected value is `1 / (k - 1)`, so `0.25` here. Every cell above sits within about a third of that, which is fine — with 484 instances in the rarest class, plain `KFold` spreads them adequately.
 
 The check matters when it fails. On a dataset with a class of only a handful of instances, some folds end up with **zero** validation instances of it, per-class AP is undefined there, and the average across folds is silently computed over a shifting set of classes. If you see a `0.000` cell, stratify the split on each image's rarest present class:
 
@@ -205,8 +211,8 @@ save_path.mkdir(parents=True, exist_ok=True)
 ds_yamls = []
 for fold in folds:
     for split in ("train", "val"):
-        stems = folds_df.index[folds_df[fold] == split]
-        (save_path / f"{fold}_{split}.txt").write_text("\n".join(str(img_by_stem[s]) for s in stems) + "\n")
+        keys = folds_df.index[folds_df[fold] == split]
+        (save_path / f"{fold}_{split}.txt").write_text("\n".join(str(img_by_key[k]) for k in keys) + "\n")
     fold_yaml = save_path / f"{fold}.yaml"
     fold_yaml.write_text(
         yaml.safe_dump(
@@ -237,9 +243,9 @@ Note that `save_path` sits **beside** the dataset, not inside it. A fold directo
     ```python
     import shutil
 
-    for stem, image in img_by_stem.items():
-        for fold, split in folds_df.loc[stem].items():
-            for src, sub in ((image, "images"), (lbl_by_stem[stem], "labels")):
+    for key, image in img_by_key.items():
+        for fold, split in folds_df.loc[key].items():
+            for src, sub in [(image, "images")] + ([(lbl_by_key[key], "labels")] if key in lbl_by_key else []):
                 dst = save_path / fold / split / sub
                 dst.mkdir(parents=True, exist_ok=True)
                 shutil.copy(src, dst / src.name)
@@ -263,11 +269,11 @@ for k, fold_yaml in enumerate(ds_yamls):
 Each run reports a clean scan, which is the checkpoint confirming images and labels were paired correctly:
 
 ```text
-train: Scanning .../african-wildlife/labels/... 1203 images, 0 backgrounds, 0 corrupt
-val: Scanning .../african-wildlife/labels/... 301 images, 0 backgrounds, 0 corrupt
+train: Scanning .../african-wildlife/labels/train... 1021 images, 0 backgrounds, 0 corrupt
+val: Scanning .../african-wildlife/labels/train... 256 images, 0 backgrounds, 0 corrupt
 ```
 
-A non-zero `backgrounds` count on a fully annotated dataset means images and labels are mispaired — go back to the stem assertion. The directory in the scan line is just wherever the first label file happened to sit, so `labels/test` while training fold 1 is expected and does not mean the fold is wrong.
+The counts match the fold sizes printed earlier, and a non-zero `backgrounds` count on a fully annotated dataset means images and labels are mispaired — go back to the orphan-label check. The directory in the scan line is just wherever the first label file happened to sit, so both lines naming the same split is expected and does not mean the fold is wrong.
 
 !!! note "Budget for `k` full training runs"
 
@@ -301,21 +307,21 @@ Report the **mean** as your headline number and the **standard deviation** as it
 
 Cross validation assumes the folds are independent. Duplicated or near-duplicated images break that assumption: a copy in training and its twin in validation inflates that fold's metrics, and no amount of averaging removes the bias.
 
-This is not a hypothetical for the example dataset. Hashing every file finds **40 groups of byte-identical images covering 81 files**, 20 of which already straddle the shipped train/val/test boundary — and none of them is detectable from the filenames. Deduplicate before splitting:
+This is not a hypothetical for the example dataset. Hashing the folded pool finds **25 groups of byte-identical images covering 50 files**, none of them detectable from the filenames. Deduplicate before splitting:
 
 ```python
 import hashlib
 from collections import defaultdict
 
 by_hash = defaultdict(list)
-for stem, image in img_by_stem.items():
-    by_hash[hashlib.md5(image.read_bytes()).hexdigest()].append(stem)
+for key, image in img_by_key.items():
+    by_hash[hashlib.md5(image.read_bytes()).hexdigest()].append(key)
 duplicates = {h: s for h, s in by_hash.items() if len(s) > 1}
 print(f"{len(duplicates)} duplicate groups covering {sum(len(s) for s in duplicates.values())} images")
 ```
 
 ```text
-40 duplicate groups covering 81 images
+25 duplicate groups covering 50 images
 ```
 
 Either drop the extras before building `labels_df`, or keep them together by assigning one fold per hash group with `GroupKFold`. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image — group them, or the folds are not independent.
@@ -370,4 +376,4 @@ Yes, as long as the annotations are in [YOLO detection format](../datasets/detec
 
 ### Do I still need a separate test set?
 
-Yes. Cross validation measures how well a training recipe generalizes, but once you start choosing between recipes on the cross-validated score, that score has informed your decisions. Hold out a test split that takes no part in the folds, and evaluate on it once at the end.
+Yes, and this guide keeps one: the dataset's shipped `test` split is excluded from the folds by the `pool = ("train", "val")` line. Cross validation measures how well a training recipe generalizes, but once you start choosing between recipes on the cross-validated score, that score has informed your decisions. Evaluate on the held-out split once, at the end, with `model.val(split="test")`.

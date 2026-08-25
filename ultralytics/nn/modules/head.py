@@ -87,6 +87,7 @@ class Detect(nn.Module):
     half_channel = False  # halve the box/cls-head hidden channels; set by DetectionTrainer when half_channel=True
     half_box = False  # halve only the box-head (c2) hidden channels; set by DetectionTrainer when half_channel_box=True
     half_cls = False  # halve only the cls-head (c3) hidden channels; set by DetectionTrainer when half_channel_cls=True
+    p3_stride = None  # regression-stride override for the stride-8 (P3) level; set as instance attr by DetectionTrainer
     xyxy = False  # xyxy or xywh output
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = (), sigmoid_box=False):
@@ -222,7 +223,13 @@ class Detect(nn.Module):
         if self.dynamic or self.shape != shape:
             self.anchors, self.strides = (
                 a.transpose(0, 1)
-                for a in make_anchors(x["feats"], self.stride, 0.5, normalize=getattr(self, "sigmoid_box", False))
+                for a in make_anchors(
+                    x["feats"],
+                    self.stride,
+                    0.5,
+                    normalize=getattr(self, "sigmoid_box", False),
+                    p3_stride=getattr(self, "p3_stride", None),
+                )
             )
             self.shape = shape
 

@@ -248,6 +248,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "p3_stride",
     }
 )
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds

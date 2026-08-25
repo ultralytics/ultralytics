@@ -386,6 +386,7 @@ class v8DetectionLoss:
         self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.hyp = h
         self.stride = m.stride  # model strides
+        self.p3_stride = getattr(m, "p3_stride", None)  # P3 regression-stride override (must match head decode)
         self.nc = m.nc  # number of classes
         self.no = m.nc + m.reg_max * 4
         self.reg_max = m.reg_max
@@ -459,7 +460,9 @@ class v8DetectionLoss:
             preds["boxes"].permute(0, 2, 1).contiguous(),
             preds["scores"].permute(0, 2, 1).contiguous(),
         )
-        anchor_points, stride_tensor = make_anchors(preds["feats"], self.stride, 0.5, normalize=self.sigmoid_box)
+        anchor_points, stride_tensor = make_anchors(
+            preds["feats"], self.stride, 0.5, normalize=self.sigmoid_box, p3_stride=self.p3_stride
+        )
 
         dtype = pred_scores.dtype
         batch_size = pred_scores.shape[0]

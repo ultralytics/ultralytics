@@ -570,7 +570,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         return (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)  # is_in_box
 
 
-def make_anchors(feats, strides, grid_cell_offset=0.5, normalize=False):
+def make_anchors(feats, strides, grid_cell_offset=0.5, normalize=False, p3_stride=None):
     """Generate anchors from features."""
     anchor_points, stride_tensor = [], []
     assert feats is not None
@@ -582,6 +582,11 @@ def make_anchors(feats, strides, grid_cell_offset=0.5, normalize=False):
         sy = torch.arange(end=h, device=device, dtype=dtype) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
         anchor = torch.stack((sx, sy), -1).view(-1, 2)
+        if i == 0 and p3_stride is not None and stride == 8 and p3_stride != stride:
+            # p3_stride: keep the dense stride-8 anchor positions but regress distances in p3_stride pixel units,
+            # extending the P3 level's max regressable box size (e.g. 8 -> 16 for medium/large objects)
+            anchor = anchor * (stride / p3_stride)
+            stride = p3_stride
         if normalize:
             anchor /= torch.tensor([w, h], dtype=dtype, device=device)
         anchor_points.append(anchor)

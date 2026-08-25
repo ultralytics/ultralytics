@@ -203,6 +203,8 @@ class DetectionTrainer(BaseTrainer):
         model = self.set_model_names_for_load(
             DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
+        # Instance attr (persisted in ckpt): P3 regression-stride override, read by head decode and v8DetectionLoss
+        model.model[-1].p3_stride = float(getattr(self.args, "p3_stride", 8))
         if getattr(self.args, "aux_fg_on", False):  # attach before load so aux weights transfer from aux-trained ckpts
             model.model[-1].build_aux_fg()
         if weights:

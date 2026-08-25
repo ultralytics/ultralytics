@@ -60,15 +60,6 @@ from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
 
-def _select_benchmark_ort_providers(use_gpu: bool, is_migraphx: bool, device_index: int | None, available: list[str]):
-    """Select ONNX Runtime providers for benchmark inference."""
-    if use_gpu and is_migraphx and "MIGraphXExecutionProvider" in available:
-        return [("MIGraphXExecutionProvider", {"device_id": device_index}), "CPUExecutionProvider"]
-    if use_gpu and "CUDAExecutionProvider" in available:
-        return [("CUDAExecutionProvider", {"device_id": device_index}), "CPUExecutionProvider"]
-    return ["CPUExecutionProvider"]
-
-
 def benchmark(
     model=WEIGHTS_DIR / "yolo26n.pt",
     data=None,

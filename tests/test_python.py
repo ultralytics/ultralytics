@@ -537,7 +537,8 @@ def test_tracktrack_new_lifecycle():
 
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):
-    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""
+    """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame.
+    """
     from ultralytics.engine.results import Boxes
     from ultralytics.trackers.track import TRACKER_MAP
     from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
@@ -1079,7 +1080,7 @@ def test_dense_result_tensor_indexing():
 
 
 def test_results_plot_empty_dense_selection():
-    """result[1:].plot() on a one-result dense (semantic/depth) Results returns the plain image, no overlay."""
+    """Result[1:].plot() on a one-result dense (semantic/depth) Results returns the plain image, no overlay."""
     from ultralytics.engine.results import Results
 
     img = np.zeros((16, 16, 3), dtype=np.uint8)
@@ -1531,42 +1532,6 @@ def test_onnxruntime_package_resolution(cuda, is_migraphx, is_rocm, expected_pkg
     from ultralytics.utils.checks import resolve_onnxruntime_package
 
     assert resolve_onnxruntime_package(cuda=cuda, is_migraphx=is_migraphx, is_rocm=is_rocm) == expected_pkg
-
-
-@pytest.mark.parametrize(
-    ("use_gpu", "is_migraphx", "device_index", "available", "expected"),
-    (
-        (
-            True,
-            True,
-            0,
-            ["MIGraphXExecutionProvider", "CPUExecutionProvider"],
-            [("MIGraphXExecutionProvider", {"device_id": 0}), "CPUExecutionProvider"],
-        ),
-        (
-            True,
-            False,
-            1,
-            ["CUDAExecutionProvider", "CPUExecutionProvider"],
-            [("CUDAExecutionProvider", {"device_id": 1}), "CPUExecutionProvider"],
-        ),
-        (True, True, 0, ["CPUExecutionProvider"], ["CPUExecutionProvider"]),
-        (False, False, None, ["CPUExecutionProvider"], ["CPUExecutionProvider"]),
-    ),
-)
-def test_benchmark_ort_provider_selection(use_gpu, is_migraphx, device_index, available, expected):
-    """Ensure benchmark path picks providers in the intended ROCm/CUDA/CPU order."""
-    from ultralytics.utils.benchmarks import _select_benchmark_ort_providers
-
-    assert (
-        _select_benchmark_ort_providers(
-            use_gpu=use_gpu,
-            is_migraphx=is_migraphx,
-            device_index=device_index,
-            available=available,
-        )
-        == expected
-    )
 
 
 def test_rocm_device_count_respects_torch_visibility(monkeypatch):

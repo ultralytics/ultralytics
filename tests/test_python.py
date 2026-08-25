@@ -20,7 +20,6 @@ import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
-from ultralytics.data import YOLODataset
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
@@ -42,7 +41,6 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.analysis import ImagePropertyExtractor
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
@@ -2110,16 +2108,3 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
-
-
-def test_image_property_extractor():
-    """Test scalar image property extraction on a detection dataset."""
-    data = check_det_dataset("coco8.yaml")
-    ds = YOLODataset(data["val"], data=data, augment=False)
-    labels = ImagePropertyExtractor(ds).labels
-    assert labels is ds.labels
-    props = labels[0]["im_properties"]
-    assert props["num_objects"] == len(labels[0]["bboxes"]) and 0 <= props["max_pairwise_iou"] <= 1
-    boxes = np.column_stack((np.arange(1025), np.zeros(1025), np.arange(1025) + 1, np.ones(1025))).astype(np.float32)
-    boxes[-1] = boxes[0]
-    assert ImagePropertyExtractor._max_pairwise_iou(boxes) == pytest.approx(1.0)

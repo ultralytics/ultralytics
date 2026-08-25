@@ -240,11 +240,13 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | :--------- | :--------------- | :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `format`   | `str`            | `'axelera'` | Target format for Axelera Metis AIPU hardware.                                                                                                                                                                       |
 | `imgsz`    | `int` or `tuple` | `640`       | Image size for model input.                                                                                                                                                                                          |
-| `batch`    | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
+| `batch`* | `int`            | `1`         | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                              |
 | `quantize` | `int` or `str`   | `8`/auto    | Quantization precision. `8` (INT8) is required and auto-enabled for the Axelera AIPU. Replaces the deprecated `half`/`int8` flags. See [INT8 quantization](https://www.ultralytics.com/glossary/model-quantization). |
 | `data`     | `str`            | `None`      | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset.                                          |
 | `fraction` | `float`          | `1.0`       | Fraction of dataset for calibration (100-400 images recommended).                                                                                                                                                    |
 | `device`   | `str`            | `None`      | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
+
+\* `batch` is supported only in Voyager SDK versions >= 1.8.0.
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 
@@ -301,7 +303,7 @@ For detailed diagnostics, see the [AxDevice documentation](https://docs.axelera.
 
 ## Maximum Performance
 
-Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler, so `batch>1` runs correctly, though measured end to end on a single device it is no faster than `batch=1`:
+Models are compiled for a single image. Passing several images to [Predict](../modes/predict.md) routes them through the Axelera scheduler (Voyager SDK 1.8 or newer), so `batch>1` runs correctly, though measured end to end on a single device it is no faster than `batch=1`:
 
 ```bash
 yolo predict model=yolo26n_axelera_model source=path/to/images batch=8

@@ -89,7 +89,7 @@ class BaseTrainer:
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
         device (torch.device): Device to use for training.
-        amp (bool): Flag to enable AMP (Automatic Mixed Precision).
+        amp (bool): Whether Automatic Mixed Precision is enabled.
         scaler (torch.amp.GradScaler): Gradient scaler for AMP.
         data (dict): Dataset dictionary containing paths and metadata.
         ema (ModelEMA): EMA (Exponential Moving Average) of the model.
@@ -362,8 +362,9 @@ class BaseTrainer:
             )
 
         # Check AMP
-        self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
-        if self.amp and RANK in {-1, 0}:  # Single-GPU and DDP
+        self.amp = self.args.amp not in {False, "fp32"}
+        self.amp = torch.tensor(self.amp).to(self.device)
+        if self.amp and self.args.amp != "bf16" and RANK in {-1, 0}:  # Single-GPU and DDP
             callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
@@ -374,12 +375,15 @@ class BaseTrainer:
         if self.device.type == "npu":
             import torch_npu
 
-            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
+            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
         else:
             self.scaler = (
-                torch.amp.GradScaler(self.device.type if self.device.type == "xpu" else "cuda", enabled=self.amp)
+                torch.amp.GradScaler(
+                    self.device.type if self.device.type == "xpu" else "cuda",
+                    enabled=self.amp and self.args.amp != "bf16",
+                )
                 if TORCH_2_4
-                else torch.cuda.amp.GradScaler(enabled=self.amp)
+                else torch.cuda.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
             )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -489,7 +493,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp, device=self.device.type):
+                    with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -659,7 +663,7 @@ class BaseTrainer:
         return check_train_batch_size(
             model=self.model,
             imgsz=max_imgsz,
-            amp=self.amp,
+            amp=torch.bfloat16 if self.args.amp == "bf16" else self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,
             dataset_size=dataset_size,

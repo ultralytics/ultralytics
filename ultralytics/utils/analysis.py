@@ -134,7 +134,7 @@ def analyze_correlations(labels: list[dict], metrics) -> AnalysisReport:
     """Correlate image properties with per-image F1."""
     per_image = {}
     for label in labels:
-        im_file = str(Path(label["im_file"]).resolve())
+        im_file = str(Path(label["im_file"]).absolute())
         per_image[im_file] = {
             **metrics.box.image_metrics.get(im_file, {}),
             **label["im_properties"],

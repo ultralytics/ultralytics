@@ -182,7 +182,7 @@ class DetectionValidator(BaseValidator):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
-            im_name = str(Path(pbatch["im_file"]).resolve())
+            im_name = str(Path(pbatch["im_file"]).absolute())
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0

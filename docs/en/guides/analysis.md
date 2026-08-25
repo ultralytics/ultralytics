@@ -55,11 +55,11 @@ Neither class writes files. `report.summary()` is the default actionable output,
 
 ObjectLab quality scores follow a low-is-worse convention. A subtype below 0.5 adds one review action for that image:
 
-| Evidence            | Issue                        | Action                                                          |
-| ------------------- | ---------------------------- | --------------------------------------------------------------- |
-| `overlooked_score`  | possible missing labels      | review unmatched high-confidence predictions and add boxes      |
-| `badloc_score`      | possibly incorrect boxes     | review and correct box boundaries                               |
-| `swap_score`        | possibly incorrect classes   | review and correct class IDs                                    |
+| Evidence           | Issue                      | Action                                                     |
+| ------------------ | -------------------------- | ---------------------------------------------------------- |
+| `overlooked_score` | possible missing labels    | review unmatched high-confidence predictions and add boxes |
+| `badloc_score`     | possibly incorrect boxes   | review and correct box boundaries                          |
+| `swap_score`       | possibly incorrect classes | review and correct class IDs                               |
 
 ## Ultralytics Platform integration (`ul://`)
 
@@ -89,7 +89,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 | `small_object_ratio`                                                   | [Lin et al., COCO, ECCV 2014](https://arxiv.org/abs/1405.0312)                                                                                    |
 | `object_scale_variance`, `num_classes_present`, `center_spread`        | in-tree dataset labels                                                                                                                            |
 | `max_pairwise_iou` (per-image crowdedness)                             | [Shao et al., CrowdHuman, 2018](https://arxiv.org/abs/1805.00123)                                                                                 |
-| ObjectLab scores                                                       | [Tkachenko, Thyagarajan & Mueller, 2023](https://arxiv.org/abs/2309.00832)                                                                         |
+| ObjectLab scores                                                       | [Tkachenko, Thyagarajan & Mueller, 2023](https://arxiv.org/abs/2309.00832)                                                                        |
 | Per-image P/R/F1/TP/FP/FN                                              | in-tree validator                                                                                                                                 |
 | Pearson + Spearman correlation per property × F1 with effect-size band | [Pearson, Proc. Royal Society 1895](https://doi.org/10.1098/rspl.1895.0041) / [Spearman, Am. J. Psychology 1904](https://doi.org/10.2307/1412159) |
 | Actionable issue and next-step mapping                                 | in-tree                                                                                                                                           |

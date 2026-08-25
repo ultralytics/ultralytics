@@ -26,6 +26,7 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
+
 from ultralytics.utils import LOGGER, RUNS_DIR, DataExportMixin, SimpleClass
 from ultralytics.utils.files import increment_path
 from ultralytics.utils.metrics import box_iou

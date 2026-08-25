@@ -17,12 +17,11 @@ With `score_labels=True`, `model.val()` also computes 4 [ObjectLab](https://arxi
 Three composition patterns cover the common use cases:
 
 ```python
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
-
 from ultralytics import YOLO
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 # Path 1: dataset-only, no model or pixel decoding.
 data = check_det_dataset("coco128.yaml")
@@ -102,9 +101,8 @@ import os
 
 os.environ["ULTRALYTICS_API_KEY"] = "ul_xxx_40hex"  # or set in shell, or use settings.update(...)
 
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
-
 from ultralytics import YOLO
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 model = YOLO("ul://owner/project/model-name")
 metrics = model.val(data="ul://owner/datasets/slug", score_labels=True)

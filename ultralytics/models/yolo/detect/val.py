@@ -197,7 +197,7 @@ class DetectionValidator(BaseValidator):
                     "im_name": im_name,
                 }
             )
-            if self.args.score_labels and self.args.task == "detect" and (not no_pred or cls.size):
+            if self.args.score_labels and self.args.task == "detect" and not no_pred:
                 pred_boxes = self.scale_preds(predn, pbatch)["bboxes"].cpu().numpy()
                 gt_boxes = (
                     ops.scale_boxes(

@@ -313,7 +313,7 @@ def _label_issue_scores(
     """Score possible missing labels, incorrect boxes, and incorrect classes.
 
     Args:
-        iou (np.ndarray | None): Pairwise ground-truth and prediction IoU matrix.
+        iou (np.ndarray | None): Pairwise IoU matrix, or None when the image has no ground truth.
         pred_boxes (np.ndarray): Prediction boxes in xyxy format with shape (N, 4).
         pred_cls (np.ndarray): Prediction class IDs with shape (N,).
         pred_conf (np.ndarray): Prediction confidences with shape (N,).
@@ -324,8 +324,6 @@ def _label_issue_scores(
         (dict[str, float]): Three scores in [0, 1], where lower values have higher review priority.
     """
     pred_cls, gt_cls = pred_cls.astype(int), gt_cls.astype(int)
-    if not len(pred_boxes):
-        return dict.fromkeys(_LABEL_PROPERTIES, float("nan"))
     if not len(gt_boxes):
         scores = (_softmin(1.0 - pred_conf[pred_conf >= _LABEL_HIGH_CONF]), 1.0, 1.0)
         return dict(zip(_LABEL_PROPERTIES, np.clip(scores, 0, 1).tolist()))

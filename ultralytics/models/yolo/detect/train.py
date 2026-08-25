@@ -14,7 +14,7 @@ import torch.nn as nn
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
-from ultralytics.nn.tasks import DetectionModel
+from ultralytics.nn.tasks import DetectionModel, yaml_model_load
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
@@ -167,6 +167,20 @@ class DetectionTrainer(BaseTrainer):
         self.model.class_weights = torch.from_numpy(weights).to(self.device)
         LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
 
+    def objectness_cfg(self, cfg: str | dict | None) -> str | dict | None:
+        """Inject the ``objectness`` train arg into the model YAML dict.
+
+        Carrying the knob on ``args`` rather than in a YAML keeps one config per architecture: the
+        four objectness rungs are selected with ``objectness=aux|mul|v5`` on the launch command
+        instead of four near-identical model YAMLs.
+        """
+        mode = getattr(self.args, "objectness", "none")
+        if not cfg or mode == "none":
+            return cfg
+        cfg = dict(cfg) if isinstance(cfg, dict) else yaml_model_load(cfg)
+        cfg["objectness"] = mode
+        return cfg
+
     def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
         """Return a YOLO detection model.
 
@@ -178,14 +192,18 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        model = DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
+        model = DetectionModel(
+            self.objectness_cfg(cfg), nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1
+        )
         if weights:
             model.load(weights)
         return model
 
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss"
+        self.loss_names = ("box_loss", "cls_loss", "dfl_loss") + (
+            ("obj_loss",) if getattr(self.args, "objectness", "none") != "none" else ()
+        )
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

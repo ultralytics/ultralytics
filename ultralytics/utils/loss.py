@@ -349,6 +349,12 @@ class v8DetectionLoss:
 
         self.use_dfl = m.reg_max > 1
 
+        # YOLOv5-style objectness (see Detect.set_objectness). 'none' keeps the 3-term loss vector.
+        self.objectness = getattr(m, "objectness", "none")
+        nl = len(m.stride)
+        # v5 weights the objectness loss per level because P3 holds most of the negatives.
+        self.obj_balance = {3: [4.0, 1.0, 0.4], 5: [4.0, 1.0, 0.25, 0.06, 0.02]}.get(nl, [1.0] * nl)
+
         # Class weights for handling imbalanced datasets
         self.class_weights = getattr(model, "class_weights", None)
         if self.class_weights is not None:
@@ -396,7 +402,7 @@ class v8DetectionLoss:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and
         target indices.
         """
-        loss = torch.zeros(3, device=self.device)  # box, cls, dfl
+        loss = torch.zeros(3 + (self.objectness != "none"), device=self.device)  # box, cls, dfl[, obj]
         pred_distri, pred_scores = (
             preds["boxes"].permute(0, 2, 1).contiguous(),
             preds["scores"].permute(0, 2, 1).contiguous(),
@@ -416,7 +422,7 @@ class v8DetectionLoss:
         # Pboxes
         pred_bboxes = self.bbox_decode(anchor_points, pred_distri)  # xyxy, (b, h*w, 4)
 
-        _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
+        target_labels, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * stride_tensor).type(gt_bboxes.dtype),
             anchor_points * stride_tensor,
@@ -428,10 +434,34 @@ class v8DetectionLoss:
         target_scores_sum = max(target_scores.sum(), 1)
 
         # Cls loss with optional class weighting
-        bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
-        if self.class_weights is not None:
-            bce_loss *= self.class_weights
-        loss[1] = bce_loss.sum() / target_scores_sum  # BCE
+        if self.objectness == "v5":
+            # v5 trains cls on positives only against a hard one-hot; background suppression is left
+            # entirely to the objectness branch, which is why this rung requires conf = obj * cls.
+            if fg_mask.sum():
+                pos_scores = pred_scores[fg_mask]  # (n_pos, nc)
+                t = torch.zeros_like(pos_scores)
+                t[torch.arange(t.shape[0], device=self.device), target_labels[fg_mask]] = 1.0
+                bce_loss = self.bce(pos_scores, t)
+                if self.class_weights is not None:
+                    bce_loss *= self.class_weights.view(1, -1)
+                loss[1] = bce_loss.sum() / fg_mask.sum()
+        else:
+            bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
+            if self.class_weights is not None:
+                bce_loss *= self.class_weights
+            loss[1] = bce_loss.sum() / target_scores_sum  # BCE
+
+        # Objectness loss: class-agnostic BCE over ALL anchors, targeting the detached IoU of the
+        # assigned box (v5's soft label -- a well-placed box is worth more than a sloppy one).
+        if self.objectness != "none":
+            pred_obj = preds["obj"].squeeze(1)  # (bs, num_anchors)
+            tobj = torch.zeros_like(pred_obj)
+            if fg_mask.sum():
+                iou = bbox_iou(pred_bboxes[fg_mask], (target_bboxes / stride_tensor)[fg_mask], xywh=False, CIoU=True)
+                tobj[fg_mask] = iou.detach().squeeze(-1).clamp_(0).to(tobj.dtype)
+            obj_loss = self.bce(pred_obj, tobj)  # (bs, num_anchors), reduction='none'
+            splits = [f.shape[2] * f.shape[3] for f in preds["feats"]]
+            loss[3] = sum(lvl.mean() * b for lvl, b in zip(obj_loss.split(splits, dim=1), self.obj_balance))
 
         # Bbox loss
         if fg_mask.sum():
@@ -450,6 +480,8 @@ class v8DetectionLoss:
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
+        if self.objectness != "none":
+            loss[3] *= self.hyp.obj  # obj gain
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
             loss,

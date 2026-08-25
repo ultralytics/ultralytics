@@ -119,7 +119,11 @@ class AnomalyTrainer(DetectionTrainer):
             verbose (bool): Verbose info.
         """
         model = YOLOAnomalyModel(
-            cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1, p_drop=self.args.p_drop
+            self.objectness_cfg(cfg),
+            nc=self.data["nc"],
+            ch=self.data["channels"],
+            verbose=verbose and RANK == -1,
+            p_drop=self.args.p_drop,
         )
         if weights:
             model.load(weights)
@@ -134,6 +138,8 @@ class AnomalyTrainer(DetectionTrainer):
     def get_validator(self):
         """Return the anomaly validator."""
         loss_names = ["box_loss", "cls_loss", "dfl_loss"]
+        if getattr(self.args, "objectness", "none") != "none":
+            loss_names.append("obj_loss")
         self.loss_names = tuple(loss_names)
         return yolo.anomaly.YOLOAnomalyValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks

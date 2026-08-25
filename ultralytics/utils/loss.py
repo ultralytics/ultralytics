@@ -376,7 +376,7 @@ class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 
     def __init__(
-        self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None, tune_tal: bool = True
+        self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
     ):  # model must be de-paralleled
         """Initialize v8DetectionLoss with model parameters and task-aligned assignment settings."""
         device = next(model.parameters()).device  # get model device
@@ -406,8 +406,8 @@ class v8DetectionLoss:
         self.assigner = TaskAlignedAssigner(
             topk=tal_topk,
             num_classes=self.nc,
-            alpha=h.tal_alpha if tune_tal else 0.5,
-            beta=h.tal_beta if tune_tal else 6.0,
+            alpha=h.tal_alpha,
+            beta=h.tal_beta,
             stride=self.stride.tolist(),
             topk2=tal_topk2,
         )
@@ -1271,9 +1271,9 @@ class E2ELoss:
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
         o2f_k = int(getattr(model.args, "o2f", 0))
-        self.one2one = loss_fn(
-            model, tal_topk=model.args.topk2, tal_topk2=1 + o2f_k if o2f_k else 1, tune_tal=model.args.tal_o2o
-        )
+        self.one2one = loss_fn(model, tal_topk=model.args.topk2, tal_topk2=1 + o2f_k if o2f_k else 1)
+        if not model.args.tal_o2o:  # o2o keeps the untuned TAL metric; set post-build to cover every loss_fn subclass
+            self.one2one.assigner.alpha, self.one2one.assigner.beta = 0.5, 6.0
         if o2f_k:  # o2f: certain positive + K ambiguous soft-labeled anchors per GT
             self.one2one.assigner.o2f_k = o2f_k
             self.one2one.assigner.o2f_T = self.o2f_tmax = getattr(model.args, "o2f_tmax", 0.6)

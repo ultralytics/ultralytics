@@ -68,13 +68,13 @@ Your problem statement helps you conceptualize which computer vision task can so
   <img width="100%" src="https://cdn.ul.run/i/ee8d61458d72810155656d51266ef13e.avif" alt="Comparison of image classification, object detection, and image segmentation outputs">
 </p>
 
-For example, if your problem is monitoring vehicle speeds on a highway, the relevant task is [object tracking](../modes/track.md). Tracking is suitable because it follows each vehicle across video frames with a persistent ID, which is what speed calculation requires.
+For example, if your problem is monitoring vehicle speeds on a highway, the task is [object detection](../tasks/detect.md), run in [track mode](../modes/track.md). Tracking gives each detected vehicle a persistent ID across video frames, which is what speed calculation requires.
 
 <p align="center">
   <video width="100%" src="https://cdn.ul.run/v/2da5e8da1b4179d1a089b77f6b0844ac.mp4" autoplay loop muted playsinline aria-label="YOLO object tracking of vehicles on a highway with persistent track IDs"></video>
 </p>
 
-Other tasks are less suitable on their own. [Object detection](../tasks/detect.md), for instance, locates vehicles in every frame but doesn't maintain each vehicle's identity across frames — and without that identity, the system can't measure movement over time. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
+Detection on its own is not enough here: it locates vehicles in every frame but doesn't maintain each vehicle's identity across frames — and without that identity, the system can't measure movement over time. Track mode adds that identity. Once you've identified the appropriate computer vision task, it guides several critical aspects of your project, like model selection, dataset preparation, and model training approaches.
 
 ## What Comes First: Model, Data, or Training Approach?
 
@@ -82,7 +82,7 @@ The order of model selection, dataset preparation, and training approach depends
 
 | Your situation                        | Start with          | Example                                                                                                                                                                                                                                                                                                                                                         |
 | ------------------------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Well-defined problem and objectives   | Model selection     | For a traffic monitoring system that estimates vehicle speeds, choose an object tracking model, gather and annotate highway videos, then train with techniques for real-time video processing.                                                                                                                                                                  |
+| Well-defined problem and objectives   | Model selection     | For a traffic monitoring system that estimates vehicle speeds, choose a detection model to run in track mode, gather and annotate highway videos, then train with techniques for real-time video processing.                                                                                                                                                    |
 | Unique or limited data                | Dataset preparation | For a facial recognition system with a small dataset, annotate the data first, then select a model that works well with limited data — such as a pretrained model for [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) — and plan [data augmentation](https://www.ultralytics.com/glossary/data-augmentation) to expand the dataset. |
 | Experimentation is crucial (research) | Training approach   | In a project exploring new methods for detecting manufacturing defects, experiment on a small data subset first. Once you find a promising technique, select a model tailored to those findings and prepare a comprehensive dataset.                                                                                                                            |
 
@@ -113,7 +113,7 @@ A clear problem statement names the core issue your project solves, its scope, t
 
 ### How do I choose the right computer vision task for my problem?
 
-Match the output your problem needs to the task that produces it: a single label per image points to [image classification](https://www.ultralytics.com/glossary/image-classification), object locations point to [object detection](../tasks/detect.md), pixel-level boundaries point to [image segmentation](../tasks/segment.md), and identities maintained across video frames point to [object tracking](../modes/track.md). Monitoring vehicle speeds, for example, requires tracking because speed is computed from each vehicle's movement over time. See the [Ultralytics tasks page](../tasks/index.md) for all supported tasks.
+Match the output your problem needs to the task that produces it: a single label per image points to [image classification](https://www.ultralytics.com/glossary/image-classification), object locations point to [object detection](../tasks/detect.md), pixel-level boundaries point to [image segmentation](../tasks/segment.md), and identities maintained across video frames call for that same detection model run in [track mode](../modes/track.md). Monitoring vehicle speeds, for example, needs tracking because speed is computed from each vehicle's movement over time. See the [Ultralytics tasks page](../tasks/index.md) for all supported tasks.
 
 ### How do I set effective measurable objectives for my computer vision project?
 

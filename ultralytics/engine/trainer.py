@@ -698,8 +698,8 @@ class BaseTrainer:
                             f"{epoch + 1}/{self.epochs}",
                             f"{self._get_memory():.3g}G",  # (GB) GPU memory util
                             *self.tloss.values(),  # losses
-                            batch.get("cls", batch["img"]).shape[0],  # no. of instances
-                            batch["img"].shape[-1],  # imgsz, i.e 640
+                            (batch.get("cls", batch["img"]) if isinstance(batch, dict) else batch).shape[0],
+                            (batch["img"] if isinstance(batch, dict) else batch).shape[-1],
                         )
                     )
                     self.run_callbacks("on_batch_end")

@@ -12,7 +12,7 @@ keywords: Ultralytics, image property analysis, correlation, dataset quality, de
 from ultralytics import YOLO
 from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
-model = YOLO("yolo11n.pt")
+model = YOLO("yolo26n.pt")
 metrics = model.val(data="coco128.yaml", conf=0.25)
 labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
 report = CorrelationAnalysis(labels, metrics).run()

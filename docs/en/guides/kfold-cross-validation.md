@@ -95,7 +95,7 @@ from collections import Counter
 
 import pandas as pd
 
-classes = data["names"]  # {0: 'buffalo', 1: 'elephant', 2: 'rhino', 3: 'zebra'}
+classes = data["names"]  # check_det_dataset normalizes names to {int: str}, so the keys are the class IDs
 cls_idx = sorted(classes)
 
 labels_df = pd.DataFrame(0.0, index=sorted(img_by_key), columns=cls_idx)

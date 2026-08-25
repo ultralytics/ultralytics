@@ -320,4 +320,4 @@ Yes. Any Ultralytics `.pt` checkpoint works as a teacher as long as it is from t
 
 ### Does knowledge distillation work with YOLO11 and YOLOv8?
 
-Yes. Distillation is family-agnostic — a YOLO11 teacher distills into a YOLO11 student, and a YOLOv8 teacher into a YOLOv8 student. What is not supported is crossing families, such as a YOLO11 teacher with a YOLO26 student.
+Yes. Distillation reads features by layer index rather than by architecture, so a YOLO11 teacher distills into a YOLO11 student and a YOLOv8 teacher into a YOLOv8 student, both verified to train. What is not supported is crossing families, such as a YOLO11 teacher with a YOLO26 student.

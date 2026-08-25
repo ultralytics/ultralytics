@@ -690,7 +690,7 @@ class Model(torch.nn.Module):
 
         from .exporter import export_formats
 
-        custom = {"verbose": False}  # method defaults
+        custom = {"verbose": False, "quantize": None}  # method defaults
         kwargs = _handle_deprecation(kwargs)  # forward legacy flags (e.g. half/int8 -> quantize) before merging
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
@@ -750,7 +750,8 @@ class Model(torch.nn.Module):
             "imgsz": self.model.args["imgsz"],
             "batch": 1,
             "data": None,
-            "device": None,  # reset to avoid multi-GPU errors
+            "device": None,
+            "quantize": None,  # reset runtime device/precision for export
             "verbose": False,
         }  # method defaults
         args = {**self.overrides, **custom, **kwargs, "mode": "export"}  # highest priority args on the right
@@ -1104,7 +1105,7 @@ class Model(torch.nn.Module):
             >>> print(reset_args)
             {'imgsz': 640, 'data': 'coco.yaml', 'task': 'detect'}
         """
-        include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
+        include = {"imgsz", "data", "task", "single_cls", "quantize"}  # args needed when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
 
     def _smart_load(self, key: str):

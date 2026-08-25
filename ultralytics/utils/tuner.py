@@ -408,7 +408,7 @@ def run_ray_tune(
         "mosaic": tune.uniform(0.0, 1.0),  # image mosaic (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)
-        "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
+        "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (object fraction)
         "close_mosaic": tune.randint(0, 11),  # close dataloader mosaic (epochs)
     }
 
@@ -438,6 +438,12 @@ def run_ray_tune(
             config["name"] = base_name
 
         results = model_to_train.train(**config)
+        if isinstance(config.get("data"), (list, tuple)):
+            metric = TASK2METRIC[task]
+            return {
+                metric: sum((metrics or {}).get(metric, 0.0) for metrics in results.values()) / len(results),
+                "epoch": config.get("epochs") or DEFAULT_CFG_DICT["epochs"],
+            }
         return results.results_dict
 
     # Get search space

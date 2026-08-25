@@ -44,15 +44,15 @@ Each of `train`, `val`, and `test` accepts a directory, a list of directories, o
 
 Labels for this format should be exported to YOLO format with one `*.txt` file per image. If there are no objects in an image, no `*.txt` file is required. The `*.txt` file should be formatted with one row per object in `class x_center y_center width height` format. Box coordinates must be in **normalized xywh** format (from 0 to 1). If your boxes are in pixels, you should divide `x_center` and `width` by image width, and `y_center` and `height` by image height. Class numbers should be zero-indexed (start with 0).
 
-<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="YOLO labeled image with bounding boxes on persons and tie"></p>
+<p align="center"><img width="750" src="https://cdn.ul.run/i/19e1e6d0c5d85a19d97d5f3f731cdf83.avif" alt="YOLO labeled image with bounding boxes on persons and tie"></p>
 
 The label file corresponding to the above image contains 2 persons (class `0`) and a tie (class `27`):
 
-<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO format label file with normalized coordinates"></p>
+<p align="center"><img width="428" src="https://cdn.ul.run/i/f83deecdabe2c1c3131e718ae6040cb6.avif" alt="YOLO format label file with normalized coordinates"></p>
 
 When using the Ultralytics YOLO format, organize your training and validation images and labels as shown in the [COCO8 dataset](coco8.md) example below.
 
-<p align="center"><img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-2.avif" alt="YOLO dataset directory structure with train and val folders"></p>
+<p align="center"><img width="800" src="https://cdn.ul.run/i/c83b6ccea4400a053c9e0a86d98e3517.avif" alt="YOLO dataset directory structure with train and val folders"></p>
 
 #### Usage Example
 
@@ -117,6 +117,10 @@ An NDJSON dataset file contains:
             "width": 640,
             "height": 480,
             "split": "train",
+            "metadata": {
+                "aircraft": { "family": "A350", "section": "wing" },
+                "inspectionStatus": "reviewed"
+            },
             "annotations": {
                 "boxes": [
                     [0, 0.525, 0.376, 0.284, 0.418],
@@ -213,6 +217,49 @@ An NDJSON dataset file contains:
 
         Format: `[class_id]`
 
+    === "Depth"
+
+        The dataset record declares the PNG scale once:
+
+        ```json
+        { "type": "dataset", "task": "depth", "depth_scale": 1000 }
+        ```
+
+        Each image record adds the URL of its paired uint16 depth PNG:
+
+        ```json
+        {
+            "type": "image",
+            "file": "image1.jpg",
+            "url": "https://www.url.com/path/to/image1.jpg",
+            "width": 640,
+            "height": 480,
+            "split": "train",
+            "depth": { "url": "https://www.url.com/path/to/image1.png" }
+        }
+        ```
+
+        `depth_scale` is optional and defaults to `1000`; see the [depth map format](../depth/index.md#depth-map-format).
+
+#### Custom image metadata
+
+Each image record may include a `metadata` JSON object for application-specific context such as capture conditions, equipment identifiers, or review status. Nested values are supported. When imported into Ultralytics Platform, the metadata is stored with that image and can be viewed or edited from its fullscreen information panel.
+
+```json
+{
+    "type": "image",
+    "file": "airbus-wing.jpg",
+    "url": "https://example.com/airbus-wing.jpg",
+    "split": "train",
+    "metadata": {
+        "aircraft": { "family": "A350", "section": "wing" },
+        "inspectionStatus": "reviewed"
+    }
+}
+```
+
+Platform limits top-level metadata keys to 128 characters, each image's serialized metadata object to 500,000 characters, and the combined effective metadata in one NDJSON import to 500,000 characters.
+
 #### Usage Example
 
 To use an NDJSON dataset with YOLO26, simply specify the path to the `.ndjson` file:
@@ -298,7 +345,7 @@ You can easily convert labels from the popular [COCO dataset](coco.md) format to
         convert_coco(labels_dir="path/to/coco/annotations/")
         ```
 
-This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo26.md).
+This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo26.md). For the full workflow — including class ID mapping, directory layout, and segmentation or pose annotations — see [Convert COCO Annotations to YOLO](../../guides/coco-to-yolo.md).
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
 

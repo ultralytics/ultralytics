@@ -1,14 +1,14 @@
 ---
-title: Pose Estimation with YOLO
+title: Pose Estimation with Ultralytics YOLO
 comments: true
 description: Discover how to use YOLO26 for pose estimation tasks. Learn about model training, validation, prediction, and exporting in various formats.
 keywords: pose estimation, YOLO26, Ultralytics, keypoints, model training, image recognition, deep learning, human pose detection, computer vision, real-time tracking
 model_name: yolo26n-pose
 ---
 
-# Pose Estimation
+# Pose Estimation with Ultralytics YOLO {#pose-estimation}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-estimation-examples.avif" alt="YOLO pose estimation with human body keypoint detection">
+<img width="1024" src="https://cdn.ul.run/i/78b97a2089bd03e3a54f0ee693be727f.avif" alt="Ultralytics YOLO pose estimation with human body keypoint detection">
 
 Pose estimation is a task that involves identifying the location of specific points in an image, usually referred to as keypoints. The keypoints can represent various parts of the object such as joints, landmarks, or other distinctive features. The locations of the keypoints are usually represented as a set of 2D `[x, y]` coordinates, optionally with a visibility flag `[x, y, visible]`.
 

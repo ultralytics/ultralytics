@@ -16,7 +16,7 @@ The export to TFLite Edge TPU format feature allows you to optimize your [Ultral
 Exporting models to [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Edge TPU makes [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tasks fast and efficient. This technology suits applications with limited power, computing resources, and connectivity. The Edge TPU is a hardware accelerator by Google. It speeds up TensorFlow Lite models on edge devices. The image below shows an example of the process involved.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tflite-edge-tpu-compile-workflow.avif" alt="TensorFlow Lite Edge TPU compilation workflow">
+  <img width="100%" src="https://cdn.ul.run/i/1ae94bc857840372b88ae8bf00492b39.avif" alt="TensorFlow Lite Edge TPU compilation workflow">
 </p>
 
 The Edge TPU works with quantized models. Quantization makes models smaller and faster without losing much [accuracy](https://www.ultralytics.com/glossary/accuracy). It is ideal for the limited resources of edge computing, allowing applications to respond quickly by reducing latency and allowing for quick data processing locally, without cloud dependency. Local processing also keeps user data private and secure since it's not sent to a remote server.
@@ -42,6 +42,15 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 - **Edge Computing with Cloud TensorFlow TPUs**: In scenarios where edge devices have limited processing capabilities, TensorFlow Edge TPUs can offload inference tasks to cloud servers equipped with TPUs.
 
 - **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) for more complex computations.
+
+## Supported Tasks
+
+Edge TPU export supports six of the seven Ultralytics tasks. Semantic segmentation is available only with YOLO26, the only family that ships that head. Depth estimation is not supported because its INT8 model emits an `EXP` v2 operator that the Edge TPU compiler cannot parse.
+
+{% set unsupported = ["depth"] %}
+{% include "macros/supported-tasks.md" %}
+
+The Edge TPU compiler maps the operations it supports onto the accelerator and leaves the rest on the CPU, so task support does not mean every operation runs on the TPU.
 
 ## Exporting YOLO26 Models to TFLite Edge TPU
 
@@ -133,15 +142,15 @@ The TFLite Edge TPU format supports the [Export](../modes/export.md), [Predict](
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                             |
-| ---------- | ---------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'edgetpu'`    | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                      |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                       |
-| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8) is required and auto-enabled for Edge TPU, compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss on edge devices. Replaces the deprecated `half`/`int8` flags. |
-| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                        |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                                     |
-| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used.        |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: CPU (`device=cpu`).                                                                                                                                                                                                                 |
+| Argument   | Type             | Default     | Description                                                                                                                                                                                                                                                             |
+| ---------- | ---------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'edgetpu'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                      |
+| `imgsz`    | `int` or `tuple` | `640`       | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                       |
+| `quantize` | `int` or `str`   | `8`/auto    | Quantization precision. `8` (INT8) is required and auto-enabled for Edge TPU, compressing the model and speeding up inference with minimal [accuracy](https://www.ultralytics.com/glossary/accuracy) loss on edge devices. Replaces the deprecated `half`/`int8` flags. |
+| `opset`    | `int`            | `None`      | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                        |
+| `data`     | `str`            | `None`      | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.        |
+| `fraction` | `float`          | `1.0`       | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used.        |
+| `device`   | `str`            | `None`      | Specifies the device for exporting: CPU (`device=cpu`).                                                                                                                                                                                                                 |
 
 !!! tip
 

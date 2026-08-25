@@ -49,12 +49,15 @@ from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
+    TORCH_1_11,
+    TORCH_2_0,
     TORCH_2_4,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
     autocast,
     convert_optimizer_state_dict_to_fp16,
+    get_torch_device_backend,
     init_seeds,
     one_cycle,
     parse_device,
@@ -125,11 +128,15 @@ class BaseTrainer:
             overrides (dict, optional): Configuration overrides.
             _callbacks (dict, optional): Dictionary of callback functions.
         """
-        self.hub_session = overrides.pop("session", None)  # HUB
         self.args = get_cfg(cfg, overrides)
+        if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
+            import albumentations as A
+
+            self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
+        self.accelerator = get_torch_device_backend(self.device) if self.device.type not in {"cpu", "mps"} else None
         self.validator = None
         self.metrics = None
         self.plots = {}
@@ -142,12 +149,7 @@ class BaseTrainer:
         if RANK in {-1, 0}:
             self.wdir.mkdir(parents=True, exist_ok=True)  # make dir
             self.args.save_dir = str(self.save_dir)
-            # Save run args, serializing augmentations as reprs for resume compatibility
-            args_dict = vars(self.args).copy()
-            if args_dict.get("augmentations") is not None:
-                # Serialize Albumentations transforms as their repr strings for checkpoint compatibility
-                args_dict["augmentations"] = [repr(t) for t in args_dict["augmentations"]]
-            YAML.save(self.save_dir / "args.yaml", args_dict)  # save run args
+            YAML.save(self.save_dir / "args.yaml", vars(self.args))  # save run args
         self.last, self.best = self.wdir / "last.pt", self.wdir / "best.pt"  # checkpoint paths
         self.save_period = self.args.save_period
 
@@ -164,12 +166,13 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        # Device count in the launching process; distinct from utils.WORLD_SIZE set in spawned DDP workers
         if self.device.type in {"cpu", "mps"}:
             world_size = 0
         else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU
             world_size = len(self.args.device.split(",")) if self.args.device else 1
 
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.ddp = world_size > 1 and LOCAL_RANK == -1  # spawn DDP workers unless already one
         self.world_size = world_size
         # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
         if RANK in {-1, 0} and not self.ddp:
@@ -215,29 +218,34 @@ class BaseTrainer:
     def train(self):
         """Execute the training process, using DDP subprocess for multi-GPU or direct training for single-GPU."""
         # Run subprocess if DDP training, else train normally
-        if self.ddp:
-            # Argument checks
-            if self.args.rect:
-                LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
-                self.args.rect = False
-            if self.args.batch < 1.0:
-                raise ValueError(
-                    "AutoBatch with batch<1 not supported for Multi-GPU training, "
-                    f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
-                )
+        try:
+            if self.ddp:
+                # Argument checks
+                if self.args.rect:
+                    LOGGER.warning("'rect=True' is incompatible with Multi-GPU training, setting 'rect=False'")
+                    self.args.rect = False
+                if self.args.batch < 1.0:
+                    raise ValueError(
+                        "AutoBatch with batch<1 not supported for Multi-GPU training, "
+                        f"please specify a valid batch size multiple of GPU count {self.world_size}, i.e. batch={self.world_size * 8}."
+                    )
 
-            # Command
-            cmd, file = None, None
-            try:
-                cmd, file = generate_ddp_command(self)
-                LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
-                subprocess.run(cmd, check=True)
-            finally:
-                if file is not None:
-                    ddp_cleanup(self, str(file))
+                # Command
+                cmd, file = None, None
+                try:
+                    cmd, file = generate_ddp_command(self)
+                    LOGGER.info(f"{colorstr('DDP:')} debug command {' '.join(cmd)}")
+                    subprocess.run(cmd, check=True)
+                finally:
+                    if file is not None:
+                        ddp_cleanup(self, str(file))
 
-        else:
-            self._do_train()
+            else:
+                self._do_train()
+        finally:
+            unset_deterministic()  # never leave deterministic state on, including the DDP parent and failed runs
+        if not self.ddp:
+            self.run_callbacks("teardown")
 
     def _setup_scheduler(self):
         """Initialize training learning rate scheduler."""
@@ -254,12 +262,19 @@ class BaseTrainer:
 
     def _setup_ddp(self):
         """Initialize and set the DistributedDataParallel parameters for training."""
-        index = int(self.args.device.split(",")[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
-        torch.cuda.set_device(index)
-        self.device = torch.device("cuda", index)
-        os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        device_type = self.args.device.split(":", 1)[0]
+        device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
+        devices = self.args.device.split(":", 1)[-1].split(",")
+        index = int(devices[LOCAL_RANK])  # world_size > 1 guarantees a multi-device string
+        self.device = torch.device(device_type, index)
+        self.accelerator = get_torch_device_backend(self.device)
+        self.accelerator.set_device(index)
+        if device_type == "cuda":
+            os.environ["TORCH_NCCL_BLOCKING_WAIT"] = "1"  # set to enforce timeout
+        elif device_type == "xpu" and not (hasattr(dist, "is_xccl_available") and dist.is_xccl_available()):
+            raise RuntimeError("Multi-XPU training requires XCCL, which is not available in this PyTorch build.")
         dist.init_process_group(
-            backend="nccl" if dist.is_nccl_available() else "gloo",
+            backend={"npu": "hccl", "xpu": "xccl"}.get(device_type, "nccl" if dist.is_nccl_available() else "gloo"),
             timeout=timedelta(seconds=10800),  # 3 hours
             rank=RANK,
             world_size=self.world_size,
@@ -356,9 +371,16 @@ class BaseTrainer:
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
-        self.scaler = (
-            torch.amp.GradScaler("cuda", enabled=self.amp) if TORCH_2_4 else torch.cuda.amp.GradScaler(enabled=self.amp)
-        )
+        if self.device.type == "npu":
+            import torch_npu
+
+            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
+        else:
+            self.scaler = (
+                torch.amp.GradScaler(self.device.type if self.device.type == "xpu" else "cuda", enabled=self.amp)
+                if TORCH_2_4
+                else torch.cuda.amp.GradScaler(enabled=self.amp)
+            )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
         self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
@@ -370,12 +392,13 @@ class BaseTrainer:
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
+            ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                static_graph=bool(self.args.compile),
                 broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
+                **ddp_kwargs,
             )
 
         # Batch size
@@ -466,7 +489,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp):
+                    with autocast(self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -506,8 +529,9 @@ class BaseTrainer:
                     self._oom_retries += 1
                     old_batch = self.batch_size
                     self.args.batch = self.batch_size = max(self.batch_size // 2, 1)
+                    error = f"{self.device.type.upper()} out of memory" if is_oom else "CUDA backend memory error"
                     LOGGER.warning(
-                        f"{'CUDA out of memory' if is_oom else 'CUDA backend memory error'} with batch={old_batch}. "
+                        f"{error} with batch={old_batch}. "
                         f"Reducing to batch={self.batch_size} and retrying ({self._oom_retries}/3)."
                     )
                     batch = loss = preds = None
@@ -627,8 +651,6 @@ class BaseTrainer:
         for loader in (self.train_loader, self.test_loader):
             if hasattr(loader, "close"):
                 loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
-        unset_deterministic()
-        self.run_callbacks("teardown")
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
@@ -651,9 +673,9 @@ class BaseTrainer:
             if fraction:
                 return __import__("psutil").virtual_memory().percent / 100
         elif self.device.type != "cpu":
-            memory = torch.cuda.memory_reserved()
+            memory = self.accelerator.memory_reserved()
             if fraction:
-                total = torch.cuda.get_device_properties(self.device).total_memory
+                total = self.accelerator.get_device_properties(self.device).total_memory
         return ((memory / total) if total > 0 else 0) if fraction else (memory / 2**30)
 
     def _clear_memory(self, threshold: float | None = None):
@@ -668,7 +690,7 @@ class BaseTrainer:
         elif self.device.type == "cpu":
             return
         else:
-            torch.cuda.empty_cache()
+            self.accelerator.empty_cache()
 
     def read_results_csv(self):
         """Read results.csv into a dictionary using polars."""
@@ -795,7 +817,7 @@ class BaseTrainer:
         if str(self.model).endswith(".pt"):
             weights, ckpt = load_checkpoint(self.model)
             cfg = weights.yaml
-        if isinstance(self.args.pretrained, (str, Path)):
+        if isinstance(self.args.pretrained, (str, Path)) and not self.resume:
             weights, _ = load_checkpoint(self.args.pretrained)
         elif self.args.pretrained is False and not self.resume:
             weights = None
@@ -820,7 +842,10 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
+        if self.device.type == "npu" and TORCH_2_0:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, foreach=False)
+        else:
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
@@ -966,16 +991,6 @@ class BaseTrainer:
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
-                # Handle augmentations parameter for resume: check if user provided custom augmentations
-                if ckpt_args.get("augmentations") is not None:
-                    # Augmentations were saved in checkpoint as reprs but can't be restored automatically
-                    LOGGER.warning(
-                        "Custom Albumentations transforms were used in the original training run but are not "
-                        "being restored. To preserve custom augmentations when resuming, you need to pass the "
-                        "'augmentations' parameter again to get expected results. Example: \n"
-                        f"model.train(resume=True, augmentations={ckpt_args['augmentations']})"
-                    )
-
             except Exception as e:
                 raise FileNotFoundError(
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
@@ -996,12 +1011,11 @@ class BaseTrainer:
         self.best_fitness = ckpt.get("best_fitness")
 
     def _handle_nan_recovery(self, epoch):
-        """Detect and recover from NaN/Inf loss and fitness collapse by loading last checkpoint."""
+        """Detect and recover from NaN/Inf loss by loading last checkpoint."""
         loss_nan = self.loss is not None and not self.loss.isfinite()
         fitness_nan = self.fitness is not None and not np.isfinite(self.fitness)
-        fitness_collapse = self.best_fitness and self.best_fitness > 0 and self.fitness == 0
-        corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan or fitness_collapse)
-        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf" if fitness_nan else "Fitness collapse"
+        corrupted = RANK in {-1, 0} and (loss_nan or fitness_nan)
+        reason = "Loss NaN/Inf" if loss_nan else "Fitness NaN/Inf"
         if RANK != -1:  # DDP: broadcast to all ranks
             broadcast_list = [corrupted if RANK == 0 else None]
             dist.broadcast_object_list(broadcast_list, 0)
@@ -1046,11 +1060,6 @@ class BaseTrainer:
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
         )
         LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
-        if self.epochs < start_epoch:
-            LOGGER.info(
-                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
-            )
-            self.epochs += ckpt["epoch"]  # finetune additional epochs
         self._load_checkpoint_state(ckpt)
         if getattr(unwrap_model(self.model), "end2end", False):
             # initialize loss and resume o2o and o2m args
@@ -1060,6 +1069,7 @@ class BaseTrainer:
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()
+            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""
@@ -1135,16 +1145,17 @@ class BaseTrainer:
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
             g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
-            import re
-
             # higher lr for certain parameters in MuSGD when finetuning
-            # proto.semseg is the checkpoint parameter name for YOLO26 semantic auxiliary heads.
-            pattern = re.compile(r"(?=.*23)(?=.*cv3)|proto\.semseg|SemanticSegment")
+            target = unwrap_model(model)
+            head = getattr(target, "student_model", target).model[-1]
+            heads = (getattr(head, "cv3", None), getattr(head, "one2one_cv3", None))
+            boosted = {id(p) for m in heads if m for p in m.parameters()}
             g_ = []  # new param groups
             for x in g:
                 p = x.pop("params")
-                p1 = [v for k, v in p.items() if pattern.search(k)]
-                p2 = [v for k, v in p.items() if not pattern.search(k)]
+                p1, p2 = [], []
+                for k, v in p.items():
+                    (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
         optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
@@ -1235,7 +1246,6 @@ class MultiTrainer:
                         "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
                         "name": name,
                         "resume": False,
-                        "session": None,
                     }
                     run = SimpleNamespace(
                         project=overrides["project"],
@@ -1256,7 +1266,7 @@ class MultiTrainer:
                             [
                                 *_YOLO_CLI_COMMAND,
                                 "train",
-                                *(f"{k}={v}" for k, v in overrides.items() if k != "session"),
+                                *(f"{k}={v}" for k, v in overrides.items()),
                             ],
                             check=True,
                         )

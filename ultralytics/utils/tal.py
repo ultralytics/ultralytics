@@ -297,7 +297,7 @@ class TaskAlignedAssigner(nn.Module):
             - Bounding box format: [x_min, y_min, x_max, y_max].
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
+        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride_val  # floor tiny sides so the pool grows monotonically
         gt_bboxes_xywh[..., 2:] = torch.where(
             (wh_mask * mask_gt).bool(),
             torch.tensor(self.stride_val, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device),
@@ -366,7 +366,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
             (torch.Tensor): Boolean mask of positive anchors with shape (b, n_boxes, h*w).
         """
         gt_bboxes_clone = gt_bboxes.clone()
-        wh_mask = gt_bboxes_clone[..., 2:4] < self.stride[0]
+        wh_mask = gt_bboxes_clone[..., 2:4] < self.stride_val
         gt_bboxes_clone[..., 2:4] = torch.where(
             (wh_mask * mask_gt).bool(),
             torch.tensor(self.stride_val, dtype=gt_bboxes_clone.dtype, device=gt_bboxes_clone.device),
@@ -393,15 +393,16 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
     """Generate anchors from features."""
     anchor_points, stride_tensor = [], []
     assert feats is not None
-    dtype, device = feats[0].dtype, feats[0].device
+    dtype = feats[0].dtype
     for i in range(len(feats)):  # use len(feats) to avoid TracerWarning from iterating over strides tensor
         stride = strides[i]
         h, w = feats[i].shape[2:] if isinstance(feats, list) else (int(feats[i][0]), int(feats[i][1]))
-        sx = torch.arange(end=w, device=device, dtype=dtype) + grid_cell_offset  # shift x
-        sy = torch.arange(end=h, device=device, dtype=dtype) + grid_cell_offset  # shift y
+        # arange(out=new_*) avoids nondeterministic CUDA cumsum while preserving runtime device inheritance in traces
+        sx = torch.arange(w, out=feats[0].new_full((w,), 0, dtype=dtype)) + grid_cell_offset  # shift x
+        sy = torch.arange(h, out=feats[0].new_full((h,), 0, dtype=dtype)) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
         anchor_points.append(torch.stack((sx, sy), -1).view(-1, 2))
-        stride_tensor.append(torch.full((h * w, 1), stride, dtype=dtype, device=device))
+        stride_tensor.append(feats[0].new_full((h * w, 1), stride, dtype=dtype))
     return torch.cat(anchor_points), torch.cat(stride_tensor)
 
 

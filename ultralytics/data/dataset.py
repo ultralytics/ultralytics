@@ -39,6 +39,7 @@ from .utils import (
     get_hash,
     img2label_paths,
     load_dataset_cache_file,
+    load_depth,
     polygons2masks_overlap,
     save_dataset_cache_file,
     verify_image,
@@ -58,6 +59,7 @@ class YOLODataset(BaseDataset):
     box (OBB) tasks using the YOLO format.
 
     Attributes:
+        format_class (type[Format]): Formatter appended by build_transforms; subclasses override it per task.
         use_segments (bool): Indicates if segmentation masks should be used.
         use_keypoints (bool): Indicates if keypoints should be used for pose estimation.
         use_obb (bool): Indicates if oriented bounding boxes should be used.
@@ -80,6 +82,8 @@ class YOLODataset(BaseDataset):
         >>> dataset.get_labels()
     """
 
+    format_class = Format
+
     def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
         """Initialize the YOLODataset.
 
@@ -93,7 +97,6 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
-        assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -314,7 +317,7 @@ class YOLODataset(BaseDataset):
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
-            Format(
+            self.format_class(
                 bbox_format="xywh",
                 normalize=True,
                 return_mask=self.use_segments,
@@ -358,7 +361,7 @@ class YOLODataset(BaseDataset):
         return [k for k, v in category_freq.items() if v >= threshold]
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -435,29 +438,33 @@ class YOLODataset(BaseDataset):
 class DepthDataset(YOLODataset):
     """Dataset for monocular depth estimation with paired RGB + depth map loading.
 
-    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as .npy files in a
-    parallel directory structure (images/train/*.jpg → depth/train/*.npy).
+    Extends YOLODataset to load depth ground truth maps alongside RGB images. Depth maps are stored as PNG or NPY files
+    in a parallel directory structure (images/train/*.jpg → depth/train/*.{png,npy}).
 
     Examples:
         >>> dataset = DepthDataset(img_path="/data/nyu/images/train", data={"nc": 1})
     """
 
+    format_class = DepthFormat
+
     def _depth_path_for(self, im_file: str) -> str:
-        """Map an image path to its companion depth .npy path (last 'images' path component → 'depth')."""
+        """Map an image path to its companion PNG or NPY depth target."""
         parts = list(Path(im_file).parts)
         for i in range(len(parts) - 1, -1, -1):
             if parts[i] == "images":
                 parts[i] = "depth"
                 break
-        return str(Path(*parts).with_suffix(".npy"))
+        path = Path(*parts).with_suffix(".png")
+        return str(path if path.is_file() else path.with_suffix(".npy"))
 
     def get_label_files(self) -> list[str]:
-        """Return the depth .npy paths paired with the dataset's images.
+        """Return the depth paths paired with the dataset's images.
 
         Returns:
             (list[str]): List of depth file paths.
         """
-        self.depth_files = [self._depth_path_for(f) for f in self.im_files]
+        self.depth_files_by_image = {f: self._depth_path_for(f) for f in self.im_files}
+        self.depth_files = list(self.depth_files_by_image.values())
         return self.depth_files
 
     def get_cache_hash(self) -> str:
@@ -466,7 +473,7 @@ class DepthDataset(YOLODataset):
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.depth_files + self.im_files)
+        return get_hash(self.depth_files + self.im_files + [str(self.data.get("depth_scale", 1000))])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-depth scan counters."""
@@ -474,7 +481,9 @@ class DepthDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the depth verification function and its argument iterable."""
-        return verify_image_depth, zip(self.im_files, self.depth_files, repeat(self.prefix))
+        return verify_image_depth, zip(
+            self.im_files, self.depth_files, repeat(self.prefix), repeat(self.data.get("depth_scale", 1000))
+        )
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_depth result into a label dict and scan counter increments."""
@@ -498,9 +507,8 @@ class DepthDataset(YOLODataset):
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
     def _load_depth(self, index):
-        """Return the native-resolution depth map for an image, with non-finite values mapped to 0 (invalid)."""
-        depth = np.load(self._depth_path_for(self.im_files[index])).astype(np.float32)
-        return np.nan_to_num(depth, nan=0.0, posinf=0.0, neginf=0.0)
+        """Return the native-resolution depth map for an image."""
+        return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""
@@ -527,7 +535,6 @@ class DepthDataset(YOLODataset):
         if not self.augment:
             # stretch the image instead of padding
             transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
-        transforms[-1] = DepthFormat()  # replace the last transform with DepthFormat
         return transforms
 
 
@@ -606,7 +613,8 @@ class YOLOMultiModalDataset(YOLODataset):
                 for t in text:
                     t = t.strip()
                     category_freq[t] += 1
-        return category_freq
+        # a background-only dataset sees no class, leaving every class an equally valid negative
+        return category_freq or dict.fromkeys((t.strip() for text in texts for t in text), 0)
 
 
 class GroundingDataset(YOLODataset):
@@ -619,7 +627,6 @@ class GroundingDataset(YOLODataset):
         json_file (str): Path to the JSON file containing annotations.
 
     Methods:
-        get_img_files: Return empty list as image files are read in get_labels.
         get_labels: Load annotations from a JSON file and prepare them for training.
         build_transforms: Configure augmentations for training with optional text loading.
 
@@ -643,36 +650,18 @@ class GroundingDataset(YOLODataset):
         self.max_samples = max_samples
         super().__init__(*args, task=task, data={"channels": 3}, **kwargs)
 
-    def get_img_files(self, img_path: str) -> list:
-        """The image files would be read in `get_labels` function, return empty list here.
+    def get_img_files(self, img_path: str) -> list[str]:
+        """Return every image under `img_path`; the annotations, not `fraction`, decide which ones are used."""
+        self.fraction = 1.0  # a truncated inventory would leave later images outside the cache key
+        self.scan_files = super().get_img_files(img_path)
+        return self.scan_files
 
-        Args:
-            img_path (str): Path to the directory containing images.
-
-        Returns:
-            (list): Empty list as image files are read in get_labels.
-        """
-        return []
+    def get_cache_hash(self) -> str:
+        """Return a hash over the annotation file and images scanned against it."""
+        return get_hash([self.json_file, *self.scan_files])
 
     def _verify_instance_counts(self, labels: list[dict[str, Any]]) -> None:
-        """Verify the number of instances in the dataset matches expected counts.
-
-        This method checks if the total number of bounding box instances in the provided labels matches the expected
-        count for known datasets. It performs validation against a predefined set of datasets with known instance
-        counts.
-
-        Args:
-            labels (list[dict[str, Any]]): List of label dictionaries, where each dictionary contains dataset
-                annotations. Each label dict must have a 'bboxes' key with a numpy array or tensor containing bounding
-                box coordinates.
-
-        Raises:
-            AssertionError: If the actual instance count doesn't match the expected count for a recognized dataset.
-
-        Notes:
-            For unrecognized datasets (those not in the predefined expected_counts),
-            a warning is logged and verification is skipped.
-        """
+        """Verify instance counts for known grounding datasets."""
         expected_counts = {
             "final_mixed_train_no_coco_segm": 3662412,
             "final_mixed_train_no_coco": 3681235,
@@ -704,15 +693,16 @@ class GroundingDataset(YOLODataset):
         img_to_anns = defaultdict(list)
         for ann in annotations["annotations"]:
             img_to_anns[ann["image_id"]].append(ann)
+        dropped = False
         for img_id, anns in TQDM(img_to_anns.items(), desc=f"Reading annotations {self.json_file}"):
             img = images[f"{img_id:d}"]
             h, w, f = img["height"], img["width"], img["file_name"]
             im_file = Path(self.img_path) / f
             if not im_file.exists():
                 continue
-            self.im_files.append(str(im_file))
             bboxes = []
             segments = []
+            segmented = False
             cat2id = {}
             texts = []
             for ann in anns:
@@ -737,31 +727,41 @@ class GroundingDataset(YOLODataset):
                 box = [cls, *box.tolist()]
                 if box not in bboxes:
                     bboxes.append(box)
-                    if ann.get("segmentation") is not None:
-                        if len(ann["segmentation"]) == 0:
-                            cx, cy, bw, bh = box[1:]
-                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
-                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
-                            continue
-                        elif len(ann["segmentation"]) > 1:
-                            s = merge_multi_segment(ann["segmentation"])
-                            s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
-                        else:
-                            s = [j for i in ann["segmentation"] for j in i]  # all segments concatenated
-                            s = (
-                                (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
-                                .reshape(-1)
-                                .tolist()
-                            )
-                        s = [cls, *s]
-                        segments.append(s)
+                    raw_seg = ann.get("segmentation")
+                    segmented |= raw_seg is not None
+                    seg = raw_seg if isinstance(raw_seg, list) else []
+                    polygons = [
+                        p
+                        for p in seg
+                        if isinstance(p, list)
+                        and len(p) >= 6
+                        and not len(p) % 2
+                        and all(isinstance(c, (int, float)) for c in p)
+                    ]
+                    dropped |= bool(raw_seg) and (not isinstance(raw_seg, list) or len(polygons) < len(seg))
+                    if not polygons:  # keep one segment per box so an image mixing the two kinds stays aligned
+                        cx, cy, bw, bh = box[1:]
+                        x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                        segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])  # segments2boxes returns the box
+                        continue
+                    elif len(polygons) > 1:
+                        s = merge_multi_segment(polygons)
+                        s = (np.concatenate(s, axis=0) / np.array([w, h], dtype=np.float32)).reshape(-1).tolist()
+                    else:
+                        s = [j for i in polygons for j in i]  # all segments concatenated
+                        s = (
+                            (np.array(s, dtype=np.float32).reshape(-1, 2) / np.array([w, h], dtype=np.float32))
+                            .reshape(-1)
+                            .tolist()
+                        )
+                    segments.append([cls, *s])
             lb = np.array(bboxes, dtype=np.float32) if len(bboxes) else np.zeros((0, 5), dtype=np.float32)
 
-            if segments:
-                classes = np.array([x[0] for x in segments], dtype=np.float32)
+            if segmented:
                 segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in segments]  # (cls, xy1...)
-                lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
-            lb = np.array(lb, dtype=np.float32)
+                lb[:, 1:] = segments2boxes(segments)  # boxes follow the polygons
+            else:
+                segments = []  # no annotation carried a segmentation, so store no masks
 
             x["labels"].append(
                 {
@@ -775,7 +775,12 @@ class GroundingDataset(YOLODataset):
                     "texts": texts,
                 }
             )
-        x["hash"] = get_hash(self.json_file)
+        if dropped:
+            LOGGER.warning(
+                f"{self.json_file}: ignored segmentations that are not polygon point lists, such as RLE masks. "
+                "Annotations left without a polygon use a segment shaped like their bounding box."
+            )
+        x["hash"] = self.get_cache_hash()
         save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)
         return x
 
@@ -786,9 +791,16 @@ class GroundingDataset(YOLODataset):
             (list[dict]): List of label dictionaries, each containing information about an image and its annotations.
         """
         cache_path = Path(self.json_file).with_suffix(".cache")
-        cache, _ = self._load_or_scan_cache(cache_path, get_hash(self.json_file))
+        cache, _ = self._load_or_scan_cache(cache_path, self.get_cache_hash())
         [cache.pop(k) for k in ("hash", "version")]  # remove items
         labels = cache["labels"]
+        if not labels:
+            raise RuntimeError(f"No images from {self.json_file} found in {self.img_path}. {HELP_URL}")
+        if not any(label["texts"] for label in labels):  # category_freq is empty, so negative texts cannot be built
+            raise RuntimeError(
+                f"No annotations in {self.json_file} survived filtering. Every one is iscrowd, resolves to an empty "
+                f"caption span or has a zero-size box. {HELP_URL}"
+            )
         self._verify_instance_counts(labels)
         self.im_files = [str(label["im_file"]) for label in labels]
         if LOCAL_RANK in {-1, 0}:
@@ -851,7 +863,7 @@ class YOLOConcatDataset(ConcatDataset):
         return YOLODataset.collate_fn(batch)
 
     def close_mosaic(self, hyp: dict) -> None:
-        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their probabilities to 0.0.
+        """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
             hyp (dict): Hyperparameters for transforms.
@@ -877,6 +889,8 @@ class SemanticDataset(YOLODataset):
         include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
     """
 
+    format_class = SemanticFormat
+
     def __init__(self, *args, data: dict | None = None, **kwargs):
         """Initialize SemanticDataset.
 
@@ -887,6 +901,7 @@ class SemanticDataset(YOLODataset):
         """
         self.data = data or {}
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
+        self.label_lut, self.inverse_lut = self._build_label_luts()
         self.mask_files = []
         self.include_class = None
         super().__init__(*args, data=data, **kwargs)
@@ -930,6 +945,16 @@ class SemanticDataset(YOLODataset):
                 dst = int(dst)
             normalized[src] = dst
         return normalized
+
+    def _build_label_luts(self) -> tuple[np.ndarray, np.ndarray]:
+        """Build the 256-entry forward and inverse lookup tables for the dataset label mapping."""
+        forward, inverse = np.arange(256, dtype=np.uint8), np.arange(256, dtype=np.uint8)
+        for k, v in self.label_mapping.items():  # ids outside 0-255 never match a uint8 mask pixel
+            if 0 <= k < 256:
+                forward[k] = v
+            if 0 <= v < 256:
+                inverse[v] = k & 0xFF  # cityscapes maps -1; the inverse caller casts the result to uint8
+        return forward, inverse
 
     def get_label_files(self) -> list[str]:
         """Return the mask PNG paths paired with the dataset's images.
@@ -1011,37 +1036,18 @@ class SemanticDataset(YOLODataset):
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
 
-    def build_transforms(self, hyp=None):
-        """Build transforms for semantic segmentation.
-
-        Args:
-            hyp (dict): Hyperparameters.
-
-        Returns:
-            (Compose): Composed transforms.
-        """
-        transforms = super().build_transforms(hyp)
-        transforms[-1] = SemanticFormat()  # replace the last transform with SemanticFormat
-        return transforms
-
     def convert_label(self, label, inverse=False):
         """Convert label values using the dataset's label mapping.
 
         Args:
-            label (np.ndarray): Segmentation label array to convert.
+            label (np.ndarray): Segmentation label array with integer ids in 0-255.
             inverse (bool): If True, apply inverse mapping (mapped -> original). Defaults to False.
 
         Returns:
-            (np.ndarray): Label array with converted values.
+            (np.ndarray): New uint8 array with converted values.
         """
-        temp = label.copy()
-        if inverse:
-            for v, k in self.label_mapping.items():
-                label[temp == k] = v
-        else:
-            for k, v in self.label_mapping.items():
-                label[temp == k] = v
-        return label
+        lut = self.inverse_lut if inverse else self.label_lut
+        return cv2.LUT(label, lut) if label.dtype == np.uint8 else lut[label]  # cv2.LUT needs a uint8 input
 
     def get_image_and_label(self, index):
         """Get image, label and semantic mask for the given index.
@@ -1138,15 +1144,12 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
-        img_cache (np.ndarray): Contiguous uint8 buffer holding all cached images when caching in RAM.
-        img_offsets (np.ndarray): Flat offset of each image within img_cache.
-        img_shapes (list): (h, w, c) shape of each cached image.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
-        cache_images: Decode all images once into a single contiguous RAM buffer.
+        cache_images: Decode images into one contiguous RAM cache.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -1212,9 +1215,7 @@ class ClassificationDataset:
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            h, w, c = self.img_shapes[i]
-            pos = self.img_offsets[i]
-            im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)  # zero-copy view
+            im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
@@ -1246,9 +1247,7 @@ class ClassificationDataset:
                     disable=LOCAL_RANK > 0,
                 )
             )
-        self.img_shapes = [im.shape for im in ims]
-        self.img_offsets = np.cumsum([0] + [im.size for im in ims[:-1]])
-        self.img_cache = np.concatenate([im.reshape(-1) for im in ims])
+        self.img_cache = BaseDataset._ImageCache(ims)
 
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.

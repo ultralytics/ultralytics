@@ -55,7 +55,7 @@ from ultralytics.utils import (
     WEIGHTS_DIR,
     is_github_action_running,
 )
-from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_requirements, check_yolo, is_rockchip
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_imgsz, check_yolo, is_rockchip
 from ultralytics.utils.files import file_size
 from ultralytics.utils.torch_utils import get_cpu_info, select_device
 
@@ -143,7 +143,6 @@ def benchmark(
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 TensorFlow exports not supported by onnx2tf yet"
             if export_format == "paddle":
                 assert not isinstance(model, YOLOWorld), "YOLOWorldv2 Paddle exports not supported yet"
-                assert model.task != "obb", "Paddle OBB bug https://github.com/PaddlePaddle/Paddle/issues/72024"
                 assert (LINUX and not IS_JETSON) or MACOS, "Windows and Jetson Paddle exports not supported yet"
                 # PaddlePaddle export works standalone on Python 3.13 but its native protobuf clashes with the
                 # protobuf>=6.31.1 that TensorFlow loads earlier in this shared benchmark process, causing a segfault.
@@ -351,7 +350,7 @@ class ProfileModels:
             engine_file = file.with_suffix(".engine")
             if file.suffix in {".pt", ".yaml", ".yml"}:
                 model = YOLO(str(file))
-                model.fuse()  # to report correct params and GFLOPs in model.info()
+                model.fuse(verbose=False)
                 model_info = model.info(imgsz=self.imgsz)
                 if self.trt and self.device.type != "cpu" and not engine_file.is_file():
                     engine_file = model.export(
@@ -421,7 +420,8 @@ class ProfileModels:
         data = np.array(data)
         for _ in range(max_iters):
             mean, std = np.mean(data), np.std(data)
-            clipped_data = data[(data > mean - sigma * std) & (data < mean + sigma * std)]
+            # Include exact-boundary and zero-variance samples.
+            clipped_data = data[(data >= mean - sigma * std) & (data <= mean + sigma * std)]
             if len(clipped_data) == len(data):
                 break
             data = clipped_data
@@ -447,10 +447,10 @@ class ProfileModels:
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
-            start_time = time.time()
+            start_time = time.perf_counter()
             for _ in range(self.num_warmup_runs):
                 model(input_data, imgsz=self.imgsz, verbose=False)
-            elapsed = time.time() - start_time
+            elapsed = time.perf_counter() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
         num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs * 50)
@@ -479,17 +479,21 @@ class ProfileModels:
         Returns:
             (tuple[float, float]): Mean and standard deviation of inference time in milliseconds.
         """
-        check_requirements([("onnxruntime", "onnxruntime-gpu")])  # either package meets requirements
         import onnxruntime as ort
 
-        # Session with either 'TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'
+        from ultralytics.nn.backends import ONNXBackend
+
+        # Session options for consistent benchmarking
         sess_options = ort.SessionOptions()
         sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
         sess_options.intra_op_num_threads = 8  # Limit the number of threads
-        sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
+        # Initialize ONNXBackend with CPU device for consistent benchmarking
+        backend = ONNXBackend(onnx_file, device=torch.device("cpu"), fp16=False, session_options=sess_options)
+
+        # Prepare input data dictionary for multi-input models
         input_data_dict = {}
-        for input_tensor in sess.get_inputs():
+        for input_tensor in backend.session.get_inputs():
             input_type = input_tensor.type
             if self.check_dynamic(input_tensor.shape):
                 if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
@@ -514,19 +518,15 @@ class ProfileModels:
             else:
                 raise ValueError(f"Unsupported ONNX datatype {input_type}")
 
-            input_data = np.random.rand(*input_shape).astype(input_dtype)
-            input_name = input_tensor.name
-            input_data_dict[input_name] = input_data
-
-        output_name = sess.get_outputs()[0].name
+            input_data_dict[input_tensor.name] = np.random.rand(*input_shape).astype(input_dtype)
 
         # Warmup runs
         elapsed = 0.0
         for _ in range(3):
-            start_time = time.time()
+            start_time = time.perf_counter()
             for _ in range(self.num_warmup_runs):
-                sess.run([output_name], input_data_dict)
-            elapsed = time.time() - start_time
+                backend.forward(input_data_dict)
+            elapsed = time.perf_counter() - start_time
 
         # Compute number of runs as higher of min_time or num_timed_runs
         num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs)
@@ -534,9 +534,9 @@ class ProfileModels:
         # Timed runs
         run_times = []
         for _ in TQDM(range(num_runs), desc=onnx_file):
-            start_time = time.time()
-            sess.run([output_name], input_data_dict)
-            run_times.append((time.time() - start_time) * 1000)  # Convert to milliseconds
+            start_time = time.perf_counter()
+            backend.forward(input_data_dict)
+            run_times.append((time.perf_counter() - start_time) * 1000)  # Convert to milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=5)  # sigma clipping
         return np.mean(run_times), np.std(run_times)

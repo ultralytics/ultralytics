@@ -32,7 +32,7 @@ Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model
 ONNX models can be used to transition between different frameworks seamlessly. For instance, a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model trained in PyTorch can be exported to ONNX format and then easily imported into TensorFlow.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnx-model-portability.avif" alt="ONNX model portability across deep learning frameworks">
+  <img width="100%" src="https://cdn.ul.run/i/d82cf8e015f11e3e1f7ea679b043ef00.avif" alt="ONNX model portability across deep learning frameworks">
 </p>
 
 Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https://onnxruntime.ai/) is a versatile cross-platform accelerator for machine learning models that is compatible with frameworks like PyTorch, [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), scikit-learn, etc.
@@ -40,7 +40,7 @@ Alternatively, ONNX models can be used with ONNX Runtime. [ONNX Runtime](https:/
 ONNX Runtime optimizes the execution of ONNX models by leveraging hardware-specific capabilities. This optimization allows the models to run efficiently and with high performance on various hardware platforms, including CPUs, GPUs, and specialized accelerators.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/onnx-and-onnx-runtime.avif" alt="ONNX Runtime cross-platform inference acceleration">
+  <img width="100%" src="https://cdn.ul.run/i/f669dc67507d4abd9928fcda9dee73b1.avif" alt="ONNX Runtime cross-platform inference acceleration">
 </p>
 
 Whether used independently or in tandem with ONNX Runtime, ONNX provides a flexible solution for machine learning [model deployment](https://www.ultralytics.com/glossary/model-deployment) and compatibility.
@@ -69,11 +69,17 @@ ONNX models are often deployed on CPUs due to their compatibility with ONNX Runt
 
 While ONNX models are commonly used on CPUs, they can also be deployed on the following platforms:
 
-- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. This enables efficient execution on NVIDIA GPUs for tasks that demand high computational power.
+- **GPU Acceleration**: ONNX fully supports GPU acceleration, particularly NVIDIA CUDA. For native training and inference on AMD GPUs, use [PyTorch ROCm](amd.md); an ONNX file still requires an AMD-compatible runtime.
 
-- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Qualcomm QNN](qnn.md) for Snapdragon devices and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
+- **Edge and Mobile Devices**: ONNX extends to edge and mobile devices, perfect for on-device and real-time inference scenarios. It's lightweight and compatible with edge hardware, and serves as the basis for vendor NPU formats such as [Huawei Ascend](ascend.md), [Qualcomm QNN](qnn.md) for Snapdragon devices, and [RKNN](rockchip-rknn.md) for Rockchip NPUs.
 
 - **Web Browsers**: ONNX can run directly in web browsers, powering interactive and dynamic web-based AI applications.
+
+## Supported Tasks
+
+ONNX export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
 
 ## Exporting YOLO26 Models to ONNX
 
@@ -178,7 +184,7 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 | `format`   | `str`            | `'onnx'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                              |
 | `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                               |
 | `quantize` | `int` or `str`   | `None`   | Quantization precision: `16` (FP16) or `8` (INT8 static quantization with ONNX Runtime using calibration images from `data`, producing an `_int8.onnx` model); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags. |
-| `data`     | `str`            | `None`   | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                                                                   |
+| `data`     | `str`            | `None`   | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.      |
 | `fraction` | `float`          | `1.0`    | Fraction of calibration images to use for INT8 quantization.                                                                                                                                                                    |
 | `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                         |
 | `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                |

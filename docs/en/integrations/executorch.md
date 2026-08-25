@@ -14,7 +14,7 @@ This guide outlines how to export Ultralytics YOLO models to ExecuTorch format, 
 ## Why export to ExecuTorch?
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/executorch-pipeline.avif" alt="PyTorch ExecuTorch mobile inference framework">
+  <img width="100%" src="https://cdn.ul.run/i/11dc46f6702048f937a7b6f39f53f05a.avif" alt="PyTorch ExecuTorch mobile inference framework">
 </p>
 
 [ExecuTorch](https://docs.pytorch.org/executorch/) is PyTorch's end-to-end solution for enabling on-device inference capabilities across mobile and edge devices. Built with the goal of being portable and efficient, ExecuTorch can be used to run PyTorch programs on a wide variety of computing platforms.
@@ -44,6 +44,12 @@ ExecuTorch models can be deployed across various edge and mobile platforms:
 - **Edge AI Devices**: Deploy on specialized edge AI hardware with custom delegates for accelerated inference.
 
 - **IoT Devices**: Integrate into IoT devices for on-device inference without cloud connectivity requirements.
+
+## Supported Tasks
+
+ExecuTorch export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
 
 ## Exporting Ultralytics YOLO26 Models to ExecuTorch
 
@@ -169,6 +175,8 @@ For mobile applications (iOS/Android), you'll need to:
 2. **Load Model**: Load the `.pte` file in your application
 3. **Run Inference**: Process images and get predictions
 
+#### iOS
+
 Example iOS integration (Objective-C/C++):
 
 ```objc
@@ -188,6 +196,16 @@ auto tensor = from_blob(input, {1, 3, 640, 640});
 
 // Run inference
 const auto result = module.forward(tensor);
+```
+
+#### Android
+
+Add the [ExecuTorch Android AAR](https://docs.pytorch.org/executorch/stable/using-executorch-android.html) from Maven Central:
+
+```kotlin
+dependencies {
+    implementation("org.pytorch:executorch-android:<version>")
+}
 ```
 
 Example Android integration (Kotlin):

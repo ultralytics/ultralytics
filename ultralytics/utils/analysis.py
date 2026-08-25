@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.utils import DataExportMixin
+from ultralytics.utils import DataExportMixin, plt_settings
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
@@ -56,6 +56,7 @@ class AnalysisReport(DataExportMixin):
             reverse=True,
         )[:3]
 
+    @plt_settings()
     def plot(self) -> np.ndarray:
         """Return an RGB plot of the three strongest correlations."""
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'

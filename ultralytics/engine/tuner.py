@@ -474,9 +474,9 @@ class Tuner:
             data = train_args.pop("data")
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            model = YOLO(train_args.pop("model"))
+            model = YOLO(train_args["model"])
             trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
-            dataset_metrics = trainer.train()
+            dataset_metrics = {dataset: metrics or {} for dataset, metrics in trainer.train().items()}
             save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]
             metrics = next((metrics for metrics in reversed(dataset_metrics.values()) if metrics), {})

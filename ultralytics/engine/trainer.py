@@ -1227,7 +1227,8 @@ class MultiTrainer:
         )
         self.save_dir = get_save_dir(sweep, name="multitrain")
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        base_model = self.save_dir / "multitrain_base.pt" if self.trainer is None else None
+        model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
+        base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
             torch_save(
                 {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model

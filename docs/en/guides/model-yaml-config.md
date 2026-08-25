@@ -275,8 +275,8 @@ Standard modules become available through imports in [`tasks.py`](https://github
 
 ```python
 from ultralytics.nn.modules import (  # noqa: F401
-    SPPF,
     C2PSA,
+    SPPF,
     C3k2,
     Conv,
     Detect,

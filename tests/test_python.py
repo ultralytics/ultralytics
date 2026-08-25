@@ -20,7 +20,8 @@ import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
-from ultralytics.data.build import build_dataloader, build_yolo_dataset, load_inference_source
+from ultralytics.data import YOLODataset
+from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import (
     ARM64,
@@ -2114,7 +2115,7 @@ def test_semantic_polygon_data():
 def test_image_property_extractor():
     """Test scalar image property extraction on a detection dataset."""
     data = check_det_dataset("coco8.yaml")
-    ds = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
+    ds = YOLODataset(data["val"], data=data, augment=False)
     labels = ImagePropertyExtractor(ds).labels
     assert labels is ds.labels
     props = labels[0]["im_properties"]

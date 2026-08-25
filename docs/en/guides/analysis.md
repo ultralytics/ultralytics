@@ -11,13 +11,12 @@ keywords: Ultralytics, image property analysis, dataset analysis, object size, c
 ## Quick start
 
 ```python
-from ultralytics.data.build import build_yolo_dataset
+from ultralytics.data import YOLODataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.analysis import ImagePropertyExtractor
 
 data = check_det_dataset("coco128.yaml")
-dataset = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
+dataset = YOLODataset(data["val"], data=data, augment=False)
 labels = ImagePropertyExtractor(dataset).labels
 ```
 

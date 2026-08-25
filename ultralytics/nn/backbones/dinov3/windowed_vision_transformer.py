@@ -1,11 +1,9 @@
 """Windowed attention variant of DINOv3 Vision Transformer.
 
-Applies the window-partitioning trick from RF-DETR: intermediate layers run
-local (windowed) self-attention while layers listed in ``global_block_indexes``
-run global self-attention. Because only the token routing changes — not the
-layer weights — pretrained DINOv3 checkpoints load without modification.
-
-Reference: RF-DETR (Roboflow, 2025) — ``dinov2_with_windowed_attn.py``
+Intermediate layers run local (windowed) self-attention while layers listed in
+``global_block_indexes`` run global self-attention. Because only the token
+routing changes — not the layer weights — pretrained DINOv3 checkpoints load
+without modification.
 """
 
 from __future__ import annotations
@@ -26,9 +24,8 @@ class WindowedDinoVisionTransformer(DinoVisionTransformer):
     those listed in ``global_block_indexes``, which merge windows and run full
     global attention so that cross-window information can propagate.
 
-    This follows the RF-DETR convention where the output / feature-extraction
-    layers are the ones that run global attention, and everything else is
-    windowed.
+    Output / feature-extraction layers run global attention, and everything
+    else is windowed.
 
     Args:
         name: Config key in ``vision_transformer.configs`` (e.g. ``dinov3_vits16``).
@@ -37,8 +34,7 @@ class WindowedDinoVisionTransformer(DinoVisionTransformer):
             dimensions must be divisible by this value.
         global_block_indexes: Block indices that run **global** (unwindowed)
             attention.  Every other block runs windowed attention.
-            Defaults to ``[5, 8, 11]`` (the interaction / output layers),
-            matching the RF-DETR convention of ``out_feature_indexes``.
+            Defaults to ``[5, 8, 11]`` (the interaction / output layers).
     """
 
     def __init__(
@@ -50,7 +46,7 @@ class WindowedDinoVisionTransformer(DinoVisionTransformer):
     ):
         super().__init__(name=name, qk_layernorm=qk_layernorm)
         self.num_windows = num_windows
-        # Default: output / interaction layers get global attention (RF-DETR convention)
+        # Default: output / interaction layers get global attention.
         self.global_block_indexes = set(
             global_block_indexes if global_block_indexes is not None else [5, 8, 11]
         )

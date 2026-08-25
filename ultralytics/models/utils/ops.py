@@ -118,7 +118,7 @@ class HungarianMatcher(nn.Module):
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
         gt_groups: list[int],
-        masks: torch.Tensor | None = None,
+        masks: torch.Tensor | dict[str, torch.Tensor] | None = None,
         gt_mask: list[torch.Tensor] | None = None,
         epoch: int = 0,
         training_progress: float = 0.0,
@@ -135,7 +135,8 @@ class HungarianMatcher(nn.Module):
             gt_bboxes (torch.Tensor): Ground truth bounding boxes with shape (num_gts, 4).
             gt_cls (torch.Tensor): Ground truth class labels with shape (num_gts,).
             gt_groups (list[int]): Number of ground truth boxes for each image in the batch.
-            masks (torch.Tensor, optional): Predicted masks with shape (batch_size, num_queries, height, width).
+            masks (torch.Tensor | dict, optional): Dense masks or a sparse representation containing projected
+                spatial and query features.
             gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
             epoch (int): Current training epoch for optional DEIMv2 matcher schedule.
             training_progress (float): Normalized training progress in [0, 1] for the MAL matcher curriculum.
@@ -219,33 +220,65 @@ class HungarianMatcher(nn.Module):
         self,
         bs: int,
         num_gts: list[int],
-        masks: torch.Tensor | None = None,
+        masks: torch.Tensor | dict[str, torch.Tensor] | None = None,
         gt_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute MaskDINO-style sampled BCE and Dice costs for bipartite matching."""
         if masks is None or gt_mask is None:
             raise ValueError("with_mask=True requires both predicted `masks` and ground-truth `gt_mask`.")
-        if masks.ndim != 4 or gt_mask.ndim != 3:
-            raise ValueError(
-                f"Expected masks [B,Q,H,W] and gt_mask [N,H,W], got {tuple(masks.shape)} and {tuple(gt_mask.shape)}."
-            )
+        if gt_mask.ndim != 3:
+            raise ValueError(f"Expected gt_mask [N,H,W], got {tuple(gt_mask.shape)}.")
+
+        sparse = isinstance(masks, dict)
+        if sparse:
+            required = {"spatial_features", "query_features", "bias"}
+            if not required.issubset(masks):
+                raise ValueError(f"Sparse mask representation is missing keys: {sorted(required - masks.keys())}.")
+            spatial_features = masks["spatial_features"]
+            query_features = masks["query_features"]
+            if spatial_features.ndim != 4 or query_features.ndim != 3:
+                raise ValueError(
+                    "Expected sparse spatial_features [B,C,H,W] and query_features [B,Q,C], got "
+                    f"{tuple(spatial_features.shape)} and {tuple(query_features.shape)}."
+                )
+            if spatial_features.shape[:2] != (bs, query_features.shape[-1]):
+                raise ValueError("Sparse mask spatial/query batch or channel dimensions do not align.")
+            mask_device, mask_dtype = spatial_features.device, spatial_features.dtype
+        else:
+            if masks.ndim != 4:
+                raise ValueError(f"Expected masks [B,Q,H,W], got {tuple(masks.shape)}.")
+            mask_device, mask_dtype = masks.device, masks.dtype
 
         # Each image uses one common point set for all its queries and targets, as in MaskDINO's matcher.
-        sample_points = torch.rand((bs, 1, self.num_sample_points, 2), device=masks.device, dtype=masks.dtype)
+        sample_points = torch.rand((bs, 1, self.num_sample_points, 2), device=mask_device, dtype=mask_dtype)
         sample_grid = sample_points.mul(2.0).sub(1.0)
-        out_mask = F.grid_sample(masks.detach(), sample_grid, align_corners=False).squeeze(-2).flatten(0, 1)
+        if sparse:
+            sampled_spatial = F.grid_sample(
+                spatial_features.detach(), sample_grid, padding_mode="border", align_corners=False
+            ).squeeze(-2)
+            out_mask = (
+                torch.bmm(query_features.detach(), sampled_spatial) + masks["bias"].detach()
+            ).flatten(0, 1)
+        else:
+            out_mask = (
+                F.grid_sample(masks.detach(), sample_grid, padding_mode="border", align_corners=False)
+                .squeeze(-2)
+                .flatten(0, 1)
+            )
 
         sampled_targets = []
         offset = 0
         for image_idx, count in enumerate(num_gts):
             if count:
-                target = gt_mask[offset : offset + count].to(device=masks.device, dtype=masks.dtype).unsqueeze(1)
+                target = gt_mask[offset : offset + count].to(device=mask_device, dtype=mask_dtype).unsqueeze(1)
                 grid = sample_grid[image_idx : image_idx + 1].expand(count, -1, -1, -1)
-                sampled_targets.append(F.grid_sample(target, grid, align_corners=False).squeeze(1).squeeze(1))
+                sampled_targets.append(
+                    F.grid_sample(target, grid, padding_mode="border", align_corners=False).squeeze(1).squeeze(1)
+                )
             offset += count
         tgt_mask = torch.cat(sampled_targets, dim=0)
 
-        with torch.autocast(device_type=masks.device.type, enabled=False):
+        with torch.autocast(device_type=mask_device.type, enabled=False):
             out_mask = out_mask.float()
             tgt_mask = tgt_mask.float()
             pos_cost = F.softplus(-out_mask)

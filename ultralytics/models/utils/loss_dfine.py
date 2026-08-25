@@ -299,11 +299,15 @@ class DfineLoss(nn.Module):
     def _point_sample(inputs: torch.Tensor, point_coords: torch.Tensor) -> torch.Tensor:
         """Sample NCHW tensors at normalized [0, 1] point coordinates."""
         grid = point_coords.mul(2.0).sub(1.0).unsqueeze(2)
-        return F.grid_sample(inputs, grid, mode="bilinear", align_corners=False).squeeze(3).squeeze(1)
+        return (
+            F.grid_sample(inputs, grid, mode="bilinear", padding_mode="border", align_corners=False)
+            .squeeze(3)
+            .squeeze(1)
+        )
 
     def _get_loss_mask(
         self,
-        pred_masks: torch.Tensor | None,
+        pred_masks: torch.Tensor | dict[str, torch.Tensor] | None,
         gt_masks: torch.Tensor | None,
         match_indices: list[tuple[torch.Tensor, torch.Tensor]],
         norm_masks: float,
@@ -313,19 +317,40 @@ class DfineLoss(nn.Module):
         name_mask, name_dice = f"loss_mask{postfix}", f"loss_dice{postfix}"
         if pred_masks is None or gt_masks is None or self.mask_gain <= 0 and self.dice_gain <= 0:
             return {}
-        (batch_idx, src_idx), gt_idx = self._get_index(match_indices, pred_masks.device)
+        sparse = isinstance(pred_masks, dict)
+        reference = pred_masks["spatial_features"] if sparse else pred_masks
+        (batch_idx, src_idx), gt_idx = self._get_index(match_indices, reference.device)
         if gt_idx.numel() == 0:
-            zero = pred_masks.sum() * 0.0
+            zero = (
+                sum(value.sum() for value in pred_masks.values()) * 0.0 if sparse else pred_masks.sum() * 0.0
+            )
             return {name_mask: zero, name_dice: zero}
 
-        source = pred_masks[(batch_idx, src_idx)].unsqueeze(1)
-        target = gt_masks[gt_idx].to(device=source.device, dtype=source.dtype).unsqueeze(1)
+        if sparse:
+            spatial = pred_masks["spatial_features"][batch_idx]
+            query = pred_masks["query_features"][(batch_idx, src_idx)]
+            bias = pred_masks["bias"]
+
+            def sample_source(coords):
+                sampled_spatial = self._point_sample(spatial, coords)
+                return torch.bmm(query.unsqueeze(1), sampled_spatial).squeeze(1) + bias
+
+            num_matches, source_device, source_dtype = query.shape[0], query.device, query.dtype
+        else:
+            source = pred_masks[(batch_idx, src_idx)].unsqueeze(1)
+
+            def sample_source(coords):
+                return self._point_sample(source, coords)
+
+            num_matches, source_device, source_dtype = source.shape[0], source.device, source.dtype
+
+        target = gt_masks[gt_idx].to(device=source_device, dtype=source_dtype).unsqueeze(1)
         num_candidates = max(int(self.mask_num_points * self.mask_oversample_ratio), self.mask_num_points)
         candidate_coords = torch.rand(
-            (source.shape[0], num_candidates, 2), device=source.device, dtype=source.dtype
+            (num_matches, num_candidates, 2), device=source_device, dtype=source_dtype
         )
         with torch.no_grad():
-            candidate_logits = self._point_sample(source, candidate_coords)
+            candidate_logits = sample_source(candidate_coords)
             num_important = min(int(self.mask_num_points * self.mask_importance_sample_ratio), num_candidates)
             num_random = self.mask_num_points - num_important
             if num_important:
@@ -334,13 +359,13 @@ class DfineLoss(nn.Module):
             else:
                 important_coords = candidate_coords[:, :0]
             random_coords = torch.rand(
-                (source.shape[0], num_random, 2), device=source.device, dtype=source.dtype
+                (num_matches, num_random, 2), device=source_device, dtype=source_dtype
             )
             point_coords = torch.cat((important_coords, random_coords), dim=1)
             point_labels = self._point_sample(target, point_coords)
 
-        point_logits = self._point_sample(source, point_coords)
-        with torch.autocast(device_type=source.device.type, enabled=False):
+        point_logits = sample_source(point_coords)
+        with torch.autocast(device_type=source_device.type, enabled=False):
             logits = point_logits.float()
             labels = point_labels.float()
             loss_mask = F.binary_cross_entropy_with_logits(logits, labels, reduction="none").mean(1).sum()
@@ -381,7 +406,7 @@ class DfineLoss(nn.Module):
         cls_norm: float,
         box_norm: float,
         postfix: str = "",
-        pred_masks: torch.Tensor | None = None,
+        pred_masks: torch.Tensor | dict[str, torch.Tensor] | None = None,
         gt_masks: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
         (cls_batch_idx, cls_src_idx), cls_gt_idx = self._get_index(cls_indices, pred_scores.device)
@@ -419,7 +444,7 @@ class DfineLoss(nn.Module):
         cls_norm: float,
         box_norm: float,
         postfix: str = "",
-        pred_masks: torch.Tensor | None = None,
+        pred_masks: torch.Tensor | list[dict[str, torch.Tensor]] | None = None,
         gt_masks: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
         loss = torch.zeros(5, device=pred_bboxes.device)
@@ -666,7 +691,7 @@ class DfineLoss(nn.Module):
         gt_cls: torch.Tensor,
         gt_groups: list[int],
         shared_if_enabled: bool = True,
-        pred_masks: torch.Tensor | None = None,
+        pred_masks: torch.Tensor | list[dict[str, torch.Tensor]] | None = None,
         gt_masks: torch.Tensor | None = None,
     ) -> list[list[tuple[torch.Tensor, torch.Tensor]]]:
         if pred_bboxes.shape[0] <= 1:
@@ -769,7 +794,14 @@ class DfineLoss(nn.Module):
         gt_masks = batch.get("masks")
         pred_masks = dfine_meta.get("pred_masks") if dfine_meta is not None else None
         dn_pred_masks = dfine_meta.get("dn_pred_masks") if dfine_meta is not None else None
-        aux_pred_masks = pred_masks if pred_masks is not None and pred_masks.shape[0] == pred_bboxes.shape[0] else None
+        mask_layers = (
+            len(pred_masks)
+            if isinstance(pred_masks, (list, tuple))
+            else pred_masks.shape[0]
+            if pred_masks is not None
+            else 0
+        )
+        aux_pred_masks = pred_masks if mask_layers == pred_bboxes.shape[0] else None
         main_indices = self._match(
             pred_bboxes[-1],
             pred_scores[-1],
@@ -866,11 +898,14 @@ class DfineLoss(nn.Module):
             dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
             dn_match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
             dn_norm = max(global_num_gts * dn_num_group, 1.0)
-            dn_aux_pred_masks = (
-                dn_pred_masks
-                if dn_pred_masks is not None and dn_pred_masks.shape[0] == dn_bboxes.shape[0]
-                else None
+            dn_mask_layers = (
+                len(dn_pred_masks)
+                if isinstance(dn_pred_masks, (list, tuple))
+                else dn_pred_masks.shape[0]
+                if dn_pred_masks is not None
+                else 0
             )
+            dn_aux_pred_masks = dn_pred_masks if dn_mask_layers == dn_bboxes.shape[0] else None
 
             total_loss.update(
                 self._compute_layer_losses(

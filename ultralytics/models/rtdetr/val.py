@@ -154,20 +154,20 @@ class RTDETRValidator(DetectionValidator):
         std_t = img.new_tensor(std).view(1, 3, 1, 1)
         return (img - mean_t) / std_t
 
-    def init_metrics(self, model: torch.nn.Module) -> None:
-        """Initialize metrics and apply optional decoder eval_idx override.
+    @staticmethod
+    def apply_eval_idx(model: torch.nn.Module, requested: int | None) -> None:
+        """Apply an optional decoder early-exit index to all compatible nested decoders.
 
         Walks the model for transformer-decoder submodules that expose both `eval_idx` and `num_layers`
         (covers RT-DETR's DeformableTransformerDecoder and D-FINE/DEIM's DFineTransformerDecoder/
-        DeimTransformerDecoder) and rewrites their `eval_idx` to the value requested via `self.args.eval_idx`.
+        DeimTransformerDecoder) and rewrites their `eval_idx` to the requested value.
         Negative indices follow the same `num_layers + eval_idx` convention used at construction
-        (-1 selects the last layer). No-op when `self.args.eval_idx` is unset or no matching decoder is found.
+        (-1 selects the last layer). No-op when `requested` is unset or no matching decoder is found.
 
         Args:
             model (torch.nn.Module): Model being validated.
+            requested (int | None): Requested zero-based decoder exit, with negative indexing supported.
         """
-        super().init_metrics(model)
-        requested = getattr(self.args, "eval_idx", None)
         if requested is None:
             return
         requested = int(requested)
@@ -185,6 +185,11 @@ class RTDETRValidator(DetectionValidator):
                 )
             decoder.eval_idx = idx
         LOGGER.info(f"Decoder eval_idx override applied: layer {decoders[0].eval_idx} (requested={requested}).")
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize metrics and apply optional decoder eval_idx override."""
+        super().init_metrics(model)
+        self.apply_eval_idx(model, getattr(self.args, "eval_idx", None))
 
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess validation batch."""

@@ -44,6 +44,11 @@ class RTDETRDEIMSegmentationPredictor(RTDETRPredictor):
         super().__init__(*args, **kwargs)
         self.args.task = "segment"
 
+    def setup_model(self, model, verbose=True):
+        """Set up inference and apply an optional decoder early-exit index."""
+        super().setup_model(model, verbose=verbose)
+        RTDETRValidator.apply_eval_idx(self.model, getattr(self.args, "eval_idx", None))
+
     def preprocess(self, im):
         """Apply standard RT-DETR preprocessing and optional ImageNet normalization."""
         im = super().preprocess(im)
@@ -93,6 +98,11 @@ class RTDETRDEIMSegmentationValidator(SegmentationValidator):
             self._val_epoch = int(trainer.epoch)
             self._val_training_progress = min(max(trainer.epoch / max(trainer.epochs - 1, 1), 0.0), 1.0)
         return super().__call__(trainer=trainer, model=model)
+
+    def init_metrics(self, model: torch.nn.Module) -> None:
+        """Initialize box/mask metrics and apply an optional decoder early-exit index."""
+        super().init_metrics(model)
+        RTDETRValidator.apply_eval_idx(model, getattr(self.args, "eval_idx", None))
 
     def preprocess(self, batch):
         """Use RT-DETR image preprocessing and retain floating instance masks."""

@@ -1884,19 +1884,14 @@ class RTDETRDecoder(nn.Module):
         else:
             topk_ind = self._select_topk(enc_outputs_scores, total_queries)
 
-        topk_ind = topk_ind.reshape(-1)
-        batch_ind = (
-            torch.arange(end=bs, dtype=topk_ind.dtype, device=topk_ind.device)
-            .unsqueeze(-1)
-            .repeat(1, total_queries)
-            .reshape(-1)
-        )
-
-        top_k_features = features[batch_ind, topk_ind].view(bs, total_queries, -1)
-        top_k_anchors = self.anchors[:, topk_ind].view(bs, total_queries, -1)
+        feature_index = topk_ind.unsqueeze(-1).expand(-1, -1, features.shape[-1])
+        top_k_features = features.gather(1, feature_index)
+        anchor_index = topk_ind.unsqueeze(-1).expand(-1, -1, self.anchors.shape[-1])
+        top_k_anchors = self.anchors.expand(bs, -1, -1).gather(1, anchor_index)
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
         enc_bboxes = refer_bbox.sigmoid()
-        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, total_queries, -1)
+        score_index = topk_ind.unsqueeze(-1).expand(-1, -1, enc_outputs_scores.shape[-1])
+        enc_scores = enc_outputs_scores.gather(1, score_index)
         return top_k_features, refer_bbox, enc_bboxes, enc_scores
 
     def _get_decoder_input(
@@ -2580,40 +2575,37 @@ class DeimDecoder(DFineDecoder):
 
 
 class _DEIMMaskDepthwiseBlock(nn.Module):
-    """RF-DETR-style lightweight spatial refinement block for mask features."""
+    """Deployment-friendly depthwise spatial refinement block for mask features."""
 
     def __init__(self, dim: int):
         super().__init__()
-        self.dwconv = nn.Conv2d(dim, dim, 3, padding=1, groups=dim)
-        self.norm = nn.LayerNorm(dim, eps=1e-6)
-        self.pwconv = nn.Linear(dim, dim)
-        self.act = nn.GELU()
+        self.dwconv = Conv(dim, dim, 3, g=dim, act=nn.ReLU(inplace=True))
+        self.pwconv = nn.Conv2d(dim, dim, kernel_size=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        residual = x
-        x = self.dwconv(x).permute(0, 2, 3, 1)
-        x = self.act(self.pwconv(self.norm(x))).permute(0, 3, 1, 2)
-        return x + residual
+        return x + self.pwconv(self.dwconv(x))
 
 
 class _DEIMMaskQueryBlock(nn.Module):
-    """RF-DETR-style residual MLP refinement for decoder query features."""
+    """Deployment-friendly residual MLP refinement for decoder query features."""
 
     def __init__(self, dim: int):
         super().__init__()
-        self.norm = nn.LayerNorm(dim)
-        self.mlp = nn.Sequential(nn.Linear(dim, 4 * dim), nn.GELU(), nn.Linear(4 * dim, dim))
+        self.fc1 = nn.Linear(dim, 4 * dim)
+        self.act = nn.ReLU(inplace=True)
+        self.fc2 = nn.Linear(4 * dim, dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x + self.mlp(self.norm(x))
+        return x + self.fc2(self.act(self.fc1(x)))
 
 
 class DeimSegmentDecoder(DeimDecoder):
-    """DEIM decoder with a lightweight query-to-pixel instance mask head.
+    """DEIM decoder with a deployment-friendly query-to-pixel instance mask head.
 
-    The detection decoder, query selection, box heads, and class heads are unchanged. A lightweight pixel projection
-    combines MaskDINO's direct query-mask prediction with RF-DETR's depthwise spatial refinement and channel bottleneck.
-    Only the final mask tensor is materialized during training; DEIM box/class auxiliary supervision remains unchanged.
+    The detection decoder, query selection, box heads, and class heads are unchanged. A full-width pixel projection
+    combines MaskDINO's direct query-mask prediction with depthwise spatial refinement and a channel bottleneck.
+    Training keeps sparse per-layer mask representations for auxiliary supervision and materializes masks only for
+    matched queries inside the loss. Evaluation materializes only the selected decoder exit's dense mask tensor.
     """
 
     def __init__(self, *args, mask_dim: int | None = None, **kwargs):
@@ -2641,11 +2633,23 @@ class DeimSegmentDecoder(DeimDecoder):
         self.mask_query_proj = nn.Linear(self.hidden_dim, self.mask_interaction_dim)
         self.mask_bias = nn.Parameter(torch.zeros(1))
 
+    def _mask_representation(self, query: torch.Tensor, mask_features: torch.Tensor) -> dict[str, torch.Tensor]:
+        """Return a sparse query-pixel representation without materializing per-query dense masks."""
+        return {
+            "query_features": self.mask_query_proj(self.mask_query_block(query)),
+            "spatial_features": self.mask_spatial_proj(mask_features),
+            "bias": self.mask_bias,
+        }
+
     def _mask_logits(self, query: torch.Tensor, mask_features: torch.Tensor) -> torch.Tensor:
-        """Project object queries and correlate them with dense mask features."""
-        query = self.mask_query_proj(self.mask_query_block(query))
-        spatial = self.mask_spatial_proj(mask_features)
-        return torch.einsum("bqc,bchw->bqhw", query, spatial) + self.mask_bias
+        """Project object queries and correlate them with dense mask features using export-friendly batched matmul."""
+        representation = self._mask_representation(query, mask_features)
+        query_features = representation["query_features"]
+        spatial_features = representation["spatial_features"]
+        batch, queries = query_features.shape[:2]
+        height, width = spatial_features.shape[-2:]
+        mask_logits = torch.bmm(query_features, spatial_features.flatten(2))
+        return mask_logits.reshape(batch, queries, height, width) + representation["bias"]
 
     def _postprocess_with_masks(
         self, boxes: torch.Tensor, scores: torch.Tensor, masks: torch.Tensor
@@ -2667,21 +2671,24 @@ class DeimSegmentDecoder(DeimDecoder):
 
     def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
         """Run DEIM detection unchanged and append MaskDINO-style query mask predictions."""
-        from ultralytics.models.utils.ops import get_cdn_group
-
         mask_features = self.mask_input_proj(x[0])
         mask_features = F.interpolate(mask_features, scale_factor=2.0, mode="bilinear", align_corners=False)
         feats, shapes = self._get_encoder_input(x)
-        dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
-            batch,
-            self.nc,
-            self.num_queries,
-            self.denoising_class_embed.weight,
-            self.num_denoising,
-            self.label_noise_ratio,
-            self.box_noise_scale,
-            self.training,
-        )
+        if self.training:
+            from ultralytics.models.utils.ops import get_cdn_group
+
+            dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
+                batch,
+                self.nc,
+                self.num_queries,
+                self.denoising_class_embed.weight,
+                self.num_denoising,
+                self.label_noise_ratio,
+                self.box_noise_scale,
+                True,
+            )
+        else:
+            dn_embed = dn_bbox = attn_mask = dn_meta = None
         embed, refer_bbox, enc_bboxes, enc_scores = self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
         if dn_meta is not None:
             dn_meta["one_to_many_groups"] = self.one_to_many_groups
@@ -2707,10 +2714,21 @@ class DeimSegmentDecoder(DeimDecoder):
             dn_meta=dn_meta,
             return_hidden=True,
         )
-        last_mask_layer = self.num_decoder_layers if self.training else self.eval_idx + 1
-        for block in self.mask_spatial_blocks[:last_mask_layer]:
-            mask_features = block(mask_features)
-        dec_masks = torch.stack([self._mask_logits(dec_hidden[-1], mask_features)])
+        enc_masks = None
+        if self.training:
+            # Encoder predictions do not contain the prepended denoising queries.
+            num_dn = dn_embed.shape[1] if dn_embed is not None else 0
+            enc_masks = self._mask_representation(embed[:, num_dn:], mask_features)
+            dec_masks = []
+            for block, query in zip(self.mask_spatial_blocks, dec_hidden):
+                mask_features = block(mask_features)
+                dec_masks.append(self._mask_representation(query, mask_features))
+        else:
+            # Validation may override the nested decoder's eval_idx after model construction.
+            active_eval_idx = self.decoder.eval_idx
+            for block in self.mask_spatial_blocks[: active_eval_idx + 1]:
+                mask_features = block(mask_features)
+            dec_masks = torch.stack([self._mask_logits(dec_hidden[-1], mask_features)])
         dfine_meta = {
             "pred_corners": dec_pred_corners,
             "ref_points": dec_refs,
@@ -2719,6 +2737,7 @@ class DeimSegmentDecoder(DeimDecoder):
             "up": self.up,
             "reg_scale": self.reg_scale,
             "pred_masks": dec_masks,
+            "enc_masks": enc_masks,
         }
         raw = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta
         if self.training:

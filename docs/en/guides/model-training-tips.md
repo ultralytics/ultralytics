@@ -86,7 +86,7 @@ Caching can be controlled when training YOLO26 using the `cache` parameter:
 
 ### Mixed Precision Training
 
-Mixed precision training uses FP16 or BF16 computation while retaining FP32 where greater precision is needed. FP16 offers fast computation and lower memory usage, while BF16 has the same exponent range as FP32 and usually does not need gradient scaling. In both modes, the model weights remain FP32 during optimization. You can handle larger models or larger batch sizes within the same hardware constraints.
+Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-point types. The strengths of both FP16 and FP32 are leveraged by using FP16 for faster computation and FP32 to maintain precision where needed. Most of the [neural network](https://www.ultralytics.com/glossary/neural-network-nn)'s operations are done in FP16 to benefit from faster computation and lower memory usage. However, a master copy of the model's weights is kept in FP32 to ensure accuracy during the weight update steps. You can handle larger models or larger batch sizes within the same hardware constraints.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/886e0abf0da10bc0b3d6a6c7b06bb9e1.avif" alt="Mixed precision FP16 training benefits">
@@ -94,7 +94,7 @@ Mixed precision training uses FP16 or BF16 computation while retaining FP32 wher
 
 To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
 
-Mixed precision training is straightforward when working with YOLO26. Set `amp=True` or `amp='fp16'` for FP16, `amp='bf16'` for BF16 training with FP16 training-time validation on supported CUDA devices, or `amp=False`/`amp='fp32'` for full precision.
+Mixed precision training is straightforward when working with YOLO26. You can use the `amp` flag in your training configuration. Setting `amp=True` enables Automatic Mixed Precision (AMP) training. Mixed precision training is a simple yet effective way to optimize your model training process.
 
 ### Pretrained Weights
 
@@ -199,7 +199,7 @@ To improve GPU utilization, set the `batch` parameter in your training configura
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 
-Mixed precision training uses FP16 or BF16 computation alongside FP32 to balance speed, memory use, numerical range, and precision. In YOLO26, use `amp=True` or `amp='fp16'` for FP16, `amp='bf16'` for BF16 on supported CUDA devices, and `amp=False` or `amp='fp32'` for full precision. For more details, see the [training configuration](../modes/train.md).
+Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. This approach speeds up training and reduces memory usage without sacrificing model [accuracy](https://www.ultralytics.com/glossary/accuracy). To enable mixed precision training in YOLO26, set the `amp` parameter to `True` in your training configuration. This activates Automatic Mixed Precision (AMP) training. For more details on this optimization technique, see the [training configuration](../modes/train.md).
 
 ### How does multiscale training enhance YOLO26 model performance?
 

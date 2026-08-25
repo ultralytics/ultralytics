@@ -17,7 +17,7 @@ This guide builds `k=5` folds for a [YOLO detection dataset](../datasets/detect/
 
 ## Setup
 
-This walkthrough uses the [African Wildlife](../datasets/detect/african-wildlife.md) dataset, which downloads automatically and is already in [YOLO detection format](../datasets/detect/index.md). Substitute your own dataset by pointing `dataset_path` at it.
+This walkthrough uses the [African Wildlife](../datasets/detect/african-wildlife.md) dataset, which downloads automatically and is already in [YOLO detection format](../datasets/detect/index.md). Substitute your own by pointing `dataset_path` at it, provided it uses the standard `images/<split>` and `labels/<split>` directory layout — the collection block below walks those directories rather than reading the `train` and `val` entries of your data YAML, so a dataset defined by path lists or non-standard directories needs those globs adjusted first.
 
 | Class Label | Instance Count |
 | :---------- | -------------: |
@@ -386,7 +386,7 @@ The workflow here targets the YOLO detection format, but it adapts to every YOLO
 
 ### Can I use K-Fold Cross Validation with my own dataset?
 
-Yes, as long as the annotations are in [YOLO detection format](../datasets/detect/index.md). Point `dataset_path` at your dataset and read `classes` from your own data YAML. Images with no label file are fine — Ultralytics reads them as backgrounds and they get an all-zero row. The check in [Building the Class-Count Matrix](#building-the-class-count-matrix) rejects only the reverse case, a label file with no image, which is the failure worth catching early.
+Yes, as long as the annotations are in [YOLO detection format](../datasets/detect/index.md) and laid out as `images/<split>` and `labels/<split>`, which is what the collection block globs. Point `dataset_path` at your dataset and read `classes` from your own data YAML. Images with no label file are fine — Ultralytics reads them as backgrounds and they get an all-zero row. The check in [Building the Class-Count Matrix](#building-the-class-count-matrix) rejects only the reverse case, a label file with no image, which is the failure worth catching early.
 
 ### Do I still need a separate test set?
 
@@ -405,7 +405,7 @@ final_dir.mkdir(parents=True, exist_ok=True)
         {
             "path": final_dir.as_posix(),
             "train": "pool.txt",
-            "val": "pool.txt",  # training requires a val entry; selection is already done, so this one is a formality
+            "val": "pool.txt",  # training requires a val entry; see the warning below
             "names": classes,
         }
     )
@@ -413,7 +413,9 @@ final_dir.mkdir(parents=True, exist_ok=True)
 
 final = YOLO("yolo26n.pt")
 final.train(data=str(final_dir / "final.yaml"), epochs=100, batch=16)
-print(final.val(data="african-wildlife.yaml", split="test").box.map)  # the number to report
+
+fitted = YOLO(final.trainer.last)  # last.pt, so no checkpoint was chosen using training labels
+print(fitted.val(data="african-wildlife.yaml", split="test").box.map)  # the number to report
 ```
 
-Passing `data=` to `val()` is what redirects it away from `final.yaml`, which has no `test` entry, to the original dataset.
+Two details carry the correctness here. Passing `data=` to `val()` redirects it away from `final.yaml`, which has no `test` entry, to the original dataset. And the evaluation uses `last.pt` rather than the model `train()` leaves loaded: with `pool.txt` on both sides, every epoch validates on its own training images, so `best.pt` is picked on labels the model has already seen — `Model.train()` reloads exactly that checkpoint. Taking the final epoch's weights instead keeps the test score free of any selection. Train for a fixed epoch budget for the same reason, rather than relying on early stopping against the overlapping split.

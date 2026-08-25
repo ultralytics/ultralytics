@@ -253,7 +253,7 @@ Mid-run checkpoints keep the teacher and projector alongside the student, so a `
 2. The **student model** trains with standard task losses plus distillation guidance
 3. Features are captured from the three neck layers that feed the student's Detect-family head, and from the head output itself
 4. One **1×1 convolutional projector** per neck level (`Conv2d → ReLU → Conv2d`) maps each student feature map to the teacher's channel count
-5. A **score-weighted L2 loss** compares projected student features with teacher features, weighted per anchor by the teacher's max class confidence — taken from the head output captured in step 3 and averaged across its one-to-many and one-to-one branches
+5. A **score-weighted L2 loss** compares projected student features with teacher features, weighted per anchor by the teacher's confidence. That weight comes from the head output captured in step 3: the one-to-many and one-to-one class **logits** are averaged first, and `sigmoid` and the per-anchor maximum are taken afterwards — averaging the two branches' confidences instead would give different weights
 6. The distillation loss combines with standard losses using the `dis` weight
 
 For the implementation, see [`ultralytics.nn.distill_model`](../reference/nn/distill_model.md).

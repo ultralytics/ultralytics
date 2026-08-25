@@ -43,12 +43,16 @@ Shipped YAMLs also use four further top-level keys:
 | ------------ | ------------------- | --------------------------------------------------------------------------------------- |
 | `end2end`    | every YOLO26 config | Enables the NMS-free one-to-one head. See [End-to-End Detection](end2end-detection.md). |
 | `reg_max`    | every YOLO26 config | Number of DFL bins. YOLO26 ships `reg_max: 1`, which is what makes it DFL-free.         |
-| `channels`   | non-RGB models      | Input channel count, i.e. `1` for a grayscale dataset. Defaults to `3`.                 |
+| `channels`   | classification      | Input channel count, i.e. `1` for grayscale. Only classification reads it here — see below. |
 | `activation` | `yolov6.yaml`       | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`. |
+
+!!! warning "`channels` in a detection model YAML is ignored"
+
+    `ClassificationModel` reads the key (`self.yaml.get("channels", ch)`), but detection, segmentation, pose and OBB models are built through `_initialize_yolo_model`, which does `model.yaml["channels"] = ch` unconditionally — so the constructor argument always wins and a `channels: 1` line in such a YAML has no effect. Set the channel count on the **dataset** YAML instead: the trainer passes `ch=self.data["channels"]` when it builds the model, which is how a grayscale dataset produces a single-channel first convolution.
 
 ### How Width Scaling Actually Computes Channels
 
-Channel counts are **not** the number written in `args`. Each layer's output channels are clamped to `max_channels`, multiplied by `width`, then rounded up to the nearest multiple of 8:
+Channel counts are **not** the number written in `args`. For `parse_model`'s base-module set — the convolution and block modules such as `Conv`, `C3k2`, `C2PSA`, `C2f` and `SPPF` — each layer's output channels are clamped to `max_channels`, multiplied by `width`, then rounded up to the nearest multiple of 8:
 
 ```python
 c2 = make_divisible(min(c2, max_channels) * width, 8)
@@ -61,7 +65,9 @@ c2 = make_divisible(min(c2, max_channels) * width, 8)
 | 1024          | 0.25    | 1024           | 256             |
 | 100           | 0.50    | 1024           | 56              |
 
-The last row is the one that surprises people: `100 x 0.5` is `50`, which rounds up to `56`. This is why `m`, `l` and `x` carry `max_channels: 512` while `n` and `s` carry `1024` — the larger scales would otherwise produce very wide layers. `Classify` is exempt from width scaling, because its output must stay at `nc`.
+The last row is the one that surprises people: `100 x 0.5` is `50`, which rounds up to `56`. This is why `m`, `l` and `x` carry `max_channels: 512` while `n` and `s` carry `1024` — the larger scales would otherwise produce very wide layers.
+
+The formula does not reach every layer. `Classify` is exempt so its output stays at `nc`; `Concat` sums the channels of its sources; `TorchVision` and `Index` use the bookkeeping value you wrote; and heads take `nc` rather than a channel count. Compute expected channels this way only for the base modules.
 
 !!! tip "Reduce redundancy with `scales`"
 
@@ -403,7 +409,7 @@ head:
 | Practice                         | What it means for your YAML                                                                                                                                                                          |
 | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Start from a shipped config**  | Copy a YAML from [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) and change one thing at a time rather than writing a backbone from scratch. |
-| **Match channels across layers** | A layer's actual output channels are `make_divisible(min(out_ch, max_channels) * width, 8)`, not the number you wrote. Compute the scaled value before assuming two layers line up.                  |
+| **Match channels across layers** | For a base module, actual output channels are `make_divisible(min(out_ch, max_channels) * width, 8)`, not the number you wrote. Compute the scaled value before assuming two layers line up, and note the other modules do not follow it. |
 | **Reuse features with `Concat`** | `[[-1, N], 1, Concat, [1]]` merges an earlier feature map into the current one, the standard FPN pattern for multi-scale detection. Both sources must share spatial dimensions.                      |
 | **Pick a scale for your target** | Use `n` for edge devices, `s` for a balanced tradeoff, `m`/`l`/`x` when accuracy matters more than latency.                                                                                          |
 | **Verify after every change**    | `model.info()` must report non-zero FLOPs; see [Debugging Tips](#debugging-tips).                                                                                                                    |
@@ -497,7 +503,7 @@ Load the checkpoint and read `model.model.yaml`, which holds the parsed architec
 
 ### Why does my layer have fewer channels than the number in my YAML?
 
-Because `max_channels` caps the value before the width multiplier is applied, and the result is rounded up to a multiple of 8. With `m: [0.50, 1.00, 512]`, a layer declaring `[1024, 3, 2]` is clamped to 512 first, so it builds 512 channels rather than 1024. See [How Width Scaling Actually Computes Channels](#how-width-scaling-actually-computes-channels).
+For a base module, `max_channels` caps the value before the width multiplier is applied, and the result is rounded up to a multiple of 8. With `m: [0.50, 1.00, 512]`, a layer declaring `[1024, 3, 2]` is clamped to 512 first, so it builds 512 channels rather than 1024. Other modules — `Concat`, `TorchVision`, `Index`, the heads — do not go through that formula. See [How Width Scaling Actually Computes Channels](#how-width-scaling-actually-computes-channels).
 
 ### Can I train a model YAML from scratch without pretrained weights?
 

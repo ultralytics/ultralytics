@@ -624,6 +624,7 @@ class Exporter:
             family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
                 "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
             )
+            self.hailo_yolo26 = family.startswith("yolo26")
             task26 = {Segment26: "segmentation", Pose26: "pose", OBB26: "OBB"}.get(type(model.model[-1]))
             if task26:
                 raise ValueError(f"Hailo export does not currently support YOLO26 {task26} models.")
@@ -1622,16 +1623,18 @@ class Exporter:
 
         calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
         calibration_size = len(calibration_dataloader.dataset)
-        LOGGER.warning(
-            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
-            "Hailo recommends at least 1,024 representative images for best accuracy. "
-            'Pass data="path/to/dataset.yaml". '
-            "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"
-        )
         head_index = len(self.model.model) - 1
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
         task = self.model.task
+        yolo26 = self.hailo_yolo26 and task == "detect"
+        LOGGER.warning(
+            f"\nHailo {'level-4 AdaRound' if yolo26 else 'level-2 fine-tuning'} will use "
+            f"{calibration_size} calibration images. "
+            "Hailo recommends at least 1,024 representative images for best accuracy. "
+            'Pass data="path/to/dataset.yaml". '
+            "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"
+        )
         if task == "classify":
             # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
             # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
@@ -1679,9 +1682,6 @@ class Exporter:
         try:
             runner = ClientRunner(hw_arch=self.args.name)
             runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
-            # The NMS-free YOLO26 detect head keeps noticeably more mAP through INT8 under AdaRound
-            # (level 4) than under the level-2 finetune every other task uses.
-            yolo26 = one2one and task == "detect"
             model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
             if yolo26:
                 model_script += [

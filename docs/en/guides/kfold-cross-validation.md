@@ -368,7 +368,7 @@ Average the per-fold metric you care about. `results[k].box.map` holds `mAP50-95
 
 ### How much disk space does K-Fold cross validation need?
 
-None beyond the dataset itself, if you define each fold as a `.txt` list of image paths. Copying images into per-fold directories instead multiplies the dataset by `k` — on this 110 MB dataset at `k=5` that is about 525 MB and 15,040 files, against 500 KB and 15 files for the list approach.
+None beyond the dataset itself, if you define each fold as a `.txt` list of image paths. Copying images into per-fold directories instead multiplies the folded pool by `k` — for the 1,277 pooled images and labels here, 89 MB, that is about 445 MB and 12,770 files at `k=5`, against 402 KB and 15 files for the list approach.
 
 ### Should I use K-Fold cross validation or a single train/val split?
 

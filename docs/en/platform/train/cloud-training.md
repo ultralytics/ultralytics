@@ -455,7 +455,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
     | `time`          | float  | null      | 0.1-720             | Wall-clock training limit in hours, overrides epochs       |
     | `seed`          | int    | 0         | 0-2147483647        | Random seed for reproducibility                            |
     | `deterministic` | bool   | True      | -                   | Deterministic training mode                                |
-    | `amp`           | bool   | True      | -                   | Automatic mixed precision                                  |
+    | `amp`           | bool/str | True      | true/false/fp16/bf16/fp32 | Training precision                                         |
     | `compile`       | bool   | False     | -                   | Compile with `torch.compile` (slower first epoch)          |
     | `close_mosaic`  | int    | 10        | 0-50                | Disable mosaic in final N epochs                           |
     | `save_period`   | int    | -1        | -1-100              | Save checkpoint every N epochs                             |

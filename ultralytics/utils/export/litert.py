@@ -14,7 +14,7 @@ from ultralytics.utils import LOGGER
 from ultralytics.utils.export.engine import _NormalizeCoords
 
 
-def _litert_grouped_topk(x: torch.Tensor, k: int, groups: int = 8) -> tuple[torch.Tensor, torch.Tensor]:
+def _litert_grouped_topk(x: torch.Tensor, k: int, groups: int) -> tuple[torch.Tensor, torch.Tensor]:
     """Select the top k of x along dim 1 with int32 indices, which GPU delegates accept and int64 they do not."""
     values, index = Detect._grouped_topk(x, k, groups)
     return values, index.int()

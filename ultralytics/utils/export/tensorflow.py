@@ -81,8 +81,8 @@ def onnx2saved_model(
         quantize (int | str | None): Precision scheme, 8 for INT8.
         images (np.ndarray | None, optional): Calibration images for INT8 quantization in BHWC format.
         disable_group_convolution (bool, optional): Disable group convolution optimization. Defaults to False.
-        cuda (bool, optional): True if exporting on a CUDA device; keeps GPUs visible to TensorFlow, which are
-            otherwise hidden so CPU exports never touch GPU memory. Defaults to False.
+        cuda (bool, optional): True if exporting on a CUDA device; keeps GPUs visible to TensorFlow, which are otherwise
+            hidden so CPU exports never touch GPU memory. Defaults to False.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:

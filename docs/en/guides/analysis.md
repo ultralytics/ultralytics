@@ -13,11 +13,10 @@ The extractor uses only cached image shapes and annotations, so it does not deco
 ## Quick start
 
 ```python
-from ultralytics.utils.analysis import ImagePropertyExtractor
-
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.analysis import ImagePropertyExtractor
 
 # Dataset-only, no model or image decoding. Labels are augmented in place and returned for chaining.
 data = check_det_dataset("coco128.yaml")

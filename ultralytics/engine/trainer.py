@@ -1109,7 +1109,10 @@ class BaseTrainer:
                 f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
             )
             nc = self.data.get("nc", 10)  # number of classes
-            lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
+            n = len(self.train_loader.dataset)  # training images
+            # the class-count term alone gives a one-class dataset the highest rate the equation can produce, however
+            # few images it holds, so cap it by dataset size, which leaves anything above 500 images unchanged
+            lr_fit = round(min(0.002 * 5 / (4 + nc), 0.002 * math.sqrt(max(n, 1) / 500)), 6)
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 

@@ -398,9 +398,7 @@ class RTDETRBackboneLRTrainer(RTDETRTrainer):
         name = {x.lower(): x for x in canonical}.get(name.lower(), name)
         if name == "auto":
             name, lr, momentum = "AdamW", 1e-4, 0.9
-        self.args.warmup_bias_lr = (
-            0.0  # optimizer="auto" already sets this to 0.0; keep it at 0 for explicit optimizers too
-        )
+        self.args.warmup_bias_lr = 0.0  # optimizer="auto" sets this too; keep it for explicit optimizers
         if name not in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             raise NotImplementedError(f"This trainer only supports AdamW-family optimizers; got {name}")
 

@@ -2119,3 +2119,6 @@ def test_image_property_extractor():
     assert labels is ds.labels
     props = labels[0]["im_properties"]
     assert props["num_objects"] == len(labels[0]["bboxes"]) and 0 <= props["max_pairwise_iou"] <= 1
+    boxes = np.column_stack((np.arange(1025), np.zeros(1025), np.arange(1025) + 1, np.ones(1025))).astype(np.float32)
+    boxes[-1] = boxes[0]
+    assert ImagePropertyExtractor._max_pairwise_iou(boxes) == pytest.approx(1.0)

@@ -519,7 +519,7 @@ class Tuner:
             best_result = results[best_idx]
             n_attempted = (i + 1) - start  # iters tried in this invocation
             current_best_save_dirs = best_result.get("save_dirs", {})
-            best_is_current = best_idx == i
+            best_is_current = best_result.get("save_dirs") == result["save_dirs"]
             if best_is_current:
                 if cleanup:
                     for s in best_save_dirs.values():

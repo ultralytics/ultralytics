@@ -119,8 +119,17 @@ def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
     """
     dtype = enabled if isinstance(enabled, torch.dtype) else None
     enabled = bool(enabled)
-    if dtype is torch.bfloat16 and (not TORCH_1_13 or device != "cuda" or not torch.cuda.is_bf16_supported()):
-        raise RuntimeError("bfloat16 autocast requires CUDA with bfloat16 support and torch>=1.13")
+    if dtype is torch.bfloat16:
+        bf16_supported = device == "cuda" and TORCH_1_13
+        if bf16_supported:
+            bf16_supported = (
+                torch.cuda.is_bf16_supported(including_emulation=False)
+                if TORCH_2_4
+                else torch.cuda.is_bf16_supported()
+                and (bool(torch.version.hip) or torch.cuda.get_device_capability()[0] >= 8)
+            )
+        if not bf16_supported:
+            raise RuntimeError("bfloat16 autocast requires CUDA with native bfloat16 support and torch>=1.13")
     kwargs = {"dtype": dtype} if dtype is not None else {}
     if device == "npu":
         import torch_npu

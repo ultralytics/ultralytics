@@ -339,8 +339,11 @@ class PerLayerLRTrainer(DetectionTrainer):
         backbone_params = []
         head_params = []
 
-        if name == "auto":  # BaseTrainer would pick an AdamW-scale lr here; without this you get lr0 (SGD-scale)
-            lr = round(0.002 * 5 / (4 + self.data["nc"]), 6)
+        if name == "auto":  # BaseTrainer fits an AdamW-scale lr here; without this you inherit lr0, an SGD-scale value
+            name, lr = "AdamW", round(0.002 * 5 / (4 + self.data["nc"]), 6)
+        optimizer_cls = getattr(torch.optim, name, None)
+        if optimizer_cls is None:
+            raise NotImplementedError(f"optimizer={name!r} is not in torch.optim; pass Adam, AdamW, SGD, RMSprop or auto")
 
         unwrapped = unwrap_model(model)
         backbone_len = len(unwrapped.yaml["backbone"])  # YOLO26 backbone spans layers 0-10 (C2PSA at layer 10)
@@ -354,15 +357,14 @@ class PerLayerLRTrainer(DetectionTrainer):
 
         backbone_lr = lr * 0.1
 
-        optimizer = torch.optim.AdamW(
-            [
-                {"params": backbone_params, "lr": backbone_lr, "weight_decay": decay},
-                {"params": head_params, "lr": lr, "weight_decay": decay},
-            ],
-        )
+        groups = [
+            {"params": backbone_params, "lr": backbone_lr, "weight_decay": decay},
+            {"params": head_params, "lr": lr, "weight_decay": decay},
+        ]
+        optimizer = optimizer_cls(groups, momentum=momentum) if name in {"SGD", "RMSprop"} else optimizer_cls(groups)
 
         LOGGER.info(
-            f"PerLayerLR optimizer: backbone ({len(backbone_params)} params, lr={backbone_lr}) "
+            f"PerLayerLR {name}: backbone ({len(backbone_params)} params, lr={backbone_lr}) "
             f"| head ({len(head_params)} params, lr={lr})"
         )
         return optimizer

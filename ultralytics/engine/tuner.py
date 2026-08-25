@@ -241,6 +241,7 @@ class Tuner:
         hyperparameters: dict[str, float],
         metrics: dict,
         datasets: dict[str, dict],
+        save_dirs: dict[str, str],
         iteration: int,
     ):
         """Save results to MongoDB with proper type conversion.
@@ -250,6 +251,7 @@ class Tuner:
             hyperparameters (dict[str, float]): Dictionary of hyperparameter values.
             metrics (dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             datasets (dict[str, dict]): Per-dataset metrics for the iteration.
+            save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
             iteration (int): Current iteration number.
         """
         try:
@@ -259,6 +261,7 @@ class Tuner:
                     "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
                     "metrics": metrics,
                     "datasets": datasets,
+                    "save_dirs": save_dirs,
                     "timestamp": datetime.now().astimezone(),
                     "iteration": iteration,
                 }
@@ -500,7 +503,7 @@ class Tuner:
                 n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
-                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, i + 1)
+                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], i + 1)
                 self._sync_mongodb_to_file()
                 total_mongo_iterations = self.collection.count_documents({})
                 if total_mongo_iterations >= iterations:

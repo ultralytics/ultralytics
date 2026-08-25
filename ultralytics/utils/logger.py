@@ -93,8 +93,8 @@ class ConsoleLogger:
             return
 
         self.active = True
-        sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
-        sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
+        self.stdout_capture = sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
+        self.stderr_capture = sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
 
         # Hook Ultralytics logger
         try:
@@ -113,7 +113,7 @@ class ConsoleLogger:
         if not self.active:
             return
 
-        sys.stdout.callback = sys.stderr.callback = None
+        self.stdout_capture.callback = self.stderr_capture.callback = None
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr

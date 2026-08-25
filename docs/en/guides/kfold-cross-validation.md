@@ -75,7 +75,8 @@ lbl_by_key = {p.relative_to(dataset_path / "labels").with_suffix(""): p for p in
 assert len(img_by_key) == len(images), "two images share one stem, i.e. foo.jpg and foo.png; they map to one label file"
 orphans = sorted(set(lbl_by_key) - set(img_by_key))
 assert not orphans, f"label files with no matching image: {orphans[:3]}"
-backgrounds = set(img_by_key) - set(lbl_by_key)
+empty = {k for k, v in lbl_by_key.items() if not v.read_text().strip()}
+backgrounds = (set(img_by_key) - set(lbl_by_key)) | empty  # the package counts missing AND empty labels as background
 print(f"{len(images)} images, {len(labels)} labels, {len(backgrounds)} background images")
 ```
 
@@ -88,7 +89,7 @@ print(f"{len(images)} images, {len(labels)} labels, {len(backgrounds)} backgroun
     - **Scope the label glob to `labels/`.** Ultralytics datasets nest labels as `labels/train/`, `labels/val/`, `labels/test/`, and a pattern that expects them one level up returns nothing at all. A glob rooted at the dataset directory instead re-reads its own output on a second run.
     - **Use `IMG_FORMATS` rather than a hand-written extension list.** Ultralytics accepts 13 image formats, and on Linux and macOS `Path.rglob` matches extensions case-sensitively regardless of the filesystem — so a hardcoded `[".jpg", ".jpeg", ".png"]` silently drops the three `.JPG` files in this dataset, and every `.webp` or `.tif` in yours.
     - **Pair by key, never by position, and make the key the path under `images`/`labels` rather than the bare filename.** The two lists come from different globs, so any dropped or extra file shifts one relative to the other and every later pair is wrong — a failure that trains cleanly and reports meaningless metrics. The bare stem is not enough either: Ultralytics maps `images/train/0001.jpg` to `labels/train/0001.txt`, so the same basename is legal in two splits, and keying on `0001` would silently keep one of them while the assertion still passed.
-    - **An image with no label file is a background, not an error.** Ultralytics reads a missing label file as an empty label array, so the checks above reject only two things: an *orphan label* — a `.txt` with no image — and two images sharing one stem, such as `foo.jpg` and `foo.png`. The second is rejected rather than resolved because `img2label_paths` maps both to the same `foo.txt`, so the package cannot tell them apart either; dropping one silently would be worse than stopping.
+    - **An image with no label file, or an empty one, is a background, not an error.** Ultralytics reads a missing label file as an empty label array and reports `nm + ne` — missing plus empty — as its `backgrounds` count, which is why the block above counts both rather than just the missing ones. The checks reject only two things: an *orphan label* — a `.txt` with no image — and two images sharing one stem, such as `foo.jpg` and `foo.png`. The second is rejected rather than resolved because `img2label_paths` maps both to the same `foo.txt`, so the package cannot tell them apart either; dropping one silently would be worse than stopping.
 
 Now count the instances per class:
 
@@ -381,7 +382,7 @@ Average the per-fold metric you care about. `results[k].box.map` holds `mAP50-95
 
 ### How much disk space does K-Fold cross validation need?
 
-None beyond the dataset itself, if you define each fold as a `.txt` list of image paths. Copying images into per-fold directories instead multiplies the folded pool by `k` — for the 1,252 deduplicated images and their labels here, 86 MB, that is about 430 MB and 12,520 files at `k=5`, against 402 KB and 15 files for the list approach.
+For the fold definitions, almost nothing beyond the dataset itself, if you define each fold as a `.txt` list of image paths. The `k` training runs still write their own checkpoints and plots. Copying images into per-fold directories instead multiplies the folded pool by `k` — for the 1,252 deduplicated images and their labels here, 86 MB, that is about 430 MB and 12,520 files at `k=5`, against 402 KB and 15 files for the list approach.
 
 ### Should I use K-Fold cross validation or a single train/val split?
 

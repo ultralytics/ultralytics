@@ -77,7 +77,7 @@ Train a smaller student model with guidance from a larger teacher by adding the 
 | [YOLO26l-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 55.0                                   | **56.0**                                | 54.4                                         | **55.5**                                      |
 | [YOLO26x-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 57.5                                   | **57.9**                                | 56.9                                         | **57.4**                                      |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce a distilled row with `yolo val detect model=yolo26n-distill.pt data=coco.yaml device=0` and its baseline with `model=yolo26n.pt`; add `end2end=False` for the two non-e2e columns.
 - **e2e** values use the default NMS-free inference path; non-e2e values use traditional NMS post-processing (`end2end=False`). See [End-to-End Detection](end2end-detection.md) for details.
 
 ## Prerequisites
@@ -234,6 +234,10 @@ Distillation training supports resuming from checkpoints. The teacher model is r
 ## Training Output
 
 When distillation is enabled, an additional `dis_loss` column appears in training logs. The sample below is a detection run; segment, pose and OBB carry their own task losses in the same table, with `dis_loss` appended to whichever set applies:
+
+```bash
+yolo train model=yolo26n.pt data=coco8.yaml epochs=2 distill_model=yolo26s.pt
+```
 
 ```text
       Epoch    GPU_mem   box_loss   cls_loss    l1_loss   dis_loss  Instances       Size

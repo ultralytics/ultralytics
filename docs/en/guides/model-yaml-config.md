@@ -205,12 +205,14 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 
     # Model with ConvNeXt backbone
     model = YOLO("convnext_backbone.yaml")
-    results = model.train(data="coco8.yaml", epochs=100)
+    results = model.train(data="imagenet10", epochs=100)  # a Classify head needs a classification dataset directory
     ```
 
 === "YAML Configuration"
 
     ```yaml
+    nc: 1000
+
     backbone:
       - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, False]]
     head:
@@ -235,6 +237,8 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 When using models that output multiple feature maps, the Index module selects specific outputs:
 
 ```yaml
+nc: 80
+
 backbone:
     - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]] # Multi-output
 head:
@@ -360,6 +364,7 @@ Modifying the source code is the most versatile way to integrate your custom mod
 nc: 80
 scales:
     n: [0.50, 0.25, 1024]
+    s: [0.50, 0.50, 1024]
 
 backbone:
     - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
@@ -376,7 +381,7 @@ head:
 
 !!! warning "A `scales` block needs a scale letter in the filename"
 
-    Ultralytics reads the scale from the file name with the pattern `yolo` + digits + one of `nslmx`. Saved as `simple_detect.yaml` the file above logs `WARNING no model scale passed. Assuming scale='n'.` and silently uses the first entry. Worse, a name that merely looks scalable is not: `mynet26n.yaml` and `mynet26s.yaml` build the **identical** model, because neither stem contains `yolo`. Name a scalable config `myyolo26n.yaml` / `myyolo26s.yaml` and keep the base file unscaled (`myyolo26.yaml`).
+    Ultralytics reads the scale from the file name with the pattern `yolo` + digits + one of `nslmx`. Saved as `simple_detect.yaml` the file above logs `WARNING no model scale passed. Assuming scale='n'.` and silently uses the first entry. Worse, a name that merely looks scalable is not: `mynet26n.yaml` and `mynet26s.yaml` build the **identical** model, because neither stem contains `yolo`. Name a scalable config `myyolo26n.yaml` / `myyolo26s.yaml` and keep the base file unscaled (`myyolo26.yaml`). Every letter you use needs its own `scales` entry — `myyolo26s.yaml` against a block defining only `n` raises `KeyError: 's'`.
 
 ### TorchVision Backbone Model
 

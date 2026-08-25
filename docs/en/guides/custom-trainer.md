@@ -77,13 +77,11 @@ class MetricsTrainer(DetectionTrainer):
             class_indices = box.ap_class_index
             names = self.validator.names
 
-            valid_f1 = f1_per_class[f1_per_class > 0]
-            mean_f1 = np.mean(valid_f1) if len(valid_f1) > 0 else 0.0
+            # average over every evaluated class; dropping the zeros hides the classes that failed
+            mean_f1 = float(np.mean(f1_per_class)) if len(f1_per_class) else 0.0
 
             LOGGER.info(f"Mean F1 Score: {mean_f1:.4f}")
-            per_class_str = [
-                f"{names[i]}: {f1_per_class[j]:.3f}" for j, i in enumerate(class_indices) if f1_per_class[j] > 0
-            ]
+            per_class_str = [f"{names[i]}: {f1_per_class[j]:.3f}" for j, i in enumerate(class_indices)]
             LOGGER.info(f"Per-class F1: {per_class_str}")
 
         return metrics, fitness
@@ -365,7 +363,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=PerLayerLRTrainer)
 
 ### RT-DETR Variant
 
-Because the backbone length is read from `model.yaml["backbone"]` rather than hardcoded, the same recipe covers RT-DETR-L, RT-DETR-X and the ResNet-50/101 backbones. Switch the parent class to `RTDETRTrainer` (`from ultralytics.models.rtdetr.train import RTDETRTrainer`) and load the checkpoint with `RTDETR("rtdetr-l.pt")`; the `build_optimizer` body is unchanged. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate.
+Because the backbone length is read from `model.yaml["backbone"]` rather than hardcoded, the same recipe covers RT-DETR-L, RT-DETR-X and the ResNet-50/101 backbones. Switch the parent class to `RTDETRTrainer` (`from ultralytics.models.rtdetr.train import RTDETRTrainer`) and load the checkpoint with `RTDETR("rtdetr-l.pt")`; the `build_optimizer` body is unchanged. This is especially useful for RT-DETR fine-tuning on a new dataset, where the decoder's classification layer is rebuilt for your class count while the backbone carries pretrained features that benefit from a lower learning rate.
 
 !!! tip "Choosing `backbone_lr_ratio`"
 

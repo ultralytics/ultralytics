@@ -16,23 +16,17 @@ Examples:
 
 from __future__ import annotations
 
-import gc
 import json
 import random
 import shutil
-import subprocess
 import time
-from collections import Counter
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
-import torch
 
-from ultralytics.cfg import _YOLO_CLI_COMMAND, CFG_INT_KEYS, get_cfg, get_save_dir
+from ultralytics.cfg import CFG_INT_KEYS, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import plot_tune_results
 
 
@@ -355,17 +349,6 @@ class Tuner:
         return valid[int(fitness[valid].argmax())] if valid else int(fitness.argmax())
 
     @staticmethod
-    def _dataset_names(data: list) -> list[str]:
-        """Create stable unique dataset names for logging and per-run directories."""
-        stems = [Path(str(d)).stem for d in data]
-        totals, seen = Counter(stems), Counter()
-        names = []
-        for stem in stems:
-            seen[stem] += 1
-            names.append(f"{stem}-{seen[stem]}" if totals[stem] > 1 else stem)
-        return names
-
-    @staticmethod
     def _crossover(x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
         """BLX-α crossover from up to top-k parents (x[:,0]=fitness, rest=genes)."""
         k = min(k, len(x))
@@ -461,6 +444,9 @@ class Tuner:
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """
+        from ultralytics import YOLO
+        from ultralytics.engine.trainer import MultiTrainer
+
         t0 = time.time()
         self.tune_dir.mkdir(parents=True, exist_ok=True)
         (self.tune_dir / "weights").mkdir(parents=True, exist_ok=True)
@@ -488,46 +474,19 @@ class Tuner:
             data = train_args.pop("data")
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            dataset_names = self._dataset_names(data)
-            save_dir = (
-                [get_save_dir(get_cfg(train_args))]
-                if len(data) == 1
-                else [get_save_dir(get_cfg(train_args), name=name) for name in dataset_names]
-            )
+            model = YOLO(train_args.pop("model"))
+            trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
+            dataset_metrics = trainer.train()
+            save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]
-            metrics = {}
-            all_fitness = []
-            dataset_metrics = {}
-            for j, (d, dataset) in enumerate(zip(data, dataset_names)):
-                metrics_i = {}
-                try:
-                    train_args["data"] = d
-                    train_args["save_dir"] = str(save_dir[j])  # pass save_dir to subprocess to ensure same path is used
-                    # Train YOLO model with mutated hyperparameters (run in subprocess to avoid dataloader hang)
-                    cmd = [*_YOLO_CLI_COMMAND, "train", *(f"{k}={v}" for k, v in train_args.items())]
-                    subprocess.run(cmd, check=True)
-                    ckpt_file = weights_dir[j] / ("best.pt" if (weights_dir[j] / "best.pt").exists() else "last.pt")
-                    metrics_i = torch_load(ckpt_file)["train_metrics"]
-                    metrics = metrics_i
-
-                    # Cleanup
-                    time.sleep(1)
-                    gc.collect()
-                    torch.cuda.empty_cache()
-
-                except Exception as e:
-                    LOGGER.error(f"training failure for hyperparameter tuning iteration {i + 1}\n{e}")
-
-                # Save results - MongoDB takes precedence
-                dataset_metrics[dataset] = metrics_i
-                all_fitness.append(metrics_i.get("fitness") or 0.0)
-            fitness = sum(all_fitness) / len(all_fitness)
+            metrics = next((metrics for metrics in reversed(dataset_metrics.values()) if metrics), {})
+            fitness = sum((metrics or {}).get("fitness") or 0.0 for metrics in dataset_metrics.values()) / len(data)
             result = self._result_record(
                 i + 1,
                 fitness,
                 mutated_hyp,
                 dataset_metrics,
-                {dataset: str(s) for dataset, s in zip(dataset_names, save_dir)},
+                {dataset: str(s) for dataset, s in zip(dataset_metrics, save_dir)},
             )
             if self._has_training_metrics(result, require_all=True):
                 n_successful += 1
@@ -555,7 +514,7 @@ class Tuner:
                     for s in best_save_dirs.values():
                         if s not in current_best_save_dirs.values():
                             shutil.rmtree(s, ignore_errors=True)
-                for dataset, weight_dir in zip(dataset_names, weights_dir):
+                for dataset, weight_dir in zip(dataset_metrics, weights_dir):
                     best_weights_dir = (
                         self.tune_dir / "weights" if len(data) == 1 else self.tune_dir / "weights" / dataset
                     )

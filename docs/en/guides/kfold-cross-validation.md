@@ -198,7 +198,15 @@ for i, (train, val) in enumerate(kfolds, start=1):
 
 Rebuilding `folds_df` is the part that is easy to miss: every step after this reads `folds_df`, never `kfolds`, so swapping the splitter alone leaves the original unstratified folds in place with nothing to show for it.
 
-This is a proxy, not true multi-label stratification: an image containing several classes contributes to only one stratum. `StratifiedKFold` cannot take a multi-label target directly — it raises `ValueError: Supported target types are: ('binary', 'multiclass')` — so exact multi-label balance needs the `iterative-stratification` package.
+Check the stratum sizes before trusting the result, because `StratifiedKFold` degrades quietly rather than refusing:
+
+```python
+print(y.value_counts().min(), "smallest stratum vs", ksplit, "folds")
+```
+
+A stratum smaller than `ksplit` produces a `UserWarning` and folds in which that class is simply absent from validation — measured on scikit-learn 1.7.2, a stratum of 1 leaves 4 of 5 folds with no validation instances of it, a stratum of 2 leaves 3, and only a stratum of `ksplit` or more is clean. That is the failure this recipe was meant to fix, so when the smallest stratum is under `ksplit`, lower `k` or group the rare classes instead of stratifying on them. The background stratum (`-1`) counts too.
+
+This is also a proxy, not true multi-label stratification: an image containing several classes contributes to only one stratum. `StratifiedKFold` cannot take a multi-label target directly — it raises `ValueError: Supported target types are: ('binary', 'multiclass')` — so exact multi-label balance needs the `iterative-stratification` package.
 
 ## Creating One Dataset YAML per Fold
 
@@ -384,10 +392,28 @@ Yes, as long as the annotations are in [YOLO detection format](../datasets/detec
 
 Yes, and this guide keeps one: the dataset's shipped `test` split is excluded from the folds by the `pool = ("train", "val")` line. Cross validation measures how well a training recipe generalizes, but once you start choosing between recipes on the cross-validated score, that score has informed your decisions.
 
-Use the held-out split once, at the end, and note that neither the fold models nor the fold YAMLs are the right thing to point at it: each fold model saw only four fifths of the pool, and a `fold_*.yaml` defines no `test` entry, so `model.val(split="test")` against one raises `FileNotFoundError: ... 'test:' is not defined`. Retrain the settled recipe on the whole pool, then validate against the **original** dataset YAML:
+Use the held-out split once, at the end, and note that neither the fold models nor the fold YAMLs are the right thing to point at it: each fold model saw only four fifths of the pool, and a `fold_*.yaml` defines no `test` entry, so `model.val(split="test")` against one raises `FileNotFoundError: ... 'test:' is not defined`. The original dataset YAML is not it either — its `train` entry is `images/train` alone, so training against it never touches the `val` pool the folds were built from.
+
+Retrain the settled recipe on the whole folded pool with one more path list, then evaluate against the original YAML. This continues the walkthrough above and reuses its `dataset_path`, `img_by_key` and `classes`:
 
 ```python
+final_dir = dataset_path.parent / "final"
+final_dir.mkdir(parents=True, exist_ok=True)
+(final_dir / "pool.txt").write_text("\n".join(str(p) for p in img_by_key.values()) + "\n")
+(final_dir / "final.yaml").write_text(
+    yaml.safe_dump(
+        {
+            "path": final_dir.as_posix(),
+            "train": "pool.txt",
+            "val": "pool.txt",  # training requires a val entry; selection is already done, so this one is a formality
+            "names": classes,
+        }
+    )
+)
+
 final = YOLO("yolo26n.pt")
-final.train(data="african-wildlife.yaml", epochs=100, batch=16)  # train + val, as the dataset ships them
-print(final.val(split="test").box.map)  # the number to report
+final.train(data=str(final_dir / "final.yaml"), epochs=100, batch=16)
+print(final.val(data="african-wildlife.yaml", split="test").box.map)  # the number to report
 ```
+
+Passing `data=` to `val()` is what redirects it away from `final.yaml`, which has no `test` entry, to the original dataset.

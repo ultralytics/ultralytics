@@ -17,7 +17,7 @@ from ultralytics.models import yolo
 from ultralytics.nn.modules import Detect
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.patches import override_configs
+from ultralytics.utils.patches import override_configs, torch_load
 from ultralytics.utils.plotting import plot_images, plot_labels
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
 
@@ -203,12 +203,30 @@ class DetectionTrainer(BaseTrainer):
         model = self.set_model_names_for_load(
             DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
-        # Instance attr (persisted in ckpt): P3 regression-stride override, read by head decode and v8DetectionLoss
-        model.model[-1].p3_stride = float(getattr(self.args, "p3_stride", 8))
+        head = model.model[-1]
+        p3_stride = float(getattr(self.args, "p3_stride", 8))
+        # Source weights' P3 regression stride (None means 8): from the loaded module, the .pt file, or a .pt-built cfg
+        if isinstance(weights, nn.Module):
+            src_p3_stride = getattr(weights.model[-1], "p3_stride", None)
+        elif str(weights).endswith(".pt"):
+            src_p3_stride = getattr(torch_load(str(weights))["model"].model[-1], "p3_stride", None)
+        else:
+            src_p3_stride = getattr(head, "p3_stride", None)
+        head.p3_stride = p3_stride  # instance attr (persisted in ckpt), read by head decode and v8DetectionLoss
         if getattr(self.args, "aux_fg_on", False):  # attach before load so aux weights transfer from aux-trained ckpts
-            model.model[-1].build_aux_fg()
+            head.build_aux_fg()
         if weights:
             model.load(weights)
+        # Recalibrate the P3 box head to the new regression stride: scale its final convs by src/new so decoded boxes
+        # at init are identical to a stride-8 model, avoiding TAL assignment shock when fine-tuning pretrained weights
+        factor = float(src_p3_stride or 8) / p3_stride
+        if p3_stride != 8 and factor != 1.0 and head.stride.numel() and float(head.stride[0]) == 8.0:
+            for seq in (head.cv2[0], head.one2one_cv2[0] if head.end2end else None):
+                conv = next((m for m in reversed(seq) if isinstance(m, nn.Conv2d)), None) if seq is not None else None
+                if conv is not None:
+                    conv.weight.data *= factor
+                    conv.bias.data *= factor
+            LOGGER.info(f"p3_stride={p3_stride:g}: rescaled P3 box-head output convs by {factor:.4g}")
         return model
 
     def get_validator(self):

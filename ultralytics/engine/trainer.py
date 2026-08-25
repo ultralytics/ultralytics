@@ -1188,6 +1188,7 @@ class MultiTrainer:
         callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
         trainers (list[SimpleNamespace]): Completed per-dataset run records.
         metrics (dict): Mapping of each run name (e.g. coco8, coco8-2) to its training-metrics dict from the checkpoint.
+        mean_metrics (dict): Mean training metrics across successful datasets.
         save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
 
     Examples:
@@ -1213,6 +1214,7 @@ class MultiTrainer:
         self.callbacks = _callbacks
         self.trainers = []
         self.metrics = {}
+        self.mean_metrics = {}
         self.save_dir = None
 
     def train(self):
@@ -1231,7 +1233,8 @@ class MultiTrainer:
         )
         self.save_dir = get_save_dir(sweep, name="multitrain")
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        base_model = self.save_dir / "multitrain_base.pt" if self.trainer is None else None
+        model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
+        base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
             torch_save(
                 {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
@@ -1307,10 +1310,10 @@ class MultiTrainer:
         results = {run: ({k: float(v) for k, v in m.items()} if m else None) for run, m in self.metrics.items()}
         valid = [m for m in results.values() if m]
         keys = {k for m in valid for k in m}
-        mean = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
+        self.mean_metrics = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
         file = self.save_dir / "multitrain_results.json"
         with open(file, "w", encoding="utf-8") as f:
-            json.dump({"results": results, "mean": mean}, f, indent=2)
+            json.dump({"results": results, "mean": self.mean_metrics}, f, indent=2)
         LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', file)}")
         return file
 

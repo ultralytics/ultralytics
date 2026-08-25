@@ -8,7 +8,7 @@ keywords: Ultralytics, image property analysis, dataset analysis, crowdedness, o
 
 The [`ImagePropertyExtractor`](../reference/utils/analysis.md) turns a `YOLODataset` into six per-image properties with no model or metrics. It augments each `dataset.labels[i]` in place with an `im_properties` dict containing object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise IoU.
 
-The extractor uses only cached image shapes and annotations, so it does not decode the images. Because it needs no predictions, you can compute properties once and reuse them across many model evaluations. The `im_properties` dict is all-scalar, so it serializes directly to JSON for a JS/TS front-end or the [Ultralytics Platform](https://platform.ultralytics.com/).
+The extractor uses only image headers and annotations, so it does not decode pixel data. Because it needs no predictions, you can compute properties once and reuse them across many model evaluations. The `im_properties` dict is all-scalar, so it serializes directly to JSON for a JS/TS front-end or the [Ultralytics Platform](https://platform.ultralytics.com/).
 
 ## Quick start
 
@@ -18,7 +18,7 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.analysis import ImagePropertyExtractor
 
-# Dataset-only, no model or image decoding. Labels are augmented in place and returned for chaining.
+# Dataset-only, no model or pixel decoding. Labels are augmented in place and returned for chaining.
 data = check_det_dataset("coco128.yaml")
 dataset = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
 labels = ImagePropertyExtractor(dataset).labels  # list[dict], each with an "im_properties" entry
@@ -28,15 +28,15 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 
 ```json
 {
-    "im_file": "000000000196.jpg",
-    "im_properties": {
-        "num_objects": 42,
-        "small_object_ratio": 0.3571,
-        "object_scale_variance": 3.6724,
-        "num_classes_present": 6,
-        "center_spread": 0.3384,
-        "max_pairwise_iou": 0.5004
-    }
+  "im_file": "000000000196.jpg",
+  "im_properties": {
+    "num_objects": 42,
+    "small_object_ratio": 0.3571,
+    "object_scale_variance": 3.6724,
+    "num_classes_present": 6,
+    "center_spread": 0.3384,
+    "max_pairwise_iou": 0.5004
+  }
 }
 ```
 
@@ -56,4 +56,4 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 ## Caveats
 
 - **Empty-label images**: zero-box images have undefined scale, center, and pairwise-IoU statistics, so the extractor emits `NaN` for those fields.
-- **Tasks supported**: the six fields use cached image shapes and boxes, so they work for detection, segmentation, pose, and OBB datasets alike.
+- **Tasks supported**: the six fields use image headers and boxes, so they work for detection, segmentation, pose, and OBB datasets alike.

@@ -2,8 +2,8 @@
 """Per-image property extraction for object detection datasets.
 
 ``ImagePropertyExtractor(yolo_dataset)`` augments each ``dataset.labels`` entry in place with six scalar image
-properties for downstream analysis. It uses cached image shapes and annotations only, with no model, metrics, image
-decoding, or disk output.
+properties for downstream analysis. It uses image headers and annotations only, with no model, metrics, pixel decoding,
+or disk output.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from typing import Any
 
 import numpy as np
 import torch
-
+from PIL import Image
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
@@ -23,8 +23,8 @@ class ImagePropertyExtractor:
     """Augment a ``YOLODataset``'s labels in place with six per-image properties.
 
     Computes object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise
-    IoU from cached image shapes and annotations. Each label in ``dataset.labels`` gains an ``im_properties`` dict, and
-    the same label list is exposed as ``self.labels`` for chaining.
+    IoU from image headers and annotations. Each label in ``dataset.labels`` gains an ``im_properties`` dict, and the
+    same label list is exposed as ``self.labels`` for chaining.
 
     Attributes:
         labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
@@ -59,7 +59,8 @@ class ImagePropertyExtractor:
         """Compute the six properties for one label into its ``im_properties`` dict."""
         cls_arr = np.asarray(lbl.get("cls", np.zeros((0, 1)))).reshape(-1).astype(int)
         bboxes_n = np.asarray(lbl.get("bboxes", np.zeros((0, 4)))).reshape(-1, 4)
-        h, w = lbl["shape"]
+        with Image.open(lbl["im_file"]) as image:
+            w, h = image.size
         n = int(bboxes_n.shape[0])
         areas_n = bboxes_n[:, 2] * bboxes_n[:, 3]
         lbl["im_properties"] = {

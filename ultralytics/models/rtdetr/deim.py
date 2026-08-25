@@ -20,6 +20,7 @@ from ultralytics.nn.tasks import load_checkpoint, yaml_model_load
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import OKS_SIGMA, OBBMetrics, PoseMetrics, SegmentMetrics, batch_probiou, kpt_iou, mask_iou
+from ultralytics.utils.nms import TorchNMS
 from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import one_cycle, strip_optimizer, unwrap_model
 
@@ -1403,12 +1404,67 @@ class RTDETRDEIMOBBValidator(RTDETRDEIMValidator):
             )
 
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
-        """DOTA split-evaluation is not supported for DEIM OBB models yet."""
+        """Save predictions in DOTA submission format (port of OBBValidator.eval_json).
+
+        Writes per-class Task1 txt files for the split tiles, plus a merged version where tile predictions are
+        mapped back to the original image coordinates and NMS-deduplicated with probiou (threshold 0.3, matching
+        the YOLO OBB convention; results may differ slightly from the official DOTA merging script).
+        """
         if self.args.save_json and self.is_dota and len(self.jdict):
-            raise NotImplementedError(
-                "DOTA split-evaluation (eval_json) is not supported for RT-DETR DEIM OBB models yet; "
-                "run validation without save_json."
-            )
+            import json
+            import re
+            from collections import defaultdict
+
+            pred_json = self.save_dir / "predictions.json"  # predictions
+            pred_txt = self.save_dir / "predictions_txt"  # predictions
+            pred_txt.mkdir(parents=True, exist_ok=True)
+            with open(pred_json, encoding="utf-8") as f:
+                data = json.load(f)
+            # Save split results
+            LOGGER.info(f"Saving predictions with DOTA format to {pred_txt}...")
+            for d in data:
+                image_id = d["image_id"]
+                score = d["score"]
+                classname = self.names[d["category_id"] - 1].replace(" ", "-")
+                p = d["poly"]
+
+                with open(f"{pred_txt / f'Task1_{classname}'}.txt", "a", encoding="utf-8") as f:
+                    f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
+            # Save merged results, this could result slightly lower map than using official merging script,
+            # because of the probiou calculation.
+            pred_merged_txt = self.save_dir / "predictions_merged_txt"  # predictions
+            pred_merged_txt.mkdir(parents=True, exist_ok=True)
+            merged_results = defaultdict(list)
+            LOGGER.info(f"Saving merged predictions with DOTA format to {pred_merged_txt}...")
+            for d in data:
+                image_id = d["image_id"].split("__", 1)[0]
+                pattern = re.compile(r"\d+___\d+")
+                x, y = (int(c) for c in re.findall(pattern, d["image_id"])[0].split("___"))
+                bbox, score, cls = d["rbox"], d["score"], d["category_id"] - 1
+                bbox[0] += x
+                bbox[1] += y
+                bbox.extend([score, cls])
+                merged_results[image_id].append(bbox)
+            for image_id, bbox in merged_results.items():
+                bbox = torch.tensor(bbox)
+                max_wh = torch.max(bbox[:, :2]).item() * 2
+                c = bbox[:, 6:7] * max_wh  # classes
+                scores = bbox[:, 5]  # scores
+                b = bbox[:, :5].clone()
+                b[:, :2] += c
+                # 0.3 could get results close to the ones from official merging script, even slightly better.
+                i = TorchNMS.fast_nms(b, scores, 0.3, iou_func=batch_probiou)
+                bbox = bbox[i]
+
+                b = ops.xywhr2xyxyxyxy(bbox[:, :5]).view(-1, 8)
+                for x in torch.cat([b, bbox[:, 5:7]], dim=-1).tolist():
+                    classname = self.names[int(x[-1])].replace(" ", "-")
+                    p = [round(i, 3) for i in x[:-2]]  # poly
+                    score = round(x[-2], 3)
+
+                    with open(f"{pred_merged_txt / f'Task1_{classname}'}.txt", "a", encoding="utf-8") as f:
+                        f.writelines(f"{image_id} {score} {p[0]} {p[1]} {p[2]} {p[3]} {p[4]} {p[5]} {p[6]} {p[7]}\n")
+
         return stats
 
 

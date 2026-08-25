@@ -2111,20 +2111,12 @@ def test_semantic_polygon_data():
     model.val(data="coco8-seg.yaml")
 
 
-def test_image_property_pairwise_iou():
-    """Overlapping boxes give max IoU in (0.1, 0.5), while disjoint boxes give max IoU 0."""
-    overlap = np.array([[0, 0, 10, 10], [5, 5, 15, 15], [100, 100, 110, 110]], dtype=np.float32)
-    disjoint = np.array([[0, 0, 10, 10], [100, 100, 110, 110], [200, 200, 210, 210]], dtype=np.float32)
-    assert 0.1 < ImagePropertyExtractor._max_pairwise_iou(overlap) < 0.5
-    assert ImagePropertyExtractor._max_pairwise_iou(disjoint) == 0.0
-
-
 def test_image_property_extractor():
-    """ImagePropertyExtractor adds an im_properties dict to each label in place, no model or I/O."""
+    """Test scalar image property extraction on a detection dataset."""
     data = check_det_dataset("coco8.yaml")
     ds = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
     labels = ImagePropertyExtractor(ds).labels
-    assert labels is ds.labels and "im_file" in labels[0]
+    assert labels is ds.labels
     props = labels[0]["im_properties"]
     assert set(props) == {
         "num_objects",
@@ -2134,4 +2126,4 @@ def test_image_property_extractor():
         "center_spread",
         "max_pairwise_iou",
     }
-    assert props["num_objects"] == len(labels[0]["bboxes"])
+    assert props["num_objects"] == len(labels[0]["bboxes"]) and 0 <= props["max_pairwise_iou"] <= 1

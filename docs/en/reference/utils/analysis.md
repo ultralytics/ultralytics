@@ -1,6 +1,6 @@
 ---
 title: utils.analysis API Reference
-description: Per-image property correlation analysis. Joins validator F1 scores with brightness, blurriness, crowdedness, and ObjectLab label-quality scores to surface what drives bad performance.
+description: Per-image property correlation analysis. Joins validator F1 scores with six object-count, scale, layout, and crowdedness properties plus ObjectLab label-quality scores.
 keywords: Ultralytics, image property analysis, label quality, ObjectLab, correlation, worst images, synthetic data
 ---
 
@@ -24,19 +24,19 @@ keywords: Ultralytics, image property analysis, label quality, ObjectLab, correl
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._strength_band
+## ::: ultralytics.utils.analysis.\_strength_band
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._direction_phrase
+## ::: ultralytics.utils.analysis.\_direction_phrase
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._worst_record_score
+## ::: ultralytics.utils.analysis.\_worst_record_score
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._objectlab_score_dict
+## ::: ultralytics.utils.analysis.\_objectlab_score_dict
 
 <br><br><hr><br>
 
@@ -44,14 +44,14 @@ keywords: Ultralytics, image property analysis, label quality, ObjectLab, correl
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._softmin1d
+## ::: ultralytics.utils.analysis.\_softmin1d
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._rankdata
+## ::: ultralytics.utils.analysis.\_rankdata
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._json_default
+## ::: ultralytics.utils.analysis.\_json_default
 
 <br><br>

@@ -28,15 +28,15 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 
 ```json
 {
-  "im_file": "000000000196.jpg",
-  "im_properties": {
-    "num_objects": 42,
-    "small_object_ratio": 0.3571,
-    "object_scale_variance": 3.6724,
-    "num_classes_present": 6,
-    "center_spread": 0.3384,
-    "max_pairwise_iou": 0.5004
-  }
+    "im_file": "000000000196.jpg",
+    "im_properties": {
+        "num_objects": 42,
+        "small_object_ratio": 0.3571,
+        "object_scale_variance": 3.6724,
+        "num_classes_present": 6,
+        "center_spread": 0.3384,
+        "max_pairwise_iou": 0.5004
+    }
 }
 ```
 

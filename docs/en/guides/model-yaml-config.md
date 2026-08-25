@@ -39,12 +39,12 @@ kpt_shape: [17, 3] # pose models only
 
 Shipped YAMLs also use four further top-level keys:
 
-| Key          | Used by             | Purpose                                                                                     |
-| ------------ | ------------------- | ------------------------------------------------------------------------------------------- |
+| Key          | Used by                 | Purpose                                                                                                                                                                              |
+| ------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `end2end`    | YOLO26 detection family | Enables the NMS-free one-to-one head, in the detect, segment, pose and OBB configs. Absent from `yolo26-cls`, `-depth` and `-sem`. See [End-to-End Detection](end2end-detection.md). |
-| `reg_max`    | YOLO26 detection family | Number of DFL bins. Those same configs ship `reg_max: 1`, which is what makes them DFL-free. |
-| `channels`   | classification      | Input channel count, i.e. `1` for grayscale. Only classification reads it here — see below. |
-| `activation` | `yolov6.yaml`       | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`.     |
+| `reg_max`    | YOLO26 detection family | Number of DFL bins. Those same configs ship `reg_max: 1`, which is what makes them DFL-free.                                                                                         |
+| `channels`   | classification          | Input channel count, i.e. `1` for grayscale. Only classification reads it here — see below.                                                                                          |
+| `activation` | `yolov6.yaml`           | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`.                                                                                              |
 
 !!! warning "`channels` in a detection model YAML is ignored"
 

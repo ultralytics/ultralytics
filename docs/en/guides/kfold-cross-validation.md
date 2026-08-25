@@ -60,7 +60,7 @@ from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS
 
-dataset_path = Path(data["path"])  # from check_det_dataset above
+dataset_path = Path(data["path"]).resolve()  # check_det_dataset leaves an existing relative path relative
 pool = ("train", "val")  # the shipped test split stays out of the folds
 
 images = sorted(

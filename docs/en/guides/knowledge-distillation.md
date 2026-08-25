@@ -34,14 +34,14 @@ Train a smaller student model with guidance from a larger teacher by adding the 
 
 !!! tip "Already-distilled checkpoints"
 
-    Every model in the table below ships as a downloadable checkpoint, so you do not have to run distillation yourself to get the distilled accuracy. Load `yolo26n-distill.pt` the way you would load any other Ultralytics checkpoint — the name is resolved against the Ultralytics release assets on first use, so it downloads even though it is not among the model names bundled with the package:
+    Every model in the table below ships as a downloadable checkpoint, so you do not have to run distillation yourself to get the distilled accuracy. Load `yolo26n-distill.pt` the way you would load any other Ultralytics checkpoint. The `-distill` names are not in the package's built-in `GITHUB_ASSETS_NAMES` registry, so `attempt_download_asset` resolves them through its release-assets branch instead — all five are published on the `ultralytics/assets` release and download on first use:
 
     === "Python"
 
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo26n-distill.pt")  # fetched from the Ultralytics release assets on first use
+        model = YOLO("yolo26n-distill.pt")  # downloaded from the ultralytics/assets release on first use
         results = model.predict("https://ultralytics.com/images/bus.jpg")
         ```
 

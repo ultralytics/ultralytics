@@ -147,7 +147,7 @@ Core AI is not currently a replacement for the production Core ML path:
 - **No Ultralytics application runtime yet:** The official [YOLO iOS app](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) currently load Core ML artifacts through `MLModel` and Vision.
 - **Application migration required:** A `.aimodel` cannot be substituted for an `.mlpackage`; model loading, preprocessing, inference calls, metadata handling, and output decoding need a Core AI implementation.
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
-- **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. The Core AI export covers NMS-free YOLO26 models; `nms=True` and `dynamic=True` are not supported.
+- **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. The Core AI export covers NMS-free YOLO26 models; `nms=True` and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
 - **Fixed input size:** The exported graph is traced at one `imgsz` and has no dynamic shapes, so predict at the size it was exported with.
 - **FP16 assets can abort on load:** Some FP16 `.aimodel` assets fail to load their Apple Neural Engine program and MPSGraph raises a failed assertion, which ends the process rather than falling back. This happens inside Apple's runtime, before any Ultralytics code runs, and the same asset loads with a CPU-only specialization. Prefer FP32 until it is fixed upstream.
 

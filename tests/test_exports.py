@@ -544,11 +544,19 @@ def test_export_rknn(isolated_model, quantize, batch):
     shutil.rmtree(file, ignore_errors=True)
 
 
-@pytest.mark.skipif(not MACOS or not MACOS_VERSION or MACOS_VERSION < "26.0", reason="Core AI requires macOS>=26")
+@pytest.mark.skipif(
+    not MACOS or not ARM64 or not MACOS_VERSION or MACOS_VERSION < "26.0",
+    reason="Core AI requires macOS>=26 on Apple silicon",
+)
 @pytest.mark.skipif(not TORCH_2_8, reason="Core AI export requires torch>=2.8.0")
 @pytest.mark.parametrize("quantize", [None, 16])
 def test_export_coreai(isolated_model, quantize):
     """Test YOLO model export to Apple Core AI format and inference on the exported asset."""
+    import importlib.util
+
+    # coreai-torch is an optional extra and the base env does not install it, so skip rather than fail
+    if importlib.util.find_spec("coreai_torch") is None:
+        pytest.skip("coreai-torch not installed, install with 'pip install ultralytics[export-coreai]'")
     file = YOLO(isolated_model).export(format="coreai", imgsz=32, quantize=quantize)
     assert Path(file).suffix == ".aimodel", f"Core AI export produced an unexpected suffix: {file}"
     assert (Path(file) / "metadata.json").exists(), f"Core AI asset is missing metadata.json: {file}"

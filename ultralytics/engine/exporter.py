@@ -1498,7 +1498,7 @@ class Exporter:
     @try_export
     def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
         """Export YOLO model to Apple Core AI *.aimodel format."""
-        assert MACOS and MACOS_VERSION >= "26.0", (
+        assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
             "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
         )
         assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"

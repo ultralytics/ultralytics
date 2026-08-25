@@ -989,7 +989,9 @@ class DeimPoseLoss(DfineLoss):
 
     The pose loss follows the YOLO pose convention (port of v8PoseLoss.calculate_keypoints_loss): an OKS-form
     KeypointLoss on the sigmoid-decoded keypoint xy coordinates against normalized GT keypoints, weighted by the
-    matched GT box area, plus a BCE-with-logits loss on the visibility channel. Keypoint supervision uses the
+    matched GT box area, plus a BCE-with-logits loss on the visibility channel and a plain L1 loss on the
+    sigmoid-decoded xy of visible keypoints (the OKS term saturates for small errors; the L1 term keeps a linear
+    gradient on coordinates). Keypoint supervision uses the
     one-to-one Hungarian matches of every decoder layer: the final layer drives `loss_pose`/`loss_kobj` and, when
     `task_aux_loss` is enabled, all earlier decoder layers are supervised with their own per-layer matches
     aggregated into `loss_pose_aux`/`loss_kobj_aux` (no denoising pose losses; the box/cls aux losses are governed
@@ -1004,16 +1006,19 @@ class DeimPoseLoss(DfineLoss):
         Args:
             kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
             task_aux_loss (bool): Whether to supervise the keypoint heads of earlier decoder layers with their
-                per-layer Hungarian matches (`loss_pose_aux`/`loss_kobj_aux`), in addition to the final layer.
+                per-layer Hungarian matches (`loss_pose_aux`/`loss_kobj_aux`/`loss_kpt_l1_aux`), in addition to
+                the final layer.
             *args (Any): Positional arguments forwarded to DfineLoss.
-            **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `pose` (default 12.0) and `kobj`
-                (default 1.0) entries of `loss_gain` weight the keypoint and visibility losses.
+            **kwargs (Any): Keyword arguments forwarded to DfineLoss. The `pose` (default 12.0), `kobj`
+                (default 1.0), and `kpt_l1` (default 5.0) entries of `loss_gain` weight the OKS keypoint,
+                visibility, and keypoint-L1 losses.
         """
         super().__init__(*args, **kwargs)
         self.kpt_shape = list(kpt_shape)
         self.task_aux_loss = task_aux_loss
         self.pose_gain = self.loss_gain.get("pose", 12.0)
         self.kobj_gain = self.loss_gain.get("kobj", 1.0)
+        self.kpt_l1_gain = self.loss_gain.get("kpt_l1", 5.0)
         nkpt = self.kpt_shape[0]  # number of keypoints
         is_pose = self.kpt_shape == [17, 3]
         self.sigmas = torch.from_numpy(OKS_SIGMA) if is_pose else torch.ones(nkpt) / nkpt
@@ -1024,8 +1029,8 @@ class DeimPoseLoss(DfineLoss):
         gt_keypoints: torch.Tensor,
         batch: dict[str, Any],
         match_indices: list[tuple[torch.Tensor, torch.Tensor]] | None = None,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute the keypoint and visibility losses from one-to-one matches (port of v8PoseLoss).
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Compute the keypoint, visibility, and keypoint-L1 losses from one-to-one matches (port of v8PoseLoss).
 
         Args:
             kpts (torch.Tensor): Raw keypoint predictions for one decoder layer with shape (bs, nq, nk).
@@ -1035,7 +1040,8 @@ class DeimPoseLoss(DfineLoss):
                 the final-layer o2o matches (`self.main_indices`).
 
         Returns:
-            (tuple[torch.Tensor, torch.Tensor]): Weighted keypoint loss and weighted visibility loss.
+            (tuple[torch.Tensor, torch.Tensor, torch.Tensor]): Weighted OKS keypoint loss, weighted visibility
+                loss, and weighted keypoint-L1 loss.
         """
         indices = self.main_indices if match_indices is None else match_indices
         device = kpts.device
@@ -1044,9 +1050,11 @@ class DeimPoseLoss(DfineLoss):
         total = sum(len(src) for src, _ in indices)
         if not total:
             # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
-            return kpts.sum() * 0.0, kpts.sum() * 0.0
+            zero = kpts.sum() * 0.0
+            return zero, zero, zero
         loss_pose = kpts.new_zeros(())
         loss_kobj = kpts.new_zeros(())
+        loss_kpt_l1 = kpts.new_zeros(())
         for i, (src_idx, dst_idx) in enumerate(indices):
             # Matcher indices are CPU tensors; move them to the model device
             src_idx = src_idx.to(device)
@@ -1064,12 +1072,23 @@ class DeimPoseLoss(DfineLoss):
                 loss_pose += keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area) * len(src_idx)
                 if pred_kpt.shape[-1] == 3:
                     loss_kobj += F.binary_cross_entropy_with_logits(pred_kpt[..., 2], kpt_mask.float()) * len(src_idx)
+                if self.kpt_l1_gain > 0:
+                    # Direct xy regression on visible keypoints: OKS saturates quickly for small errors, so a
+                    # plain L1 (in the same sigmoid-normalized space) keeps a linear gradient on coordinates
+                    l1_per_kpt = F.l1_loss(pred_kpt[..., :2], gt_kpt[..., :2], reduction="none").mean(-1)
+                    l1_inst = (l1_per_kpt * kpt_mask).sum(1) / kpt_mask.sum(1).clamp(min=1)  # per-instance mean
+                    loss_kpt_l1 += l1_inst.mean() * len(src_idx)
             else:
                 # WARNING: zero-grad sum prevents Multi-GPU DDP 'unused gradient' errors, do not remove
                 zero = kpts[i].sum() * 0.0
                 loss_pose += zero
                 loss_kobj += zero
-        return loss_pose / total * self.pose_gain, loss_kobj / total * self.kobj_gain
+                loss_kpt_l1 += zero
+        return (
+            loss_pose / total * self.pose_gain,
+            loss_kobj / total * self.kobj_gain,
+            loss_kpt_l1 / total * self.kpt_l1_gain,
+        )
 
     def forward(
         self,
@@ -1087,15 +1106,19 @@ class DeimPoseLoss(DfineLoss):
         """Compute the detection losses plus the keypoint and visibility losses when keypoint inputs are provided.
 
         `dec_kpts` stacks per-decoder-layer o2o keypoint predictions with shape (L, bs, nq, nk); the final layer is
-        supervised as `loss_pose`/`loss_kobj` and, when `self.task_aux_loss` is enabled, earlier layers are
-        supervised with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder
-        row) as `loss_pose_aux`/`loss_kobj_aux`.
+        supervised as `loss_pose`/`loss_kobj`/`loss_kpt_l1` and, when `self.task_aux_loss` is enabled, earlier
+        layers are supervised with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the
+        encoder row) as `loss_pose_aux`/`loss_kobj_aux`/`loss_kpt_l1_aux`.
         """
         total_loss = super().forward(
             preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
         )
         if dec_kpts is not None and gt_keypoints is not None:
-            total_loss["loss_pose"], total_loss["loss_kobj"] = self._get_loss_pose(dec_kpts[-1], gt_keypoints, batch)
+            (
+                total_loss["loss_pose"],
+                total_loss["loss_kobj"],
+                total_loss["loss_kpt_l1"],
+            ) = self._get_loss_pose(dec_kpts[-1], gt_keypoints, batch)
             if (
                 self.task_aux_loss
                 and dec_kpts.shape[0] > 1
@@ -1104,14 +1127,17 @@ class DeimPoseLoss(DfineLoss):
             ):
                 loss_pose_aux = dec_kpts.new_zeros(())
                 loss_kobj_aux = dec_kpts.new_zeros(())
+                loss_kpt_l1_aux = dec_kpts.new_zeros(())
                 for i in range(dec_kpts.shape[0] - 1):
-                    pose_i, kobj_i = self._get_loss_pose(
+                    pose_i, kobj_i, kpt_l1_i = self._get_loss_pose(
                         dec_kpts[i], gt_keypoints, batch, match_indices=self.aux_indices[i + 1]
                     )
                     loss_pose_aux = loss_pose_aux + pose_i
                     loss_kobj_aux = loss_kobj_aux + kobj_i
+                    loss_kpt_l1_aux = loss_kpt_l1_aux + kpt_l1_i
                 total_loss["loss_pose_aux"] = loss_pose_aux
                 total_loss["loss_kobj_aux"] = loss_kobj_aux
+                total_loss["loss_kpt_l1_aux"] = loss_kpt_l1_aux
         return self._sanitize_losses(total_loss)
 
 

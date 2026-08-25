@@ -1199,9 +1199,9 @@ class RTDETRDetectionModel(DetectionModel):
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_pose", False):
-            loss_keys.extend(["loss_pose", "loss_kobj", "loss_pose_aux", "loss_kobj_aux"])
+            loss_keys.extend(["loss_pose", "loss_kobj", "loss_kpt_l1", "loss_pose_aux", "loss_kobj_aux", "loss_kpt_l1_aux"])
             # Fill with zeros when absent
-            for k in ["loss_pose", "loss_kobj", "loss_pose_aux", "loss_kobj_aux"]:
+            for k in ["loss_pose", "loss_kobj", "loss_kpt_l1", "loss_pose_aux", "loss_kobj_aux", "loss_kpt_l1_aux"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_obb", False):

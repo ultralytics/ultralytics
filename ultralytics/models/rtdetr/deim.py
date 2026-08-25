@@ -1261,7 +1261,7 @@ class RTDETRDEIMPoseTrainer(RTDETRDEIMTrainer):
         model = unwrap_model(self.model)
         if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
             loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
-        loss_names.extend(["pose_loss", "kobj_loss", "pose_aux_loss", "kobj_aux_loss"])
+        loss_names.extend(["pose_loss", "kobj_loss", "kpt_l1_loss", "pose_aux_loss", "kobj_aux_loss", "kpt_l1_aux_loss"])
         self.loss_names = tuple(loss_names)
         return RTDETRDEIMPoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 

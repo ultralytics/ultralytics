@@ -71,7 +71,6 @@ from ultralytics.nn.modules import (
     RepVGGDW,
     ResNetLayer,
     RTDETRDecoder,
-    RTDETRDecoderEfficient,
     Scale,
     SCDown,
     Segment,
@@ -1082,12 +1081,10 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class YOLODETRDetectionModel(RTDETRDetectionModel):
-    """YOLO-DETR detection model with DfineLoss dispatch for DEIM and RTDETRDecoderEfficient heads.
+    """YOLO-DETR detection model with DfineLoss dispatch for DEIM heads.
 
-    Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route DETR heads through
-    ``DfineLoss``. The DEIM head uses the full FGL + DDF terms; ``RTDETRDecoderEfficient`` reuses the same constants but
-    with FGL/DDF gains zeroed and union-set matching off, since it emits no ``pred_corners`` / pre-stage tensors. The
-    parent ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
+    Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route the DEIM head through
+    ``DfineLoss``. The parent ``RTDETRDecoder`` head still falls through to ``RTDETRDetectionLoss`` via super.
     """
 
     # Hardcoded DfineLoss constants.
@@ -1104,21 +1101,12 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
     }
 
     def init_criterion(self):
-        """Initialize the loss criterion, dispatching to DfineLoss for DEIM and RTDETRDecoderEfficient heads."""
+        """Initialize the loss criterion, dispatching to DfineLoss for DEIM heads."""
         head_name = type(self.model[-1]).__name__
         if head_name == "DeimDecoder":
             from ultralytics.models.utils.loss_dfine import DfineLoss
 
             return DfineLoss(nc=self.nc, **self._DFINE_LOSS_CONSTANTS)
-        if head_name == "RTDETRDecoderEfficient":
-            from ultralytics.models.utils.loss_dfine import DfineLoss
-
-            efficient_kwargs = {
-                **self._DFINE_LOSS_CONSTANTS,
-                "use_union_set": False,
-                "loss_gain": {**self._DFINE_LOSS_CONSTANTS["loss_gain"], "fgl": 0.0, "ddf": 0.0},
-            }
-            return DfineLoss(nc=self.nc, **efficient_kwargs)
         return super().init_criterion()
 
     @staticmethod
@@ -2281,7 +2269,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, RTDETRDecoderEfficient, DeimDecoder}:  # channels arg at index 1
+        elif m in {RTDETRDecoder, DeimDecoder}:  # channels arg at index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
@@ -2363,7 +2351,7 @@ def guess_model_task(model):
         m = cfg["head"][-1][-2].lower()  # output module name
         if m in {"classify", "classifier", "cls", "fc"}:
             return "classify"
-        if m in {"rtdetrdecoder", "rtdetrdecoderefficient", "deimdecoder"}:
+        if m in {"rtdetrdecoder", "deimdecoder"}:
             return "detect"
         if "detect" in m:
             return "detect"

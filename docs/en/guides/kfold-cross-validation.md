@@ -247,11 +247,15 @@ Note that `save_path` sits **beside** the dataset, not inside it. A fold directo
 
     for key, image in img_by_key.items():
         for fold, split in folds_df.loc[key].items():
-            for src, sub in [(image, "images")] + ([(lbl_by_key[key], "labels")] if key in lbl_by_key else []):
-                dst = save_path / fold / split / sub
-                dst.mkdir(parents=True, exist_ok=True)
-                shutil.copy(src, dst / src.name)
+            for src, sub, suffix in [(image, "images", image.suffix)] + (
+                [(lbl_by_key[key], "labels", ".txt")] if key in lbl_by_key else []
+            ):
+                dst = (save_path / fold / split / sub / key).with_suffix(suffix)
+                dst.parent.mkdir(parents=True, exist_ok=True)  # key keeps the split subdirectory
+                shutil.copy(src, dst)
     ```
+
+    The destination reuses the same relative `key`, for the same reason the pairing does: flattening to the bare filename lets `train/0001.jpg` and `val/0001.jpg` land on top of each other, and `shutil.copy` overwrites without a word.
 
     `shutil.copy` overwrites an existing destination silently, so a re-run is not protected in either approach — delete `save_path` first.
 
@@ -374,8 +378,16 @@ The workflow here targets the YOLO detection format, but it adapts to every YOLO
 
 ### Can I use K-Fold Cross Validation with my own dataset?
 
-Yes, as long as the annotations are in [YOLO detection format](../datasets/detect/index.md) and every image has exactly one label file. Point `dataset_path` at your dataset and read `classes` from your own data YAML. The assertion in [Building the Class-Count Matrix](#building-the-class-count-matrix) fails loudly if the pairing is not one-to-one, which is the failure worth catching early.
+Yes, as long as the annotations are in [YOLO detection format](../datasets/detect/index.md). Point `dataset_path` at your dataset and read `classes` from your own data YAML. Images with no label file are fine — Ultralytics reads them as backgrounds and they get an all-zero row. The check in [Building the Class-Count Matrix](#building-the-class-count-matrix) rejects only the reverse case, a label file with no image, which is the failure worth catching early.
 
 ### Do I still need a separate test set?
 
-Yes, and this guide keeps one: the dataset's shipped `test` split is excluded from the folds by the `pool = ("train", "val")` line. Cross validation measures how well a training recipe generalizes, but once you start choosing between recipes on the cross-validated score, that score has informed your decisions. Evaluate on the held-out split once, at the end, with `model.val(split="test")`.
+Yes, and this guide keeps one: the dataset's shipped `test` split is excluded from the folds by the `pool = ("train", "val")` line. Cross validation measures how well a training recipe generalizes, but once you start choosing between recipes on the cross-validated score, that score has informed your decisions.
+
+Use the held-out split once, at the end, and note that neither the fold models nor the fold YAMLs are the right thing to point at it: each fold model saw only four fifths of the pool, and a `fold_*.yaml` defines no `test` entry, so `model.val(split="test")` against one raises `FileNotFoundError: ... 'test:' is not defined`. Retrain the settled recipe on the whole pool, then validate against the **original** dataset YAML:
+
+```python
+final = YOLO("yolo26n.pt")
+final.train(data="african-wildlife.yaml", epochs=100, batch=16)  # train + val, as the dataset ships them
+print(final.val(split="test").box.map)  # the number to report
+```

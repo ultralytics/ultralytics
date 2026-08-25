@@ -40,6 +40,7 @@ class SAM3Backend:
         text_embeddings (dict): Cached text encoder outputs.
         backbone (_BackboneProxy): Proxy with ``forward_image``.
         has_point_modules (bool): Whether prompt encoder + mask decoder are available.
+        dynamic (bool): Whether the export accepts a range of image sizes rather than one baked size.
     """
 
     # Grounding masks are raw logits, so the predictor thresholds them at zero. Mirrors SAM2Model.
@@ -79,6 +80,9 @@ class SAM3Backend:
             self._load_models()
         self.imgsz = self._baked_imgsz()
         self.imgsz_range = None if self.imgsz else self._dynamic_imgsz_range()
+        # Every other backend inherits this from BaseBackend, and Model.predict reads it when reusing a
+        # predictor, so a standalone backend without it breaks on the second prompt of a session.
+        self.dynamic = self.imgsz is None
         LOGGER.info(f"SAM3Backend: detected {self._format.upper()} in {self._model_dir} at {self._accepted_imgsz()}")
 
     def _accepted_imgsz(self) -> str:

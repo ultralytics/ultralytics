@@ -15,12 +15,11 @@ The extractor uses only image headers and annotations, so it does not decode pix
 Three composition patterns cover the common use cases:
 
 ```python
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
-
 from ultralytics import YOLO
 from ultralytics.data.build import build_yolo_dataset
 from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 # Path 1: dataset-only, no model or pixel decoding.
 data = check_det_dataset("coco128.yaml")
@@ -44,15 +43,15 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 
 ```json
 {
-  "im_file": "000000000196.jpg",
-  "im_properties": {
-    "num_objects": 42,
-    "small_object_ratio": 0.3571,
-    "object_scale_variance": 3.6724,
-    "num_classes_present": 6,
-    "center_spread": 0.3384,
-    "max_pairwise_iou": 0.5004
-  }
+    "im_file": "000000000196.jpg",
+    "im_properties": {
+        "num_objects": 42,
+        "small_object_ratio": 0.3571,
+        "object_scale_variance": 3.6724,
+        "num_classes_present": 6,
+        "center_spread": 0.3384,
+        "max_pairwise_iou": 0.5004
+    }
 }
 ```
 
@@ -79,9 +78,8 @@ import os
 
 os.environ["ULTRALYTICS_API_KEY"] = "ul_xxx_40hex"  # or set in shell, or use settings.update(...)
 
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
-
 from ultralytics import YOLO
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 model = YOLO("ul://owner/project/model-name")
 metrics = model.val(data="ul://owner/datasets/slug")
@@ -112,15 +110,15 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ```json
 {
-  "object_scale_variance": {
-    "pearson_r": -0.43,
-    "pearson_p": 1.2e-5,
-    "spearman_r": -0.43,
-    "spearman_p": 3.4e-5,
-    "n": 5000,
-    "effect_band": "moderate",
-    "direction": "higher object_scale_variance -> lower F1"
-  }
+    "object_scale_variance": {
+        "pearson_r": -0.43,
+        "pearson_p": 1.2e-5,
+        "spearman_r": -0.43,
+        "spearman_p": 3.4e-5,
+        "n": 5000,
+        "effect_band": "moderate",
+        "direction": "higher object_scale_variance -> lower F1"
+    }
 }
 ```
 
@@ -128,13 +126,13 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ```json
 [
-  {
-    "im_name": "img_0042.jpg",
-    "im_file": "datasets/coco/images/val2017/img_0042.jpg",
-    "f1": 0.12,
-    "anomaly_score": 2.31,
-    "top_3_problematic": ["object_scale_variance", "small_object_ratio", "num_objects"]
-  }
+    {
+        "im_name": "img_0042.jpg",
+        "im_file": "datasets/coco/images/val2017/img_0042.jpg",
+        "f1": 0.12,
+        "anomaly_score": 2.31,
+        "top_3_problematic": ["object_scale_variance", "small_object_ratio", "num_objects"]
+    }
 ]
 ```
 

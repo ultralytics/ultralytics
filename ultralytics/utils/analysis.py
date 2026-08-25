@@ -36,8 +36,6 @@ _IMAGE_PROPERTIES = (
     "center_spread",
     "max_pairwise_iou",
 )
-_OBJECTLAB_PROPERTIES = ("overlooked_score", "badloc_score", "swap_score", "label_quality_score")
-_ALL_PROPERTIES = _IMAGE_PROPERTIES + _OBJECTLAB_PROPERTIES
 _PROPERTY_INSIGHTS = {
     "num_objects": ("dense scenes reduce F1", "add crowded-scene training images or use tiled crops"),
     "small_object_ratio": ("small-object-heavy images reduce F1", "increase imgsz and add small-object examples"),
@@ -260,11 +258,9 @@ class CorrelationAnalysis:
             rec = dict(image_metrics.get(im_name, {}))
             rec["im_file"] = im_file
             props = lbl.get("im_properties", {})
-            for k in _ALL_PROPERTIES:
+            for k in _IMAGE_PROPERTIES:
                 if k in props:
                     rec[k] = props[k]
-            for k in _OBJECTLAB_PROPERTIES:
-                rec.setdefault(k, np.nan)
             per_image[im_name] = rec
         if dup_names:
             LOGGER.warning(
@@ -290,7 +286,7 @@ class CorrelationAnalysis:
 
         f1 = np.array([rec.get("f1", np.nan) for rec in per_image.values()], dtype=float)
         out: dict[str, dict] = {}
-        for prop in _ALL_PROPERTIES:
+        for prop in _IMAGE_PROPERTIES:
             xs = np.array([rec.get(prop, np.nan) for rec in per_image.values()], dtype=float)
             m = np.isfinite(xs) & np.isfinite(f1)
             if m.sum() < 30 or np.std(xs[m]) == 0 or np.std(f1[m]) == 0:

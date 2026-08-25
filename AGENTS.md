@@ -16,6 +16,10 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 **Review gate:** for every addition, the reviewer decides whether deleting or changing existing code would have fixed the problem instead — if it would, that is a blocking finding. A missing or thin PR description is never itself a finding.
 
+## PR Review
+
+- Fix accepted contributions on their existing PR branches; never create replacement or follow-up PRs for review repairs.
+
 NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Workflow

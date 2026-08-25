@@ -171,41 +171,6 @@ git checkout cb13d5f9cfbd6f299da3620c625f81d721dc2849
 
 Experimental branches carry work that never landed on `main`, such as configurable `o2m` and `cls_w`. Training on `main` with the hyperparameters documented below will not be bit-identical, but it lands within a negligible distance of the published metrics.
 
-### Reusing a Checkpoint's Recipe
-
-Reading `train_args` is only half the job: the same dict replays into `model.train()` once three groups of keys are removed. `DEFAULT_CFG_KEYS` is the authoritative list of arguments the released package accepts, so filtering against it drops every experimental-branch key at once:
-
-!!! example "Apply a checkpoint's recipe to your own dataset"
-
-    ```python
-    from ultralytics import YOLO
-    from ultralytics.utils import DEFAULT_CFG_KEYS
-
-    model = YOLO("yolo26n.pt")
-
-    # Drop run-specific bookkeeping and your own budget; DEFAULT_CFG_KEYS drops the internal parameters
-    skip = {"data", "model", "device", "project", "name", "batch", "epochs", "imgsz"}
-    recipe = {k: v for k, v in model.ckpt["train_args"].items() if k in DEFAULT_CFG_KEYS and k not in skip}
-
-    results = model.train(data="your-dataset.yaml", epochs=100, imgsz=640, batch=16, **recipe)
-    ```
-
-Three categories have to go:
-
-- **Internal parameters** — `o2m`, `cls_w`, `muon_w`, `sgd_w`, and `topk` exist only on the experimental branch, so passing one raises `SyntaxError: 'o2m' is not a valid YOLO argument.` The filter tests membership in `DEFAULT_CFG_KEYS` rather than naming them, which also covers the others that current releases no longer expose.
-- **Run-specific bookkeeping** — `data`, `model`, `device`, `project`, and `name` are valid arguments that still point at the original training machine; `yolo26n.pt` records `device: 5` and a COCO path that does not exist on your system.
-- **Your budget** — `batch`, `epochs`, and `imgsz` belong to your hardware and dataset, not to the recipe.
-
-What survives is 96 of the checkpoint's 113 recorded arguments, including the searched values documented below. Running the block above prints:
-
-```plaintext
-optimizer: MuSGD(lr=0.0054, momentum=0.94676) with parameter groups 114 weight(decay=0.0), 126 weight(decay=0.00064), 126 bias(decay=0.0)
-```
-
-The logged `weight_decay` is the checkpoint's tabulated value here because `batch=16` against the default `nbs=64` accumulates back to it; at the official `batch=128` the same nominal value is applied doubled, as [When You Cannot Fit Batch 128](#when-you-cannot-fit-batch-128) explains.
-
-Because the COCO-stage values were searched against COCO, treat this as a starting point for a similar dataset rather than a universal default. For a small or narrow-domain dataset the [defaults](#fine-tune-with-default-settings) remain the stronger baseline.
-
 ## YOLO26 Training Hyperparameters per Model Size
 
 These are the stage 2 values, applied on top of the Objects365 weights above. The tables below group the recipe by category: optimizer and schedule, loss weights, and augmentation. Every value comes straight from the `train_args` embedded in the released checkpoints.
@@ -311,7 +276,7 @@ Fine-tuning with defaults is a strong baseline. Only adjust hyperparameters if y
 **Small datasets (< 1,000 images):**
 
 - Reduce augmentation strength: `mosaic=0.5`, `mixup=0.0`, `copy_paste=0.0`
-- Lower learning rate: `lr0=0.001`
+- Lower learning rate with an explicit optimizer: `optimizer=AdamW`, `lr0=0.001`
 - Use fewer [epochs](https://www.ultralytics.com/glossary/epoch) with patience: `epochs=50`, `patience=20`
 - Consider freezing backbone layers: `freeze=10`
 
@@ -339,26 +304,7 @@ For automated hyperparameter optimization, see the [Hyperparameter Tuning guide]
 | YOLO26l | High accuracy when GPU is available    | Small batches (8-16) or multi-GPU       |
 | YOLO26x | Maximum accuracy, server deployment    | Small batches (4-8) or multi-GPU        |
 
-If deployment constraints force a smaller size than your accuracy target needs, train it against a larger one with [knowledge distillation](./knowledge-distillation.md) rather than accepting the gap. For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
-
-### When You Cannot Fit Batch 128
-
-Every recipe on this page ran at `batch=128`, which most single-GPU setups cannot reach at 640x640. Lowering `batch` is safe, but it interacts with `nbs` (nominal batch size, default 64), the argument that controls gradient accumulation: the trainer accumulates `round(nbs / batch)` steps before each optimizer update, so the effective batch is `batch * accumulate`, not `batch`. During warmup `accumulate` ramps from 1 up to that value, so the figures below describe the steady state after warmup ends.
-
-| `batch` | `nbs` | `accumulate` | Effective batch |
-| ------- | ----- | ------------ | --------------- |
-| 128     | 64    | 1            | 128             |
-| 32      | 64    | 2            | 64              |
-| 16      | 64    | 4            | 64              |
-| 8       | 128   | 16           | 128             |
-
-With the default `nbs=64`, dropping to `batch=16` gives an effective batch of 64 — half the official runs, not a quarter. To reproduce their effective batch of 128 on smaller hardware, raise `nbs` to 128 as well:
-
-```bash
-yolo train model=yolo26n.pt data=your-dataset.yaml epochs=100 imgsz=640 batch=8 nbs=128
-```
-
-One consequence is easy to miss: `weight_decay` is rescaled by `batch * accumulate / nbs` before it reaches the optimizer. The official runs used `batch=128` with `nbs=64`, so their nominal `weight_decay` was applied at twice the tabulated value. The tabulated value is applied unchanged whenever `batch` divides `nbs` evenly, since rounded accumulation then restores the effective batch to `nbs` exactly — `batch=8`, `16`, `32` and `64` all do this at the default `nbs=64`. Any other batch size shifts it: rounding leaves the effective batch slightly off `nbs`, and a batch above `nbs` scales the decay by `batch / nbs` outright. The optimizer line printed at the start of training reports the value actually in use, so read it there rather than assuming.
+For export and deployment options, see the [Export guide](../modes/export.md) and [Model Deployment Options](./model-deployment-options.md).
 
 ## Conclusion
 

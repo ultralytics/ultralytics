@@ -29,7 +29,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Number of [Epochs](https://www.ultralytics.com/glossary/epoch)** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc. These live in the [model YAML configuration](model-yaml-config.md) rather than in training arguments.
 
-Of these four, only the learning rate is searched automatically: `batch`, `epochs`, and architecture are chosen by hand and held fixed for the whole run. The tuner's default space is much wider than the learning rate alone — it also mutates the schedule, loss gains, and augmentation strengths listed in the [default search space](#default-search-space) below.
+Of these four, only the learning rate is in the default search space: `batch`, `epochs`, and architecture remain fixed. The tuner also mutates the schedule, loss gains, and augmentations listed [below](#default-search-space).
 
 <p align="center">
   <img width="640" src="https://cdn.ul.run/i/61d7129c7b5c4dcbdf8957fb535c998a.avif" alt="Hyperparameter optimization search space visualization">
@@ -48,9 +48,8 @@ Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic
 
 Before you begin the tuning process, it's important to:
 
-1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, and `use_ray=True` ranks them by the task metric instead. Neither objective is selectable through an argument. Decide up front which secondary metrics you will inspect when comparing the surviving candidates, such as AP50 or F1-score.
+1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, while `use_ray=True` uses the task metric. Decide which secondary metrics you will inspect, such as AP50 or F1-score.
 2. **Set the Tuning Budget**: Define how much computational resources you're willing to allocate. Hyperparameter tuning can be computationally intensive.
-3. **Trust the Split**: Fitness is measured on a single validation split, so on a small dataset the difference between two candidates can be split noise rather than signal. [K-fold cross-validation](kfold-cross-validation.md) is the way to check that before committing to a long search.
 
 ## How the Tuning Loop Works
 
@@ -61,7 +60,7 @@ For each iteration, the built-in tuner repeats the following loop:
 3. **Train the model** — train using the mutated hyperparameters, then assess training performance with your chosen metrics.
 4. **Evaluate the model** — the [evaluation process](../modes/val.md) produces the iteration's fitness score, which is compared against previous iterations to determine whether the current hyperparameters are an improvement.
 5. **Log results** — record both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
-6. **Repeat** — continue until the set number of iterations is reached, with each iteration building on knowledge gained from previous runs. There is no fitness-based early stop, so `iterations` is what ends the run. The Ray path configures an ASHA scheduler, but its trainable reports only once the trial's training call returns, so ASHA ranks completed trials rather than truncating weak ones mid-run.
+6. **Repeat** — continue until the set number of iterations is reached, with each iteration building on knowledge gained from previous runs. The built-in tuner runs all `iterations`; Ray Tune reports metrics after each fit epoch, allowing ASHA to stop weak trials after its grace period.
 
 ### Iterations and Population Size
 
@@ -108,10 +107,6 @@ The following table lists the default search space parameters for hyperparameter
 
 Here's how to define a search space and use the `model.tune()` method to utilize the `Tuner` class for hyperparameter tuning of YOLO26n on COCO8 for 30 epochs with an AdamW optimizer and skipping plotting, checkpointing and validation other than on final epoch for faster Tuning.
 
-!!! tip "Narrow the space when the budget is fixed"
-
-    The default space has 26 parameters and the genetic algorithm produces one candidate per iteration, mutating each parameter with probability 0.5. Spread across 26 dimensions, a budget of a few dozen iterations samples each one only a handful of times and the search barely moves off its seed. Restricting `space` to the two or three parameters your dataset is actually sensitive to spends the same budget refining those, and every parameter you leave out keeps its `default.yaml` value. Start narrow, then widen if the fitness curve in `tune_fitness.png` flattens early.
-
 !!! warning
 
     This example is for **demonstration** only. Hyperparameters derived from short or small-scale tuning runs are rarely optimal for real-world training. In practice, tuning should be performed under settings similar to full training — including comparable datasets, epochs, and augmentations — to ensure reliable and transferable results. Quick tuning may bias parameters toward faster convergence or short-term validation gains that do not generalize.
@@ -144,31 +139,6 @@ Here's how to define a search space and use the `model.tune()` method to utilize
             val=False,
         )
         ```
-
-## Tuning Across Multiple Datasets
-
-Pass a list to `data` to score every candidate on more than one dataset. Each iteration trains the same mutated hyperparameters once per dataset, and the built-in tuner (`use_ray=False`) selects on the mean of the per-dataset `fitness` values, so the search favors hyperparameters that transfer rather than ones that overfit a single domain. The `use_ray=True` path averages the task metric instead, and the output layout described below is the built-in tuner's:
-
-!!! example "Tune on two datasets at once"
-
-    ```python
-    from ultralytics import YOLO
-
-    model = YOLO("yolo26n.pt")
-
-    # Score every candidate on both datasets, select on their mean fitness
-    model.tune(
-        data=["coco8.yaml", "coco8-grayscale.yaml"],
-        epochs=30,
-        iterations=300,
-        optimizer="AdamW",
-        plots=False,
-        save=False,
-        val=False,
-    )
-    ```
-
-Cost scales with the dataset count: two datasets means two training runs per iteration. Each dataset gets its own directory under `runs/{task}/` per iteration, recorded under `save_dirs` in [tune_results.ndjson](#tune_resultsndjson), and the best iteration's weights are copied per dataset into `tune/weights/<dataset>/` rather than straight into `tune/weights/`. The summary line still reports `not saved for multi-dataset tuning`, because no single model wins across every dataset.
 
 ## Resuming an Interrupted Hyperparameter Tuning Session
 
@@ -219,8 +189,6 @@ runs/
             └── best.pt
 ```
 
-Only the best-fitness iteration directory survives the run by default. Every other iteration directory is deleted as soon as a better one is found, so a completed 300-iteration tune leaves one training directory behind rather than 300 — one per dataset when tuning across several. A session started with `resume=True` begins with empty cleanup bookkeeping, so the best directory from the earlier session can survive alongside the new one.
-
 ### File Descriptions
 
 #### best_hyperparameters.yaml
@@ -237,6 +205,8 @@ This YAML file contains the best-performing hyperparameters found during the tun
     # Best fitness=0.64297 observed at iteration 498
     # Best fitness metrics are {'metrics/precision(B)': 0.87247, 'metrics/recall(B)': 0.71387, 'metrics/mAP50(B)': 0.79106, 'metrics/mAP50-95(B)': 0.62651, 'val/box_loss': 2.79884, 'val/cls_loss': 2.72386, 'val/l1_loss': 0.68503, 'fitness': 0.64297}
     # Best fitness model is /usr/src/ultralytics/runs/detect/tune/weights
+    # Best fitness hyperparameters are printed below.
+
     lr0: 0.00269
     lrf: 0.00288
     momentum: 0.73375
@@ -245,7 +215,6 @@ This YAML file contains the best-performing hyperparameters found during the tun
     warmup_momentum: 0.1525
     box: 18.27875
     cls: 1.32899
-    cls_pw: 0.0
     dfl: 0.56016
     hsv_h: 0.01148
     hsv_s: 0.53554
@@ -257,15 +226,10 @@ This YAML file contains the best-performing hyperparameters found during the tun
     perspective: 0.0
     flipud: 0.0
     fliplr: 0.08631
-    bgr: 0.0
     mosaic: 0.42551
     mixup: 0.0
-    cutmix: 0.0
     copy_paste: 0.0
-    close_mosaic: 10
     ```
-
-    The file always carries every key of the active search space, in search-space order, so a run that used the default space writes all 26 keys.
 
 #### tune_fitness.png
 
@@ -332,7 +296,7 @@ A pretty-printed example follows for readability; in the actual `.ndjson` file, 
 }
 ```
 
-The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` values. For single-dataset tuning the `datasets` dict has one entry whose `fitness` equals the top-level `fitness`. One JSON object is recorded per completed iteration. The `hyperparameters` object and the `save_dirs` paths are abbreviated above for readability: a real record carries every key of the active search space, and the paths are absolute.
+The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` values. For single-dataset tuning the `datasets` dict has one entry whose `fitness` equals the top-level `fitness`. One JSON object is recorded per completed iteration. The actual `save_dirs` paths are absolute; they are abbreviated above for readability.
 
 #### tune_scatter_plots.png
 
@@ -353,38 +317,6 @@ This directory contains the saved [PyTorch](https://www.ultralytics.com/glossary
 - **`best.pt`**: The best.pt weights for the iteration that achieved the best fitness score.
 
 Using these results, you can make more informed decisions for future model trainings and analyses.
-
-### Training with the Tuned Hyperparameters
-
-`best_hyperparameters.yaml` is a plain mapping of argument names to values, so it unpacks straight into `model.train()` for the full-length run that tuning was preparing for:
-
-!!! example "Train from `best_hyperparameters.yaml`"
-
-    ```python
-    from ultralytics import YOLO
-    from ultralytics.utils import YAML
-
-    # Load the winning hyperparameters from the tuning run
-    best = YAML.load("runs/detect/tune/best_hyperparameters.yaml")
-
-    # Name the optimizer the tuning run used - AdamW here, matching the examples above
-    model = YOLO("yolo26n.pt")
-    results = model.train(data="coco8.yaml", epochs=100, imgsz=640, optimizer="AdamW", **best)
-    ```
-
-!!! warning "Pass the same `optimizer` you tuned with"
-
-    The default `optimizer=auto` selects the optimizer, `lr0`, and `momentum` itself and ignores whatever you pass, so a tuned learning rate is discarded with only a log line to show for it:
-
-    ```plaintext
-    optimizer: 'optimizer=auto' found, ignoring 'lr0=0.01' and 'momentum=0.937' and determining best 'optimizer', 'lr0' and 'momentum' automatically...
-    ```
-
-    Name the optimizer explicitly — the same one the tuning run used, since a tuned `lr0` and `momentum` only transfer to the optimizer they were searched against — and the tuned values are applied instead:
-
-    ```plaintext
-    optimizer: AdamW(lr=0.01, momentum=0.937) with parameter groups 114 weight(decay=0.0), 126 weight(decay=0.0005), 126 bias(decay=0.0)
-    ```
 
 ## Conclusion
 
@@ -426,7 +358,7 @@ To see how genetic algorithms can optimize hyperparameters, check out the [hyper
 
 ### How long does the hyperparameter tuning process take for Ultralytics YOLO?
 
-Wall time scales with `iterations` multiplied by the cost of one training run, since every iteration is a full training run from scratch. Tuning YOLO26n on a tiny dataset like COCO8 for 30 epochs takes roughly a minute per iteration on a laptop CPU, so the default `iterations=10` finishes in minutes while `iterations=300` runs for hours. On a real dataset, multiply by however long one training run already takes.
+The time required for hyperparameter tuning with Ultralytics YOLO largely depends on several factors such as the size of the dataset, the complexity of the model architecture, the number of iterations, and the computational resources available. For instance, tuning YOLO26n on a dataset like COCO8 for 30 epochs might take several hours to days, depending on the hardware.
 
 To effectively manage tuning time, define a clear tuning budget beforehand, as covered in [Preparing for Hyperparameter Tuning](#preparing-for-hyperparameter-tuning). This helps balance resource allocation and optimization goals.
 

@@ -982,7 +982,11 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
-        cfg.imgsz = self.imgsz if self.model.task != "classify" and self.imgsz[0] != self.imgsz[1] else max(self.imgsz)
+        cfg.imgsz = (
+            self.imgsz
+            if self.model.task != "classify" and len(self.imgsz) > 1 and self.imgsz[0] != self.imgsz[1]
+            else max(self.imgsz)
+        )
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 

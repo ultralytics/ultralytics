@@ -321,7 +321,7 @@ class ProfileModels:
         self.num_timed_runs = num_timed_runs
         self.num_warmup_runs = num_warmup_runs
         self.min_time = min_time
-        self.imgsz = imgsz
+        self.imgsz = list(imgsz) if isinstance(imgsz, tuple) else imgsz
         self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
         self.device = device if isinstance(device, torch.device) else select_device(device)

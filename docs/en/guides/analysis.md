@@ -55,11 +55,11 @@ Neither class writes files. `report.summary()` is the default actionable output,
 
 ObjectLab quality scores follow a low-is-worse convention. A subtype below 0.5 adds one review action for that image:
 
-| Evidence           | Issue                      | Action                                                     |
-| ------------------ | -------------------------- | ---------------------------------------------------------- |
-| `overlooked_score` | possible missing labels    | review unmatched high-confidence predictions and add boxes |
-| `badloc_score`     | possibly incorrect boxes   | review and correct box boundaries                          |
-| `swap_score`       | possibly incorrect classes | review and correct class IDs                               |
+| Evidence           | Issue                                         | Action                                             |
+| ------------------ | --------------------------------------------- | -------------------------------------------------- |
+| `overlooked_score` | missing label or model false positive         | add the box or add the image as a hard negative    |
+| `badloc_score`     | incorrect box or model localization error     | correct the box or add a localization example      |
+| `swap_score`       | incorrect class or model classification error | correct the class or add a confusing-class example |
 
 ## Ultralytics Platform integration (`ul://`)
 
@@ -110,10 +110,10 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
     },
     {
         "target": "000000000196.jpg",
-        "issue": "possible missing labels",
+        "issue": "possible missing label or model false positive",
         "score": 0.03,
         "evidence": "overlooked_score",
-        "action": "review unmatched high-confidence predictions and add confirmed boxes"
+        "action": "review the overlay; add a box if correct, otherwise add the image as a hard negative"
     }
 ]
 ```

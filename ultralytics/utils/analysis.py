@@ -47,11 +47,17 @@ _IMAGE_PROPERTIES = (
 _OBJECTLAB_PROPERTIES = ("overlooked_score", "badloc_score", "swap_score", "label_quality_score")
 _OBJECTLAB_INSIGHTS = {
     "overlooked_score": (
-        "possible missing labels",
-        "review unmatched high-confidence predictions and add confirmed boxes",
+        "possible missing label or model false positive",
+        "review the overlay; add a box if the prediction is correct, otherwise add the image as a hard negative",
     ),
-    "badloc_score": ("possibly incorrect boxes", "review and correct box boundaries"),
-    "swap_score": ("possibly incorrect classes", "review and correct class IDs"),
+    "badloc_score": (
+        "possible incorrect box or model localization error",
+        "review the overlay; correct the label box if wrong, otherwise add the image as a localization example",
+    ),
+    "swap_score": (
+        "possible incorrect class or model classification error",
+        "review the overlay; correct the label class if wrong, otherwise add the image as a confusing-class example",
+    ),
 }
 _ALL_PROPERTIES = _IMAGE_PROPERTIES + _OBJECTLAB_PROPERTIES
 _PROPERTY_INSIGHTS = {
@@ -445,7 +451,7 @@ def compute_objectlab_scores(
         return {k: float("nan") for k in _OBJECTLAB_PROPERTIES}
     if n_gt == 0:
         keep = pred_conf >= _OBJECTLAB_HIGH_PROB
-        overlooked = _softmin1d(_OBJECTLAB_TINY * (1.0 - pred_conf[keep]), _OBJECTLAB_TEMPERATURE)
+        overlooked = _softmin1d(1.0 - pred_conf[keep], _OBJECTLAB_TEMPERATURE)
         return _objectlab_score_dict(overlooked, 1.0, 1.0)
 
     gt_cx, gt_cy = (gt_bb[:, 0] + gt_bb[:, 2]) / 2, (gt_bb[:, 1] + gt_bb[:, 3]) / 2
@@ -462,7 +468,8 @@ def compute_objectlab_scores(
     keep_pred = (pred_conf >= _OBJECTLAB_HIGH_PROB) & (iou.max(axis=0) == 0)
     sim_same = np.where(same_class, sim, -np.inf)
     best_same_per_pred = sim_same.max(axis=0)
-    per_pred = np.where(same_class.any(axis=0), best_same_per_pred, _OBJECTLAB_TINY * (1.0 - pred_conf))
+    min_similarity = float(sim[sim > 0].min()) if np.any(sim > 0) else 1.0
+    per_pred = np.where(same_class.any(axis=0), best_same_per_pred, min_similarity * (1.0 - pred_conf))
     overlooked = _softmin1d(per_pred[keep_pred], _OBJECTLAB_TEMPERATURE)
 
     cand_low = same_class & (pred_conf[None, :] >= _OBJECTLAB_LOW_PROB) & (iou > 0)

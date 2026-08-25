@@ -2233,13 +2233,14 @@ def test_objectlab_actionable_label_issues():
         gt_bb=np.zeros((0, 4), dtype=np.float32),
         gt_cls=np.zeros(0),
     )
+    assert 0 < missing["overlooked_score"] < 0.5
     insights = CorrelationAnalysis._build_insights(
         {"swap.jpg": swap, "box.jpg": {"badloc_score": 0.49}, "missing.jpg": missing}, {}
     )
     assert {(x["target"], x["issue"]) for x in insights} == {
-        ("swap.jpg", "possibly incorrect classes"),
-        ("box.jpg", "possibly incorrect boxes"),
-        ("missing.jpg", "possible missing labels"),
+        ("swap.jpg", "possible incorrect class or model classification error"),
+        ("box.jpg", "possible incorrect box or model localization error"),
+        ("missing.jpg", "possible missing label or model false positive"),
     }
     assert all(set(x) == {"target", "issue", "score", "evidence", "action"} for x in insights)
     queue = CorrelationAnalysis._build_insights({f"box{i}.jpg": {"badloc_score": i / 10} for i in range(5)}, {})

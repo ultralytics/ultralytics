@@ -163,8 +163,8 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
-    input_proto = onnx.load(onnx_file, load_external_data=False).graph.input[0]
-    input_name = input_proto.name
+    graph_inputs = onnx.load(onnx_file, load_external_data=False).graph.input
+    input_name = graph_inputs[0].name
     if quantize == 8:
         from modelopt.onnx.quantization import quantize as modelopt_quantize
 
@@ -200,7 +200,7 @@ def modelopt_quantize_onnx(
     # from its own declared rank and dtype. A single 4D float image reproduces the original behavior,
     # while multi input graphs also get valid token ids, masks and symbolic dims.
     calib = {}
-    for inp in onnx.load(onnx_file, load_external_data=False).graph.input:
+    for inp in graph_inputs:
         tt = inp.type.tensor_type
         dims = [d.dim_value if d.dim_value > 0 else dynamic_dim for d in tt.shape.dim]
         if not dims:  # a scalar input still needs an array

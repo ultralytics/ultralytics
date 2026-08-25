@@ -79,7 +79,6 @@ Let's get started.
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
 
     ```python
-    import yaml
 
     classes = data["names"]
     cls_idx = sorted(classes.keys())

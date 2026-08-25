@@ -186,8 +186,11 @@ def unfreeze_backbone(trainer):
         user_freeze = [x for x in trainer.freeze_layer_names if x not in {".dfl", "teacher_model."}]
         LOGGER.info(f"Epoch {trainer.epoch}: Unfreezing requested layers for fine-tuning")
         for name, param in trainer.model.named_parameters():
-            if not param.requires_grad and ".dfl" not in name and "teacher_model." not in name and any(
-                x in name for x in user_freeze
+            if (
+                not param.requires_grad
+                and ".dfl" not in name
+                and "teacher_model." not in name
+                and any(x in name for x in user_freeze)
             ):
                 param.requires_grad = True
                 LOGGER.info(f"  Unfroze: {name}")

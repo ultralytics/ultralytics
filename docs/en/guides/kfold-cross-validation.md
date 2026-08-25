@@ -258,12 +258,12 @@ Note that `save_path` sits **beside** the dataset, not inside it. A fold directo
             for src, sub, suffix in [(image, "images", image.suffix)] + (
                 [(lbl_by_key[key], "labels", ".txt")] if key in lbl_by_key else []
             ):
-                dst = (save_path / fold / split / sub / key).with_suffix(suffix)
+                dst = save_path / fold / split / sub / key.parent / f"{key.name}{suffix}"
                 dst.parent.mkdir(parents=True, exist_ok=True)  # key keeps the split subdirectory
                 shutil.copy(src, dst)
     ```
 
-    The destination reuses the same relative `key`, for the same reason the pairing does: flattening to the bare filename lets `train/0001.jpg` and `val/0001.jpg` land on top of each other, and `shutil.copy` overwrites without a word.
+    The destination reuses the same relative `key`, for the same reason the pairing does: flattening to the bare filename lets `train/0001.jpg` and `val/0001.jpg` land on top of each other, and `shutil.copy` overwrites without a word. The suffix is appended to `key.name` rather than set with `with_suffix`, which would turn `foo.bar.jpg` into `foo.jpg` and collide all over again.
 
     `shutil.copy` overwrites an existing destination silently, so a re-run is not protected in either approach — delete `save_path` first.
 

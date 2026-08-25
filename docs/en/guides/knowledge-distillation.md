@@ -245,7 +245,7 @@ When distillation is enabled, an additional `dis_loss` column appears in trainin
 
     The distillation loss is computed during training and is fixed at `0` during validation, so `val/dis_loss` in `results.csv` and the corresponding panel in `results.png` are a flat zero line by design. Read `train/dis_loss` to judge whether distillation is converging.
 
-Mid-run checkpoints keep the teacher and projector alongside the student, so a `last.pt` saved during training — or any file written by `save_period` — is several times larger than the final one. `best.pt` and `last.pt` from a completed run contain **only the student weights**, so file size and inference speed match a normally trained student model.
+A checkpoint saved during training — `last.pt` mid-run, or any file written by `save_period` — carries the optimizer state and the EMA copy of the `DistillationModel` wrapper, including its projector, so it is several times larger than the final file (25.4 MB against 5.5 MB on a `yolo26n` run here). The teacher is not among them: it is stripped before saving and rebuilt from `distill_model` on resume. `best.pt` and `last.pt` from a **completed** run contain only the student weights, so file size and inference speed match a normally trained student model.
 
 ## How It Works
 

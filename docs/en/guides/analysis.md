@@ -83,17 +83,17 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ## Property catalog and references
 
-| Feature / per-image field                                                             | Source                                                                                                                                            |
-| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `num_objects`                                                                         | in-tree dataset labels                                                                                                                            |
-| `small_object_ratio`                                                                  | [Lin et al., COCO, ECCV 2014](https://arxiv.org/abs/1405.0312)                                                                                    |
-| `object_scale_variance`, `num_classes_present`, `center_spread`                       | in-tree dataset labels                                                                                                                            |
-| `max_pairwise_iou` (per-image crowdedness)                                            | [Shao et al., CrowdHuman, 2018](https://arxiv.org/abs/1805.00123)                                                                                 |
-| `overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`               | [Tkachenko, Thyagarajan & Mueller, ObjectLab 2023](https://arxiv.org/abs/2309.00832)                                                             |
-| Per-image P/R/F1/TP/FP/FN                                                             | in-tree validator                                                                                                                                 |
-| Pearson + Spearman correlation per property × F1 with effect-size band                | [Pearson, Proc. Royal Society 1895](https://doi.org/10.1098/rspl.1895.0041) / [Spearman, Am. J. Psychology 1904](https://doi.org/10.2307/1412159) |
-| Actionable issue and next-step mapping                                                | in-tree                                                                                                                                           |
-| `ul://` platform-URI resolution for model + dataset inputs                            | [Ultralytics Platform API docs](https://docs.ultralytics.com/platform/api/)                                                                       |
+| Feature / per-image field                                              | Source                                                                                                                                            |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `num_objects`                                                          | in-tree dataset labels                                                                                                                            |
+| `small_object_ratio`                                                   | [Lin et al., COCO, ECCV 2014](https://arxiv.org/abs/1405.0312)                                                                                    |
+| `object_scale_variance`, `num_classes_present`, `center_spread`        | in-tree dataset labels                                                                                                                            |
+| `max_pairwise_iou` (per-image crowdedness)                             | [Shao et al., CrowdHuman, 2018](https://arxiv.org/abs/1805.00123)                                                                                 |
+| ObjectLab scores                                                       | [Tkachenko, Thyagarajan & Mueller, 2023](https://arxiv.org/abs/2309.00832)                                                                         |
+| Per-image P/R/F1/TP/FP/FN                                              | in-tree validator                                                                                                                                 |
+| Pearson + Spearman correlation per property × F1 with effect-size band | [Pearson, Proc. Royal Society 1895](https://doi.org/10.1098/rspl.1895.0041) / [Spearman, Am. J. Psychology 1904](https://doi.org/10.2307/1412159) |
+| Actionable issue and next-step mapping                                 | in-tree                                                                                                                                           |
+| `ul://` platform-URI resolution for model + dataset inputs             | [Ultralytics Platform API docs](https://docs.ultralytics.com/platform/api/)                                                                       |
 
 ## Actionable output
 

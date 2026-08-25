@@ -120,7 +120,7 @@ zebra       689.0
 dtype: float64
 ```
 
-An image with no objects produces an all-zero row, which is correct — a background image is legitimate training data, not missing data.
+An image with no objects produces an all-zero row, which is correct — a background image is legitimate training data, not missing data. These totals cover the whole pooled set; the next section drops duplicates from it, so treat them as a starting point rather than as the composition of the folds.
 
 ## Watch for Duplicate and Near-Duplicate Images
 
@@ -143,11 +143,17 @@ drop = {k for keys in duplicates.values() for k in sorted(keys)[1:]}
 img_by_key = {k: v for k, v in img_by_key.items() if k not in drop}
 labels_df = labels_df.drop(index=sorted(drop))
 print(f"dropped {len(drop)} duplicate images, {len(labels_df)} remain")
+print(labels_df.sum().rename(classes))  # the folded pool's real composition; every class total moved
 ```
 
 ```text
 25 duplicate groups covering 50 images
 dropped 25 duplicate images, 1252 remain
+buffalo     478.0
+elephant    645.0
+rhino       469.0
+zebra       676.0
+dtype: float64
 ```
 
 Dropping one image per group is the blunt option shown above and it is enough here. Keeping them together with `GroupKFold`, keyed on the hash, preserves the data instead — worth it when duplicates are numerous. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image: group them, or the folds are not independent. Note that byte-identical hashing does not catch re-encoded or resized near-duplicates; a perceptual hash does.
@@ -319,7 +325,7 @@ train: Scanning .../african-wildlife/labels/train... 1001 images, 0 backgrounds,
 val: Scanning .../african-wildlife/labels/train... 251 images, 0 backgrounds, 0 corrupt
 ```
 
-The counts match the fold sizes printed earlier, and a non-zero `backgrounds` count on a fully annotated dataset means images and labels are mispaired — go back to the orphan-label check. The directory in the scan line is just wherever the first label file happened to sit, so both lines naming the same split is expected and does not mean the fold is wrong.
+The counts match the fold sizes printed earlier. A background is legitimate training data, so the number to compare against is not zero but the background count you measured before splitting — African Wildlife labels every image, so that count was 0 and anything above it here means images and labels came apart; go back to the orphan-label check. The directory in the scan line is just wherever the first label file happened to sit, so both lines naming the same split is expected and does not mean the fold is wrong.
 
 !!! note "Budget for `k` full training runs"
 

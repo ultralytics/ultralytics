@@ -29,7 +29,7 @@ Hyperparameters are high-level, structural settings for the algorithm. They are 
 - **Number of [Epochs](https://www.ultralytics.com/glossary/epoch)** `epochs`: An epoch is one complete forward and backward pass of all the training examples.
 - **Architecture Specifics**: Such as channel counts, number of layers, types of activation functions, etc. These live in the [model YAML configuration](model-yaml-config.md) rather than in training arguments.
 
-Of these, only the learning rate is searched automatically. `batch`, `epochs`, and architecture are chosen by hand and held fixed for the whole run — the built-in tuner searches exactly the parameters in the [default search space](#default-search-space) below.
+Of these four, only the learning rate is searched automatically: `batch`, `epochs`, and architecture are chosen by hand and held fixed for the whole run. The tuner's default space is much wider than the learning rate alone — it also mutates the schedule, loss gains, and augmentation strengths listed in the [default search space](#default-search-space) below.
 
 <p align="center">
   <img width="640" src="https://cdn.ul.run/i/61d7129c7b5c4dcbdf8957fb535c998a.avif" alt="Hyperparameter optimization search space visualization">

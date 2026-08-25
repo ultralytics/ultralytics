@@ -410,8 +410,6 @@ class RTDETRBackboneLRTrainer(RTDETRTrainer):
 
         for module_name, module in unwrapped.named_modules():
             for param_name, param in module.named_parameters(recurse=False):
-                if not param.requires_grad:
-                    continue
                 fullname = f"{module_name}.{param_name}" if module_name else param_name
                 parts = fullname.split(".")
                 section = (
@@ -464,7 +462,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=RTDETRBackboneLRTrainer)
 
 !!! tip "Combining Techniques"
 
-    These customizations can be combined into a single trainer class by overriding multiple methods and adding callbacks as needed. One pairing needs care: `BaseTrainer.build_optimizer` deliberately does **not** filter on `requires_grad`, which is exactly why the [freeze and unfreeze](#freezing-and-unfreezing-the-backbone) recipe works — frozen parameters are still in a param group, so they resume training the moment the callback unfreezes them. A custom `build_optimizer` that skips them leaves those parameters with no optimizer state, and the backbone never trains again however many epochs remain. The example above omits that filter for this reason.
+    These customizations can be combined into a single trainer class by overriding multiple methods and adding callbacks as needed. One pairing needs care: `BaseTrainer.build_optimizer` deliberately does **not** filter on `requires_grad`, which is exactly why the [freeze and unfreeze](#freezing-and-unfreezing-the-backbone) recipe works — frozen parameters are still in a param group, so they resume training the moment the callback unfreezes them. A custom `build_optimizer` that skips them leaves those parameters with no optimizer state, and the backbone never trains again however many epochs remain. Neither `build_optimizer` on this page filters on `requires_grad`, for that reason.
 
 ## Synchronized BatchNorm for Multi-GPU Training
 

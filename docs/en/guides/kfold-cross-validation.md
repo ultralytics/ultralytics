@@ -7,7 +7,7 @@ keywords: K-Fold cross validation, YOLO, Ultralytics, scikit-learn, pandas, data
 
 # How to Run K-Fold Cross Validation with Ultralytics YOLO
 
-K-Fold cross validation splits a dataset into `k` equally sized folds and trains `k` models, each holding out a different fold for validation, so every image is used for both training and validation exactly once. Averaging the `k` results gives a far more stable estimate of model quality than a single train/val split, because it no longer depends on which images happened to land in the validation set.
+K-Fold cross validation splits a dataset into `k` equally sized folds and trains `k` models, each holding out a different fold for validation. Every image is therefore validated exactly once and trained on in the other `k - 1` folds. Averaging the `k` results gives a far more stable estimate of model quality than a single train/val split, because it no longer depends on which images happened to land in the validation set.
 
 This guide builds `k=5` folds for a [YOLO detection dataset](../datasets/detect/index.md) using scikit-learn and pandas, writes one dataset YAML per fold, trains [Ultralytics YOLO26](../models/yolo26.md) on each of them, and aggregates the results. Cross validation pays off most when a dataset is small, noisy, or class-imbalanced; for large, diverse datasets a single well-constructed train/val/test split gives the same answer for a fifth of the compute.
 

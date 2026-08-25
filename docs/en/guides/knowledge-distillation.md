@@ -41,7 +41,7 @@ Train a smaller student model with guidance from a larger teacher by adding the 
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo26n-distill.pt")  # downloads on first use
+        model = YOLO("yolo26n-distill.pt")  # fetched from the Ultralytics release assets on first use
         results = model.predict("https://ultralytics.com/images/bus.jpg")
         ```
 

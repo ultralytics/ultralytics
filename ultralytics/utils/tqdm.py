@@ -302,7 +302,11 @@ class TQDM:
                     width = shutil.get_terminal_size().columns - 1  # COLUMNS env, else sys.__stdout__
                 progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
             # Non-interactive environments avoid the carriage return which creates empty lines
-            self.file.write(progress_str if self.noninteractive else f"\r\033[K{progress_str}")
+            frame = progress_str if self.noninteractive else f"\r\033[K{progress_str}"
+            if progress := getattr(self.file, "progress", None):
+                progress(id(self), frame)  # a redraw is bar state, so log consumers keep it out of their log
+            else:
+                self.file.write(frame)
             self.file.flush()
         except Exception:
             pass
@@ -341,6 +345,9 @@ class TQDM:
                     self._display(final=True)
             else:
                 self._display(final=True)
+
+            if progress := getattr(self.file, "progress", None):
+                progress(id(self), "")  # bar closed: the last frame is now log content
 
             # Cleanup
             if self.leave:

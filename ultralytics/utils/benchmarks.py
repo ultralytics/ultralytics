@@ -268,7 +268,7 @@ class ProfileModels:
         num_timed_runs (int): Number of timed runs for the profiling.
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
-        imgsz (int): Image size used in the models.
+        imgsz (int | list[int] | tuple[int, int]): Image size used in the models.
         quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16) or 8 (INT8).
         trt (bool): Flag to indicate whether to profile using TensorRT.
         device (torch.device): Device used for profiling.
@@ -297,7 +297,7 @@ class ProfileModels:
         num_timed_runs: int = 100,
         num_warmup_runs: int = 10,
         min_time: float = 60,
-        imgsz: int = 640,
+        imgsz: int | list[int] | tuple[int, int] = 640,
         quantize: int | str | None = 16,
         trt: bool = True,
         device: torch.device | str | None = None,
@@ -309,7 +309,7 @@ class ProfileModels:
             num_timed_runs (int): Number of timed runs for the profiling.
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
-            imgsz (int): Size of the image used during profiling.
+            imgsz (int | list[int] | tuple[int, int]): Scalar image size or (height, width) shape used during profiling.
             quantize (int | str | None): Export precision for TensorRT profiling, e.g. 16 (FP16, default) or 8 (INT8).
             trt (bool): Flag to indicate whether to profile using TensorRT.
             device (torch.device | str | None): Device used for profiling. If None, it is determined automatically.
@@ -442,7 +442,8 @@ class ProfileModels:
 
         # Model and input
         model = YOLO(engine_file)
-        input_data = np.zeros((self.imgsz, self.imgsz, 3), dtype=np.uint8)  # use uint8 for Classify
+        height, width = (self.imgsz, self.imgsz) if isinstance(self.imgsz, int) else self.imgsz
+        input_data = np.zeros((height, width, 3), dtype=np.uint8)  # use uint8 for Classify
 
         # Warmup runs
         elapsed = 0.0
@@ -489,14 +490,13 @@ class ProfileModels:
         sess = ort.InferenceSession(onnx_file, sess_options, providers=["CPUExecutionProvider"])
 
         input_data_dict = {}
+        height, width = (self.imgsz, self.imgsz) if isinstance(self.imgsz, int) else self.imgsz
         for input_tensor in sess.get_inputs():
             input_type = input_tensor.type
             if self.check_dynamic(input_tensor.shape):
                 if len(input_tensor.shape) != 4 and self.check_dynamic(input_tensor.shape[1:]):
                     raise ValueError(f"Unsupported dynamic shape {input_tensor.shape} of {input_tensor.name}")
-                input_shape = (
-                    (1, 3, self.imgsz, self.imgsz) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
-                )
+                input_shape = (1, 3, height, width) if len(input_tensor.shape) == 4 else (1, *input_tensor.shape[1:])
             else:
                 input_shape = input_tensor.shape
 

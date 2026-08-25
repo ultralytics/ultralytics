@@ -409,7 +409,10 @@ Use **`rect=False`** to always pad to the full `imgsz` target. This is recommend
 
 **Training vs predict/export**
 
-Training accepts only a single integer `imgsz` (a `[h, w]` list is coerced to the largest value). Predict and export accept either an integer or a `(height, width)` tuple.
+Detection-style training and validation accept either an integer or a `[height, width]` pair. A pair is a fixed full
+target: every batch uses that exact shape, so `rect` aspect-ratio grouping is disabled. During training, `mosaic`,
+`mixup`, and `cutmix` are also disabled, and `multi_scale` cannot be combined with a fixed pair. Classification training
+accepts only a single integer. Predict and export accept either an integer or a `(height, width)` pair.
 
 !!! example
 

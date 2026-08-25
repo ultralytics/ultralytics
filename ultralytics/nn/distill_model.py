@@ -90,9 +90,10 @@ class DistillationModel(nn.Module):
 
         # Get feature dimensions via dummy forward pass (hooks capture outputs)
         imgsz = student_model.args.imgsz
+        shape = (imgsz, imgsz) if isinstance(imgsz, int) else tuple(imgsz)
         student_model.eval()
         with torch.no_grad():
-            im = torch.zeros(2, ch, imgsz, imgsz, device=device)
+            im = torch.zeros(2, ch, *shape, device=device)
             teacher_model(im)
             student_model(im)
         student_model.train()

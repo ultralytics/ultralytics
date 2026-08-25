@@ -148,7 +148,12 @@ class RTDETRValidator(DetectionValidator):
             preds = preds[0]
 
         bboxes, scores, labels = preds.split((4, 1, 1), dim=-1)
-        bboxes = ops.xywh2xyxy(bboxes) * self.args.imgsz
+        bboxes = ops.xywh2xyxy(bboxes)
+        if isinstance(self.args.imgsz, (list, tuple)):
+            height, width = self.args.imgsz
+            bboxes = bboxes * bboxes.new_tensor((width, height, width, height))
+        else:
+            bboxes = bboxes * self.args.imgsz
         scores, labels = scores.squeeze(-1), labels.squeeze(-1)
         masks = [(score > self.args.conf).nonzero().squeeze(1)[: self.args.max_det] for score in scores]
 
@@ -169,8 +174,9 @@ class RTDETRValidator(DetectionValidator):
         stem = path.stem
         image_id = int(stem) if stem.isnumeric() else stem
         box = predn["bboxes"].clone()
-        box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        box[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
+        height, width = self.args.imgsz if isinstance(self.args.imgsz, (list, tuple)) else (self.args.imgsz,) * 2
+        box[..., [0, 2]] *= pbatch["ori_shape"][1] / width  # native-space pred
+        box[..., [1, 3]] *= pbatch["ori_shape"][0] / height  # native-space pred
         box = ops.xyxy2xywh(box)  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):

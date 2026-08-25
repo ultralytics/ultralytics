@@ -311,12 +311,12 @@ class YOLODataset(BaseDataset):
             (Compose): Composed transforms.
         """
         if self.augment:
-            hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
-            hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
-            hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
+            hyp.mosaic = hyp.mosaic if self.augment and not self.rect and not self.fixed_shape else 0.0
+            hyp.mixup = hyp.mixup if self.augment and not self.rect and not self.fixed_shape else 0.0
+            hyp.cutmix = hyp.cutmix if self.augment and not self.rect and not self.fixed_shape else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+            transforms = Compose([LetterBox(new_shape=self.fixed_shape or (self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
             self.format_class(
                 bbox_format="xywh",
@@ -535,7 +535,7 @@ class DepthDataset(YOLODataset):
         transforms = super().build_transforms(hyp)
         if not self.augment:
             # stretch the image instead of padding
-            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+            transforms[-2] = LetterBox(new_shape=self.fixed_shape or (self.imgsz, self.imgsz), scale_fill=True)
         return transforms
 
 

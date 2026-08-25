@@ -1303,8 +1303,10 @@ class YOLOEModel(DetectionModel):
         assert len(vocab) == head.nl, f"Expected one vocabulary item per detection level ({head.nl}), got {len(vocab)}."
 
         # Cache anchors for head
+        imgsz = self.args["imgsz"]
+        shape = (imgsz, imgsz) if isinstance(imgsz, int) else tuple(imgsz)
         with torch.no_grad():  # a tracked warmup would build a graph through the backbone
-            self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
+            self(next(self.parameters()).new_empty(1, 3, *shape))  # warmup
 
         cv3 = getattr(head, "one2one_cv3", head.cv3)
         cv2 = getattr(head, "one2one_cv2", head.cv2)

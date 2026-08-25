@@ -960,17 +960,11 @@ class Exporter:
         # Finish
         if f:
             square = self.imgsz[0] == self.imgsz[1]
-            s = (
-                ""
-                if square
-                else f"WARNING ⚠️ non-PyTorch val requires square images, 'imgsz={self.imgsz}' will not "
-                f"work. Use export 'imgsz={max(self.imgsz)}' if val is required."
-            )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )
@@ -988,7 +982,7 @@ class Exporter:
         """Build and return a dataloader for calibration of INT8 models."""
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
-        cfg.imgsz = max(self.imgsz)
+        cfg.imgsz = self.imgsz if self.model.task != "classify" and self.imgsz[0] != self.imgsz[1] else max(self.imgsz)
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
@@ -1000,16 +994,32 @@ class Exporter:
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=self.args.split)
-            dataset = build_yolo_dataset(
-                cfg,
-                data[self.args.split or "val"],
-                self.args.batch,
-                data,
-                mode="val",
-                fraction=self.args.fraction,
-            )
-        if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
-            dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
+            if isinstance(self.model.model[-1], RTDETRDecoder):
+                from ultralytics.models.rtdetr.val import RTDETRDataset
+
+                dataset = RTDETRDataset(
+                    img_path=data[self.args.split or "val"],
+                    imgsz=cfg.imgsz,
+                    batch_size=self.args.batch,
+                    augment=False,
+                    hyp=cfg,
+                    rect=False,
+                    cache=cfg.cache or None,
+                    single_cls=cfg.single_cls or False,
+                    prefix=prefix,
+                    classes=cfg.classes,
+                    data=data,
+                    fraction=self.args.fraction,
+                )
+            else:
+                dataset = build_yolo_dataset(
+                    cfg,
+                    data[self.args.split or "val"],
+                    self.args.batch,
+                    data,
+                    mode="val",
+                    fraction=self.args.fraction,
+                )
         n = len(dataset)
         if n < 1:
             raise ValueError(f"The calibration dataset must have at least 1 image, but found {n} images.")

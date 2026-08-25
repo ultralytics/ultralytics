@@ -28,7 +28,8 @@ class BaseDataset(Dataset):
 
     Attributes:
         img_path (str | list[str]): Path to the folder containing images.
-        imgsz (int): Target image size for resizing.
+        imgsz (int): Scalar target image size used by legacy square and rectangular resizing.
+        fixed_shape (tuple[int, int] | None): Fixed (height, width) target when `imgsz` has two dimensions.
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
@@ -90,7 +91,7 @@ class BaseDataset(Dataset):
     def __init__(
         self,
         img_path: str | list[str],
-        imgsz: int = 640,
+        imgsz: int | list[int] | tuple[int, int] = 640,
         cache: bool | str = False,
         augment: bool = True,
         hyp: dict[str, Any] = DEFAULT_CFG,
@@ -108,7 +109,7 @@ class BaseDataset(Dataset):
 
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
-            imgsz (int): Image size for resizing.
+            imgsz (int | list[int] | tuple[int, int]): Scalar image size or fixed (height, width) shape.
             cache (bool | str): Cache images to RAM or disk during training.
             augment (bool): If True, data augmentation is applied.
             hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
@@ -125,7 +126,8 @@ class BaseDataset(Dataset):
         """
         super().__init__()
         self.img_path = img_path
-        self.imgsz = imgsz
+        self.fixed_shape = tuple(map(int, imgsz)) if isinstance(imgsz, (list, tuple)) and len(imgsz) == 2 else None
+        self.imgsz = max(self.fixed_shape) if self.fixed_shape else imgsz
         self.augment = augment
         self.single_cls = single_cls
         self.prefix = prefix
@@ -136,11 +138,11 @@ class BaseDataset(Dataset):
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
-        self.rect = rect
+        self.rect = rect and self.fixed_shape is None
         self.batch_size = batch_size
         self.stride = stride
         self.pad = pad
-        if self.rect:
+        if self.rect or self.fixed_shape:
             assert self.batch_size is not None
             self.set_rectangle()
 
@@ -266,7 +268,16 @@ class BaseDataset(Dataset):
                 raise FileNotFoundError(f"Image Not Found {f}")
 
             h0, w0 = im.shape[:2]  # orig hw
-            if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
+            if self.fixed_shape:  # resize once from the original image for the fixed (height, width) shape
+                target_h, target_w = self.fixed_shape
+                if rect_mode:
+                    r = min(target_h / h0, target_w / w0)
+                    w, h = min(max(round(w0 * r), 1), target_w), min(max(round(h0 * r), 1), target_h)
+                else:
+                    w, h = target_w, target_h
+                if (h, w) != (h0, w0):
+                    im = cv2.resize(im, (w, h), interpolation=cv2.INTER_LINEAR)
+            elif rect_mode:  # resize long side to imgsz while maintaining aspect ratio
                 if resize_short:  # resize short side to imgsz while maintaining aspect ratio
                     r = self.imgsz / min(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
@@ -384,9 +395,14 @@ class BaseDataset(Dataset):
         return True
 
     def set_rectangle(self) -> None:
-        """Sort images by aspect ratio and set batch shapes for rectangular training."""
+        """Set fixed batch shapes or sort images by aspect ratio for rectangular training."""
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
+
+        if self.fixed_shape:
+            self.batch_shapes = np.tile(self.fixed_shape, (nb, 1))
+            self.batch = bi
+            return
 
         s = np.array([x.pop("shape") for x in self.labels])  # hw
         ar = s[:, 0] / s[:, 1]  # aspect ratio
@@ -428,7 +444,7 @@ class BaseDataset(Dataset):
             label["resized_shape"][0] / label["ori_shape"][0],
             label["resized_shape"][1] / label["ori_shape"][1],
         )  # for evaluation
-        if self.rect:
+        if self.rect or self.fixed_shape:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)
 

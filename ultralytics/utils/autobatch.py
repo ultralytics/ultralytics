@@ -14,7 +14,7 @@ from ultralytics.utils.torch_utils import autocast, get_torch_device_backend, pr
 
 def check_train_batch_size(
     model: torch.nn.Module,
-    imgsz: int = 640,
+    imgsz: int | list[int] | tuple[int, int] = 640,
     amp: bool = True,
     batch: float = -1,
     max_num_obj: int = 1,
@@ -24,7 +24,7 @@ def check_train_batch_size(
 
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
-        imgsz (int, optional): Image size used for training.
+        imgsz (int | list[int] | tuple[int, int], optional): Image size used for training.
         amp (bool, optional): Use automatic mixed precision if True.
         batch (int | float, optional): Fraction of GPU memory to use. If -1, use default.
         max_num_obj (int, optional): The maximum number of objects from dataset.
@@ -52,7 +52,7 @@ def check_train_batch_size(
 
 def autobatch(
     model: torch.nn.Module,
-    imgsz: int = 640,
+    imgsz: int | list[int] | tuple[int, int] = 640,
     fraction: float = 0.60,
     batch_size: int = DEFAULT_CFG.batch,
     max_num_obj: int = 1,
@@ -62,7 +62,7 @@ def autobatch(
 
     Args:
         model (torch.nn.Module): YOLO model to compute batch size for.
-        imgsz (int, optional): The image size used as input for the YOLO model.
+        imgsz (int | list[int] | tuple[int, int], optional): The image size used as input for the YOLO model.
         fraction (float, optional): The fraction of available CUDA memory to use.
         batch_size (int, optional): The default batch size to use if an error is detected.
         max_num_obj (int, optional): The maximum number of objects from dataset.
@@ -102,7 +102,8 @@ def autobatch(
         batch_sizes = [b for b in batch_sizes if b <= dataset_size]
     ch = model.yaml.get("channels", 3)
     try:
-        img = [torch.empty(b, ch, imgsz, imgsz) for b in batch_sizes]
+        shape = (imgsz, imgsz) if isinstance(imgsz, int) else tuple(imgsz)
+        img = [torch.empty(b, ch, *shape) for b in batch_sizes]
         results = profile_ops(img, model, n=1, device=device, max_num_obj=max_num_obj)
 
         # Fit a solution

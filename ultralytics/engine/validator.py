@@ -137,7 +137,10 @@ class BaseValidator:
         (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
         if self.args.conf is None:
             self.args.conf = 0.01 if self.args.task == "obb" else 0.001  # reduce OBB val memory usage
-        self.args.imgsz = check_imgsz(self.args.imgsz, max_dim=1)
+        self.args.imgsz = check_imgsz(self.args.imgsz)
+        if isinstance(self.args.imgsz, list) and self.args.rect:
+            LOGGER.warning("fixed-shape 'imgsz=[height, width]' disables 'rect', setting 'rect=False'")
+            self.args.rect = False
 
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -209,9 +212,15 @@ class BaseValidator:
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 if hasattr(model, "imgsz"):
-                    self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
+                    model_imgsz = check_imgsz(model.imgsz, stride=stride, min_dim=2)
+                    keep_pair = isinstance(self.args.imgsz, (list, tuple)) or model_imgsz[0] != model_imgsz[1]
+                    self.args.imgsz = imgsz = model_imgsz if keep_pair else model_imgsz[0]
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
-                LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
+                input_shape = (imgsz, imgsz) if isinstance(imgsz, int) else tuple(imgsz)
+                LOGGER.info(
+                    f"Setting batch={self.args.batch} input of shape "
+                    f"({self.args.batch}, 3, {input_shape[0]}, {input_shape[1]})"
+                )
 
             if self.args.task == "classify":
                 self.data = check_cls_dataset(self.args.data, split=self.args.split)
@@ -237,7 +246,8 @@ class BaseValidator:
             model.eval()
             if self.args.compile:
                 model = attempt_compile(model, device=self.device, mode=self.args.compile)
-            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], imgsz, imgsz))  # warmup
+            input_shape = (imgsz, imgsz) if isinstance(imgsz, int) else tuple(imgsz)
+            model.warmup(imgsz=(1 if pt else self.args.batch, self.data["channels"], *input_shape))  # warmup
 
         self.run_callbacks("on_val_start")
         dt = (

@@ -2113,32 +2113,12 @@ def test_semantic_polygon_data():
     model.val(data="coco8-seg.yaml")
 
 
-def test_image_property_pixel_metrics():
-    """Pixel metrics separate structured from flat images and stay in range (Pech-Pacheco/Canny/Krotkov/Shannon)."""
-    flat = np.full((320, 480), 128, dtype=np.uint8)
-    checker = np.tile(np.array([[0, 255], [255, 0]], dtype=np.uint8), (160, 240))
-    uniform = np.random.default_rng(0).integers(0, 256, size=(64, 64), dtype=np.uint8)
-    step = np.zeros((320, 480), dtype=np.uint8)
-    step[:, 240:] = 255
-    halves = np.full((10, 10), 5, dtype=np.uint8)
-    halves[5:] = 250
-    assert 0.0 <= ImagePropertyExtractor._brightness(cv2.cvtColor(flat, cv2.COLOR_GRAY2BGR)) <= 1.0
-    assert ImagePropertyExtractor._contrast(flat) == 0.0
-    assert ImagePropertyExtractor._entropy(flat) == 0.0
-    assert ImagePropertyExtractor._entropy(uniform) > 0.0
-    assert ImagePropertyExtractor._blurriness(checker) < ImagePropertyExtractor._blurriness(flat)
-    assert ImagePropertyExtractor._edge_density(checker) > ImagePropertyExtractor._edge_density(flat)
-    assert ImagePropertyExtractor._sharpness(step) > ImagePropertyExtractor._sharpness(flat)
-    assert ImagePropertyExtractor._dark_pixel_ratio(halves) == pytest.approx(0.5)
-    assert ImagePropertyExtractor._bright_pixel_ratio(halves) == pytest.approx(0.5)
-
-
 def test_image_property_pairwise_iou():
-    """Overlapping boxes give max IoU in (0.1, 0.5); disjoint boxes give mean IoU 0 (CrowdHuman 2018)."""
+    """Overlapping boxes give max IoU in (0.1, 0.5), while disjoint boxes give max IoU 0."""
     overlap = np.array([[0, 0, 10, 10], [5, 5, 15, 15], [100, 100, 110, 110]], dtype=np.float32)
     disjoint = np.array([[0, 0, 10, 10], [100, 100, 110, 110], [200, 200, 210, 210]], dtype=np.float32)
-    assert 0.1 < ImagePropertyExtractor._pairwise_iou_stats(overlap)[0] < 0.5
-    assert ImagePropertyExtractor._pairwise_iou_stats(disjoint)[1] == 0.0
+    assert 0.1 < ImagePropertyExtractor._max_pairwise_iou(overlap) < 0.5
+    assert ImagePropertyExtractor._max_pairwise_iou(disjoint) == 0.0
 
 
 def test_image_property_extractor():
@@ -2148,22 +2128,28 @@ def test_image_property_extractor():
     labels = ImagePropertyExtractor(ds).labels
     assert labels is ds.labels and "im_file" in labels[0]
     props = labels[0]["im_properties"]
-    for key in ("brightness", "blurriness", "num_small", "num_medium", "num_large", "max_pairwise_iou"):
-        assert key in props, f"missing property {key!r}"
-    assert 0.0 <= props["brightness"] <= 1.0
+    assert set(props) == {
+        "num_objects",
+        "small_object_ratio",
+        "object_scale_variance",
+        "num_classes_present",
+        "center_spread",
+        "max_pairwise_iou",
+    }
+    assert props["num_objects"] == len(labels[0]["bboxes"])
 
 
 def test_correlation_rank_top_problematic():
     """_rank_and_score.top_3_problematic flags only F1-lowering extremes, not F1-raising ones."""
-    corr = {"mean_pairwise_iou": {"pearson_r": 0.9}, "num_small": {"pearson_r": -0.9}}
+    corr = {"max_pairwise_iou": {"pearson_r": 0.9}, "num_objects": {"pearson_r": -0.9}}
     per_image = {
-        "clean.jpg": {"mean_pairwise_iou": 0.0, "num_small": 0.0},
-        "mid.jpg": {"mean_pairwise_iou": 1.0, "num_small": 1.0},
-        "worst.jpg": {"mean_pairwise_iou": 9.0, "num_small": 4.0},
+        "clean.jpg": {"max_pairwise_iou": 0.0, "num_objects": 0.0},
+        "mid.jpg": {"max_pairwise_iou": 1.0, "num_objects": 1.0},
+        "worst.jpg": {"max_pairwise_iou": 9.0, "num_objects": 4.0},
     }
     CorrelationAnalysis._rank_and_score(per_image, corr)
     flagged = per_image["worst.jpg"]["top_3_problematic"]
-    assert "num_small" in flagged and "mean_pairwise_iou" not in flagged
+    assert "num_objects" in flagged and "max_pairwise_iou" not in flagged
 
 
 def test_correlation_analysis(tmp_path):

@@ -1067,7 +1067,7 @@ class Exporter:
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
-        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type, quantize=self.args.quantize)
+        opset = self.args.opset or best_onnx_opset(onnx)
         assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:

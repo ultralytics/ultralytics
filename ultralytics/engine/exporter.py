@@ -1627,7 +1627,7 @@ class Exporter:
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
         task = self.model.task
-        yolo26 = self.hailo_yolo26 and task == "detect"
+        yolo26 = self.hailo_yolo26 and one2one and task == "detect"
         LOGGER.warning(
             f"\nHailo {'level-4 AdaRound' if yolo26 else 'level-2 fine-tuning'} will use "
             f"{calibration_size} calibration images. "

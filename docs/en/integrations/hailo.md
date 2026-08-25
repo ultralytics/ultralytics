@@ -90,7 +90,7 @@ Hailo export is INT8-only. Ultralytics automatically downloads a task-specific c
 
 !!! danger "Use at least 1,024 calibration images for best accuracy"
 
-    Ultralytics uses DFC level-4 AdaRound for YOLO26 detection and level-2 fine-tuning for other models. Hailo recommends at least 1,024 diverse images; the built-in lightweight datasets may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
+    Ultralytics uses DFC level-4 AdaRound for NMS-free YOLO26 detection and level-2 fine-tuning for other models. Hailo recommends at least 1,024 diverse images; the built-in lightweight datasets may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
 
 ```python
 model.export(format="hailo", name="hailo8", data="path/to/dataset.yaml")

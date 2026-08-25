@@ -113,7 +113,7 @@ Caching can be controlled when training YOLO26 using the `cache` parameter:
 
 !!! warning "Caching is not free"
 
-    `cache=True` holds every decoded training image in RAM at once. Ultralytics estimates the requirement from a sample of images, adds a safety margin, and silently falls back to no caching when that does not fit in available memory — so a run that appears to ignore `cache=True` is usually a run that did not fit. Two more things to plan for:
+    `cache=True` holds every decoded training image in RAM at once. Ultralytics estimates the requirement from a sample of images, adds a safety margin, and falls back to no caching when that does not fit in available memory, logging a warning as it does — so a run that appears to ignore `cache=True` is usually a run that did not fit, and the warning in the log says so. Two more things to plan for:
 
     - **Multi-GPU**: every DDP rank builds its own dataset and its own cache, so N GPUs hold N copies of the dataset in system RAM. The memory check runs per rank and cannot see the other ranks.
     - **Reproducibility**: `cache='ram'` can produce non-deterministic results and warns accordingly. Use `cache='disk'` when runs need to be repeatable.

@@ -96,7 +96,7 @@ The default `optimizer=auto` setting selects the optimizer and learning rate bas
 - **10,000 iterations or fewer** (small datasets or few epochs): AdamW with a low, auto-calculated learning rate
 - **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a hybrid Muon+SGD optimizer) with lr=0.01
 
-Iterations are counted as the dataset size divided by `max(batch, nbs)` and multiplied by `epochs`, where `nbs` is the nominal batch size of 64. A batch smaller than 64 therefore does not raise the count.
+Iterations are counted as `ceil(dataset_size / max(batch, nbs)) * epochs`, where `nbs` is the nominal batch size of 64 and `dataset_size` is the training split after `fraction` is applied. A batch smaller than 64 therefore does not raise the count, and the rounding up matters near the threshold: 65 images at `batch=64` count as 2 iterations per epoch, not 1.
 
 For most fine-tuning tasks, the default setting works well without any manual tuning. Consider setting the optimizer explicitly when:
 

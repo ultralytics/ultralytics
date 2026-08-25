@@ -39,12 +39,12 @@ kpt_shape: [17, 3] # pose models only
 
 Shipped YAMLs also use four further top-level keys:
 
-| Key          | Used by             | Purpose                                                                                 |
-| ------------ | ------------------- | --------------------------------------------------------------------------------------- |
-| `end2end`    | every YOLO26 config | Enables the NMS-free one-to-one head. See [End-to-End Detection](end2end-detection.md). |
-| `reg_max`    | every YOLO26 config | Number of DFL bins. YOLO26 ships `reg_max: 1`, which is what makes it DFL-free.         |
+| Key          | Used by             | Purpose                                                                                     |
+| ------------ | ------------------- | ------------------------------------------------------------------------------------------- |
+| `end2end`    | every YOLO26 config | Enables the NMS-free one-to-one head. See [End-to-End Detection](end2end-detection.md).     |
+| `reg_max`    | every YOLO26 config | Number of DFL bins. YOLO26 ships `reg_max: 1`, which is what makes it DFL-free.             |
 | `channels`   | classification      | Input channel count, i.e. `1` for grayscale. Only classification reads it here — see below. |
-| `activation` | `yolov6.yaml`       | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`. |
+| `activation` | `yolov6.yaml`       | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`.     |
 
 !!! warning "`channels` in a detection model YAML is ignored"
 
@@ -406,13 +406,13 @@ head:
 
 ## Best Practices
 
-| Practice                         | What it means for your YAML                                                                                                                                                                          |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Start from a shipped config**  | Copy a YAML from [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) and change one thing at a time rather than writing a backbone from scratch. |
+| Practice                         | What it means for your YAML                                                                                                                                                                                                               |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Start from a shipped config**  | Copy a YAML from [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) and change one thing at a time rather than writing a backbone from scratch.                                      |
 | **Match channels across layers** | For a base module, actual output channels are `make_divisible(min(out_ch, max_channels) * width, 8)`, not the number you wrote. Compute the scaled value before assuming two layers line up, and note the other modules do not follow it. |
-| **Reuse features with `Concat`** | `[[-1, N], 1, Concat, [1]]` merges an earlier feature map into the current one, the standard FPN pattern for multi-scale detection. Both sources must share spatial dimensions.                      |
-| **Pick a scale for your target** | Use `n` for edge devices, `s` for a balanced tradeoff, `m`/`l`/`x` when accuracy matters more than latency.                                                                                          |
-| **Verify after every change**    | `model.info()` must report non-zero FLOPs; see [Debugging Tips](#debugging-tips).                                                                                                                    |
+| **Reuse features with `Concat`** | `[[-1, N], 1, Concat, [1]]` merges an earlier feature map into the current one, the standard FPN pattern for multi-scale detection. Both sources must share spatial dimensions.                                                           |
+| **Pick a scale for your target** | Use `n` for edge devices, `s` for a balanced tradeoff, `m`/`l`/`x` when accuracy matters more than latency.                                                                                                                               |
+| **Verify after every change**    | `model.info()` must report non-zero FLOPs; see [Debugging Tips](#debugging-tips).                                                                                                                                                         |
 
 For the reasoning behind depth, width and bottleneck choices, see [YOLO architecture explained](yolo-architecture.md).
 

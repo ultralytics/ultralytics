@@ -189,13 +189,12 @@ class Tuner:
             mongodb_collection (str, optional): Collection name.
 
         Notes:
-            - Creates a fitness index for fast queries of top results
+            - Creates a fitness index when the first worker claims a new collection
             - Falls back to local NDJSON mode if connection fails
             - Uses connection pooling and retry logic for production reliability
         """
         self.mongodb = self._connect(mongodb_uri)
         self.collection = self.mongodb[mongodb_db][mongodb_collection]
-        self.collection.create_index([("fitness", -1)], background=True)
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
     def _get_mongodb_results(self, n: int = 5) -> list:
@@ -392,8 +391,16 @@ class Tuner:
                         for r in results
                     ]
                 )
-            elif self.collection.name in self.collection.database.list_collection_names():  # Tuner started elsewhere
-                x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
+            else:
+                from pymongo.errors import CollectionInvalid
+
+                try:
+                    self.collection.database.create_collection(self.collection.name)
+                except CollectionInvalid:  # Another worker already claimed the default generation
+                    x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
+                self.collection.create_index([("fitness", -1)], background=True)
+                if x is None:
+                    return {k: getattr(self.args, k) for k in self.space}
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
         if x is None:
@@ -479,8 +486,9 @@ class Tuner:
             dataset_metrics = {dataset: metrics or {} for dataset, metrics in trainer.train().items()}
             save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]
-            metrics = next((metrics for metrics in reversed(dataset_metrics.values()) if metrics), {})
+            metrics = trainer.mean_metrics
             fitness = sum((metrics or {}).get("fitness") or 0.0 for metrics in dataset_metrics.values()) / len(data)
+            metrics["fitness"] = fitness
             result = self._result_record(
                 i + 1,
                 fitness,

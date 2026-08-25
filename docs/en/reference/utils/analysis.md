@@ -1,7 +1,7 @@
 ---
 title: utils.analysis API Reference
-description: Actionable model and label-quality analysis. Maps F1 drivers and ObjectLab scores to specific training and label-review actions.
-keywords: Ultralytics, image property analysis, ObjectLab, label quality, actionable insights, detection
+description: Actionable image property analysis. Maps the strongest F1-lowering dataset properties to numeric evidence and specific next steps.
+keywords: Ultralytics, image property analysis, actionable insights, correlation, dataset quality, detection
 ---
 
 # Reference for `ultralytics/utils/analysis.py`
@@ -21,33 +21,5 @@ keywords: Ultralytics, image property analysis, ObjectLab, label quality, action
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.analysis.CorrelationAnalysis
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._strength_band
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._direction_phrase
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._performance_drivers
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._objectlab_score_dict
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis.compute_objectlab_scores
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._softmin1d
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._rankdata
 
 <br><br>

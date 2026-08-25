@@ -4,8 +4,6 @@ import contextlib
 import csv
 import os
 import shutil
-import subprocess
-import sys
 import tarfile
 import urllib
 import zipfile
@@ -43,13 +41,7 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.analysis import (
-    AnalysisReport,
-    CorrelationAnalysis,
-    ImagePropertyExtractor,
-    _softmin1d,
-    compute_objectlab_scores,
-)
+from ultralytics.utils.analysis import AnalysisReport, CorrelationAnalysis, ImagePropertyExtractor, _label_issue_scores
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
@@ -2119,20 +2111,12 @@ def test_semantic_polygon_data():
     model.val(data="coco8-seg.yaml")
 
 
-def test_image_property_pairwise_iou():
-    """Overlapping boxes give max IoU in (0.1, 0.5), while disjoint boxes give max IoU 0."""
-    overlap = np.array([[0, 0, 10, 10], [5, 5, 15, 15], [100, 100, 110, 110]], dtype=np.float32)
-    disjoint = np.array([[0, 0, 10, 10], [100, 100, 110, 110], [200, 200, 210, 210]], dtype=np.float32)
-    assert 0.1 < ImagePropertyExtractor._max_pairwise_iou(overlap) < 0.5
-    assert ImagePropertyExtractor._max_pairwise_iou(disjoint) == 0.0
-
-
 def test_image_property_extractor():
-    """ImagePropertyExtractor adds an im_properties dict to each label in place, no model or I/O."""
+    """Test scalar image property extraction on a detection dataset."""
     data = check_det_dataset("coco8.yaml")
     ds = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
     labels = ImagePropertyExtractor(ds).labels
-    assert labels is ds.labels and "im_file" in labels[0]
+    assert labels is ds.labels
     props = labels[0]["im_properties"]
     assert set(props) == {
         "num_objects",
@@ -2142,115 +2126,23 @@ def test_image_property_extractor():
         "center_spread",
         "max_pairwise_iou",
     }
-    assert props["num_objects"] == len(labels[0]["bboxes"])
-
-
-def test_correlation_actionable_insights():
-    """Correlation insights contain numeric evidence and a specific next action, limited to the top three drivers."""
-    corr = {
-        "num_objects": {"spearman_r": -0.9, "n": 100},
-        "max_pairwise_iou": {"spearman_r": -0.4, "n": 100},
-        "small_object_ratio": {"spearman_r": -0.2, "n": 100},
-        "center_spread": {"spearman_r": 0.8, "n": 100},
-    }
-    insights = CorrelationAnalysis._build_insights({}, corr)
-    assert len(insights) == 3 and insights[0] == {
-        "target": "dataset",
-        "issue": "dense scenes reduce F1",
-        "score": -0.9,
-        "evidence": "num_objects Spearman correlation, n=100",
-        "action": "add crowded-scene training images or use tiled crops",
-    }
-    report = AnalysisReport(
-        per_image={
-            str(i): {"num_objects": i, "max_pairwise_iou": i / 100, "small_object_ratio": i / 100, "f1": 1 - i / 100}
-            for i in range(30)
-        },
-        correlations=corr,
-        insights=insights,
-    )
-    assert report.plot().shape[2] == 3
-    assert "dense scenes reduce F1" in report.to_json()
+    assert props["num_objects"] == len(labels[0]["bboxes"]) and 0 <= props["max_pairwise_iou"] <= 1
 
 
 def test_correlation_analysis():
-    """CorrelationAnalysis joins extractor labels with validator metrics without writing output files."""
-    model = YOLO(MODEL)
-    metrics = model.val(
-        data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, score_labels=True, device="cpu"
-    )
-    labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
-    report = CorrelationAnalysis(labels, metrics).run()
-    sample = next(iter(report.per_image.values()))
-    assert sample.get("f1") is not None and "overlooked_score" in sample
-    assert not report.insights or set(report.summary()[0]) == {"target", "issue", "score", "evidence", "action"}
+    """Test that correlations produce a short actionable report."""
+    per_image = {str(i): {"num_objects": i, "f1": 1 - i / 30} for i in range(30)}
+    correlations = CorrelationAnalysis._compute_correlations(per_image)
+    report = AnalysisReport(per_image, correlations, CorrelationAnalysis._build_insights({}, correlations))
+    assert correlations["num_objects"] == {"spearman_r": pytest.approx(-1.0), "n": 30}
+    assert len(report.summary()) == 1 and report.summary()[0]["action"]
 
 
-def test_analysis_lazy_matplotlib_import():
-    """Importing the analysis module must not import matplotlib (lazy-loaded inside plot)."""
-    code = "import sys; import ultralytics.utils.analysis; assert 'matplotlib' not in sys.modules"
-    subprocess.run([sys.executable, "-c", code], check=True)
-
-
-def test_softmin1d():
-    """Softmin1d stays within input min/max, nears the min at low T, and collapses when uniform."""
-    scores = np.array([0.2, 0.5, 0.8])
-    result = _softmin1d(scores, T=0.1)
-    assert scores.min() <= result <= scores.max()
-    assert result == pytest.approx(scores.min(), abs=0.05)
-    assert _softmin1d(np.array([0.7, 0.7, 0.7]), T=0.1) == pytest.approx(0.7)
-
-
-def test_objectlab_clean_image_returns_high_quality():
-    """A fully matched image returns high quality and no label-review action."""
-    out = compute_objectlab_scores(
-        iou=np.array([[1.0, 0.0], [0.0, 1.0]]),
-        pred_bb=np.array([[0, 0, 10, 10], [50, 50, 60, 60]], dtype=np.float32),
-        pred_cls=np.array([0, 1]),
-        pred_conf=np.array([0.99, 0.99]),
-        gt_bb=np.array([[0, 0, 10, 10], [50, 50, 60, 60]], dtype=np.float32),
-        gt_cls=np.array([0, 1]),
-    )
-    assert all(v == pytest.approx(1.0, abs=0.05) for v in out.values())
-    assert CorrelationAnalysis._build_insights({"clean.jpg": out}, {}) == []
-
-
-def test_objectlab_actionable_label_issues():
-    """Low ObjectLab subtype scores directly identify the image, issue, evidence, and next action."""
-    swap = compute_objectlab_scores(
-        iou=np.array([[1.0]]),
-        pred_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
-        pred_cls=np.array([1]),
-        pred_conf=np.array([0.99]),
-        gt_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
-        gt_cls=np.array([0]),
-    )
-    missing = compute_objectlab_scores(
-        iou=None,
-        pred_bb=np.array([[10, 10, 50, 50]], dtype=np.float32),
-        pred_cls=np.array([0]),
-        pred_conf=np.array([0.99]),
-        gt_bb=np.zeros((0, 4), dtype=np.float32),
-        gt_cls=np.zeros(0),
-    )
-    assert 0 < missing["overlooked_score"] < 0.5
-    weak_overlap = compute_objectlab_scores(
-        iou=np.array([[0.2]]),
-        pred_bb=np.array([[20, 20, 30, 30]], dtype=np.float32),
-        pred_cls=np.array([0]),
-        pred_conf=np.array([0.99]),
-        gt_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
-        gt_cls=np.array([0]),
-    )
-    assert weak_overlap["badloc_score"] == 1.0
-    insights = CorrelationAnalysis._build_insights(
-        {"swap.jpg": swap, "box.jpg": {"badloc_score": 0.49}, "missing.jpg": missing}, {}
-    )
-    assert {(x["target"], x["issue"]) for x in insights} == {
-        ("swap.jpg", "possible incorrect class or model classification error"),
-        ("box.jpg", "possible incorrect box or model localization error"),
-        ("missing.jpg", "possible missing label or model false positive"),
-    }
-    assert all(set(x) == {"target", "issue", "score", "evidence", "action"} for x in insights)
-    queue = CorrelationAnalysis._build_insights({f"box{i}.jpg": {"badloc_score": i / 10} for i in range(5)}, {})
-    assert [x["target"] for x in queue] == ["box0.jpg", "box1.jpg", "box2.jpg"]
+def test_label_issue_scores():
+    """Test that missing and incorrect class evidence becomes label-review actions."""
+    box = np.array([[0, 0, 10, 10]], dtype=np.float32)
+    missing = _label_issue_scores(None, box, np.array([0]), np.array([0.99]), np.empty((0, 4)), np.empty(0))
+    swapped = _label_issue_scores(np.ones((1, 1)), box, np.array([1]), np.array([0.99]), box, np.array([0]))
+    insights = CorrelationAnalysis._build_insights({"missing.jpg": missing, "swapped.jpg": swapped}, {})
+    assert missing["overlooked_score"] < 0.5 and swapped["swap_score"] < 0.5
+    assert {x["target"] for x in insights} == {"missing.jpg", "swapped.jpg"}

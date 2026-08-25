@@ -347,7 +347,7 @@ class TQDM:
                 self._display(final=True)
 
             if progress := getattr(self.file, "progress", None):
-                progress(id(self), None)  # bar closed: the last frame is now log content
+                progress(id(self), "")  # bar closed: the last frame is now log content
 
             # Cleanup
             if self.leave:

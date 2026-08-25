@@ -94,8 +94,8 @@ class ConsoleLogger:
             return
 
         self.active = True
-        sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log, self._queue_progress)
-        sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log, self._queue_progress)
+        sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
+        sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
 
         # Hook Ultralytics logger
         try:
@@ -130,8 +130,8 @@ class ConsoleLogger:
         self.progress.clear()
         self._flush_buffer()
 
-    def _queue_log(self, text):
-        """Queue console text with deduplication and timestamp processing."""
+    def _queue_log(self, text, bar_id):
+        """Queue console text with deduplication and timestamp processing, holding bar frames as state."""
         if not self.active:
             return
 
@@ -141,6 +141,13 @@ class ConsoleLogger:
         if "\r" in text:
             text = text.split("\r")[-1]
         text = text.replace("\x1b[K", "")
+
+        if bar_id is not None:  # a redraw is bar state, so only the frame a bar closed with becomes a log line
+            with self.buffer_lock:
+                if text:
+                    self.progress[str(bar_id)] = text.rstrip()
+                    return
+                text = self.progress.pop(str(bar_id), "")
 
         lines = text.split("\n")
         if lines and lines[-1] == "":
@@ -172,18 +179,6 @@ class ConsoleLogger:
             # Flush outside lock to avoid deadlock
             if should_flush:
                 self._flush_buffer()
-
-    def _queue_progress(self, bar_id, frame):
-        """Hold a live progress bar frame as state, promoting the last frame to a log line when the bar closes."""
-        if not self.active:
-            return  # a bar outliving the capture must not repopulate the state
-        with self.buffer_lock:
-            if frame is not None:
-                self.progress[str(bar_id)] = frame.split("\r")[-1].replace("\x1b[K", "").rstrip()
-                return
-            frame = self.progress.pop(str(bar_id), None)  # bar closed
-        if frame:
-            self._queue_log(frame + "\n")  # the completed bar is real log content
 
     def _flush_worker(self):
         """Background worker that flushes buffer periodically."""
@@ -235,23 +230,22 @@ class ConsoleLogger:
     class _ConsoleCapture:
         """Lightweight stdout/stderr capture."""
 
-        __slots__ = ("callback", "original", "progress_callback")
+        __slots__ = ("callback", "original")
 
-        def __init__(self, original, callback, progress_callback):
+        def __init__(self, original, callback):
             """Initialize a stream wrapper that redirects writes to a callback while preserving the original."""
             self.original = original
             self.callback = callback
-            self.progress_callback = progress_callback
 
         def write(self, text):
             """Write text to the original stream and forward it to the capture callback."""
             self.original.write(text)
-            self.callback(text)
+            self.callback(text, None)
 
         def progress(self, bar_id, frame):
             """Write a TQDM frame to the original stream and report it as bar state instead of a log line."""
-            self.original.write(frame or "")
-            self.progress_callback(bar_id, frame)
+            self.original.write(frame)
+            self.callback(frame, bar_id)
 
         def flush(self):
             """Flush the wrapped stream to propagate buffered output promptly during console capture."""
@@ -273,7 +267,7 @@ class ConsoleLogger:
 
         def emit(self, record):
             """Format and forward LogRecord messages to the capture callback for unified log streaming."""
-            self.callback(self.format(record) + "\n")
+            self.callback(self.format(record) + "\n", None)
 
 
 class _DriveInfo:

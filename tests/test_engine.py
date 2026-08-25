@@ -6,24 +6,174 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+import cv2
+import numpy as np
 import pytest
 import torch
 
 from tests import MODEL, SOURCE, TASK_MODEL_DATA
 from ultralytics import YOLO
 from ultralytics.cfg import get_cfg
+from ultralytics.data import build_dataloader, build_yolo_dataset
+from ultralytics.data.augment import CutMix, LetterBox, MixUp, Mosaic
 from ultralytics.engine.exporter import Exporter
 from ultralytics.engine.trainer import BaseTrainer
+from ultralytics.models.rtdetr.val import RTDETRDataset, RTDETRValidator
 from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment, semantic
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
-from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
+from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR, ops
+from ultralytics.utils.instance import Instances
 from ultralytics.utils.torch_utils import unwrap_model
 
 
 def test_func(*args, **kwargs):
     """Test function used as a callback stub to verify callback registration."""
     print("callback test passed")
+
+
+def _build_base_trainer(monkeypatch, tmp_path, imgsz, **overrides):
+    """Build a trainer without resolving a real dataset so image-size argument handling stays a focused unit test."""
+    monkeypatch.setattr(BaseTrainer, "get_dataset", lambda self: {})
+    monkeypatch.setattr("ultralytics.engine.trainer.callbacks.add_integration_callbacks", lambda trainer: None)
+    return BaseTrainer(
+        overrides={
+            "model": "yolo26n.yaml",
+            "data": "synthetic.yaml",
+            "device": "cpu",
+            "project": tmp_path,
+            "name": "fixed-shape",
+            "exist_ok": True,
+            "imgsz": imgsz,
+            **overrides,
+        },
+        _callbacks={"on_pretrain_routine_start": []},
+    )
+
+
+@pytest.mark.parametrize(
+    ("imgsz", "expected", "fixed_shape"),
+    [(640, 640, False), ([640], 640, False), ([320, 640], [320, 640], True)],
+)
+def test_train_and_val_imgsz_normalization(monkeypatch, tmp_path, imgsz, expected, fixed_shape):
+    """Training and validation keep scalar behavior and treat only a two-value image size as fixed shape."""
+    trainer = _build_base_trainer(monkeypatch, tmp_path, imgsz, rect=True, mosaic=1.0, mixup=0.2, cutmix=0.3)
+    validator = detect.DetectionValidator(
+        args={"imgsz": imgsz, "rect": True, "project": tmp_path, "name": "fixed-shape-val", "exist_ok": True}
+    )
+    assert trainer.args.imgsz == expected
+    assert validator.args.imgsz == expected
+    if fixed_shape:
+        assert not trainer.args.rect
+        assert not validator.args.rect
+        assert trainer.args.mosaic == trainer.args.mixup == trainer.args.cutmix == 0.0
+    else:
+        assert trainer.args.rect
+        assert validator.args.rect
+        assert (trainer.args.mosaic, trainer.args.mixup, trainer.args.cutmix) == (1.0, 0.2, 0.3)
+
+
+def test_fixed_shape_dataset_batch(tmp_path):
+    """Fixed-shape datasets produce exact batches and disable rectangular and image-mixing augmentations."""
+    images_dir, labels_dir = tmp_path / "images", tmp_path / "labels"
+    images_dir.mkdir()
+    labels_dir.mkdir()
+    for i in range(2):
+        cv2.imwrite(str(images_dir / f"{i}.jpg"), np.zeros((100, 100, 3), dtype=np.uint8))
+        (labels_dir / f"{i}.txt").write_text("0 0.35 0.5 0.5 0.6\n")
+
+    cfg = get_cfg(
+        overrides={"imgsz": [320, 640], "task": "detect", "rect": True, "mosaic": 1.0, "mixup": 0.2, "cutmix": 0.3}
+    )
+    dataset = build_yolo_dataset(cfg, str(images_dir), batch=2, data={"names": {0: "object"}, "nc": 1}, mode="train")
+    loader = build_dataloader(dataset, batch=2, workers=0, shuffle=False, device="cpu")
+    try:
+        batch = next(iter(loader))
+    finally:
+        loader.close()
+
+    assert dataset.fixed_shape == (320, 640)
+    assert not dataset.rect
+    assert batch["img"].shape == (2, 3, 320, 640)
+    transforms = dataset.transforms
+    assert isinstance(transforms[0][0], Mosaic) and transforms[0][0].p == 0.0
+    assert isinstance(transforms[1], MixUp) and transforms[1].p == 0.0
+    assert isinstance(transforms[2], CutMix) and transforms[2].p == 0.0
+
+
+def test_fixed_shape_rejects_multi_scale():
+    """Fixed height/width training fails clearly when multi-scale resizing is requested."""
+    with pytest.raises(ValueError, match="multi_scale.*not supported.*fixed-shape"):
+        detect.DetectionTrainer(overrides={"imgsz": [320, 640], "multi_scale": 0.5})
+
+
+def test_classification_rejects_fixed_shape():
+    """Classification training fails clearly for a two-dimensional image size."""
+    with pytest.raises(ValueError, match="fixed-shape.*not supported for classification training"):
+        classify.ClassificationTrainer(overrides={"imgsz": [320, 640]})
+
+
+def test_yolo_fixed_shape_geometry():
+    """YOLO fixed-shape preprocessing preserves aspect ratio and scale_boxes exactly reverses its letterbox geometry."""
+    image = np.zeros((100, 100, 3), dtype=np.uint8)
+    original_box = np.array([[10.0, 20.0, 60.0, 80.0]], dtype=np.float32)
+    labels = {
+        "img": image,
+        "instances": Instances(original_box.copy(), bbox_format="xyxy", normalized=False),
+        "ratio_pad": (1.0, 1.0),
+    }
+    transformed = LetterBox((320, 640))(labels)
+
+    assert transformed["img"].shape[:2] == (320, 640)
+    assert transformed["ratio_pad"] == ((3.2, 3.2), (160, 0))
+    assert np.allclose(transformed["instances"].bboxes, [[192, 64, 352, 256]])
+    scaled_back = ops.scale_boxes(
+        (320, 640), transformed["instances"].bboxes.copy(), image.shape[:2], transformed["ratio_pad"]
+    )
+    assert np.allclose(scaled_back, original_box)
+
+
+def test_rtdetr_fixed_shape_geometry(tmp_path):
+    """RT-DETR independently stretches height/width and maps predictions back without swapping the dimensions."""
+    images_dir, labels_dir = tmp_path / "images", tmp_path / "labels"
+    images_dir.mkdir()
+    labels_dir.mkdir()
+    cv2.imwrite(str(images_dir / "synthetic.jpg"), np.zeros((100, 100, 3), dtype=np.uint8))
+    (labels_dir / "synthetic.txt").write_text("0 0.35 0.5 0.5 0.6\n")
+    hyp = get_cfg(overrides={"imgsz": [320, 640], "task": "detect"})
+    dataset = RTDETRDataset(
+        img_path=str(images_dir),
+        imgsz=[320, 640],
+        batch_size=1,
+        augment=False,
+        hyp=hyp,
+        rect=False,
+        cache=None,
+        single_cls=False,
+        data={"names": {0: "object"}, "nc": 1},
+    )
+    sample = dataset[0]
+
+    assert sample["img"].shape[-2:] == (320, 640)
+    assert sample["ratio_pad"] == ((3.2, 6.4), (0, 0))
+    validator = RTDETRValidator.__new__(RTDETRValidator)
+    validator.args = SimpleNamespace(imgsz=[320, 640], conf=0.1, max_det=10)
+    prediction = torch.cat((sample["bboxes"], torch.tensor([[0.9, 0.0]])), dim=1).unsqueeze(0)
+    pred = validator.postprocess(prediction)[0]
+    assert torch.allclose(pred["bboxes"], torch.tensor([[64.0, 64.0, 384.0, 256.0]]))
+
+    validator.jdict = []
+    validator.class_map = [1]
+    validator.pred_to_json(pred, {"im_file": "synthetic.jpg", "ori_shape": (100, 100)})
+    assert validator.jdict[0]["bbox"] == [10.0, 20.0, 50.0, 60.0]
+
+
+def test_profile_models_tuple_imgsz():
+    """Tuple image sizes are normalized to a two-dimensional list at the profiler boundary."""
+    from ultralytics.utils.benchmarks import ProfileModels
+
+    profiler = ProfileModels([], imgsz=(320, 640), device="cpu")
+    assert profiler.imgsz == [320, 640]
 
 
 def test_export(monkeypatch, tmp_path):

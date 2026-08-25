@@ -365,24 +365,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=PerLayerLRTrainer)
 
 ### RT-DETR Variant
 
-Because the backbone length is read from `model.yaml["backbone"]` rather than hardcoded, the same recipe covers RT-DETR-L, RT-DETR-X and the ResNet-50/101 backbones — only the base class changes. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate:
-
-```python
-from ultralytics import RTDETR
-from ultralytics.models.rtdetr.train import RTDETRTrainer
-
-
-class RTDETRBackboneLRTrainer(PerLayerLRTrainer, RTDETRTrainer):
-    """RT-DETR trainer with a lower learning rate for backbone parameters."""
-
-    backbone_lr_ratio = 0.1
-
-
-model = RTDETR("rtdetr-l.pt")
-model.train(data="coco8.yaml", epochs=20, trainer=RTDETRBackboneLRTrainer)
-```
-
-`RTDETRTrainer` follows `PerLayerLRTrainer` in the MRO, so RT-DETR keeps its own `get_model`, `build_dataset` and `get_validator` while `build_optimizer` comes from the mixin.
+Because the backbone length is read from `model.yaml["backbone"]` rather than hardcoded, the same recipe covers RT-DETR-L, RT-DETR-X and the ResNet-50/101 backbones. Switch the parent class to `RTDETRTrainer` (`from ultralytics.models.rtdetr.train import RTDETRTrainer`) and load the checkpoint with `RTDETR("rtdetr-l.pt")`; the `build_optimizer` body is unchanged. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate.
 
 !!! tip "Choosing `backbone_lr_ratio`"
 

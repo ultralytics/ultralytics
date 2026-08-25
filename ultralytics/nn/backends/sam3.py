@@ -199,8 +199,7 @@ class SAM3Backend:
             )
         return self._sessions[stem]
 
-    @staticmethod
-    def _ort_providers(cuda: bool) -> list:
+    def _ort_providers(self, cuda: bool) -> list:
         """Return the ONNX Runtime provider list, preferring CUDA when it is available."""
         import onnxruntime as ort
 
@@ -208,7 +207,8 @@ class SAM3Backend:
             # All modules stay resident, and the decoder attention allocates in hundreds of megabytes.
             # The default arena grows by doubling, which reserves far more than that and can fail the
             # next large allocation, so ask it for exactly what each node needs instead.
-            return [("CUDAExecutionProvider", {"arena_extend_strategy": "kSameAsRequested"}), "CPUExecutionProvider"]
+            opts = {"device_id": self.device.index or 0, "arena_extend_strategy": "kSameAsRequested"}
+            return [("CUDAExecutionProvider", opts), "CPUExecutionProvider"]
         return ["CPUExecutionProvider"]
 
     def _load_tensorrt(self) -> None:

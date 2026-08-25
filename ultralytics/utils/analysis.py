@@ -43,7 +43,7 @@ from ultralytics.utils.patches import imread
 
 COCO_AREA_SMALL = 32**2  # COCO small-object area threshold (px^2), Lin et al. 2014
 COCO_AREA_MEDIUM = 96**2  # COCO medium/large boundary, Lin et al. 2014
-EDGE_PROXIMITY_FRAC = 0.05  # near-edge tolerance as fraction of min(W,H), motivates num_near_edge
+EDGE_PROXIMITY_FRAC = 0.05  # near-edge tolerance as a fraction of each image side, motivates num_near_edge
 
 # ObjectLab constants (Tkachenko, Thyagarajan & Mueller, ICML Workshop 2023, arXiv:2309.00832).
 _OBJECTLAB_TEMPERATURE = 0.1
@@ -203,7 +203,8 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         fig.savefig(out_dir / "correlation_heatmap.png", dpi=120)
         plt.close(fig)
 
-        worst = sorted((v for v in scored if v.get("im_file")), key=_worst_record_score)[:n_strip]
+        candidates = (v for v in scored if v.get("im_file") and isinstance(v.get("f1"), (int, float)))
+        worst = sorted(candidates, key=_worst_record_score)[:n_strip]
         if worst:
             from matplotlib.patches import Rectangle  # scope for faster 'import ultralytics'
 
@@ -346,8 +347,8 @@ class ImagePropertyExtractor:
     ``dataset.labels`` gains a single ``im_properties`` sub-dict; the ``dataset.labels`` list is mutated in place and
     re-exposed as ``self.labels`` for chaining.
 
-    Has no model, metrics, or I/O dependency: the property step is platform-consumable. Serialize the ``im_properties``
-    dicts (all scalar, JSON-ready) to feed a JS/TS visualizer.
+    Has no model or metrics dependency and writes no files: the property step is platform-consumable. Serialize the
+    ``im_properties`` dicts (all scalar, JSON-ready) to feed a JS/TS visualizer.
 
     Attributes:
         labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
@@ -433,7 +434,7 @@ class ImagePropertyExtractor:
         out["num_small"] = int(np.sum(area_px < COCO_AREA_SMALL))
         out["num_medium"] = int(np.sum((area_px >= COCO_AREA_SMALL) & (area_px < COCO_AREA_MEDIUM)))
         out["num_large"] = int(np.sum(area_px >= COCO_AREA_MEDIUM))
-        out["small_object_ratio"] = out["num_small"] / max(n, 1)
+        out["small_object_ratio"] = out["num_small"] / n
 
         xyxy_n = xywh2xyxy(bboxes_n)
         min_edge = np.minimum(np.minimum(xyxy_n[:, 0], xyxy_n[:, 1]), np.minimum(1 - xyxy_n[:, 2], 1 - xyxy_n[:, 3]))
@@ -521,8 +522,6 @@ class ImagePropertyExtractor:
         """Max and mean upper-triangular pairwise IoU among boxes (CrowdHuman 2018 crowdedness proxy)."""
         t = torch.as_tensor(xyxy_pixels, dtype=torch.float32)
         n = t.shape[0]
-        if n < 2:
-            return 0.0, 0.0
         iou = box_iou(t, t).triu_(diagonal=1)
         return float(iou.max()), float(iou.sum() / (n * (n - 1) / 2))
 

@@ -191,6 +191,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 [
     {
         "im_name": "img_0042.jpg",
+        "im_file": "datasets/coco/images/val2017/img_0042.jpg",
         "f1": 0.12,
         "anomaly_score": 2.31,
         "top_3_problematic": ["blurriness", "num_small", "num_near_edge"]

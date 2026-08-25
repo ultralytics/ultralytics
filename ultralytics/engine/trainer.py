@@ -372,7 +372,6 @@ class BaseTrainer:
             self.amp = self.amp.int()  # gloo errors with boolean
             dist.broadcast(self.amp, src=0)  # broadcast from rank 0 to all other ranks
         self.amp = bool(self.amp)  # as boolean
-        self.args.quantize = 16 if self.amp else None
         if self.device.type == "npu":
             import torch_npu
 

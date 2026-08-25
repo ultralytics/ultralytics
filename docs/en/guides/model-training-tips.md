@@ -94,7 +94,7 @@ Mixed precision training uses FP16 or BF16 computation while retaining FP32 wher
 
 To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
 
-Mixed precision training is straightforward when working with YOLO26. Set `amp=True` or `amp='fp16'` for FP16, `amp='bf16'` for BF16 training with FP16 validation and prediction on supported CUDA devices, or `amp=False`/`amp='fp32'` for full precision.
+Mixed precision training is straightforward when working with YOLO26. Set `amp=True` or `amp='fp16'` for FP16, `amp='bf16'` for BF16 training with FP16 training-time validation on supported CUDA devices, or `amp=False`/`amp='fp32'` for full precision.
 
 ### Pretrained Weights
 

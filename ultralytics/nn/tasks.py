@@ -299,14 +299,13 @@ class BaseModel(torch.nn.Module):
             (BaseModel): An updated BaseModel object.
         """
         super()._apply(fn)
-        if hasattr(self, "model"):  # ModelOpt QAT restore calls _apply before the layers are attached
-            m = self.model[-1]  # Detect()
-            if isinstance(
-                m, Detect
-            ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
-                m.stride = fn(m.stride)
-                m.anchors = fn(m.anchors)
-                m.strides = fn(m.strides)
+        m = self.model[-1]  # Detect()
+        if isinstance(
+            m, Detect
+        ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
+            m.stride = fn(m.stride)
+            m.anchors = fn(m.anchors)
+            m.strides = fn(m.strides)
         return self
 
     def load(self, weights, verbose=True):
@@ -1927,7 +1926,6 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
 
         candidate = ckpt["model_class"](ckpt["yaml"], verbose=False)  # rebuild skeleton from YAML
         candidate.names = ckpt["names"]
-        candidate.nc = ckpt["nc"]
         with torch.no_grad():  # reinsert quantizers, then load the QAT weights
             mto.restore_from_modelopt_state(candidate, ckpt["modelopt_state"])
             candidate.load_state_dict(ckpt["state_dict"])

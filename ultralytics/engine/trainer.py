@@ -69,6 +69,9 @@ from ultralytics.utils.torch_utils import (
     unwrap_model,
 )
 
+# QAT schemes: `quantize` value -> NVIDIA ModelOpt config quantizing INT8 weights with INT8 or unquantized activations
+QAT_SCHEMES = {8: "INT8_DEFAULT_CFG", "w8a16": "INT8_WEIGHT_ONLY_CFG"}
+
 
 class BaseTrainer:
     """A base class for creating trainers.
@@ -325,7 +328,7 @@ class BaseTrainer:
         self.set_model_attributes()
 
         # Build model for QAT (skipped when an already-quantized model is handed to the trainer)
-        if self.args.quantize == 8 and not hasattr(self.model, "_modelopt_state"):
+        if self.args.quantize and not hasattr(self.model, "_modelopt_state"):
             self.build_quantized_model()
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
@@ -751,7 +754,6 @@ class BaseTrainer:
                 "model_class": ema.__class__,
                 "yaml": ema.yaml,
                 "names": ema.names,
-                "nc": ema.nc,
             }
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
@@ -899,29 +901,19 @@ class BaseTrainer:
         return metrics, fitness
 
     def build_quantized_model(self):
-        """Adds quantization layers to model for QAT training."""
+        """Insert ModelOpt Q/DQ layers into the model for quantization-aware training."""
         from ultralytics.data.build import build_dataloader
         from ultralytics.utils.torch_utils import setup_modelopt
 
         setup_modelopt()
         import modelopt.torch.quantization as mtq
 
-        config = {
-            "quant_cfg": {
-                "*weight_quantizer": {"num_bits": 8, "axis": 0},  # Per-channel weight quantization
-                "*input_quantizer": {"num_bits": 8, "axis": None},  # Per-tensor activation quantization
-                "*output_quantizer": {"num_bits": 8, "axis": None},
-                # Exclude DFL layers if present
-                "*.dfl*weight_quantizer": {"enable": False},
-                "*.dfl*input_quantizer": {"enable": False},
-                "*.dfl*output_quantizer": {"enable": False},
-            },
-            "algorithm": "max",  # Calibration algorithm
-        }
-
+        name = QAT_SCHEMES.get(self.args.quantize)
+        assert name, f"'quantize={self.args.quantize}' is not a QAT scheme, valid schemes are {list(QAT_SCHEMES)}."
+        bs = int(self.batch_size) if self.batch_size >= 1 else 16  # AutoBatch is resolved after QAT setup
         with torch_distributed_zero_first(LOCAL_RANK):  # init dataset *.cache only once if DDP
-            dataset = self.build_dataset(self.data["val"], "QAT", self.args.batch)
-        calib_loader = build_dataloader(dataset, batch=self.args.batch, workers=0, drop_last=True)
+            dataset = self.build_dataset(self.data["val"], "QAT", bs)
+        calib_loader = build_dataloader(dataset, batch=bs, workers=0)
 
         @smart_inference_mode()
         def forward_loop(model):
@@ -936,9 +928,10 @@ class BaseTrainer:
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.model = mtq.quantize(model=self.model, config=config, forward_loop=forward_loop)
+            self.model = mtq.quantize(model=self.model, config=getattr(mtq, name), forward_loop=forward_loop)
+        mtq.disable_quantizer(self.model, "*dfl*")  # DFL sums a fixed integral, INT8 destroys its resolution
 
-        LOGGER.info(f"{colorstr('QAT:')} Inserted Q/DQ layers for QAT")
+        LOGGER.info(f"{colorstr('QAT:')} Inserted {name} Q/DQ layers")
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""

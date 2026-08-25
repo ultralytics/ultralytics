@@ -291,7 +291,7 @@ def onnx2engine(
     network = builder.create_network(flag)
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
-    use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
+    use_int8 = getattr(builder, "platform_has_fast_int8", True) and (quantize == 8 or qat)
     if use_int8 and dataset is None and not qat:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 

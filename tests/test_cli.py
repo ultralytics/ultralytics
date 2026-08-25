@@ -11,7 +11,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_6, TORCH_2_9, TORCH_VERSION
+from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_2_6, TORCH_VERSION
 
 
 def run(cmd: str) -> None:
@@ -130,7 +130,7 @@ def test_distill(task: str, data: str, student: str, teacher: Path) -> None:
     run(f"yolo train {task} model={student} distill_model={teacher} data={data} imgsz=32 epochs=1")
 
 
-@pytest.mark.skipif(not TORCH_2_6 or TORCH_2_9, reason="QAT requires torch>=2.6,<2.9")
+@pytest.mark.skipif(not TORCH_2_6, reason="QAT requires torch>=2.6")
 @pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_10, reason="QAT requires Python>=3.10")
 def test_qat(tmp_path: Path) -> None:
     """Test model training and export with QAT."""

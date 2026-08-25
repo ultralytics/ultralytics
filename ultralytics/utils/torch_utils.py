@@ -1132,7 +1132,7 @@ def setup_modelopt():
 
     assert TORCH_2_6, "QAT requires PyTorch>=2.6"
     assert IS_PYTHON_MINIMUM_3_10, "QAT requires Python>=3.10"
-    check_requirements("nvidia-modelopt")
+    check_requirements("nvidia-modelopt>=0.44")  # older releases import onnx.mapping, removed in onnx >= 1.18
 
     import modelopt.torch.quantization as mtq
     import modelopt.torch.utils as mtu

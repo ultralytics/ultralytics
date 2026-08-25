@@ -2170,6 +2170,9 @@ def test_correlation_analysis(tmp_path):
     assert sample.get("f1") is not None and "overlooked_score" in sample
     for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
         assert (out_dir / fname).stat().st_size > 0, fname
+    assert "possible_label_issues" in (out_dir / "per_image_analysis.csv").read_text()
+    assert "possible_label_issues" in (out_dir / "worst_images.json").read_text()
+    assert "Possible label issues" in (out_dir / "summary.md").read_text()
 
 
 def test_analysis_lazy_matplotlib_import():
@@ -2198,6 +2201,8 @@ def test_objectlab_clean_image_returns_high_quality():
         gt_cls=np.array([0, 1]),
     )
     assert all(v == pytest.approx(1.0, abs=0.05) for v in out.values())
+    CorrelationAnalysis._rank_and_score({"clean.jpg": out}, {})
+    assert out["possible_label_issues"] == []
 
 
 def test_objectlab_swap_drops_quality():
@@ -2211,6 +2216,11 @@ def test_objectlab_swap_drops_quality():
         gt_cls=np.array([0]),
     )
     assert out["swap_score"] < 0.1
+    CorrelationAnalysis._rank_and_score({"swap.jpg": out}, {})
+    assert out["possible_label_issues"] == ["possibly incorrect classes"]
+    box = {"badloc_score": 0.49}
+    CorrelationAnalysis._rank_and_score({"box.jpg": box}, {})
+    assert box["possible_label_issues"] == ["possibly incorrect boxes"]
 
 
 def test_objectlab_empty_labels_flag_overlooked():
@@ -2226,3 +2236,5 @@ def test_objectlab_empty_labels_flag_overlooked():
     assert out["overlooked_score"] < 0.1
     assert out["badloc_score"] == 1.0 and out["swap_score"] == 1.0
     assert out["label_quality_score"] < 0.5
+    CorrelationAnalysis._rank_and_score({"missing.jpg": out}, {})
+    assert out["possible_label_issues"] == ["possible missing labels"]

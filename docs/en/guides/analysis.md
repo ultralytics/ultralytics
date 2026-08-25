@@ -90,6 +90,8 @@ All 4 ObjectLab scores follow the same convention. **Low score = model behavior 
 | `swap_score`          | Model confidently predicts a different class than the annotated one.          |
 | `label_quality_score` | Geometric mean of the above (1/3 each).                                       |
 
+Reports translate any subtype score below 0.5 into `possible_label_issues`: `possible missing labels`, `possibly incorrect boxes`, or `possibly incorrect classes`. These messages appear directly in `per_image_analysis.csv`, `worst_images.json`, and the worst-image table in `summary.md`. Raw scores remain beside them as evidence.
+
 `overlooked_score` needs preds with `conf ≥ 0.95` _and_ zero IoU with every GT, so it saturates at 1.0 on clean datasets or small models. Look for **variance** in these columns, not absolute values.
 
 ## Ultralytics Platform integration (`ul://`)
@@ -128,7 +130,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 
 ## Output schema
 
-`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 10 property fields (6 image properties + 4 ObjectLab scores) plus `anomaly_score`. The CSV is always fully sorted ascending by F1.
+`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 10 property fields (6 image properties + 4 ObjectLab scores), `anomaly_score`, and `possible_label_issues`. The CSV is always fully sorted ascending by F1.
 
 `correlations.json` entries:
 

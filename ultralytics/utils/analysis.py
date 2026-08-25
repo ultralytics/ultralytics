@@ -51,6 +51,11 @@ _IMAGE_PROPERTIES = (
     "max_pairwise_iou",
 )
 _OBJECTLAB_PROPERTIES = ("overlooked_score", "badloc_score", "swap_score", "label_quality_score")
+_OBJECTLAB_INSIGHTS = {
+    "overlooked_score": "possible missing labels",
+    "badloc_score": "possibly incorrect boxes",
+    "swap_score": "possibly incorrect classes",
+}
 _ALL_PROPERTIES = _IMAGE_PROPERTIES + _OBJECTLAB_PROPERTIES
 _METRIC_FIELDS = ("precision", "recall", "f1", "tp", "fp", "fn")
 
@@ -92,6 +97,7 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             for k in (*_ALL_PROPERTIES, "anomaly_score"):
                 v = rec.get(k)
                 out[k] = round(float(v), decimals) if isinstance(v, (int, float)) else v
+            out["possible_label_issues"] = "; ".join(rec.get("possible_label_issues", []))
             rows.append(out)
         return rows
 
@@ -257,14 +263,15 @@ class AnalysisReport(SimpleClass, DataExportMixin):
             "",
             "**Why it stands out** lists the properties where this image is most extreme in the F1-lowering direction.",
             "",
-            "| Image | F1 | Why it stands out |",
-            "|---|---|---|",
+            "| Image | F1 | Possible label issues | Why it stands out |",
+            "|---|---|---|---|",
         ]
         for im_name, rec in worst:
             top3 = ", ".join(f"`{p}`" for p in rec.get("top_3_problematic", []))
             f1 = rec.get("f1")
             f1_s = f"{f1:.2f}" if isinstance(f1, (int, float)) else "-"
-            lines.append(f"| `{im_name}` | {f1_s} | {top3} |")
+            issues = "; ".join(rec.get("possible_label_issues", [])) or "-"
+            lines.append(f"| `{im_name}` | {f1_s} | {issues} | {top3} |")
 
         lines += [
             "",
@@ -544,7 +551,7 @@ class CorrelationAnalysis:
 
     @staticmethod
     def _rank_and_score(per_image: dict, correlations: dict) -> None:
-        """Compute per-image ``anomaly_score`` (sign-aligned z-mean) + top-3 problematic properties."""
+        """Compute anomaly scores, top-3 problematic properties, and plain-language label-issue insights."""
         prop_arrays = {}
         for prop in _ALL_PROPERTIES:
             xs = np.array([rec.get(prop, np.nan) for rec in per_image.values()], dtype=float)
@@ -559,6 +566,11 @@ class CorrelationAnalysis:
             prop_arrays[prop] = (mu, sd, sign)
 
         for rec in per_image.values():
+            rec["possible_label_issues"] = [
+                insight
+                for prop, insight in _OBJECTLAB_INSIGHTS.items()
+                if isinstance((score := rec.get(prop)), (int, float)) and np.isfinite(score) and score < 0.5
+            ]
             zs, names = [], []
             for prop, (mu, sd, sign) in prop_arrays.items():
                 v = rec.get(prop)
@@ -584,6 +596,7 @@ class CorrelationAnalysis:
                 "im_file": rec.get("im_file"),
                 "f1": rec.get("f1"),
                 "anomaly_score": rec.get("anomaly_score"),
+                "possible_label_issues": rec.get("possible_label_issues", []),
                 "top_3_problematic": rec.get("top_3_problematic", []),
             }
             for name, rec in ranked

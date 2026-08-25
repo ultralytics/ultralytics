@@ -70,6 +70,7 @@ Depending on the specific requirements of a [computer vision task](../tasks/inde
 - **Polygons**: Detailed outlines for objects, allowing for more precise annotation than bounding boxes. Polygons are used in tasks like [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), where the shape of the object is important.
 - **Masks**: Binary masks where each pixel is either part of an object or the background. Masks are used in [semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) tasks to provide pixel-level detail.
 - **Keypoints**: Specific points marked within an image to identify locations of interest. Keypoints are used in tasks like [pose estimation](../tasks/pose.md) and facial landmark detection.
+- **Oriented Bounding Boxes**: Rectangles that carry a rotation angle, used in [OBB](../tasks/obb.md) tasks where objects appear at arbitrary orientations, such as aerial imagery.
 
 <p align="center">
   <img width="100%" src="https://cdn.ul.run/i/8315a6d4fd7fa40b602fb0d05b56bba5.avif" alt="Data annotation types including bounding boxes, polygons, and masks">
@@ -83,9 +84,11 @@ After selecting a type of annotation, it's important to choose the appropriate f
 | --------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [COCO](../datasets/detect/coco.md)      | Single JSON file          | [Object detection](https://www.ultralytics.com/glossary/object-detection), instance segmentation, keypoint detection, stuff and [panoptic segmentation](https://www.ultralytics.com/glossary/panoptic-segmentation), image captioning |
 | [Pascal VOC](../datasets/detect/voc.md) | One XML file per image    | Object detection                                                                                                                                                                                                                      |
-| YOLO                                    | One `.txt` file per image | Object detection, segmentation, and pose                                                                                                                                                                                              |
+| YOLO                                    | One `.txt` file per image | Object detection, segmentation, pose, and oriented boxes                                                                                                                                                                              |
 
-The YOLO format stores one row per object with class indices starting from 0. For [object detection](https://www.ultralytics.com/glossary/object-detection) the row is `class x_center y_center width height` with normalized 0–1 coordinates, while [segmentation](https://www.ultralytics.com/glossary/instance-segmentation) appends normalized polygon points and [pose](../tasks/pose.md) appends keypoint coordinates plus optional visibility values after the box.
+The YOLO format stores one row per object with class indices starting from 0. For [object detection](https://www.ultralytics.com/glossary/object-detection) the row is `class x_center y_center width height` with normalized 0–1 coordinates. A [segmentation](https://www.ultralytics.com/glossary/instance-segmentation) row replaces the box with the object's normalized polygon points, while a [pose](../tasks/pose.md) row keeps the box and appends the keypoint coordinates after it, with a visibility flag per keypoint when the dataset declares `kpt_shape: [n, 3]`. An [OBB](../tasks/obb.md) row stores `class x1 y1 x2 y2 x3 y3 x4 y4` using normalized corner coordinates.
+
+If your annotation tool exports COCO JSON, you can either [convert it to YOLO `.txt` labels](./coco-to-yolo.md) or [train on the JSON directly](./coco-json-training.md) with a custom dataset class.
 
 ### Setting Annotation Guidelines
 
@@ -100,7 +103,7 @@ Regularly reviewing and updating your labeling rules will help keep your annotat
 
 ### Annotation Tools
 
-A good annotation tool lets you label every type your task needs, enforces consistent guidelines, and exports labels in a training-ready format. [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) covering detection, instance segmentation, pose, OBB, and classification, with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) that turns a single click into a mask for detection, segmentation, and OBB tasks. Because every annotation is saved in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format), your labeled dataset moves straight into [training](../modes/train.md) with no conversion step.
+A good annotation tool lets you label every type your task needs, enforces consistent guidelines, and exports labels in a training-ready format. [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) covering detection, instance segmentation, semantic segmentation, classification, pose, and OBB, with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) that turns a single click into a mask for detection, instance segmentation, semantic segmentation, and OBB tasks. Because annotations are saved in the layout each task expects — [YOLO `.txt` rows](../datasets/detect/index.md#ultralytics-yolo-format) for the spatial tasks and [class folders](../datasets/classify/index.md) for classification — your labeled dataset moves straight into [training](../modes/train.md) with no conversion step.
 
 ### Annotation Quality: Accuracy, Precision, and Outliers
 
@@ -148,22 +151,9 @@ To make the process of data labeling smoother and more effective, consider imple
 
 These strategies can help maintain high-quality annotations while reducing the time and resources required for the labeling process.
 
-## Share Your Thoughts with the Community
-
-Bouncing your ideas and queries off other [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) enthusiasts can help accelerate your projects. Here are some great ways to learn, troubleshoot, and network:
-
-### Where to Find Help and Support
-
-- **GitHub Issues:** Visit the YOLO26 GitHub repository and use the [Issues tab](https://github.com/ultralytics/ultralytics/issues) to raise questions, report bugs, and suggest features. The community and maintainers are there to help with any issues you face.
-- **Ultralytics Discord Server:** Join the [Ultralytics Discord server](https://discord.com/invite/ultralytics) to connect with other users and developers, get support, share knowledge, and brainstorm ideas.
-
-### Official Documentation
-
-- **Ultralytics YOLO26 Documentation:** Refer to the [official YOLO26 documentation](./index.md) for thorough guides and valuable insights on numerous computer vision tasks and projects.
-
 ## Conclusion
 
-Collecting diverse, unbiased data and annotating it consistently with the right tools is the foundation of a reliable computer vision model. With your dataset collected and labeled, continue to the [steps of a computer vision project](./steps-of-a-cv-project.md) guide to move into training and evaluation.
+Collecting diverse, unbiased data and annotating it consistently with the right tools is the foundation of a reliable computer vision model. With your dataset collected and labeled, continue to the [steps of a computer vision project](./steps-of-a-cv-project.md) guide to move into training and evaluation. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
 
 ## FAQ
 
@@ -181,15 +171,8 @@ A few hundred annotated objects per class is enough to start experimenting with 
 
 ### Does Ultralytics provide a data annotation tool?
 
-Yes. [Ultralytics Platform](https://platform.ultralytics.com) includes a built-in [annotation editor](../platform/data/annotation.md) that supports bounding boxes, polygons, keypoints, oriented boxes, and classification labels in a single workspace. [SAM-powered smart annotation](https://www.ultralytics.com/annotate) speeds up labeling for detection, segmentation, and OBB tasks by generating masks from a single click, and every annotation is stored in [YOLO format](../datasets/detect/index.md#ultralytics-yolo-format), ready for [training](../modes/train.md).
+Yes. [Ultralytics Platform](https://platform.ultralytics.com) includes a built-in [annotation editor](../platform/data/annotation.md) that supports bounding boxes, polygons, keypoints, oriented boxes, and classification labels in a single workspace. [SAM-powered smart annotation](https://www.ultralytics.com/annotate) speeds up labeling for detection, instance segmentation, semantic segmentation, and OBB tasks by generating masks from a single click, while pose and classification are annotated manually. Annotations are stored in the layout each task expects — [YOLO `.txt` rows](../datasets/detect/index.md#ultralytics-yolo-format) for the spatial tasks, [class folders](../datasets/classify/index.md) for classification — ready for [training](../modes/train.md).
 
-### What types of data annotation are commonly used in computer vision?
+### Which annotation type should I choose for my project?
 
-The most common data annotation types in computer vision are bounding boxes, polygons, masks, and keypoints, each suited to a different task:
-
-- **Bounding Boxes**: Used primarily for object detection, these are rectangular boxes around objects in an image.
-- **Polygons**: Provide more precise object outlines suitable for instance segmentation tasks.
-- **Masks**: Offer pixel-level detail, used in semantic segmentation to differentiate objects from the background.
-- **Keypoints**: Identify specific points of interest within an image, useful for tasks like pose estimation and facial landmark detection.
-
-Selecting the appropriate annotation type depends on your project's requirements. Learn more about how to implement these annotations and their formats in our [data annotation guide](#what-is-data-annotation).
+Match the annotation type to the task you intend to train. Bounding boxes are the fastest to draw and are all [object detection](../tasks/detect.md) needs. Polygons and masks cost noticeably more time per object but are required for [instance segmentation](../tasks/segment.md) when an object's exact shape matters. Keypoints suit [pose estimation](../tasks/pose.md) and landmark detection, and oriented boxes suit [OBB](../tasks/obb.md) tasks such as aerial imagery, where an axis-aligned rectangle would enclose too much background. Annotating for the tightest task you actually need keeps labeling effort proportional to the result.

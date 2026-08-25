@@ -64,9 +64,7 @@ Let's get started.
     from ultralytics.data.utils import IMG_FORMATS, img2label_paths
 
     dataset_path = Path("./Fruit-detection").resolve()  # replace with 'path/to/dataset' for your custom data
-    images = sorted(
-        p for p in (dataset_path / "images").rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS
-    )
+    images = sorted(p for p in (dataset_path / "images").rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS)
     labels = [Path(p) for p in img2label_paths([str(p) for p in images])]
     keys = [p.relative_to(dataset_path / "images").with_suffix("") for p in images]
     assert len(set(keys)) == len(keys), "multiple images map to the same label path"

@@ -1684,7 +1684,10 @@ class Exporter:
             yolo26 = one2one and task == "detect"
             model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
             if yolo26:
-                model_script.append("model_optimization_flavor(optimization_level=4, compression_level=0)")
+                model_script += [
+                    "model_optimization_flavor(optimization_level=4, compression_level=0)",
+                    "post_quantization_optimization(adaround, policy=enabled)",
+                ]
             else:
                 model_script += [
                     "model_optimization_flavor(optimization_level=2)",
@@ -1753,9 +1756,14 @@ class Exporter:
             if yolo26:
                 # AdaRound re-reads the calibration set once per block, which a generator-backed
                 # tf.data.Dataset cannot serve: it is exhausted after the first pass and the compiler then
-                # reports success while emitting a HEF that detects nothing. Materialize it instead, capped
-                # at the 1024 samples AdaRound draws.
-                runner.optimize(np.stack([image for image, _ in itertools.islice(calibration_dataset(), 1024)]))
+                # reports success while emitting a HEF that detects nothing. Fill a preallocated buffer
+                # instead, capped at the 1024 samples AdaRound draws so a large data= stays bounded.
+                calibration = np.empty((min(calibration_size, 1024), *self.imgsz, 3), dtype=np.float32)
+                filled = 0
+                for image, _ in itertools.islice(calibration_dataset(), len(calibration)):
+                    calibration[filled] = image
+                    filled += 1
+                runner.optimize(calibration[:filled])
             else:
                 runner.optimize(
                     lambda: tf.data.Dataset.from_generator(

@@ -147,7 +147,7 @@ Here's how to define a search space and use the `model.tune()` method to utilize
 
 ## Tuning Across Multiple Datasets
 
-Pass a list to `data` to score every candidate on more than one dataset. Each iteration trains the same mutated hyperparameters once per dataset, and the aggregate `fitness` that drives selection is the mean of the per-dataset fitness values, so the search favors hyperparameters that transfer rather than ones that overfit a single domain:
+Pass a list to `data` to score every candidate on more than one dataset. Each iteration trains the same mutated hyperparameters once per dataset, and the built-in tuner selects on the mean of the per-dataset `fitness` values, so the search favors hyperparameters that transfer rather than ones that overfit a single domain. With `use_ray=True` the averaging happens over the task metric instead, which is the same number for detection:
 
 !!! example "Tune on two datasets at once"
 

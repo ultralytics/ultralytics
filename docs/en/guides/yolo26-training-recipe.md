@@ -196,11 +196,13 @@ Three categories have to go:
 - **Run-specific bookkeeping** — `data`, `model`, `device`, `project`, and `name` are valid arguments that still point at the original training machine; `yolo26n.pt` records `device: 5` and a COCO path that does not exist on your system.
 - **Your budget** — `batch`, `epochs`, and `imgsz` belong to your hardware and dataset, not to the recipe.
 
-What survives is 96 of the checkpoint's 113 recorded arguments, including the searched values documented below:
+What survives is 96 of the checkpoint's 113 recorded arguments, including the searched values documented below. Running the block above prints:
 
 ```plaintext
 optimizer: MuSGD(lr=0.0054, momentum=0.94676) with parameter groups 114 weight(decay=0.0), 126 weight(decay=0.00064), 126 bias(decay=0.0)
 ```
+
+The logged `weight_decay` is the checkpoint's tabulated value here because `batch=16` against the default `nbs=64` accumulates back to it; at the official `batch=128` the same nominal value is applied doubled, as [When You Cannot Fit Batch 128](#when-you-cannot-fit-batch-128) explains.
 
 Because the COCO-stage values were searched against COCO, treat this as a starting point for a similar dataset rather than a universal default. For a small or narrow-domain dataset the [defaults](#fine-tune-with-default-settings) remain the stronger baseline.
 

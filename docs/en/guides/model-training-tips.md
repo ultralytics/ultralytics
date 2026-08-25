@@ -228,7 +228,7 @@ Efficient Ultralytics YOLO training comes down to a few settings: size `batch` t
 
 ### How can I improve GPU utilization when training a large dataset with Ultralytics YOLO?
 
-To improve GPU utilization, set the `batch` parameter in your training configuration to the maximum size supported by your GPU, or let `batch=-1` profile the model and target roughly 60% of GPU memory. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. Note that `batch=-1` needs an accelerator to profile; on CPU and Apple silicon it falls back to `batch=16`. If utilization is unstable rather than capped, raise `workers` instead. For further information, refer to the [Train mode arguments](../modes/train.md).
+To improve GPU utilization, set the `batch` parameter in your training configuration to the maximum size supported by your GPU, or let `batch=-1` profile the model and target roughly 60% of GPU memory. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. Note that `batch=-1` profiles on a single accelerator only: it falls back to `batch=16` on CPU and Apple silicon, and multi-GPU runs reject any `batch` below 1, so pass an explicit global batch size there. If utilization is unstable rather than capped, raise `workers` instead. For further information, refer to the [Train mode arguments](../modes/train.md).
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 

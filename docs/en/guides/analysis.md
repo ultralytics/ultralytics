@@ -1,21 +1,24 @@
 ---
 comments: true
-description: Extract image properties and turn model correlations into dataset actions.
+description: Extract image properties and correlate them with per-image detection quality.
 keywords: Ultralytics, image property analysis, correlation, dataset quality, detection
 ---
 
 # Image Property Analysis
 
-[`ImagePropertyExtractor`](../reference/utils/analysis.md) adds six scalar properties to each `YOLODataset` label using only image headers and annotations. [`CorrelationAnalysis`](../reference/utils/analysis.md) joins those properties with per-image F1 and returns up to three dataset actions.
+[`ImagePropertyExtractor`](../reference/utils/analysis.md) adds six scalar properties to each `YOLODataset` label using image headers and annotations. [`analyze_correlations`](../reference/utils/analysis.md) compares those properties with per-image F1.
 
 ```python
-from ultralytics import YOLO
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
+from ultralytics.utils.analysis import ImagePropertyExtractor, analyze_correlations
 
-model = YOLO("yolo26n.pt")
-metrics = model.val(data="coco128.yaml", conf=0.25)
-labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
-report = CorrelationAnalysis(labels, metrics).run()
+from ultralytics import YOLO
+from ultralytics.data import YOLODataset
+from ultralytics.data.utils import check_det_dataset
+
+data = check_det_dataset("coco128.yaml")
+dataset = YOLODataset(data["val"], data=data, augment=False)
+metrics = YOLO("yolo26n.pt").val(data="coco128.yaml", conf=0.25)
+report = analyze_correlations(ImagePropertyExtractor(dataset).labels, metrics)
 print(report.summary())
 plot = report.plot()  # RGB numpy array
 ```
@@ -31,6 +34,4 @@ The extractor writes the following scalar dictionary to each label:
 | `center_spread`         | spread of normalized box centers                       |
 | `max_pairwise_iou`      | maximum box overlap as a crowdedness proxy             |
 
-`report.summary()` contains `target`, `issue`, Spearman `score`, numeric `evidence`, and `action`. Only the three strongest F1-lowering correlations at or below -0.1 become actions. `report.per_image` and `report.correlations` retain the supporting values, while `report.to_csv()`, `report.to_json()`, and `report.plot()` return data without writing files.
-
-Use `conf=0.25` for useful per-image F1. The analyzer warns when median F1 is below 0.1, ignores undefined values and properties with fewer than 30 samples, and warns if duplicate image basenames would collide.
+`report.summary()` returns `property`, Spearman `spearman_r`, and sample count `n`. `report.per_image` and `report.correlations` retain the source values, while `report.to_csv()`, `report.to_json()`, and `report.plot()` return data without writing files.

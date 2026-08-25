@@ -1,7 +1,7 @@
 ---
 title: utils.analysis API Reference
-description: Actionable image property analysis. Maps the strongest F1-lowering dataset properties to numeric evidence and specific next steps.
-keywords: Ultralytics, image property analysis, actionable insights, correlation, dataset quality, detection
+description: Image property extraction and per-image F1 correlation.
+keywords: Ultralytics, image property analysis, correlation, dataset quality, detection
 ---
 
 # Reference for `ultralytics/utils/analysis.py`
@@ -20,14 +20,6 @@ keywords: Ultralytics, image property analysis, actionable insights, correlation
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis.CorrelationAnalysis
+## ::: ultralytics.utils.analysis.analyze_correlations
 
 <br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._performance_drivers
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._rankdata
-
-<br><br>

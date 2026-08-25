@@ -38,8 +38,8 @@ class ConsoleLogger:
         >>> logger.start_capture()
 
         Custom callback with batching:
-        >>> def my_handler(content, line_count, chunk_id, progress):
-        ...     print(f"Received {line_count} lines and {len(progress)} live progress bars")
+        >>> def my_handler(content, line_count, chunk_id):
+        ...     print(f"Received {line_count} lines")
         >>> logger = ConsoleLogger(on_flush=my_handler, batch_size=5)
         >>> logger.start_capture()
     """
@@ -51,8 +51,7 @@ class ConsoleLogger:
             destination (str | Path | None): API endpoint URL (http/https), local file path, or None.
             batch_size (int): Lines to accumulate before flush (1 = immediate, higher = batched).
             flush_interval (float): Max seconds between flushes when batching.
-            on_flush (callable | None): Callback(content, line_count, chunk_id, progress) where progress maps live
-                progress bar ids to their latest frame.
+            on_flush (callable | None): Callback(content: str, line_count: int, chunk_id: int) for custom handling.
         """
         if isinstance(destination, str) and destination.startswith("http://"):
             LOGGER.warning("ConsoleLogger destination uses plaintext HTTP; captured logs are sent unencrypted.")
@@ -114,6 +113,7 @@ class ConsoleLogger:
         if not self.active:
             return
 
+        sys.stdout.callback = sys.stderr.callback = None
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
@@ -194,7 +194,7 @@ class ConsoleLogger:
                 return  # nothing new: an idle bar must not flush a chunk of its own
             lines = self.buffer.copy()
             self.buffer.clear()
-            progress = self.progress_sent = dict(self.progress)
+            self.progress_sent = dict(self.progress)
             self.chunk_id += 1
             chunk_id = self.chunk_id  # Capture under lock to avoid race
 
@@ -204,7 +204,7 @@ class ConsoleLogger:
         # Call custom callback if provided
         if self.on_flush:
             try:
-                self.on_flush(content, line_count, chunk_id, progress)
+                self.on_flush(content, line_count, chunk_id)
             except Exception:
                 pass  # Silently ignore callback errors to avoid flooding stderr
 
@@ -240,12 +240,14 @@ class ConsoleLogger:
         def write(self, text):
             """Write text to the original stream and forward it to the capture callback."""
             self.original.write(text)
-            self.callback(text, None)
+            if self.callback:
+                self.callback(text, None)
 
         def progress(self, bar_id, frame):
             """Write a TQDM frame to the original stream and report it as bar state instead of a log line."""
             self.original.write(frame)
-            self.callback(frame, bar_id)
+            if self.callback:
+                self.callback(frame, bar_id)
 
         def flush(self):
             """Flush the wrapped stream to propagate buffered output promptly during console capture."""

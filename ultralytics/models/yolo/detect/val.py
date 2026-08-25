@@ -189,7 +189,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "im_name": str(Path(pbatch["im_file"]).resolve()),
+                    "im_name": str(Path(pbatch["im_file"]).absolute()),
                 }
             )
             # Evaluate

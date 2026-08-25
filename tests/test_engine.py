@@ -103,13 +103,13 @@ def test_fixed_shape_dataset_batch(tmp_path):
 
 def test_fixed_shape_rejects_multi_scale():
     """Fixed height/width training fails clearly when multi-scale resizing is requested."""
-    with pytest.raises(ValueError, match="multi_scale.*not supported.*fixed-shape"):
+    with pytest.raises(ValueError, match=r"multi_scale.*not supported.*fixed-shape"):
         detect.DetectionTrainer(overrides={"imgsz": [320, 640], "multi_scale": 0.5})
 
 
 def test_classification_rejects_fixed_shape():
     """Classification training fails clearly for a two-dimensional image size."""
-    with pytest.raises(ValueError, match="fixed-shape.*not supported for classification training"):
+    with pytest.raises(ValueError, match=r"fixed-shape.*not supported for classification training"):
         classify.ClassificationTrainer(overrides={"imgsz": [320, 640]})
 
 

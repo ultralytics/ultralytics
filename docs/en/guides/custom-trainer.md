@@ -343,7 +343,9 @@ class PerLayerLRTrainer(DetectionTrainer):
             name, lr = "AdamW", round(0.002 * 5 / (4 + self.data["nc"]), 6)
         optimizer_cls = getattr(torch.optim, name, None)
         if optimizer_cls is None:
-            raise NotImplementedError(f"optimizer={name!r} is not in torch.optim; pass Adam, AdamW, SGD, RMSprop or auto")
+            raise NotImplementedError(
+                f"optimizer={name!r} is not in torch.optim; pass Adam, AdamW, SGD, RMSprop or auto"
+            )
 
         unwrapped = unwrap_model(model)
         backbone_len = len(unwrapped.yaml["backbone"])  # YOLO26 backbone spans layers 0-10 (C2PSA at layer 10)

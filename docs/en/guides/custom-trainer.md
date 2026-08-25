@@ -323,8 +323,6 @@ The `freeze=10` parameter freezes the first 10 layers (indices 0-9) at training 
 Different parts of the network can benefit from different [learning rates](https://www.ultralytics.com/glossary/learning-rate). A common strategy is to use a lower learning rate for the pretrained backbone to preserve learned features, while allowing the detection head to adapt more quickly with a higher rate:
 
 ```python
-import torch
-
 from ultralytics import YOLO
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.utils import LOGGER
@@ -334,41 +332,30 @@ from ultralytics.utils.torch_utils import unwrap_model
 class PerLayerLRTrainer(DetectionTrainer):
     """Trainer with different learning rates for backbone and head."""
 
+    backbone_lr_ratio = 0.1  # backbone learning rate as a fraction of head learning rate
+
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """Build optimizer with separate learning rates for backbone and head."""
-        backbone_params = []
-        head_params = []
-
-        if name == "auto":  # BaseTrainer fits an AdamW-scale lr here; without this you inherit lr0, an SGD-scale value
-            name, lr = "AdamW", round(0.002 * 5 / (4 + self.data["nc"]), 6)
-        optimizer_cls = getattr(torch.optim, name, None)
-        if optimizer_cls is None:
-            raise NotImplementedError(
-                f"optimizer={name!r} is not in torch.optim; pass Adam, AdamW, SGD, RMSprop or auto"
-            )
-
+        """Split the trainer's own optimizer groups by section and lower the backbone learning rate."""
+        optimizer = super().build_optimizer(model, name, lr, momentum, decay, iterations)
         unwrapped = unwrap_model(model)
         backbone_len = len(unwrapped.yaml["backbone"])  # YOLO26 backbone spans layers 0-10 (C2PSA at layer 10)
+        backbone = {
+            id(p)
+            for k, p in unwrapped.named_parameters()  # no requires_grad filter, so frozen layers can be unfrozen later
+            if any(k.startswith(f"model.{i}.") for i in range(backbone_len))
+        }
 
-        for k, v in unwrapped.named_parameters():  # no requires_grad filter, so frozen layers can be unfrozen later
-            is_backbone = any(k.startswith(f"model.{i}.") for i in range(backbone_len))
-            if is_backbone:
-                backbone_params.append(v)
-            else:
-                head_params.append(v)
+        groups = []
+        for g in optimizer.param_groups:  # each group already carries BaseTrainer's betas/nesterov/decay
+            head_params = [p for p in g["params"] if id(p) not in backbone]
+            backbone_params = [p for p in g["params"] if id(p) in backbone]
+            if head_params:
+                groups.append({**g, "params": head_params})
+            if backbone_params:
+                groups.append({**g, "params": backbone_params, "lr": g["lr"] * self.backbone_lr_ratio})
+        optimizer.param_groups = groups
 
-        backbone_lr = lr * 0.1
-
-        groups = [
-            {"params": backbone_params, "lr": backbone_lr, "weight_decay": decay},
-            {"params": head_params, "lr": lr, "weight_decay": decay},
-        ]
-        optimizer = optimizer_cls(groups, momentum=momentum) if name in {"SGD", "RMSprop"} else optimizer_cls(groups)
-
-        LOGGER.info(
-            f"PerLayerLR {name}: backbone ({len(backbone_params)} params, lr={backbone_lr}) "
-            f"| head ({len(head_params)} params, lr={lr})"
-        )
+        LOGGER.info(f"PerLayerLR: {len(backbone)} backbone params at {self.backbone_lr_ratio}x the head rate")
         return optimizer
 
 
@@ -378,83 +365,24 @@ model.train(data="coco8.yaml", epochs=20, trainer=PerLayerLRTrainer)
 
 ### RT-DETR Variant
 
-For RT-DETR the pattern is the same with two refinements. The backbone length is read from `model.yaml["backbone"]` so the same trainer works across RT-DETR variants (RT-DETR-L, RT-DETR-X, ResNet-50/101 backbones) without hardcoding layer counts. Parameters are also split into weight, BatchNorm, and bias groups within each section so weight decay is excluded from BatchNorm parameters and biases, matching the default trainer's policy. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate:
+Because the backbone length is read from `model.yaml["backbone"]` rather than hardcoded, the same recipe covers RT-DETR-L, RT-DETR-X and the ResNet-50/101 backbones — only the base class changes. This is especially useful for RT-DETR fine-tuning, where the decoder head is typically randomly initialized while the backbone carries pretrained features that benefit from a lower learning rate:
 
 ```python
-import torch
-from torch import nn
-
 from ultralytics import RTDETR
 from ultralytics.models.rtdetr.train import RTDETRTrainer
-from ultralytics.utils import LOGGER, colorstr
-from ultralytics.utils.torch_utils import unwrap_model
 
 
-class RTDETRBackboneLRTrainer(RTDETRTrainer):
+class RTDETRBackboneLRTrainer(PerLayerLRTrainer, RTDETRTrainer):
     """RT-DETR trainer with a lower learning rate for backbone parameters."""
 
-    backbone_lr_ratio = 0.1  # backbone learning rate as a fraction of head learning rate
-
-    def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
-        """Build an AdamW optimizer with six param groups: head and backbone x {weight, bn, bias}."""
-        # Resolve optimizer name; "auto" maps to AdamW with RT-DETR-style defaults
-        canonical = {"Adam", "Adamax", "AdamW", "NAdam", "RAdam", "auto"}
-        name = {x.lower(): x for x in canonical}.get(name.lower(), name)
-        if name == "auto":
-            name, lr, momentum = "AdamW", 1e-4, 0.9
-        self.args.warmup_bias_lr = 0.0  # optimizer="auto" sets this too; keep it for explicit optimizers
-        if name not in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
-            raise NotImplementedError(f"This trainer only supports AdamW-family optimizers; got {name}")
-
-        # Identify backbone parameters from model.yaml and route each param into a (section, kind) group
-        unwrapped = unwrap_model(model)
-        backbone_len = len(unwrapped.yaml["backbone"])
-        norm_types = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)
-        groups = {f"{s}_{k}": [] for s in ("head", "backbone") for k in ("weight", "bn", "bias")}
-
-        for module_name, module in unwrapped.named_modules():
-            for param_name, param in module.named_parameters(recurse=False):
-                fullname = f"{module_name}.{param_name}" if module_name else param_name
-                parts = fullname.split(".")
-                section = (
-                    "backbone"
-                    if len(parts) > 1 and parts[0] == "model" and parts[1].isdigit() and int(parts[1]) < backbone_len
-                    else "head"
-                )
-                if "bias" in param_name:
-                    kind = "bias"
-                elif isinstance(module, norm_types) or "logit_scale" in fullname:
-                    kind = "bn"
-                else:
-                    kind = "weight"
-                groups[f"{section}_{kind}"].append(param)
-
-        # Build the optimizer with per-group lr and weight decay; backbone groups use lr * backbone_lr_ratio
-        backbone_lr = lr * self.backbone_lr_ratio
-        param_groups = [
-            {"params": groups["head_weight"], "lr": lr, "weight_decay": decay, "param_group": "weight"},
-            {"params": groups["head_bn"], "lr": lr, "weight_decay": 0.0, "param_group": "bn"},
-            {"params": groups["head_bias"], "lr": lr, "weight_decay": 0.0, "param_group": "bias"},
-            {"params": groups["backbone_weight"], "lr": backbone_lr, "weight_decay": decay, "param_group": "weight"},
-            {"params": groups["backbone_bn"], "lr": backbone_lr, "weight_decay": 0.0, "param_group": "bn"},
-            {"params": groups["backbone_bias"], "lr": backbone_lr, "weight_decay": 0.0, "param_group": "bias"},
-        ]
-        param_groups = [pg for pg in param_groups if pg["params"]]  # drop empty groups
-        optimizer = getattr(torch.optim, name)(param_groups, betas=(momentum, 0.999))
-
-        LOGGER.info(
-            f"{colorstr('optimizer:')} {name}(lr={lr}, backbone_lr={backbone_lr}) with parameter groups\n"
-            f"  Head:     {len(groups['head_bn'])} bn, {len(groups['head_weight'])} weight(decay={decay}), "
-            f"{len(groups['head_bias'])} bias (lr={lr})\n"
-            f"  Backbone: {len(groups['backbone_bn'])} bn, {len(groups['backbone_weight'])} weight(decay={decay}), "
-            f"{len(groups['backbone_bias'])} bias (lr={backbone_lr})"
-        )
-        return optimizer
+    backbone_lr_ratio = 0.1
 
 
 model = RTDETR("rtdetr-l.pt")
 model.train(data="coco8.yaml", epochs=20, trainer=RTDETRBackboneLRTrainer)
 ```
+
+`RTDETRTrainer` follows `PerLayerLRTrainer` in the MRO, so RT-DETR keeps its own `get_model`, `build_dataset` and `get_validator` while `build_optimizer` comes from the mixin.
 
 !!! tip "Choosing `backbone_lr_ratio`"
 
@@ -466,7 +394,7 @@ model.train(data="coco8.yaml", epochs=20, trainer=RTDETRBackboneLRTrainer)
 
 !!! tip "Combining Techniques"
 
-    These customizations can be combined into a single trainer class by overriding multiple methods and adding callbacks as needed. One pairing needs care: `BaseTrainer.build_optimizer` deliberately does **not** filter on `requires_grad`, which is exactly why the [freeze and unfreeze](#freezing-and-unfreezing-the-backbone) recipe works — frozen parameters are still in a param group, so they resume training the moment the callback unfreezes them. A custom `build_optimizer` that skips them leaves those parameters with no optimizer state, and the backbone never trains again however many epochs remain. Neither `build_optimizer` on this page filters on `requires_grad`, for that reason.
+    These customizations can be combined into a single trainer class by overriding multiple methods and adding callbacks as needed. One pairing needs care: `BaseTrainer.build_optimizer` deliberately does **not** filter on `requires_grad`, which is exactly why the [freeze and unfreeze](#freezing-and-unfreezing-the-backbone) recipe works — frozen parameters are still in a param group, so they resume training the moment the callback unfreezes them. A custom `build_optimizer` that skips them leaves those parameters with no optimizer state, and the backbone never trains again however many epochs remain. The recipe above only re-splits the groups `BaseTrainer` already built, so it inherits that behavior.
 
 ## Synchronized BatchNorm for Multi-GPU Training
 

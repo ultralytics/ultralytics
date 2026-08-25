@@ -15,9 +15,9 @@ from ultralytics.utils.downloads import is_url
 from .backends import (
     AscendBackend,
     AxeleraBackend,
+    CoreAIBackend,
     CoreMLBackend,
     DeepXBackend,
-    CoreAIBackend,
     ExecuTorchBackend,
     HailoBackend,
     LiteRTBackend,

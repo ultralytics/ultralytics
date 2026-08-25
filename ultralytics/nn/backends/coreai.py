@@ -16,8 +16,8 @@ from .base import BaseBackend
 class CoreAIBackend(BaseBackend):
     """Apple Core AI inference backend for macOS 26+ on Apple silicon.
 
-    Loads a `.aimodel` asset and runs it through the Core AI runtime. That runtime's Python API is
-    async, so this backend owns a private event loop and drives every call through it.
+    Loads a `.aimodel` asset and runs it through the Core AI runtime. That runtime's Python API is async, so this
+    backend owns a private event loop and drives every call through it.
     """
 
     def load_model(self, weight: str | Path) -> None:

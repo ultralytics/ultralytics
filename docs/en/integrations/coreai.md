@@ -79,7 +79,7 @@ For implementation details, see Apple's documentation for [`AIModel`](https://de
     === "CLI"
 
         ```bash
-        yolo export model=yolo26n.pt format=coreai            # creates 'yolo26n.aimodel'
+        yolo export model=yolo26n.pt format=coreai             # creates 'yolo26n.aimodel'
         yolo export model=yolo26n.pt format=coreai quantize=16 # FP16 asset
 
         yolo predict model=yolo26n.aimodel source='https://ultralytics.com/images/bus.jpg'

@@ -13,8 +13,8 @@ from ultralytics.utils.checks import check_requirements
 def _remainder_scalar(x: torch.Tensor, s: float) -> torch.Tensor:
     """Decompose aten.remainder.Scalar, which Core AI has no lowering for.
 
-    Floor division, not torch.fmod: fmod takes the sign of the dividend where remainder takes the
-    sign of the divisor, so fmod is only equivalent for non-negative inputs.
+    Floor division, not torch.fmod: fmod takes the sign of the dividend where remainder takes the sign of the divisor,
+    so fmod is only equivalent for non-negative inputs.
     """
     if x.dtype in {torch.int64, torch.int32, torch.int16, torch.int8}:
         return x - s * torch.div(x, s, rounding_mode="floor")

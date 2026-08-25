@@ -175,13 +175,14 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        if self.args.score_labels:
+        score_labels = self.args.score_labels and self.args.task == "detect"
+        if score_labels:
             from ultralytics.utils.analysis import _label_issue_scores
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             predn = self._prepare_pred(pred)
-            im_name = Path(pbatch["im_file"]).name
+            im_name = str(Path(pbatch["im_file"]).resolve())
 
             cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
@@ -197,33 +198,15 @@ class DetectionValidator(BaseValidator):
                     "im_name": im_name,
                 }
             )
-            if self.args.score_labels and self.args.task == "detect" and not no_pred:
-                pred_boxes = self.scale_preds(predn, pbatch)["bboxes"].cpu().numpy()
-                gt_boxes = (
-                    ops.scale_boxes(
-                        pbatch["imgsz"], pbatch["bboxes"].clone(), pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"]
-                    )
-                    .cpu()
-                    .numpy()
-                )
-                evidence = {
-                    "pred_bboxes": pred_boxes,
-                    "pred_cls": pred_cls_np,
-                    "pred_conf": pred_conf_np,
-                    "gt_bboxes": gt_boxes,
-                    "gt_cls": cls,
-                }
-                evidence.update(
+            if score_labels:
+                self.metrics.box.image_metrics[im_name].update(
                     _label_issue_scores(
-                        box_iou(pbatch["bboxes"], predn["bboxes"]).cpu().numpy() if cls.size and not no_pred else None,
-                        pred_boxes,
+                        box_iou(pbatch["bboxes"], predn["bboxes"]).cpu().numpy(),
                         pred_cls_np,
                         pred_conf_np,
-                        gt_boxes,
                         cls,
                     )
                 )
-                self.metrics.box.image_metrics[im_name].update(evidence)
             # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.confusion_matrix_conf)

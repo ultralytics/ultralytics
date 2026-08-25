@@ -6,6 +6,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 from PIL import Image
+
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 

@@ -144,14 +144,6 @@ keywords: Ultralytics, YOLO, utility functions, version checks, requirements, im
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.checks.migraphx_is_available
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.checks.resolve_onnxruntime_package
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.checks.is_rockchip
 
 <br><br><hr><br>

@@ -470,6 +470,8 @@ jobs:
       id-token: write
     timeout-minutes: 120
     runs-on: amd-gpu-latest
+    env:
+      YOLO_AUTOINSTALL: "false"
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
@@ -479,13 +481,13 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y amd-smi-lib migraphx
+          sudo apt-get install -y migraphx
           echo "/opt/rocm/lib" | sudo tee /etc/ld.so.conf.d/rocm.conf
           sudo ldconfig
       - name: Install requirements
         run: |
           uv pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2 --index-strategy unsafe-best-match
-          uv pip install -e . pytest-cov onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ --index-strategy unsafe-best-match
+          uv pip install -e . pytest-cov "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ --index-strategy unsafe-best-match
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

@@ -8,12 +8,7 @@ import numpy as np
 import torch
 
 from ultralytics.utils import LOGGER, ROCM_EXTRA_INDEX
-from ultralytics.utils.checks import (
-    check_requirements,
-    migraphx_is_available,
-    resolve_onnxruntime_package,
-    rocm_is_available,
-)
+from ultralytics.utils.checks import check_requirements, rocm_is_available
 
 from .base import BaseBackend
 
@@ -66,8 +61,6 @@ class ONNXBackend(BaseBackend):
             weight (str | Path): Path to the .onnx model file.
         """
         cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
-        is_migraphx = migraphx_is_available()
-        is_rocm = rocm_is_available()
 
         self.apply_metadata(self.read_metadata(weight))
 
@@ -80,14 +73,18 @@ class ONNXBackend(BaseBackend):
         else:
             # ONNX Runtime
             LOGGER.info(f"Loading {weight} for ONNX Runtime inference...")
-            ort_pkg = resolve_onnxruntime_package(cuda=cuda, is_migraphx=is_migraphx, is_rocm=is_rocm)
+            rocm = cuda and rocm_is_available()  # MIGraphX wheel is for GPU runs; CPU on ROCm uses stock onnxruntime
+            ort = "onnxruntime-migraphx" if rocm else "onnxruntime-gpu" if cuda else "onnxruntime"
             check_requirements("onnx")
-            check_requirements([ort_pkg], cmds=ROCM_EXTRA_INDEX if ort_pkg == "onnxruntime-migraphx" else "")
+            check_requirements(  # interchangeable candidates so an installed variant is never reinstalled over
+                [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")],
+                cmds=ROCM_EXTRA_INDEX if rocm else "",
+            )
             import onnxruntime
 
             # Select execution provider
             available = onnxruntime.get_available_providers()
-            if cuda and is_migraphx and "MIGraphXExecutionProvider" in available:
+            if cuda and "MIGraphXExecutionProvider" in available:
                 providers = [("MIGraphXExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
             elif cuda and "CUDAExecutionProvider" in available:
                 providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
@@ -96,7 +93,7 @@ class ONNXBackend(BaseBackend):
             else:
                 providers = ["CPUExecutionProvider"]
                 if cuda:
-                    ep_name = "MIGraphXExecutionProvider" if is_migraphx else "CUDAExecutionProvider"
+                    ep_name = "MIGraphXExecutionProvider" if rocm else "CUDAExecutionProvider"
                     LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU...")
                     self.device = torch.device("cpu")
                     cuda = False
@@ -194,7 +191,7 @@ class ONNXIMXBackend(ONNXBackend):
             weight (str | Path): Path to the IMX model directory containing the .onnx file.
         """
         check_requirements(("model-compression-toolkit>=2.4.1", "edge-mdt-cl<1.1.0", "onnxruntime-extensions"))
-        check_requirements(("onnx", "onnxruntime"))
+        check_requirements(("onnx", ("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")))
         import mct_quantizers as mctq
         import onnxruntime
         from edgemdt_cl.pytorch.nms import nms_ort  # noqa - register custom NMS ops

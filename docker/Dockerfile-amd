@@ -42,7 +42,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 # Install pip packages (PyTorch + ROCm already present in base image)
 # Use pip directly for Ubuntu 24.04 externally-managed Python compatibility.
 RUN pip install -e "." albumentations faster-coco-eval onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ && \
-    pip install "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.71" && \
+    pip install "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" && \
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

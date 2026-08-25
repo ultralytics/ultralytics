@@ -43,7 +43,7 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
+from ultralytics.utils.analysis import AnalysisReport, CorrelationAnalysis, ImagePropertyExtractor
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
@@ -2139,29 +2139,42 @@ def test_image_property_extractor():
     assert props["num_objects"] == len(labels[0]["bboxes"])
 
 
-def test_correlation_rank_top_problematic():
-    """_rank_and_score.top_3_problematic flags only F1-lowering extremes, not F1-raising ones."""
-    corr = {"max_pairwise_iou": {"pearson_r": 0.9}, "num_objects": {"pearson_r": -0.9}}
-    per_image = {
-        "clean.jpg": {"max_pairwise_iou": 0.0, "num_objects": 0.0},
-        "mid.jpg": {"max_pairwise_iou": 1.0, "num_objects": 1.0},
-        "worst.jpg": {"max_pairwise_iou": 9.0, "num_objects": 4.0},
+def test_correlation_actionable_insights():
+    """Correlation insights contain numeric evidence and a specific next action, limited to the top three drivers."""
+    corr = {
+        "num_objects": {"spearman_r": -0.9, "n": 100},
+        "max_pairwise_iou": {"spearman_r": -0.4, "n": 100},
+        "small_object_ratio": {"spearman_r": -0.2, "n": 100},
+        "center_spread": {"spearman_r": 0.8, "n": 100},
     }
-    CorrelationAnalysis._rank_and_score(per_image, corr)
-    flagged = per_image["worst.jpg"]["top_3_problematic"]
-    assert "num_objects" in flagged and "max_pairwise_iou" not in flagged
+    insights = CorrelationAnalysis._build_insights({}, corr)
+    assert len(insights) == 3 and insights[0] == {
+        "target": "dataset",
+        "issue": "dense scenes reduce F1",
+        "score": -0.9,
+        "evidence": "num_objects Spearman correlation, n=100",
+        "action": "add crowded-scene training images or use tiled crops",
+    }
+    report = AnalysisReport(
+        per_image={
+            str(i): {"num_objects": i, "max_pairwise_iou": i / 100, "small_object_ratio": i / 100, "f1": 1 - i / 100}
+            for i in range(30)
+        },
+        correlations=corr,
+        insights=insights,
+    )
+    assert report.plot().shape[2] == 3
+    assert "dense scenes reduce F1" in report.to_json()
 
 
-def test_correlation_analysis(tmp_path):
-    """CorrelationAnalysis joins extractor labels with validator metrics and writes the full report."""
+def test_correlation_analysis():
+    """CorrelationAnalysis joins extractor labels with validator metrics without writing output files."""
     model = YOLO(MODEL)
     metrics = model.val(data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, device="cpu")
     labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
-    out_dir = tmp_path / "corr"
-    report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
+    report = CorrelationAnalysis(labels, metrics).run()
     assert next(iter(report.per_image.values())).get("f1") is not None
-    for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
-        assert (out_dir / fname).stat().st_size > 0, fname
+    assert not report.insights or set(report.summary()[0]) == {"target", "issue", "score", "evidence", "action"}
 
 
 def test_analysis_lazy_matplotlib_import():

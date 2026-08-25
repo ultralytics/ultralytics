@@ -1,7 +1,7 @@
 ---
 title: utils.analysis API Reference
-description: Per-image property correlation analysis. Joins validator F1 scores with six object-count, scale, layout, and crowdedness properties to surface what drives bad performance.
-keywords: Ultralytics, image property analysis, correlation, worst images, synthetic data, detection
+description: Actionable image property analysis. Maps the strongest F1-lowering dataset properties to numeric evidence and specific next steps.
+keywords: Ultralytics, image property analysis, actionable insights, correlation, dataset quality, detection
 ---
 
 # Reference for `ultralytics/utils/analysis.py`
@@ -32,14 +32,10 @@ keywords: Ultralytics, image property analysis, correlation, worst images, synth
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._worst_record_score
+## ::: ultralytics.utils.analysis._performance_drivers
 
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.analysis._rankdata
 
 <br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._json_default
-
-<br><br>

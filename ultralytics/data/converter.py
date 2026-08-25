@@ -850,13 +850,14 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
-    source_id = clean_url(source) if "://" in source else str(Path(source).resolve())
+    local = Path(source).is_file()
+    source_id = str(Path(source).resolve()) if local else clean_url(source)
     source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local)
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
@@ -875,7 +876,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -902,6 +903,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
+    local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
+
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
     _h = hashlib.sha256()
     for i, r in enumerate(lines):
@@ -911,6 +914,10 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+            if local_path:
+                if source_name != Path(source_name).name:
+                    raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+                r["url"] = (ndjson_path.parent / local_path / "images" / split / source_name).resolve()
             # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
             # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
             suffix = source_name.rsplit(".", 1)[-1]
@@ -972,7 +979,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 r["split"] = "val"
             splits.add("val")
             LOGGER.warning(
-                f"WARNING ⚠️ No 'val' split found in dataset. "
+                f"No 'val' split found in dataset. "
                 f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
                 f"For best results, manually assign validation images in Platform dataset page."
             )
@@ -1024,6 +1031,11 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(url, Path):
+            if not url.is_file():
+                return False
+            await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, url, path)
+            return True
         for attempt in range(3):
             error = None
             try:

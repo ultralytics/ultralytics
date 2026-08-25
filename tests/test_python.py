@@ -44,6 +44,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.analysis import (
+    AnalysisReport,
     CorrelationAnalysis,
     ImagePropertyExtractor,
     _softmin1d,
@@ -2144,35 +2145,45 @@ def test_image_property_extractor():
     assert props["num_objects"] == len(labels[0]["bboxes"])
 
 
-def test_correlation_rank_top_problematic():
-    """_rank_and_score.top_3_problematic flags only F1-lowering extremes, not F1-raising ones."""
-    corr = {"max_pairwise_iou": {"pearson_r": 0.9}, "num_objects": {"pearson_r": -0.9}}
-    per_image = {
-        "clean.jpg": {"max_pairwise_iou": 0.0, "num_objects": 0.0},
-        "mid.jpg": {"max_pairwise_iou": 1.0, "num_objects": 1.0},
-        "worst.jpg": {"max_pairwise_iou": 9.0, "num_objects": 4.0},
+def test_correlation_actionable_insights():
+    """Correlation insights contain numeric evidence and a specific next action, limited to the top three drivers."""
+    corr = {
+        "num_objects": {"spearman_r": -0.9, "n": 100},
+        "max_pairwise_iou": {"spearman_r": -0.4, "n": 100},
+        "small_object_ratio": {"spearman_r": -0.2, "n": 100},
+        "center_spread": {"spearman_r": 0.8, "n": 100},
     }
-    CorrelationAnalysis._rank_and_score(per_image, corr)
-    flagged = per_image["worst.jpg"]["top_3_problematic"]
-    assert "num_objects" in flagged and "max_pairwise_iou" not in flagged
+    insights = CorrelationAnalysis._build_insights({}, corr)
+    assert len(insights) == 3 and insights[0] == {
+        "target": "dataset",
+        "issue": "dense scenes reduce F1",
+        "score": -0.9,
+        "evidence": "num_objects Spearman correlation, n=100",
+        "action": "add crowded-scene training images or use tiled crops",
+    }
+    report = AnalysisReport(
+        per_image={
+            str(i): {"num_objects": i, "max_pairwise_iou": i / 100, "small_object_ratio": i / 100, "f1": 1 - i / 100}
+            for i in range(30)
+        },
+        correlations=corr,
+        insights=insights,
+    )
+    assert report.plot().shape[2] == 3
+    assert "dense scenes reduce F1" in report.to_json()
 
 
-def test_correlation_analysis(tmp_path):
-    """CorrelationAnalysis joins extractor labels with validator metrics + ObjectLab and writes the report."""
+def test_correlation_analysis():
+    """CorrelationAnalysis joins extractor labels with validator metrics without writing output files."""
     model = YOLO(MODEL)
     metrics = model.val(
         data="coco8.yaml", imgsz=32, plots=False, save_json=False, verbose=False, score_labels=True, device="cpu"
     )
     labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
-    out_dir = tmp_path / "corr"
-    report = CorrelationAnalysis(labels, metrics).run(save_dir=out_dir)
+    report = CorrelationAnalysis(labels, metrics).run()
     sample = next(iter(report.per_image.values()))
     assert sample.get("f1") is not None and "overlooked_score" in sample
-    for fname in ("per_image_analysis.csv", "correlations.json", "summary.md", "correlation_scatter.png"):
-        assert (out_dir / fname).stat().st_size > 0, fname
-    assert "possible_label_issues" in (out_dir / "per_image_analysis.csv").read_text()
-    assert "possible_label_issues" in (out_dir / "worst_images.json").read_text()
-    assert "Possible label issues" in (out_dir / "summary.md").read_text()
+    assert not report.insights or set(report.summary()[0]) == {"target", "issue", "score", "evidence", "action"}
 
 
 def test_analysis_lazy_matplotlib_import():
@@ -2182,16 +2193,16 @@ def test_analysis_lazy_matplotlib_import():
 
 
 def test_softmin1d():
-    """Softmin1d stays within input min/max, nears the min at low T, and collapses to a constant when uniform."""
+    """Softmin1d stays within input min/max, nears the min at low T, and collapses when uniform."""
     scores = np.array([0.2, 0.5, 0.8])
     result = _softmin1d(scores, T=0.1)
     assert scores.min() <= result <= scores.max()
-    assert result == pytest.approx(scores.min(), abs=0.05)  # low T -> near min
+    assert result == pytest.approx(scores.min(), abs=0.05)
     assert _softmin1d(np.array([0.7, 0.7, 0.7]), T=0.1) == pytest.approx(0.7)
 
 
 def test_objectlab_clean_image_returns_high_quality():
-    """An image where every GT has a matched same-class high-conf prediction returns near-1.0 quality."""
+    """A fully matched image returns high quality and no label-review action."""
     out = compute_objectlab_scores(
         iou=np.array([[1.0, 0.0], [0.0, 1.0]]),
         pred_bb=np.array([[0, 0, 10, 10], [50, 50, 60, 60]], dtype=np.float32),
@@ -2201,13 +2212,12 @@ def test_objectlab_clean_image_returns_high_quality():
         gt_cls=np.array([0, 1]),
     )
     assert all(v == pytest.approx(1.0, abs=0.05) for v in out.values())
-    CorrelationAnalysis._rank_and_score({"clean.jpg": out}, {})
-    assert out["possible_label_issues"] == []
+    assert CorrelationAnalysis._build_insights({"clean.jpg": out}, {}) == []
 
 
-def test_objectlab_swap_drops_quality():
-    """A high-confidence different-class prediction overlapping a GT triggers a low swap score."""
-    out = compute_objectlab_scores(
+def test_objectlab_actionable_label_issues():
+    """Low ObjectLab subtype scores directly identify the image, issue, evidence, and next action."""
+    swap = compute_objectlab_scores(
         iou=np.array([[1.0]]),
         pred_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
         pred_cls=np.array([1]),
@@ -2215,17 +2225,7 @@ def test_objectlab_swap_drops_quality():
         gt_bb=np.array([[0, 0, 10, 10]], dtype=np.float32),
         gt_cls=np.array([0]),
     )
-    assert out["swap_score"] < 0.1
-    CorrelationAnalysis._rank_and_score({"swap.jpg": out}, {})
-    assert out["possible_label_issues"] == ["possibly incorrect classes"]
-    box = {"badloc_score": 0.49}
-    CorrelationAnalysis._rank_and_score({"box.jpg": box}, {})
-    assert box["possible_label_issues"] == ["possibly incorrect boxes"]
-
-
-def test_objectlab_empty_labels_flag_overlooked():
-    """An empty-label image with a high-confidence prediction scores as likely-overlooked (low quality)."""
-    out = compute_objectlab_scores(
+    missing = compute_objectlab_scores(
         iou=None,
         pred_bb=np.array([[10, 10, 50, 50]], dtype=np.float32),
         pred_cls=np.array([0]),
@@ -2233,8 +2233,14 @@ def test_objectlab_empty_labels_flag_overlooked():
         gt_bb=np.zeros((0, 4), dtype=np.float32),
         gt_cls=np.zeros(0),
     )
-    assert out["overlooked_score"] < 0.1
-    assert out["badloc_score"] == 1.0 and out["swap_score"] == 1.0
-    assert out["label_quality_score"] < 0.5
-    CorrelationAnalysis._rank_and_score({"missing.jpg": out}, {})
-    assert out["possible_label_issues"] == ["possible missing labels"]
+    insights = CorrelationAnalysis._build_insights(
+        {"swap.jpg": swap, "box.jpg": {"badloc_score": 0.49}, "missing.jpg": missing}, {}
+    )
+    assert {(x["target"], x["issue"]) for x in insights} == {
+        ("swap.jpg", "possibly incorrect classes"),
+        ("box.jpg", "possibly incorrect boxes"),
+        ("missing.jpg", "possible missing labels"),
+    }
+    assert all(set(x) == {"target", "issue", "score", "evidence", "action"} for x in insights)
+    queue = CorrelationAnalysis._build_insights({f"box{i}.jpg": {"badloc_score": i / 10} for i in range(5)}, {})
+    assert [x["target"] for x in queue] == ["box0.jpg", "box1.jpg", "box2.jpg"]

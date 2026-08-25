@@ -1,20 +1,18 @@
 ---
 comments: true
-description: Per-image property extraction and correlation analysis for object detection. Correlate six object-count, scale, layout, and crowdedness properties plus four ObjectLab label-quality scores with per-image F1.
-keywords: Ultralytics, image property analysis, dataset analysis, label quality, ObjectLab, correlation, worst images, crowdedness, object size, data-centric
+description: Actionable model and label-quality analysis for object detection. Map image properties and ObjectLab scores to specific training and label-review actions.
+keywords: Ultralytics, image property analysis, ObjectLab, label quality, actionable insights, detection
 ---
 
 # Image Property Analysis
 
-The [`ImagePropertyExtractor`](../reference/utils/analysis.md) turns a `YOLODataset` into six per-image properties with no model or metrics. It augments each `dataset.labels[i]` in place with an `im_properties` dict containing object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise IoU. After training, [`CorrelationAnalysis`](../reference/utils/analysis.md) joins those properties with per-image F1 scores from validation, computes Pearson and Spearman correlations, and ranks the worst-performing images for curation.
+The [`ImagePropertyExtractor`](../reference/utils/analysis.md) turns a `YOLODataset` into six per-image properties with no model or metrics. After validation, [`CorrelationAnalysis`](../reference/utils/analysis.md) returns dataset-performance actions and, with ObjectLab scoring enabled, image-specific label-review actions.
 
 The extractor uses only image headers and annotations, so it does not decode pixel data. You can compute the properties once and reuse them across many model evaluations. The `im_properties` dict is all-scalar, so it serializes directly to JSON for a JS/TS front-end or the [Ultralytics Platform](https://platform.ultralytics.com/).
 
-With `score_labels=True`, `model.val()` also computes 4 [ObjectLab](https://arxiv.org/abs/2309.00832) label-quality scores per image (overlooked, badloc, swap, and their `label_quality_score` geometric mean), which `CorrelationAnalysis` joins alongside the six image properties for **10 analyzed columns**.
-
 ## Quick start
 
-Three composition patterns cover the common use cases:
+Extract properties directly, or join them with validation metrics for actionable analysis:
 
 ```python
 from ultralytics import YOLO
@@ -23,22 +21,18 @@ from ultralytics.data.utils import check_det_dataset
 from ultralytics.utils import DEFAULT_CFG
 from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
-# Path 1: dataset-only, no model or pixel decoding.
+# Dataset-only properties, no model or pixel decoding.
 data = check_det_dataset("coco128.yaml")
 dataset = build_yolo_dataset(DEFAULT_CFG, data["val"], 1, data, mode="val", rect=False, stride=32)
 labels = ImagePropertyExtractor(dataset).labels  # list[dict], each with an "im_properties" entry
 
-# Path 2: full analysis after model.val(). Use score_labels=True to enable ObjectLab.
+# Performance and label-quality analysis after model.val().
 model = YOLO("yolo11n.pt")
 metrics = model.val(data="coco128.yaml", score_labels=True)
 labels = ImagePropertyExtractor(model.validator.dataloader.dataset).labels
 report = CorrelationAnalysis(labels, metrics).run()
-
-# Path 3: reuse one extraction across many models. Property compute happens once.
-labels = ImagePropertyExtractor(dataset).labels
-for ckpt in ("yolo11n.pt", "yolo11s.pt", "yolo11m.pt"):
-    metrics = YOLO(ckpt).val(data="coco128.yaml", score_labels=True)
-    CorrelationAnalysis(labels, metrics).run(save_dir=f"runs/analyze-{ckpt[:-3]}")
+print(report.summary())  # target, issue, score, evidence, action
+plot = report.plot()  # RGB numpy array, no file written
 ```
 
 Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains a single `im_properties` sub-dict. For one 42-object `coco128` image:
@@ -57,42 +51,15 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 }
 ```
 
-`CorrelationAnalysis.run()` writes the following to an auto-incremented `runs/analyze/` directory (`runs/analyze`, `runs/analyze-2`, ...), following the same `increment_path` convention used for `runs/detect/train`, `runs/detect/val`, etc.:
+Neither class writes files. `report.summary()` is the default actionable output, while `report.per_image` and `report.correlations` retain raw evidence for Platform integrations. Use `report.to_csv()` or `report.to_json()` when an export is needed. `report.plot()` returns one compact RGB image and saves it only with `report.plot(save=True, filename="analysis.png")`.
 
-| File                      | Purpose                                                                               |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| `per_image_analysis.csv`  | One row per image, sorted ascending by F1                                             |
-| `correlations.json`       | Pearson + Spearman r and p-values per property, with effect-size band and direction   |
-| `worst_images.json`       | Top 100 worst-performing images plus their top 3 problematic properties               |
-| `summary.md`              | Human-readable summary with top correlations and worst-image table                    |
-| `correlation_scatter.png` | Per-property scatter against F1 with regression line and Pearson r                    |
-| `correlation_heatmap.png` | Property × property Pearson r matrix (self-correlations blanked)                      |
-| `worst_images_strip.png`  | Thumbnails of bottom 20 by F1 with green ground-truth and red dashed prediction boxes |
+ObjectLab quality scores follow a low-is-worse convention. A subtype below 0.5 adds one review action for that image:
 
-`ImagePropertyExtractor` writes no files. To export the properties for a front-end, serialize the `im_properties` dicts directly (`json.dumps([lbl["im_properties"] for lbl in labels])`) — they hold only scalars, so no numpy-array dropping is needed.
-
-## Enabling label-quality scores
-
-The 4 ObjectLab fields (`overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`) require the validator to compute them inline during validation. Pass `score_labels=True` to `model.val()` before constructing `CorrelationAnalysis`:
-
-```python
-metrics = model.val(data="coco128.yaml", score_labels=True)
-```
-
-The validator stores the 4 float scores per image in `metrics.box.image_metrics`, together with the scaled prediction and ground-truth boxes, classes, and confidences that draw the green-GT / red-prediction overlays on the worst-image strip. Raw IoU matrices are not retained. Without the flag, ObjectLab columns are populated as `NaN`.
-
-All 4 ObjectLab scores follow the same convention. **Low score = model behavior that suggests a label issue. 1.0 = no such behavior observed, not a clean bill of health.**
-
-| Score                 | Low means                                                                     |
-| --------------------- | ----------------------------------------------------------------------------- |
-| `overlooked_score`    | Model confidently predicts an object the annotator did not label.             |
-| `badloc_score`        | Model predicts the right class but disagrees with the annotated box location. |
-| `swap_score`          | Model confidently predicts a different class than the annotated one.          |
-| `label_quality_score` | Geometric mean of the above (1/3 each).                                       |
-
-Reports translate any subtype score below 0.5 into `possible_label_issues`: `possible missing labels`, `possibly incorrect boxes`, or `possibly incorrect classes`. These messages appear directly in `per_image_analysis.csv`, `worst_images.json`, and the worst-image table in `summary.md`. Raw scores remain beside them as evidence.
-
-`overlooked_score` needs preds with `conf ≥ 0.95` _and_ zero IoU with every GT, so it saturates at 1.0 on clean datasets or small models. Look for **variance** in these columns, not absolute values.
+| Evidence            | Issue                        | Action                                                          |
+| ------------------- | ---------------------------- | --------------------------------------------------------------- |
+| `overlooked_score`  | possible missing labels      | review unmatched high-confidence predictions and add boxes      |
+| `badloc_score`      | possibly incorrect boxes     | review and correct box boundaries                               |
+| `swap_score`        | possibly incorrect classes   | review and correct class IDs                                    |
 
 ## Ultralytics Platform integration (`ul://`)
 
@@ -122,70 +89,40 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 | `small_object_ratio`                                                                  | [Lin et al., COCO, ECCV 2014](https://arxiv.org/abs/1405.0312)                                                                                    |
 | `object_scale_variance`, `num_classes_present`, `center_spread`                       | in-tree dataset labels                                                                                                                            |
 | `max_pairwise_iou` (per-image crowdedness)                                            | [Shao et al., CrowdHuman, 2018](https://arxiv.org/abs/1805.00123)                                                                                 |
-| `overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score` (ObjectLab)   | [Tkachenko, Thyagarajan & Mueller, ICML Workshop 2023](https://arxiv.org/abs/2309.00832)                                                          |
+| `overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`               | [Tkachenko, Thyagarajan & Mueller, ObjectLab 2023](https://arxiv.org/abs/2309.00832)                                                             |
 | Per-image P/R/F1/TP/FP/FN                                                             | in-tree validator                                                                                                                                 |
 | Pearson + Spearman correlation per property × F1 with effect-size band                | [Pearson, Proc. Royal Society 1895](https://doi.org/10.1098/rspl.1895.0041) / [Spearman, Am. J. Psychology 1904](https://doi.org/10.2307/1412159) |
-| Worst-image ranking + scatter grid + heatmap + worst-image strip plots + `summary.md` | in-tree                                                                                                                                           |
+| Actionable issue and next-step mapping                                                | in-tree                                                                                                                                           |
 | `ul://` platform-URI resolution for model + dataset inputs                            | [Ultralytics Platform API docs](https://docs.ultralytics.com/platform/api/)                                                                       |
 
-## Output schema
+## Actionable output
 
-`per_image_analysis.csv` columns: `im_name`, `im_file`, then validator-supplied prediction-quality fields (`precision`, `recall`, `f1`, `tp`, `fp`, `fn`), then all 10 property fields (6 image properties + 4 ObjectLab scores), `anomaly_score`, and `possible_label_issues`. The CSV is always fully sorted ascending by F1.
-
-`correlations.json` entries:
-
-```json
-{
-    "object_scale_variance": {
-        "pearson_r": -0.43,
-        "pearson_p": 1.2e-5,
-        "spearman_r": -0.43,
-        "spearman_p": 3.4e-5,
-        "n": 5000,
-        "effect_band": "moderate",
-        "direction": "higher object_scale_variance -> lower F1"
-    }
-}
-```
-
-`worst_images.json` entries:
+`report.summary()` returns at most three F1-lowering dataset drivers, ordered by Spearman correlation. Each row is ready for an API, table, or automated training decision:
 
 ```json
 [
     {
-        "im_name": "img_0042.jpg",
-        "im_file": "datasets/coco/images/val2017/img_0042.jpg",
-        "f1": 0.12,
-        "anomaly_score": 2.31,
-        "top_3_problematic": ["object_scale_variance", "small_object_ratio", "num_objects"]
+        "target": "dataset",
+        "issue": "dense scenes reduce F1",
+        "score": -0.455,
+        "evidence": "num_objects Spearman correlation, n=5000",
+        "action": "add crowded-scene training images or use tiled crops"
+    },
+    {
+        "target": "000000000196.jpg",
+        "issue": "possible missing labels",
+        "score": 0.03,
+        "evidence": "overlooked_score",
+        "action": "review unmatched high-confidence predictions and add confirmed boxes"
     }
 ]
 ```
 
-## Acting on the results
-
-`summary.md` lists the top correlated properties with a strength band (`strong`, `moderate`, `weak`, `negligible`) and a direction (`higher X -> lower F1` or `higher X -> higher F1`). The full per-property breakdown is in `correlations.json`. Focus on the `strong` and `moderate` entries, those are where a training-data change will move the needle.
-
-- **Crowdedness / object count**: if `num_objects`, `max_pairwise_iou`, or `small_object_ratio` correlate with low F1, your model struggles in dense scenes. Consider raising `imgsz`, training with more crowded-scene augmentation (mosaic, copy-paste), or generating synthetic crowded scenes targeting the worst images.
-- **Object scale spread**: if `object_scale_variance` or `small_object_ratio` correlate with low F1, multi-scale predictions are weak. Tune anchor-free head capacity or add tiled inference for small targets.
-- **Label-quality scores** (`overlooked_score`, `badloc_score`, `swap_score`, `label_quality_score`): low scores flag specific annotation issues per image. Review the listed worst images, fix labels, and retrain.
-- **Worst-image triage**: the listed worst images are direct candidates for synthetic-data targets. Generate variants with the highlighted properties amplified, label them, and add to the training set.
-
-The `anomaly_score` per image is a signed z-score average across all properties, weighted so positive = unusual in an F1-degrading direction. Treat large positive values as "this image is statistically the kind of input your model struggles with."
-
-## Reading the correlation values
-
-If you want to read the raw `pearson_r` / `spearman_r` numbers in `correlations.json` directly instead of leaning on the summary bands:
-
-- **Focus on `spearman_r`** ([Wikipedia](https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient)). Per-image F1 distributions are often non-normal, and properties such as object-scale variation have long tails. Spearman ranks values before correlating, which handles both, and it is what `effect_band` and `direction` are derived from.
-- **Pearson r** ([Wikipedia](https://en.wikipedia.org/wiki/Pearson_correlation_coefficient)) measures a strictly linear fit. It is reported in parallel mainly as a cross-check. When `pearson_r` and `spearman_r` differ by a lot, the relationship is non-linear or a few extreme images are dominating, so open `correlation_scatter.png` for that property and decide visually.
-- **Sign of r**: negative = _higher property -> lower F1_ (property looks like it hurts the model, candidate for augmentation, curation, or relabeling). Positive = _higher property -> higher F1_ (looks like it helps, you probably want more of it in training). These are heuristics from the correlation alone, always sanity-check on the scatter plot before changing your pipeline.
-- **Effect band thresholds** are `|spearman_r| >= 0.5` (strong), `>= 0.3` (moderate), `>= 0.1` (weak), otherwise `negligible`. These are the common Cohen-style conventions and match what `summary.md` shows.
-- **`pearson_p`, `spearman_p`, `n`**: standard p-values from `scipy.stats`, and `n` is the image count after dropping NaNs (used both for the correlation and for the significance test). Lower p is more significant. The bands are already a coarser version of this.
+Only negative correlations with `|spearman_r| >= 0.1` become dataset actions. The three lowest images below 0.5 for each ObjectLab subtype become the default review queue. Full evidence remains available in `report.per_image` and `report.correlations`.
 
 ## Caveats
 
 - **Filename collisions**: `Metric.image_metrics` is keyed by image basename. If your dataset has duplicate basenames across subdirectories they collide silently. The analyzer emits a single `LOGGER.warning` listing the count and a few examples.
 - **Empty-label images**: zero-box images break per-image-box stats (mean undefined). The analyzer emits `NaN` for those properties and excludes them from correlations.
-- **Tasks supported**: the six image-property fields use image headers and boxes, so they work for detection, segmentation, pose, and OBB. The 4 ObjectLab fields ship for **detection only**.
+- **Tasks supported**: the six image-property fields work for detection, segmentation, pose, and OBB. ObjectLab actions are detection-only.
 - **DDP**: the validator-side retention path is rank-0 safe, the existing `dist.gather_object` plumbing pickles numpy arrays cleanly without new logic.

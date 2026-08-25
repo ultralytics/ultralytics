@@ -1,7 +1,7 @@
 ---
 title: utils.analysis API Reference
-description: Per-image property correlation analysis. Joins validator F1 scores with six object-count, scale, layout, and crowdedness properties plus ObjectLab label-quality scores.
-keywords: Ultralytics, image property analysis, label quality, ObjectLab, correlation, worst images, synthetic data
+description: Actionable model and label-quality analysis. Maps F1 drivers and ObjectLab scores to specific training and label-review actions.
+keywords: Ultralytics, image property analysis, ObjectLab, label quality, actionable insights, detection
 ---
 
 # Reference for `ultralytics/utils/analysis.py`
@@ -32,7 +32,7 @@ keywords: Ultralytics, image property analysis, label quality, ObjectLab, correl
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._worst_record_score
+## ::: ultralytics.utils.analysis._performance_drivers
 
 <br><br><hr><br>
 
@@ -51,7 +51,3 @@ keywords: Ultralytics, image property analysis, label quality, ObjectLab, correl
 ## ::: ultralytics.utils.analysis._rankdata
 
 <br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._json_default
-
-<br><br>

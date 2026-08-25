@@ -48,7 +48,7 @@ Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic
 
 Before you begin the tuning process, it's important to:
 
-1. **Identify the Metrics**: The tuner ranks trials by the built-in `fitness` score for the task, and no argument lets you swap in a different objective. Decide up front which secondary metrics you will inspect when comparing the surviving candidates, such as AP50 or F1-score.
+1. **Identify the Metrics**: The built-in tuner (`use_ray=False`) ranks trials by the task's `fitness` score, and `use_ray=True` ranks them by the task metric instead. Neither objective is selectable through an argument. Decide up front which secondary metrics you will inspect when comparing the surviving candidates, such as AP50 or F1-score.
 2. **Set the Tuning Budget**: Define how much computational resources you're willing to allocate. Hyperparameter tuning can be computationally intensive.
 3. **Trust the Split**: Fitness is measured on a single validation split, so on a small dataset the difference between two candidates can be split noise rather than signal. [K-fold cross-validation](kfold-cross-validation.md) is the way to check that before committing to a long search.
 
@@ -61,7 +61,7 @@ For each iteration, the built-in tuner repeats the following loop:
 3. **Train the model** — train using the mutated hyperparameters, then assess training performance with your chosen metrics.
 4. **Evaluate the model** — the [evaluation process](../modes/val.md) produces the iteration's fitness score, which is compared against previous iterations to determine whether the current hyperparameters are an improvement.
 5. **Log results** — record both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
-6. **Repeat** — continue until the set number of iterations is reached, with each iteration building on knowledge gained from previous runs. The built-in tuner has no fitness-based early stop, so `iterations` is what ends the run; `use_ray=True` schedules trials with ASHA instead, which can cut a weak trial short before its epoch budget is spent.
+6. **Repeat** — continue until the set number of iterations is reached, with each iteration building on knowledge gained from previous runs. There is no fitness-based early stop, so `iterations` is what ends the run. The Ray path configures an ASHA scheduler, but its trainable reports only once the trial's training call returns, so ASHA ranks completed trials rather than truncating weak ones mid-run.
 
 ### Iterations and Population Size
 

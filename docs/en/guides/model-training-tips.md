@@ -155,7 +155,7 @@ However, the ideal number of epochs can vary based on your dataset's size and pr
 
 ### Training on a Time Budget
 
-Epochs are a proxy for compute, but hours are what a rented GPU bills and what a cluster job limit cuts off. The `time` parameter caps training in wall-clock hours and overrides `epochs` when set: after the first epoch the trainer estimates how many epochs fit in the budget, then stops on the budget rather than on a count. The budget is checked after each optimizer step, so a run can stop part-way through an epoch — but it stops gracefully, validating and writing `best.pt` on the way out rather than being killed outright.
+Epochs are a proxy for compute, but hours are what a rented GPU bills and what a cluster job limit cuts off. The `time` parameter caps training in wall-clock hours: after each epoch the trainer re-estimates how many epochs fit in the budget and stops on the budget rather than on a count. It is a ceiling rather than a target, so pair it with a generous `epochs` — an explicitly small `epochs` still ends the run first, since reaching the final epoch stops training before the budget is spent. The budget is checked after each optimizer step, so a run can stop part-way through an epoch — but it stops gracefully, validating and writing `best.pt` on the way out rather than being killed outright.
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml time=6

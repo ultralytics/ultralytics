@@ -11,12 +11,12 @@ Hyperparameter tuning is vital in achieving peak model performance by discoverin
 
 ## Accelerate Tuning with Ultralytics YOLO26 and Ray Tune
 
-[Ultralytics YOLO26](https://www.ultralytics.com/) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO26 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
+[Ultralytics YOLO26](https://www.ultralytics.com) incorporates Ray Tune for hyperparameter tuning, streamlining the optimization of YOLO26 model hyperparameters. With Ray Tune, you can utilize advanced search strategies, parallelism, and early stopping to expedite the tuning process.
 
 ### Ray Tune
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ray-tune-overview.avif" alt="Ray Tune hyperparameter optimization workflow">
+  <img width="640" src="https://cdn.ul.run/i/dc2aec6593226b59809a3de0d0fb8a20.avif" alt="Ray Tune hyperparameter optimization workflow">
 </p>
 
 [Ray Tune](https://docs.ray.io/en/latest/tune/index.html) is a hyperparameter tuning library designed for efficiency and flexibility. It supports various search strategies, parallelism, and early stopping strategies, and seamlessly integrates with popular [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) frameworks, including Ultralytics YOLO26.
@@ -102,7 +102,7 @@ The following table lists the default search space parameters for hyperparameter
 | `mosaic`          | `tune.uniform(0.0, 1.0)`   | Mosaic augmentation probability that combines four images into one training sample.                                               |
 | `mixup`           | `tune.uniform(0.0, 1.0)`   | Mixup augmentation probability that blends two images and their labels together.                                                  |
 | `cutmix`          | `tune.uniform(0.0, 1.0)`   | Cutmix augmentation probability that combines image regions while maintaining local features.                                     |
-| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | Copy-paste augmentation probability that transfers objects between images to increase instance diversity.                         |
+| `copy_paste`      | `tune.uniform(0.0, 1.0)`   | In `flip` mode the fraction of eligible objects copied into an image, in `mixup` mode also the probability of running it.         |
 | `close_mosaic`    | `tune.randint(0, 11)`      | Disables mosaic in the last N epochs to stabilize training before completion.                                                     |
 
 ## Custom Search Space Example

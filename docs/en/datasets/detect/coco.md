@@ -49,6 +49,8 @@ The COCO dataset is split into three subsets:
 
 The COCO dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and keypoint detection (such as [OpenPose](https://arxiv.org/abs/1812.08008)). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
 
+Annotations exported from labeling tools in COCO JSON follow this same structure. To train on your own COCO-format data, see [Convert COCO Annotations to YOLO](../../guides/coco-to-yolo.md).
+
 ## Dataset YAML
 
 A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).
@@ -61,7 +63,7 @@ A YAML file is used to define the dataset configuration. It contains information
 
 ## Usage
 
-The COCO2017 training and validation data (20.3 GB) downloads automatically the first time you start training. To train a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
+The COCO2017 training and validation data (20.3 GB) downloads automatically the first time you start training. To train a YOLO26n model on COCO for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page. You can also run COCO training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017).
 
 !!! example "Train Example"
 
@@ -88,7 +90,7 @@ The COCO2017 training and validation data (20.3 GB) downloads automatically the 
 
 The COCO dataset contains a diverse set of images with various object categories and complex scenes. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![COCO dataset mosaic training batch with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-coco-dataset-sample.avif)
+![COCO dataset mosaic training batch with object detection](https://cdn.ul.run/i/f9843f887d8186a8b43fdec6f570dcba.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

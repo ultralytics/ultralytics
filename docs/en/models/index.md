@@ -6,7 +6,7 @@ keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9
 
 # Models Supported by Ultralytics
 
-Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [multi-object tracking](../modes/track.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
+Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
@@ -38,6 +38,10 @@ The table lists every documented model with the tasks it covers, which of the [t
 | **[RT-DETR](rtdetr.md)**        | Detect                                                | Train, Val, Predict, Export | Baidu's real-time DETR detector: a convolutional backbone with a hybrid [transformer](https://www.ultralytics.com/glossary/transformer) encoder                                                  |
 | **[YOLO-World](yolo-world.md)** | Detect                                                | Train, Val, Predict, Export | Open-vocabulary detection from text prompts (Tencent AI Lab); export requires the `-worldv2` checkpoints                                                                                         |
 | **[YOLOE](yoloe.md)**           | Detect, Segment                                       | Train, Val, Predict, Export | Open-vocabulary detection and segmentation with text, visual, or prompt-free inference                                                                                                           |
+
+!!! tip "Large Language Models"
+
+    Ultralytics also ships [LLM](llm.md), an OpenAI-compatible interface to large language and vision models for text and image understanding. It has no tasks or modes of its own, so it is not in the table above, but it pairs with any YOLO pipeline and runs against OpenAI and other cloud providers or a fully local on-prem server.
 
 <p align="center">
   <br>

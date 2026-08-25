@@ -80,8 +80,8 @@ class ConsoleLogger:
         # Deduplication state
         self.last_line = ""
         self.last_time = 0.0
-        self.last_progress_line = ""  # Track progress sequence key for deduplication
-        self.last_was_progress = False  # Track if last line was a progress bar
+        self.progress = {}  # live progress bar frames by bar id, held as state instead of buffered as log lines
+        self.progress_sent = {}
 
     def start_capture(self):
         """Start capturing console output and redirect stdout/stderr.
@@ -93,8 +93,8 @@ class ConsoleLogger:
             return
 
         self.active = True
-        sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
-        sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
+        self.stdout_capture = sys.stdout = self._ConsoleCapture(self.original_stdout, self._queue_log)
+        self.stderr_capture = sys.stderr = self._ConsoleCapture(self.original_stderr, self._queue_log)
 
         # Hook Ultralytics logger
         try:
@@ -103,8 +103,8 @@ class ConsoleLogger:
         except Exception:
             pass
 
-        # Start background flush thread for batched mode
-        if self.batch_size > 1:
+        # Background flush thread: carries live progress frames in every mode, batched lines when batching
+        if not (self.flush_thread and self.flush_thread.is_alive()):  # a worker still sleeping resumes on its own
             self.flush_thread = threading.Thread(target=self._flush_worker, daemon=True)
             self.flush_thread.start()
 
@@ -113,6 +113,7 @@ class ConsoleLogger:
         if not self.active:
             return
 
+        self.stdout_capture.callback = self.stderr_capture.callback = None
         self.active = False
         sys.stdout = self.original_stdout
         sys.stderr = self.original_stderr
@@ -125,11 +126,12 @@ class ConsoleLogger:
                 pass
             self._log_handler = None
 
-        # Final flush
+        # Final flush, without the frames of any bar that outlived the capture
+        self.progress.clear()
         self._flush_buffer()
 
-    def _queue_log(self, text):
-        """Queue console text with deduplication and timestamp processing."""
+    def _queue_log(self, text, bar_id):
+        """Queue console text with deduplication and timestamp processing, holding bar frames as state."""
         if not self.active:
             return
 
@@ -140,52 +142,20 @@ class ConsoleLogger:
             text = text.split("\r")[-1]
         text = text.replace("\x1b[K", "")
 
+        if bar_id is not None:  # a redraw is bar state, so only the frame a bar closed with becomes a log line
+            with self.buffer_lock:
+                if text:
+                    self.progress[str(bar_id)] = text.rstrip()
+                    return
+                text = self.progress.pop(str(bar_id), "")
+
         lines = text.split("\n")
         if lines and lines[-1] == "":
             lines.pop()
 
         for line in lines:
-            line = line.rstrip()
-
-            # Skip lines with only thin progress bars (partial progress)
-            if "─" in line:  # Has thin lines but no thick lines
-                continue
-
-            # Only show 100% completion lines for progress bars
-            if " ━━" in line:
-                is_complete = "100%" in line
-
-                # Skip ALL non-complete progress lines
-                if not is_complete:
-                    continue
-
-                # Extract sequence key to deduplicate multiple 100% lines for same sequence
-                parts = line.split()
-                seq_key = ""
-                if parts:
-                    # Check for epoch pattern (X/Y at start)
-                    if "/" in parts[0] and parts[0].replace("/", "").isdigit():
-                        seq_key = parts[0]  # e.g., "1/3"
-                    elif parts[0] == "Class" and len(parts) > 1:
-                        seq_key = f"{parts[0]}_{parts[1]}"  # e.g., "Class_train:" or "Class_val:"
-                    elif parts[0] in ("train:", "val:"):
-                        seq_key = parts[0]  # Phase identifier
-
-                # Skip if we already showed 100% for this sequence
-                if seq_key and self.last_progress_line == f"{seq_key}:done":
-                    continue
-
-                # Mark this sequence as done
-                if seq_key:
-                    self.last_progress_line = f"{seq_key}:done"
-
-                self.last_was_progress = True
-            else:
-                # Skip empty line after progress bar
-                if not line and self.last_was_progress:
-                    self.last_was_progress = False
-                    continue
-                self.last_was_progress = False
+            if not (line := line.rstrip()):
+                continue  # a bare newline carries nothing once timestamped
 
             # General deduplication
             if line == self.last_line and current_time - self.last_time < 0.1:
@@ -218,12 +188,13 @@ class ConsoleLogger:
                 self._flush_buffer()
 
     def _flush_buffer(self):
-        """Flush buffered lines to destination and/or callback."""
+        """Flush buffered lines and current progress bar frames to destination and/or callback."""
         with self.buffer_lock:
-            if not self.buffer:
-                return
+            if not self.buffer and self.progress == self.progress_sent:
+                return  # nothing new: an idle bar must not flush a chunk of its own
             lines = self.buffer.copy()
             self.buffer.clear()
+            self.progress_sent = dict(self.progress)
             self.chunk_id += 1
             chunk_id = self.chunk_id  # Capture under lock to avoid race
 
@@ -238,7 +209,7 @@ class ConsoleLogger:
                 pass  # Silently ignore callback errors to avoid flooding stderr
 
         # Write to destination (file or API)
-        if self.destination is not None:
+        if self.destination is not None and lines:
             self._write_destination(content)
 
     def _write_destination(self, content):
@@ -269,7 +240,14 @@ class ConsoleLogger:
         def write(self, text):
             """Write text to the original stream and forward it to the capture callback."""
             self.original.write(text)
-            self.callback(text)
+            if self.callback:
+                self.callback(text, None)
+
+        def progress(self, bar_id, frame):
+            """Write a TQDM frame to the original stream and report it as bar state instead of a log line."""
+            self.original.write(frame)
+            if self.callback:
+                self.callback(frame, bar_id)
 
         def flush(self):
             """Flush the wrapped stream to propagate buffered output promptly during console capture."""
@@ -291,7 +269,7 @@ class ConsoleLogger:
 
         def emit(self, record):
             """Format and forward LogRecord messages to the capture callback for unified log streaming."""
-            self.callback(self.format(record) + "\n")
+            self.callback(self.format(record) + "\n", None)
 
 
 class _DriveInfo:

@@ -69,6 +69,24 @@ class BaseDataset(Dataset):
         get_labels: Get labels method to be implemented by subclasses.
     """
 
+    class _ImageCache:
+        """Store images in one contiguous array to preserve copy-on-write sharing between workers."""
+
+        def __init__(self, images: list[np.ndarray]):
+            """Pack images and their layouts into contiguous NumPy arrays."""
+            self.shapes = np.array([im.shape for im in images])
+            self.dtypes = np.array([im.dtype.str for im in images])
+            self.offsets = np.concatenate(([0], np.cumsum([im.nbytes for im in images])))
+            self.buffer = np.empty(self.offsets[-1], dtype=np.uint8)
+            for i, im in enumerate(images):
+                self.buffer[self.offsets[i] : self.offsets[i + 1]] = im.reshape(-1).view(np.uint8)
+                images[i] = None
+
+        def __getitem__(self, i: int) -> np.ndarray:
+            """Return an image view by index."""
+            i = range(len(self.shapes))[i]
+            return self.buffer[self.offsets[i] : self.offsets[i + 1]].view(self.dtypes[i]).reshape(self.shapes[i])
+
     def __init__(
         self,
         img_path: str | list[str],
@@ -265,7 +283,7 @@ class BaseDataset(Dataset):
                 im = im[..., None]
 
             # Add to buffer if training with augmentations
-            if self.augment:
+            if self.augment and self.cache != "ram":
                 self.ims[i], self.im_hw0[i], self.im_hw[i] = im, (h0, w0), im.shape[:2]  # im, hw_original, hw_resized
                 self.buffer.append(i)
                 if 1 < len(self.buffer) >= self.max_buffer_length:  # prevent empty buffer
@@ -292,6 +310,8 @@ class BaseDataset(Dataset):
                     b += self.ims[i].nbytes
                 pbar.desc = f"{self.prefix}Caching images ({b / gb:.1f}GB {storage})"
             pbar.close()
+        if self.cache == "ram":
+            self.ims = self._ImageCache(self.ims)
 
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""
@@ -338,7 +358,7 @@ class BaseDataset(Dataset):
             return False
         return True
 
-    def check_cache_ram(self, safety_margin: float = 0.5) -> bool:
+    def check_cache_ram(self, safety_margin: float = 1.0) -> bool:
         """Check if there's enough RAM for caching images.
 
         Args:
@@ -350,11 +370,7 @@ class BaseDataset(Dataset):
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
-            im = imread(random.choice(self.im_files))  # sample image
-            if im is None:
-                continue
-            ratio = self.imgsz / max(im.shape[0], im.shape[1])  # max(h, w)  # ratio
-            b += im.nbytes * ratio**2
+            b += self.load_image(random.randrange(self.ni))[0].nbytes
         mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
         mem = __import__("psutil").virtual_memory()
         if mem_required > mem.available:

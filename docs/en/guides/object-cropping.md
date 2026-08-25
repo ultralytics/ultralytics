@@ -30,10 +30,10 @@ Object cropping with [Ultralytics YOLO26](https://github.com/ultralytics/ultraly
 
 ## Visuals
 
-|                                                                                 Airport Luggage                                                                                 |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/suitcases-cropping-airport-conveyor-belt.avif) |
-|                                                      Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                                       |
+|                                                           Airport Luggage                                                           |
+| :---------------------------------------------------------------------------------------------------------------------------------: |
+| ![Conveyor Belt at Airport Suitcases Cropping using Ultralytics YOLO26](https://cdn.ul.run/i/64b719a995705988d204b205eb0d3a9e.avif) |
+|                                Suitcases Cropping at airport conveyor belt using Ultralytics YOLO26                                 |
 
 ## Crop Objects with YOLO26
 
@@ -96,11 +96,6 @@ Here's a table with the `ObjectCropper` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "crop_dir"]) }}
-
-Moreover, the following visualization arguments are available for use:
-
-{% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
 
 ## FAQ
 

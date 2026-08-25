@@ -195,7 +195,7 @@ QUANTIZE_ALIASES = {
     "w8a16": "w8a16",
     "w8a32": "w8a32",
 }
-QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
+QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export#quantization-options"
 QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w8a16', or 'w8a32'"
 
 # Define keys for arg type checks
@@ -433,7 +433,9 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
-        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment":
+        if v is None and (
+            k == "amp" or (DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment")
+        ):
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if k == "lr0" and str(v).lower() == "auto":
             continue  # the LR finder resolves this against the model and dataset at train time
@@ -501,6 +503,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool or str (i.e. '{k}=True' or '{k}=max-autotune')"
                     )
                 cfg[k] = bool(v)
+            elif k == "amp":
+                if not isinstance(v, bool) and str(v).lower() not in {"fp16", "bf16", "fp32"}:
+                    raise ValueError(
+                        f"'{k}={v}' is invalid. Valid '{k}' values are True, False, 'fp16', 'bf16', or 'fp32'."
+                    )
+                cfg[k] = v.lower() if isinstance(v, str) else v
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
                 scheme = QUANTIZE_ALIASES.get(str(v).lower())
                 if scheme is None:
@@ -797,9 +805,9 @@ def handle_yolo_settings(args: list[str]) -> None:
         - The function will check for alignment between the provided settings and the existing ones.
         - After processing, the updated settings will be displayed.
         - For more information on handling YOLO settings, visit:
-          https://docs.ultralytics.com/quickstart/#ultralytics-settings
+          https://docs.ultralytics.com/quickstart#ultralytics-settings
     """
-    url = "https://docs.ultralytics.com/quickstart/#ultralytics-settings"  # help URL
+    url = "https://docs.ultralytics.com/quickstart#ultralytics-settings"  # help URL
     try:
         if any(args):
             if args[0] == "reset":

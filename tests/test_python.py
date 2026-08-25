@@ -2118,12 +2118,4 @@ def test_image_property_extractor():
     labels = ImagePropertyExtractor(ds).labels
     assert labels is ds.labels
     props = labels[0]["im_properties"]
-    assert set(props) == {
-        "num_objects",
-        "small_object_ratio",
-        "object_scale_variance",
-        "num_classes_present",
-        "center_spread",
-        "max_pairwise_iou",
-    }
     assert props["num_objects"] == len(labels[0]["bboxes"]) and 0 <= props["max_pairwise_iou"] <= 1

@@ -140,7 +140,7 @@ Pretrained weights come from the `model` argument, so `model=yolo26n.pt` already
 
 Four further settings matter once the dataset outgrows a single GPU or a single run:
 
-- **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. For per-layer learning rates, gradient clipping, or class-weighted loss, [subclass the trainer](./custom-trainer.md).
+- **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. Class imbalance has its own argument, `cls_pw`, which applies inverse-frequency class weighting without any custom code. For behavior no argument exposes, such as per-layer learning rates or gradient clipping, [subclass the trainer](./custom-trainer.md).
 - **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
 - **Graph Compilation**: `compile=True` compiles the model with the PyTorch `inductor` backend, trading a one-off compilation at the start of the run for faster steps afterwards. It pays for itself on long runs and falls back to eager execution with a warning wherever it is unsupported.
 - **channels_last Memory Format**: `channels_last=True` runs convolutions in NHWC, which maps better onto Tensor Cores on modern CUDA GPUs. It changes throughput only, never results, and is ignored on CPU and Apple silicon.
@@ -155,7 +155,7 @@ However, the ideal number of epochs can vary based on your dataset's size and pr
 
 ### Training on a Time Budget
 
-Epochs are a proxy for compute, but hours are what a rented GPU bills and what a cluster job limit cuts off. The `time` parameter caps training in wall-clock hours and overrides `epochs` when set: after the first epoch the trainer estimates how many epochs fit in the budget, then stops on the budget rather than on a count. A run that ends this way finishes cleanly with a validated `best.pt`, instead of being killed part-way through an epoch.
+Epochs are a proxy for compute, but hours are what a rented GPU bills and what a cluster job limit cuts off. The `time` parameter caps training in wall-clock hours and overrides `epochs` when set: after the first epoch the trainer estimates how many epochs fit in the budget, then stops on the budget rather than on a count. The budget is checked every batch, so a run can stop part-way through an epoch — but it stops gracefully, validating and writing `best.pt` on the way out rather than being killed outright.
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml time=6
@@ -232,7 +232,7 @@ To improve GPU utilization, set the `batch` parameter in your training configura
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 
-Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. This approach speeds up training and reduces memory usage without sacrificing model [accuracy](https://www.ultralytics.com/glossary/accuracy). In YOLO26 it is enabled by default through the `amp` parameter, so there is nothing to switch on; set `amp=False` to force FP32 instead. AMP applies on CUDA GPUs only. For more details, see the [full list of training settings](../modes/train.md).
+Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. This approach speeds up training and reduces memory usage without sacrificing model [accuracy](https://www.ultralytics.com/glossary/accuracy). In YOLO26 it is enabled by default through the `amp` parameter, so there is nothing to switch on; set `amp=False` to force FP32 instead. AMP is skipped on CPU and Apple silicon; CUDA, XPU, and NPU devices each have their own scaler path. For more details, see the [full list of training settings](../modes/train.md).
 
 ### How does multi-scale training enhance YOLO26 model performance?
 

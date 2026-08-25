@@ -175,7 +175,7 @@ Fine-tuning generally requires fewer hyperparameter adjustments than training fr
 - **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning.
 - **`close_mosaic`**: The default of 10 disables mosaic — along with `copy_paste`, `mixup`, and `cutmix` — for the final 10 epochs. On short fine-tuning runs that default lands badly: at `epochs=10` mosaic is off for the entire run, at `epochs=12` it is active for only the first two, and below 10 epochs it never switches off at all, so the stabilizing phase never happens. Set `close_mosaic` to roughly the last 10-20% of your `epochs` value whenever the run is short.
 
-For the full list of training parameters, see the [training configuration reference](../usage/cfg.md). For behavior the parameters do not expose — per-layer learning rates, class-weighted loss, or custom validation metrics — [subclass the trainer](custom-trainer.md).
+For the full list of training parameters, see the [training configuration reference](../usage/cfg.md). For behavior the parameters do not expose — per-layer learning rates, gradient clipping, or custom validation metrics — [subclass the trainer](custom-trainer.md).
 
 ## Two-Stage Fine-Tuning
 

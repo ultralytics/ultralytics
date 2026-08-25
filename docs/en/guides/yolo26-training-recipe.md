@@ -341,7 +341,7 @@ If deployment constraints force a smaller size than your accuracy target needs, 
 
 ### When You Cannot Fit Batch 128
 
-Every recipe on this page ran at `batch=128`, which most single-GPU setups cannot reach at 640x640. Lowering `batch` is safe, but it interacts with `nbs` (nominal batch size, default 64), the argument that controls gradient accumulation: the trainer accumulates `round(nbs / batch)` steps before each optimizer update, so the effective batch is `batch * accumulate`, not `batch`.
+Every recipe on this page ran at `batch=128`, which most single-GPU setups cannot reach at 640x640. Lowering `batch` is safe, but it interacts with `nbs` (nominal batch size, default 64), the argument that controls gradient accumulation: the trainer accumulates `round(nbs / batch)` steps before each optimizer update, so the effective batch is `batch * accumulate`, not `batch`. During warmup `accumulate` ramps from 1 up to that value, so the figures below describe the steady state after warmup ends.
 
 | `batch` | `nbs` | `accumulate` | Effective batch |
 | ------- | ----- | ------------ | --------------- |

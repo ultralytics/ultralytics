@@ -17,6 +17,7 @@ from .backends import (
     AxeleraBackend,
     CoreMLBackend,
     DeepXBackend,
+    CoreAIBackend,
     ExecuTorchBackend,
     HailoBackend,
     LiteRTBackend,
@@ -168,6 +169,7 @@ class AutoBackend(nn.Module):
         "litert": LiteRTBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "coreai": CoreAIBackend,
     }
 
     @torch.no_grad()

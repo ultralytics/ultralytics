@@ -6,9 +6,9 @@ keywords: Apple Core AI, CoreAI, aimodel, Core ML comparison, CoreML, mlpackage,
 
 # Apple Core AI Integration
 
-!!! warning "Core AI export is unavailable in Ultralytics"
+!!! warning "Core AI export requires macOS 26 or later on Apple silicon"
 
-    Ultralytics does not support `format=coreai` or direct export to Apple's `.aimodel` format. Use the supported [Core ML integration](coreml.md) for Apple deployment.
+    `coreai-core` publishes `macosx_26_0_arm64` wheels only, so export runs on Apple silicon Macs. The exported `.aimodel` runs on iOS 27 and macOS 27. The Ultralytics iOS and Flutter SDKs do not load `.aimodel` assets yet — use [Core ML](coreml.md) for those.
 
 [Core AI](https://developer.apple.com/core-ai/) is Apple's new framework for running neural networks directly on Apple silicon. It introduces the `.aimodel` model format, a modern Swift inference API, PyTorch-based conversion tools, ahead-of-time compilation, model specialization, and dedicated debugging and profiling tools.
 
@@ -21,7 +21,7 @@ Core AI is a new deployment path rather than a new name for Core ML. The framewo
 | Capability                       | Core AI                                                                              | Core ML                                                                                   |
 | -------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | Model artifact                   | `.aimodel`                                                                           | `.mlpackage` or `.mlmodel`                                                                |
-| Ultralytics export               | Not available                                                                        | Available with `format=coreml`                                                            |
+| Ultralytics export               | Available with `format=coreai`                                                       | Available with `format=coreml`                                                            |
 | Apple runtime API                | `AIModel`, `InferenceFunction`, and `NDArray`                                        | `MLModel`, often through `VNCoreMLModel` and `VNCoreMLRequest`                            |
 | Conversion workflow              | PyTorch `torch.export` through `coreai-torch`                                        | TorchScript conversion through `coremltools`                                              |
 | Primary focus                    | Modern neural networks and generative AI                                             | Broad machine learning deployment, including neural and non-neural models                 |
@@ -58,28 +58,36 @@ In Swift, applications load the asset with the Core AI framework, select an infe
 
 For implementation details, see Apple's documentation for [`AIModel`](https://developer.apple.com/documentation/coreai/aimodel), [model specialization and caching](https://developer.apple.com/documentation/coreai/managing-model-specialization-and-caching), and [ahead-of-time compilation](https://developer.apple.com/documentation/coreai/compiling-core-ai-models-ahead-of-time).
 
-## Future Ultralytics Usage
+## Exporting YOLO26 Models to Core AI
 
-!!! danger "Planned examples — these commands do not work yet"
+!!! example
 
-    The following examples illustrate the intended integration and are **not available in the current Ultralytics release**. Use [`format=coreml`](coreml.md#exporting-yolo26-models-to-coreml) for a supported Apple export today.
+    === "Python"
 
-After the planned integration ships, the [Python API](../usage/python.md) is expected to export a [YOLO26](../models/yolo26.md) model to `.aimodel` with a dedicated format value:
+        ```python
+        from ultralytics import YOLO
 
-```python
-from ultralytics import YOLO
+        model = YOLO("yolo26n.pt")
+        model.export(format="coreai")  # creates 'yolo26n.aimodel'
+        model.export(format="coreai", quantize=16)  # FP16 asset
 
-model = YOLO("yolo26n.pt")
-model.export(format="coreai")  # Planned: creates yolo26n.aimodel
-```
+        # Run the exported model
+        coreai_model = YOLO("yolo26n.aimodel")
+        results = coreai_model("https://ultralytics.com/images/bus.jpg")
+        ```
 
-The equivalent planned [CLI](../usage/cli.md) command is:
+    === "CLI"
 
-```bash
-yolo export model=yolo26n.pt format=coreai # Planned: not yet available
-```
+        ```bash
+        yolo export model=yolo26n.pt format=coreai            # creates 'yolo26n.aimodel'
+        yolo export model=yolo26n.pt format=coreai quantize=16 # FP16 asset
 
-The final arguments, supported [YOLO tasks](../tasks/index.md), precision options, and dynamic-shape behavior will be documented in [Export mode](../modes/export.md) after the exporter is implemented and validated.
+        yolo predict model=yolo26n.aimodel source='https://ultralytics.com/images/bus.jpg'
+        ```
+
+For the full argument list see [Export mode](../modes/export.md). The graph is static: it is traced at
+the `imgsz` given to `export`, so predict on that same size. Ultralytics metadata travels inside the
+asset's own `metadata.json`, so class names, stride and task survive the round trip.
 
 On iOS 27 or macOS 27, an application would then load and run the exported asset through Apple's Core AI Swift API. The function and tensor names below are illustrative; the supported Ultralytics output contract will be published with the exporter:
 
@@ -118,24 +126,25 @@ Core AI is not currently a replacement for the production Core ML path:
 - **New operating systems required:** The public framework targets the iOS 27 and macOS 27 generation, while Core ML supports a much larger installed base.
 - **Beta software:** Apple's Core AI framework and parts of its Python toolchain are still preliminary and may change before their stable releases.
 - **Narrower export environment:** `coreai-torch` currently requires Python 3.11 or newer and recent PyTorch versions, which is much narrower than Ultralytics' supported Python and PyTorch range.
-- **No current Ultralytics command:** `yolo export format=coreai` is not implemented, tested, or covered by Ultralytics' compatibility guarantees.
+- **Export runs on macOS only:** `coreai-core` publishes `macosx_26_0_arm64` wheels only, so `format=coreai` needs an Apple silicon Mac on macOS 26 or later.
 - **No Ultralytics application runtime yet:** The official [YOLO iOS app](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) currently load Core ML artifacts through `MLModel` and Vision.
 - **Application migration required:** A `.aimodel` cannot be substituted for an `.mlpackage`; model loading, preprocessing, inference calls, metadata handling, and output decoding need a Core AI implementation.
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
-- **No established legacy NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. The first Core AI integration is expected to focus on NMS-free YOLO26 models.
+- **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. The Core AI export covers NMS-free YOLO26 models; `nms=True` and `dynamic=True` are not supported.
+- **Fixed input size:** The exported graph is traced at one `imgsz` and has no dynamic shapes, so predict at the size it was exported with.
+- **FP16 assets can abort on load:** Some FP16 `.aimodel` assets fail to load their Apple Neural Engine program and MPSGraph raises a failed assertion, which ends the process rather than falling back. This happens inside Apple's runtime, before any Ultralytics code runs, and the same asset loads with a CPU-only specialization. Prefer FP32 until it is fixed upstream.
 
 ## Which Apple Format Should You Use?
 
 Use **Core ML today** when you need:
 
-- A supported Ultralytics export command
 - Deployment across current and older Apple operating systems
 - Integration with the Ultralytics iOS or Flutter SDK
 - Vision framework image handling
 - Tested FP16 and INT8 YOLO deployment
 - Embedded NMS for compatible legacy detection models
 
-Evaluate **Core AI in the future** when you can require iOS 27 or macOS 27 and need:
+Evaluate **Core AI** when you can require iOS 27 or macOS 27 and need:
 
 - The newest Apple on-device neural network runtime
 - Explicit specialization and cache management

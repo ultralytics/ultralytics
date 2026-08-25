@@ -1199,9 +1199,9 @@ def _gridsample_mode_for_trt(onnx_file: str, prefix: str) -> bytes | None:
     TensorRT does not recognize the opset 20 ``linear`` mode name and silently samples nearest neighbor instead, which
     corrupts the ROI features behind box prompts. onnxruntime accepts only ``linear``, so the rename is applied to the
     bytes handed to the TensorRT parser and the exported ONNX file stays spec compliant. Only the detection decoder
-    holds a GridSample, so every other module returns None and is parsed straight from disk instead: serializing a
-    multi gigabyte encoder to memory for a rename that never fires costs several gigabytes and runs a graph that is
-    already 1.9 GB at FP32 into the 2 GB protobuf ceiling.
+    holds a GridSample, so every other module returns None and is parsed straight from disk instead: serializing a multi
+    gigabyte encoder to memory for a rename that never fires costs several gigabytes and runs a graph that is already
+    1.9 GB at FP32 into the 2 GB protobuf ceiling.
     """
     import onnx
 

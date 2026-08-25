@@ -66,6 +66,7 @@ Let's get started.
 
     yaml_file = "path/to/data.yaml"
     data = check_det_dataset(yaml_file)
+    dataset_path = Path(data["path"])
     sources = []
     for split in ("train", "val"):
         source = data.get(split)
@@ -172,6 +173,8 @@ The rows index images by their path relative to `images/`, and the columns corre
 4. Write image lists and a dataset YAML for each split. Text lists avoid copying the dataset `k` times.
 
     ```python
+    import yaml
+
     save_path = dataset_path.parent / f"{ksplit}-Fold_Cross-val"
     save_path.mkdir(parents=True, exist_ok=True)
     ds_yamls = []

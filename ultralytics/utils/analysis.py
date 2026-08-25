@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -118,7 +117,7 @@ def analyze_correlations(labels: list[dict], metrics) -> AnalysisReport:
     for label in labels:
         im_file = label["im_file"]
         per_image[im_file] = {
-            **metrics.box.image_metrics.get(Path(im_file).name, {}),
+            **metrics.box.image_metrics.get(im_file, {}),
             **label["im_properties"],
         }
 

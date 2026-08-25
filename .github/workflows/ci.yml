@@ -165,8 +165,12 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
+          qat=""
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.torch }}" == "latest" ]; then
+              qat="nvidia-modelopt>=0.44" # QAT test, ships Linux x86 wheels only
+          fi
           uv pip install -e ".[export-base,solutions]" \
-            $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            $torch $qat aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
         run: |
@@ -318,7 +322,11 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
+          qat=""
+          if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.torch }}" == "latest" ]; then
+            qat="nvidia-modelopt>=0.44" # QAT test, ships Linux x86 wheels only
+          fi
+          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch $qat \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment

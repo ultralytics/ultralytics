@@ -169,7 +169,7 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 | Module   | Purpose                                                           | Source                                                                                           | Arguments                                          |
 | -------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
-| `C3k2`   | CSP block used by every YOLO11 and YOLO26 backbone                | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, c3k, expansion, attn, groups, shortcut]` |
+| `C3k2`   | CSP block in the standard YOLO11 and YOLO26 backbones             | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, c3k, expansion, attn, groups, shortcut]` |
 | `C2PSA`  | Position-sensitive attention block, last backbone layer in YOLO26 | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, expansion]`                              |
 | `C2f`    | CSP bottleneck with 2 convolutions, used by YOLOv8                | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]`            |
 | `SPPF`   | Spatial Pyramid Pooling (fast)                                    | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`                            |

@@ -34,7 +34,7 @@ Train a smaller student model with guidance from a larger teacher by adding the 
 
 !!! tip "Already-distilled checkpoints"
 
-    Every model in the table below ships as a downloadable checkpoint, so you do not have to run distillation yourself to get the distilled accuracy. Load `yolo26n-distill.pt` the way you would load any other Ultralytics checkpoint:
+    Every model in the table below ships as a downloadable checkpoint, so you do not have to run distillation yourself to get the distilled accuracy. Load `yolo26n-distill.pt` the way you would load any other Ultralytics checkpoint — the name is resolved against the Ultralytics release assets on first use, so it downloads even though it is not among the model names bundled with the package:
 
     === "Python"
 

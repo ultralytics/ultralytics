@@ -358,7 +358,7 @@ With the default `nbs=64`, dropping to `batch=16` gives an effective batch of 64
 yolo train model=yolo26n.pt data=your-dataset.yaml epochs=100 imgsz=640 batch=8 nbs=128
 ```
 
-One consequence is easy to miss: `weight_decay` is rescaled by `batch * accumulate / nbs` before it reaches the optimizer. The official runs used `batch=128` with `nbs=64`, so their nominal `weight_decay` was applied at twice the tabulated value. The scaling returns to the tabulated value only when `batch * accumulate` lands exactly on `nbs`, as it does at `batch=32` or `batch=16` with the default `nbs=64`; other combinations land somewhere in between. The optimizer line printed at the start of training reports the value actually in use, so read it there rather than assuming.
+One consequence is easy to miss: `weight_decay` is rescaled by `batch * accumulate / nbs` before it reaches the optimizer. The official runs used `batch=128` with `nbs=64`, so their nominal `weight_decay` was applied at twice the tabulated value. The tabulated value is applied unchanged whenever `batch` divides `nbs` evenly, since rounded accumulation then restores the effective batch to `nbs` exactly — `batch=8`, `16`, `32` and `64` all do this at the default `nbs=64`. Any other batch size shifts it: rounding leaves the effective batch slightly off `nbs`, and a batch above `nbs` scales the decay by `batch / nbs` outright. The optimizer line printed at the start of training reports the value actually in use, so read it there rather than assuming.
 
 ## Conclusion
 

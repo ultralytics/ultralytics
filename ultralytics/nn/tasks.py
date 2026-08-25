@@ -53,6 +53,7 @@ from ultralytics.nn.modules import (
     DEIMEUPESTAs,
     Detect,
     DeimDecoder,
+    DeimSegmentDecoder,
     DeimLayerNormDecoder,
     DWConv,
     DWConvTranspose2d,
@@ -775,6 +776,7 @@ class RTDETRDetectionModel(DetectionModel):
             verbose (bool): Print additional information during initialization.
         """
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.nc = self.yaml["nc"]
 
     @staticmethod
     def _is_default_numeric_names(names) -> bool:
@@ -839,6 +841,8 @@ class RTDETRDetectionModel(DetectionModel):
             "batch_idx": targets["batch_idx"].repeat_interleave(k, dim=0),
             "gt_groups": [g * k for g in targets["gt_groups"]],
         }
+        if "masks" in targets:
+            repeated_targets["masks"] = targets["masks"].repeat_interleave(k, dim=0)
 
         return repeated_targets
 
@@ -912,6 +916,10 @@ class RTDETRDetectionModel(DetectionModel):
         dn_refs, o2o_refs, o2m_refs = split_layered(dfine_meta["ref_points"])
         dn_pre_bboxes, o2o_pre_bboxes, o2m_pre_bboxes = split_flat(dfine_meta["pre_bboxes"])
         dn_pre_logits, o2o_pre_logits, o2m_pre_logits = split_flat(dfine_meta["pre_logits"])
+        dn_masks, o2o_masks, o2m_masks = split_layered(dfine_meta.get("pred_masks"))
+        enc_masks = dfine_meta.get("enc_masks")
+        o2o_enc_masks = enc_masks[:, :num_o2o] if enc_masks is not None else None
+        o2m_enc_masks = enc_masks[:, num_o2o : num_o2o + num_o2m] if enc_masks is not None and num_o2m else None
 
         base_meta = {
             "up": dfine_meta["up"],
@@ -923,12 +931,15 @@ class RTDETRDetectionModel(DetectionModel):
             "ref_points": o2o_refs,
             "pre_bboxes": o2o_pre_bboxes,
             "pre_logits": o2o_pre_logits,
+            "pred_masks": o2o_masks,
+            "enc_masks": o2o_enc_masks,
         }
         if dn_corners is not None:
             o2o_meta["dn_pred_corners"] = dn_corners
             o2o_meta["dn_ref_points"] = dn_refs
             o2o_meta["dn_pre_bboxes"] = dn_pre_bboxes
             o2o_meta["dn_pre_logits"] = dn_pre_logits
+            o2o_meta["dn_pred_masks"] = dn_masks
 
         o2m_meta = None
         if num_o2m > 0:
@@ -938,8 +949,26 @@ class RTDETRDetectionModel(DetectionModel):
                 "ref_points": o2m_refs,
                 "pre_bboxes": o2m_pre_bboxes,
                 "pre_logits": o2m_pre_logits,
+                "pred_masks": o2m_masks,
+                "enc_masks": o2m_enc_masks,
             }
         return o2o_meta, o2m_meta
+
+    def _prepare_gt_masks(self, batch: dict, gt_groups: list[int], device: torch.device) -> torch.Tensor:
+        """Convert overlap-encoded or per-instance dataset masks to flattened DETR target order."""
+        masks = batch["masks"].to(device=device, dtype=torch.float32)
+        args = getattr(self, "args", None)
+        overlap = args.get("overlap_mask", True) if isinstance(args, dict) else getattr(args, "overlap_mask", True)
+        if not overlap:
+            return masks
+        instance_masks = []
+        for image_idx, count in enumerate(gt_groups):
+            if count:
+                ids = torch.arange(1, count + 1, device=device).view(-1, 1, 1)
+                instance_masks.append((masks[image_idx].unsqueeze(0) == ids).float())
+        if instance_masks:
+            return torch.cat(instance_masks, dim=0)
+        return masks.new_zeros((0, *masks.shape[-2:]))
 
     def _apply(self, fn):
         """Apply a function to all tensors in the model, including decoder anchors and valid mask.
@@ -1006,6 +1035,8 @@ class RTDETRDetectionModel(DetectionModel):
             "batch_idx": batch_idx.to(img.device, dtype=torch.long).view(-1),
             "gt_groups": gt_groups,
         }
+        if "masks" in batch:
+            targets["masks"] = self._prepare_gt_masks(batch, gt_groups, img.device)
 
         if preds is None:
             preds = self.predict(img, batch=targets)
@@ -1043,6 +1074,12 @@ class RTDETRDetectionModel(DetectionModel):
 
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])  # (7, bs, 300, 4)
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
+        if (
+            dfine_meta is not None
+            and dfine_meta.get("pred_masks") is not None
+            and dfine_meta.get("enc_masks") is not None
+        ):
+            dfine_meta["pred_masks"] = torch.cat([dfine_meta["enc_masks"].unsqueeze(0), dfine_meta["pred_masks"]])
 
         args = getattr(self, "args", None)
         debug_new_giou_loss = (
@@ -1080,6 +1117,14 @@ class RTDETRDetectionModel(DetectionModel):
             if enc_bboxes_o2m is not None:
                 o2m_bboxes = torch.cat([enc_bboxes_o2m.unsqueeze(0), o2m_bboxes])
                 o2m_scores = torch.cat([enc_scores_o2m.unsqueeze(0), o2m_scores])
+            if (
+                dfine_meta_o2m is not None
+                and dfine_meta_o2m.get("pred_masks") is not None
+                and dfine_meta_o2m.get("enc_masks") is not None
+            ):
+                dfine_meta_o2m["pred_masks"] = torch.cat(
+                    [dfine_meta_o2m["enc_masks"].unsqueeze(0), dfine_meta_o2m["pred_masks"]]
+                )
             targets_o2m = self.one_to_many_targets(targets, one_to_many_groups)
             loss_o2m_kwargs = {"dn_bboxes": None, "dn_scores": None, "dn_meta": None}
             if supports_dfine:
@@ -1107,6 +1152,10 @@ class RTDETRDetectionModel(DetectionModel):
             loss_keys.append("loss_ddf")
         if getattr(self.criterion, "rank_gain", 0.0) > 0:
             loss_keys.append("loss_rank")
+        if getattr(self.criterion, "mask_gain", 0.0) > 0:
+            loss_keys.append("loss_mask")
+        if getattr(self.criterion, "dice_gain", 0.0) > 0:
+            loss_keys.append("loss_dice")
         # Add o2m losses for debugging if configured (fill with zeros during validation)
         # Check head attribute directly since dn_meta is None during validation
         head_o2m_groups = getattr(self.model[-1], "one_to_many_groups", 0)
@@ -2029,6 +2078,7 @@ def parse_model(d, ch, verbose=True):
             RTDETRDecoderv2,
             DFineDecoder,
             DeimDecoder,
+            DeimSegmentDecoder,
             DeimLayerNormDecoder,
         }:  # special case, channels arg must be passed in index 1
             args.insert(1, [ch[x] for x in f])
@@ -2118,6 +2168,8 @@ def guess_model_task(model):
             return "detect"
         if "segment" in m:
             return "segment"
+        if "decoder" in m and any(name in m for name in ("detr", "deim", "dfine")):
+            return "detect"
         if "pose" in m:
             return "pose"
         if "obb" in m:

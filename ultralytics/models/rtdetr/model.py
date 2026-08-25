@@ -19,6 +19,11 @@ from ultralytics.utils.torch_utils import TORCH_1_11
 
 from .deim import RTDETRDEIMTrainer, RTDETRDEIMTrainerV2, RTDETRDEIMValidator
 from .predict import RTDETRPredictor
+from .segment import (
+    RTDETRDEIMSegmentationPredictor,
+    RTDETRDEIMSegmentationTrainer,
+    RTDETRDEIMSegmentationValidator,
+)
 from .train import RTDETRTrainer
 from .val import RTDETRValidator
 
@@ -89,6 +94,11 @@ class RTDETRDEIM(RTDETR):
 
     _EXTRA_CKPT_ARGS = {"rtdetr_input_normalize"}
 
+    def __init__(self, model: str = "rtdetr-l.pt") -> None:
+        """Initialize DEIM and infer detect versus segment from its decoder head."""
+        assert TORCH_1_11, "RTDETR requires torch>=1.11"
+        Model.__init__(self, model=model, task=None)
+
     @staticmethod
     def _reset_ckpt_args(args: dict[str, Any]) -> dict[str, Any]:
         include = {"imgsz", "data", "task", "single_cls"} | RTDETRDEIM._EXTRA_CKPT_ARGS
@@ -103,7 +113,13 @@ class RTDETRDEIM(RTDETR):
                 "validator": RTDETRDEIMValidator,
                 "trainer": RTDETRDEIMTrainer,
                 "model": RTDETRDetectionModel,
-            }
+            },
+            "segment": {
+                "predictor": RTDETRDEIMSegmentationPredictor,
+                "validator": RTDETRDEIMSegmentationValidator,
+                "trainer": RTDETRDEIMSegmentationTrainer,
+                "model": RTDETRDetectionModel,
+            },
         }
 
 

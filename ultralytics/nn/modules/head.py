@@ -37,6 +37,7 @@ __all__ = (
     "Classify",
     "Detect",
     "DeimDecoder",
+    "DeimSegmentDecoder",
     "DeimLayerNormDecoder",
     "DFineDecoder",
     "Pose",
@@ -2576,6 +2577,156 @@ class DeimDecoder(DFineDecoder):
         for layer in self.input_proj:
             if isinstance(layer, nn.Sequential) and len(layer) and hasattr(layer[0], "weight"):
                 xavier_uniform_(layer[0].weight)
+
+
+class _DEIMMaskDepthwiseBlock(nn.Module):
+    """RF-DETR-style lightweight spatial refinement block for mask features."""
+
+    def __init__(self, dim: int):
+        super().__init__()
+        self.dwconv = nn.Conv2d(dim, dim, 3, padding=1, groups=dim)
+        self.norm = nn.LayerNorm(dim, eps=1e-6)
+        self.pwconv = nn.Linear(dim, dim)
+        self.act = nn.GELU()
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        residual = x
+        x = self.dwconv(x).permute(0, 2, 3, 1)
+        x = self.act(self.pwconv(self.norm(x))).permute(0, 3, 1, 2)
+        return x + residual
+
+
+class _DEIMMaskQueryBlock(nn.Module):
+    """RF-DETR-style residual MLP refinement for decoder query features."""
+
+    def __init__(self, dim: int):
+        super().__init__()
+        self.norm = nn.LayerNorm(dim)
+        self.mlp = nn.Sequential(nn.Linear(dim, 4 * dim), nn.GELU(), nn.Linear(4 * dim, dim))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return x + self.mlp(self.norm(x))
+
+
+class DeimSegmentDecoder(DeimDecoder):
+    """DEIM decoder with a lightweight query-to-pixel instance mask head.
+
+    The detection decoder, query selection, box heads, and class heads are unchanged. A lightweight pixel projection
+    combines MaskDINO's direct query-mask prediction with RF-DETR's depthwise spatial refinement and channel bottleneck.
+    Only the final mask tensor is materialized during training; DEIM box/class auxiliary supervision remains unchanged.
+    """
+
+    def __init__(self, *args, mask_dim: int | None = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        mask_dim = self.hidden_dim if mask_dim is None else mask_dim
+        if mask_dim <= 0:
+            raise ValueError(f"mask_dim must be positive, got {mask_dim}.")
+        if self.layer_scale != 1.0:
+            raise ValueError("DeimSegmentDecoder currently requires layer_scale=1.0 for shared query mask projection.")
+        self.mask_dim = mask_dim
+        self.mask_interaction_dim = max(mask_dim // 4, 16)
+        in_channels = (
+            self.input_proj[0][0].in_channels
+            if isinstance(self.input_proj[0], nn.Sequential)
+            else self.hidden_dim
+        )
+        self.mask_input_proj = (
+            nn.Identity() if in_channels == mask_dim else nn.Conv2d(in_channels, mask_dim, kernel_size=1)
+        )
+        self.mask_spatial_blocks = nn.ModuleList(
+            [_DEIMMaskDepthwiseBlock(mask_dim) for _ in range(self.num_decoder_layers)]
+        )
+        self.mask_spatial_proj = nn.Conv2d(mask_dim, self.mask_interaction_dim, kernel_size=1)
+        self.mask_query_block = _DEIMMaskQueryBlock(self.hidden_dim)
+        self.mask_query_proj = nn.Linear(self.hidden_dim, self.mask_interaction_dim)
+        self.mask_bias = nn.Parameter(torch.zeros(1))
+
+    def _mask_logits(self, query: torch.Tensor, mask_features: torch.Tensor) -> torch.Tensor:
+        """Project object queries and correlate them with dense mask features."""
+        query = self.mask_query_proj(self.mask_query_block(query))
+        spatial = self.mask_spatial_proj(mask_features)
+        return torch.einsum("bqc,bchw->bqhw", query, spatial) + self.mask_bias
+
+    def _postprocess_with_masks(
+        self, boxes: torch.Tensor, scores: torch.Tensor, masks: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Select the same class/query pairs for detections and direct mask logits."""
+        if self.disable_topk:
+            scores, class_idx = scores.max(dim=-1, keepdim=True)
+            detections = torch.cat([boxes, scores, class_idx.float()], dim=-1)
+            return detections, masks
+        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        scores, index = scores.flatten(1).topk(k)
+        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        boxes = boxes.gather(1, query_idx.unsqueeze(-1).expand(-1, -1, 4))
+        masks = masks.gather(
+            1, query_idx.view(query_idx.shape[0], -1, 1, 1).expand(-1, -1, masks.shape[-2], masks.shape[-1])
+        )
+        detections = torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
+        return detections, masks
+
+    def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
+        """Run DEIM detection unchanged and append MaskDINO-style query mask predictions."""
+        from ultralytics.models.utils.ops import get_cdn_group
+
+        mask_features = self.mask_input_proj(x[0])
+        mask_features = F.interpolate(mask_features, scale_factor=2.0, mode="bilinear", align_corners=False)
+        feats, shapes = self._get_encoder_input(x)
+        dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
+            batch,
+            self.nc,
+            self.num_queries,
+            self.denoising_class_embed.weight,
+            self.num_denoising,
+            self.label_noise_ratio,
+            self.box_noise_scale,
+            self.training,
+        )
+        embed, refer_bbox, enc_bboxes, enc_scores = self._get_decoder_input(feats, shapes, dn_embed, dn_bbox)
+        if dn_meta is not None:
+            dn_meta["one_to_many_groups"] = self.one_to_many_groups
+        if self.training and self.one_to_many_groups > 0:
+            attn_mask = self._extend_attn_mask_for_o2m(
+                attn_mask, dn_meta, self.num_queries * self.one_to_many_groups, device=feats.device
+            )
+
+        dec_bboxes, dec_scores, dec_pred_corners, dec_refs, pre_bboxes, pre_scores, dec_hidden = self.decoder(
+            embed,
+            refer_bbox,
+            feats,
+            shapes,
+            self.dec_bbox_head,
+            self.dec_score_head,
+            self.query_pos_head,
+            self.pre_bbox_head,
+            self.integral,
+            self.up,
+            self.reg_scale,
+            attn_mask=attn_mask,
+            memory_mask=None,
+            dn_meta=dn_meta,
+            return_hidden=True,
+        )
+        last_mask_layer = self.num_decoder_layers if self.training else self.eval_idx + 1
+        for block in self.mask_spatial_blocks[:last_mask_layer]:
+            mask_features = block(mask_features)
+        dec_masks = torch.stack([self._mask_logits(dec_hidden[-1], mask_features)])
+        dfine_meta = {
+            "pred_corners": dec_pred_corners,
+            "ref_points": dec_refs,
+            "pre_bboxes": pre_bboxes,
+            "pre_logits": pre_scores,
+            "up": self.up,
+            "reg_scale": self.reg_scale,
+            "pred_masks": dec_masks,
+        }
+        raw = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta
+        if self.training:
+            return raw
+        detections, masks = self._postprocess_with_masks(
+            dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid(), dec_masks.squeeze(0)
+        )
+        return (detections, masks) if self.export else ((detections, masks), raw)
 
 
 class DeimLayerNormDecoder(DeimDecoder):

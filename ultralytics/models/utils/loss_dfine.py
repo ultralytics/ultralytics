@@ -56,6 +56,9 @@ class DfineLoss(nn.Module):
         debug_new_giou_loss: bool = False,
         focaler_d: float = 0.0,
         focaler_u: float = 1.0,
+        mask_num_points: int = 12544,
+        mask_oversample_ratio: float = 3.0,
+        mask_importance_sample_ratio: float = 0.75,
     ):
         super().__init__()
         if loss_gain is None:
@@ -100,6 +103,19 @@ class DfineLoss(nn.Module):
         self.ddf_gain = self.loss_gain.get("ddf", 0.0)
         self.rank_gain = self.loss_gain.get("rank", 0.0)
         self.rank = RankLoss() if self.rank_gain > 0 else None
+        self.mask_gain = self.loss_gain.get("mask", 0.0)
+        self.dice_gain = self.loss_gain.get("dice", 0.0)
+        self.mask_num_points = int(mask_num_points)
+        self.mask_oversample_ratio = float(mask_oversample_ratio)
+        self.mask_importance_sample_ratio = float(mask_importance_sample_ratio)
+        if self.mask_num_points <= 0:
+            raise ValueError(f"mask_num_points must be positive, got {self.mask_num_points}.")
+        if self.mask_oversample_ratio < 1.0:
+            raise ValueError(f"mask_oversample_ratio must be >= 1, got {self.mask_oversample_ratio}.")
+        if not 0.0 <= self.mask_importance_sample_ratio <= 1.0:
+            raise ValueError(
+                f"mask_importance_sample_ratio must be in [0, 1], got {self.mask_importance_sample_ratio}."
+            )
 
         # Focaler-IoU (Zhang & Zhang, 2024): linear-interval remap of raw IoU used as an additive
         # modulation of the GIoU loss. Identity remap (0.0, 1.0) is a no-op; only non-default
@@ -141,6 +157,8 @@ class DfineLoss(nn.Module):
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
         gt_groups: list[int],
+        masks: torch.Tensor | None = None,
+        gt_masks: torch.Tensor | None = None,
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
         """Wrapper over matcher to inject epoch and normalized progress for matcher scheduling."""
         return self.matcher(
@@ -149,6 +167,8 @@ class DfineLoss(nn.Module):
             gt_bboxes,
             gt_cls,
             gt_groups,
+            masks=masks,
+            gt_mask=gt_masks,
             epoch=self.matcher_epoch,
             training_progress=self.training_progress,
         )
@@ -275,6 +295,64 @@ class DfineLoss(nn.Module):
         loss_giou = self.loss_gain["giou"] * (loss_giou.sum() / norm_boxes)
         return {name_bbox: loss_bbox.squeeze(), name_giou: loss_giou.squeeze()}
 
+    @staticmethod
+    def _point_sample(inputs: torch.Tensor, point_coords: torch.Tensor) -> torch.Tensor:
+        """Sample NCHW tensors at normalized [0, 1] point coordinates."""
+        grid = point_coords.mul(2.0).sub(1.0).unsqueeze(2)
+        return F.grid_sample(inputs, grid, mode="bilinear", align_corners=False).squeeze(3).squeeze(1)
+
+    def _get_loss_mask(
+        self,
+        pred_masks: torch.Tensor | None,
+        gt_masks: torch.Tensor | None,
+        match_indices: list[tuple[torch.Tensor, torch.Tensor]],
+        norm_masks: float,
+        postfix: str = "",
+    ) -> dict[str, torch.Tensor]:
+        """Compute MaskDINO-style uncertainty-sampled BCE and Dice losses for matched queries."""
+        name_mask, name_dice = f"loss_mask{postfix}", f"loss_dice{postfix}"
+        if pred_masks is None or gt_masks is None or self.mask_gain <= 0 and self.dice_gain <= 0:
+            return {}
+        (batch_idx, src_idx), gt_idx = self._get_index(match_indices, pred_masks.device)
+        if gt_idx.numel() == 0:
+            zero = pred_masks.sum() * 0.0
+            return {name_mask: zero, name_dice: zero}
+
+        source = pred_masks[(batch_idx, src_idx)].unsqueeze(1)
+        target = gt_masks[gt_idx].to(device=source.device, dtype=source.dtype).unsqueeze(1)
+        num_candidates = max(int(self.mask_num_points * self.mask_oversample_ratio), self.mask_num_points)
+        candidate_coords = torch.rand(
+            (source.shape[0], num_candidates, 2), device=source.device, dtype=source.dtype
+        )
+        with torch.no_grad():
+            candidate_logits = self._point_sample(source, candidate_coords)
+            num_important = min(int(self.mask_num_points * self.mask_importance_sample_ratio), num_candidates)
+            num_random = self.mask_num_points - num_important
+            if num_important:
+                important_idx = (-candidate_logits.abs()).topk(num_important, dim=1).indices
+                important_coords = candidate_coords.gather(1, important_idx.unsqueeze(-1).expand(-1, -1, 2))
+            else:
+                important_coords = candidate_coords[:, :0]
+            random_coords = torch.rand(
+                (source.shape[0], num_random, 2), device=source.device, dtype=source.dtype
+            )
+            point_coords = torch.cat((important_coords, random_coords), dim=1)
+            point_labels = self._point_sample(target, point_coords)
+
+        point_logits = self._point_sample(source, point_coords)
+        with torch.autocast(device_type=source.device.type, enabled=False):
+            logits = point_logits.float()
+            labels = point_labels.float()
+            loss_mask = F.binary_cross_entropy_with_logits(logits, labels, reduction="none").mean(1).sum()
+            probabilities = logits.sigmoid()
+            numerator = 2.0 * (probabilities * labels).sum(1)
+            denominator = probabilities.sum(1) + labels.sum(1)
+            loss_dice = (1.0 - (numerator + 1.0) / (denominator + 1.0)).sum()
+        return {
+            name_mask: self.mask_gain * loss_mask / norm_masks,
+            name_dice: self.dice_gain * loss_dice / norm_masks,
+        }
+
     def _get_loss_rank(
         self,
         pred_scores: torch.Tensor,
@@ -303,6 +381,8 @@ class DfineLoss(nn.Module):
         cls_norm: float,
         box_norm: float,
         postfix: str = "",
+        pred_masks: torch.Tensor | None = None,
+        gt_masks: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
         (cls_batch_idx, cls_src_idx), cls_gt_idx = self._get_index(cls_indices, pred_scores.device)
         bs, nq = pred_scores.shape[:2]
@@ -325,6 +405,7 @@ class DfineLoss(nn.Module):
             **self._get_loss_class(pred_scores, targets, gt_scores, int(cls_gt_idx.numel()), cls_norm, postfix),
             **self._get_loss_bbox(pred_assigned_box, gt_assigned_box, box_norm, postfix),
             **self._get_loss_rank(pred_scores, targets, gt_scores, int(cls_gt_idx.numel()), postfix),
+            **self._get_loss_mask(pred_masks, gt_masks, cls_indices, cls_norm, postfix),
         }
 
     def _compute_aux_losses(
@@ -338,8 +419,10 @@ class DfineLoss(nn.Module):
         cls_norm: float,
         box_norm: float,
         postfix: str = "",
+        pred_masks: torch.Tensor | None = None,
+        gt_masks: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
-        loss = torch.zeros(3, device=pred_bboxes.device)
+        loss = torch.zeros(5, device=pred_bboxes.device)
         loss_rank_aux = torch.zeros((), device=pred_bboxes.device)
         rank_key = f"loss_rank{postfix}"
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
@@ -355,12 +438,17 @@ class DfineLoss(nn.Module):
                 cls_norm,
                 box_norm,
                 postfix=postfix,
+                pred_masks=pred_masks[i] if pred_masks is not None else None,
+                gt_masks=gt_masks,
             )
             loss[0] += layer_loss[f"loss_class{postfix}"]
             loss[1] += layer_loss[f"loss_bbox{postfix}"]
             loss[2] += layer_loss[f"loss_giou{postfix}"]
             if rank_key in layer_loss:
                 loss_rank_aux = loss_rank_aux + layer_loss[rank_key]
+            if f"loss_mask{postfix}" in layer_loss:
+                loss[3] += layer_loss[f"loss_mask{postfix}"]
+                loss[4] += layer_loss[f"loss_dice{postfix}"]
         out = {
             f"loss_class_aux{postfix}": loss[0],
             f"loss_bbox_aux{postfix}": loss[1],
@@ -368,6 +456,9 @@ class DfineLoss(nn.Module):
         }
         if self.rank is not None and "_dn" not in postfix:
             out[f"loss_rank_aux{postfix}"] = loss_rank_aux
+        if pred_masks is not None:
+            out[f"loss_mask_aux{postfix}"] = loss[3]
+            out[f"loss_dice_aux{postfix}"] = loss[4]
         return out
 
     @staticmethod
@@ -575,15 +666,34 @@ class DfineLoss(nn.Module):
         gt_cls: torch.Tensor,
         gt_groups: list[int],
         shared_if_enabled: bool = True,
+        pred_masks: torch.Tensor | None = None,
+        gt_masks: torch.Tensor | None = None,
     ) -> list[list[tuple[torch.Tensor, torch.Tensor]]]:
         if pred_bboxes.shape[0] <= 1:
             return []
         if self.use_uni_match and shared_if_enabled:
             shared = self._match(
-                pred_bboxes[self.uni_match_ind], pred_scores[self.uni_match_ind], gt_bboxes, gt_cls, gt_groups
+                pred_bboxes[self.uni_match_ind],
+                pred_scores[self.uni_match_ind],
+                gt_bboxes,
+                gt_cls,
+                gt_groups,
+                masks=pred_masks[self.uni_match_ind] if pred_masks is not None else None,
+                gt_masks=gt_masks,
             )
             return [shared for _ in range(pred_bboxes.shape[0] - 1)]
-        return [self._match(b, s, gt_bboxes, gt_cls, gt_groups) for b, s in zip(pred_bboxes[:-1], pred_scores[:-1])]
+        return [
+            self._match(
+                b,
+                s,
+                gt_bboxes,
+                gt_cls,
+                gt_groups,
+                masks=pred_masks[i] if pred_masks is not None else None,
+                gt_masks=gt_masks,
+            )
+            for i, (b, s) in enumerate(zip(pred_bboxes[:-1], pred_scores[:-1]))
+        ]
 
     def _prepare_pre_indices(
         self,
@@ -656,8 +766,28 @@ class DfineLoss(nn.Module):
             global_num_gts = max(len(batch["bboxes"]), 1.0)
 
         gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
-        main_indices = self._match(pred_bboxes[-1], pred_scores[-1], gt_bboxes, gt_cls, gt_groups)
-        aux_indices = self._prepare_aux_indices(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
+        gt_masks = batch.get("masks")
+        pred_masks = dfine_meta.get("pred_masks") if dfine_meta is not None else None
+        dn_pred_masks = dfine_meta.get("dn_pred_masks") if dfine_meta is not None else None
+        aux_pred_masks = pred_masks if pred_masks is not None and pred_masks.shape[0] == pred_bboxes.shape[0] else None
+        main_indices = self._match(
+            pred_bboxes[-1],
+            pred_scores[-1],
+            gt_bboxes,
+            gt_cls,
+            gt_groups,
+            masks=pred_masks[-1] if pred_masks is not None else None,
+            gt_masks=gt_masks,
+        )
+        aux_indices = self._prepare_aux_indices(
+            pred_bboxes,
+            pred_scores,
+            gt_bboxes,
+            gt_cls,
+            gt_groups,
+            pred_masks=aux_pred_masks,
+            gt_masks=gt_masks,
+        )
         pre_bboxes, pre_logits, pre_indices = self._prepare_pre_indices(dfine_meta, gt_bboxes, gt_cls, gt_groups)
 
         box_union_indices = None
@@ -685,6 +815,8 @@ class DfineLoss(nn.Module):
             main_box_indices,
             global_num_gts,
             norm_boxes,
+            pred_masks=pred_masks[-1] if pred_masks is not None else None,
+            gt_masks=gt_masks,
         )
 
         if self.aux_loss and pred_bboxes.shape[0] > 1:
@@ -699,6 +831,8 @@ class DfineLoss(nn.Module):
                     aux_box_indices,
                     global_num_gts,
                     norm_boxes,
+                    pred_masks=aux_pred_masks[:-1] if aux_pred_masks is not None else None,
+                    gt_masks=gt_masks,
                 )
             )
 
@@ -732,6 +866,11 @@ class DfineLoss(nn.Module):
             dn_pos_idx, dn_num_group = dn_meta["dn_pos_idx"], dn_meta["dn_num_group"]
             dn_match_indices = self.get_dn_match_indices(dn_pos_idx, dn_num_group, batch["gt_groups"])
             dn_norm = max(global_num_gts * dn_num_group, 1.0)
+            dn_aux_pred_masks = (
+                dn_pred_masks
+                if dn_pred_masks is not None and dn_pred_masks.shape[0] == dn_bboxes.shape[0]
+                else None
+            )
 
             total_loss.update(
                 self._compute_layer_losses(
@@ -744,6 +883,8 @@ class DfineLoss(nn.Module):
                     dn_norm,
                     dn_norm,
                     postfix="_dn",
+                    pred_masks=dn_pred_masks[-1] if dn_pred_masks is not None else None,
+                    gt_masks=gt_masks,
                 )
             )
             if self.aux_loss and dn_bboxes.shape[0] > 1:
@@ -759,6 +900,8 @@ class DfineLoss(nn.Module):
                         dn_norm,
                         dn_norm,
                         postfix="_dn",
+                        pred_masks=dn_aux_pred_masks[:-1] if dn_aux_pred_masks is not None else None,
+                        gt_masks=gt_masks,
                     )
                 )
 

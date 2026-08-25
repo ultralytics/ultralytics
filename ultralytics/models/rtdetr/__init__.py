@@ -3,6 +3,11 @@
 from .deim import RTDETRDEIMDataset, RTDETRDEIMTrainer, RTDETRDEIMTrainerV2, RTDETRDEIMValidator
 from .model import RTDETR, RTDETRDEIM, RTDETRDEIMv2
 from .predict import RTDETRPredictor
+from .segment import (
+    RTDETRDEIMSegmentationPredictor,
+    RTDETRDEIMSegmentationTrainer,
+    RTDETRDEIMSegmentationValidator,
+)
 from .val import RTDETRValidator
 
 __all__ = (
@@ -15,4 +20,7 @@ __all__ = (
     "RTDETRDEIMValidator",
     "RTDETRDEIMTrainer",
     "RTDETRDEIMTrainerV2",
+    "RTDETRDEIMSegmentationPredictor",
+    "RTDETRDEIMSegmentationTrainer",
+    "RTDETRDEIMSegmentationValidator",
 )

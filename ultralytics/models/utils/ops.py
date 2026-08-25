@@ -203,7 +203,7 @@ class HungarianMatcher(nn.Module):
             )
 
         # Add mask costs if available
-        if self.with_mask:
+        if self.with_mask and masks is not None and gt_mask is not None:
             C += self._cost_mask(bs, gt_groups, masks, gt_mask)
 
         C = C.view(bs, nq, -1).cpu()
@@ -215,35 +215,48 @@ class HungarianMatcher(nn.Module):
             for k, (i, j) in enumerate(indices)
         ]
 
-    # This function is for future RT-DETR Segment models
-    # def _cost_mask(self, bs, num_gts, masks=None, gt_mask=None):
-    #     assert masks is not None and gt_mask is not None, 'Make sure the input has `mask` and `gt_mask`'
-    #     # all masks share the same set of points for efficient matching
-    #     sample_points = torch.rand([bs, 1, self.num_sample_points, 2])
-    #     sample_points = 2.0 * sample_points - 1.0
-    #
-    #     out_mask = F.grid_sample(masks.detach(), sample_points, align_corners=False).squeeze(-2)
-    #     out_mask = out_mask.flatten(0, 1)
-    #
-    #     tgt_mask = torch.cat(gt_mask).unsqueeze(1)
-    #     sample_points = torch.cat([a.repeat(b, 1, 1, 1) for a, b in zip(sample_points, num_gts) if b > 0])
-    #     tgt_mask = F.grid_sample(tgt_mask, sample_points, align_corners=False).squeeze([1, 2])
-    #
-    #     with torch.amp.autocast("cuda", enabled=False):
-    #         # binary cross entropy cost
-    #         pos_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.ones_like(out_mask), reduction='none')
-    #         neg_cost_mask = F.binary_cross_entropy_with_logits(out_mask, torch.zeros_like(out_mask), reduction='none')
-    #         cost_mask = torch.matmul(pos_cost_mask, tgt_mask.T) + torch.matmul(neg_cost_mask, 1 - tgt_mask.T)
-    #         cost_mask /= self.num_sample_points
-    #
-    #         # dice cost
-    #         out_mask = F.sigmoid(out_mask)
-    #         numerator = 2 * torch.matmul(out_mask, tgt_mask.T)
-    #         denominator = out_mask.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
-    #         cost_dice = 1 - (numerator + 1) / (denominator + 1)
-    #
-    #         C = self.cost_gain['mask'] * cost_mask + self.cost_gain['dice'] * cost_dice
-    #     return C
+    def _cost_mask(
+        self,
+        bs: int,
+        num_gts: list[int],
+        masks: torch.Tensor | None = None,
+        gt_mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Compute MaskDINO-style sampled BCE and Dice costs for bipartite matching."""
+        if masks is None or gt_mask is None:
+            raise ValueError("with_mask=True requires both predicted `masks` and ground-truth `gt_mask`.")
+        if masks.ndim != 4 or gt_mask.ndim != 3:
+            raise ValueError(
+                f"Expected masks [B,Q,H,W] and gt_mask [N,H,W], got {tuple(masks.shape)} and {tuple(gt_mask.shape)}."
+            )
+
+        # Each image uses one common point set for all its queries and targets, as in MaskDINO's matcher.
+        sample_points = torch.rand((bs, 1, self.num_sample_points, 2), device=masks.device, dtype=masks.dtype)
+        sample_grid = sample_points.mul(2.0).sub(1.0)
+        out_mask = F.grid_sample(masks.detach(), sample_grid, align_corners=False).squeeze(-2).flatten(0, 1)
+
+        sampled_targets = []
+        offset = 0
+        for image_idx, count in enumerate(num_gts):
+            if count:
+                target = gt_mask[offset : offset + count].to(device=masks.device, dtype=masks.dtype).unsqueeze(1)
+                grid = sample_grid[image_idx : image_idx + 1].expand(count, -1, -1, -1)
+                sampled_targets.append(F.grid_sample(target, grid, align_corners=False).squeeze(1).squeeze(1))
+            offset += count
+        tgt_mask = torch.cat(sampled_targets, dim=0)
+
+        with torch.autocast(device_type=masks.device.type, enabled=False):
+            out_mask = out_mask.float()
+            tgt_mask = tgt_mask.float()
+            pos_cost = F.softplus(-out_mask)
+            neg_cost = F.softplus(out_mask)
+            cost_mask = (pos_cost @ tgt_mask.T + neg_cost @ (1.0 - tgt_mask).T) / self.num_sample_points
+
+            probabilities = out_mask.sigmoid()
+            numerator = 2.0 * (probabilities @ tgt_mask.T)
+            denominator = probabilities.sum(-1, keepdim=True) + tgt_mask.sum(-1).unsqueeze(0)
+            cost_dice = 1.0 - (numerator + 1.0) / (denominator + 1.0)
+        return self.cost_gain["mask"] * cost_mask + self.cost_gain["dice"] * cost_dice
 
 
 def get_cdn_group(

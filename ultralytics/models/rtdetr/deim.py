@@ -348,7 +348,11 @@ class RTDETRDEIMDataset(RTDETRDataset):
         self.uses_deim_batch_augments = False
         super().__init__(*args, data=data, **kwargs)
         if self.augment:
-            if self.rtdetr_augmentations and (self.mixup_prob > 0.0 or self.copyblend_prob > 0.0):
+            if (
+                not self.use_segments
+                and self.rtdetr_augmentations
+                and (self.mixup_prob > 0.0 or self.copyblend_prob > 0.0)
+            ):
                 self.collate_fn = _RTDETRDEIMBatchAugment(
                     mixup_prob=self.mixup_prob,
                     mixup_epochs=self.mixup_epochs,
@@ -406,7 +410,7 @@ class RTDETRDEIMDataset(RTDETRDataset):
             hyp.mosaic = hyp.mosaic if self.augment and not self.rect else 0.0
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
-            if self.rtdetr_augmentations:
+            if self.rtdetr_augmentations and not self.use_segments:
                 transforms = rtdetr_deim_transforms(
                     self,
                     self.imgsz,
@@ -479,6 +483,7 @@ class RTDETRDEIMValidator(RTDETRValidator):
             cache=self.args.cache or None,
             prefix=colorstr(f"{mode}: "),
             data=self.data,
+            task=self.args.task,
         )
 
 
@@ -499,6 +504,7 @@ class RTDETRDEIMTrainer(RTDETRTrainer):
             prefix=colorstr(f"{mode}: "),
             classes=self.args.classes,
             data=self.data,
+            task=self.args.task,
             fraction=self.args.fraction if mode == "train" else 1.0,
         )
         return dataset

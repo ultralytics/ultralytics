@@ -334,7 +334,8 @@ class DFineTransformerDecoder(nn.Module):
                 reg_scale,
                 attn_mask=None,
                 memory_mask=None,
-                dn_meta=None):
+                dn_meta=None,
+                return_hidden=False):
         output = target
         output_detach = pred_corners_undetach = 0
         value = self.value_op(memory, None, None, memory_mask, spatial_shapes)
@@ -343,6 +344,7 @@ class DFineTransformerDecoder(nn.Module):
         dec_out_logits = []
         dec_out_pred_corners = []
         dec_out_refs = []
+        dec_out_hidden = []
         if not hasattr(self, 'project'):
             project = weighting_function(self.reg_max, up, reg_scale)
         else:
@@ -386,6 +388,8 @@ class DFineTransformerDecoder(nn.Module):
                 dec_out_bboxes.append(inter_ref_bbox)
                 dec_out_pred_corners.append(pred_corners)
                 dec_out_refs.append(ref_points_initial)
+                if return_hidden:
+                    dec_out_hidden.append(output)
 
                 if not self.training:
                     break
@@ -394,8 +398,15 @@ class DFineTransformerDecoder(nn.Module):
             ref_points_detach = inter_ref_bbox.detach()
             output_detach = output.detach()
 
-        return torch.stack(dec_out_bboxes), torch.stack(dec_out_logits), \
-               torch.stack(dec_out_pred_corners), torch.stack(dec_out_refs), pre_bboxes, pre_scores
+        outputs = (
+            torch.stack(dec_out_bboxes),
+            torch.stack(dec_out_logits),
+            torch.stack(dec_out_pred_corners),
+            torch.stack(dec_out_refs),
+            pre_bboxes,
+            pre_scores,
+        )
+        return (*outputs, torch.stack(dec_out_hidden)) if return_hidden else outputs
 
 
 class DEIMRMSNorm(nn.Module):

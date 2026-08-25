@@ -62,7 +62,9 @@ from ultralytics.data.utils import IMG_FORMATS
 dataset_path = Path(data["path"])  # from check_det_dataset above
 pool = ("train", "val")  # the shipped test split stays out of the folds
 
-images = sorted(p for s in pool for p in (dataset_path / "images" / s).rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS)
+images = sorted(
+    p for s in pool for p in (dataset_path / "images" / s).rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS
+)
 labels = sorted(p for s in pool for p in (dataset_path / "labels" / s).rglob("*.txt"))
 
 # key by path relative to images/ and labels/, so the same basename in two splits stays distinct

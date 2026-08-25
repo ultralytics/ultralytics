@@ -189,7 +189,7 @@ class Tuner:
             mongodb_collection (str, optional): Collection name.
 
         Notes:
-            - Creates a fitness index when the first worker claims a new collection
+            - Creates a fitness index when workers start a new collection
             - Falls back to local NDJSON mode if connection fails
             - Uses connection pooling and retry logic for production reliability
         """
@@ -207,7 +207,7 @@ class Tuner:
             (list[dict]): List of result documents with fitness scores and hyperparameters.
         """
         try:
-            return list(self.collection.find().sort("fitness", -1).limit(n))
+            return list(self.collection.find({"fitness": {"$exists": True}}).sort("fitness", -1).limit(n))
         except Exception:
             return []
 
@@ -276,7 +276,7 @@ class Tuner:
         resume, mutation, and plotting on the same local source of truth when using distributed tuning.
         """
         try:
-            all_results = list(self.collection.find().sort("iteration", 1))
+            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("iteration", 1))
             if not all_results:
                 return
 
@@ -395,14 +395,13 @@ class Tuner:
                     ]
                 )
             else:
-                from pymongo.errors import CollectionInvalid
-
-                try:
-                    self.collection.database.create_collection(self.collection.name)
-                except CollectionInvalid:  # Another worker already claimed the default generation
+                claim = self.collection.update_one(
+                    {"_id": "defaults"}, {"$setOnInsert": {"timestamp": datetime.now().astimezone()}}, upsert=True
+                )
+                if claim.upserted_id is None:
                     x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
                 self.collection.create_index([("fitness", -1)], background=True)
-                if x is None:
+                if claim.upserted_id is not None:
                     return {k: getattr(self.args, k) for k in self.space}
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
@@ -505,7 +504,7 @@ class Tuner:
             if self.mongodb:
                 self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], i + 1)
                 self._sync_mongodb_to_file()
-                total_mongo_iterations = self.collection.count_documents({})
+                total_mongo_iterations = self.collection.count_documents({"fitness": {"$exists": True}})
                 if total_mongo_iterations >= iterations:
                     stop_after_iteration = True
             else:

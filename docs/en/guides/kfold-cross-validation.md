@@ -135,15 +135,22 @@ from collections import defaultdict
 by_hash = defaultdict(list)
 for key, image in img_by_key.items():
     by_hash[hashlib.md5(image.read_bytes()).hexdigest()].append(key)
-duplicates = {h: s for h, s in by_hash.items() if len(s) > 1}
-print(f"{len(duplicates)} duplicate groups covering {sum(len(s) for s in duplicates.values())} images")
+duplicates = {h: keys for h, keys in by_hash.items() if len(keys) > 1}
+print(f"{len(duplicates)} duplicate groups covering {sum(len(k) for k in duplicates.values())} images")
+
+# keep one image per hash group and rebuild the matrix, so no copy can straddle a fold
+drop = {k for keys in duplicates.values() for k in sorted(keys)[1:]}
+img_by_key = {k: v for k, v in img_by_key.items() if k not in drop}
+labels_df = labels_df.drop(index=sorted(drop))
+print(f"dropped {len(drop)} duplicate images, {len(labels_df)} remain")
 ```
 
 ```text
 25 duplicate groups covering 50 images
+dropped 25 duplicate images, 1252 remain
 ```
 
-Either drop the extras before building `labels_df`, or keep them together by assigning one fold per hash group with `GroupKFold`. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image — group them, or the folds are not independent.
+Dropping one image per group is the blunt option shown above and it is enough here. Keeping them together with `GroupKFold`, keyed on the hash, preserves the data instead — worth it when duplicates are numerous. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image: group them, or the folds are not independent. Note that byte-identical hashing does not catch re-encoded or resized near-duplicates; a perceptual hash does.
 
 ## Splitting into K Folds
 
@@ -167,11 +174,11 @@ for fold in folds:
 ```
 
 ```text
-fold_1: train=1021 val=256
-fold_2: train=1021 val=256
-fold_3: train=1022 val=255
-fold_4: train=1022 val=255
-fold_5: train=1022 val=255
+fold_1: train=1001 val=251
+fold_2: train=1001 val=251
+fold_3: train=1002 val=250
+fold_4: train=1002 val=250
+fold_5: train=1002 val=250
 ```
 
 !!! warning "Assign with `.loc[rows, column]`, not `df[column].loc[rows]`"
@@ -193,11 +200,11 @@ print(fold_distrb.round(3))
 
 ```text
         buffalo  elephant  rhino  zebra
-fold_1    0.235     0.303  0.264  0.271
-fold_2    0.229     0.253  0.241  0.217
-fold_3    0.268     0.176  0.267  0.222
-fold_4    0.208     0.288  0.213  0.224
-fold_5    0.315     0.239  0.267  0.322
+fold_1    0.216     0.243  0.237  0.328
+fold_2    0.285     0.287  0.303  0.172
+fold_3    0.258     0.238  0.212  0.229
+fold_4    0.219     0.255  0.285  0.222
+fold_5    0.275     0.229  0.218  0.313
 ```
 
 Each cell is the ratio of validation instances to training instances for that class. With `k` folds the expected value is `1 / (k - 1)`, so `0.25` here. Every cell above sits within about a third of that, which is fine — with 484 instances in the rarest class, plain `KFold` spreads them adequately.
@@ -266,11 +273,11 @@ Note that `save_path` sits **beside** the dataset, not inside it. A fold directo
 
 !!! tip "Why not copy the images into fold directories?"
 
-    Copying works and gives you self-contained fold directories, but it duplicates the folded pool `k` times. Measured on the 1,277 pooled images and their labels at `k=5`:
+    Copying works and gives you self-contained fold directories, but it duplicates the folded pool `k` times. Measured on the 1,252 images left after deduplication, plus their labels, at `k=5`:
 
     | Approach   | Disk    | Files  |
     | ---------- | ------- | ------ |
-    | Copy files | ~445 MB | 12,770 |
+    | Copy files | ~430 MB | 12,520 |
     | Text lists | 402 KB  | 15     |
 
     Both produce identical folds and identical training scans. If you do need real directories — to ship a fold elsewhere, or to hand it to a tool that cannot read a path list — copy by iterating the stem-keyed dictionaries rather than zipping two lists:
@@ -308,8 +315,8 @@ for k, fold_yaml in enumerate(ds_yamls):
 Each run reports a clean scan, which is the checkpoint confirming images and labels were paired correctly:
 
 ```text
-train: Scanning .../african-wildlife/labels/train... 1021 images, 0 backgrounds, 0 corrupt
-val: Scanning .../african-wildlife/labels/train... 256 images, 0 backgrounds, 0 corrupt
+train: Scanning .../african-wildlife/labels/train... 1001 images, 0 backgrounds, 0 corrupt
+val: Scanning .../african-wildlife/labels/train... 251 images, 0 backgrounds, 0 corrupt
 ```
 
 The counts match the fold sizes printed earlier, and a non-zero `backgrounds` count on a fully annotated dataset means images and labels are mispaired — go back to the orphan-label check. The directory in the scan line is just wherever the first label file happened to sit, so both lines naming the same split is expected and does not mean the fold is wrong.
@@ -368,7 +375,7 @@ Average the per-fold metric you care about. `results[k].box.map` holds `mAP50-95
 
 ### How much disk space does K-Fold cross validation need?
 
-None beyond the dataset itself, if you define each fold as a `.txt` list of image paths. Copying images into per-fold directories instead multiplies the folded pool by `k` — for the 1,277 pooled images and labels here, 89 MB, that is about 445 MB and 12,770 files at `k=5`, against 402 KB and 15 files for the list approach.
+None beyond the dataset itself, if you define each fold as a `.txt` list of image paths. Copying images into per-fold directories instead multiplies the folded pool by `k` — for the 1,252 deduplicated images and their labels here, 86 MB, that is about 430 MB and 12,520 files at `k=5`, against 402 KB and 15 files for the list approach.
 
 ### Should I use K-Fold cross validation or a single train/val split?
 

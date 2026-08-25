@@ -274,7 +274,16 @@ A fourth gate applies under restricted loading: a name that resolves to somethin
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-
+from ultralytics.nn.modules import (  # noqa: F401
+    SPPF,
+    C2PSA,
+    C3k2,
+    Conv,
+    Detect,
+    # ... many more modules
+    Index,
+    TorchVision,
+)
 ```
 
 ## Custom Module Integration

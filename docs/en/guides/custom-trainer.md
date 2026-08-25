@@ -188,7 +188,7 @@ model.train(data="coco8.yaml", epochs=10, trainer=WeightedTrainer)
 
 !!! warning "Pick indices your dataset actually contains"
 
-    Weights only change the loss for classes that appear in the **training** split. The `coco8.yaml` used above contains no instances of class 0 or class 1 in its train images, so the two weights set here leave the loss bit-identical. Check your label distribution and weight indices that are present, or the example runs cleanly and does nothing.
+    Weights only change the loss for classes that appear in the **training** split. The `coco8.yaml` used above contains no instances of class 0 or class 1 in its train images, so the two weights set here leave the loss bit-identical. Check your label distribution and weight indices that are present, or the example runs cleanly and does nothing. The two indices also assume at least two classes — on a single-class dataset `class_weights[1] = 3.0` raises `IndexError` before training starts.
 
 !!! tip "Computing Weights from Dataset"
 

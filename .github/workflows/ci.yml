@@ -485,7 +485,7 @@ jobs:
       - name: Install requirements
         run: |
           uv pip install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2 --index-strategy unsafe-best-match
-          uv pip install -e . pytest-cov amdsmi onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ --index-strategy unsafe-best-match
+          uv pip install -e . pytest-cov onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ --index-strategy unsafe-best-match
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

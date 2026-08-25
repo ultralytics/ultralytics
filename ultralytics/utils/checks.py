@@ -1186,34 +1186,6 @@ def resolve_onnxruntime_package(cuda: bool, is_migraphx: bool, is_rocm: bool) ->
     return ("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")
 
 
-def rocm_device_count() -> int:
-    """Get the number of AMD ROCm GPUs available in the environment.
-
-    Returns:
-        (int): The number of AMD ROCm GPUs available.
-    """
-    if not rocm_is_available():
-        return 0
-
-    visible_count = torch.cuda.device_count()
-    try:
-        import amdsmi
-
-        amdsmi.amdsmi_init()
-        try:
-            amdsmi_count = len(amdsmi.amdsmi_get_processor_handles())
-        finally:
-            amdsmi.amdsmi_shut_down()
-        # Respect torch visibility/masking while still protecting against stale amdsmi counts.
-        if visible_count == 0:
-            return 0
-        if amdsmi_count > 0:
-            return min(visible_count, amdsmi_count)
-        return visible_count
-    except Exception:
-        return visible_count
-
-
 def is_rockchip():
     """Check if the current environment is running on a Rockchip SoC.
 

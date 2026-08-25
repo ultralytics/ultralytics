@@ -7,7 +7,7 @@ model_name: yolo26n-depth
 
 # Monocular Depth Estimation
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/depth-estimation-examples.avif" alt="Monocular depth estimation examples">
+<img width="1024" src="https://cdn.ul.run/i/7a53b502cdffcaa1bbf61ca1690a2dde.avif" alt="Monocular depth estimation examples">
 
 Monocular depth estimation predicts a per-pixel depth map from a single RGB image. Each output pixel holds a depth value in meters representing the estimated distance from the camera to that surface point.
 
@@ -30,7 +30,7 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html) Eigen test split.
+YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~2.19M images) are shown below. The metrics columns are reported on the [NYU Depth V2](https://cs.nyu.edu/~fergus/datasets/nyu_depth_v2.html) Eigen test split.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
@@ -207,7 +207,7 @@ The released `yolo26*-depth.pt` checkpoints ship with this calibration already b
 
 ### Dataset format
 
-Depth estimation datasets pair each RGB image with a corresponding depth file. Depth targets are stored as `.npy` arrays containing float32 values in meters. The dataset YAML points to an `images/` directory; the loader derives the depth file path by replacing the `images` component with `depth` and replacing the image extension with `.npy`.
+Depth estimation datasets pair each RGB image with a scaled uint16 depth PNG or floating-point NPY depth map in meters. PNG values use millimeters by default; datasets with another convention set `depth_scale` in their YAML. The loader derives the depth path by replacing the `images` component with `depth`, preferring `.png` and falling back to `.npy`.
 
 ```text
 dataset/
@@ -219,7 +219,7 @@ dataset/
     └── val/
 ```
 
-For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.npy`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
+For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.png`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
 
 ## Val
 
@@ -373,7 +373,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 depth estimation model on a custom dataset?
 
-Prepare paired RGB images and `.npy` depth files, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path and swapping the image extension for `.npy`.
+Prepare paired RGB images and either 16-bit depth PNGs or floating-point NPY depth maps in meters, then create a dataset YAML pointing to your `images/` directory. The loader finds depth files automatically by replacing `images` with `depth` in the path, preferring `.png` and falling back to `.npy`.
 
 Start from pretrained weights and use a low learning rate with AdamW so the fine-tune retains what the model already knows (see [Fine-tuning on your own data](#fine-tuning-on-your-own-data) for why):
 

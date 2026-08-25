@@ -1596,13 +1596,17 @@ class _SafeLoad:
     allow-list) and build models without `eval()`.
 
     Enabled per-process by the `ULTRALYTICS_SAFE_LOAD` env flag, or per-call by `torch_safe_load(..., safe_only=True)`.
-    Default loading (flag off) is unchanged.
+    Default loading (flag off) is unchanged. The globals a restricted load registers stay registered for the process, so
+    they also apply to any other `torch.load(weights_only=True)` call made afterwards.
     """
 
-    # Restricted loading reconstructs allow-listed classes via the torch.serialization.safe_globals context manager,
-    # added in torch 2.5. On older torch it is unavailable, so restricted loading degrades to a standard load there.
-    SUPPORTED = hasattr(torch.serialization, "safe_globals")
-    _globals = None  # cached allow-list, built once
+    # Restricted loading needs torch 2.6+: the checkpoint global scan and `(obj, "module.Name")` allow-list aliases.
+    # On older torch restricted loading degrades to a standard load.
+    SUPPORTED = hasattr(torch.serialization, "get_unsafe_globals_in_checkpoint")
+    _registry = None  # {"module.Name": allow-list entry}, built once per process
+    _lock = (
+        threading.Lock()
+    )  # add_safe_globals rebinds a process-global set; held across _build(), so no load may run at import
     _local = threading.local()  # per-thread flag set while a weights_only load is in progress
 
     @classmethod
@@ -1612,16 +1616,37 @@ class _SafeLoad:
 
     @classmethod
     @contextlib.contextmanager
-    def loading(cls):
-        """Load with `weights_only=True`: scope the allow-list to this load and mark the thread restricted, so a
-        checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+    def loading(cls, weight):
+        """Load with `weights_only=True`: register the globals this checkpoint needs and mark the thread restricted, so
+        a checkpoint that reaches model construction (parse_model) also uses the no-eval, known-layer path.
+
+        Globals are registered with `add_safe_globals` for the life of the process, never scoped per load: the
+        `safe_globals()` context manager removes its entries from a process-global set on exit, so with concurrent
+        loads one thread's exit strips the allow-list out of another thread's in-flight unpickle. Registering only
+        the globals a checkpoint references also keeps the restricted unpickler fast — torch rebuilds its lookup from
+        the whole registered set on every GLOBAL/NEWOBJ/REDUCE/BUILD opcode, so a 660-entry allow-list nearly doubled
+        the load time of a checkpoint that references 20 of them.
         """
-        if cls._globals is None:
-            cls._globals = cls._build()
+        try:
+            needed = torch.serialization.get_unsafe_globals_in_checkpoint(weight)
+        except ValueError:  # Not a torch.save() zip archive; torch.load reports the format error, nothing to register
+            needed = []
+        with cls._lock:
+            if cls._registry is None:
+                cls._registry = cls._build()
+            if any(name.startswith("torchvision.transforms.") for name in needed):
+                # Classification preprocessing transforms; imported only for checkpoints that serialize them.
+                import torchvision.transforms.transforms as tvt
+                from torchvision.transforms.functional import InterpolationMode
+
+                for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            entries = [cls._registry[name] for name in needed if name in cls._registry]
+            if entries:
+                torch.serialization.add_safe_globals(entries)
         cls._local.active = True
         try:
-            with torch.serialization.safe_globals(cls._globals):
-                yield
+            yield
         finally:
             cls._local.active = False
 
@@ -1659,10 +1684,11 @@ class _SafeLoad:
     def _build(cls):
         """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
         every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
-        `head.RealNVP`), plus torchvision transforms and legacy aliases.
+        `head.RealNVP`), plus legacy aliases.
 
         Returns:
-            (list): Items for `torch.serialization.safe_globals` — classes and `(obj, "module.Name")` aliases.
+            (dict): `torch.serialization.add_safe_globals` entries — classes and `(obj, "module.Name")` aliases — keyed
+                by the pickled "module.Name" path each one serves.
         """
         import enum
         import importlib
@@ -1699,15 +1725,6 @@ class _SafeLoad:
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
-        # Classification preprocessing transforms.
-        try:
-            import torchvision.transforms.transforms as tvt
-            from torchvision.transforms.functional import InterpolationMode
-
-            allow += [tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode]
-        except ImportError:
-            pass
-
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
         from ultralytics.utils.loss import E2EDetectLoss
 
@@ -1736,7 +1753,7 @@ class _SafeLoad:
                 (pathlib.PosixPath, "pathlib.WindowsPath"),
                 (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
             ]
-        return allow
+        return {(e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): e for e in allow}
 
 
 def torch_safe_load(weight, safe_only=None):
@@ -1787,7 +1804,7 @@ def torch_safe_load(weight, safe_only=None):
             },
         ):
             if safe_only:
-                with _SafeLoad.loading():  # weights_only load scoped to the known-class allow-list
+                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
                     return torch_load(file, map_location="cpu", weights_only=True)
             return torch_load(file, map_location="cpu")
 
@@ -2048,8 +2065,14 @@ def parse_model(d, ch, verbose=True):
             if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
                 c2 = make_divisible(min(c2, max_channels) * width, 8)
             if m is C2fAttn:  # set 1) embed channels and 2) num heads
-                args[1] = make_divisible(min(args[1], max_channels // 2) * width, 8)
                 args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
+                hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
+                if hidden_channels % args[2]:
+                    raise ValueError(
+                        f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
+                        "adjust width_multiple, nh, or C2fAttn expansion"
+                    )
+                args[1] = hidden_channels
 
             args = [c1, c2, *args[1:]]
             if m in repeat_modules:
@@ -2230,8 +2253,13 @@ def guess_model_task(model):
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
-    # Guess from model filename
     if isinstance(model, (str, Path)):
+        from ultralytics.nn.backends.base import BaseBackend
+
+        if task := BaseBackend.read_metadata(model).get("task"):  # exports embed their task, i.e. a renamed best.onnx
+            return task
+
+        # Guess from model filename
         model = Path(model)
         if "-sem" in model.stem or "semantic" in model.parts:
             return "semantic"

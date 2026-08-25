@@ -1189,14 +1189,13 @@ class RandomPerspective(BaseTransform):
         img = labels["img"]
         M = params["M"]
         size = params["size"]
-        if (size[0] != img.shape[1] or size[1] != img.shape[0]) or (M != np.eye(3)).any():  # image changed
-            # 4 values: cv2 tiles borderValue in blocks of 4, so a 3-tuple zeroes every 4th multispectral channel
-            if self.perspective:
-                img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114, 114))
-            else:  # affine
-                img = cv2.warpAffine(img, M[:2], dsize=size, borderValue=(114, 114, 114, 114))
-            if img.ndim == 2:
-                img = img[..., None]
+        # 4 values: cv2 tiles borderValue in blocks of 4, so a 3-tuple zeroes every 4th multispectral channel
+        if self.perspective:
+            img = cv2.warpPerspective(img, M, dsize=size, borderValue=(114, 114, 114, 114))
+        else:  # affine
+            img = cv2.warpAffine(img, M[:2], dsize=size, borderValue=(114, 114, 114, 114))
+        if img.ndim == 2:
+            img = img[..., None]
         labels["img"] = img
         labels["resized_shape"] = img.shape[:2]
         return labels
@@ -1847,7 +1846,12 @@ class LetterBox(BaseTransform):
         if "instances" in labels:
             labels = self._update_labels(labels, params["ratio"], params["left"], params["top"], params["orig_shape"])
         if labels.get("ratio_pad"):
-            labels["ratio_pad"] = (labels["ratio_pad"], (params["left"], params["top"]))  # for evaluation
+            gain_h, gain_w = labels["ratio_pad"]
+            ratio_w, ratio_h = params["ratio"]
+            labels["ratio_pad"] = (
+                (gain_h * ratio_h, gain_w * ratio_w),
+                (params["left"], params["top"]),
+            )  # for evaluation
         return labels
 
     @staticmethod
@@ -1887,13 +1891,13 @@ class CopyPaste(BaseMixTransform):
     """CopyPaste class for applying Copy-Paste augmentation to image datasets.
 
     This class implements the Copy-Paste augmentation technique as described in the paper "Simple Copy-Paste is a Strong
-    Data Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). It combines objects from
-    different images to create new training samples.
+    Data Augmentation Method for Instance Segmentation" (https://arxiv.org/abs/2012.07177). In `flip` mode it pastes
+    mirrored copies of the image's own objects, in `mixup` mode objects from a randomly sampled dataset entry.
 
     Attributes:
         dataset (Any): The dataset to which Copy-Paste augmentation will be applied.
         pre_transform (Callable | None): Optional transform to apply before Copy-Paste.
-        p (float): Probability of applying Copy-Paste augmentation.
+        p (float): Fraction of eligible objects pasted; in `mixup` mode also the probability of applying it.
 
     Methods:
         get_params: Compute CopyPaste parameters including selected instances and mask.
@@ -1908,7 +1912,7 @@ class CopyPaste(BaseMixTransform):
     """
 
     def __init__(self, dataset=None, pre_transform=None, p: float = 0.5, mode: str = "flip") -> None:
-        """Initialize CopyPaste object with dataset, pre_transform, and probability of applying CopyPaste."""
+        """Initialize CopyPaste object with dataset, pre_transform, paste fraction and mode."""
         super().__init__(dataset=dataset, pre_transform=pre_transform, p=p)
         if mode not in ("flip", "mixup"):
             raise ValueError(f"Expected `mode` to be `flip` or `mixup`, but got {mode}.")
@@ -1919,8 +1923,6 @@ class CopyPaste(BaseMixTransform):
         if len(labels["instances"].segments) == 0 or self.p == 0:
             return labels
         if self.mode == "flip":
-            if random.random() >= self.p:
-                return labels
             params = self.get_params(labels)
             labels = self.apply_image(labels, params)
             labels = self.apply_instances(labels, params)
@@ -1955,7 +1957,9 @@ class CopyPaste(BaseMixTransform):
             instances2.fliplr(w)
 
         ioa = bbox_ioa(instances2.bboxes, instances.bboxes)
-        selected = np.nonzero((ioa < 0.30).all(1))[0]
+        indexes = np.nonzero((ioa < 0.30).all(1))[0]
+        indexes = indexes[np.argsort(ioa.max(1)[indexes])]
+        selected = indexes[: round(self.p * len(indexes))]
 
         im_new = np.zeros((h, w), np.uint8)
 
@@ -2071,7 +2075,8 @@ class Albumentations(BaseTransform):
 
         Args:
             p (float): Probability of applying the augmentations. Must be between 0 and 1.
-            transforms (list | None): List of custom Albumentations transforms. If None, uses default transforms.
+            transforms (list | None): Custom Albumentations transforms, either objects or `A.to_dict()` dicts as stored
+                in checkpoints. If None, uses default transforms.
             flip_idx (list[int] | None): Keypoint index mapping for reflection transforms.
         """
         self.p = p
@@ -2086,6 +2091,8 @@ class Albumentations(BaseTransform):
             import albumentations as A
 
             check_version(A.__version__, "1.0.3", hard=True)  # version requirement
+            if transforms and isinstance(transforms[0], dict):
+                transforms = [A.from_dict(t) for t in transforms]  # restore transforms serialized by the trainer
             topology_changing = getattr(A, "RandomGridShuffle", ())
 
             def transform_types(t) -> tuple[bool, list]:

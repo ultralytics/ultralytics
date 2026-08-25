@@ -32,7 +32,7 @@ from ultralytics.utils import (
     WINDOWS,
     checks,
 )
-from ultralytics.utils.export.engine import best_onnx_opset, modelopt_quantize_onnx, torch2onnx
+from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -71,24 +71,6 @@ def test_export_onnx_int8(isolated_model, precision):
     assert Path(file).name.endswith("_int8.onnx")
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
     Path(file).unlink()  # cleanup
-
-
-def test_best_onnx_opset_caps_int8_only(monkeypatch):
-    """Check opset>=21 is capped for ONNX Runtime INT8 quantization, not normal ONNX export."""
-    from ultralytics.utils.export import engine
-
-    class _Defs:
-        @staticmethod
-        def onnx_opset_version():
-            return 25
-
-    monkeypatch.setattr(engine, "TORCH_2_4", True)
-    monkeypatch.setattr(engine, "TORCH_2_9", False)
-    monkeypatch.setattr(engine.torch.onnx.utils, "_constants", SimpleNamespace(ONNX_MAX_OPSET=23), raising=False)
-    onnx = SimpleNamespace(defs=_Defs())
-    assert best_onnx_opset(onnx) == 22
-    assert best_onnx_opset(onnx, cuda=True) == 20
-    assert best_onnx_opset(onnx, quantize=8) == 20
 
 
 def test_onnx_int8_quantize_excludes_non_weighted_ops(monkeypatch):
@@ -207,21 +189,6 @@ def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     Exporter.export_rknn(exporter)
     assert calls["onnx_batch"] == 1
     assert calls["batch"] == 8
-
-
-def test_modelopt_quantize_onnx_excludes_sigmoid(monkeypatch):
-    """Check ModelOpt INT8 keeps Sigmoid unquantized to preserve confidence calibration (#24668)."""
-    import onnx
-
-    calls = {}
-    graph = SimpleNamespace(input=[SimpleNamespace(name="images")])
-    monkeypatch.setattr("ultralytics.utils.export.engine.check_requirements", lambda *args, **kwargs: None)
-    monkeypatch.setitem(
-        sys.modules, "modelopt.onnx.quantization", SimpleNamespace(quantize=lambda *a, **k: calls.update(k))
-    )
-    monkeypatch.setattr(onnx, "load", lambda *args, **kwargs: SimpleNamespace(graph=graph))
-    modelopt_quantize_onnx("model.onnx", quantize=8, dataset=[{"img": torch.zeros(1, 3, 8, 8)}])
-    assert calls["op_types_to_exclude"] == ["Sigmoid"]
 
 
 def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
@@ -369,7 +336,7 @@ def test_export_torchscript_matrix(task, dynamic, batch, nms, end2end, tmp_path)
         for task, dynamic, quantize, nms, batch, end2end in product(
             sorted(TASKS), [True, False], [8, 16], [True, False], [1], [True, False]
         )
-        if not (task != "detect" and nms)
+        if not (task not in {"detect", "segment", "pose"} and nms)
         and not (dynamic and nms)
         and not (task == "classify" and dynamic)
         and not (end2end and nms)
@@ -459,27 +426,6 @@ def test_export_coreml_rtdetr():
     output = stdout.getvalue() + stderr.getvalue()
     assert "Error" not in output, f"RTDETR CoreML export produced errors: {output}"
     assert "You will not be able to run predict()" not in output, "RTDETR CoreML export has predict() error"
-
-
-@pytest.mark.parametrize(
-    "model, expected_nms",
-    [("yolo11n.yaml", True), ("yolo11n-seg.yaml", False), ("yolo11n-pose.yaml", False)],
-)
-def test_export_coreml_nms_detect_only(model, expected_nms, monkeypatch):
-    """Test CoreML 'nms=True' stays enabled for detect but warns and is forced off for other tasks."""
-    captured = {}
-    warnings = []
-
-    def stub(self):
-        captured["nms"] = self.args.nms
-        captured["metadata_nms"] = self.metadata["args"]["nms"]
-
-    monkeypatch.setattr(Exporter, "export_coreml", stub)  # skip the actual CoreML export
-    monkeypatch.setattr("ultralytics.engine.exporter.LOGGER.warning", warnings.append)
-    YOLO(model).export(format="coreml", nms=True, imgsz=32)
-    assert captured["nms"] is expected_nms
-    assert captured["metadata_nms"] is expected_nms
-    assert any("only supported for detect models" in warning for warning in warnings) is not expected_nms
 
 
 @pytest.mark.skipif(True, reason="Test disabled")

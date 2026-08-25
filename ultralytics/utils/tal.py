@@ -305,7 +305,7 @@ class TaskAlignedAssigner(nn.Module):
             - Bounding box format: [x_min, y_min, x_max, y_max].
         """
         gt_bboxes_xywh = xyxy2xywh(gt_bboxes)
-        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride[0]  # the smallest stride
+        wh_mask = gt_bboxes_xywh[..., 2:] < self.stride_val  # floor tiny sides so the pool grows monotonically
         gt_bboxes_xywh[..., 2:] = torch.where(
             (wh_mask * mask_gt).bool(),
             torch.tensor(self.stride_val, dtype=gt_bboxes_xywh.dtype, device=gt_bboxes_xywh.device),
@@ -374,7 +374,7 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
             (torch.Tensor): Boolean mask of positive anchors with shape (b, n_boxes, h*w).
         """
         gt_bboxes_clone = gt_bboxes.clone()
-        wh_mask = gt_bboxes_clone[..., 2:4] < self.stride[0]
+        wh_mask = gt_bboxes_clone[..., 2:4] < self.stride_val
         gt_bboxes_clone[..., 2:4] = torch.where(
             (wh_mask * mask_gt).bool(),
             torch.tensor(self.stride_val, dtype=gt_bboxes_clone.dtype, device=gt_bboxes_clone.device),

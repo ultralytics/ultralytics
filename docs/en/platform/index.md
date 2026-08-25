@@ -15,7 +15,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 Ultralytics Platform brings dataset management and annotation, experiment tracking, cloud and remote training, model export, dedicated inference endpoints, and deployment monitoring into one workspace. It has native support for [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md) models.
 
-## Workflow: Upload → Annotate → Train → Export → Deploy
+## Workflow: Upload → Annotate → Train → Export or Deploy
 
 The Platform provides an end-to-end workflow:
 
@@ -23,35 +23,36 @@ The Platform provides an end-to-end workflow:
 graph LR
     subgraph Data["📁 Data"]
         A[Upload]:::start --> B[Annotate]:::proc
-        B --> C[Analyze]:::proc
     end
     subgraph Train["🚀 Train"]
         D[Configure]:::proc --> E[Train on GPU]:::proc
         E --> F[View Metrics]:::out
     end
-    subgraph Deploy["🌐 Deploy"]
-        G[Export]:::proc --> H[Deploy Endpoint]:::proc
-        H --> I[Monitor]:::out
+    subgraph Deploy["🌐 Export or Deploy"]
+        G[Export]:::proc
+        H[Deploy Endpoint]:::proc --> I[Monitor]:::out
     end
-    Data --> Train --> Deploy
+    Data --> Train
+    E --> G
+    E --> H
 
     classDef start fill:#4CAF50,color:#fff
     classDef proc fill:#2196F3,color:#fff
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Features                                                                                                                                                                                                               |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                            |
-| **Annotate** | Manual tools for all 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported tasks](data/index.md#supported-tasks)) |
-| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                              |
-| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                          |
-| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                          |
+| Stage        | Features                                                                                                                                                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                  |
+| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported task types](data/annotation.md#supported-task-types)) |
+| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                    |
+| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                |
+| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                |
 
 **What you can do:**
 
 - **Upload** images, videos, and dataset files to create training datasets
-- **Visualize** annotations with interactive overlays for all 6 YOLO task types (see [supported tasks](data/index.md#supported-tasks))
+- **Visualize** annotations with interactive overlays for the 6 YOLO task types supported by the annotation editor (see [supported task types](data/annotation.md#supported-task-types))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
 - **Export** to [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
@@ -77,7 +78,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 ### Data Preparation
 
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
-- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation for all 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported tasks](data/index.md#supported-tasks))
+- **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation tools for 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported task types](data/annotation.md#supported-task-types))
 - **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
@@ -103,7 +104,7 @@ graph LR
 
 !!! tip "Supported Task Types"
 
-    The annotation editor supports all 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[classify](../datasets/classify/index.md)** (image-level labels), **[pose](../datasets/pose/index.md)** (keypoints), and **[OBB](../datasets/obb/index.md)** (oriented boxes). Each task type has dedicated annotation controls and keyboard shortcuts.
+    The annotation editor provides tools for 6 YOLO task types: **[detect](../datasets/detect/index.md)** (bounding boxes), **[segment](../datasets/segment/index.md)** (polygons), **[semantic](../datasets/semantic/index.md)** (per-class regions), **[classify](../datasets/classify/index.md)** (image-level labels), **[pose](../datasets/pose/index.md)** (keypoints), and **[OBB](../datasets/obb/index.md)** (oriented boxes). Each task type has dedicated annotation controls and keyboard shortcuts.
 
 ### Model Training
 
@@ -364,7 +365,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **No-Code Training**: Train advanced YOLO models without writing code
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
-- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation (models and prediction today; depth datasets coming soon), classification, pose, and OBB (see [task docs](../tasks/index.md))
+- **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose, and OBB (see [task docs](../tasks/index.md))
 - **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM and YOLO models to speed up data preparation
 
 ### What GPU options are available for cloud training?

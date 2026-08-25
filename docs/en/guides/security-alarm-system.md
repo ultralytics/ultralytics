@@ -7,7 +7,7 @@ keywords: YOLO26, Security Alarm System, real-time object detection, Ultralytics
 
 # Security Alarm System Project Using Ultralytics YOLO26
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/security-alarm-system-ultralytics-yolov8.avif" alt="AI-powered security alarm system with object detection">
+<img src="https://cdn.ul.run/i/77e52e705cc6d6a5c6b0c939c3710813.avif" alt="AI-powered security alarm system with object detection">
 
 The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanced [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) capabilities to enhance security measures. YOLO26, developed by Ultralytics, provides real-time [object detection](https://www.ultralytics.com/glossary/object-detection), allowing the system to identify and respond to potential security threats promptly. This project offers several advantages:
 
@@ -97,24 +97,24 @@ When you run the code, you will receive a single email notification if any objec
 
 ### Email Received Sample
 
-<img width="256" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/email-received-sample.avif" alt="Security alert email notification example">
+<img width="256" src="https://cdn.ul.run/i/9052f41f574c28af50a2d80333f0a12c.avif" alt="Security alert email notification example">
 
 ### `SecurityAlarm` Arguments
 
 Here's a table with the `SecurityAlarm` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "records"]) }}
+{{ param_table(["model", "records", "line_width", "verbose"]) }}
 
 The `SecurityAlarm` solution supports a variety of `track` parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization settings are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## How It Works
 

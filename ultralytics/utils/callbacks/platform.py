@@ -272,7 +272,7 @@ def _get_project_name(trainer):
     """Get slugified project and name from trainer args."""
     raw = str(trainer.args.project)
     parts = raw.split("/", 1)
-    project = f"{parts[0]}/{slugify(parts[1])}" if len(parts) == 2 else slugify(raw)
+    project = f"{parts[0]}/{slugify(parts[1].replace('/', '-'))}" if len(parts) == 2 else slugify(raw)
     return project, slugify(str(trainer.args.name or "train"))
 
 

@@ -2,7 +2,7 @@
 """
 Ultralytics Results, Boxes, Masks, SemanticMask, Keypoints, Probs, and OBB classes for handling inference results.
 
-Usage: See https://docs.ultralytics.com/modes/predict/
+Usage: See https://docs.ultralytics.com/modes/predict
 """
 
 from __future__ import annotations
@@ -172,20 +172,26 @@ class BaseTensor(SimpleClass):
         return self.__class__(self.data[idx], self.orig_shape)
 
 
-class SemanticMask(BaseTensor):
+class _DenseResultTensor(BaseTensor):
+    """A BaseTensor representing zero or one dense per-image result, immune to row-wise indexing."""
+
+    def __len__(self) -> int:
+        """Return 1 if the map holds data, 0 if a prior indexing emptied it."""
+        return int(self.data.shape[0] > 0)
+
+    def __getitem__(self, idx):
+        """Return the intact map for any index selecting the one result, or an emptied map for an empty selection."""
+        idx = idx.cpu().numpy() if isinstance(idx, torch.Tensor) else idx  # NumPy reads a raw bool tensor as an int
+        empty = np.size(np.arange(len(self))[idx]) == 0  # bounds-checks idx of any type against the logical length
+        return self.__class__(self.data[:0] if empty else self.data, self.orig_shape)
+
+
+class SemanticMask(_DenseResultTensor):
     """Semantic segmentation class map for one image."""
 
-    def __len__(self) -> int:
-        """Return one semantic segmentation result per image."""
-        return 1
 
-
-class DepthMap(BaseTensor):
+class DepthMap(_DenseResultTensor):
     """Per-pixel depth map (meters) for one image, shape (H, W)."""
-
-    def __len__(self) -> int:
-        """Return one depth map per image."""
-        return 1
 
 
 class Results(SimpleClass, DataExportMixin):
@@ -586,14 +592,14 @@ class Results(SimpleClass, DataExportMixin):
             annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
         # Plot Semantic Segmentation results
-        if self.semantic_mask is not None and show_masks:
+        if self.semantic_mask and show_masks:
             sem_mask = self.semantic_mask.data
             if isinstance(sem_mask, torch.Tensor):
                 sem_mask = sem_mask.cpu().numpy()
             annotator.semantic_mask(sem_mask, alpha=0.5)
 
         # Plot Depth results — blend colorized depth heatmap over the image
-        if self.depth is not None and show_masks:
+        if self.depth and show_masks:
             d = self.depth.data
             d = d.cpu().numpy() if hasattr(d, "cpu") else np.asarray(d)
             annotator.depth_map(d)
@@ -748,11 +754,14 @@ class Results(SimpleClass, DataExportMixin):
             [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
             # Detect/segment/pose
+            boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
+            kpts = kpts.cpu() if kpts is not None else None
+            segments = masks.xyn if masks else None
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
                 line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
-                if masks:
-                    seg = masks[j].xyn[0]
+                if segments is not None:
+                    seg = segments[j]
                     if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         continue
                     line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
@@ -804,7 +813,7 @@ class Results(SimpleClass, DataExportMixin):
         if self.depth is not None:
             LOGGER.warning("Depth task does not support `save_crop`.")
             return
-        for d in self.boxes:
+        for d in self.boxes.cpu():  # one host transfer avoids per-box GPU syncs in the loop below
             save_one_box(
                 d.xyxy,
                 self.orig_img.copy(),
@@ -879,6 +888,11 @@ class Results(SimpleClass, DataExportMixin):
 
         is_obb = self.obb is not None
         data = self.obb if is_obb else self.boxes
+        if data:
+            data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+        kpts = self.keypoints
+        if kpts is not None:
+            kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
@@ -895,8 +909,8 @@ class Results(SimpleClass, DataExportMixin):
                     "x": (self.masks.xy[i][:, 0] / w).astype(float).round(decimals).tolist(),
                     "y": (self.masks.xy[i][:, 1] / h).astype(float).round(decimals).tolist(),
                 }
-            if self.keypoints is not None:
-                kpt = self.keypoints[i]
+            if kpts is not None:
+                kpt = kpts[i]
                 k = kpt.data[0]
                 k = k.cpu().numpy() if isinstance(k, torch.Tensor) else k
                 result["keypoints"] = {

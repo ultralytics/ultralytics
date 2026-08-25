@@ -41,7 +41,7 @@ Many models require a consistent input size, so resizing makes images uniform an
 - **Bilinear Interpolation**: Smooths pixel values by taking a weighted average of the four nearest pixels.
 - **Nearest Neighbor**: Copies the nearest pixel value without averaging — faster, but produces a blockier image.
 
-Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv) and PIL (Pillow) provide these functions, but with YOLO26 you usually don't resize manually. The `imgsz` argument during [model training](../modes/train.md) handles it: when set to a value such as `640`, YOLO scales each image so its largest dimension is 640 pixels while preserving the aspect ratio, then pads the shorter side (default gray, value 114) to reach a square `640 × 640` input.
+Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv) and PIL (Pillow) provide these functions, but with YOLO26 you usually don't resize manually. The `imgsz` argument handles it. On the fixed-size square path, [validation](../modes/val.md) and [inference](../modes/predict.md) letterbox images toward an `imgsz × imgsz` input such as `640 × 640`, preserving the aspect ratio and padding with gray (value 114). Larger images are scaled down to fit, while smaller images are not enlarged when scale-up is disabled. On the default [training](../modes/train.md) path, `mosaic=1.0` instead tiles four images onto a larger canvas and crops back to `imgsz`; once `close_mosaic` disables mosaic for the final epochs, images are letterboxed and then still randomly transformed rather than passed through untouched. Rectangular batches (`rect=True`) and `multi_scale` use different input shapes.
 
 ### Normalizing Pixel Values
 
@@ -74,16 +74,18 @@ Keep these points in mind when splitting:
 - **Better use of data**: Every annotated image yields multiple training variations.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overview-of-data-augmentations.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
+  <img width="100%" src="https://cdn.ul.run/i/8da4cad7272d62a9ac02b9d8b8a083f8.avif" alt="Examples of data augmentation techniques including flips, rotations, scaling, and color adjustments applied to a sample image">
 </p>
 
-With YOLO26, augmentation is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags — **not** by editing the dataset YAML, which defines dataset metadata such as paths, class names, and splits. The built-in augmentations include:
+With YOLO26, augmentation strength is controlled through [training arguments](../usage/cfg.md#augmentation-settings) passed to `model.train()` or the equivalent CLI flags, **not** by editing the dataset YAML, which defines dataset metadata such as paths, class names, and splits. The one exception is `flip_idx`: [pose datasets](../datasets/pose/index.md) declare it in the dataset YAML to map left/right keypoint pairs, and YOLO disables `fliplr` and `flipud` entirely when it is missing. The built-in augmentations include:
 
 - **Mosaic, MixUp, and CutMix** (`mosaic`, `mixup`, `cutmix`): Combine multiple images into one training sample.
 - **Flips** (`fliplr`, `flipud`): Mirror images horizontally or vertically.
 - **Geometric transforms** (`degrees`, `translate`, `scale`, `shear`, `perspective`): Rotate, shift, zoom, and warp images.
 - **HSV color jitter** (`hsv_h`, `hsv_s`, `hsv_v`): Vary hue, saturation, and brightness.
-- **Copy-paste** (`copy_paste`): Paste objects between images for segmentation.
+- **Copy-paste** (`copy_paste`): Paste extra copies of segmented objects, mirrored within the same image by default or taken from another image with `copy_paste_mode=mixup`.
+- **Channel swap** (`bgr`): Swap the RGB channel order to BGR.
+- **Classification transforms** (`auto_augment`, `erasing`): Apply an automated augmentation policy and random erasing when training a classifier.
 
 !!! example "Set augmentation strength when training"
 
@@ -136,7 +138,7 @@ Visualizations reveal patterns that summary statistics miss, such as class imbal
 
 ### Ultralytics Platform for EDA
 
-For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com/). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
+For a no-code approach to EDA, upload your dataset to [Ultralytics Platform](https://platform.ultralytics.com). The dataset's `Charts` tab automatically generates key EDA visualizations: split distribution, top class counts, image width/height histograms, and 2D heatmaps of annotation positions and image dimensions. The `Images` tab lets you browse your data in grid, compact, or table views with annotation overlays, making it easy to spot mislabeled examples or unbalanced classes without writing any code.
 
 ## Conclusion
 
@@ -150,7 +152,7 @@ Preprocessing ensures your data is clean, consistent, and in a format optimized 
 
 ### How do I use Ultralytics YOLO for data augmentation?
 
-Configure augmentation through training arguments, not the dataset YAML. Pass arguments such as `fliplr`, `mosaic`, `hsv_h`, and `degrees` to `model.train()` (or the equivalent CLI flags) to set the probability and strength of each transform. These are defined in the [augmentation settings](../usage/cfg.md#augmentation-settings) and explained in the [YOLO data augmentation guide](./yolo-data-augmentation.md).
+Configure augmentation through training arguments rather than the dataset YAML. Pass arguments such as `fliplr`, `mosaic`, `hsv_h`, and `degrees` to `model.train()` (or the equivalent CLI flags) to set the probability and strength of each transform. These are defined in the [augmentation settings](../usage/cfg.md#augmentation-settings) and explained in the [YOLO data augmentation guide](./yolo-data-augmentation.md). Pose datasets are the exception: their `flip_idx` keypoint mapping lives in the dataset YAML, and flips are disabled without it.
 
 ### What are the best normalization techniques for computer vision data?
 
@@ -162,4 +164,4 @@ A common practice is 70% for training, 20% for validation, and 10% for testing. 
 
 ### Can YOLO26 handle varying image sizes without manual resizing?
 
-Yes. The `imgsz` argument resizes images during training and inference so their largest dimension matches the specified size (e.g., 640 pixels) while preserving the aspect ratio, then pads the shorter side. You don't need to resize images yourself — see the [model training](../modes/train.md) documentation for details.
+Yes. The `imgsz` argument controls the target input size with no manual work. On the fixed-size square path, validation and inference letterbox images toward the specified shape while preserving the aspect ratio; larger images are scaled down to fit, while smaller images are not enlarged when scale-up is disabled. During training, the default mosaic augmentation reaches the target size by tiling four images and cropping instead. Rectangular batches (`rect=True`) and `multi_scale` use different input shapes. See the [model training](../modes/train.md) documentation for details.

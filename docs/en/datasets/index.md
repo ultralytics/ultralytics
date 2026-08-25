@@ -6,7 +6,7 @@ keywords: Ultralytics, datasets, computer vision, object detection, instance seg
 
 # Datasets Overview
 
-Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, pose estimation, classification, and multi-object tracking. Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets.
+Ultralytics provides support for various datasets to facilitate computer vision tasks such as detection, [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes (OBB). Below is a list of the main Ultralytics datasets, followed by a summary of each computer vision task and the respective datasets. [Track mode](../modes/track.md) runs on top of detection, segmentation, pose and OBB models without tracker-specific training; see [tracking datasets](track/index.md).
 
 <p align="center">
   <br>
@@ -73,16 +73,6 @@ Monocular depth estimation predicts a per-pixel depth map in meters from a singl
 - [KITTI](depth/kitti.md): Real-world outdoor autonomous-driving scenes with Velodyne LiDAR depth.
 - [Depth8](depth/depth8.md): A compact 8-image SUN RGB-D subset for quick pipeline checks.
 
-## [Pose Estimation](pose/index.md)
-
-Pose estimation is a technique used to determine the pose of the object relative to the camera or the world coordinate system. This involves identifying key points or joints on objects, particularly humans or animals.
-
-- [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
-- [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
-- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
-- [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
-- [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
-
 ## [Classification](classify/index.md)
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is a computer vision task that involves categorizing an image into one or more predefined classes or categories based on its visual content.
@@ -99,6 +89,16 @@ Pose estimation is a technique used to determine the pose of the object relative
 - [MNIST](classify/mnist.md): A dataset of 70,000 grayscale images of handwritten digits for image classification tasks.
 - [MNIST160](classify/mnist.md): First 8 images of each digit (0-9) from both the MNIST train and test splits. Dataset contains 160 images total.
 
+## [Pose Estimation](pose/index.md)
+
+Pose estimation is a technique used to determine the pose of the object relative to the camera or the world coordinate system. This involves identifying key points or joints on objects, particularly humans or animals.
+
+- [COCO](pose/coco.md): A large-scale dataset with human pose annotations designed for pose estimation tasks.
+- [COCO8-pose](pose/coco8-pose.md): A smaller dataset for pose estimation tasks, containing a subset of 8 COCO images with human pose annotations.
+- [Dog-pose](pose/dog-pose.md): A comprehensive dataset featuring approximately 8,500 images focused on dogs, annotated with 24 keypoints per dog, tailored for pose estimation tasks.
+- [Hand-Keypoints](pose/hand-keypoints.md): A concise dataset featuring over 26,000 images centered on human hands, annotated with 21 keypoints per hand, designed for pose estimation tasks.
+- [Tiger-pose](pose/tiger-pose.md): A compact dataset consisting of 263 images focused on tigers, annotated with 12 keypoints per tiger for pose estimation tasks.
+
 ## [Oriented Bounding Boxes (OBB)](obb/index.md)
 
 Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angled objects in images using rotated bounding boxes, often applied to aerial and satellite imagery. Unlike traditional bounding boxes, OBB can better fit objects at various orientations.
@@ -106,13 +106,6 @@ Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angle
 - [DOTA-v2](obb/dota-v2.md): A popular OBB aerial imagery dataset with 1.7 million instances and 11,268 images.
 - [DOTA8](obb/dota8.md): A smaller subset of the first 8 images from the DOTAv1 split set, 4 for training and 4 for validation, suitable for quick tests.
 - [DOTA128](obb/dota128.md): A 128-image subset of the DOTA dataset with 128 images for training and validation, providing a good balance between size and diversity for testing OBB models.
-
-## [Multi-Object Tracking](track/index.md)
-
-Multi-object tracking is a computer vision technique that involves detecting and tracking multiple objects over time in a video sequence. This task extends object detection by maintaining consistent identities of objects across frames.
-
-- [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations for multi-object tracking tasks.
-- [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
 
 ## Contribute New Datasets
 
@@ -207,7 +200,7 @@ Visit [Contribute New Datasets](#contribute-new-datasets) for a comprehensive gu
 
 ### Why should I use Ultralytics Platform for my dataset?
 
-[Ultralytics Platform](https://platform.ultralytics.com/) offers powerful features for dataset management and analysis, including:
+[Ultralytics Platform](https://platform.ultralytics.com) offers powerful features for dataset management and analysis, including:
 
 - **Seamless Dataset Management**: Upload, organize, and manage your datasets in one place.
 - **Immediate Training Integration**: Use uploaded datasets directly for model training without additional setup.

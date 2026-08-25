@@ -1026,8 +1026,12 @@ def check_amp(model):
     warning_msg = "Setting 'amp=True'. If you experience zero-mAP or NaN losses you can disable AMP with amp=False."
     try:
         from ultralytics import YOLO
+        from ultralytics.utils import WEIGHTS_DIR
 
-        assert amp_allclose(YOLO("yolo26n.pt"), im)
+        amp_weights = WEIGHTS_DIR / "yolo26n.pt"
+        if not amp_weights.is_file():
+            LOGGER.info(f"{prefix}downloading yolo26n.pt for AMP checks (one-time, not used for training)...")
+        assert amp_allclose(YOLO(amp_weights), im)
         LOGGER.info(f"{prefix}checks passed ✅")
     except ConnectionError:
         LOGGER.warning(f"{prefix}checks skipped. Offline and unable to download YOLO26n for AMP checks. {warning_msg}")
@@ -1055,7 +1059,7 @@ def check_multiple_install():
         )
         install_msg = (
             f"Install your local copy in editable mode with 'pip install -e {ROOT.parent}' to avoid "
-            "issues. See https://docs.ultralytics.com/quickstart/"
+            "issues. See https://docs.ultralytics.com/quickstart"
         )
         if result.returncode != 0:
             if "not found" in result.stderr.lower():  # Package not pip-installed but locally imported

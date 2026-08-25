@@ -53,7 +53,8 @@ Each label keeps its original fields (`im_file`, `cls`, `bboxes`, ...) and gains
 
 Neither class writes files. `report.summary()` is the default actionable output, while `report.per_image` and `report.correlations` retain raw evidence for Platform integrations. Use `report.to_csv()` or `report.to_json()` when an export is needed. `report.plot()` returns one compact RGB image and saves it only with `report.plot(save=True, filename="analysis.png")`.
 
-ObjectLab quality scores follow a low-is-worse convention. A subtype below 0.5 adds one review action for that image:
+ObjectLab quality scores follow a low-is-worse convention. The scores rank review priority. They are not probabilities
+or calibrated error rates. The three lowest scores below the heuristic 0.5 prefilter become the default review queue:
 
 | Evidence           | Issue                                         | Action                                             |
 | ------------------ | --------------------------------------------- | -------------------------------------------------- |
@@ -118,7 +119,7 @@ See the [Platform API docs](https://docs.ultralytics.com/platform/api/) for URI 
 ]
 ```
 
-Only negative correlations with `|spearman_r| >= 0.1` become dataset actions. The three lowest images below 0.5 for each ObjectLab subtype become the default review queue. Full evidence remains available in `report.per_image` and `report.correlations`.
+Only negative correlations with `|spearman_r| >= 0.1` become dataset actions. The three lowest images below the heuristic 0.5 prefilter for each ObjectLab subtype become the default review queue. Full evidence remains available in `report.per_image` and `report.correlations`.
 
 ## Caveats
 

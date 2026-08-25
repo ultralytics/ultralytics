@@ -57,7 +57,8 @@ class AnalysisReport(SimpleClass, DataExportMixin):
         per_image (dict[str, dict]): Per-image evidence keyed by image basename.
         correlations (dict[str, dict]): Per-property correlation summary against F1. Each entry has ``pearson_r``,
             ``pearson_p``, ``spearman_r``, ``spearman_p``, ``n``, ``effect_band``, ``direction``.
-        insights (list[dict]): Flat actionable records with ``target``, ``issue``, ``score``, ``evidence``, and ``action``.
+        insights (list[dict]): Flat actionable records with ``target``, ``issue``, ``score``, ``evidence``, and
+            ``action``.
     """
 
     per_image: dict[str, dict] = field(default_factory=dict)

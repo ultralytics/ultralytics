@@ -9,9 +9,8 @@ keywords: Ultralytics, image property analysis, correlation, dataset quality, de
 [`ImagePropertyExtractor`](../reference/utils/analysis.md) adds six scalar properties to each `YOLODataset` label using only image headers and annotations. [`CorrelationAnalysis`](../reference/utils/analysis.md) joins those properties with per-image F1 and returns up to three dataset actions.
 
 ```python
-from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
-
 from ultralytics import YOLO
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor
 
 model = YOLO("yolo11n.pt")
 metrics = model.val(data="coco128.yaml", conf=0.25)

@@ -74,23 +74,11 @@ class AnalysisReport(SimpleClass, DataExportMixin):
     insights: list[dict]
 
     def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict]:
-        """Return actionable insight rows for ``DataExportMixin``.
-
-        Args:
-            normalize (bool, optional): Reserved for ``DataExportMixin`` API symmetry, unused here.
-            decimals (int, optional): Decimal precision for float fields.
-
-        Returns:
-            (list[dict]): Actionable issues with their evidence and next step.
-        """
+        """Return actionable insight rows."""
         return [{**x, "score": round(x["score"], decimals)} for x in self.insights]
 
     def plot(self) -> np.ndarray | None:
-        """Return one compact plot of the strongest actionable F1 drivers.
-
-        Returns:
-            (np.ndarray | None): RGB plot image, or None when no property has a meaningful negative correlation.
-        """
+        """Return an RGB plot of the strongest actionable F1 drivers."""
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
         drivers = _performance_drivers(self.correlations)
@@ -198,11 +186,7 @@ class CorrelationAnalysis:
         self.metrics = metrics
 
     def run(self) -> AnalysisReport:
-        """Compute correlations and return raw evidence plus actionable insights without writing files.
-
-        Returns:
-            (AnalysisReport): Raw per-image evidence, correlations, and concise next-step insights.
-        """
+        """Return per-image evidence, correlations, and actionable insights."""
         per_image = self._join(self.labels, self.metrics)
 
         f1s = np.array([rec.get("f1", np.nan) for rec in per_image.values()], dtype=float)
@@ -222,10 +206,7 @@ class CorrelationAnalysis:
 
     @staticmethod
     def _join(labels: list[dict], metrics: Any) -> dict[str, dict]:
-        """Merge per-image validator metrics with property fields, keyed by image basename.
-
-        Warns if two labels share the same basename (the join is keyed on it and would silently collide).
-        """
+        """Join per-image validator metrics and properties by image basename."""
         metric_obj = getattr(metrics, "box", metrics)
         image_metrics = getattr(metric_obj, "image_metrics", {})
         per_image: dict[str, dict] = {}

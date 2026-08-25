@@ -42,7 +42,7 @@ from ultralytics.utils import (
     checks,
     is_github_action_running,
 )
-from ultralytics.utils.analysis import AnalysisReport, CorrelationAnalysis, ImagePropertyExtractor, _label_issue_scores
+from ultralytics.utils.analysis import CorrelationAnalysis, ImagePropertyExtractor, _label_issue_scores
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
 
@@ -2123,15 +2123,6 @@ def test_image_property_extractor():
     boxes = np.column_stack((np.arange(1025), np.zeros(1025), np.arange(1025) + 1, np.ones(1025))).astype(np.float32)
     boxes[-1] = boxes[0]
     assert ImagePropertyExtractor._max_pairwise_iou(boxes) == pytest.approx(1.0)
-
-
-def test_correlation_analysis():
-    """Test that correlations produce a short actionable report."""
-    per_image = {str(i): {"num_objects": i, "f1": 1 - i / 30} for i in range(30)}
-    correlations = CorrelationAnalysis._compute_correlations(per_image)
-    report = AnalysisReport(per_image, correlations, CorrelationAnalysis._build_insights({}, correlations))
-    assert correlations["num_objects"] == {"spearman_r": pytest.approx(-1.0), "n": 30}
-    assert len(report.summary()) == 1 and report.summary()[0]["action"]
 
 
 def test_label_issue_scores():

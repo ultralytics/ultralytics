@@ -80,7 +80,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         return len(self.batch_sampler.sampler)
 
     def __iter__(self) -> Iterator:
-        """Create an iterator that yields indefinitely from the underlying iterator."""
+        """Yield one epoch of batches from the persistent iterator."""
         for _ in range(len(self)):
             yield next(self.iterator)
 

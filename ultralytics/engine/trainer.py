@@ -166,12 +166,13 @@ class BaseTrainer:
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
+        # Device count in the launching process; distinct from utils.WORLD_SIZE set in spawned DDP workers
         if self.device.type in {"cpu", "mps"}:
             world_size = 0
         else:  # i.e. device='0', '0,1,2,3', 'npu:0', or '' auto-selecting a single GPU
             world_size = len(self.args.device.split(",")) if self.args.device else 1
 
-        self.ddp = world_size > 1 and "LOCAL_RANK" not in os.environ
+        self.ddp = world_size > 1 and LOCAL_RANK == -1  # spawn DDP workers unless already one
         self.world_size = world_size
         # Run on_pretrain_routine_start before get_dataset() to capture original args.data (e.g., ul:// URIs)
         if RANK in {-1, 0} and not self.ddp:
@@ -1059,11 +1060,6 @@ class BaseTrainer:
             f"Start a new training without resuming, i.e. 'yolo train model={self.args.model}'"
         )
         LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
-        if self.epochs < start_epoch:
-            LOGGER.info(
-                f"{self.model} has been trained for {ckpt['epoch']} epochs. Fine-tuning for {self.epochs} more epochs."
-            )
-            self.epochs += ckpt["epoch"]  # finetune additional epochs
         self._load_checkpoint_state(ckpt)
         if getattr(unwrap_model(self.model), "end2end", False):
             # initialize loss and resume o2o and o2m args

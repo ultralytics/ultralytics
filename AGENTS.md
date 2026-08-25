@@ -19,7 +19,7 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 ## PR Review
 
 - Require a reproducible production bug or a broadly useful feature; close incorrect, niche, speculative, or AI-generated bloat.
-- Reject new default arguments and PRs with 30 or more net added lines. Delete, deduplicate, or move behavior to its existing owner first.
+- Reject new default arguments and PRs with 30 or more net added code lines. Documentation changes do not count. Delete, deduplicate, or move behavior to its existing owner first.
 - Delete mock tests. Prefer focused validation of the real code path, adding only minimal regression coverage for a high-risk gap.
 - Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
 - Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.

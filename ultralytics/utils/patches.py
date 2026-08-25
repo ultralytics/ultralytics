@@ -16,7 +16,6 @@ from PIL import Image
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
-PIL_FALLBACK_SUFFIXES = (".avif", ".heic", ".heif")  # formats needing the lazy-PIL decode fallback
 
 
 def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
@@ -47,7 +46,7 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     else:
         im = cv2.imdecode(file_bytes, flags)
         # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
-        if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
+        if im is None and filename.lower().endswith((".avif", ".heic", ".heif")):
             im = _imread_pil(filename, flags)
         return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 

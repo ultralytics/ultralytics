@@ -89,6 +89,23 @@ For the full argument list see [Export mode](../modes/export.md). The graph is s
 the `imgsz` given to `export`, so predict on that same size. Ultralytics metadata travels inside the
 asset's own `metadata.json`, so class names, stride and task survive the round trip.
 
+### Choosing the head
+
+YOLO26 exports its end-to-end head by default, which selects detections inside the graph. Core AI has
+no top-k primitive, so that selection lowers to a full sort and is charged a fixed cost at the Apple
+Neural Engine partition boundary — about 1.7 ms, regardless of `max_det`. Exporting with
+`end2end=False` emits the raw `(1, 84, 8400)` predictions instead and leaves non-maximum suppression
+to the predictor:
+
+```bash
+yolo export model=yolo26n.pt format=coreai end2end=False quantize=16
+```
+
+On an iPhone 17 Pro running iOS 27.0, YOLO26n at 640 measures 3.01 ms with the head in the graph and
+1.28 ms without it (FP16, ahead-of-time compiled, three interleaved blocks of 50 iterations). Both
+round-trip through `YOLO(...)` for inference. Use the default when a single graph call must return
+finished detections, and `end2end=False` when latency matters.
+
 On iOS 27 or macOS 27, an application would then load and run the exported asset through Apple's Core AI Swift API. The function and tensor names below are illustrative; the supported Ultralytics output contract will be published with the exporter:
 
 ```swift

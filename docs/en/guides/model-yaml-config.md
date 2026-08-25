@@ -39,12 +39,12 @@ kpt_shape: [17, 3] # pose models only
 
 Shipped YAMLs also use four further top-level keys:
 
-| Key           | Used by                                     | Purpose                                                                                     |
-| ------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `end2end`     | every YOLO26 config                         | Enables the NMS-free one-to-one head. See [End-to-End Detection](end2end-detection.md).      |
-| `reg_max`     | every YOLO26 config                         | Number of DFL bins. YOLO26 ships `reg_max: 1`, which is what makes it DFL-free.              |
-| `channels`    | non-RGB models                              | Input channel count, i.e. `1` for a grayscale dataset. Defaults to `3`.                      |
-| `activation`  | `yolov6.yaml`                               | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`.      |
+| Key          | Used by             | Purpose                                                                                 |
+| ------------ | ------------------- | --------------------------------------------------------------------------------------- |
+| `end2end`    | every YOLO26 config | Enables the NMS-free one-to-one head. See [End-to-End Detection](end2end-detection.md). |
+| `reg_max`    | every YOLO26 config | Number of DFL bins. YOLO26 ships `reg_max: 1`, which is what makes it DFL-free.         |
+| `channels`   | non-RGB models      | Input channel count, i.e. `1` for a grayscale dataset. Defaults to `3`.                 |
+| `activation` | `yolov6.yaml`       | Overrides the default activation for every `Conv` in the model, i.e. `torch.nn.ReLU()`. |
 
 ### How Width Scaling Actually Computes Channels
 
@@ -161,13 +161,13 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### Composite Blocks
 
-| Module   | Purpose                            | Source                                                                                           | Arguments                       |
-| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------- |
-| `C3k2`   | CSP block used by every YOLO11 and YOLO26 backbone | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, c3k, expansion, attn, groups, shortcut]` |
-| `C2PSA`  | Position-sensitive attention block, last backbone layer in YOLO26 | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, expansion]` |
-| `C2f`    | CSP bottleneck with 2 convolutions, used by YOLOv8 | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]` |
-| `SPPF`   | Spatial Pyramid Pooling (fast)     | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`         |
-| `Concat` | Channel-wise concatenation         | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                   |
+| Module   | Purpose                                                           | Source                                                                                           | Arguments                                          |
+| -------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------- |
+| `C3k2`   | CSP block used by every YOLO11 and YOLO26 backbone                | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, c3k, expansion, attn, groups, shortcut]` |
+| `C2PSA`  | Position-sensitive attention block, last backbone layer in YOLO26 | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, expansion]`                              |
+| `C2f`    | CSP bottleneck with 2 convolutions, used by YOLOv8                | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]`            |
+| `SPPF`   | Spatial Pyramid Pooling (fast)                                    | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`                            |
+| `Concat` | Channel-wise concatenation                                        | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                                      |
 
 ### Specialized Modules
 
@@ -268,16 +268,7 @@ A fourth gate applies under restricted loading: a name that resolves to somethin
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-from ultralytics.nn.modules import (
-    SPPF,
-    C2PSA,
-    C3k2,
-    Conv,
-    Detect,
-    # ... many more modules
-    Index,
-    TorchVision,
-)
+
 ```
 
 ## Custom Module Integration
@@ -409,13 +400,13 @@ head:
 
 ## Best Practices
 
-| Practice | What it means for your YAML |
-| --- | --- |
-| **Start from a shipped config** | Copy a YAML from [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) and change one thing at a time rather than writing a backbone from scratch. |
-| **Match channels across layers** | A layer's actual output channels are `make_divisible(min(out_ch, max_channels) * width, 8)`, not the number you wrote. Compute the scaled value before assuming two layers line up. |
-| **Reuse features with `Concat`** | `[[-1, N], 1, Concat, [1]]` merges an earlier feature map into the current one, the standard FPN pattern for multi-scale detection. Both sources must share spatial dimensions. |
-| **Pick a scale for your target** | Use `n` for edge devices, `s` for a balanced tradeoff, `m`/`l`/`x` when accuracy matters more than latency. |
-| **Verify after every change** | `model.info()` must report non-zero FLOPs; see [Debugging Tips](#debugging-tips). |
+| Practice                         | What it means for your YAML                                                                                                                                                                          |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Start from a shipped config**  | Copy a YAML from [`ultralytics/cfg/models`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) and change one thing at a time rather than writing a backbone from scratch. |
+| **Match channels across layers** | A layer's actual output channels are `make_divisible(min(out_ch, max_channels) * width, 8)`, not the number you wrote. Compute the scaled value before assuming two layers line up.                  |
+| **Reuse features with `Concat`** | `[[-1, N], 1, Concat, [1]]` merges an earlier feature map into the current one, the standard FPN pattern for multi-scale detection. Both sources must share spatial dimensions.                      |
+| **Pick a scale for your target** | Use `n` for edge devices, `s` for a balanced tradeoff, `m`/`l`/`x` when accuracy matters more than latency.                                                                                          |
+| **Verify after every change**    | `model.info()` must report non-zero FLOPs; see [Debugging Tips](#debugging-tips).                                                                                                                    |
 
 For the reasoning behind depth, width and bottleneck choices, see [YOLO architecture explained](yolo-architecture.md).
 
@@ -523,4 +514,3 @@ Check that the output channels of one layer match the expected input channels of
 ### Can I use pretrained weights with a custom YAML?
 
 Yes, you can use `model.load("path/to/weights")` to load weights from a pretrained checkpoint. However, only weights for layers that match would load successfully.
-

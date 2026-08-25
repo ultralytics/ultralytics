@@ -92,15 +92,15 @@ Before you begin, ensure you meet the following requirements:
 
 Ultralytics extracts features from the three neck layers feeding the model's head, so every task whose head inherits from `Detect` is compatible.
 
-| Task       | Supported | Accuracy verified                                          |
-| ---------- | --------- | ---------------------------------------------------------- |
+| Task       | Supported | Accuracy verified                                           |
+| ---------- | --------- | ----------------------------------------------------------- |
 | `detect`   | Yes       | Yes — benchmarked on COCO (see [Performance](#performance)) |
-| `segment`  | Yes       | Not yet benchmarked                                        |
-| `semantic` | No        | —                                                          |
-| `depth`    | No        | —                                                          |
-| `classify` | No        | —                                                          |
-| `pose`     | Yes       | Not yet benchmarked                                        |
-| `obb`      | Yes       | Not yet benchmarked                                        |
+| `segment`  | Yes       | Not yet benchmarked                                         |
+| `semantic` | No        | —                                                           |
+| `depth`    | No        | —                                                           |
+| `classify` | No        | —                                                           |
+| `pose`     | Yes       | Not yet benchmarked                                         |
+| `obb`      | Yes       | Not yet benchmarked                                         |
 
 An unsupported task fails immediately with `ValueError: No Detect head found in model`. [RT-DETR](../models/rtdetr.md) is unsupported for the same reason.
 

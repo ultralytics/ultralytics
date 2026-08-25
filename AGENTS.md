@@ -16,6 +16,19 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 **Review gate:** for every addition, the reviewer decides whether deleting or changing existing code would have fixed the problem instead — if it would, that is a blocking finding. A missing or thin PR description is never itself a finding.
 
+## PR Review
+
+- Require a reproducible production bug or a broadly useful feature; close incorrect, niche, speculative, or AI-generated bloat.
+- Reject new default arguments and PRs with 30 or more net added lines. Delete, deduplicate, or move behavior to its existing owner first.
+- Delete mock tests. Prefer focused validation of the real code path, adding only minimal regression coverage for a high-risk gap.
+- Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
+- Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.
+- Preserve an existing implementation when a maintainer explicitly requests it remain temporarily disabled at its owner
+  with a linked tracking issue; require the issue to document the evidence needed to re-enable it.
+- Require production-ready behavior across supported tasks, platforms, versions, and integrations affected by the owner change.
+- Remind unsigned contributors to complete the CLA. Do not close PRs opened by Ultralytics organization team members.
+- Merge only the exact cold-reviewed live head after terminal-green checks and zero unresolved review threads.
+
 NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Workflow

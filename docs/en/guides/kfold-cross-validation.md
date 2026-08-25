@@ -1,320 +1,360 @@
 ---
+title: K-Fold Cross Validation for YOLO Datasets
 comments: true
-description: Learn to implement K-Fold Cross Validation for object detection datasets using Ultralytics YOLO. Improve your model's reliability and robustness.
-keywords: Ultralytics, YOLO, K-Fold Cross Validation, object detection, sklearn, pandas, PyYAML, machine learning, dataset split
+description: Build K-Fold splits for a YOLO detection dataset with scikit-learn and pandas, train Ultralytics YOLO26 on every fold, and aggregate the results into one score.
+keywords: K-Fold cross validation, YOLO, Ultralytics, scikit-learn, pandas, dataset split, model evaluation, object detection, fold balance, data leakage
 ---
 
-# K-Fold Cross Validation with Ultralytics
+# How to Run K-Fold Cross Validation with Ultralytics YOLO
 
-## Introduction
+K-Fold cross validation splits a dataset into `k` equally sized folds and trains `k` models, each holding out a different fold for validation, so every image is used for both training and validation exactly once. Averaging the `k` results gives a far more stable estimate of model quality than a single train/val split, because it no longer depends on which images happened to land in the validation set.
 
-This comprehensive guide illustrates the implementation of K-Fold Cross Validation for [object detection](https://www.ultralytics.com/glossary/object-detection) datasets within the Ultralytics ecosystem. We'll leverage the YOLO detection format and key Python libraries such as sklearn, pandas, and PyYAML to guide you through the necessary setup, the process of generating feature vectors, and the execution of a K-Fold dataset split.
+This guide builds `k=5` folds for a [YOLO detection dataset](../datasets/detect/index.md) using scikit-learn and pandas, writes one dataset YAML per fold, trains [Ultralytics YOLO26](../models/yolo26.md) on each of them, and aggregates the results. Cross validation pays off most when a dataset is small, noisy, or class-imbalanced; for large, diverse datasets a single well-constructed train/val/test split gives the same answer for a fifth of the compute.
 
 <p align="center">
   <img width="800" src="https://cdn.ul.run/i/457d0a77dc06d7204322ec056248c4b5.avif" alt="K-fold cross validation data splitting">
 </p>
 
-Whether your project involves the Fruit Detection dataset or a custom data source, this tutorial aims to help you comprehend and apply K-Fold Cross Validation to bolster the reliability and robustness of your [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models. While we're applying `k=5` folds for this tutorial, keep in mind that the optimal number of folds can vary depending on your dataset and the specifics of your project. K-Fold Cross Validation delivers the most value when your dataset is small, noisy, or highly variable; for large, diverse datasets, a well-constructed train/val/test split is usually sufficient.
-
-Let's get started.
-
 ## Setup
 
-- Your annotations should be in the [YOLO detection format](../datasets/detect/index.md).
-
-- This guide assumes that annotation files are locally available.
-
-- For our demonstration, we use the [Fruit Detection](https://www.kaggle.com/datasets/lakshaytyagi01/fruit-detection/code) dataset.
-    - This dataset contains a total of 8479 images.
-    - It includes 6 class labels, each with its total instance counts listed below.
+This walkthrough uses the [African Wildlife](../datasets/detect/african-wildlife.md) dataset, which downloads automatically and is already in [YOLO detection format](../datasets/detect/index.md). Substitute your own dataset by pointing `dataset_path` at it.
 
 | Class Label | Instance Count |
-| :---------- | :------------: |
-| Apple       |      7049      |
-| Grapes      |      7202      |
-| Pineapple   |      1613      |
-| Orange      |     15549      |
-| Banana      |      3536      |
-| Watermelon  |      1976      |
+| :---------- | -------------: |
+| buffalo     |            554 |
+| elephant    |            748 |
+| rhino       |            559 |
+| zebra       |            824 |
+| **Total**   |      **2,685** |
 
-- Necessary Python packages include:
-    - `ultralytics`
-    - `sklearn`
-    - `pandas`
-    - `pyyaml`
+The dataset ships 1,504 images split into `train`, `val` and `test` directories. K-Fold **pools all three** and re-partitions them, which is the point — the shipped boundary is exactly what cross validation replaces.
 
-- This tutorial operates with `k=5` folds. However, you should determine the best number of folds for your specific dataset.
+Install Ultralytics and the two helper libraries this guide uses:
 
-1. Initiate a new Python virtual environment (`venv`) for your project and activate it. Use `pip` (or your preferred package manager) to install:
-    - The Ultralytics library: `pip install -U ultralytics`. Alternatively, you can clone the official [repo](https://github.com/ultralytics/ultralytics).
-    - Scikit-learn, pandas, and PyYAML: `pip install -U scikit-learn pandas pyyaml`.
+```bash
+pip install -U ultralytics scikit-learn pandas
+```
 
-2. Verify that your annotations are in the [YOLO detection format](../datasets/detect/index.md).
-    - For this tutorial, all annotation files are found in the `Fruit-Detection/labels` directory.
+Then download the dataset once, so the rest of the guide can read it from disk:
 
-## Generating Feature Vectors for Object Detection Dataset
+```python
+from ultralytics.data.utils import check_det_dataset
 
-1. Start by creating a new `example.py` Python file for the steps below.
+data = check_det_dataset("african-wildlife.yaml")  # downloads on first use
+print(data["path"])
+```
 
-2. Proceed to retrieve all label files for your dataset.
+!!! note "Choosing `k`"
 
-    ```python
-    from pathlib import Path
+    This guide uses `k=5`, which holds out 20% of the data per fold. Smaller datasets benefit from more folds, at proportionally more training time — `k` folds means `k` full training runs.
 
-    dataset_path = Path("./Fruit-detection")  # replace with 'path/to/dataset' for your custom data
-    labels = sorted(dataset_path.rglob("*labels/*.txt"))  # all data in 'labels'
-    ```
+## Building the Class-Count Matrix
 
-3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
+The split has to be computed over something. Each image is represented by a row counting how many instances of each class its label file contains, which turns the dataset into a table `scikit-learn` can split.
 
-    ```python
-    import yaml
+Start by collecting the label and image files, and pairing them:
 
-    yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
-    with open(yaml_file, encoding="utf8") as y:
-        classes = yaml.safe_load(y)["names"]
-    cls_idx = sorted(classes.keys())
-    ```
+```python
+from pathlib import Path
 
-4. Initialize an empty `pandas` DataFrame.
+from ultralytics.data.utils import IMG_FORMATS
 
-    ```python
-    import pandas as pd
+dataset_path = Path(data["path"])  # from check_det_dataset above
 
-    index = [label.stem for label in labels]  # uses base filename as ID (no extension)
-    labels_df = pd.DataFrame([], columns=cls_idx, index=index)
-    ```
+labels = sorted((dataset_path / "labels").rglob("*.txt"))
+images = sorted(p for p in (dataset_path / "images").rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS)
 
-5. Count the instances of each class-label present in the annotation files.
+img_by_stem = {p.stem: p for p in images}
+lbl_by_stem = {p.stem: p for p in labels}
+assert not (set(img_by_stem) ^ set(lbl_by_stem)), "every image needs exactly one label file, matched by filename"
+print(f"{len(images)} images, {len(labels)} labels")
+```
 
-    ```python
-    from collections import Counter
+```text
+1504 images, 1504 labels
+```
 
-    for label in labels:
-        lbl_counter = Counter()
+!!! warning "Three details this block gets right on purpose"
 
-        with open(label) as lf:
-            lines = lf.readlines()
+    - **Scope the label glob to `labels/`.** Ultralytics datasets nest labels as `labels/train/`, `labels/val/`, `labels/test/`, and a pattern that expects them one level up returns nothing at all. A glob rooted at the dataset directory instead re-reads its own output on a second run.
+    - **Use `IMG_FORMATS` rather than a hand-written extension list.** Ultralytics accepts 13 image formats, and on Linux and macOS `Path.rglob` matches extensions case-sensitively regardless of the filesystem — so a hardcoded `[".jpg", ".jpeg", ".png"]` silently drops the three `.JPG` files in this dataset, and every `.webp` or `.tif` in yours.
+    - **Pair by filename stem, never by position.** The two lists are produced by different globs, so any dropped or extra file shifts one relative to the other and every later pair is wrong. That failure trains cleanly and reports meaningless metrics, because images end up in one fold with another image's labels.
 
-        for line in lines:
-            # classes for YOLO label uses integer at first position of each line
-            lbl_counter[int(line.split(" ", 1)[0])] += 1
+Now count the instances per class:
 
-        labels_df.loc[label.stem] = lbl_counter
+```python
+from collections import Counter
 
-    labels_df = labels_df.fillna(0.0)  # replace `nan` values with `0.0`
-    ```
+import pandas as pd
 
-6. The following is a sample view of the populated DataFrame:
+classes = data["names"]  # {0: 'buffalo', 1: 'elephant', 2: 'rhino', 3: 'zebra'}
+cls_idx = sorted(classes)
 
-    ```text
-                                                           0    1    2    3    4    5
-    '0000a16e4b057580_jpg.rf.00ab48988370f64f5ca8ea4...'  0.0  0.0  0.0  0.0  0.0  7.0
-    '0000a16e4b057580_jpg.rf.7e6dce029fb67f01eb19aa7...'  0.0  0.0  0.0  0.0  0.0  7.0
-    '0000a16e4b057580_jpg.rf.bc4d31cdcbe229dd022957a...'  0.0  0.0  0.0  0.0  0.0  7.0
-    '00020ebf74c4881c_jpg.rf.508192a0a97aa6c4a3b6882...'  0.0  0.0  0.0  1.0  0.0  0.0
-    '00020ebf74c4881c_jpg.rf.5af192a2254c8ecc4188a25...'  0.0  0.0  0.0  1.0  0.0  0.0
-     ...                                                  ...  ...  ...  ...  ...  ...
-    'ff4cd45896de38be_jpg.rf.c4b5e967ca10c7ced3b9e97...'  0.0  0.0  0.0  0.0  0.0  2.0
-    'ff4cd45896de38be_jpg.rf.ea4c1d37d2884b3e3cbce08...'  0.0  0.0  0.0  0.0  0.0  2.0
-    'ff5fd9c3c624b7dc_jpg.rf.bb519feaa36fc4bf630a033...'  1.0  0.0  0.0  0.0  0.0  0.0
-    'ff5fd9c3c624b7dc_jpg.rf.f0751c9c3aa4519ea3c9d6a...'  1.0  0.0  0.0  0.0  0.0  0.0
-    'fffe28b31f2a70d4_jpg.rf.7ea16bd637ba0711c53b540...'  0.0  6.0  0.0  0.0  0.0  0.0
-    ```
+labels_df = pd.DataFrame(0.0, index=sorted(img_by_stem), columns=cls_idx)
+for stem, label_file in lbl_by_stem.items():
+    counter = Counter()
+    for line in label_file.read_text().splitlines():
+        if line.strip():  # skip blank lines; split() also handles tabs and leading whitespace
+            counter[int(line.split()[0])] += 1
+    for cls, n in counter.items():
+        labels_df.loc[stem, cls] = n
 
-The rows index the label files, each corresponding to an image in your dataset, and the columns correspond to your class-label indices. Each row represents a pseudo feature-vector, with the count of each class-label present in your dataset. This data structure enables the application of [K-Fold Cross Validation](https://www.ultralytics.com/glossary/cross-validation) to an object detection dataset.
+print(labels_df.sum().rename(classes))
+```
 
-## K-Fold Dataset Split
+```text
+buffalo     554.0
+elephant    748.0
+rhino       559.0
+zebra       824.0
+dtype: float64
+```
 
-1. Now we will use the `KFold` class from `sklearn.model_selection` to generate `k` splits of the dataset.
-    - Important:
-        - Setting `shuffle=True` ensures a randomized distribution of classes in your splits.
-        - By setting `random_state=M` where `M` is a chosen integer, you can obtain repeatable results.
+An image with no objects produces an all-zero row, which is correct — a background image is legitimate training data, not missing data.
 
-    ```python
-    import random
+## Splitting into K Folds
 
-    from sklearn.model_selection import KFold
+`KFold` shuffles the rows and partitions them into `k` groups. `random_state` is what makes the split reproducible; the global `random` module plays no part in it.
 
-    random.seed(0)  # for reproducibility
-    ksplit = 5
-    kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)  # setting random_state for repeatable results
+```python
+from sklearn.model_selection import KFold
 
-    kfolds = list(kf.split(labels_df))
-    ```
+ksplit = 5
+kf = KFold(n_splits=ksplit, shuffle=True, random_state=20)
+kfolds = list(kf.split(labels_df))
 
-2. The dataset has now been split into `k` folds, each having a list of `train` and `val` indices. We will construct a DataFrame to display these results more clearly.
+folds = [f"fold_{n}" for n in range(1, ksplit + 1)]
+folds_df = pd.DataFrame(index=labels_df.index, columns=folds, dtype=object)
+for i, (train, val) in enumerate(kfolds, start=1):
+    folds_df.loc[labels_df.index[train], f"fold_{i}"] = "train"
+    folds_df.loc[labels_df.index[val], f"fold_{i}"] = "val"
 
-    ```python
-    folds = [f"split_{n}" for n in range(1, ksplit + 1)]
-    folds_df = pd.DataFrame(index=index, columns=folds)
+for fold in folds:
+    print(f"{fold}: train={(folds_df[fold] == 'train').sum()} val={(folds_df[fold] == 'val').sum()}")
+```
 
-    for i, (train, val) in enumerate(kfolds, start=1):
-        folds_df[f"split_{i}"].loc[labels_df.iloc[train].index] = "train"
-        folds_df[f"split_{i}"].loc[labels_df.iloc[val].index] = "val"
-    ```
+```text
+fold_1: train=1203 val=301
+fold_2: train=1203 val=301
+fold_3: train=1203 val=301
+fold_4: train=1203 val=301
+fold_5: train=1204 val=300
+```
 
-3. Now we will calculate the distribution of class labels for each fold as a ratio of the classes present in `val` to those present in `train`.
+!!! warning "Assign with `.loc[rows, column]`, not `df[column].loc[rows]`"
 
-    ```python
-    fold_lbl_distrb = pd.DataFrame(index=folds, columns=cls_idx)
+    The second form is chained assignment. Under pandas copy-on-write — the default from pandas 3.0 — it writes to a temporary copy and silently leaves the DataFrame untouched, so every fold column stays `NaN`. The failure surfaces much later as `TypeError: unsupported operand type(s) for /: 'PosixPath' and 'float'` when a fold name is used to build a path, with nothing pointing back at the assignment.
 
-    for n, (train_indices, val_indices) in enumerate(kfolds, start=1):
-        train_totals = labels_df.iloc[train_indices].sum()
-        val_totals = labels_df.iloc[val_indices].sum()
+## Checking the Fold Balance
 
-        # To avoid division by zero, we add a small value (1E-7) to the denominator
-        ratio = val_totals / (train_totals + 1e-7)
-        fold_lbl_distrb.loc[f"split_{n}"] = ratio
-    ```
+`KFold` is uniformly random over rows. It does **not** stratify, so it does not guarantee that every class is evenly represented in every fold — it only guarantees that each image is validated once. Check the result rather than assuming it:
 
-    The ideal scenario is for all class ratios to be reasonably similar for each split and across classes. This, however, will be subject to the specifics of your dataset.
+```python
+fold_distrb = pd.DataFrame(index=folds, columns=cls_idx, dtype=float)
+for n, (train, val) in enumerate(kfolds, start=1):
+    ratio = labels_df.iloc[val].sum() / (labels_df.iloc[train].sum() + 1e-7)
+    fold_distrb.loc[f"fold_{n}"] = ratio
+fold_distrb.columns = [classes[i] for i in cls_idx]
+print(fold_distrb.round(3))
+```
 
-4. Next, we create the directories and dataset YAML files for each split.
+```text
+        buffalo  elephant  rhino  zebra
+fold_1    0.265     0.324  0.265  0.232
+fold_2    0.300     0.228  0.213  0.235
+fold_3    0.164     0.226  0.265  0.268
+fold_4    0.256     0.249  0.262  0.260
+fold_5    0.274     0.228  0.248  0.256
+```
 
-    ```python
-    from datetime import datetime, timezone
+Each cell is the ratio of validation instances to training instances for that class. With `k` folds the expected value is `1 / (k - 1)`, so `0.25` here. Every cell above sits within about a third of that, which is fine — with 554 instances in the rarest class, plain `KFold` spreads them adequately.
 
-    supported_extensions = [".jpg", ".jpeg", ".png"]
+The check matters when it fails. On a dataset with a class of only a handful of instances, some folds end up with **zero** validation instances of it, per-class AP is undefined there, and the average across folds is silently computed over a shifting set of classes. If you see a `0.000` cell, stratify the split on each image's rarest present class:
 
-    # Initialize an empty list to store image file paths
-    images = []
+```python
+from sklearn.model_selection import StratifiedKFold
 
-    # Loop through supported extensions and gather image files
-    for ext in supported_extensions:
-        images.extend(sorted((dataset_path / "images").rglob(f"*{ext}")))
+freq = labels_df.sum()
+y = labels_df.apply(
+    lambda row: min((c for c in cls_idx if row[c] > 0), key=lambda c: freq[c]) if row.sum() else -1,
+    axis=1,
+)
+kfolds = list(StratifiedKFold(ksplit, shuffle=True, random_state=20).split(labels_df, y))
 
-    # Create the necessary directories and dataset YAML files
-    date = datetime.now(timezone.utc).date().isoformat()
-    save_path = Path(dataset_path / f"{date}_{ksplit}-Fold_Cross-val")
-    save_path.mkdir(parents=True, exist_ok=True)
-    ds_yamls = []
+# rebuild folds_df from the new kfolds -- every later step reads folds_df, not kfolds
+folds_df = pd.DataFrame(index=labels_df.index, columns=folds, dtype=object)
+for i, (train, val) in enumerate(kfolds, start=1):
+    folds_df.loc[labels_df.index[train], f"fold_{i}"] = "train"
+    folds_df.loc[labels_df.index[val], f"fold_{i}"] = "val"
+```
 
-    for split in folds_df.columns:
-        # Create directories
-        split_dir = save_path / split
-        split_dir.mkdir(parents=True, exist_ok=True)
-        (split_dir / "train" / "images").mkdir(parents=True, exist_ok=True)
-        (split_dir / "train" / "labels").mkdir(parents=True, exist_ok=True)
-        (split_dir / "val" / "images").mkdir(parents=True, exist_ok=True)
-        (split_dir / "val" / "labels").mkdir(parents=True, exist_ok=True)
+Rebuilding `folds_df` is the part that is easy to miss: every step after this reads `folds_df`, never `kfolds`, so swapping the splitter alone leaves the original unstratified folds in place with nothing to show for it.
 
-        # Create dataset YAML files
-        dataset_yaml = split_dir / f"{split}_dataset.yaml"
-        ds_yamls.append(dataset_yaml)
+This is a proxy, not true multi-label stratification: an image containing several classes contributes to only one stratum. `StratifiedKFold` cannot take a multi-label target directly — it raises `ValueError: Supported target types are: ('binary', 'multiclass')` — so exact multi-label balance needs the `iterative-stratification` package.
 
-        with open(dataset_yaml, "w") as ds_y:
-            yaml.safe_dump(
-                {
-                    "path": split_dir.as_posix(),
-                    "train": "train",
-                    "val": "val",
-                    "names": classes,
-                },
-                ds_y,
-            )
-    ```
+## Creating One Dataset YAML per Fold
 
-5. Lastly, copy images and labels into the respective directory ('train' or 'val') for each split.
-    - **NOTE:** The time required for this portion of the code will vary based on the size of your dataset and your system hardware.
+A fold is just a list of which images train and which validate. Ultralytics dataset YAMLs accept a `.txt` file listing image paths wherever they accept a directory, so a fold needs two text files and a YAML — no image is copied anywhere:
+
+```python
+import yaml
+
+save_path = dataset_path.parent / f"{ksplit}-fold"
+save_path.mkdir(parents=True, exist_ok=True)
+
+ds_yamls = []
+for fold in folds:
+    for split in ("train", "val"):
+        stems = folds_df.index[folds_df[fold] == split]
+        (save_path / f"{fold}_{split}.txt").write_text("\n".join(str(img_by_stem[s]) for s in stems) + "\n")
+    fold_yaml = save_path / f"{fold}.yaml"
+    fold_yaml.write_text(
+        yaml.safe_dump(
+            {
+                "path": save_path.as_posix(),
+                "train": f"{fold}_train.txt",
+                "val": f"{fold}_val.txt",
+                "names": classes,
+            }
+        )
+    )
+    ds_yamls.append(fold_yaml)
+```
+
+Note that `save_path` sits **beside** the dataset, not inside it. A fold directory written into the dataset root gets picked up by the label glob on the next run.
+
+!!! tip "Why not copy the images into fold directories?"
+
+    Copying works and gives you self-contained fold directories, but it duplicates the dataset `k` times. Measured on this dataset at `k=5`:
+
+    | Approach   | Disk    | Files  |
+    | ---------- | ------- | ------ |
+    | Copy files | ~525 MB | 15,040 |
+    | Text lists | 500 KB  | 15     |
+
+    Both produce identical folds and identical training scans. If you do need real directories — to ship a fold elsewhere, or to hand it to a tool that cannot read a path list — copy by iterating the stem-keyed dictionaries rather than zipping two lists:
 
     ```python
     import shutil
 
-    from tqdm import tqdm
-
-    for image, label in tqdm(zip(images, labels), total=len(images), desc="Copying files"):
-        for split, k_split in folds_df.loc[image.stem].items():
-            # Destination directory
-            img_to_path = save_path / split / k_split / "images"
-            lbl_to_path = save_path / split / k_split / "labels"
-
-            # Copy image and label files to new directory (SamefileError if file already exists)
-            shutil.copy(image, img_to_path / image.name)
-            shutil.copy(label, lbl_to_path / label.name)
+    for stem, image in img_by_stem.items():
+        for fold, split in folds_df.loc[stem].items():
+            for src, sub in ((image, "images"), (lbl_by_stem[stem], "labels")):
+                dst = save_path / fold / split / sub
+                dst.mkdir(parents=True, exist_ok=True)
+                shutil.copy(src, dst / src.name)
     ```
 
-## Save Records (Optional)
+    `shutil.copy` overwrites an existing destination silently, so a re-run is not protected in either approach — delete `save_path` first.
 
-Optionally, you can save the records of the K-Fold split and label distribution DataFrames as CSV files for future reference.
+## Training on Every Fold
+
+Build a fresh model for each fold so no weights carry over, and keep the result object:
 
 ```python
-folds_df.to_csv(save_path / "kfold_datasplit.csv")
-fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
+from ultralytics import YOLO
+
+results = {}
+for k, fold_yaml in enumerate(ds_yamls):
+    model = YOLO("yolo26n.pt")  # fresh weights per fold
+    results[k] = model.train(data=str(fold_yaml), epochs=100, batch=16, project="kfold_demo", name=f"fold_{k + 1}")
 ```
 
-## Train YOLO using K-Fold Data Splits
+Each run reports a clean scan, which is the checkpoint confirming images and labels were paired correctly:
 
-1. First, load the YOLO model.
+```text
+train: Scanning .../african-wildlife/labels/... 1203 images, 0 backgrounds, 0 corrupt
+val: Scanning .../african-wildlife/labels/... 301 images, 0 backgrounds, 0 corrupt
+```
 
-    ```python
-    from ultralytics import YOLO
+A non-zero `backgrounds` count on a fully annotated dataset means images and labels are mispaired — go back to the stem assertion. The directory in the scan line is just wherever the first label file happened to sit, so `labels/test` while training fold 1 is expected and does not mean the fold is wrong.
 
-    weights_path = "path/to/weights.pt"  # use yolo26n.pt for a small model
-    model = YOLO(weights_path, task="detect")
-    ```
+!!! note "Budget for `k` full training runs"
 
-2. Next, iterate over the dataset YAML files to run training. The results will be saved to a directory specified by the `project` and `name` arguments. By default, this directory is 'runs/detect/train#' where # is an integer index.
+    `epochs=100` across five folds is five complete trainings. Reduce `epochs`, or start with `k=3`, when you are still iterating. On CPU, use a small `imgsz` and expect this to take hours.
 
-    ```python
-    results = {}
+## Aggregating the Results
 
-    # Define your additional arguments here
-    batch = 16
-    project = "kfold_demo"
-    epochs = 100
+This is the step that turns `k` runs into one number. `model.train()` returns a `DetMetrics` object per fold; the spread across folds tells you how sensitive your model is to the split:
 
-    for k, dataset_yaml in enumerate(ds_yamls):
-        model = YOLO(weights_path, task="detect")
-        results[k] = model.train(
-            data=dataset_yaml, epochs=epochs, batch=batch, project=project, name=f"fold_{k + 1}"
-        )  # include any additional train arguments
-    ```
+```python
+summary = pd.DataFrame(
+    {
+        k + 1: {
+            "mAP50-95": r.box.map,
+            "mAP50": r.box.map50,
+            "precision": r.box.mp,
+            "recall": r.box.mr,
+            "fitness": r.fitness,
+        }
+        for k, r in results.items()
+    }
+).T
+summary.index.name = "fold"
+print(summary.round(4))
+print(summary.agg(["mean", "std"]).round(4))
+```
 
-3. You can also use [Ultralytics data.split.autosplit](../reference/data/split.md) function for automatic dataset splitting:
+Report the **mean** as your headline number and the **standard deviation** as its uncertainty. A large spread means the metric was never stable enough to compare two models on a single split. Note that `fitness` is a property on the returned object while `box.fitness` is a method — printing the latter without `()` gives a `<bound method>` repr rather than a value.
+
+## Watch for Duplicate and Near-Duplicate Images
+
+Cross validation assumes the folds are independent. Duplicated or near-duplicated images break that assumption: a copy in training and its twin in validation inflates that fold's metrics, and no amount of averaging removes the bias.
+
+This is not a hypothetical for the example dataset. Hashing every file finds **40 groups of byte-identical images covering 81 files**, 20 of which already straddle the shipped train/val/test boundary — and none of them is detectable from the filenames. Deduplicate before splitting:
+
+```python
+import hashlib
+from collections import defaultdict
+
+by_hash = defaultdict(list)
+for stem, image in img_by_stem.items():
+    by_hash[hashlib.md5(image.read_bytes()).hexdigest()].append(stem)
+duplicates = {h: s for h, s in by_hash.items() if len(s) > 1}
+print(f"{len(duplicates)} duplicate groups covering {sum(len(s) for s in duplicates.values())} images")
+```
+
+```text
+40 duplicate groups covering 81 images
+```
+
+Either drop the extras before building `labels_df`, or keep them together by assigning one fold per hash group with `GroupKFold`. The same reasoning applies to frames from one video, photographs of one subject, and augmented copies of one source image — group them, or the folds are not independent.
+
+!!! tip "Just need a single train/val split?"
+
+    If cross validation is more than your project needs, [`autosplit`](../reference/data/split.md) writes a one-shot split in a single call. It handles image extensions correctly, but it writes bare `.txt` files without a dataset YAML, and its ratios are sampling probabilities rather than exact proportions:
 
     ```python
     from ultralytics.data.split import autosplit
 
-    # Automatically split dataset into train/val/test
     autosplit(path="path/to/images", weights=(0.8, 0.2, 0.0), annotated_only=True)
     ```
 
 ## Conclusion
 
-In this guide, we have explored the process of using K-Fold cross-validation for training the YOLO object detection model. We learned how to split our dataset into K partitions, ensuring a balanced class distribution across the different folds.
-
-We also explored the procedure for creating report DataFrames to visualize the data splits and label distributions across these splits, providing us a clear insight into the structure of our training and validation sets.
-
-Optionally, we saved our records for future reference, which could be particularly useful in large-scale projects or when troubleshooting model performance.
-
-Finally, we implemented the actual model training using each split in a loop, saving our training results for further analysis and comparison.
-
-This technique of K-Fold cross-validation is a robust way of making the most out of your available data, and it helps to ensure that your model performance is reliable and consistent across different data subsets. This results in a more generalizable and reliable model that is less likely to [overfit](https://www.ultralytics.com/glossary/overfitting) to specific data patterns.
-
-Remember that although we used YOLO in this guide, these steps are mostly transferable to other machine learning models. Understanding these steps allows you to apply cross-validation effectively in your own machine learning projects.
+K-Fold cross validation gives you `k` independent estimates of model quality instead of one, which is what makes results comparable on small or imbalanced datasets where a single validation split is mostly noise. Average the per-fold `mAP50-95` for your headline number and report the standard deviation alongside it, then read the [YOLO performance metrics guide](yolo-performance-metrics.md) to interpret what the spread is telling you. Once your baseline is stable enough to compare against, move on to [hyperparameter tuning](hyperparameter-tuning.md).
 
 ## FAQ
 
 ### What is K-Fold Cross Validation and why is it useful in object detection?
 
-K-Fold Cross Validation is a technique where the dataset is divided into 'k' subsets (folds) to evaluate model performance more reliably. Each fold serves as both training and [validation data](https://www.ultralytics.com/glossary/validation-data). In the context of object detection, using K-Fold Cross Validation helps to ensure your Ultralytics YOLO model's performance is robust and generalizable across different data splits, enhancing its reliability. For detailed instructions on setting up K-Fold Cross Validation with Ultralytics YOLO, refer to [K-Fold Cross Validation with Ultralytics](#introduction).
+K-Fold cross validation divides a dataset into `k` folds and trains `k` models, each validating on a different fold, so every image is validated exactly once. For object detection this matters because a single validation split can easily over- or under-represent a rare class or a difficult scene, making one model look better than another for reasons that have nothing to do with the model. Averaging across folds removes that dependence. Start with the [K-Fold split](#splitting-into-k-folds) section for the implementation.
 
-### How do I implement K-Fold Cross Validation using Ultralytics YOLO?
+### How do I combine the results from all K folds into one number?
 
-To implement K-Fold Cross Validation with Ultralytics YOLO, you need to follow these steps:
+Average the per-fold metric you care about. `results[k].box.map` holds `mAP50-95` for fold `k`, so `sum(r.box.map for r in results.values()) / len(results)` is the cross-validated mAP, and the standard deviation across folds tells you how sensitive the model is to the split. See [Aggregating the Results](#aggregating-the-results).
 
-1. Verify annotations are in the [YOLO detection format](../datasets/detect/index.md).
-2. Use Python libraries like `sklearn`, `pandas`, and `pyyaml`.
-3. Create feature vectors from your dataset.
-4. Split your dataset using `KFold` from `sklearn.model_selection`.
-5. Train the YOLO model on each split.
+### How much disk space does K-Fold cross validation need?
 
-For a comprehensive guide, see the [K-Fold Dataset Split](#k-fold-dataset-split) section in our documentation.
+None beyond the dataset itself, if you define each fold as a `.txt` list of image paths. Copying images into per-fold directories instead multiplies the dataset by `k` — on this 110 MB dataset at `k=5` that is about 525 MB and 15,040 files, against 500 KB and 15 files for the list approach.
 
-### How should I design folds for other YOLO tasks like segmentation, classification, pose, or OBB?
+### Should I use K-Fold cross validation or a single train/val split?
 
-The workflow in this guide targets the YOLO detection format, but the same approach adapts to every YOLO task — the task changes how you compose the folds, not whether cross-validation helps:
+Use K-Fold when the dataset is small, noisy, or class-imbalanced enough that a single validation split gives an unstable estimate. For large, diverse datasets a well-constructed train/val/test split reaches the same conclusion for a fraction of the compute, since K-Fold costs `k` complete training runs.
+
+### How should I design folds for segmentation, classification, pose, or OBB?
+
+The workflow here targets the YOLO detection format, but it adapts to every YOLO task — the task changes how you compose the folds, not whether cross validation helps:
 
 | Task       | Fold design                                                                                                                                                                |
 | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -324,16 +364,10 @@ The workflow in this guide targets the YOLO detection format, but the same appro
 | `pose`     | Split by subject or sequence so the same person or animal never appears on both sides of a fold.                                                                           |
 | `obb`      | Split at the image level, keeping tiles or crops from the same scene together — especially important for aerial imagery.                                                   |
 
-Whatever the task, keep near-duplicate and related samples out of opposing folds: that kind of leakage inflates validation metrics well beyond what the model will achieve in production.
+### Can I use K-Fold Cross Validation with my own dataset?
 
-### Why should I use Ultralytics YOLO for object detection?
+Yes, as long as the annotations are in [YOLO detection format](../datasets/detect/index.md) and every image has exactly one label file. Point `dataset_path` at your dataset and read `classes` from your own data YAML. The assertion in [Building the Class-Count Matrix](#building-the-class-count-matrix) fails loudly if the pairing is not one-to-one, which is the failure worth catching early.
 
-Ultralytics YOLO offers state-of-the-art, real-time object detection with high [accuracy](https://www.ultralytics.com/glossary/accuracy) and efficiency. It's versatile, supporting multiple [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md). Additionally, it integrates seamlessly with tools like [Ultralytics Platform](../platform/index.md) for no-code model training and deployment. For more details, explore the benefits and features on our [Ultralytics YOLO page](https://www.ultralytics.com/yolo).
+### Do I still need a separate test set?
 
-### How can I ensure my annotations are in the correct format for Ultralytics YOLO?
-
-Your annotations should follow the YOLO detection format. Each annotation file must list the object class, alongside its [bounding box](https://www.ultralytics.com/glossary/bounding-box) coordinates in the image. The YOLO format ensures streamlined and standardized data processing for training object detection models. For more information on proper annotation formatting, visit the [YOLO detection format guide](../datasets/detect/index.md).
-
-### Can I use K-Fold Cross Validation with custom datasets other than Fruit Detection?
-
-Yes, you can use K-Fold Cross Validation with any custom dataset as long as the annotations are in the YOLO detection format. Replace the dataset paths and class labels with those specific to your custom dataset. This flexibility ensures that any object detection project can benefit from robust model evaluation using K-Fold Cross Validation. For a practical example, review our [Generating Feature Vectors](#generating-feature-vectors-for-object-detection-dataset) section.
+Yes. Cross validation measures how well a training recipe generalizes, but once you start choosing between recipes on the cross-validated score, that score has informed your decisions. Hold out a test split that takes no part in the folds, and evaluate on it once at the end.

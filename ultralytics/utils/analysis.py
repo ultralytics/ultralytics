@@ -165,9 +165,14 @@ class ImagePropertyExtractor:
     @staticmethod
     def _max_pairwise_iou(xyxy: np.ndarray) -> float:
         """Calculate the maximum pairwise IoU among boxes in xyxy format."""
-        t = torch.as_tensor(xyxy, dtype=torch.float32)
-        iou = box_iou(t, t).triu_(diagonal=1)
-        return float(iou.max())
+        boxes, maximum = torch.as_tensor(xyxy, dtype=torch.float32), 0.0
+        for i in range(0, len(boxes), 1024):
+            for j in range(i, len(boxes), 1024):
+                iou = box_iou(boxes[i : i + 1024], boxes[j : j + 1024])
+                if i == j:
+                    iou.triu_(diagonal=1)
+                maximum = max(maximum, float(iou.max()))
+        return maximum
 
 
 class CorrelationAnalysis:

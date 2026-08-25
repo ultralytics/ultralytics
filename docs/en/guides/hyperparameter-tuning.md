@@ -61,7 +61,7 @@ For each iteration, the built-in tuner repeats the following loop:
 3. **Train the model** — train using the mutated hyperparameters, then assess training performance with your chosen metrics.
 4. **Evaluate the model** — the [evaluation process](../modes/val.md) produces the iteration's fitness score, which is compared against previous iterations to determine whether the current hyperparameters are an improvement.
 5. **Log results** — record both the performance metrics and the corresponding hyperparameters for future reference. Ultralytics YOLO automatically saves these results in NDJSON format.
-6. **Repeat** — continue until the set number of iterations is reached, with each iteration building on knowledge gained from previous runs. There is no fitness-based early stop, so `iterations` is what ends the run.
+6. **Repeat** — continue until the set number of iterations is reached, with each iteration building on knowledge gained from previous runs. The built-in tuner has no fitness-based early stop, so `iterations` is what ends the run; `use_ray=True` schedules trials with ASHA instead, which can cut a weak trial short before its epoch budget is spent.
 
 ### Iterations and Population Size
 

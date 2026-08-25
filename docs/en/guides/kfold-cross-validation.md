@@ -56,19 +56,24 @@ Let's get started.
 
 1. Start by creating a new `example.py` Python file for the steps below.
 
-2. Retrieve the dataset images and map each one to its label path using the package's dataset convention.
+2. Load the configured training and validation images through the package dataset owner, leaving the test split untouched.
 
     ```python
     from pathlib import Path
 
-    from ultralytics.data.utils import IMG_FORMATS, img2label_paths
+    from ultralytics.data.dataset import YOLODataset
+    from ultralytics.data.utils import check_det_dataset
 
-    dataset_path = Path("./Fruit-detection").resolve()  # replace with 'path/to/dataset' for your custom data
-    images = sorted(p for p in (dataset_path / "images").rglob("*.*") if p.suffix[1:].lower() in IMG_FORMATS)
-    labels = [Path(p) for p in img2label_paths([str(p) for p in images])]
-    keys = [p.relative_to(dataset_path / "images").with_suffix("") for p in images]
-    assert len(set(keys)) == len(keys), "multiple images map to the same label path"
-    image_by_key = dict(zip(keys, images))
+    yaml_file = "path/to/data.yaml"
+    data = check_det_dataset(yaml_file)
+    sources = []
+    for split in ("train", "val"):
+        source = data.get(split)
+        if source:
+            sources.extend(source if isinstance(source, list) else [source])
+    dataset = YOLODataset(sources, data=data, augment=False)
+    images = [Path(p) for p in dataset.im_files]
+    labels = [Path(p) for p in dataset.label_files]
     ```
 
 3. Now, read the contents of the dataset YAML file and extract the indices of the class labels.
@@ -76,9 +81,7 @@ Let's get started.
     ```python
     import yaml
 
-    yaml_file = "path/to/data.yaml"  # your data YAML with data directories and names dictionary
-    with open(yaml_file, encoding="utf8") as y:
-        classes = yaml.safe_load(y)["names"]
+    classes = data["names"]
     cls_idx = sorted(classes.keys())
     ```
 
@@ -87,7 +90,7 @@ Let's get started.
     ```python
     import pandas as pd
 
-    labels_df = pd.DataFrame(0.0, columns=cls_idx, index=keys)
+    labels_df = pd.DataFrame(0.0, columns=cls_idx, index=images)
     ```
 
 5. Count the instances of each class-label present in the annotation files.
@@ -95,14 +98,14 @@ Let's get started.
     ```python
     from collections import Counter
 
-    for key, label in zip(keys, labels):
+    for image, label in zip(images, labels):
         if not label.exists():  # missing labels are valid background images
             continue
         lbl_counter = Counter()
         for line in label.read_text().splitlines():
             if line.strip():
                 lbl_counter[int(line.split()[0])] += 1
-        labels_df.loc[key] = lbl_counter
+        labels_df.loc[image, list(lbl_counter)] = list(lbl_counter.values())
     ```
 
 6. The following is a sample view of the populated DataFrame:
@@ -176,8 +179,8 @@ The rows index images by their path relative to `images/`, and the columns corre
 
     for split in folds_df.columns:
         for partition in ("train", "val"):
-            split_keys = folds_df.index[folds_df[split] == partition]
-            paths = "\n".join(str(image_by_key[key]) for key in split_keys)
+            split_images = folds_df.index[folds_df[split] == partition]
+            paths = "\n".join(map(str, split_images))
             (save_path / f"{split}_{partition}.txt").write_text(f"{paths}\n")
 
         dataset_yaml = save_path / f"{split}.yaml"
@@ -242,7 +245,7 @@ fold_lbl_distrb.to_csv(save_path / "kfold_label_distribution.csv")
 
 ## Conclusion
 
-In this guide, we have explored the process of using K-Fold cross-validation for training the YOLO object detection model. We learned how to split our dataset into K partitions, ensuring a balanced class distribution across the different folds.
+In this guide, we have explored the process of using K-Fold cross-validation for training the YOLO object detection model. We learned how to split the training and validation pool into K partitions and use the generated ratio table to inspect class balance after random splitting.
 
 We also explored the procedure for creating report DataFrames to visualize the data splits and label distributions across these splits, providing us a clear insight into the structure of our training and validation sets.
 

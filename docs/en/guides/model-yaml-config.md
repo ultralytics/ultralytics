@@ -275,13 +275,15 @@ Modifying the source code is the most versatile way to integrate your custom mod
     from ultralytics.nn.modules import CustomBlock  # noqa
     ```
 
-5. **Handle channel injection** inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). This is required for a custom block whose constructor expects both input and output channels:
+5. **Add the module to `base_modules`** inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). Modules in this set automatically receive input and output channels:
 
     ```python
-    # Add this condition in the parse_model() function
-    if m is CustomBlock:
-        c1, c2 = ch[f], args[0]  # input channels, output channels
-        args = [c1, c2, *args[1:]]
+    base_modules = frozenset(
+        {
+            # Existing modules...
+            CustomBlock,
+        }
+    )
     ```
 
 6. **Use the module** in your model YAML:

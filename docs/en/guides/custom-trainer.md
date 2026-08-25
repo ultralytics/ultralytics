@@ -83,7 +83,7 @@ model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", epochs=5, trainer=MetricsTrainer)
 ```
 
-This logs the mean F1 score across all classes and a per-class breakdown after each validation run.
+This logs the mean F1 score across all classes represented in validation and a per-class breakdown after each validation run.
 
 !!! note "Available Metrics"
 
@@ -181,14 +181,17 @@ FREEZE_EPOCHS = 5
 
 
 def unfreeze_backbone(trainer):
-    """Callback to unfreeze all layers after FREEZE_EPOCHS."""
+    """Callback to unfreeze the user-requested layers after FREEZE_EPOCHS."""
     if trainer.epoch == FREEZE_EPOCHS:
-        LOGGER.info(f"Epoch {trainer.epoch}: Unfreezing all layers for fine-tuning")
+        user_freeze = [x for x in trainer.freeze_layer_names if x not in {".dfl", "teacher_model."}]
+        LOGGER.info(f"Epoch {trainer.epoch}: Unfreezing requested layers for fine-tuning")
         for name, param in trainer.model.named_parameters():
-            if not param.requires_grad:
+            if not param.requires_grad and ".dfl" not in name and "teacher_model." not in name and any(
+                x in name for x in user_freeze
+            ):
                 param.requires_grad = True
                 LOGGER.info(f"  Unfroze: {name}")
-        trainer.freeze_layer_names = [".dfl"]
+        trainer.freeze_layer_names = [x for x in trainer.freeze_layer_names if x not in user_freeze]
 
 
 class FreezingTrainer(DetectionTrainer):
@@ -204,7 +207,7 @@ model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", epochs=20, freeze=10, trainer=FreezingTrainer)
 ```
 
-The `freeze=10` parameter freezes the first 10 layers (indices 0-9) at training start, which covers most of the YOLO26 backbone. The backbone spans layers 0-10, so `freeze=10` leaves the final C2PSA block (layer 10) trainable; use `freeze=11` to freeze the entire backbone. The `on_train_epoch_start` callback fires at the beginning of each epoch and unfreezes all parameters once the freeze period is complete.
+The `freeze=10` parameter freezes the first 10 layers (indices 0-9) at training start, which covers most of the YOLO26 backbone. The backbone spans layers 0-10, so `freeze=10` leaves the final C2PSA block (layer 10) trainable; use `freeze=11` to freeze the entire backbone. The `on_train_epoch_start` callback fires at the beginning of each epoch and unfreezes those requested layers once the freeze period is complete, while preserving permanently frozen DFL and distillation-teacher parameters.
 
 !!! tip "Choosing What to Freeze"
 

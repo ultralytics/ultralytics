@@ -8,6 +8,7 @@ from dataclasses import dataclass
 import numpy as np
 import torch
 from PIL import Image
+
 from ultralytics.utils import DataExportMixin
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy

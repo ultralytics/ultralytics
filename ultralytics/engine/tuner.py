@@ -395,13 +395,14 @@ class Tuner:
                     ]
                 )
             else:
-                claim = self.collection.update_one(
-                    {"_id": "defaults"}, {"$setOnInsert": {"timestamp": datetime.now().astimezone()}}, upsert=True
-                )
-                if claim.upserted_id is None:
+                from pymongo.errors import DuplicateKeyError
+
+                try:
+                    self.collection.insert_one({"_id": "defaults", "timestamp": datetime.now().astimezone()})
+                except DuplicateKeyError:  # Another worker already claimed the default generation
                     x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
                 self.collection.create_index([("fitness", -1)], background=True)
-                if claim.upserted_id is not None:
+                if x is None:
                     return {k: getattr(self.args, k) for k in self.space}
 
         # Fall back to local NDJSON if MongoDB unavailable or empty

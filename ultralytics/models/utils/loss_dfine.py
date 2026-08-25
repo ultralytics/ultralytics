@@ -148,8 +148,14 @@ class DfineLoss(nn.Module):
         gt_bboxes: torch.Tensor,
         gt_cls: torch.Tensor,
         gt_groups: list[int],
+        pred_angles: torch.Tensor | None = None,
+        gt_bboxes_obb: torch.Tensor | None = None,
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-        """Wrapper over matcher to inject epoch and normalized progress for matcher scheduling."""
+        """Wrapper over matcher to inject epoch and normalized progress for matcher scheduling.
+
+        `pred_angles`/`gt_bboxes_obb` enable rotated-IoU (probiou) matching costs for OBB models; when unset the
+        matcher falls back to axis-aligned GIoU costs.
+        """
         return self.matcher(
             pred_bboxes,
             pred_scores,
@@ -158,6 +164,8 @@ class DfineLoss(nn.Module):
             gt_groups,
             epoch=self.matcher_epoch,
             training_progress=self.training_progress,
+            pred_angles=pred_angles,
+            gt_bboxes_obb=gt_bboxes_obb,
         )
 
     @staticmethod
@@ -582,15 +590,37 @@ class DfineLoss(nn.Module):
         gt_cls: torch.Tensor,
         gt_groups: list[int],
         shared_if_enabled: bool = True,
+        match_angles: list[torch.Tensor | None] | None = None,
+        match_gt_obb: torch.Tensor | None = None,
     ) -> list[list[tuple[torch.Tensor, torch.Tensor]]]:
         if pred_bboxes.shape[0] <= 1:
             return []
+        if match_angles is not None and len(match_angles) != pred_bboxes.shape[0]:
+            match_angles = None  # mismatched stack (e.g. validation): fall back to axis-aligned costs
         if self.use_uni_match and shared_if_enabled:
+            ind = self.uni_match_ind
             shared = self._match(
-                pred_bboxes[self.uni_match_ind], pred_scores[self.uni_match_ind], gt_bboxes, gt_cls, gt_groups
+                pred_bboxes[ind],
+                pred_scores[ind],
+                gt_bboxes,
+                gt_cls,
+                gt_groups,
+                pred_angles=match_angles[ind] if match_angles is not None else None,
+                gt_bboxes_obb=match_gt_obb,
             )
             return [shared for _ in range(pred_bboxes.shape[0] - 1)]
-        return [self._match(b, s, gt_bboxes, gt_cls, gt_groups) for b, s in zip(pred_bboxes[:-1], pred_scores[:-1])]
+        return [
+            self._match(
+                b,
+                s,
+                gt_bboxes,
+                gt_cls,
+                gt_groups,
+                pred_angles=match_angles[i] if match_angles is not None else None,
+                gt_bboxes_obb=match_gt_obb,
+            )
+            for i, (b, s) in enumerate(zip(pred_bboxes[:-1], pred_scores[:-1]))
+        ]
 
     def _prepare_pre_indices(
         self,
@@ -650,6 +680,8 @@ class DfineLoss(nn.Module):
         dfine_meta: dict[str, Any] | None = None,
         matcher_epoch: int = 0,
         training_progress: float = 0.0,
+        match_angles: list[torch.Tensor | None] | None = None,
+        match_gt_obb: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
         pred_bboxes, pred_scores = preds
         self.device = pred_scores.device
@@ -663,9 +695,21 @@ class DfineLoss(nn.Module):
             global_num_gts = max(len(batch["bboxes"]), 1.0)
 
         gt_cls, gt_bboxes, gt_groups = batch["cls"], batch["bboxes"], batch["gt_groups"]
-        main_indices = self._match(pred_bboxes[-1], pred_scores[-1], gt_bboxes, gt_cls, gt_groups)
+        if match_angles is not None and len(match_angles) != pred_bboxes.shape[0]:
+            match_angles = None  # mismatched stack (e.g. validation): fall back to axis-aligned matching costs
+        main_indices = self._match(
+            pred_bboxes[-1],
+            pred_scores[-1],
+            gt_bboxes,
+            gt_cls,
+            gt_groups,
+            pred_angles=match_angles[-1] if match_angles is not None else None,
+            gt_bboxes_obb=match_gt_obb,
+        )
         self.main_indices = main_indices  # exposed for subclasses (e.g. instance-mask losses)
-        aux_indices = self._prepare_aux_indices(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
+        aux_indices = self._prepare_aux_indices(
+            pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, match_angles=match_angles, match_gt_obb=match_gt_obb
+        )
         self.aux_indices = aux_indices  # exposed for subclasses; aux_indices[i+1] matches decoder layer i
         pre_bboxes, pre_logits, pre_indices = self._prepare_pre_indices(dfine_meta, gt_bboxes, gt_cls, gt_groups)
 
@@ -1156,8 +1200,9 @@ class DeimOBBLoss(DfineLoss):
     term on the full rotated boxes couples the (w, h, theta) prediction jointly: DOTA label polygons extending
     beyond image borders are clipped by the augmentation pipeline and their recomputed minAreaRect can flip to the
     perpendicular representation, and only an angle-aware box loss keeps (w, h, theta) consistent through such
-    label noise (this is what makes YOLO OBB robust to it). The axis-aligned box losses (Hungarian cost, L1, GIoU,
-    FGL/DDF) still run on the xywh part of the xywhr GT.
+    label noise (this is what makes YOLO OBB robust to it). The Hungarian matcher also uses the predicted angles:
+    its IoU cost is probiou on the full rotated boxes (the class/L1 costs stay on cls + cxcywh), while the
+    axis-aligned box losses (L1, GIoU, FGL/DDF) still run on the xywh part of the xywhr GT.
     """
 
     supports_obb = True
@@ -1305,9 +1350,28 @@ class DeimOBBLoss(DfineLoss):
         supervised with their per-layer Hungarian matches (`self.aux_indices[i + 1]`, index 0 being the encoder
         row) as `loss_angle_aux`/`loss_probiou_aux`, pairing each layer's angles with its boxes in `preds[0]`
         (encoder row first, so decoder layer i sits at index i + 1).
+
+        The same per-layer angles are also handed to the Hungarian matcher as `match_angles`, so the matching IoU
+        cost runs on rotated boxes (probiou) instead of the axis-aligned GIoU used by the other tasks. The
+        encoder row and the pre/dn/o2m branches have no angle head and keep axis-aligned matching costs.
         """
+        match_angles = None
+        if dec_angles is not None and gt_bboxes is not None:
+            # Align the per-layer angles with the full prediction stack (encoder row first, then decoder layers)
+            nl = preds[0].shape[0]
+            nd = dec_angles.shape[0]
+            match_angles = [None] * (nl - nd) + [dec_angles[i] for i in range(nd)]
         total_loss = super().forward(
-            preds, batch, dn_bboxes, dn_scores, dn_meta, dfine_meta, matcher_epoch, training_progress
+            preds,
+            batch,
+            dn_bboxes,
+            dn_scores,
+            dn_meta,
+            dfine_meta,
+            matcher_epoch,
+            training_progress,
+            match_angles=match_angles,
+            match_gt_obb=gt_bboxes if match_angles is not None else None,
         )
         if dec_angles is not None and gt_bboxes is not None:
             total_loss["loss_angle"] = self._get_loss_angle(dec_angles[-1], gt_bboxes)

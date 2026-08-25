@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from scipy.optimize import linear_sum_assignment
 
+from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
 
 from .box_ops import box_cxcywh_to_xyxy, pairwise_box_iou, pairwise_giou
@@ -110,6 +111,25 @@ class HungarianMatcher(nn.Module):
         if self.mal_transition_power <= 0:
             raise ValueError(f"mal_transition_power must be > 0, got {self.mal_transition_power}")
 
+    @staticmethod
+    def _pairwise_probiou(
+        pred_bboxes: torch.Tensor, pred_angles: torch.Tensor, gt_bboxes_obb: torch.Tensor
+    ) -> torch.Tensor:
+        """Pairwise rotated IoU between predicted and GT oriented boxes, for angle-aware OBB matching.
+
+        Boxes are upscaled to pixel-ish units and w/h clamped to >= 1px before the covariance computation, the
+        same numerical conditioning as the probiou loss term (tiny normalized w/h saturate the determinants).
+        """
+        scale = pred_bboxes.new_tensor([1024.0, 1024.0, 1024.0, 1024.0, 1.0])
+
+        def prep(xywhr):
+            xywhr = xywhr.float() * scale
+            return torch.cat([xywhr[:, :2], xywhr[:, 2:4].clamp(min=1.0), xywhr[:, 4:]], dim=-1)
+
+        pred_xywhr = prep(torch.cat([pred_bboxes, pred_angles], dim=-1))
+        gt_xywhr = prep(gt_bboxes_obb)
+        return batch_probiou(pred_xywhr, gt_xywhr).clamp(0.0, 1.0)  # (bs*num_queries, num_gt)
+
     @torch.no_grad()
     def forward(
         self,
@@ -122,6 +142,8 @@ class HungarianMatcher(nn.Module):
         gt_mask: list[torch.Tensor] | None = None,
         epoch: int = 0,
         training_progress: float = 0.0,
+        pred_angles: torch.Tensor | None = None,
+        gt_bboxes_obb: torch.Tensor | None = None,
     ) -> list[tuple[torch.Tensor, torch.Tensor]]:
         """Compute optimal assignment between predictions and ground truth using Hungarian algorithm.
 
@@ -139,6 +161,10 @@ class HungarianMatcher(nn.Module):
             gt_mask (list[torch.Tensor], optional): Ground truth masks, each with shape (num_masks, Height, Width).
             epoch (int): Current training epoch for optional DEIMv2 matcher schedule.
             training_progress (float): Normalized training progress in [0, 1] for the MAL matcher curriculum.
+            pred_angles (torch.Tensor, optional): Predicted rotation angles with shape (batch_size, num_queries, 1).
+                When given together with `gt_bboxes_obb`, the IoU cost uses probiou on rotated boxes (OBB models)
+                instead of the axis-aligned GIoU.
+            gt_bboxes_obb (torch.Tensor, optional): Ground truth rotated boxes with shape (num_gts, 5), xywhr.
 
         Returns:
             (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i,
@@ -157,11 +183,15 @@ class HungarianMatcher(nn.Module):
         pred_bboxes = pred_bboxes.detach().view(-1, 4)
         pred_xyxy = box_cxcywh_to_xyxy(pred_bboxes)
         gt_xyxy = box_cxcywh_to_xyxy(gt_bboxes)
+        # Rotated pairwise IoU replaces the axis-aligned IoU everywhere when OBB angles are provided
+        pair_riou = None
+        if pred_angles is not None and gt_bboxes_obb is not None:
+            pair_riou = self._pairwise_probiou(pred_bboxes, pred_angles.detach().reshape(-1, 1), gt_bboxes_obb)
 
         # DEIMv2-style dynamic matcher switch (late-epoch class*IoU ordering).
         if self.change_matcher and epoch >= self.matcher_change_epoch:
             class_score = pred_scores[:, gt_cls]
-            iou_score = pairwise_box_iou(pred_xyxy, gt_xyxy)[0]
+            iou_score = pair_riou if pair_riou is not None else pairwise_box_iou(pred_xyxy, gt_xyxy)[0]
             C = -(class_score * torch.pow(iou_score, self.iou_order_alpha))
         else:
             # Compute classification cost
@@ -178,7 +208,9 @@ class HungarianMatcher(nn.Module):
                 # that query/class entry as background. This is the pairwise equivalent of MALoss:
                 # BCE(logit, IoU**gamma) - alpha * p**gamma * BCE(logit, 0).
                 pair_logits = pred_logits[:, gt_cls]
-                pair_iou = pairwise_box_iou(pred_xyxy, gt_xyxy)[0].clamp(0.0, 1.0)
+                pair_iou = (
+                    pair_riou if pair_riou is not None else pairwise_box_iou(pred_xyxy, gt_xyxy)[0].clamp(0.0, 1.0)
+                )
                 mal_target = pair_iou.pow(self.mal_gamma)
                 mal_positive = F.binary_cross_entropy_with_logits(pair_logits, mal_target, reduction="none")
                 mal_negative_weight = pred_scores.pow(self.mal_gamma)
@@ -192,8 +224,8 @@ class HungarianMatcher(nn.Module):
             # Compute L1 cost between boxes
             cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 
-            # Compute GIoU cost between boxes, (bs*num_queries, num_gt)
-            cost_giou = 1.0 - pairwise_giou(pred_xyxy, gt_xyxy)
+            # Compute IoU cost between boxes, (bs*num_queries, num_gt); probiou for OBB, axis-aligned GIoU otherwise
+            cost_giou = 1.0 - (pair_riou if pair_riou is not None else pairwise_giou(pred_xyxy, gt_xyxy))
 
             # Combine costs into final cost matrix
             C = (

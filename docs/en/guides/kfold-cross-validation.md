@@ -40,7 +40,8 @@ Then download the dataset once, so the rest of the guide can read it from disk:
 ```python
 from ultralytics.data.utils import check_det_dataset
 
-data = check_det_dataset("african-wildlife.yaml")  # downloads on first use
+dataset_yaml = "african-wildlife.yaml"  # swap in your own; every later step reads this variable
+data = check_det_dataset(dataset_yaml)  # downloads on first use
 print(data["path"])
 ```
 
@@ -263,7 +264,7 @@ Note that `save_path` sits **beside** the dataset, not inside it. A fold directo
                 shutil.copy(src, dst)
     ```
 
-    The destination reuses the same relative `key`, for the same reason the pairing does: flattening to the bare filename lets `train/0001.jpg` and `val/0001.jpg` land on top of each other, and `shutil.copy` overwrites without a word. The suffix is appended to `key.name` rather than set with `with_suffix`, which would turn `foo.bar.jpg` into `foo.jpg` and collide all over again.
+    This only rearranges files. The `ds_yamls` built above still point at the text lists, so to train from the copied tree you would also write one YAML per fold whose `train` and `val` name the new `fold_N/train` and `fold_N/val` directories. The destination reuses the same relative `key`, for the same reason the pairing does: flattening to the bare filename lets `train/0001.jpg` and `val/0001.jpg` land on top of each other, and `shutil.copy` overwrites without a word. The suffix is appended to `key.name` rather than set with `with_suffix`, which would turn `foo.bar.jpg` into `foo.jpg` and collide all over again.
 
     `shutil.copy` overwrites an existing destination silently, so a re-run is not protected in either approach — delete `save_path` first.
 
@@ -412,10 +413,10 @@ final_dir.mkdir(parents=True, exist_ok=True)
 )
 
 final = YOLO("yolo26n.pt")
-final.train(data=str(final_dir / "final.yaml"), epochs=100, batch=16)
+final.train(data=str(final_dir / "final.yaml"), epochs=100, batch=16, patience=0)  # patience=0 disables early stopping
 
 fitted = YOLO(final.trainer.last)  # last.pt, so no checkpoint was chosen using training labels
-print(fitted.val(data="african-wildlife.yaml", split="test").box.map)  # the number to report
+print(fitted.val(data=dataset_yaml, split="test").box.map)  # the number to report
 ```
 
-Two details carry the correctness here. Passing `data=` to `val()` redirects it away from `final.yaml`, which has no `test` entry, to the original dataset. And the evaluation uses `last.pt` rather than the model `train()` leaves loaded: with `pool.txt` on both sides, every epoch validates on its own training images, so `best.pt` is picked on labels the model has already seen — `Model.train()` reloads exactly that checkpoint. Taking the final epoch's weights instead keeps the test score free of any selection. Train for a fixed epoch budget for the same reason, rather than relying on early stopping against the overlapping split.
+Two details carry the correctness here. Passing `data=dataset_yaml` to `val()` redirects it away from `final.yaml`, which has no `test` entry, to the original dataset — and your own dataset's YAML needs a `test` entry for this step to mean anything. And the evaluation uses `last.pt` rather than the model `train()` leaves loaded: with `pool.txt` on both sides, every epoch validates on its own training images, so `best.pt` is picked on labels the model has already seen — `Model.train()` reloads exactly that checkpoint. Taking the final epoch's weights instead keeps the test score free of any selection. `patience=0` is there for the same reason: left at its default, early stopping would decide when to stop from metrics measured on the training images.

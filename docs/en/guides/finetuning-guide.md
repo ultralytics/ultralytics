@@ -254,7 +254,7 @@ It depends on the dataset size and domain similarity. For small datasets with a 
 
 ### Can I fine-tune YOLO26 for segmentation, pose, or OBB the same way?
 
-Yes. Load the task-specific pretrained checkpoint — `yolo26n-seg.pt`, `yolo26n-pose.pt`, or `yolo26n-obb.pt` — and call `.train()` with a `data.yaml` in that task's label format. Weight transfer, head reinitialization, `freeze`, and optimizer selection behave identically across tasks; only the label format and the head shapes differ. See the [task pages](../tasks/index.md) for the label format each one expects.
+Yes. Load the task-specific pretrained checkpoint — `yolo26n-seg.pt`, `yolo26n-pose.pt`, or `yolo26n-obb.pt` — and call `.train()` with a `data.yaml` in that task's label format. Weight transfer, head reinitialization, `freeze`, and optimizer selection all work the same way across tasks, though each task has its own head layers, so the indices in this guide describe detect checkpoints specifically. See the [task pages](../tasks/index.md) for the label format each one expects.
 
 ### How do I prevent catastrophic forgetting when fine-tuning YOLO on new classes?
 

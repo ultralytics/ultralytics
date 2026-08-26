@@ -96,7 +96,7 @@ See the [Quickstart](quickstart.md) guide for the full installation and usage re
 
     ***
 
-    Track objects across video frames with a persistent ID using BoT-SORT or ByteTrack, built into YOLO26's predict pipeline
+    Track objects across video frames with persistent IDs using six built-in trackers, with TrackTrack as the default
 
     ***
 

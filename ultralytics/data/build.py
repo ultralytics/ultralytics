@@ -392,12 +392,12 @@ def build_dataloader(
     if mode == "val":
         return dataloader.DataLoader(
             **loader_kwargs,
-            prefetch_factor=2 if nw > 0 else None,
+            **({"prefetch_factor": 2} if nw > 0 else {}),
             persistent_workers=False,
         )
     return InfiniteDataLoader(
         **loader_kwargs,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
+        **({"prefetch_factor": 4} if nw > 0 else {}),  # increase over default 2
     )
 
 

@@ -113,7 +113,7 @@ class YOLOEDetectValidator(DetectionValidator):
             data.get(self.args.split, data.get("val")),
             self.args.batch,
             data,
-            mode="val",
+            mode=self.args.split or "val",
             rect=False,
         )
         if isinstance(dataset, YOLOConcatDataset):

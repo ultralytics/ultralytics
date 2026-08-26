@@ -94,22 +94,17 @@ class TaskAlignedAssigner(nn.Module):
                 torch.zeros_like(pd_scores[..., 0]),
             )
 
-        # Work around a nondeterministic PyTorch MPS indexing-kernel bug where boolean indexing can produce different
-        # source and destination element counts (https://github.com/ultralytics/ultralytics/issues/22971).
-        if device.type == "mps":
-            result = self._forward(
-                *(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt))
-            )
-            return tuple(t.to(device) for t in result)
-
-        try:
-            return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
-        except RuntimeError as e:
-            if "out of memory" not in str(e).lower():
-                raise
-        # Recover outside the except block: exiting it drops e.__traceback__, releasing the failed attempt's GPU
-        # intermediates back to the allocator so the copy-back below can succeed
-        LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
+        # MPS assigns on CPU: its boolean indexing kernel nondeterministically produces mismatched source and
+        # destination element counts (https://github.com/ultralytics/ultralytics/issues/22971)
+        if device.type != "mps":
+            try:
+                return self._forward(pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)
+            except RuntimeError as e:
+                if "out of memory" not in str(e).lower():
+                    raise
+            # Recover outside the except block: exiting it drops e.__traceback__, releasing the failed attempt's GPU
+            # intermediates back to the allocator so the copy-back below can succeed
+            LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, using CPU")
         result = self._forward(*(t.cpu() for t in (pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt)))
         return tuple(t.to(device) for t in result)
 

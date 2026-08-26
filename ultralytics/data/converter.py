@@ -1011,6 +1011,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
         count = min(limit if type(limit) is int else round(len(records) * limit), len(records))
         selected.extend(records[i] for i in np.linspace(0, len(records) - 1, count, dtype=int))
     image_records = selected
+    split_counts = {split: sum(r["split"] == split for r in image_records) for split in ("train", "val", "test")}
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
@@ -1110,7 +1111,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
-            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
+            desc=f"Converting {ndjson_path.name} fraction={fraction} → {dataset_dir} ({split_counts})",
         )
 
         async def tracked_process(record):

@@ -133,7 +133,7 @@ def test_distill(task: str, data: str, student: str, teacher: Path) -> None:
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_qat(tmp_path: Path) -> None:
     """Test model training and export with QAT."""
-    pytest.importorskip("modelopt", reason="QAT requires nvidia-modelopt")
+    pytest.importorskip("modelopt.torch.quantization", reason="QAT requires nvidia-modelopt")
     run(f"yolo train data=coco128.yaml imgsz=32 epochs=1 project={tmp_path} name=qat quantize=8 exist_ok")
     run(f"yolo export model={tmp_path}/qat/weights/best.pt format=onnx")
 

@@ -167,7 +167,7 @@ jobs:
           fi
           qat=""
           if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.torch }}" == "latest" ]; then
-              qat="nvidia-modelopt>=0.44" # QAT test, ships Linux x86 wheels only
+              qat="nvidia-modelopt>=0.44 huggingface_hub" # QAT test, modelopt ships Linux x86 wheels only
           fi
           uv pip install -e ".[export-base,solutions]" \
             $torch $qat aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
@@ -324,7 +324,7 @@ jobs:
           fi
           qat=""
           if [ "${{ matrix.os }}" == "ubuntu-latest" ] && [ "${{ matrix.torch }}" == "latest" ]; then
-            qat="nvidia-modelopt>=0.44" # QAT test, ships Linux x86 wheels only
+            qat="nvidia-modelopt>=0.44 huggingface_hub" # QAT test, modelopt ships Linux x86 wheels only
           fi
           uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch $qat \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \

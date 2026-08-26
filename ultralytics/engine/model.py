@@ -903,6 +903,8 @@ class Model(torch.nn.Module):
             >>> results = model.tune(use_ray=True, iterations=20, data="coco8.yaml")
         """
         self._check_is_pytorch_model()
+        if "optimizer" not in (kwargs.get("space") or {}):
+            kwargs.setdefault("optimizer", "AdamW")
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 

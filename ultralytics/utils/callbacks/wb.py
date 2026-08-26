@@ -132,10 +132,14 @@ def on_pretrain_routine_start(trainer):
         from pathlib import Path
 
         name = str(trainer.args.name).replace("/", "-").replace(" ", "_")
+        # Only the leaf: `project` is frequently an absolute path (a launcher pinning the output
+        # directory, or a hand-written project=/abs/path), and dashing it produced project names
+        # like "-home-user-work-runs-detect" that also changed whenever the run moved on disk.
+        project = Path(str(trainer.args.project)).name if trainer.args.project else ""
         latest_run = Path(trainer.save_dir) / "wandb" / "latest-run"
         resuming = trainer.args.resume and latest_run.exists()
         wb.init(
-            project=str(trainer.args.project).replace("/", "-") if trainer.args.project else "Ultralytics",
+            project=project or "Ultralytics",
             name=name,
             config=vars(trainer.args),
             id=latest_run.resolve().name.split("-", 2)[2]

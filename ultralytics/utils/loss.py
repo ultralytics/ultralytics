@@ -453,6 +453,14 @@ class v8DetectionLoss:
 
         # Objectness loss: class-agnostic BCE over ALL anchors, targeting the detached IoU of the
         # assigned box (v5's soft label -- a well-placed box is worth more than a sloppy one).
+        #
+        # Foreground and background are normalized separately and deliberately. v5 takes a plain
+        # mean over every cell, but here that sits next to a cls loss normalized by
+        # target_scores_sum (~the positive count). With ~8 positives among 8400 anchors the two
+        # conventions differ by 2-3 orders of magnitude, which starved the objectness gradient
+        # (train/obj_loss converged to 0.0012 against cls 0.8327). Positives are therefore
+        # normalized by their own count, matching cls; the background term keeps v5's per-level
+        # mean and balance, since that is the part the balance weights were designed for.
         if self.objectness != "none":
             pred_obj = preds["obj"].squeeze(1)  # (bs, num_anchors)
             tobj = torch.zeros_like(pred_obj)
@@ -461,7 +469,11 @@ class v8DetectionLoss:
                 tobj[fg_mask] = iou.detach().squeeze(-1).clamp_(0).to(tobj.dtype)
             obj_loss = self.bce(pred_obj, tobj)  # (bs, num_anchors), reduction='none'
             splits = [f.shape[2] * f.shape[3] for f in preds["feats"]]
-            loss[3] = sum(lvl.mean() * b for lvl, b in zip(obj_loss.split(splits, dim=1), self.obj_balance))
+            bg = ~fg_mask
+            loss[3] = (obj_loss * fg_mask).sum() / fg_mask.sum().clamp(min=1) + sum(
+                (lvl * lvl_bg).mean() * b
+                for lvl, lvl_bg, b in zip(obj_loss.split(splits, 1), bg.split(splits, 1), self.obj_balance)
+            )
 
         # Bbox loss
         if fg_mask.sum():

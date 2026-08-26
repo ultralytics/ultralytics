@@ -197,7 +197,9 @@ class DetectionTrainer(BaseTrainer):
         Returns:
             (DetectionModel): YOLO detection model.
         """
-        Detect.half_channel = bool(getattr(self.args, "half_channel", False))  # box/cls-head width, read in Detect.__init__
+        Detect.half_channel = bool(
+            getattr(self.args, "half_channel", False)
+        )  # box/cls-head width, read in Detect.__init__
         Detect.half_box = bool(getattr(self.args, "half_channel_box", False))  # box-head width only
         Detect.half_cls = bool(getattr(self.args, "half_channel_cls", False))  # cls-head width only
         model = self.set_model_names_for_load(
@@ -233,10 +235,12 @@ class DetectionTrainer(BaseTrainer):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         # E2ELoss appends the aux foreground term when enabled; keep loss_names in sync
+        if hasattr(unwrap_model(self.model), "student_model"):
+            model = unwrap_model(self.model).student_model  # distillation: the student model builds the loss criterion
         if (
             getattr(self.args, "aux_fg_on", False)
             and getattr(self.args, "aux_fg", 0.5)
-            and hasattr(unwrap_model(self.model).model[-1], "aux_fg")
+            and hasattr(model.model[-1], "aux_fg")
         ):
             self.loss_names += ("aux_fg_loss",)
         return yolo.detect.DetectionValidator(

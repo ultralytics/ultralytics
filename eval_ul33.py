@@ -131,8 +131,8 @@ def calculate_overall_metrics(ground_truth: COCO, detections: list[dict], max_de
         matches = np.zeros((len(predictions), len(IOU_THRESHOLDS)), dtype=bool)
         if targets and predictions:
             iou = box_iou(
-                ops.xywh2xyxy(torch.tensor([target["bbox"] for target in targets])),
-                ops.xywh2xyxy(torch.tensor([prediction["bbox"] for prediction in predictions])),
+                ops.ltwh2xyxy(torch.tensor([target["bbox"] for target in targets])),
+                ops.ltwh2xyxy(torch.tensor([prediction["bbox"] for prediction in predictions])),
             ).numpy()
             target_cls = np.array([target["category_id"] for target in targets])
             prediction_cls = np.array([prediction["category_id"] for prediction in predictions])

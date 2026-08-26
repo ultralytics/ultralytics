@@ -94,7 +94,8 @@ class ONNXBackend(BaseBackend):
                 providers = ["CPUExecutionProvider"]
                 if cuda:
                     ep_name = "MIGraphXExecutionProvider" if rocm else "CUDAExecutionProvider"
-                    LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU...")
+                    fix = f"pip install {ort}" + (f" {ROCM_EXTRA_INDEX}" if rocm else "")
+                    LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU... Fix with '{fix}'")
                     self.device = torch.device("cpu")
                     cuda = False
 

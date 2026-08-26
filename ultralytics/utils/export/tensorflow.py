@@ -17,6 +17,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_sudo_available,
+    rocm_is_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.tal import make_anchors
@@ -105,7 +106,7 @@ def onnx2saved_model(
         f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
     )
-    ort = "onnxruntime-gpu" if cuda else "onnxruntime"
+    ort = "onnxruntime-gpu" if cuda and not rocm_is_available() else "onnxruntime"
     check_requirements(
         (
             f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}",  # required by 'onnx2tf' package

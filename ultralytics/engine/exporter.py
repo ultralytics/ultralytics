@@ -124,6 +124,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
+    rocm_is_available,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
@@ -1044,7 +1045,7 @@ class Exporter:
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
             requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-migraphx")]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]

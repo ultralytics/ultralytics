@@ -1884,11 +1884,13 @@ def parse_model(d, ch, verbose=True):
     sigmoid_box = d.get("sigmoid_box", False)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
+    scale_vars = {}  # optional named per-scale args, from a scales entry's 4th element (a dict)
     if scales:
         if not scale:
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
-        depth, width, max_channels = scales[scale]
+        depth, width, max_channels = scales[scale][:3]
+        scale_vars = scales[scale][3] if len(scales[scale]) > 3 else {}
 
     restricted = _SafeLoad.restricted()
     if act:
@@ -1976,7 +1978,7 @@ def parse_model(d, ch, verbose=True):
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                    args[j] = locals()[a] if a in locals() else scale_vars[a] if a in scale_vars else ast.literal_eval(a)
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]

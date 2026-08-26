@@ -96,7 +96,7 @@ See the [Quickstart](quickstart.md) guide for the full installation and usage re
 
     ***
 
-    Track objects across video frames with persistent IDs using six built-in trackers, with TrackTrack as the default
+    Track objects with persistent IDs using TrackTrack (default), BoT-SORT, ByteTrack, OC-SORT, Deep OC-SORT, or FastTracker
 
     ***
 

@@ -719,8 +719,9 @@ def test_convert_signed_ndjson(monkeypatch):
 
     monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
     url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
-    assert utils.convert_ndjson_to_yolo_if_needed(url, 1.0) == "dataset.ndjson.yaml"
+    assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
     assert captured == [(url, 1.0)]
+    assert utils.get_split_fraction([2, 1], "test") == 1.0
 
 
 @pytest.mark.parametrize("task", ["detect", "classify"])

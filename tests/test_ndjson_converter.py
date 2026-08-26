@@ -163,14 +163,14 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
     """Keep the existing deterministic automatic split behavior for non-depth tasks."""
     base_url, _ = depth_server
     records = [
-        {"type": "dataset", "task": "detect", "class_names": {"0": "object"}},
+        {"type": "dataset", "task": "detect"},
         *[
             {
                 "type": "image",
                 "file": f"{index}.jpg",
                 "url": f"{base_url}/train.jpg?signature={index}",
-                "split": "train",
-                "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
+                "split": "test" if index == 9 else "train",
+                "annotations": {"boxes": [[2 if index == 9 else 0, 0.5, 0.5, 1, 1]]},
             }
             for index in range(10)
         ],
@@ -180,8 +180,9 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
 
     yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
-    order = list(range(1, len(records)))
+    order = list(range(1, 10))
     random.Random(0).shuffle(order)
     assert (yaml_path.parent / "images" / "val" / f"{order[0]}.jpg").is_file()
     capped = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "capped", fraction=[2, 1])).parent
-    assert [len(list((capped / "images" / split).glob("*"))) for split in ("train", "val")] == [2, 1]
+    assert [len(list((capped / "images" / split).glob("*"))) for split in ("train", "val", "test")] == [2, 1, 1]
+    assert YAML.load(capped / "data.yaml")["nc"] == 3

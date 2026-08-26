@@ -986,15 +986,6 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
                 f"For best results, manually assign validation images in Platform dataset page."
             )
 
-    if isinstance(fraction, (int, list)):
-        counts = fraction if isinstance(fraction, list) else (fraction, None)
-        image_records = [
-            record
-            for split, count in zip(("train", "val"), counts)
-            for record in [r for r in image_records if r["split"] == split][:count]
-        ]
-        splits = {record["split"] for record in image_records}
-
     inferred_nc = None
 
     if not is_classification:
@@ -1014,6 +1005,16 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
                 inferred_nc = max_class_id + 1
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
+
+    if isinstance(fraction, (int, list)):
+        counts = dict(zip(("train", "val"), fraction if isinstance(fraction, list) else (fraction, None)))
+        selected = []
+        for record in image_records:
+            if (count := counts.get(record["split"])) is None or count:
+                selected.append(record)
+                if count:
+                    counts[record["split"]] -= 1
+        image_records = selected
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None

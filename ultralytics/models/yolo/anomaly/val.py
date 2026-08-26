@@ -349,7 +349,8 @@ class YOLOAnomalyValidator(DetectionValidator):
             out[f"P@{c:g}"] = p
             out[f"R@{c:g}"] = r
             if c == self._OOD_FITNESS_CONF and ap.size:
-                out[f"mAP50@{c:g}"] = float(ap[:, idx[0.50]].mean())
+                for thr, i in idx.items():
+                    out[f"mAP{round(thr * 100)}@{c:g}"] = float(ap[:, i].mean())
                 out[f"mAP10_50@{c:g}"] = float(ap.mean())
         return out
 

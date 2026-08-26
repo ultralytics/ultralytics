@@ -68,15 +68,24 @@ def test_dataloader_val_mode_releases_workers():
 
     train_loader = build_dataloader(range(16), batch=4, workers=2, mode="train")
     val_loader = build_dataloader(range(16), batch=4, workers=2, mode="val")
+    # Also cover the workers=0 path (CPU/MPS validation), where prefetch_factor must
+    # be omitted entirely to avoid ValueError on older PyTorch versions.
+    val_loader_no_workers = build_dataloader(range(16), batch=4, workers=0, mode="val")
     try:
         assert isinstance(train_loader, InfiniteDataLoader), "train mode must use InfiniteDataLoader"
         assert isinstance(val_loader, DataLoader) and not isinstance(val_loader, InfiniteDataLoader), (
             "val mode must use plain DataLoader"
         )
         assert val_loader.persistent_workers is False, "val workers must not persist"
+        # Verify workers=0 val loader is also a plain DataLoader
+        assert isinstance(val_loader_no_workers, DataLoader) and not isinstance(
+            val_loader_no_workers, InfiniteDataLoader
+        ), "val mode with 0 workers must use plain DataLoader"
+        assert val_loader_no_workers.persistent_workers is False, "val workers=0 must not persist"
     finally:
         train_loader.close()
         del val_loader
+        del val_loader_no_workers
 
 
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):

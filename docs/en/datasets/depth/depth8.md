@@ -72,7 +72,7 @@ To train a YOLO26n-depth model on the Depth8 dataset with an image size of 640, 
 
 ## Citations and Acknowledgments
 
-Depth8 is sampled from SUN RGB-D — see the full [SUN RGB-D dataset page](sunrgbd.md#citations-and-acknowledgments) for license details.
+Depth8 is sampled from SUN RGB-D — see the full [SUN RGB-D dataset page](sunrgbd.md#citations-and-acknowledgments) for source attribution and citation details. For licensing, see the [COCO Terms of Use](https://cocodataset.org/#termsofuse).
 
 If you use the SUN RGB-D dataset in your research or development work, please cite the following paper:
 

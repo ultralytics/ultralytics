@@ -19,6 +19,7 @@ from ultralytics.models.yolo.anomaly.predict import AnomalyPredictorHM
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.nn.modules import AnomalyDetect
 from ultralytics.utils import LOGGER, ops, TryExcept
+from ultralytics.utils.metrics import ap_per_class
 from ultralytics.utils.plotting import Annotator, colors
 
 
@@ -285,8 +286,45 @@ class YOLOAnomalyValidator(DetectionValidator):
             fname = self.save_dir / f"val_batch{ni}_pred_{Path(batch['im_file'][i]).stem}.jpg"
             cv2.imwrite(str(fname), grid)
 
+    # Confidence floors reported next to the threshold-free numbers. AP describes the whole ranked
+    # list, so a floor does not set an operating point -- it deletes the low-score tail of the PR
+    # curve. That makes "recall at a floor" meaningful (how much survives a deployment threshold)
+    # and "AP at a floor" a truncated curve, so both are emitted and labelled differently.
+    _OOD_OPS = (0.01, 0.10, 0.25)
+    # Fitness stays defined on this floor: every historical yoloa run was measured there, and
+    # changing what fitness means would silently break comparison with all of them.
+    _OOD_FITNESS_CONF = 0.25
+
+    def get_stats(self) -> dict:
+        """Keep the flat stat arrays before ``DetMetrics`` clears them.
+
+        They are all ``_ap_above`` needs to re-score the run at another confidence floor, which is
+        why the multi-threshold report costs one inference pass rather than one per threshold.
+        """
+        self._ood_stats = {k: np.concatenate(v, 0) for k, v in self.metrics.stats.items() if len(v)}
+        return super().get_stats()
+
+    def _ap_above(self, floor: float) -> tuple[float, float, np.ndarray]:
+        """Mean precision, mean recall and the per-class AP grid over predictions scoring >= floor.
+
+        Masking after the fact is equivalent to having run NMS at ``floor``: suppression only flows
+        from higher score to lower, so no box above the floor can be removed by one below it, and
+        ``max_det`` truncation drops the lowest scores first.
+        """
+        s = getattr(self, "_ood_stats", None)
+        if not s or "conf" not in s or not len(s["conf"]):
+            return 0.0, 0.0, np.zeros((0, 0))
+        m = s["conf"] >= floor
+        res = ap_per_class(s["tp"][m], s["conf"][m], s["pred_cls"][m], s["target_cls"], plot=False, names=self.names)
+        p, r, ap = res[2], res[3], res[5]
+        return float(p.mean()), float(r.mean()), ap
+
     def _ood_map_metrics(self) -> dict[str, float]:
-        """mAP at IoU {0.10, 0.25, 0.50} and mAP10-50 (mean over the whole .10:.50 grid)."""
+        """mAP at IoU {0.10, 0.25, 0.50}, mAP10-50, and operating-point P/R per confidence floor.
+
+        The bare keys are threshold-free -- computed over everything the head emitted, which is the
+        honest measure of ranking. The ``@conf`` keys re-score that same pass at a floor.
+        """
         box = self.metrics.box
         all_ap = getattr(box, "all_ap", [])
         out = {
@@ -305,6 +343,14 @@ class YOLOAnomalyValidator(DetectionValidator):
         out["mAP25"] = float(all_ap[:, idx[0.25]].mean())
         out["mAP50"] = float(all_ap[:, idx[0.50]].mean())
         out["mAP10_50"] = float(all_ap.mean())  # mean over the full .10:.50 grid
+
+        for c in self._OOD_OPS:
+            p, r, ap = self._ap_above(c)
+            out[f"P@{c:g}"] = p
+            out[f"R@{c:g}"] = r
+            if c == self._OOD_FITNESS_CONF and ap.size:
+                out[f"mAP50@{c:g}"] = float(ap[:, idx[0.50]].mean())
+                out[f"mAP10_50@{c:g}"] = float(ap.mean())
         return out
 
     def get_desc(self) -> str:

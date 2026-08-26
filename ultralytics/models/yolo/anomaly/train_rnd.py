@@ -111,15 +111,19 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             if rows:
                 avg = _average_ood_rows(rows)
                 avg_metrics = {f"ood/{k}": v for k, v in avg.items()}
-                fitness = float(avg["mAP50"])
+                # Fitness keeps its historical definition -- mAP50 measured at conf>=0.25 -- so
+                # best.pt selection stays comparable with every earlier yoloa run. The bare
+                # ``mAP50`` key is now the threshold-free value and is reported, not selected on.
+                fitness = float(avg.get("mAP50@0.25", avg["mAP50"]))
                 metrics["fitness"] = fitness
                 metrics.update(avg_metrics)
                 self.best_fitness = max(self.best_fitness or -math.inf, fitness)
                 LOGGER.info(
                     f"OOD eval @ep{self.epoch + 1}: [heatmap] mAP50={avg['mAP50']:.4f} "
-                    f"mAP10={avg['mAP10']:.4f} | [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
+                    f"(@.25={fitness:.4f}) mAP10={avg['mAP10']:.4f} "
+                    f"| [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
                     f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
-                    f"(fitness=heatmap mAP50; n={len(rows)} categories)"
+                    f"(fitness=heatmap mAP50@0.25; bare keys are threshold-free; n={len(rows)} categories)"
                 )
         finally:
             del ema_eval
@@ -184,7 +188,11 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     "save_json": False,
                     "single_cls": True,
                     "iou": 0.2,
-                    "conf": 0.25,
+                    # Score everything the head emits. AP is threshold-free, so the old 0.25 floor
+                    # was deleting ~73% of the correct detections (their median score is 0.065)
+                    # before AP was computed, understating OOD by ~3.7x. The validator re-derives
+                    # the 0.25 numbers by masking, so nothing is lost and fitness is unchanged.
+                    "conf": 0.001,
                     "end2end": False,
                 }
                 # Pass 1: heatmap prior (memory bank active) — the yoloa_clean fitness signal.

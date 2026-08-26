@@ -220,7 +220,7 @@ CFG_FLOAT_KEYS = frozenset(
     }
 )
 CFG_FRACTION_KEYS = frozenset(
-    {  # fractional floats use [0.0, 1.0], except dataset fraction uses (0.0, 1.0]
+    {  # fractional floats use [0.0, 1.0]; dataset fraction also accepts positive counts and split pairs
         "dropout",
         "lr0",
         "lrf",
@@ -417,7 +417,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
+        - Fraction keys use [0.0, 1.0]; dataset fraction also accepts positive counts and [train, val] pairs.
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():

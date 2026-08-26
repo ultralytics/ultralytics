@@ -32,7 +32,7 @@ class BaseDataset(Dataset):
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
-        fraction (float): Fraction of dataset to utilize.
+        fraction (float | int): Dataset ratio or image count to use.
         channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with OpenCV
             are in BGR channel order.
         cv2_flag (int): OpenCV flag for reading images.

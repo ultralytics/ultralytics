@@ -119,7 +119,7 @@ class BaseDataset(Dataset):
             pad (float): Padding value.
             single_cls (bool): If True, single class training is used.
             classes (list[int], optional): List of included classes.
-            fraction (float): Fraction of dataset to utilize.
+            fraction (float | int): Dataset ratio or image count to use.
             channels (int): Number of channels in the images (1 for grayscale, 3 for color). Color images loaded with
                 OpenCV are in BGR channel order.
         """
@@ -197,8 +197,8 @@ class BaseDataset(Dataset):
             assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
-        if self.fraction < 1:
-            im_files = im_files[: round(len(im_files) * self.fraction)]  # retain a fraction of the dataset
+        count = self.fraction if isinstance(self.fraction, int) else round(len(im_files) * self.fraction)
+        im_files = im_files[:count] if count < len(im_files) else im_files
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files
 

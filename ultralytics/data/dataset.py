@@ -37,6 +37,7 @@ from .utils import (
     HELP_URL,
     check_file_speeds,
     get_hash,
+    get_split_fraction,
     img2label_paths,
     load_dataset_cache_file,
     load_depth,
@@ -1174,8 +1175,9 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
-        if augment and args.fraction < 1.0:  # reduce training fraction
-            self.samples = self.samples[: round(len(self.samples) * args.fraction)]
+        fraction = get_split_fraction(args.fraction, "train" if augment else "val")
+        count = fraction if isinstance(fraction, int) else round(len(self.samples) * fraction)
+        self.samples = self.samples[:count] if count < len(self.samples) else self.samples
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files

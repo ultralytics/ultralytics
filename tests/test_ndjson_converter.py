@@ -183,3 +183,5 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
     order = list(range(1, len(records)))
     random.Random(0).shuffle(order)
     assert (yaml_path.parent / "images" / "val" / f"{order[0]}.jpg").is_file()
+    capped = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "capped", fraction=[2, 1])).parent
+    assert [len(list((capped / "images" / split).glob("*"))) for split in ("train", "val")] == [2, 1]

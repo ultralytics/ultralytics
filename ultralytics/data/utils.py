@@ -513,7 +513,12 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
+def get_split_fraction(fraction: float | list[int], split: str) -> float | int:
+    """Return the scalar dataset fraction for a train or validation split."""
+    return fraction[split != "train"] if isinstance(fraction, list) else fraction if split == "train" else 1.0
+
+
+def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction: float | list[int]) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
@@ -522,7 +527,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(data))
+        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction))
     return data
 
 

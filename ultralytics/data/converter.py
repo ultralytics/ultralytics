@@ -814,7 +814,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None, fraction=1.0) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
@@ -830,6 +830,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
+        fraction (float | int | list): Dataset ratio, image count, or [train, val] counts to download.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
@@ -852,12 +853,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     output_path.mkdir(parents=True, exist_ok=True)
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
-    source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
+    fraction_key = repr(fraction) if isinstance(fraction, (int, list)) else ""
+    source_hash = hashlib.sha256(f"{source_id}{fraction_key}".encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local, fraction)
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
@@ -876,7 +878,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction: float | list) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -906,7 +908,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256()
+    _h = hashlib.sha256(repr(fraction).encode() if isinstance(fraction, (int, list)) else b"")
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
@@ -945,7 +947,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
-    # Depth adds one sibling URL per image record; file naming, caching, and retries remain shared.
+    # Depth adds one sibling URL per image record. File naming, caching, and retries remain shared.
     if is_depth:
         for record in image_records:
             depth = record.get("depth")
@@ -983,6 +985,15 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
                 f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
                 f"For best results, manually assign validation images in Platform dataset page."
             )
+
+    if isinstance(fraction, (int, list)):
+        counts = fraction if isinstance(fraction, list) else (fraction, None)
+        image_records = [
+            record
+            for split, count in zip(("train", "val"), counts)
+            for record in [r for r in image_records if r["split"] == split][:count]
+        ]
+        splits = {record["split"] for record in image_records}
 
     inferred_nc = None
 

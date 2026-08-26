@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: CC-BY-NC-SA-4.0
+    url: https://creativecommons.org/licenses/by-nc-sa/4.0/
 description: Explore the ETH3D high-resolution benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as a YOLO26-Depth zero-shot evaluation benchmark.
 keywords: Ultralytics, YOLO, depth estimation, ETH3D, multi-view stereo, laser scanner, monocular depth, indoor outdoor benchmark
 ---

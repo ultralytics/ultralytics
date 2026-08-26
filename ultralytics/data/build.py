@@ -324,8 +324,13 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
-) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader for training or validation.
+    mode: str = "train",
+) -> dataloader.DataLoader:
+    """Create a DataLoader for training or validation.
+
+    Training uses InfiniteDataLoader with persistent workers for efficiency.
+    Validation uses a standard DataLoader so workers and prefetched batches
+    are released after each validation pass.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -336,9 +341,11 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
+        mode (str): ``"train"`` for InfiniteDataLoader with persistent workers,
+            ``"val"`` for a standard DataLoader that releases workers after iteration.
 
     Returns:
-        (InfiniteDataLoader): A dataloader that can be used for training or validation.
+        (dataloader.DataLoader): A dataloader suitable for the given mode.
 
     Examples:
         Create a dataloader for training
@@ -369,19 +376,29 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
+    loader_kwargs = {
+        "dataset": dataset,
+        "batch_size": batch,
+        "shuffle": shuffle and sampler is None,
+        "num_workers": nw,
+        "sampler": sampler,
+        "pin_memory": pin_memory,
+        "collate_fn": getattr(dataset, "collate_fn", None),
+        "worker_init_fn": seed_worker,
+        "generator": generator,
+        "drop_last": drop_last,
+    }
+    if pin_memory_device:
+        loader_kwargs["pin_memory_device"] = pin_memory_device
+    if mode == "val":
+        return dataloader.DataLoader(
+            **loader_kwargs,
+            prefetch_factor=2 if nw > 0 else None,
+            persistent_workers=False,
+        )
     return InfiniteDataLoader(
-        dataset=dataset,
-        batch_size=batch,
-        shuffle=shuffle and sampler is None,
-        num_workers=nw,
-        sampler=sampler,
+        **loader_kwargs,
         prefetch_factor=4 if nw > 0 else None,  # increase over default 2
-        pin_memory=pin_memory,
-        collate_fn=getattr(dataset, "collate_fn", None),
-        worker_init_fn=seed_worker,
-        generator=generator,
-        drop_last=drop_last,
-        **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
 
 

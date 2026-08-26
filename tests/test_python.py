@@ -60,6 +60,25 @@ def test_dataloader_caps_workers_to_batches():
         two_batches.close()
 
 
+def test_dataloader_val_mode_releases_workers():
+    """Validation dataloader should be a plain DataLoader, not InfiniteDataLoader."""
+    from torch.utils.data import DataLoader
+
+    from ultralytics.data.build import InfiniteDataLoader
+
+    train_loader = build_dataloader(range(16), batch=4, workers=2, mode="train")
+    val_loader = build_dataloader(range(16), batch=4, workers=2, mode="val")
+    try:
+        assert isinstance(train_loader, InfiniteDataLoader), "train mode must use InfiniteDataLoader"
+        assert isinstance(val_loader, DataLoader) and not isinstance(val_loader, InfiniteDataLoader), (
+            "val mode must use plain DataLoader"
+        )
+        assert val_loader.persistent_workers is False, "val workers must not persist"
+    finally:
+        train_loader.close()
+        del val_loader
+
+
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler

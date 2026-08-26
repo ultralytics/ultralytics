@@ -105,14 +105,14 @@ def test_convert_depth_ndjson_preserves_scale(tmp_path, depth_server):
 
 
 def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server, monkeypatch):
-    """Reuse a complete seeded subset and reconvert when its completion marker is invalidated."""
+    """Reuse a complete subset and reconvert when its completion marker is invalidated."""
     base_url, _ = depth_server
     manifest = tmp_path / "depth.ndjson"
     _write_manifest(manifest, base_url)
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1], seed=7))
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1]))
 
     monkeypatch.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("cache missed"))
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1], seed=7)) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1])) == yaml_path
 
     monkeypatch.undo()
     depth_path = yaml_path.parent / "depth" / "val" / "2.png"
@@ -120,7 +120,7 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     data = YAML.load(yaml_path)
     data.pop("complete")
     YAML.save(yaml_path, data)
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1], seed=7)) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1])) == yaml_path
     assert depth_path.is_file()
 
 
@@ -177,8 +177,8 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[0.25, 1], seed=7))
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[0.25, 1]))
 
-    counts = [len(list((yaml_path.parent / "images" / split).glob("*"))) for split in ("train", "val", "test")]
-    assert counts == [2, 1, 1]
+    files = [{p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val", "test")]
+    assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, {"10.jpg"}]
     assert YAML.load(yaml_path)["nc"] == 3

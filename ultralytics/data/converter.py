@@ -17,6 +17,7 @@ import numpy as np
 from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
+from ultralytics.data.utils import mask2rle, polygon2mask, rle2mask
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
@@ -332,15 +333,23 @@ def convert_coco(
                             if isinstance(seg, list)
                             else []
                         )
-                        if not polygons:
+                        if isinstance(seg, dict) and "counts" in seg:  # RLE mask, kept as an RLE row
+                            counts = seg["counts"]
+                            if isinstance(counts, bytes):
+                                counts = counts.decode()
+                            elif not isinstance(counts, str):  # plain run lengths, compress them
+                                counts = mask2rle(rle2mask(counts, seg["size"]))
+                            segments.append([cls, "rle", *seg["size"], counts])
+                        elif len(polygons) > 1:  # disjoint parts survive as a mask, a single polygon cannot hold them
+                            mask = np.maximum.reduce(
+                                [polygon2mask((h, w), [np.array(p, dtype=np.float32)]) for p in polygons]
+                            )
+                            segments.append([cls, "rle", h, w, mask2rle(mask)])
+                        elif not polygons:
                             dropped = True
                             cx, cy, bw, bh = box[1:]
                             x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
                             segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
-                        elif len(polygons) > 1:
-                            s = merge_multi_segment(polygons)
-                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                            segments.append([cls, *s])
                         else:
                             s = [j for i in polygons for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
@@ -353,12 +362,12 @@ def convert_coco(
                         line = (*(keypoints[i]),)  # cls, box, keypoints
                     else:
                         line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
-                    file.write(("%g " * len(line)).rstrip() % line + "\n")
+                    file.write(" ".join(v if isinstance(v, str) else f"{v:g}" for v in line) + "\n")
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(
-                f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
-                "empty, or not a point list such as an RLE mask, use a segment shaped like their bounding box."
+                f"{json_file}: annotations whose segmentation is missing or empty use a segment shaped like "
+                "their bounding box."
             )
 
         if lvis:

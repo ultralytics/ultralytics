@@ -320,8 +320,8 @@ def verify_image_mask(args: tuple) -> tuple:
 def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
-    # Number (missing, found, empty, corrupt), message, segments, keypoints
-    nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
+    # Number (missing, found, empty, corrupt), message, segments, segment-to-instance index, keypoints
+    nm, nf, ne, nc, msg, segments, seg_idx, keypoints = 0, 0, 0, 0, "", [], np.zeros(0, dtype=int), None
     try:
         # Verify images
         msg, shape = check_image(im_file)
@@ -332,11 +332,28 @@ def verify_image_label(args: tuple) -> list:
             nf = 1  # label found
             with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-                if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
-                    assert not any(len(x) == 5 for x in lb), "labels mix segment and detection rows"
-                    classes = np.array([x[0] for x in lb], dtype=np.float32)
-                    segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in lb]  # (cls, xy1...)
-                    lb = np.concatenate((classes.reshape(-1, 1), segments2boxes(segments)), 1)  # (cls, xywh)
+                rle = [len(x) == 5 and x[1] == "rle" for x in lb]  # (cls, "rle", height, width, counts)
+                if (any(len(x) > 6 for x in lb) or any(rle)) and (not keypoint):  # is segment
+                    assert not any(len(x) == 5 and not r for x, r in zip(lb, rle)), (
+                        "labels mix segment and detection rows"
+                    )
+                    classes, points, seg_idx = [], [], []
+                    for x, r in zip(lb, rle):
+                        # An RLE row holds any number of disjoint parts and holes, a polygon row holds one part
+                        parts = (
+                            rle2segments(x[4], (int(x[2]), int(x[3])))
+                            if r
+                            else [np.array(x[1:], dtype=np.float32).reshape(-1, 2)]
+                        )
+                        if not parts:  # mask too small to trace a polygon around
+                            continue
+                        seg_idx += [len(classes)] * len(parts)
+                        classes.append(x[0])
+                        segments += parts
+                        points.append(np.concatenate(parts))
+                    seg_idx = np.array(seg_idx, dtype=int)
+                    classes = np.array(classes, dtype=np.float32).reshape(-1, 1)
+                    lb = np.concatenate((classes, segments2boxes(points)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
             if nl := len(lb):
                 if keypoint:
@@ -359,7 +376,9 @@ def verify_image_label(args: tuple) -> list:
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
                     if segments:
-                        segments = [segments[x] for x in i]
+                        order = np.concatenate([np.flatnonzero(seg_idx == x) for x in i])
+                        seg_idx = np.repeat(np.arange(len(i)), [int((seg_idx == x).sum()) for x in i])
+                        segments = [segments[x] for x in order]
                     msg = f"{prefix}{im_file}: {nl - len(i)} duplicate labels removed"
             else:
                 ne = 1  # label empty
@@ -373,11 +392,11 @@ def verify_image_label(args: tuple) -> list:
                 kpt_mask = np.where((keypoints[..., 0] < 0) | (keypoints[..., 1] < 0), 0.0, 1.0).astype(np.float32)
                 keypoints = np.concatenate([keypoints, kpt_mask[..., None]], axis=-1)  # (nl, nkpt, 3)
         lb = lb[:, :5]
-        return im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg
+        return im_file, lb, shape, segments, seg_idx, keypoints, nm, nf, ne, nc, msg
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/label: {e}"
-        return [None, None, None, None, None, nm, nf, ne, nc, msg]
+        return [None, None, None, None, None, None, nm, nf, ne, nc, msg]
 
 
 def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
@@ -423,6 +442,82 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
     plt.show()
 
 
+def rle2mask(counts: str | list[int], shape: tuple[int, int]) -> np.ndarray:
+    """Decode COCO run lengths into a binary mask.
+
+    Args:
+        counts (str | list[int]): A COCO JSON `segmentation.counts` field, either compressed to a string or
+            given as plain run lengths.
+        shape (tuple[int, int]): Mask shape as (height, width).
+
+    Returns:
+        (np.ndarray): Binary mask with shape (height, width).
+    """
+    h, w = shape
+    runs = counts
+    if isinstance(counts, str):
+        runs, p = [], 0
+        while p < len(counts):
+            x, k, more = 0, 0, True
+            while more:
+                c = ord(counts[p]) - 48
+                p += 1
+                x |= (c & 0x1F) << (5 * k)
+                more = bool(c & 0x20)
+                k += 1
+                if not more and c & 0x10:
+                    x |= -1 << (5 * k)
+            runs.append(x + runs[-2] if len(runs) > 2 else x)  # counts past the second are stored as deltas
+    values = np.zeros(len(runs), dtype=np.uint8)
+    values[1::2] = 1  # RLE always starts with a background run
+    return np.repeat(values, runs).reshape(w, h).T  # counts are column-major
+
+
+def mask2rle(mask: np.ndarray) -> str:
+    """Encode a binary mask as a COCO compressed RLE string.
+
+    Args:
+        mask (np.ndarray): Binary mask with shape (height, width).
+
+    Returns:
+        (str): Compressed run-length string matching COCO JSON `segmentation.counts`.
+    """
+    flat = np.asarray(mask, dtype=bool).T.reshape(-1)  # counts are column-major
+    cuts = np.flatnonzero(flat[1:] != flat[:-1]) + 1
+    runs = np.diff(np.concatenate(([0], cuts, [flat.size]))).tolist()
+    if flat.size and flat[0]:
+        runs = [0, *runs]  # RLE always starts with a background run
+    out = []
+    for i, x in enumerate(runs):
+        if i > 2:
+            x -= runs[i - 2]  # counts past the second are stored as deltas
+        more = True
+        while more:
+            c = x & 0x1F
+            x >>= 5
+            more = (x != -1) if c & 0x10 else (x != 0)
+            out.append(chr((c | 0x20 if more else c) + 48))
+    return "".join(out)
+
+
+def rle2segments(counts: str, shape: tuple[int, int]) -> list[np.ndarray]:
+    """Decode a COCO compressed RLE string into normalized polygon parts.
+
+    Disjoint regions become separate parts and holes become inner rings, both of which `polygon2mask` fills
+    back to the original mask because `cv2.fillPoly` applies the even-odd rule across all rings it is given.
+
+    Args:
+        counts (str): Compressed run-length string as stored in a COCO JSON `segmentation.counts` field.
+        shape (tuple[int, int]): Mask shape as (height, width).
+
+    Returns:
+        (list[np.ndarray]): Polygon parts, each of shape (M, 2) with coordinates normalized to [0, 1].
+    """
+    contours = cv2.findContours(rle2mask(counts, shape), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)[0]
+    scale = np.array([shape[1], shape[0]], dtype=np.float32)
+    return [c.reshape(-1, 2).astype(np.float32) / scale for c in contours if len(c) >= 3]
+
+
 def polygon2mask(
     imgsz: tuple[int, int], polygons: list[np.ndarray], color: int = 1, downsample_ratio: int = 1
 ) -> np.ndarray:
@@ -430,8 +525,8 @@ def polygon2mask(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is a 1D array of coordinates with length M, where
-            M % 2 = 0 (alternating x, y values).
+        polygons (list[np.ndarray]): Rings to fill into one mask, each reshapable to (-1, 2) as (x, y) point pairs.
+            Several rings are combined with the even-odd rule, so disjoint parts and holes both work.
         color (int, optional): The color value to fill in the polygons on the mask.
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
@@ -439,9 +534,7 @@ def polygon2mask(
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
-    polygons = np.asarray(polygons, dtype=np.int32)
-    polygons = polygons.reshape((polygons.shape[0], -1, 2))
-    cv2.fillPoly(mask, polygons, color=color)
+    cv2.fillPoly(mask, [np.asarray(p, dtype=np.int32).reshape(-1, 2) for p in polygons], color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)
     # Note: fillPoly first then resize is trying to keep the same loss calculation method when mask-ratio=1
     return cv2.resize(mask, (nw, nh))
@@ -454,21 +547,30 @@ def polygons2masks(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): A list of polygons. Each polygon is an array of coordinates that can be reshaped to
-            (-1, 2) as (x, y) point pairs.
+        polygons (list[np.ndarray]): One entry per mask, either a single polygon of shape (M, 2) or a group of
+            polygon parts sharing one mask, given as a (K, M, 2) array or a list of (M, 2) arrays.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
         (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
     """
-    return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
+    return np.array(
+        [
+            polygon2mask(imgsz, x if isinstance(x, list) or x.ndim == 3 else [x], color, downsample_ratio)
+            for x in polygons
+        ]
+    )
 
 
 def polygons2masks_overlap(
     imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return a downsampled overlap mask and sorted area indices."""
+    """Return a downsampled overlap mask and sorted area indices.
+
+    Each entry of `segments` is either a single polygon of shape (M, 2) or a group of polygon parts sharing one
+    mask, given as a (K, M, 2) array or a list of (M, 2) arrays.
+    """
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
         dtype=np.int32 if len(segments) > 255 else np.uint8,
@@ -478,7 +580,7 @@ def polygons2masks_overlap(
     for segment in segments:
         mask = polygon2mask(
             imgsz,
-            [segment.reshape(-1)],
+            segment if isinstance(segment, list) or segment.ndim == 3 else [segment],
             downsample_ratio=downsample_ratio,
             color=1,
         )

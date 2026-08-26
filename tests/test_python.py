@@ -1194,6 +1194,44 @@ def test_data_utils(tmp_path):
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
+def test_segment_rle_labels(tmp_path):
+    """Test that an RLE row in a YOLO txt label keeps disjoint parts and holes all the way to the mask target."""
+    from ultralytics.data.dataset import YOLODataset
+    from ultralytics.data.utils import mask2rle, rle2mask
+
+    h, w = 96, 128
+    mask = np.zeros((h, w), dtype=np.uint8)
+    cv2.rectangle(mask, (8, 8), (48, 60), 1, -1)
+    cv2.rectangle(mask, (20, 20), (32, 40), 0, -1)  # hole
+    cv2.rectangle(mask, (80, 50), (118, 88), 1, -1)  # disjoint part
+    counts = mask2rle(mask)
+    assert (rle2mask(counts, (h, w)) == mask).all()
+
+    (tmp_path / "images").mkdir()
+    (tmp_path / "labels").mkdir()
+    cv2.imwrite(str(tmp_path / "images" / "im.png"), np.zeros((h, w, 3), dtype=np.uint8))
+    (tmp_path / "labels" / "im.txt").write_text(f"0 rle {h} {w} {counts}\n")
+
+    hyp = get_cfg(DEFAULT_CFG)
+    hyp.mask_ratio, hyp.overlap_mask = 1, False
+    dataset = YOLODataset(
+        img_path=str(tmp_path / "images"),
+        data={"names": {0: "thing"}, "channels": 3},
+        task="segment",
+        augment=False,
+        hyp=hyp,
+        imgsz=max(h, w),
+    )
+    label = dataset.labels[0]
+    assert len(label["cls"]) == 1 and len(label["segments"]) == 3  # one instance, two parts and a hole
+    assert label["seg_idx"].tolist() == [0, 0, 0]
+
+    out = dataset[0]["masks"][0].numpy().astype(np.uint8)
+    contours, hierarchy = cv2.findContours(out, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+    holes = (hierarchy[0][:, 3] >= 0).sum()
+    assert holes == 1 and len(contours) - holes == 2
+
+
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local archive paths without treating them like remote URLs."""
     dataset_dir = tmp_path / "coco8 local"

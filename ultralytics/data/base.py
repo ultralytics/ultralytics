@@ -201,7 +201,11 @@ class BaseDataset(Dataset):
                 self.labels[i]["cls"] = cls[j]
                 self.labels[i]["bboxes"] = bboxes[j]
                 if segments:
-                    self.labels[i]["segments"] = [segments[si] for si, idx in enumerate(j) if idx]
+                    seg_idx = self.labels[i].get("seg_idx")
+                    seg_idx = np.arange(len(segments)) if seg_idx is None else seg_idx
+                    keep = j[seg_idx]  # j indexes instances, segments holds one row per part
+                    self.labels[i]["segments"] = [s for s, k in zip(segments, keep) if k]
+                    self.labels[i]["seg_idx"] = np.cumsum(j)[seg_idx[keep]] - 1
                 if keypoints is not None:
                     self.labels[i]["keypoints"] = keypoints[j]
             if self.single_cls:

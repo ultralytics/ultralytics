@@ -191,7 +191,8 @@ class Instances:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
         keypoints (np.ndarray): Keypoints with shape (N, 17, 3) in format (x, y, visible).
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
-        segments (np.ndarray): Segments array with shape (N, M, 2) after resampling.
+        segments (np.ndarray): Segment parts with shape (P, M, 2) after resampling.
+        seg_idx (np.ndarray): Index with shape (P,) mapping each segment part to its instance.
 
     Methods:
         convert_bbox: Convert bounding box format.
@@ -222,20 +223,24 @@ class Instances:
         keypoints: np.ndarray = None,
         bbox_format: str = "xywh",
         normalized: bool = True,
+        seg_idx: np.ndarray = None,
     ) -> None:
         """Initialize the Instances object with bounding boxes, segments, and keypoints.
 
         Args:
             bboxes (np.ndarray): Bounding boxes with shape (N, 4).
-            segments (np.ndarray, optional): Segmentation masks.
+            segments (np.ndarray, optional): Segment parts with shape (P, M, 2).
             keypoints (np.ndarray, optional): Keypoints with shape (N, 17, 3) in format (x, y, visible).
             bbox_format (str): Format of bboxes.
             normalized (bool): Whether the coordinates are normalized.
+            seg_idx (np.ndarray, optional): Index with shape (P,) mapping each segment part to its instance.
+                Defaults to one part per instance, so a disjoint mask needs several parts and an explicit index.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints
         self.normalized = normalized
         self.segments = segments if segments is not None else np.zeros((0, 0, 2), dtype=np.float32)
+        self.seg_idx = np.arange(len(self.segments)) if seg_idx is None else np.asarray(seg_idx)
 
     def convert_bbox(self, format: str) -> None:
         """Convert bounding box format.
@@ -316,6 +321,29 @@ class Instances:
             self.keypoints[..., 0] += padw
             self.keypoints[..., 1] += padh
 
+    def select_segments(self, keep: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """Reorder and renumber segment parts to follow the instance indices in `keep`.
+
+        Args:
+            keep (np.ndarray): Instance indices to keep, in the order the result should hold them.
+
+        Returns:
+            segments (np.ndarray): Segment parts of the kept instances.
+            seg_idx (np.ndarray): Index mapping each kept part to its position in `keep`.
+        """
+        if not len(self.segments):
+            return self.segments, self.seg_idx
+        new_id = np.full(len(self.bboxes), -1)
+        new_id[keep] = np.arange(len(keep))
+        mapped = new_id[self.seg_idx]
+        order = np.argsort(mapped, kind="stable")
+        order = order[mapped[order] >= 0]
+        return self.segments[order], mapped[order]
+
+    def segment_groups(self) -> list[np.ndarray]:
+        """Return each instance's segment parts as a list of (K, M, 2) arrays."""
+        return [self.segments[self.seg_idx == i] for i in range(len(self))]
+
     def __getitem__(self, index: int | np.ndarray | slice) -> Instances:
         """Retrieve a specific instance or a set of instances using indexing.
 
@@ -329,7 +357,7 @@ class Instances:
             When using boolean indexing, make sure to provide a boolean array with the same length as the number of
             instances.
         """
-        segments = self.segments[index] if len(self.segments) else self.segments
+        segments, seg_idx = self.select_segments(np.atleast_1d(np.arange(len(self))[index]))
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format
@@ -339,6 +367,7 @@ class Instances:
             keypoints=keypoints,
             bbox_format=bbox_format,
             normalized=self.normalized,
+            seg_idx=seg_idx,
         )
 
     def flipud(self, h: int) -> None:
@@ -440,24 +469,31 @@ class Instances:
         """
         good = self.bbox_areas > 0
         if not all(good):
+            self.segments, self.seg_idx = self.select_segments(np.flatnonzero(good))
             self._bboxes = self._bboxes[good]
-            if self.segments is not None and len(self.segments):
-                self.segments = self.segments[good]
             if self.keypoints is not None:
                 self.keypoints = self.keypoints[good]
         return good
 
-    def update(self, bboxes: np.ndarray, segments: np.ndarray = None, keypoints: np.ndarray = None):
+    def update(
+        self,
+        bboxes: np.ndarray,
+        segments: np.ndarray = None,
+        keypoints: np.ndarray = None,
+        seg_idx: np.ndarray = None,
+    ):
         """Update instance variables.
 
         Args:
             bboxes (np.ndarray): New bounding boxes.
-            segments (np.ndarray, optional): New segments.
+            segments (np.ndarray, optional): New segment parts.
             keypoints (np.ndarray, optional): New keypoints.
+            seg_idx (np.ndarray, optional): New index mapping each segment part to its instance.
         """
         self._bboxes = Bboxes(bboxes, format=self._bboxes.format)
         if segments is not None:
             self.segments = segments
+            self.seg_idx = np.arange(len(segments)) if seg_idx is None else np.asarray(seg_idx)
         if keypoints is not None:
             self.keypoints = keypoints
 
@@ -508,8 +544,10 @@ class Instances:
             )
         else:
             cat_segments = np.concatenate([b.segments for b in instances_list], axis=axis)
+        offsets = np.cumsum([0, *(len(b) for b in instances_list[:-1])])
+        cat_seg_idx = np.concatenate([b.seg_idx + o for b, o in zip(instances_list, offsets)])
         cat_keypoints = np.concatenate([b.keypoints for b in instances_list], axis=axis) if use_keypoint else None
-        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized)
+        return cls(cat_boxes, cat_segments, cat_keypoints, bbox_format, normalized, cat_seg_idx)
 
     @property
     def bboxes(self) -> np.ndarray:

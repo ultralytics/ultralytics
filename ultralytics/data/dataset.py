@@ -210,7 +210,7 @@ class YOLODataset(BaseDataset):
         Returns:
             (tuple): (label dict or None, missing, found, empty, corrupt, message).
         """
-        im_file, lb, shape, segments, keypoint, nm_f, nf_f, ne_f, nc_f, msg = result
+        im_file, lb, shape, segments, seg_idx, keypoint, nm_f, nf_f, ne_f, nc_f, msg = result
         label = (
             {
                 "im_file": im_file,
@@ -218,6 +218,7 @@ class YOLODataset(BaseDataset):
                 "cls": lb[:, 0:1],  # n, 1
                 "bboxes": lb[:, 1:],  # n, 4
                 "segments": segments,
+                "seg_idx": seg_idx,
                 "keypoints": keypoint,
                 "normalized": True,
                 "bbox_format": "xywh",
@@ -235,7 +236,10 @@ class YOLODataset(BaseDataset):
             cache_path (Path): Path of the dataset cache file, used in warning messages.
         """
         # Check if the dataset is all boxes or all segments
-        lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
+        lengths = (
+            (len(lb["cls"]), len(lb["bboxes"]), len(np.unique(lb.get("seg_idx", np.arange(len(lb["segments"]))))))
+            for lb in labels
+        )
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
         if self.use_segments and len_boxes != len_segments:
             raise ValueError(
@@ -388,6 +392,7 @@ class YOLODataset(BaseDataset):
         """
         bboxes = label.pop("bboxes")
         segments = label.pop("segments", [])
+        seg_idx = label.pop("seg_idx", None)
         keypoints = label.pop("keypoints", None)
         bbox_format = label.pop("bbox_format")
         normalized = label.pop("normalized")
@@ -402,7 +407,9 @@ class YOLODataset(BaseDataset):
             segments = np.stack(resample_segments(segments, n=segment_resamples), axis=0)
         else:
             segments = np.zeros((0, segment_resamples, 2), dtype=np.float32)
-        label["instances"] = Instances(bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized)
+        label["instances"] = Instances(
+            bboxes, segments, keypoints, bbox_format=bbox_format, normalized=normalized, seg_idx=seg_idx
+        )
         return label
 
     @staticmethod
@@ -1119,7 +1126,12 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
 
         # Denormalize polygons (stored as normalized xy) to pixel coordinates at (h, w).
         scale = np.array([w, h], dtype=np.float32)
-        polys = [np.asarray(s, dtype=np.float32).reshape(-1, 2) * scale for s in segments]
+        seg_idx = label.get("seg_idx")
+        seg_idx = np.arange(len(segments)) if seg_idx is None else seg_idx
+        polys = [
+            [np.asarray(segments[p], dtype=np.float32).reshape(-1, 2) * scale for p in np.flatnonzero(seg_idx == i)]
+            for i in range(len(cls))
+        ]
         # Returns (H, W) instance index map: 0 = no polygon, 1..N = sorted instance index.
         inst, sorted_idx = polygons2masks_overlap((h, w), polys, downsample_ratio=1)
         out = np.full((h, w), self.bg_class_idx, dtype=np.uint8)

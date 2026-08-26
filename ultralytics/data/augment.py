@@ -1989,7 +1989,7 @@ class CopyPaste(BaseMixTransform):
         im_new = params["im_new"]
 
         for j in selected:
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
+            cv2.drawContours(im_new, instances2.segments[[j]].round().astype(np.int32), -1, 1, cv2.FILLED)
 
         result = params.get("labels2_img")
         if result is None:

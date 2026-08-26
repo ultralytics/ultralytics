@@ -1194,6 +1194,15 @@ def test_data_utils(tmp_path):
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
+def test_polygon2mask_rounds_vertices():
+    """Test polygon2mask rounds vertices, because truncating pulled every mask toward the image origin."""
+    from ultralytics.data.utils import polygon2mask
+
+    polygon = np.array([[9.6, 9.6], [30.6, 9.6], [30.6, 30.6], [9.6, 30.6]], dtype=np.float32)
+    mask = polygon2mask((40, 40), [polygon.reshape(-1)])
+    assert mask[31, 31] and not mask[9, 9]  # the square rounds to 10..31, truncation placed it at 9..30
+
+
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local archive paths without treating them like remote URLs."""
     dataset_dir = tmp_path / "coco8 local"

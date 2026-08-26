@@ -82,7 +82,8 @@ class YOLO(Model):
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
-            head = head or BaseBackend.read_metadata(self.model).get("head", "")
+            if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
+                head = BaseBackend.read_metadata(self.model).get("head", "")
             if head == "DeimDecoder":  # if YOLO-DETR head
                 from ultralytics import YOLODETR
 

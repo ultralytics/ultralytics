@@ -224,8 +224,10 @@ class HungarianMatcher(nn.Module):
             # Compute L1 cost between boxes
             cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 
-            # Compute IoU cost between boxes, (bs*num_queries, num_gt); probiou for OBB, axis-aligned GIoU otherwise
-            cost_giou = 1.0 - (pair_riou if pair_riou is not None else pairwise_giou(pred_xyxy, gt_xyxy))
+            # Compute IoU cost between boxes, (bs*num_queries, num_gt); probiou for OBB, axis-aligned GIoU
+            # otherwise. The probiou cost is scaled by 2 to match GIoU's [0, 2] cost range (GIoU in [-1, 1] vs
+            # probiou in [0, 1]), preserving the original class/bbox/iou cost balance.
+            cost_giou = 2.0 * (1.0 - pair_riou) if pair_riou is not None else 1.0 - pairwise_giou(pred_xyxy, gt_xyxy)
 
             # Combine costs into final cost matrix
             C = (

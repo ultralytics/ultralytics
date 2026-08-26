@@ -62,11 +62,15 @@ from ultralytics.utils.torch_utils import (
     one_cycle,
     parse_device,
     select_device,
+    smart_inference_mode,
     strip_optimizer,
     torch_distributed_zero_first,
     unset_deterministic,
     unwrap_model,
 )
+
+# QAT schemes: `quantize` value -> NVIDIA ModelOpt config quantizing INT8 weights with INT8 or unquantized activations
+QAT_SCHEMES = {8: "INT8_DEFAULT_CFG", "w8a16": "INT8_WEIGHT_ONLY_CFG"}
 
 
 class BaseTrainer:
@@ -323,6 +327,10 @@ class BaseTrainer:
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
+
+        # Build model for QAT (skipped when an already-quantized model is handed to the trainer)
+        if self.args.quantize and not hasattr(self.model, "_modelopt_state"):
+            self.build_quantized_model()
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
@@ -728,14 +736,30 @@ class BaseTrainer:
                 if isinstance(v, torch.Tensor) and not torch.isfinite(v).all() and torch.isfinite(model_sd[k]).all():
                     v.copy_(model_sd[k])
         # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
-        # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
-        ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
+        # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway. QAT models stay
+        # FP32 as ModelOpt quantizers do not support half precision.
+        qat = hasattr(ema, "_modelopt_state")
+        ema = deepcopy(ema).to(memory_format=torch.contiguous_format)
+        if not qat:
+            ema = ema.half()
         if hasattr(ema, "criterion"):
             ema.criterion = None  # strip training-only state from the serialization snapshot
         # Clamp fp16 serialization overflow without mutating the live EMA.
         for v in ema.state_dict().values():
             if isinstance(v, torch.Tensor) and v.is_floating_point():
                 torch.nan_to_num_(v)
+
+        extras = {}
+        if qat:
+            import modelopt.torch.opt as mto
+
+            extras = {  # quantized models can't be pickled, so save the ModelOpt state and weights instead
+                "modelopt_state": mto.modelopt_state(ema),
+                "state_dict": ema.state_dict(),
+                "model_class": ema.__class__,
+                "yaml": ema.yaml,
+                "names": ema.names,
+            }
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
@@ -744,7 +768,7 @@ class BaseTrainer:
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
-                "ema": ema,
+                "ema": None if qat else ema,
                 "updates": self.ema.updates,
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
@@ -762,6 +786,7 @@ class BaseTrainer:
                 },
                 "license": "AGPL-3.0 (https://ultralytics.com/license)",
                 "docs": "https://docs.ultralytics.com",
+                **extras,
             },
             buffer,
         )
@@ -879,6 +904,39 @@ class BaseTrainer:
         if self.best_fitness is None or self.best_fitness < fitness:
             self.best_fitness = fitness
         return metrics, fitness
+
+    def build_quantized_model(self):
+        """Insert ModelOpt Q/DQ layers into the model for quantization-aware training."""
+        from ultralytics.data.build import build_dataloader
+        from ultralytics.utils.torch_utils import setup_modelopt
+
+        setup_modelopt()
+        import modelopt.torch.quantization as mtq
+
+        name = QAT_SCHEMES.get(self.args.quantize)
+        assert name, f"'quantize={self.args.quantize}' is not a QAT scheme, valid schemes are {list(QAT_SCHEMES)}."
+        bs = int(self.batch_size) if self.batch_size >= 1 else 16  # AutoBatch is resolved after QAT setup
+        with torch_distributed_zero_first(LOCAL_RANK):  # init dataset *.cache only once if DDP
+            dataset = self.build_dataset(self.data["val"], "QAT", bs)
+        calib_loader = build_dataloader(dataset, batch=bs, workers=0)
+
+        @smart_inference_mode()
+        def forward_loop(model):
+            model.eval()
+            count, num_samples = 0, 512  # max calibration samples
+            for batch in calib_loader:
+                if count >= num_samples:
+                    break
+                images = self.preprocess_batch(batch)["img"]
+                model(images)
+                count += images.shape[0]
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.model = mtq.quantize(model=self.model, config=getattr(mtq, name), forward_loop=forward_loop)
+        mtq.disable_quantizer(self.model, "*dfl*")  # DFL sums a fixed integral, INT8 destroys its resolution
+
+        LOGGER.info(f"{colorstr('QAT:')} Inserted {name} Q/DQ layers")
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Get model and raise NotImplementedError for loading cfg files."""
@@ -1036,8 +1094,8 @@ class BaseTrainer:
             raise RuntimeError(f"Training failed: NaN persisted for {self.nan_recovery_attempts} epochs")
         LOGGER.warning(f"{reason} detected (attempt {self.nan_recovery_attempts}/3), recovering from last.pt...")
         self._model_train()  # set model to train mode before loading checkpoint to avoid inference tensor errors
-        _, ckpt = load_checkpoint(self.last)
-        ema = ckpt["ema"].float()
+        ema, ckpt = load_checkpoint(self.last)  # QAT checkpoints store no pickled EMA, so use the rebuilt model
+        ema = ema.float()
         ema_state = ema.state_dict()
         if not all(torch.isfinite(v).all() for v in ema_state.values() if isinstance(v, torch.Tensor)):
             raise RuntimeError(f"Checkpoint {self.last} is corrupted with NaN/Inf weights")

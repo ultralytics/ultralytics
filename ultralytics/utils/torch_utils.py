@@ -46,6 +46,7 @@ TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
 TORCH_2_3 = check_version(TORCH_VERSION, "2.3.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_5 = check_version(TORCH_VERSION, "2.5.0")
+TORCH_2_6 = check_version(TORCH_VERSION, "2.6.0")
 TORCH_2_7 = check_version(TORCH_VERSION, "2.7.0")
 TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
@@ -838,9 +839,10 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
         x["model"].args = dict(x["model"].args)  # convert from IterableSimpleNamespace to dict
     if hasattr(x["model"], "criterion"):
         x["model"].criterion = None  # strip loss criterion
-    x["model"].half()  # to FP16
-    for p in x["model"].parameters():
-        p.requires_grad = False
+    if "modelopt_state" not in x:  # QAT checkpoints hold a state dict instead of a pickled FP32 model
+        x["model"].half()  # to FP16
+        for p in x["model"].parameters():
+            p.requires_grad = False
 
     # Update other keys
     args = {**DEFAULT_CFG_DICT, **x.get("train_args", {})}  # combine args
@@ -1132,3 +1134,25 @@ def attempt_compile(
     else:
         LOGGER.info(f"{prefix} compile complete in {t_compile:.1f}s (no warmup)")
     return model
+
+
+def setup_modelopt():
+    """Install NVIDIA Model Optimizer if missing and silence its logs."""
+    import logging
+    import warnings
+
+    from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_10, check_requirements
+
+    assert TORCH_2_6, "QAT requires PyTorch>=2.6"
+    assert IS_PYTHON_MINIMUM_3_10, "QAT requires Python>=3.10"
+    # modelopt >= 0.44 required, older releases import onnx.mapping which was removed in onnx >= 1.18.
+    # huggingface_hub is declared as an optional extra but modelopt.torch imports it unconditionally.
+    check_requirements(["nvidia-modelopt>=0.44", "huggingface_hub"])
+
+    import modelopt.torch.quantization as mtq
+    import modelopt.torch.utils as mtu
+
+    # Suppress logs
+    mtu.cpp_extension.print = mtq.conversion.print = lambda *args, **kwargs: None
+    warnings.filterwarnings("ignore", module="modelopt")
+    logging.getLogger("torch.utils.cpp_extension").setLevel(logging.ERROR)

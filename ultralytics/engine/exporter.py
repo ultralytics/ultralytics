@@ -814,7 +814,10 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
-        if self.args.quantize in {8, "w8a16"} and not self.args.data:
+        self.qat = hasattr(model, "_modelopt_state")  # model carries ModelOpt Q/DQ layers from QAT
+        if self.qat:
+            assert fmt in {"onnx", "engine"}, "QAT models can only be exported to TensorRT or ONNX."
+        elif self.args.quantize in {8, "w8a16"} and not self.args.data:  # QAT graphs need no calibration data
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
@@ -1076,6 +1079,9 @@ class Exporter:
         if self.args.nms and self.model.task == "obb":
             self.args.opset = opset  # for NMSModel
             self.args.simplify = True  # fix OBB runtime error related to topk
+        if self.qat:
+            self.model.cpu()  # crashes if CUDA toolkit is not available on GPU export
+            self.im = self.im.cpu()
 
         model = NMSModel(self.model, self.args) if self.args.nms else self.model
         # Normalize coordinates by input size so RKNN's per-tensor INT8 scale preserves class scores.
@@ -1386,7 +1392,8 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=self.dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 and not self.qat else None,
+            qat=self.qat,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,

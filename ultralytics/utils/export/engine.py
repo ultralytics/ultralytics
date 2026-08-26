@@ -211,6 +211,7 @@ def onnx2engine(
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dla: int | None = None,
     dataset=None,
+    qat: bool = False,
     metadata: dict | None = None,
     verbose: bool = False,
     prefix: str = "",
@@ -226,6 +227,7 @@ def onnx2engine(
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        qat (bool, optional): Whether the ONNX graph already carries QAT Q/DQ nodes, so no calibration is needed.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
@@ -283,8 +285,8 @@ def onnx2engine(
     network = builder.create_network(flag)
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
-    use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
-    if use_int8 and dataset is None:
+    use_int8 = getattr(builder, "platform_has_fast_int8", True) and (quantize == 8 or qat)
+    if use_int8 and dataset is None and not qat:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 
     # Optionally switch to DLA if enabled
@@ -306,7 +308,7 @@ def onnx2engine(
 
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
-    if is_trt11 and (use_fp16 or use_int8):
+    if is_trt11 and (use_fp16 or use_int8) and not qat:  # QAT graphs already carry Q/DQ nodes
         onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
@@ -407,10 +409,11 @@ def onnx2engine(
                 _ = self.cache.write_bytes(cache)
 
         # Load dataset w/ builder (for batching) and calibrate
-        config.int8_calibrator = EngineCalibrator(
-            dataset=dataset,
-            cache=str(Path(onnx_file).with_suffix(".cache")),
-        )
+        if dataset is not None:
+            config.int8_calibrator = EngineCalibrator(
+                dataset=dataset,
+                cache=str(Path(onnx_file).with_suffix(".cache")),
+            )
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve

@@ -130,6 +130,14 @@ def test_distill(task: str, data: str, student: str, teacher: Path) -> None:
     run(f"yolo train {task} model={student} distill_model={teacher} data={data} imgsz=32 epochs=1")
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_qat(tmp_path: Path) -> None:
+    """Test model training and export with QAT."""
+    pytest.importorskip("modelopt.torch.quantization", reason="QAT requires nvidia-modelopt")
+    run(f"yolo train data=coco128.yaml imgsz=32 epochs=1 project={tmp_path} name=qat quantize=8 exist_ok")
+    run(f"yolo export model={tmp_path}/qat/weights/best.pt format=onnx")
+
+
 @pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 @pytest.mark.skipif(
     LINUX and ARM64 and checks.IS_PYTHON_3_8 and "2.1.0a0" in TORCH_VERSION,

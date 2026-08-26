@@ -1295,7 +1295,11 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
     plot_records = records if isinstance(zero_mask, slice) else [r for r, keep in zip(records, zero_mask) if keep]
     datasets = sorted({k for r in plot_records for k in r.get("datasets", {})})
     _, (ax1, ax2) = plt.subplots(
-        1, 2, figsize=(16, max(6, len(datasets) * 0.28)), gridspec_kw={"width_ratios": (1, 1.35)}, layout="constrained"
+        1,
+        2,
+        figsize=(16, max(6, len(datasets) * 0.28)),
+        gridspec_kw={"width_ratios": (1, 1.35)},
+        constrained_layout=True,
     )
     iterations = np.arange(1, len(all_fitness) + 1)
     best_idx = int(all_fitness.argmax())
@@ -1315,9 +1319,10 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         y = np.arange(len(datasets))
         ax2.hlines(y, initial[order], best[order], color="0.8")
         ax2.scatter(initial[order], y, s=24, color="#dc2626", label="Initial")
-        ax2.scatter(best[order], y, s=24, color="#16a34a", label="Best")
-        ax2.set_yticks(y, labels=np.array(datasets)[order], fontsize=8)
-        ax2.set(title="Per-Dataset Fitness: Initial vs Best", xlabel="Fitness")
+        ax2.scatter(best[order], y, s=24, color="#16a34a", label=f"Best aggregate iteration {best_idx + 1}")
+        ax2.set_yticks(y)
+        ax2.set_yticklabels(np.array(datasets)[order], fontsize=8)
+        ax2.set(title="Per-Dataset Fitness: Initial vs Best Aggregate Iteration", xlabel="Fitness")
         ax2.grid(axis="x", alpha=0.2)
         ax2.legend()
     else:

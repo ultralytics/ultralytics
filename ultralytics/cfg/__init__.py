@@ -468,7 +468,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     cfg[k] = v = float(v)
                 valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 0)
                 if not valid or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
+                    raise ValueError(f"'{k}={v}' invalid. Use count >0 or ratio (0, 1] for fraction; [0, 1] otherwise.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:

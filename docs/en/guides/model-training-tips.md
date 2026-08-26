@@ -64,7 +64,7 @@ With respect to YOLO26, you can set the `batch` parameter in the [Train mode arg
 
 Subset training is a smart strategy that involves training your model on a smaller set of data that represents the larger dataset. It can save time and resources, especially during initial model development and testing. If you are running short on time or experimenting with different model configurations, subset training is a good option.
 
-When it comes to YOLO26, you can easily implement subset training by using the `fraction` parameter. This parameter lets you specify what fraction of your dataset to use for training. For example, setting `fraction=0.1` will train your model on 10% of the data. You can use this technique for quick iterations and tuning your model before committing to training a model using a full dataset. Subset training helps you make rapid progress and identify potential issues early on.
+When it comes to YOLO26, you can easily implement subset training with the `fraction` parameter. Use a ratio such as `fraction=0.1` for 10% of the training data, an integer such as `fraction=300` for exactly 300 training images, or a `[train, val]` list such as `fraction=[300, 100]` to limit both splits. NDJSON datasets use `seed` to select the same records before downloading them, so repeated runs reuse the exact subset. This technique supports quick iterations and tuning before committing to the full dataset.
 
 ### Multi-scale Training
 

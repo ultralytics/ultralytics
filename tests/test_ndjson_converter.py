@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import random
 import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -106,14 +105,14 @@ def test_convert_depth_ndjson_preserves_scale(tmp_path, depth_server):
 
 
 def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server, monkeypatch):
-    """Reuse complete depth conversions and reconvert when the completion marker is invalidated."""
+    """Reuse a complete seeded subset and reconvert when its completion marker is invalidated."""
     base_url, _ = depth_server
     manifest = tmp_path / "depth.ndjson"
     _write_manifest(manifest, base_url)
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1], seed=7))
 
     monkeypatch.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("cache missed"))
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1], seed=7)) == yaml_path
 
     monkeypatch.undo()
     depth_path = yaml_path.parent / "depth" / "val" / "2.png"
@@ -121,7 +120,7 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     data = YAML.load(yaml_path)
     data.pop("complete")
     YAML.save(yaml_path, data)
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1], seed=7)) == yaml_path
     assert depth_path.is_file()
 
 
@@ -178,11 +177,8 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[0.25, 1], seed=7))
 
-    order = list(range(1, 10))
-    random.Random(0).shuffle(order)
-    assert (yaml_path.parent / "images" / "val" / f"{order[0]}.jpg").is_file()
-    capped = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "capped", fraction=[2, 1])).parent
-    assert [len(list((capped / "images" / split).glob("*"))) for split in ("train", "val", "test")] == [2, 1, 1]
-    assert YAML.load(capped / "data.yaml")["nc"] == 3
+    counts = [len(list((yaml_path.parent / "images" / split).glob("*"))) for split in ("train", "val", "test")]
+    assert counts == [2, 1, 1]
+    assert YAML.load(yaml_path)["nc"] == 3

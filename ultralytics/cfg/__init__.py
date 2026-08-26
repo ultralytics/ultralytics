@@ -454,8 +454,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
                 if k == "fraction" and isinstance(v, list):
-                    if len(v) != 2 or not all(type(x) is int and x > 0 for x in v):
-                        raise ValueError(f"'{k}={v}' is invalid. Use two positive [train, val] counts.")
+                    if len(v) != 2 or not all(
+                        (type(x) is int and x > 0) or (type(x) is float and 0.0 < x <= 1.0) for x in v
+                    ):
+                        raise ValueError(f"'{k}={v}' is invalid. Use positive [train, val] counts or fractions.")
                     continue
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
@@ -464,9 +466,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                if k == "fraction" and isinstance(v, int) and v > 0:
-                    continue
-                if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
+                valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 0)
+                if not valid or (k == "fraction" and v == 0.0):
                     raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):

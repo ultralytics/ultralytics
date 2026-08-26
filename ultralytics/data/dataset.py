@@ -1175,7 +1175,7 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
-        fraction = get_split_fraction(args.fraction, prefix or ("train" if augment else "val"))
+        fraction = 1.0 if is_ndjson else get_split_fraction(args.fraction, prefix or ("train" if augment else "val"))
         count = fraction if isinstance(fraction, int) else round(len(self.samples) * fraction)
         self.samples = self.samples[:count] if count < len(self.samples) else self.samples
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""

@@ -814,7 +814,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None, fraction=1.0) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0, seed=0) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
@@ -830,7 +830,8 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
-        fraction (float | int | list): Dataset ratio, image count, or [train, val] counts to download.
+        fraction (float | int | list): Train ratio/count or [train, val] ratios/counts to download.
+        seed (int): Random seed for reproducible subset selection.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
@@ -853,13 +854,12 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     output_path.mkdir(parents=True, exist_ok=True)
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
-    fraction_key = repr(fraction) if isinstance(fraction, (int, list)) else ""
-    source_hash = hashlib.sha256(f"{source_id}{fraction_key}".encode()).hexdigest()[:8]
+    source_hash = hashlib.sha256(repr((source_id, fraction, seed)).encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local, fraction)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local, fraction, seed)
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
@@ -878,7 +878,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction: float | list) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction, seed: int) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -908,7 +908,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256(repr(fraction).encode() if isinstance(fraction, (int, list)) else b"")
+    _h = hashlib.sha256(repr((fraction, seed)).encode())
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
@@ -975,7 +975,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
                     f"Dataset has only {len(train_records)} image(s) and no 'val' split. "
                     f"Need at least 2 images to auto-split into train/val."
                 )
-            random.Random(0).shuffle(train_records)  # local RNG to avoid mutating global training seed
+            random.Random(seed).shuffle(train_records)  # local RNG to avoid mutating global training seed
             val_count = max(1, len(train_records) // 10)
             for r in train_records[:val_count]:
                 r["split"] = "val"
@@ -1006,15 +1006,12 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    if isinstance(fraction, (int, list)):
-        counts = dict(zip(("train", "val"), fraction if isinstance(fraction, list) else (fraction, None)))
-        selected = []
-        for record in image_records:
-            if (count := counts.get(record["split"])) is None or count:
-                selected.append(record)
-                if count:
-                    counts[record["split"]] -= 1
-        image_records = selected
+    selected = [r for r in image_records if r["split"] == "test"]
+    for split, limit in zip(("train", "val"), fraction if isinstance(fraction, list) else (fraction, 1.0)):
+        records = [r for r in image_records if r["split"] == split]
+        count = limit if type(limit) is int else round(len(records) * limit)
+        selected.extend(random.Random(f"{seed}:{split}").sample(records, min(count, len(records))))
+    image_records = selected
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None

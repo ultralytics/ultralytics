@@ -713,15 +713,14 @@ def test_convert_signed_ndjson(monkeypatch):
 
     captured = []
 
-    async def convert(path, fraction):
-        captured.append((path, fraction))
+    async def convert(path, fraction, seed):
+        captured.append((path, fraction, seed))
         return "dataset.ndjson.yaml"
 
     monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
     url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
     assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
-    assert captured == [(url, 1.0)]
-    assert utils.get_split_fraction([2, 1], "test") == 1.0
+    assert captured == [(url, 1.0, 0)]
 
 
 @pytest.mark.parametrize("task", ["detect", "classify"])

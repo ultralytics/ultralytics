@@ -5,7 +5,8 @@ creator:
     name: Global Wheat Dataset Consortium
     url: https://www.global-wheat.com/
 license:
-    name: None
+    name: MIT
+    url: https://api.datacite.org/dois/10.5281/zenodo.4298502
 description: Train YOLO26 on the Global Wheat Head Dataset — 3,422 train, 748 validation, and 1,276 test field images labeled with wheat head boxes for single-class detection.
 keywords: Global Wheat Head Dataset, GWHD, wheat head detection, wheat spike detection, wheat phenotyping, crop management, object detection, YOLO26, agriculture
 ---

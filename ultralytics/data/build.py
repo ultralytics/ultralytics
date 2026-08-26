@@ -328,9 +328,8 @@ def build_dataloader(
 ) -> dataloader.DataLoader:
     """Create a DataLoader for training or validation.
 
-    Training uses InfiniteDataLoader with persistent workers for efficiency.
-    Validation uses a standard DataLoader so workers and prefetched batches
-    are released after each validation pass.
+    Training uses InfiniteDataLoader with persistent workers for efficiency. Validation uses a standard DataLoader so
+    workers and prefetched batches are released after each validation pass.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -341,8 +340,8 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
-        mode (str): ``"train"`` for InfiniteDataLoader with persistent workers,
-            ``"val"`` for a standard DataLoader that releases workers after iteration.
+        mode (str): ``"train"`` for InfiniteDataLoader with persistent workers, ``"val"`` for a standard DataLoader that
+            releases workers after iteration.
 
     Returns:
         (dataloader.DataLoader): A dataloader suitable for the given mode.

@@ -1303,6 +1303,22 @@ class RTDETRDEIMOBBValidator(RTDETRDEIMValidator):
             task="obb",
         )
 
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Scale predictions from the stretched imgsz frame back to the original image size.
+
+        The base RTDETRValidator leaves predn untouched because metrics are computed in the resized frame
+        (_prepare_batch scales GT into it), but save_json/save_txt consumers — DOTA Task1 submission txts via
+        pred_to_json/eval_json — need original-image coordinates: the RT-DETR eval dataloader stretches images to
+        square imgsz (load_image with rect_mode=False, no letterbox), and DOTA-split tiles are not all
+        imgsz-sized (e.g. 682/2048/edge tiles), so unscaled coordinates place detections in the wrong frame.
+        """
+        oh, ow = pbatch["ori_shape"]
+        ih, iw = pbatch["imgsz"]
+        bboxes = predn["bboxes"].clone()
+        bboxes[:, [0, 2]] *= ow / iw  # cx, w
+        bboxes[:, [1, 3]] *= oh / ih  # cy, h
+        return {**predn, "bboxes": bboxes}
+
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:

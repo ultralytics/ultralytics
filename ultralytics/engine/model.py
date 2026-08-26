@@ -565,14 +565,14 @@ class Model(torch.nn.Module):
             ...     print(r.boxes.id)  # print tracking IDs
 
         Notes:
-            - This method sets a default confidence threshold of 0.1 for ByteTrack-based tracking.
+            - This method sets a default confidence threshold of 0.1 so trackers receive low-confidence detections.
             - The tracking mode is explicitly set in the keyword arguments.
             - Batch size is set to 1 for tracking in videos.
         """
         from ultralytics.trackers import register_tracker
 
         register_tracker(self, persist)
-        kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
+        kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
@@ -903,6 +903,8 @@ class Model(torch.nn.Module):
             >>> results = model.tune(use_ray=True, iterations=20, data="coco8.yaml")
         """
         self._check_is_pytorch_model()
+        if "optimizer" not in (kwargs.get("space") or {}):
+            kwargs.setdefault("optimizer", "AdamW")
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 

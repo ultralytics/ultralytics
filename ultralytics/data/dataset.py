@@ -236,8 +236,13 @@ class YOLODataset(BaseDataset):
             cache_path (Path): Path of the dataset cache file, used in warning messages.
         """
         # Check if the dataset is all boxes or all segments
+        # A segment may hold several parts, so count the instances they belong to, not the parts
         lengths = (
-            (len(lb["cls"]), len(lb["bboxes"]), len(np.unique(lb.get("seg_idx", np.arange(len(lb["segments"]))))))
+            (
+                len(lb["cls"]),
+                len(lb["bboxes"]),
+                len(lb["segments"]) if lb.get("seg_idx") is None else len(np.unique(lb["seg_idx"])),
+            )
             for lb in labels
         )
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
@@ -1127,11 +1132,14 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
         # Denormalize polygons (stored as normalized xy) to pixel coordinates at (h, w).
         scale = np.array([w, h], dtype=np.float32)
         seg_idx = label.get("seg_idx")
-        seg_idx = np.arange(len(segments)) if seg_idx is None else seg_idx
-        polys = [
-            [np.asarray(segments[p], dtype=np.float32).reshape(-1, 2) * scale for p in np.flatnonzero(seg_idx == i)]
-            for i in range(len(cls))
-        ]
+        polys = (
+            [np.asarray(s, dtype=np.float32).reshape(-1, 2) * scale for s in segments]
+            if seg_idx is None
+            else [
+                [np.asarray(segments[p], dtype=np.float32).reshape(-1, 2) * scale for p in np.flatnonzero(seg_idx == i)]
+                for i in range(len(cls))
+            ]
+        )
         # Returns (H, W) instance index map: 0 = no polygon, 1..N = sorted instance index.
         inst, sorted_idx = polygons2masks_overlap((h, w), polys, downsample_ratio=1)
         out = np.full((h, w), self.bg_class_idx, dtype=np.uint8)

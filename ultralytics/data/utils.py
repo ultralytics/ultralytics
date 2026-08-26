@@ -321,7 +321,7 @@ def verify_image_label(args: tuple) -> list:
     """Verify one image-label pair."""
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, segment-to-instance index, keypoints
-    nm, nf, ne, nc, msg, segments, seg_idx, keypoints = 0, 0, 0, 0, "", [], np.zeros(0, dtype=int), None
+    nm, nf, ne, nc, msg, segments, seg_idx, keypoints = 0, 0, 0, 0, "", [], None, None
     try:
         # Verify images
         msg, shape = check_image(im_file)
@@ -337,6 +337,9 @@ def verify_image_label(args: tuple) -> list:
                     assert not any(len(x) == 5 and not r for x, r in zip(lb, rle)), (
                         "labels mix segment and detection rows"
                     )
+                    assert all(shape == (int(x[2]), int(x[3])) for x, r in zip(lb, rle) if r), (
+                        f"RLE mask size does not match the image size {shape}"
+                    )
                     classes, points, seg_idx = [], [], []
                     for x, r in zip(lb, rle):
                         # An RLE row holds any number of disjoint parts and holes, a polygon row holds one part
@@ -351,7 +354,7 @@ def verify_image_label(args: tuple) -> list:
                         classes.append(x[0])
                         segments += parts
                         points.append(np.concatenate(parts))
-                    seg_idx = np.array(seg_idx, dtype=int)
+                    seg_idx = np.array(seg_idx, dtype=int) if any(rle) else None  # None means one part each
                     classes = np.array(classes, dtype=np.float32).reshape(-1, 1)
                     lb = np.concatenate((classes, segments2boxes(points)), 1)  # (cls, xywh)
                 lb = np.array(lb, dtype=np.float32)
@@ -375,7 +378,9 @@ def verify_image_label(args: tuple) -> list:
                 _, i = np.unique(lb, axis=0, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
-                    if segments:
+                    if segments and seg_idx is None:
+                        segments = [segments[x] for x in i]
+                    elif segments:
                         order = np.concatenate([np.flatnonzero(seg_idx == x) for x in i])
                         seg_idx = np.repeat(np.arange(len(i)), [int((seg_idx == x).sum()) for x in i])
                         segments = [segments[x] for x in order]

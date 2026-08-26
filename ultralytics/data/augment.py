@@ -1285,13 +1285,19 @@ class RandomPerspective(BaseTransform):
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
-        if seg_idx is None:
-            seg_idx = np.arange(n)
-        bboxes = np.stack(
-            [segment2box(segments[seg_idx == i].reshape(-1, 2), size[0], size[1]) for i in range(seg_idx.max() + 1)], 0
-        )
-        if not self.preserve_obb:
+        if seg_idx is None:  # one part per instance, so a part is already the whole mask
+            bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
+            box = bboxes
+        else:
+            bboxes = np.stack(
+                [
+                    segment2box(segments[seg_idx == i].reshape(-1, 2), size[0], size[1])
+                    for i in range(seg_idx.max() + 1)
+                ],
+                0,
+            )
             box = bboxes[seg_idx]
+        if not self.preserve_obb:
             segments[..., 0] = segments[..., 0].clip(box[:, 0:1], box[:, 2:3])
             segments[..., 1] = segments[..., 1].clip(box[:, 1:2], box[:, 3:4])
         return bboxes, segments
@@ -2231,8 +2237,12 @@ class Albumentations(BaseTransform):
                 if n:
                     segment_lost = lost[:n].reshape(segments.shape[:2])
                     segment_points = moved[:n].reshape(segments.shape)
-                    kept = np.zeros(len(cls), bool)  # an instance survives if any of its parts survives
-                    np.logical_or.at(kept, instances.seg_idx, ~segment_lost.all(1))
+                    part_kept = ~segment_lost.all(1)
+                    if instances.seg_idx is None:
+                        kept = part_kept
+                    else:  # an instance survives if any of its parts survives
+                        kept = np.zeros(len(cls), bool)
+                        np.logical_or.at(kept, instances.seg_idx, part_kept)
                     i = i[kept[i]]
                     for segment, missing in zip(segment_points, segment_lost):
                         v = np.flatnonzero(~missing)
@@ -2252,17 +2262,21 @@ class Albumentations(BaseTransform):
                     if self.flip_idx and reflected:
                         keypoints = np.ascontiguousarray(keypoints[:, self.flip_idx])
                 if n:
-                    new_id = np.full(len(cls), -1)  # drop lost parts, renumber the rest onto the kept instances
-                    new_id[i] = np.arange(len(i))
-                    mapped = np.where(segment_lost.all(1), -1, new_id[instances.seg_idx])
-                    order = np.argsort(mapped, kind="stable")
-                    order = order[mapped[order] >= 0]
-                    seg_idx = mapped[order]
+                    if instances.seg_idx is None:
+                        order, seg_idx = i, None
+                    else:  # drop lost parts, renumber the rest onto the kept instances
+                        new_id = np.full(len(cls), -1)
+                        new_id[i] = np.arange(len(i))
+                        mapped = np.where(~part_kept, -1, new_id[instances.seg_idx])
+                        order = np.argsort(mapped, kind="stable")
+                        order = order[mapped[order] >= 0]
+                        seg_idx = mapped[order]
                     segments = moved[:n].reshape(segments.shape)[order]
-                    bboxes = np.array(
-                        [segment2box(segments[seg_idx == k].reshape(-1, 2), w, h) for k in range(len(i))], np.float32
-                    ).reshape(-1, 4)
-                    box = bboxes[seg_idx]
+                    parts = (
+                        segments if seg_idx is None else [segments[seg_idx == k].reshape(-1, 2) for k in range(len(i))]
+                    )
+                    bboxes = np.array([segment2box(s, w, h) for s in parts], np.float32).reshape(-1, 4)
+                    box = bboxes if seg_idx is None else bboxes[seg_idx]
                     segments[..., 0] = segments[..., 0].clip(box[:, 0:1], box[:, 2:3])
                     segments[..., 1] = segments[..., 1].clip(box[:, 1:2], box[:, 3:4])
                     instances = Instances(

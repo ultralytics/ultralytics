@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 description: Explore the iBims-1 indoor benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as a YOLO26-Depth zero-shot evaluation benchmark.
 keywords: Ultralytics, YOLO, depth estimation, iBims-1, indoor depth, laser scanner, monocular depth, depth edges, planar surfaces
 ---

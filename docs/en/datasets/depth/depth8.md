@@ -1,7 +1,7 @@
 ---
 comments: true
 license:
-  name: None
+    name: None
 description: Explore the Ultralytics Depth8 dataset, a compact set of 8 indoor RGB-D images for testing monocular depth estimation models and training pipelines.
 keywords: Depth8, Ultralytics, dataset, depth estimation, monocular depth, YOLO26, training, validation, debugging, SUN RGB-D
 ---

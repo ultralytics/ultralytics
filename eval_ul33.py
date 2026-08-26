@@ -1,4 +1,4 @@
-"""Score UL33 prediction JSONs with native or image-size-calibrated area buckets.
+"""Evaluate UL33 prediction JSONs with native or image-size-calibrated area buckets.
 
 By default, Tiny, Small, Medium, and Large use native bounding-box pixel areas. Pass
 ``--ref-size 640`` to scale each area by

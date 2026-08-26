@@ -7,7 +7,7 @@ model_name: yolo26n-obb
 
 # Oriented Bounding Boxes [Object Detection](https://www.ultralytics.com/glossary/object-detection)
 
-<!-- obb task poster -->
+<img width="1024" src="https://cdn.ul.run/i/312d955ae0696f4ba8d073c3c5df8f53.avif" alt="Ultralytics YOLO oriented bounding box detection of boats in aerial imagery">
 
 Oriented object detection goes a step further than standard object detection by introducing an extra angle to locate objects more accurately in an image.
 

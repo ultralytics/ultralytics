@@ -1291,10 +1291,11 @@ class E2ELoss:
         self.final_o2m = self.one2one.hyp.o2m
         # Training-only class-agnostic foreground auxiliary; the one2one branch takes detached features, so this is
         # the only aux path that shapes the trunk besides the one2many loss. Gated by aux_fg_on (default off), which
-        # makes DetectionTrainer.get_model attach the head's aux_fg branch; aux_fg/aux_fg_tgt/aux_fg_t are code-only
-        # args whose defaults reproduce the mix-target ablation recipe.
+        # makes DetectionTrainer.get_model attach the head's aux_fg branch. The term is a BCE over class-agnostic
+        # foreground, so its gain tracks half the cls gain; aux_fg_tgt/aux_fg_t are code-only args whose defaults
+        # reproduce the mix-target ablation recipe.
         self.aux_fg = (
-            getattr(model.args, "aux_fg", 0.5)
+            model.args.cls * 0.5
             if getattr(model.args, "aux_fg_on", False) and hasattr(model.model[-1], "aux_fg")
             else 0.0
         )

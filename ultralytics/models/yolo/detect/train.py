@@ -233,11 +233,7 @@ class DetectionTrainer(BaseTrainer):
         """Return a DetectionValidator for YOLO model validation."""
         self.loss_names = "box_loss", "cls_loss", "dfl_loss"
         # E2ELoss appends the aux foreground term when enabled; keep loss_names in sync
-        if (
-            getattr(self.args, "aux_fg_on", False)
-            and getattr(self.args, "aux_fg", 0.5)
-            and hasattr(unwrap_model(self.model).model[-1], "aux_fg")
-        ):
+        if getattr(self.args, "aux_fg_on", False) and hasattr(unwrap_model(self.model).model[-1], "aux_fg"):
             self.loss_names += ("aux_fg_loss",)
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks

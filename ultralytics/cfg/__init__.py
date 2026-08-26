@@ -616,7 +616,6 @@ def check_dict_alignment(
         allowed_custom_keys = {
             "augmentations",
             "save_dir",
-            "aux_fg",
             "aux_fg_tgt",
             "aux_fg_t",
             "smooth_l1",

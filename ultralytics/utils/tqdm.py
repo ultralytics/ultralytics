@@ -297,7 +297,7 @@ class TQDM:
         # Write to output, fitting real terminals only so redirected logs keep full lines
         try:
             progress_str = f"{self.desc}: {fields}"
-            if self.file.isatty():  # description yields its cells first so the progress fields survive
+            if self.file.isatty() and "JPY_PARENT_PID" not in os.environ:  # a notebook pane scrolls, never fit it
                 try:  # measure self.file's own terminal, not sys.__stdout__
                     width = os.get_terminal_size(self.file.fileno()).columns - 1
                 except Exception:  # streams without a usable fileno (io.StringIO, wrapped stdout)

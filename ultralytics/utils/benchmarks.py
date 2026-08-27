@@ -30,7 +30,6 @@ Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 from __future__ import annotations
 
 import glob
-import importlib.util
 import platform
 import shutil
 import time
@@ -178,12 +177,6 @@ def benchmark(
                 )
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
-                )
-            if export_format == "coreai":
-                # coreai-torch is an optional extra ('.[export-coreai]') pinned to a prerelease coreai-core, so it
-                # is not part of the '[export]' install used here; without it the export raises ModuleNotFoundError.
-                assert importlib.util.find_spec("coreai_torch"), (
-                    "Core AI benchmark requires 'pip install ultralytics[export-coreai]'"
                 )
             if export_format == "litert":
                 assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"

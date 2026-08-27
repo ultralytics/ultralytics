@@ -37,7 +37,7 @@ class CoreAIBackend(BaseBackend):
         descriptor = self._function.desc
         self._input_name = descriptor.input_names[0]
         self._output_names = list(descriptor.output_names)
-        self._fp16 = "float16" in str(descriptor.input_descriptor(self._input_name).dtype)
+        self.fp16 = "float16" in str(descriptor.input_descriptor(self._input_name).dtype)
         self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list:
@@ -51,8 +51,6 @@ class CoreAIBackend(BaseBackend):
         """
         from coreai.runtime import NDArray
 
-        if self._fp16:
-            im = im.half()
         inputs = {self._input_name: NDArray(im.cpu().numpy())}
         out = self._loop.run_until_complete(_await(self._function(inputs)))
         values = [out[n] for n in self._output_names] if isinstance(out, dict) else list(out)

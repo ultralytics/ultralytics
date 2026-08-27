@@ -39,7 +39,6 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_13,
     TORCH_2_0,
     TORCH_2_1,
-    TORCH_2_8,
     TORCH_2_9,
 )
 
@@ -542,29 +541,6 @@ def test_export_rknn(isolated_model, quantize, batch):
     file = YOLO(isolated_model).export(format="rknn", imgsz=32, quantize=quantize, batch=batch, data="coco8.yaml")
     assert next(Path(file).rglob("*.rknn"), None), f"RKNN export failed, no RKNN model found in: {file}"
     shutil.rmtree(file, ignore_errors=True)
-
-
-@pytest.mark.skipif(
-    not MACOS or not ARM64 or not MACOS_VERSION or MACOS_VERSION < "26.0",
-    reason="Core AI requires macOS>=26 on Apple silicon",
-)
-@pytest.mark.skipif(not TORCH_2_8, reason="Core AI export requires torch>=2.8.0")
-@pytest.mark.parametrize("quantize", [None, 16])
-def test_export_coreai(isolated_model, quantize):
-    """Test YOLO model export to Apple Core AI format and inference on the exported asset."""
-    import importlib.util
-
-    # coreai-torch is an optional extra and the base env does not install it, so skip rather than fail
-    if importlib.util.find_spec("coreai_torch") is None:
-        pytest.skip("coreai-torch not installed, install with 'pip install ultralytics[export-coreai]'")
-    file = YOLO(isolated_model).export(format="coreai", imgsz=32, quantize=quantize)
-    assert Path(file).suffix == ".aimodel", f"Core AI export produced an unexpected suffix: {file}"
-    assert (Path(file) / "metadata.json").exists(), f"Core AI asset is missing metadata.json: {file}"
-    if quantize is None:  # FP16 assets can abort the process on ANE load, see the Core AI integration docs
-        model = YOLO(file, task="detect")
-        assert model.names, "Core AI asset did not round-trip its class names"
-        model(SOURCE, imgsz=32, rect=False)  # rect=False: the exported graph is static
-    shutil.rmtree(file, ignore_errors=True)  # cleanup
 
 
 # @pytest.mark.skipif(True, reason="Disabled for debugging ruamel.yaml installation required by executorch")

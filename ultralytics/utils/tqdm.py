@@ -299,11 +299,10 @@ class TQDM:
             progress_str = f"{self.desc}: {fields}"
             if self.file.isatty():  # description yields its cells first so the progress fields survive
                 try:  # measure self.file's own terminal, not sys.__stdout__
-                    width = os.get_terminal_size(self.file.fileno()).columns
+                    width = os.get_terminal_size(self.file.fileno()).columns - 1
                 except Exception:  # streams without a usable fileno (io.StringIO, wrapped stdout)
-                    width = shutil.get_terminal_size().columns  # COLUMNS env, else sys.__stdout__
-                if width:  # a pty opened without a winsize reports 0 columns, so there is no width to fit to
-                    width -= 1
+                    width = shutil.get_terminal_size().columns - 1  # COLUMNS env, else sys.__stdout__
+                if width > 0:  # a pty opened without a winsize reports 0 columns, so there is no width to fit to
                     progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
             # Non-interactive environments avoid the carriage return which creates empty lines
             frame = progress_str if self.noninteractive else f"\r\033[K{progress_str}"

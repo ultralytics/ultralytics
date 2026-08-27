@@ -28,7 +28,7 @@
     "imgsz": ["int", "640", "Input image size for model inference."],
     "video_classifier_model": ["str", "'s3d'", "TorchVision video classification model used to label each tracked person's action, e.g. `s3d`, `r3d_18`, `swin3d_t`."],
     "crop_margin_percentage": ["int", "10", "Margin added around each detected person's box before the frame is cropped for classification."],
-    "num_video_sequence_samples": ["int", "16", "Number of collected crops that make up one classification clip. Keep it at 16 or higher; shorter clips fail on the s3d and MViT backbones."],
+    "num_video_sequence_samples": ["int", "16", "Number of collected crops that make up one classification clip. Values below the selected backbone's temporal minimum are raised to it."],
     "skip_frame": ["int", "2", "Collect a crop every N frames, so one clip spans `num_video_sequence_samples * skip_frame` video frames."],
     "video_cls_overlap_ratio": ["float", "0.25", "Fraction of a clip reused by the next one, controlling how often the classifier re-runs for a track."],
 } %}

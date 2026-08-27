@@ -72,6 +72,7 @@ class TorchVisionVideoClassifier:
         self.device = select_device(device)
         self.model = model_fn(weights=weights).to(self.device).eval()
         self.categories = weights.meta["categories"]
+        self.min_temporal_size = weights.meta.get("min_temporal_size") or 1
         self.transform = weights.transforms()
         crop_size = self.transform.crop_size
         if isinstance(crop_size, int):
@@ -136,7 +137,7 @@ class ActionRecognition(BaseSolution):
         self.video_cls_overlap_ratio = float(self.CFG["video_cls_overlap_ratio"])
 
         self._video_classifier_model = self.CFG["video_classifier_model"]
-        self._video_classifier_device = self.CFG["device"] or ""
+        self._video_classifier_device = "" if self.CFG["device"] is None else self.CFG["device"]
         self.video_classifier = None
 
         self.crop_history = defaultdict(list)
@@ -158,6 +159,9 @@ class ActionRecognition(BaseSolution):
         if self.video_classifier is None:
             self.video_classifier = TorchVisionVideoClassifier(
                 self._video_classifier_model, self._video_classifier_device
+            )
+            self.num_video_sequence_samples = max(
+                self.num_video_sequence_samples, self.video_classifier.min_temporal_size
             )
 
         self.frame_counter += 1
@@ -196,14 +200,14 @@ class ActionRecognition(BaseSolution):
                         self.pred_confs[tid] = c
 
             for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-                base_label = self.adjust_box_label(cls, conf, track_id)
-                if track_id in self.pred_labels:
-                    action = f"{self.pred_labels[track_id]} ({self.pred_confs[track_id]:.2f})"
-                    label = f"{base_label} | {action}" if base_label else action
-                    annotator.box_label(box, label, color=colors(track_id, True))
-                else:
-                    label = f"{base_label} | detecting..." if base_label else "detecting..."
-                    annotator.box_label(box, label, color=(128, 128, 128))
+                known = track_id in self.pred_labels
+                action = ""
+                if self.show_labels:
+                    action = self.pred_labels[track_id] if known else "detecting..."
+                    if known and self.show_conf:
+                        action += f" ({self.pred_confs[track_id]:.2f})"
+                label = " | ".join(x for x in (self.adjust_box_label(cls, conf, track_id), action) if x)
+                annotator.box_label(box, label, color=colors(track_id, True) if known else (128, 128, 128))
 
         plot_im = annotator.result()
         self.display_output(plot_im)

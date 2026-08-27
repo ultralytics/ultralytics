@@ -13,7 +13,7 @@ keywords: Luxonis, OAK camera, DepthAI, RVC2, RVC4, Luxonis Hub, hubai-sdk, Tool
 
 Luxonis [OAK cameras](https://www.luxonis.com/) are [edge AI](https://www.ultralytics.com/glossary/edge-ai) vision devices that combine image sensors with on-device compute for real-time perception tasks such as [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md) and others. They are designed for embedded and robotic vision workloads where running inference directly on the camera reduces latency, bandwidth usage, and dependence on cloud processing.
 
-![Luxonis banner](images/luxonis_banner.png)
+![Luxonis banner](luxonis_banner.png)
 
 This guide focuses on deploying Ultralytics YOLO models on OAK cameras using the Luxonis software stack. It covers the relevant OAK hardware generations, explains why YOLO models must be converted into Luxonis device-specific artifacts, and walks through both cloud conversion with [Luxonis Hub](https://hub.luxonis.com/) and local conversion with Luxonis tooling before running inference on-device.
 
@@ -59,6 +59,8 @@ This guide covers two supported conversion workflows. The first is cloud convers
 
     For YOLO workflows in this guide, the expected starting point is a `.pt` checkpoint, whether you convert through Luxonis Hub or with local Luxonis tooling. You can use your own trained checkpoint or start from an official Ultralytics pretrained model such as those listed on the [YOLO26 models page](../models/yolo26.md#performance-metrics).
 
+![Luxonis deployments](luxonis_deployment_flow.png)
+
 ## Conversion Path 1: Cloud Conversion with Luxonis Hub
 
 [Luxonis Hub](https://hub.luxonis.com/) provides a hosted conversion workflow for turning supported YOLO source models into deployable artifacts for `RVC2` or `RVC4`. For most users, the recommended starting point is [Quick Conversion](https://docs.luxonis.com/cloud/hubai/quick-conversion), which is the fastest path from a raw model file to a compiled Luxonis output without managing full model history in the registry.
@@ -90,7 +92,7 @@ For most YOLO deployments, start with the [Quick Conversion page](https://docs.l
 5. Submit the conversion and wait for the cloud job to complete.
 6. Refer to [Running Inference on OAK Cameras](#running-inference-on-oak-cameras) for deployment instructions.
 
-![Luxonis Hub quick conversion window](images/luxonis_quick_conversion.png)
+![Luxonis Hub quick conversion window](luxonis_quick_conversion.png)
 
 If you need model history, reusable variants, more control over metadata and conversion settings, or custom [quantization](https://www.ultralytics.com/glossary/model-quantization) data for `RVC4` conversion, continue with the [Detailed Conversion](https://docs.luxonis.com/cloud/hubai/model-registry/detailed-conversion) workflow or the [HubAI SDK](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/).
 
@@ -228,9 +230,6 @@ Once you have a converted model, inference on OAK cameras is done with [DepthAI 
 
 For other task variants, such as [semantic segmentation](../tasks/semantic.md) and [classification](../tasks/classify.md), as well as broader pipeline concepts, examples, and advanced usage patterns, see the Luxonis [AI Inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
 
-
-![Luxonis deployments](images/luxonis_deployment_examples_with_brand_tagline.png)
-
 ### Prerequisites
 
 Before running inference, make sure you have:
@@ -247,7 +246,7 @@ Before running inference, make sure you have:
         ```
 
 For the models hosted on Luxonis Hub, you can reference them directly using their model identifier, which you can find next to their conversions. If the model is private, then you also need to configure your Luxonis Hub API key first so DepthAI can authenticate when resolving the model identifier. This means setting the `DEPTHAI_HUB_API_KEY` environment variable to the value of the key from [here](https://docs.luxonis.com/cloud/api/api-keys/).
-![Luxonis Hub model identifier](images/luxonis_model_identifier.png)
+![Luxonis Hub model identifier](luxonis_model_identifier.png)
 
 ### Python Example
 

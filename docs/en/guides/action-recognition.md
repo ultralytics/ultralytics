@@ -8,6 +8,10 @@ keywords: action recognition, Ultralytics YOLO26, video classification, TorchVis
 
 Action recognition combines [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/) object detection with TorchVision video classification models to identify human actions in real-time video streams. The system tracks individuals and classifies their activities using models pretrained on Kinetics-400.
 
+<p align="center">
+  <video width="1024" src="https://cdn.ul.run/v/10c887c2e5324dce8611c595673a56c0.mp4" autoplay loop muted playsinline aria-label="Action recognition classifying a tracked person dribbling a basketball"></video>
+</p>
+
 ## Installation
 
 ```bash

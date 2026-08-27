@@ -80,7 +80,7 @@ from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
 from ultralytics.nn.modules import (
     OBB,
@@ -704,6 +704,11 @@ class Exporter:
         if fmt == "axelera" and min(self.imgsz) < 64:
             raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if fmt == "rknn":
+            if self.args.quantize == 8 and model.task != "detect":
+                raise ValueError(
+                    "Rockchip RKNN INT8 export is only supported for detection models. "
+                    "Use FP16 (quantize=16) for other tasks."
+                )
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "
@@ -988,20 +993,20 @@ class Exporter:
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
+            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
             dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
-            if self.args.fraction < 1.0:
-                dataset.samples = dataset.samples[: round(len(dataset.samples) * self.args.fraction)]
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=self.args.split)
+            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
             dataset = build_yolo_dataset(
                 cfg,
                 data[self.args.split or "val"],
                 self.args.batch,
                 data,
                 mode="val",
-                fraction=self.args.fraction,
+                fraction=cfg.fraction,
             )
         if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
@@ -1048,7 +1053,7 @@ class Exporter:
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
-        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type, quantize=self.args.quantize)
+        opset = self.args.opset or best_onnx_opset(onnx)
         assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:

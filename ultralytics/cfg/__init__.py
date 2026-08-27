@@ -221,7 +221,7 @@ CFG_FLOAT_KEYS = frozenset(
     }
 )
 CFG_FRACTION_KEYS = frozenset(
-    {  # fractional floats use [0.0, 1.0], except dataset fraction uses (0.0, 1.0]
+    {  # fractional floats use [0.0, 1.0]; dataset fraction also accepts positive counts and split pairs
         "dropout",
         "lr0",
         "lrf",
@@ -418,11 +418,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
+        - Fraction keys use [0.0, 1.0]; dataset fraction also accepts positive counts and [train, val] pairs.
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
-        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment":
+        if v is None and (
+            k == "amp" or (DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment")
+        ):
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
@@ -452,6 +454,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
+                if k == "fraction" and isinstance(v, list):
+                    if len(v) != 2 or not all(
+                        (type(x) is int and x > 0) or (type(x) is float and 0.0 < x <= 1.0) for x in v
+                    ):
+                        raise ValueError(f"'{k}={v}' is invalid. Use positive [train, val] counts or fractions.")
+                    continue
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
                         raise TypeError(
@@ -459,8 +467,9 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
+                valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 0)
+                if not valid or (k == "fraction" and v == 0.0):
+                    raise ValueError(f"'{k}={v}' invalid. Use count >0 or ratio (0, 1] for fraction; [0, 1] otherwise.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:
@@ -488,6 +497,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool or str (i.e. '{k}=True' or '{k}=max-autotune')"
                     )
                 cfg[k] = bool(v)
+            elif k == "amp":
+                if not isinstance(v, bool) and str(v).lower() not in {"fp16", "bf16", "fp32"}:
+                    raise ValueError(
+                        f"'{k}={v}' is invalid. Valid '{k}' values are True, False, 'fp16', 'bf16', or 'fp32'."
+                    )
+                cfg[k] = v.lower() if isinstance(v, str) else v
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
                 scheme = QUANTIZE_ALIASES.get(str(v).lower())
                 if scheme is None:

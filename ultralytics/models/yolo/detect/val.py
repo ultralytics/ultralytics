@@ -11,6 +11,7 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
 from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
@@ -343,7 +344,10 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dataset): YOLO dataset.
         """
-        return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, stride=self.stride)
+        fraction = get_split_fraction(self.args.fraction, self.args.split or "val")
+        return build_yolo_dataset(
+            self.args, img_path, batch, self.data, mode=mode, stride=self.stride, fraction=fraction
+        )
 
     def get_dataloader(self, dataset_path: str, batch_size: int) -> torch.utils.data.DataLoader:
         """Construct and return dataloader.
@@ -355,7 +359,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
-        dataset = self.build_dataset(dataset_path, batch=batch_size, mode=self.args.split or "val")
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
         return build_dataloader(
             dataset,
             batch_size,

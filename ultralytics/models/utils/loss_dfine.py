@@ -56,6 +56,7 @@ class DfineLoss(nn.Module):
         debug_new_giou_loss: bool = False,
         focaler_d: float = 0.0,
         focaler_u: float = 1.0,
+        use_class_weights: bool = False,
     ):
         super().__init__()
         if loss_gain is None:
@@ -74,6 +75,8 @@ class DfineLoss(nn.Module):
         self.use_union_set = use_union_set
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
+        self.use_class_weights = use_class_weights
+        self.class_weights = None  # (nc,) weights attached by RTDETRDetectionModel.init_criterion
         self.debug_new_giou_loss = debug_new_giou_loss
 
         self.matcher = HungarianMatcher(**matcher)
@@ -244,20 +247,21 @@ class DfineLoss(nn.Module):
 
         class_gain = self.loss_gain["class"]
         if self.stable_dino is not None:
-            loss_cls = self.stable_dino(pred_scores, gt_scores, one_hot)
+            loss_cls = self.stable_dino(pred_scores, gt_scores, one_hot, self.class_weights)
             loss_cls /= max(global_num_gts, 1.0) / nq
             class_gain *= self.stable_dn_gain if "_dn" in postfix else self.stable_gain
         elif self.mal is not None:
-            loss_cls = self.mal(pred_scores, gt_scores, one_hot)
+            loss_cls = self.mal(pred_scores, gt_scores, one_hot, self.class_weights)
             loss_cls /= max(global_num_gts, 1.0) / nq
         elif self.fl:
             if local_num_gts and self.vfl:
-                loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
+                loss_cls = self.vfl(pred_scores, gt_scores, one_hot, self.class_weights)
             else:
-                loss_cls = self.fl(pred_scores, one_hot.float())
+                loss_cls = self.fl(pred_scores, one_hot.float(), self.class_weights)
             loss_cls /= max(global_num_gts, 1.0) / nq
         else:
-            loss_cls = F.binary_cross_entropy_with_logits(pred_scores, gt_scores, reduction="none").mean(1).sum()
+            bce = F.binary_cross_entropy_with_logits(pred_scores, gt_scores, reduction="none")
+            loss_cls = (bce if self.class_weights is None else bce * self.class_weights).mean(1).sum()
         return {name_class: loss_cls.squeeze() * class_gain}
 
     def _get_loss_bbox(

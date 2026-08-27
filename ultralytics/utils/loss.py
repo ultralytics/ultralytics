@@ -38,10 +38,18 @@ class VarifocalLoss(nn.Module):
         self.gamma = gamma
         self.alpha = alpha
 
-    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
-        """Compute varifocal loss between predictions and ground truth."""
+    def forward(
+        self,
+        pred_score: torch.Tensor,
+        gt_score: torch.Tensor,
+        label: torch.Tensor,
+        class_weights: torch.Tensor | None = None,
+    ) -> torch.Tensor:
+        """Compute varifocal loss between predictions and ground truth, optionally scaled by per-class weights."""
         pred_prob = pred_score.sigmoid().detach()
         weight = self.alpha * pred_prob.pow(self.gamma) * (1 - label) + gt_score * label
+        if class_weights is not None:
+            weight = weight * class_weights
         with autocast(enabled=False):
             loss = (
                 (F.binary_cross_entropy_with_logits(pred_score.float(), gt_score.float(), reduction="none") * weight)
@@ -68,7 +76,9 @@ class FocalLoss(nn.Module):
         self.gamma = gamma
         self.alpha = torch.tensor(alpha)
 
-    def forward(self, pred: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, pred: torch.Tensor, label: torch.Tensor, class_weights: torch.Tensor | None = None
+    ) -> torch.Tensor:
         """Calculate focal loss with modulating factors for class imbalance."""
         loss = F.binary_cross_entropy_with_logits(pred, label, reduction="none")
         # p_t = torch.exp(-loss)
@@ -83,6 +93,8 @@ class FocalLoss(nn.Module):
             self.alpha = self.alpha.to(device=pred.device, dtype=pred.dtype)
             alpha_factor = label * self.alpha + (1 - label) * (1 - self.alpha)
             loss *= alpha_factor
+        if class_weights is not None:
+            loss = loss * class_weights
         return loss.mean(1).sum()
 
 
@@ -114,7 +126,13 @@ class MALoss(nn.Module):
         self.gamma = gamma
         self.alpha = alpha
 
-    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        pred_score: torch.Tensor,
+        gt_score: torch.Tensor,
+        label: torch.Tensor,
+        class_weights: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """Compute Matcher-Aware Loss between predicted logits and IoU-weighted soft targets.
 
         For each query, positives (matched) receive a soft target of IoU^gamma with weight 1, while
@@ -128,6 +146,8 @@ class MALoss(nn.Module):
                 for matched queries at the ground truth class position.
             label (torch.Tensor): One-hot class encodings with shape (B, N, C) and dtype int64.
                 Used to separate positive (label=1) and negative (label=0) query weighting.
+            class_weights (torch.Tensor, optional): Per-class loss weights with shape (C,) applied to every
+                query before reduction.
 
         Returns:
             (torch.Tensor): Scalar loss value averaged over queries and summed over the batch.
@@ -138,6 +158,8 @@ class MALoss(nn.Module):
             weight = self.alpha * pred_prob.pow(self.gamma) * (1 - label) + label
         else:
             weight = pred_prob.pow(self.gamma) * (1 - label) + label
+        if class_weights is not None:
+            weight = weight * class_weights
         loss = F.binary_cross_entropy_with_logits(pred_score, target_score, weight=weight, reduction="none")
         return loss.mean(1).sum()
 
@@ -175,7 +197,13 @@ class StableDINOLoss(nn.Module):
         self.quality_beta = quality_beta
         self.normalize_targets = normalize_targets
 
-    def forward(self, pred_score: torch.Tensor, gt_score: torch.Tensor, label: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self,
+        pred_score: torch.Tensor,
+        gt_score: torch.Tensor,
+        label: torch.Tensor,
+        class_weights: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """Compute Stable-DINO classification loss from logits, matched IoUs, and one-hot labels."""
         pred_score = pred_score.float()
         pred_prob = pred_score.sigmoid()
@@ -190,8 +218,11 @@ class StableDINOLoss(nn.Module):
 
         positive_weight = self.alpha * (target_score - pred_prob).abs().pow(self.gamma) * label
         negative_weight = (1.0 - self.alpha) * pred_prob.pow(self.gamma) * (1.0 - label)
+        weight = positive_weight + negative_weight
+        if class_weights is not None:
+            weight = weight * class_weights
         bce = F.binary_cross_entropy_with_logits(pred_score, target_score, reduction="none")
-        return (bce * (positive_weight + negative_weight)).mean(1).sum()
+        return (bce * weight).mean(1).sum()
 
 
 class DFLoss(nn.Module):

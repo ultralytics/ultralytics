@@ -54,6 +54,8 @@ class DETRLoss(nn.Module):
         fl (FocalLoss | None): Focal Loss object if use_fl is True, otherwise None.
         vfl (VarifocalLoss | None): Varifocal Loss object if use_vfl is True, otherwise None.
         mal (MALoss | None): MALoss object if use_mal is True, otherwise None.
+        use_class_weights (bool): Whether the classification loss consumes per-class frequency weights.
+        class_weights (torch.Tensor | None): Per-class loss weights with shape (C,) attached by the model.
         debug_new_giou_loss (bool): If True, replace the default bbox_iou GIoU loss with aligned GIoU.
         device (torch.device): Device on which tensors are stored.
     """
@@ -71,6 +73,7 @@ class DETRLoss(nn.Module):
         gamma: float = 1.5,
         alpha: float = 0.25,
         matcher: dict[str, Any] | None = None,
+        use_class_weights: bool = False,
     ):
         """Initialize DETR loss function with customizable components and gains.
 
@@ -89,6 +92,8 @@ class DETRLoss(nn.Module):
             gamma (float): The focusing parameter that controls how much the loss focuses on hard-to-classify examples.
             alpha (float): The balancing factor used to address class imbalance.
             matcher (dict[str, Any]): Configuration for HungarianMatcher.
+            use_class_weights (bool): Whether to scale the classification loss by the per-class weights the
+                trainer derives from cls_pw.
         """
         super().__init__()
 
@@ -106,6 +111,8 @@ class DETRLoss(nn.Module):
 
         self.use_uni_match = use_uni_match
         self.uni_match_ind = uni_match_ind
+        self.use_class_weights = use_class_weights
+        self.class_weights = None  # (nc,) weights attached by RTDETRDetectionModel.init_criterion
         self.debug_new_giou_loss = False
         self.device = None
 
@@ -137,6 +144,8 @@ class DETRLoss(nn.Module):
             - Varifocal Loss (if self.fl and self.vfl are set and local_num_gts > 0)
             - Focal Loss (if self.fl is set but vfl condition is not met)
             - BCE Loss (default fallback)
+
+            Per-class weights scale the loss before reduction when use_class_weights is set and cls_pw > 0.
         """
         # Logits: [b, query, num_classes], gt_class: list[[n, 1]]
         name_class = f"loss_class{postfix}"
@@ -147,16 +156,17 @@ class DETRLoss(nn.Module):
         gt_scores = gt_scores.view(bs, nq, 1) * one_hot
 
         if self.mal is not None:
-            loss_cls = self.mal(pred_scores, gt_scores, one_hot)
+            loss_cls = self.mal(pred_scores, gt_scores, one_hot, self.class_weights)
             loss_cls /= max(global_num_gts, 1) / nq
         elif self.fl:
             if local_num_gts and self.vfl:
-                loss_cls = self.vfl(pred_scores, gt_scores, one_hot)
+                loss_cls = self.vfl(pred_scores, gt_scores, one_hot, self.class_weights)
             else:
-                loss_cls = self.fl(pred_scores, one_hot.float())
+                loss_cls = self.fl(pred_scores, one_hot.float(), self.class_weights)
             loss_cls /= max(global_num_gts, 1) / nq
         else:
-            loss_cls = F.binary_cross_entropy_with_logits(pred_scores, gt_scores, reduction="none").mean(1).sum()
+            bce = F.binary_cross_entropy_with_logits(pred_scores, gt_scores, reduction="none")
+            loss_cls = (bce if self.class_weights is None else bce * self.class_weights).mean(1).sum()
 
         return {name_class: loss_cls.squeeze() * self.loss_gain["class"]}
 

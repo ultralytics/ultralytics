@@ -964,9 +964,10 @@ class RTDETRDetectionModel(DetectionModel):
         loss_cfg = self.yaml.get("loss", {})
         loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
         has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf"))
-        if has_dfine_gain:
-            return DfineLoss(nc=self.nc, **loss_cfg)
-        return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)
+        criterion = (DfineLoss if has_dfine_gain else RTDETRDetectionLoss)(nc=self.nc, **loss_cfg)
+        if criterion.use_class_weights:
+            criterion.class_weights = getattr(self, "class_weights", None)
+        return criterion
 
     @staticmethod
     def _cast_floating_loss_inputs_fp32(value):

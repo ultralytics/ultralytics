@@ -781,7 +781,7 @@ class RTDETRDetectionModel(DetectionModel):
         """Return True if names look like default numeric placeholders: {0:'0', 1:'1', ...}."""
         return is_default_numeric_names(names)
 
-    def load(self, weights, verbose=True, src_names=None, dst_names=None):
+    def load(self, weights, verbose=True, src_names=None, dst_names=None, dn_cls_transfer=False):
         """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer."""
         model = weights["model"] if isinstance(weights, dict) else weights
         csd = model.float().state_dict()
@@ -795,10 +795,18 @@ class RTDETRDetectionModel(DetectionModel):
         if dst_names is None:
             dst_names = getattr(self, "names", None)
 
-        # Discard denoising_class_embed when class count changes (following DEIM approach).
-        # A partially-remapped embedding is worse than fresh random initialization.
+        # Discard denoising_class_embed when class count changes (following DEIM approach), unless
+        # dn_cls_transfer keeps it so the class remapping below transfers its matched rows by name.
         # Must run BEFORE class remapping, which would resize the tensor and mask the mismatch.
-        dn_discard = [k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape]
+        dn_discard = (
+            []
+            if dn_cls_transfer
+            else [
+                k
+                for k in csd
+                if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
+            ]
+        )
         for k in dn_discard:
             del csd[k]
             if verbose:

@@ -487,6 +487,16 @@ def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
     return n_imgs, max(1, (n_imgs + batch - 1) // batch)
 
 
+_MULTI_SIZE_METRICS = {
+    f"{'map50_95' if kind == 'AP' else 'mar'}_{size}": f"metrics/m{kind}_{size}(B)"
+    for size in DETECTION_AREA_RANGES
+    for kind in ("AP", "AR")
+}
+_MULTI_MAP50_SIZE_METRICS = tuple(f"map50_{size}" for size in DETECTION_AREA_RANGES)
+_LEGACY_MULTI_SIZE_METRICS = {f"map_{size}": f"map50_95_{size}" for size in DETECTION_AREA_RANGES}
+_MULTI_METRICS = ("map50", "map50_95", "fitness", "f1", *_MULTI_MAP50_SIZE_METRICS, *_MULTI_SIZE_METRICS)
+
+
 def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
     """Read unique dataset rows from one multi_det CSV."""
     if not csv_path.exists():
@@ -497,14 +507,10 @@ def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
             name = record.pop("dataset")
             if name in rows:
                 raise ValueError(f"{csv_path}: duplicate row for dataset {name!r}")
-            rows[name] = {key: float(value) for key, value in record.items() if value}
+            rows[name] = {
+                _LEGACY_MULTI_SIZE_METRICS.get(key, key): float(value) for key, value in record.items() if value
+            }
     return rows
-
-
-_MULTI_SIZE_METRICS = {
-    f"m{kind.lower()}_{size}": f"metrics/m{kind}_{size}(B)" for size in DETECTION_AREA_RANGES for kind in ("AP", "AR")
-}
-_MULTI_METRICS = ("map50", "map50_95", "fitness", "f1", *_MULTI_SIZE_METRICS)
 
 
 def _backfill_multi_metrics(run_dirs: tuple[Path, ...], rows: dict[str, dict[str, float]]) -> None:
@@ -541,8 +547,9 @@ def _multi_macro(rows: dict[str, dict[str, float]]) -> dict[str, float]:
 def _write_multi_results(csv_path: Path, rows: dict[str, dict[str, float]]) -> None:
     """Write one canonical multi_det CSV with no duplicate rows."""
     tmp = csv_path.with_suffix(".tmp")
+    metrics = tuple(key for key in _MULTI_METRICS if any(key in row for row in rows.values()))
     with tmp.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=("dataset", *_MULTI_METRICS))
+        writer = csv.DictWriter(f, fieldnames=("dataset", *metrics))
         writer.writeheader()
         writer.writerows(
             {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}}
@@ -901,9 +908,9 @@ def _run_multi_det(
         f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
         f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} "
         f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f} "
-        f"mAP-T/S/M/L={macro.get('map_tiny', float('nan')):.4f}/"
-        f"{macro.get('map_small', float('nan')):.4f}/"
-        f"{macro.get('map_medium', float('nan')):.4f}/{macro.get('map_large', float('nan')):.4f}"
+        f"mAP50-95-T/S/M/L={macro.get('map50_95_tiny', float('nan')):.4f}/"
+        f"{macro.get('map50_95_small', float('nan')):.4f}/"
+        f"{macro.get('map50_95_medium', float('nan')):.4f}/{macro.get('map50_95_large', float('nan')):.4f}"
     )
     if owns_final and not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push downstream
         # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.

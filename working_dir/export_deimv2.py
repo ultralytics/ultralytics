@@ -6,8 +6,9 @@ from pathlib import Path
 
 import torch
 
-from ultralytics import RTDETR
+from ultralytics import RTDETRDEIM
 from ultralytics.engine.exporter import Exporter
+from ultralytics.nn.modules import RTDETRDecoder
 
 
 def parse_args():
@@ -41,7 +42,8 @@ def parse_args():
         "--export-eval-idx",
         type=int,
         default=None,
-        help="Override decoder eval_idx only for export. Example: 3 keeps decoder layers 0..3 during export.",
+        help="Override decoder eval_idx only for export. Example: 3 keeps decoder/mask stages 0..3. "
+        "Negative indices are supported; -1 selects the final layer.",
     )
     p.add_argument(
         "--export-num-queries",
@@ -289,10 +291,30 @@ def build_engine_fp16(
     print(f"Saved {engine_path}")
 
 
-def build_output_paths(args):
-    """Build experiment-specific output paths to avoid clobbering previous exports."""
+def clamp_max_det_to_queries(exporter):
+    """Size max_det from the decoder query count rather than the exporter's stride anchor grid.
+
+    ``Exporter`` clamps ``max_det`` to ``sum(imgsz / stride) ** 2``, which suits stride-grid detectors but
+    undercounts a transformer decoder's fixed query set. RT-DETR-family models report a single stride of 32,
+    so below imgsz 554 the clamp silently truncates exported detections and masks (imgsz 512 yields 256 of
+    300 queries). Registered on ``on_export_start`` so it lands after the dry runs but before the trace; the
+    dry-run shape in the exporter log therefore still shows the truncated count.
+    """
+    for m in exporter.model.modules():
+        if isinstance(m, RTDETRDecoder):
+            m.max_det = min(exporter.args.max_det, m.num_queries)
+
+
+def build_output_paths(args, segment=False):
+    """Build experiment-specific output paths to avoid clobbering previous exports.
+
+    Segmentation artifacts carry a ``-seg`` stem marker. ``guess_model_task`` reads the task of a non-``.pt``
+    artifact from its filename, and ``RTDETRDEIM`` takes no task argument, so without the marker a segmentation
+    ONNX loads through the detection predictor and its mask output is dropped.
+    """
     weights_path = Path(args.weights)
     outdir = Path(args.outdir) if args.outdir else weights_path.parent
+    outdir.mkdir(parents=True, exist_ok=True)
     rope_tag = "rope" if args.ropefix else "norope"
     sim_tag = "sim" if args.simplify else "nosim"
     extra_tags = [f"imgsz{args.imgsz}"]
@@ -308,7 +330,7 @@ def build_output_paths(args):
         extra_tags.append(f"opt{args.opt_level}")
     suffix = f"_{'_'.join(extra_tags)}" if extra_tags else ""
     base_stem = Path(args.name).stem if args.name else f"{weights_path.stem}_op{args.opset}_{sim_tag}_{rope_tag}"
-    base_stem = f"rtdetr_{base_stem}"
+    base_stem = f"rtdetr{'-seg' if segment else ''}_{base_stem}"
     stem = f"{base_stem}{suffix}"
 
     # Name the intermediate ONNX after the requested precision so artifact sets stay easy to compare.
@@ -333,14 +355,57 @@ def apply_export_eval_idx_override(deploy_model, export_eval_idx):
 
     for decoder in decoder_modules:
         num_layers = decoder.num_layers
-        if not 0 <= export_eval_idx < num_layers:
-            raise ValueError(f"--export-eval-idx must be in [0, {num_layers - 1}], got {export_eval_idx}.")
-        decoder.eval_idx = export_eval_idx
+        resolved_idx = export_eval_idx if export_eval_idx >= 0 else num_layers + export_eval_idx
+        if not 0 <= resolved_idx < num_layers:
+            raise ValueError(
+                f"--export-eval-idx={export_eval_idx} resolves outside [0, {num_layers - 1}] "
+                f"for a {num_layers}-layer decoder."
+            )
+        decoder.eval_idx = resolved_idx
 
     if head is not None and hasattr(head, "eval_idx"):
-        head.eval_idx = export_eval_idx
+        head.eval_idx = resolved_idx
 
-    return export_eval_idx + 1
+    return resolved_idx, resolved_idx + 1
+
+
+def prune_export_only_modules(deploy_model):
+    """Physically remove decoder and mask modules that cannot execute at the selected export exit.
+
+    Training-only auxiliary outputs are already absent in eval mode. This removes only tail modules after eval_idx;
+    earlier decoder, bbox-refinement, and mask-spatial stages remain because the selected exit depends on them.
+    """
+    head = deploy_model.model[-1] if hasattr(deploy_model, "model") and len(deploy_model.model) else None
+    if head is None or not hasattr(head, "decoder") or not hasattr(head.decoder, "eval_idx"):
+        return None
+
+    active_layers = head.decoder.eval_idx + 1
+    original = {
+        "decoder": len(head.decoder.layers) if hasattr(head.decoder, "layers") else None,
+        "bbox_heads": len(head.dec_bbox_head) if hasattr(head, "dec_bbox_head") else None,
+        "score_heads": len(head.dec_score_head) if hasattr(head, "dec_score_head") else None,
+        "mask_stages": len(head.mask_spatial_blocks) if hasattr(head, "mask_spatial_blocks") else None,
+    }
+    for name in ("layers", "lqe_layers"):
+        modules = getattr(head.decoder, name, None)
+        if modules is not None and len(modules) > active_layers:
+            setattr(head.decoder, name, modules[:active_layers])
+    for name in ("dec_bbox_head", "dec_score_head", "mask_spatial_blocks"):
+        modules = getattr(head, name, None)
+        if modules is not None and len(modules) > active_layers:
+            setattr(head, name, modules[:active_layers])
+    if hasattr(head.decoder, "num_layers"):
+        head.decoder.num_layers = active_layers
+    if hasattr(head, "num_decoder_layers"):
+        head.num_decoder_layers = active_layers
+
+    retained = {
+        "decoder": len(head.decoder.layers) if hasattr(head.decoder, "layers") else None,
+        "bbox_heads": len(head.dec_bbox_head) if hasattr(head, "dec_bbox_head") else None,
+        "score_heads": len(head.dec_score_head) if hasattr(head, "dec_score_head") else None,
+        "mask_stages": len(head.mask_spatial_blocks) if hasattr(head, "mask_spatial_blocks") else None,
+    }
+    return original, retained
 
 
 def apply_export_num_queries_override(deploy_model, export_num_queries):
@@ -365,10 +430,10 @@ def apply_export_num_queries_override(deploy_model, export_num_queries):
 
 def main():
     args = parse_args()
-    onnx_path, engine_path = build_output_paths(args)
-
     # Use a copied RT-DETR-family model so export-only overrides do not mutate the live wrapper model.
-    deploy_model = deepcopy(RTDETR(args.weights).model).eval().float()
+    # The DEIM wrapper infers detection versus segmentation from the checkpoint and supports both tasks.
+    deploy_model = deepcopy(RTDETRDEIM(args.weights).model).eval().float()
+    onnx_path, engine_path = build_output_paths(args, deploy_model.task == "segment")
     deploy_model.pt_path = str(onnx_path.with_suffix(".pt"))
     for p in deploy_model.parameters():
         p.requires_grad = False
@@ -376,12 +441,21 @@ def main():
         export_num_queries = apply_export_num_queries_override(deploy_model, args.export_num_queries)
         print(f"Using export-only num_queries={export_num_queries}.")
     if args.export_eval_idx is not None:
-        export_layers = apply_export_eval_idx_override(deploy_model, args.export_eval_idx)
-        print(f"Using export-only decoder eval_idx={args.export_eval_idx} ({export_layers} decoder layers).")
+        resolved_idx, export_layers = apply_export_eval_idx_override(deploy_model, args.export_eval_idx)
+        print(
+            f"Using export-only decoder eval_idx={resolved_idx} "
+            f"(requested={args.export_eval_idx}, {export_layers} decoder layers)."
+        )
     # Optional deploy conversion for D-FINE/DEIM decoders. Plain RT-DETR decoders simply skip this step.
     for m in deploy_model.modules():
         if hasattr(m, "convert_to_deploy"):
             m.convert_to_deploy()
+    pruning = prune_export_only_modules(deploy_model)
+    if pruning is not None:
+        original, retained = pruning
+        print(f"Pruned export-only tail modules: {original} -> {retained}.")
+        if retained["mask_stages"] is not None:
+            print("Segmentation export emits only final detections and masks; auxiliary mask outputs are training-only.")
 
     if args.ropefix:
         apply_ropefix(deploy_model, args.imgsz)
@@ -404,6 +478,7 @@ def main():
         "half": args.half if args.format != "engine" else False,
         "simplify": args.simplify,
     })
+    exporter.add_callback("on_export_start", clamp_max_det_to_queries)
     artifact = Path(str(exporter(model=deploy_model)))
 
     if args.format == "engine":

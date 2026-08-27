@@ -302,8 +302,9 @@ class TQDM:
                     width = os.get_terminal_size(self.file.fileno()).columns
                 except Exception:  # streams without a usable fileno (io.StringIO, wrapped stdout)
                     width = shutil.get_terminal_size().columns  # COLUMNS env, else sys.__stdout__
-                width = (width or 80) - 1  # a pty opened without a winsize reports 0 columns
-                progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
+                if width:  # a pty opened without a winsize reports 0 columns, so there is no width to fit to
+                    width -= 1
+                    progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
             # Non-interactive environments avoid the carriage return which creates empty lines
             frame = progress_str if self.noninteractive else f"\r\033[K{progress_str}"
             if progress := getattr(self.file, "progress", None):

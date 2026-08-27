@@ -1960,7 +1960,7 @@ def parse_model(d, ch, verbose=True):
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
     reg_max = d.get("reg_max", 16)
-    objectness = d.get("objectness", "none")
+    objectness = d.get("objectness", "none") or "none"  # YAML `objectness: null` must not crash set_objectness
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     if scales:

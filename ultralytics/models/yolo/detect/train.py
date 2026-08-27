@@ -174,7 +174,7 @@ class DetectionTrainer(BaseTrainer):
         four objectness rungs are selected with ``objectness=aux|mul|v5`` on the launch command
         instead of four near-identical model YAMLs.
         """
-        mode = getattr(self.args, "objectness", "none")
+        mode = getattr(self.args, "objectness", "none") or "none"  # CLI smart_value("none") -> None
         if not cfg or mode == "none":
             return cfg
         cfg = dict(cfg) if isinstance(cfg, dict) else yaml_model_load(cfg)

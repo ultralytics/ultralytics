@@ -138,7 +138,7 @@ class AnomalyTrainer(DetectionTrainer):
     def get_validator(self):
         """Return the anomaly validator."""
         loss_names = ["box_loss", "cls_loss", "dfl_loss"]
-        if getattr(self.args, "objectness", "none") != "none":
+        if (getattr(self.args, "objectness", "none") or "none") != "none":  # CLI smart_value("none") -> None
             loss_names.append("obj_loss")
         self.loss_names = tuple(loss_names)
         return yolo.anomaly.YOLOAnomalyValidator(

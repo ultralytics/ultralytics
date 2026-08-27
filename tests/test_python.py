@@ -713,14 +713,14 @@ def test_convert_signed_ndjson(monkeypatch):
 
     captured = []
 
-    async def convert(path):
-        captured.append(path)
+    async def convert(path, fraction):
+        captured.append((path, fraction))
         return "dataset.ndjson.yaml"
 
     monkeypatch.setattr(converter, "convert_ndjson_to_yolo", convert)
     url = "https://storage.googleapis.com/bucket/dataset-v1.ndjson?X-Goog-Signature=abc"
     assert utils.convert_ndjson_to_yolo_if_needed(url) == "dataset.ndjson.yaml"
-    assert captured == [url]
+    assert captured == [(url, 1.0)]
 
 
 @pytest.mark.parametrize("task", ["detect", "classify"])
@@ -1953,6 +1953,8 @@ def test_yoloe(tmp_path):
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     model.set_classes(["person", "bus"])
+    model.set_classes(["bus", "person"])
+    assert list(model.names.values()) == ["bus", "person"]
     model(SOURCE, conf=0.01)
 
     from ultralytics import YOLOE

@@ -167,7 +167,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
     - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
-For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
+For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on the number of training iterations.
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml optimizer=MuSGD

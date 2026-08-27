@@ -920,6 +920,7 @@ class RTDETRDetectionModel(DetectionModel):
         dn_masks, o2o_masks, o2m_masks = split_layered(dfine_meta.get("dec_masks"))
         dn_kpts, o2o_kpts, o2m_kpts = split_layered(dfine_meta.get("dec_kpts"))
         dn_angles, o2o_angles, o2m_angles = split_layered(dfine_meta.get("dec_angles"))
+        _, o2o_sigmas, _ = split_layered(dfine_meta.get("dec_sigmas"))
 
         base_meta = {
             "up": dfine_meta["up"],
@@ -936,6 +937,8 @@ class RTDETRDetectionModel(DetectionModel):
             o2o_meta["dec_masks"] = o2o_masks
         if o2o_kpts is not None:
             o2o_meta["dec_kpts"] = o2o_kpts
+        if o2o_sigmas is not None:
+            o2o_meta["dec_sigmas"] = o2o_sigmas
         if o2o_angles is not None:
             o2o_meta["dec_angles"] = o2o_angles
         if dn_corners is not None:
@@ -1006,6 +1009,10 @@ class RTDETRDetectionModel(DetectionModel):
                 return DeimSegmentationLoss(nc=self.nc, **loss_cfg)
             if isinstance(self.model[-1], DeimPoseDecoder):
                 loss_cfg.setdefault("kpt_shape", getattr(self.model[-1], "kpt_shape", [17, 3]))
+                # The decoder head owns the kpt_rel_box/kpt_rle configuration (constructed from the model yaml /
+                # recorded in the checkpoint); the loss must decode and supervise identically
+                loss_cfg.setdefault("kpt_rel_box", getattr(self.model[-1], "kpt_rel_box", False))
+                loss_cfg.setdefault("kpt_rle", getattr(self.model[-1], "flow_model", None) is not None)
                 return DeimPoseLoss(nc=self.nc, **loss_cfg)
             if isinstance(self.model[-1], DeimOBBDecoder):
                 return DeimOBBLoss(nc=self.nc, **loss_cfg)
@@ -1076,7 +1083,7 @@ class RTDETRDetectionModel(DetectionModel):
         split_outputs = self._split_decoder_predictions(dec_bboxes, dec_scores, dn_meta)
         supports_dfine = getattr(self.criterion, "supports_dfine", False)
         dfine_meta_o2m = None
-        proto = semseg = dec_masks = dec_kpts = dec_angles = None
+        proto = semseg = dec_masks = dec_kpts = dec_angles = dec_sigmas = None
         if supports_dfine and dfine_meta is not None:
             proto = dfine_meta.pop("proto", None)  # image-level, not dn-split
             semseg = dfine_meta.pop("semseg", None)  # image-level semseg aux logits, not dn-split
@@ -1084,6 +1091,7 @@ class RTDETRDetectionModel(DetectionModel):
             dec_masks = dfine_meta.pop("dec_masks", None)  # (L, bs, nq, nm) per-decoder-layer o2o coefficients
             dec_kpts = dfine_meta.pop("dec_kpts", None)  # (L, bs, nq, nk) per-decoder-layer o2o keypoints
             dec_angles = dfine_meta.pop("dec_angles", None)  # (L, bs, nq, 1) per-decoder-layer o2o rotation angles
+            dec_sigmas = dfine_meta.pop("dec_sigmas", None)  # (L, bs, nq, nkpt*2) per-layer o2o keypoint sigmas
         matcher_epoch = 0
         training_progress = 0.0
         if supports_dfine and "epoch" in batch:
@@ -1134,6 +1142,10 @@ class RTDETRDetectionModel(DetectionModel):
         if getattr(self.criterion, "supports_pose", False):
             loss_kwargs["dec_kpts"] = dec_kpts
             loss_kwargs["gt_keypoints"] = batch.get("keypoints")
+            loss_kwargs["dec_sigmas"] = dec_sigmas
+            # The RealNVP flow model lives on the decoder head (trained with it); passed per call so the
+            # criterion never owns its parameters
+            loss_kwargs["flow_model"] = getattr(self.model[-1], "flow_model", None)
         if getattr(self.criterion, "supports_obb", False):
             loss_kwargs["dec_angles"] = dec_angles
             loss_kwargs["gt_bboxes"] = gt_bboxes_obb
@@ -1204,10 +1216,18 @@ class RTDETRDetectionModel(DetectionModel):
             for k in ["loss_pose", "loss_kobj", "loss_kpt_l1", "loss_pose_aux", "loss_kobj_aux", "loss_kpt_l1_aux"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
+            if getattr(self.criterion, "kpt_rle", False):
+                loss_keys.extend(["loss_rle", "loss_rle_aux"])
+                # Fill with zeros when absent (e.g. sigmas are only produced when the head has kpt_rle enabled)
+                for k in ["loss_rle", "loss_rle_aux"]:
+                    if k not in loss:
+                        loss[k] = torch.tensor(0.0, device=img.device)
         if getattr(self.criterion, "supports_obb", False):
-            loss_keys.extend(["loss_angle", "loss_probiou", "loss_angle_aux", "loss_probiou_aux"])
+            # The rotated-IoU (probiou) loss replaces the axis-aligned GIoU inside the shared layer losses
+            # (reported under loss_giou), so the OBB-specific keys are the angle terms only
+            loss_keys.extend(["loss_angle", "loss_angle_aux"])
             # Fill with zeros when absent
-            for k in ["loss_angle", "loss_probiou", "loss_angle_aux", "loss_probiou_aux"]:
+            for k in ["loss_angle", "loss_angle_aux"]:
                 if k not in loss:
                     loss[k] = torch.tensor(0.0, device=img.device)
         return sum(loss.values()), torch.as_tensor([loss[k].detach() for k in loss_keys], device=img.device)

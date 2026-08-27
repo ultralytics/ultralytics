@@ -111,6 +111,8 @@ sta_exclusion: True # (bool) exclude STA/SPM params from backbone low-LR groupin
 strict_loss_fp32: False # (bool) cast floating RT-DETR loss inputs to FP32 before the main criterion call
 debug_new_giou_loss: False # (bool) use newer aligned GIoU loss for RT-DETR/DFine experiments
 aux_loss: False # (bool) supervise the task heads (mask/pose/obb) of auxiliary decoder layers with per-layer matched losses in DEIM seg/pose/obb models; box/cls aux losses are unaffected
+kpt_rel_box: False # (bool) DEIM pose: decode keypoints as raw box-relative offsets (kpt = box_cxcy + raw * box_wh, no sigmoid) instead of sigmoid-squashed absolute coords
+kpt_rle: False # (bool) DEIM pose: add per-keypoint sigma heads + RealNVP flow and train with the RLE keypoint loss (mirrors Pose26)
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 muon_w: 0.45 # (float) Muon scaling factor for MuSGD optimizer (0.2 recommended)

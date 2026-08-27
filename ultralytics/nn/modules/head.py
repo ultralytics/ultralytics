@@ -2784,19 +2784,25 @@ class DeimPoseDecoder(DeimDecoder):
     """DEIMv2 pose-estimation decoder head with per-query keypoint heads.
 
     This class extends DeimDecoder with a per-decoder-layer linear keypoint head, mirroring how Pose extends Detect
-    for YOLO pose estimation. Keypoint xy coordinates are predicted in sigmoid space (image-normalized absolute
-    coordinates, consistent with the decoder's sigmoid-space boxes) and visibility scores are kept as raw logits.
+    for YOLO pose estimation. Keypoint xy coordinates are predicted either in sigmoid space (image-normalized
+    absolute coordinates, consistent with the decoder's sigmoid-space boxes) or, with `kpt_rel_box`, as raw
+    box-relative offsets decoded against the per-layer refined boxes; visibility scores are kept as raw logits.
+    With `kpt_rle`, per-layer keypoint-sigma heads and a RealNVP flow model enable the RLE keypoint loss
+    (mirrors Pose26).
 
     YAML argument order (parse_model inserts input channels `ch` at index 1):
         [nc, kpt_shape, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
         learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
         efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act, o2m_topk_mode,
-        use_gateway, share_bbox_head, share_score_head, use_rmsnorm]
+        use_gateway, share_bbox_head, share_score_head, use_rmsnorm, kpt_rel_box, kpt_rle]
 
     Attributes:
         kpt_shape (tuple): Number of keypoints and dimensions (2 for x,y or 3 for x,y,visible).
         nk (int): Total number of keypoint values (kpt_shape[0] * kpt_shape[1]).
+        kpt_rel_box (bool): Whether keypoints are decoded box-relative (`_decode_kpts`) instead of sigmoid-squashed.
         dec_kpt_head (nn.ModuleList): Per-decoder-layer linear heads mapping hidden states to keypoints.
+        dec_sig_head (nn.ModuleList): Per-decoder-layer keypoint-sigma heads (only when `kpt_rle` is enabled).
+        flow_model (RealNVP): Flow model for the RLE keypoint loss (None unless `kpt_rle` is enabled).
 
     Examples:
         Create a DEIM pose head
@@ -2804,6 +2810,8 @@ class DeimPoseDecoder(DeimDecoder):
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> outputs = head(x)
     """
+
+    kpt_rel_box = False  # class default for checkpoints pickled before this flag existed
 
     def __init__(
         self,
@@ -2837,6 +2845,8 @@ class DeimPoseDecoder(DeimDecoder):
         share_bbox_head: bool = False,
         share_score_head: bool = False,
         use_rmsnorm: bool = True,
+        kpt_rel_box: bool = False,
+        kpt_rle: bool = False,
     ):
         """Initialize the DEIM pose decoder with per-decoder-layer keypoint heads.
 
@@ -2871,6 +2881,11 @@ class DeimPoseDecoder(DeimDecoder):
             share_bbox_head (bool): Whether to share the bbox head across decoder layers.
             share_score_head (bool): Whether to share the score head across decoder layers.
             use_rmsnorm (bool): Whether to use RMSNorm in DEIM decoder layers.
+            kpt_rel_box (bool): Whether keypoint heads output raw box-relative offsets decoded against the
+                per-layer refined boxes (`kpt_xy = box_cxcy + raw * box_wh`, no sigmoid squash) instead of
+                sigmoid-squashed absolute coordinates.
+            kpt_rle (bool): Whether to add per-decoder-layer keypoint-sigma heads and a RealNVP flow model for
+                the RLE keypoint loss (mirrors Pose26); no extra parameters are created when disabled.
         """
         super().__init__(
             nc,
@@ -2904,13 +2919,42 @@ class DeimPoseDecoder(DeimDecoder):
             use_rmsnorm,
         )
         self.kpt_shape = kpt_shape
+        self.kpt_rel_box = kpt_rel_box
         self.nk = kpt_shape[0] * kpt_shape[1]  # number of keypoints total
         self.dec_kpt_head = nn.ModuleList(nn.Linear(hd, self.nk) for _ in range(ndl))
+        if kpt_rel_box:
+            # Zero-init so decoded keypoints start at the box center: offsets are raw, unsquashed box-relative
+            for head in self.dec_kpt_head:
+                nn.init.zeros_(head.weight)
+                nn.init.zeros_(head.bias)
+        # RLE keypoint loss (Pose26-style): per-layer sigma heads + flow model, only when kpt_rle is enabled so
+        # disabled configs keep an identical state_dict
+        self.flow_model = RealNVP() if kpt_rle else None
+        if kpt_rle:
+            self.dec_sig_head = nn.ModuleList(nn.Linear(hd, kpt_shape[0] * 2) for _ in range(ndl))
+
+    def _decode_kpts(self, kpts: torch.Tensor, boxes: torch.Tensor) -> torch.Tensor:
+        """Decode raw box-relative keypoint offsets to image-normalized absolute xy (kpt_rel_box mode).
+
+        Args:
+            kpts (torch.Tensor): Raw keypoint head outputs with shape (..., nk); the first nkpt * 2 values are
+                box-relative xy offsets, the rest are visibility logits passed through unchanged.
+            boxes (torch.Tensor): Sigmoid-space cxcywh boxes of the same decoder layer with shape (..., 4);
+                gradient flows through the box so the keypoints co-refine with it.
+
+        Returns:
+            (torch.Tensor): Decoded keypoints with shape (..., nk), xy absolute image-normalized.
+        """
+        nkpt2 = self.kpt_shape[0] * 2
+        xy = kpts[..., :nkpt2].view(*kpts.shape[:-1], -1, 2) * boxes[..., 2:4].unsqueeze(-2)
+        xy = xy + boxes[..., :2].unsqueeze(-2)
+        return torch.cat([xy.flatten(-2), kpts[..., nkpt2:]], dim=-1)
 
     def forward(self, x: list[torch.Tensor], batch: dict | None = None) -> tuple | torch.Tensor:
         """Run the forward pass, attaching per-layer keypoint predictions.
 
-        Training returns the parent 6-tuple with `dec_kpts` (L, bs, Q, nk) added to `dfine_meta`. Evaluation returns
+        Training returns the parent 6-tuple with `dec_kpts` (L, bs, Q, nk) added to `dfine_meta` (plus `dec_sigmas`
+        (L, bs, Q, nkpt * 2) when `kpt_rle` is enabled). Evaluation returns
         `(y, x)` where `y` has shape (bs, k, 6 + nk) with layout [cx, cy, w, h, score, cls, kpts...] (keypoint xy
         image-normalized, visibility as raw logits), or `y` alone when exporting.
         """
@@ -2918,7 +2962,15 @@ class DeimPoseDecoder(DeimDecoder):
             outputs = super().forward(x, batch)
             dfine_meta = outputs[-1]
             dec_feats = dfine_meta["dec_feats"]  # (L, bs, Q, hd)
-            dfine_meta["dec_kpts"] = torch.stack([head(feat) for head, feat in zip(self.dec_kpt_head, dec_feats)])
+            kpts = torch.stack([head(feat) for head, feat in zip(self.dec_kpt_head, dec_feats)])
+            if self.kpt_rel_box:
+                kpts = self._decode_kpts(kpts, outputs[0])  # decode against each layer's refined boxes
+            dfine_meta["dec_kpts"] = kpts
+            # getattr: checkpoints pickled before kpt_rle existed have no flow_model attribute
+            if getattr(self, "flow_model", None) is not None:
+                dfine_meta["dec_sigmas"] = torch.stack(
+                    [head(feat) for head, feat in zip(self.dec_sig_head, dec_feats)]
+                )
             return outputs
         # Eval: run the parent path with export disabled so the raw decoder outputs stay available.
         export = self.export
@@ -2927,7 +2979,12 @@ class DeimPoseDecoder(DeimDecoder):
         self.export = export
         dec_bboxes, dec_scores, _, _, _, dfine_meta = outputs
         kpts = self.dec_kpt_head[self.eval_idx](dfine_meta["dec_feats"][0])  # (bs, nq, nk)
+        if self.kpt_rel_box:
+            kpts = self._decode_kpts(kpts, dec_bboxes.squeeze(0))  # same decode as the training path
         dfine_meta["dec_kpts"] = kpts.unsqueeze(0)  # (1, bs, nq, nk), consumed by the loss during validation
+        if getattr(self, "flow_model", None) is not None:
+            sigmas = self.dec_sig_head[self.eval_idx](dfine_meta["dec_feats"][0])  # (bs, nq, nkpt * 2)
+            dfine_meta["dec_sigmas"] = sigmas.unsqueeze(0)  # consumed by the RLE loss during validation
         y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid(), kpts)
         return y if export else (y, outputs)
 
@@ -2940,20 +2997,22 @@ class DeimPoseDecoder(DeimDecoder):
             boxes (torch.Tensor): Predicted bounding boxes with shape (batch_size, num_queries, 4), format [cx, cy, w,
                 h].
             scores (torch.Tensor): Class scores with shape (batch_size, num_queries, nc).
-            kpts (torch.Tensor, optional): Raw keypoint predictions with shape (batch_size, num_queries, nk). If
+            kpts (torch.Tensor, optional): Keypoint predictions with shape (batch_size, num_queries, nk); raw
+                logits sigmoid-squashed here unless `kpt_rel_box` (already decoded by `_decode_kpts`). If
                 None, falls back to the detection-only postprocess.
 
         Returns:
             (torch.Tensor): Processed predictions with shape (batch_size, k, 6 + nk) and last dimension format [cx,
-                cy, w, h, max_class_prob, class_index, keypoints] with keypoint xy passed through a sigmoid
-                (image-normalized absolute coordinates) and visibility kept as raw logits.
+                cy, w, h, max_class_prob, class_index, keypoints] with keypoint xy image-normalized absolute
+                coordinates and visibility kept as raw logits.
         """
         if kpts is None:
             return super().postprocess(boxes, scores)
         bs, nq = kpts.shape[:2]
         kpts = kpts.view(bs, nq, *self.kpt_shape)
-        # xy: sigmoid to image-normalized absolute coords; visibility kept as raw logits
-        kpts = torch.cat([kpts[..., :2].sigmoid(), kpts[..., 2:]], dim=-1).flatten(2)  # (bs, nq, nk)
+        # xy: sigmoid to image-normalized absolute coords (already decoded when kpt_rel_box); visibility as logits
+        xy = kpts[..., :2] if self.kpt_rel_box else kpts[..., :2].sigmoid()
+        kpts = torch.cat([xy, kpts[..., 2:]], dim=-1).flatten(2)  # (bs, nq, nk)
         if self.disable_topk:
             scores, class_idx = scores.max(dim=-1, keepdim=True)  # (bs, nq, 1), (bs, nq, 1)
             return torch.cat([boxes, scores, class_idx.float(), kpts], dim=-1)  # (bs, nq, 6+nk)

@@ -1219,6 +1219,17 @@ class RTDETRDEIMPoseTrainer(RTDETRDEIMTrainer):
         if data_kpt_shape and list(data_kpt_shape) != list(cfg["kpt_shape"]):
             LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
             cfg["kpt_shape"] = data_kpt_shape
+        # Pin the CLI kpt flags on the decoder head args so the checkpoint yaml reproduces the same keypoint
+        # decode on resume/eval; a model yaml already pinning them (longer args list) takes precedence.
+        # 28 entries cover up to share_score_head, so pad the use_rmsnorm default before the two kpt flags.
+        for layer in cfg.get("head", []):
+            if len(layer) >= 4 and layer[2] == "DeimPoseDecoder" and len(layer[3]) == 28:
+                layer[3] = [
+                    *layer[3],
+                    True,  # use_rmsnorm (current __init__ default)
+                    bool(getattr(self.args, "kpt_rel_box", False)),
+                    bool(getattr(self.args, "kpt_rle", False)),
+                ]
         return super().get_model(cfg=cfg, weights=weights, verbose=verbose)
 
     def set_model_attributes(self):
@@ -1263,6 +1274,8 @@ class RTDETRDEIMPoseTrainer(RTDETRDEIMTrainer):
         if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
             loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
         loss_names.extend(["pose_loss", "kobj_loss", "kpt_l1_loss", "pose_aux_loss", "kobj_aux_loss", "kpt_l1_aux_loss"])
+        if getattr(model.model[-1], "flow_model", None) is not None:
+            loss_names.extend(["rle_loss", "rle_aux_loss"])
         self.loss_names = tuple(loss_names)
         return RTDETRDEIMPoseValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
@@ -1530,6 +1543,6 @@ class RTDETRDEIMOBBTrainer(RTDETRDEIMTrainer):
         model = unwrap_model(self.model)
         if getattr(model.model[-1], "one_to_many_groups", 0) > 0:
             loss_names.extend(["giou_o2m", "cls_o2m", "l1_o2m"])
-        loss_names.extend(["angle_loss", "probiou_loss", "angle_aux_loss", "probiou_aux_loss"])
+        loss_names.extend(["angle_loss", "angle_aux_loss"])  # the probiou term now replaces giou_loss for OBB
         self.loss_names = tuple(loss_names)
         return RTDETRDEIMOBBValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

@@ -237,6 +237,8 @@ class DetectionTrainer(BaseTrainer):
         # E2ELoss appends the aux foreground term when enabled; keep loss_names in sync
         if hasattr(unwrap_model(self.model), "student_model"):
             model = unwrap_model(self.model).student_model  # distillation: the student model builds the loss criterion
+        else:
+            model = self.model
         if (
             getattr(self.args, "aux_fg_on", False)
             and getattr(self.args, "aux_fg", 0.5)

@@ -176,7 +176,6 @@ The Luxonis [Conversion to ONNX](https://docs.luxonis.com/software-v3/ai-inferen
 
 Once the export is complete, you'll find the `ONNX` NN Archive (`yolo26n.tar.xz`) in the `output/yolo26n_20260807_104858` directory. The directory name varies based on the export timestamp.
 
-
 #### Stage 2: Convert the `ONNX` NN Archive to `RVC2` or `RVC4` with ModelConverter
 
 Once you have a valid `ONNX` NN Archive, use ModelConverter to compile it for the target device generation. ModelConverter accepts a model source as an NN Archive and uses the appropriate target-specific toolchain inside Docker.
@@ -226,7 +225,7 @@ The final output of the local workflow is a device-specific NN Archive ready for
 
 ## Running Inference on OAK Cameras
 
-Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For  [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md) YOLO models, [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network) supports inference and on-device decoding of model outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
+Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md) YOLO models, [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network) supports inference and on-device decoding of model outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
 
 For other task variants, such as [semantic segmentation](../tasks/semantic.md) and [classification](../tasks/classify.md), as well as broader pipeline concepts, examples, and advanced usage patterns, see the Luxonis [AI Inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
 
@@ -340,7 +339,7 @@ Benchmarks below use `FP16` precision with `2 inference threads` at `320x320` in
 
 ### RVC4
 
-Benchmarks below use `INT8` precision with `2 inference threads` at `640x640` input size with `balanced` inference mode. Tests were done on [OAK 4 D](https://shop.luxonis.com/products/oak-4-d) Luxonis device. 
+Benchmarks below use `INT8` precision with `2 inference threads` at `640x640` input size with `balanced` inference mode. Tests were done on [OAK 4 D](https://shop.luxonis.com/products/oak-4-d) Luxonis device.
 
 | Model        | Variant | Task                  | FPS   |
 | :----------- | :------ | :-------------------- | :---- |

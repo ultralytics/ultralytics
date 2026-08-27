@@ -17,27 +17,27 @@ Luxonis [OAK cameras](https://www.luxonis.com/) are [edge AI](https://www.ultral
 
 This guide focuses on deploying Ultralytics YOLO models on OAK cameras using the Luxonis software stack. It covers the relevant OAK hardware generations, explains why YOLO models must be converted into Luxonis device-specific artifacts, and walks through both cloud conversion with [Luxonis Hub](https://hub.luxonis.com/) and local conversion with Luxonis tooling before running inference on-device.
 
-## Why Run YOLO on Luxonis OAK Cameras?
+## Running YOLO on Luxonis OAK Cameras
 
-OAK cameras are a strong deployment target for YOLO when you want vision processing to happen close to the sensor instead of on a remote server or a large host GPU system. Luxonis combines camera inputs, on-device AI acceleration, and the surrounding vision pipeline in one platform, which makes it practical to build low-latency edge applications for robotics, automation, smart cameras, and embedded perception systems.
+OAK cameras can run YOLO inference close to the image sensor rather than on a remote server or host GPU. The hardware and DepthAI software stack provide camera inputs, on-device AI acceleration, and vision-pipeline components for robotics, automation, smart-camera, and embedded-perception applications.
 
-They are also a good fit when your application needs more than 2D inference alone. In addition to running YOLO models on-device, OAK cameras can be part of pipelines that use stereo depth, tracking, scripting, and video encoding on the same hardware stack. That can reduce host-side complexity and bandwidth requirements while keeping deployment compact and power-efficient.
+In addition to on-device YOLO inference, OAK pipelines can use stereo depth, tracking, scripting, and video encoding on the same hardware stack. These components can be combined when an application requires 2D detections together with depth, tracking, or encoded video.
 
 ## Luxonis Hardware Generations
 
-Luxonis OAK cameras used with YOLO today fall into two main hardware generations: [`RVC2`](https://docs.luxonis.com/hardware/platform/rvc/rvc2) and [`RVC4`](https://docs.luxonis.com/hardware/platform/rvc/rvc4). Both are valid deployment targets for Ultralytics YOLO models, but they differ in performance, software environment, and the exact model artifact that must be produced during conversion.
+Luxonis OAK cameras used with YOLO fall into two main hardware generations: [`RVC2`](https://docs.luxonis.com/hardware/platform/rvc/rvc2) and [`RVC4`](https://docs.luxonis.com/hardware/platform/rvc/rvc4). Both are valid deployment targets for Ultralytics YOLO models, but they differ in performance, software environment, and the exact model artifact that must be produced during conversion.
 
-In practice, the main decision for this guide is not which tasks are supported, but which camera generation you are deploying to. If you are choosing hardware, the [Luxonis OAK camera catalog](https://shop.luxonis.com/collections/oak-cameras-1) is a useful starting point because it lets you filter devices by generation, connectivity, and camera features.
+Select the conversion target based on the camera generation you are deploying to. The [Luxonis OAK camera catalog](https://shop.luxonis.com/collections/oak-cameras-1) provides filters for generation, connectivity, and camera features.
 
 ### RVC2
 
-`RVC2` is the established OAK generation built around the [Movidius Myriad X](https://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/myriad-x-product-brief.pdf) platform. It powers many of the classic OAK camera families, including devices such as [OAK-D](https://docs.luxonis.com/hardware/products/OAK-D), [OAK-1](https://docs.luxonis.com/hardware/products/OAK-1), and other [RVC2-based cameras](https://shop.luxonis.com/collections/oak-cameras-col?tags=rvc2). It is a proven target for embedded vision pipelines that combine camera input, depth processing, and on-device neural inference in a relatively low-power form factor.
+`RVC2` is an OAK generation built around the [Movidius Myriad X](https://www.intel.com/content/dam/www/public/us/en/documents/product-briefs/myriad-x-product-brief.pdf) platform. It is used by camera families including [OAK-D](https://docs.luxonis.com/hardware/products/OAK-D), [OAK-1](https://docs.luxonis.com/hardware/products/OAK-1), and other [RVC2-based cameras](https://shop.luxonis.com/collections/oak-cameras-col?tags=rvc2). RVC2 devices support camera input, depth processing, and on-device neural inference.
 
-For YOLO deployment, `RVC2` supports the same broad task coverage described in this guide, but it offers lower throughput than `RVC4`, so model size, input resolution, and pipeline complexity matter more when tuning for performance.
+For YOLO deployment, model size, input resolution, and pipeline complexity affect the throughput obtained on `RVC2`. Test the converted model with the intended camera and pipeline configuration.
 
 ### RVC4
 
-`RVC4` is the newer OAK generation and provides substantially more on-device compute for AI and vision workloads. Luxonis builds `RVC4` around the [Qualcomm Dragonwing QCS8550](https://www.qualcomm.com/internet-of-things/products/q8-series/qcs8550), an ARM-based SoC running Linux that integrates a multi-core CPU, Hexagon AI accelerator, GPU, ISP, and dedicated vision processing hardware. Compared to previous generations, RVC4 delivers significantly higher AI throughput and forms the foundation of the [OAK4 camera family](https://www.luxonis.com/oak4), including devices such as [OAK 4 D](https://docs.luxonis.com/hardware/products/OAK%204%20D), [OAK 4 S](https://shop.luxonis.com/collections/oak-cameras-1), and related modules.
+`RVC4` is a newer OAK generation built around the [Qualcomm Dragonwing QCS8550](https://www.qualcomm.com/internet-of-things/products/q8-series/qcs8550), an ARM-based SoC running Linux that integrates a multi-core CPU, Hexagon AI accelerator, GPU, ISP, and dedicated vision processing hardware. It is used by the [OAK4 camera family](https://www.luxonis.com/oak4), including [OAK 4 D](https://docs.luxonis.com/hardware/products/OAK%204%20D), [OAK 4 S](https://shop.luxonis.com/collections/oak-cameras-1), and related modules.
 
 For YOLO deployment, `RVC4` is the higher-performance option and is generally the better fit when you need more throughput or more ambitious on-device pipelines. It also has a different software environment from `RVC2`, so converted models are generation-specific: a model converted for `RVC2` will not run on `RVC4`, and a model converted for `RVC4` will not run on `RVC2`.
 
@@ -96,7 +96,7 @@ If you need model history, reusable variants, more control over metadata and con
 
 ### Using `hubai-sdk`
 
-[`hubai-sdk`](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/) is the programmatic Python and CLI interface to Luxonis Hub AI. This is a good fit when you want to automate conversions, integrate them into a larger workflow, or avoid manual use of the Hub UI.
+[`hubai-sdk`](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/) is the programmatic Python and CLI interface to Luxonis Hub AI. Use it to automate conversions or integrate conversion into another workflow.
 
 !!! example "Example of `YOLO26` conversion from a local `.pt` checkpoint with `hubai-sdk` to `RVC4`"
 
@@ -139,7 +139,7 @@ This split is important for YOLO specifically. Luxonis requires using `tools` fo
 
 ### When to Use Local Conversion
 
-Use local conversion when you need an offline workflow, want tighter control over the exact conversion environment, or want to work more explicitly with conversion parameters and calibration data.
+Use local conversion when you need an offline workflow or need to specify the conversion environment, conversion parameters, or calibration data.
 
 ### Prerequisites
 
@@ -150,7 +150,7 @@ Before starting a local conversion, make sure you have:
 - [ModelConverter](https://github.com/luxonis/modelconverter) for the `ONNX` NN Archive -> `RVC` step.
 - [Docker](https://docs.docker.com/get-docker/), which ModelConverter uses for target-specific conversion toolchains.
 
-Luxonis recommends Ubuntu for best compatibility with local conversion, though Docker-based workflows can also be used on other platforms. If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantization) during conversion, you should also prepare representative calibration data for the second stage.
+Luxonis documents Ubuntu for local conversion; Docker-based workflows can also be used on other platforms. If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantization) during conversion, prepare representative calibration data for the second stage.
 
 ### Conversion Steps
 
@@ -158,7 +158,7 @@ The local workflow has two stages.
 
 #### Stage 1: Convert `.pt` to an `ONNX` NN Archive with Tools
 
-As described in the Luxonis [Conversion to ONNX](https://docs.luxonis.com/software-v3/ai-inference/conversion/onnx-conversion/) guide, YOLO models should first be converted with `tools` instead of a generic PyTorch-to-ONNX export. This is the recommended path because it modifies the exported model structure so Luxonis can parse YOLO outputs natively and perform post-processing on-device.
+The Luxonis [Conversion to ONNX](https://docs.luxonis.com/software-v3/ai-inference/conversion/onnx-conversion/) guide directs YOLO models through `tools` rather than a generic PyTorch-to-ONNX export. `tools` modifies the exported model structure so Luxonis can parse YOLO outputs natively and perform post-processing on-device.
 
 !!! tip "Installation of `tools`"
 
@@ -224,7 +224,7 @@ The final output of the local workflow is a device-specific NN Archive ready for
 
 ## Running Inference on OAK Cameras
 
-Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For YOLO models specifically, the most important detail is that they are supported directly by [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network), which performs both inference and on-device decoding of YOLO outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
+Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For YOLO models, [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network) supports inference and on-device decoding of YOLO outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
 
 For the broader pipeline concepts, examples, and advanced patterns, see the Luxonis [AI Inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
 
@@ -287,7 +287,7 @@ Open `http://localhost:8080` in your browser to view the RGB stream and YOLO det
 
 ### Spatial Inference Example
 
-If your OAK camera supports stereo depth, you can use [`dai.node.SpatialDetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/spatial_detection_network) to get 3D spatial coordinates together with the 2D YOLO detections. This is the easiest way to combine YOLO detections with depth-derived spatial coordinates when the camera has a stereo pair.
+If your OAK camera supports stereo depth, you can use [`dai.node.SpatialDetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/spatial_detection_network) to obtain 3D spatial coordinates together with 2D YOLO detections.
 
 !!! example "Simple SpatialDetectionNetwork example"
 
@@ -369,8 +369,8 @@ The `oak-examples` repository contains many more examples beyond these, so it is
 
 ### Which Ultralytics YOLO models are supported on Luxonis OAK cameras?
 
-Support is broad, and the most accurate source for current conversion support is the Luxonis [tools supported models list](https://github.com/luxonis/tools#-supported-models). But generally, these are YOLO families ranging from `YOLOv5` through `YOLO12` and also the latest [YOLO26](../models/yolo26.md).
-Task coverage is also broad: [object detection](../tasks/detect.md), [pose estimation](../tasks/pose.md), [instance segmentation](../tasks/segment.md), [oriented bounding boxes](../tasks/obb.md), [classification](../tasks/classify.md), and [semantic segmentation](../tasks/semantic.md) are supported depending on the model family. But note that native on-device parsing is limited to object detection, pose estimation, and instance segmentation models.
+The Luxonis [tools supported models list](https://github.com/luxonis/tools#-supported-models) is the source for current conversion support. It lists YOLO families from `YOLOv5` through `YOLO12` and [YOLO26](../models/yolo26.md).
+Supported tasks vary by model family and include [object detection](../tasks/detect.md), [pose estimation](../tasks/pose.md), [instance segmentation](../tasks/segment.md), [oriented bounding boxes](../tasks/obb.md), [classification](../tasks/classify.md), and [semantic segmentation](../tasks/semantic.md). Native on-device parsing is limited to object-detection, pose-estimation, and instance-segmentation models.
 
 ### Can I run the same exported model on both `RVC2` and `RVC4` devices?
 
@@ -380,7 +380,7 @@ This is not just a packaging difference. The two generations use different targe
 
 ### What is the difference between `RVC2` and `RVC4` for YOLO deployment?
 
-From a YOLO workflow perspective, `RVC2` and `RVC4` support the same broad set of tasks, but they differ in performance and deployment target. `RVC4` provides more on-device compute and therefore higher throughput, while `RVC2` is the lower-compute generation and is better matched with smaller YOLO variants and lighter pipelines.
+From a YOLO workflow perspective, `RVC2` and `RVC4` use different deployment targets and compiled artifacts. Model size, input size, precision, and pipeline configuration affect throughput on either generation; use the [benchmarking documentation](https://docs.luxonis.com/software-v3/ai-inference/benchmarking/) to measure the target configuration.
 
 They also use different deployment artifacts and runtime backends. `RVC2` uses `.superblob` artifacts in an OpenVINO-based path, while `RVC4` uses `.dlc` artifacts in an SNPE-based path. Because of that, converted models are generation-specific.
 
@@ -394,15 +394,15 @@ During export, you can choose the input size when converting from PyTorch to `ON
 
 [Quantization](https://www.ultralytics.com/glossary/model-quantization) is an `RVC4` export option and is mainly a performance-versus-precision tradeoff. In general, more aggressive quantization improves throughput and reduces compute cost, but it can also reduce [accuracy](https://www.ultralytics.com/glossary/accuracy) if the model or calibration data are not a good fit.
 
-There are multiple quantization modes exposed, with `INT8_STANDARD` and `FP16_STANDARD` being the most used. `INT8_STANDARD` is the usual choice when you want the highest throughput on `RVC4`, while `FP16_STANDARD` is the safer option when you want to preserve more of the original model accuracy.
+Available quantization modes include `INT8_STANDARD` and `FP16_STANDARD`. Compare the accuracy and throughput of the selected mode using representative inputs for the deployment workload.
 
-The most important practical requirement is calibration data. If you use an `INT8`-style path, the calibration dataset should be representative of the images your deployed model will actually see. Poor calibration data can hurt accuracy much more than quantization itself.
+For an `INT8`-style path, the calibration dataset should represent images the deployed model will process. Calibration data that do not represent the deployment workload can reduce accuracy.
 
-### How do I get the best inference performance on OAK cameras?
+### How do I tune inference performance on OAK cameras?
 
-The biggest difference between `RVC2` and `RVC4` is available compute, so model size and input resolution should be chosen accordingly. On `RVC2`, you should generally prefer `Nano` or `Small` YOLO variants and use lower input resolutions when you need real-time performance. On `RVC4`, the available compute is much higher, so even `Medium` or `Large` variants can often run in real time at reasonable input sizes.
+Choose model size and input resolution based on measurements from the target camera and pipeline. Smaller model variants and lower input resolutions generally require less compute; larger variants and higher resolutions generally require more.
 
-In practice, the best performance usually comes from balancing three factors together: model variant, input size, and task complexity. Detection pipelines are typically the easiest to run at high FPS, while pose or segmentation models are heavier and may require either a smaller variant or a lower input resolution to stay in the `20-30 FPS` real-time range.
+Model variant, input size, and task complexity affect throughput. Pose and segmentation models generally require more computation than detection models, so evaluate FPS and accuracy with the intended workload.
 
 ### Do I need to care about `OpenVINO` or `SNPE` compatibility?
 

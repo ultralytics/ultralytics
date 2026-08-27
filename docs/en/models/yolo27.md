@@ -15,7 +15,7 @@ Ultralytics YOLO27 is loaded through the standard `YOLO` Python class and suppor
 The medium, large, and extra-large configurations pair a YOLO feature extractor with a transformer decoder, so they
 produce query-based predictions instead of dense grid predictions:
 
-- **YOLO27m** uses a YOLO26-style CSP backbone, an FPN/PAN neck, and a 3-layer `DeimDecoder`.
+- **YOLO27m** uses a YOLO26-style CSP backbone, an FPN/PAN neck, and a 2-layer `DeimDecoder`.
 - **YOLO27l** uses a YOLO26-style CSP backbone, an FPN/PAN neck, and a 4-layer `DeimDecoder`.
 - **YOLO27x** uses an UltraViT backbone, a HybridEncoder neck, and a 6-layer `DeimDecoder`.
 
@@ -36,7 +36,7 @@ All three models produce query-based predictions for NMS-free object detection w
 
 | Model   | Config         | Backbone         | Neck          | Decoder       | Decoder Layers |
 | ------- | -------------- | ---------------- | ------------- | ------------- | -------------- |
-| YOLO27m | `yolo27m.yaml` | YOLO26-style CSP | FPN/PAN       | `DeimDecoder` | 3              |
+| YOLO27m | `yolo27m.yaml` | YOLO26-style CSP | FPN/PAN       | `DeimDecoder` | 2              |
 | YOLO27l | `yolo27l.yaml` | YOLO26-style CSP | FPN/PAN       | `DeimDecoder` | 4              |
 | YOLO27x | `yolo27x.yaml` | UltraViT         | HybridEncoder | `DeimDecoder` | 6              |
 
@@ -54,7 +54,7 @@ All three models produce query-based predictions for NMS-free object detection w
 
         | Model             | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>T4 TensorRT10<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | ----------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
-        | yolo27m           | 512                         | -                          | 174.1 ± 8.6                          | 4.8 ± 0.1                                 | 28.8                     | 55.1                    |
+        | yolo27m           | 512                         | -                          | 158.9 ± 7.5                          | 4.4 ± 0.1                                 | 27.2                     | 54.1                    |
         | yolo27l           | 640                         | -                          | 315.6 ± 25.7                         | 6.5 ± 0.1                                 | 30.4                     | 85.4                    |
         | yolo27x           | 640                         | -                          | 416.5 ± 15.8                         | 12.3 ± 0.3                                | 65.6                     | 173.1                   |
 
@@ -130,7 +130,7 @@ YOLO27m, YOLO27l, and YOLO27x use 300 decoder queries by default. Increasing `ma
 queries; change the query count in the model YAML and retrain if the dataset can contain more than 300 objects per
 image.
 
-Decoder depth is part of each architecture: YOLO27m uses 3 layers, YOLO27l uses 4, and YOLO27x uses 6. Export preserves
+Decoder depth is part of each architecture: YOLO27m uses 2 layers, YOLO27l uses 4, and YOLO27x uses 6. Export preserves
 the selected architecture and decoder behavior.
 
 ## FAQ

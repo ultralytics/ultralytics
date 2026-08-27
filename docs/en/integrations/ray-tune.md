@@ -87,7 +87,7 @@ The following table lists the default search space parameters for hyperparameter
 | `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Initial momentum value that gradually increases during the warmup period.                                                         |
 | `box`             | `tune.uniform(1.0, 20.0)`  | Weight for the bounding box loss component, balancing localization accuracy in the model.                                         |
 | `cls`             | `tune.uniform(0.1, 4.0)`   | Weight for the classification loss component, balancing class prediction accuracy in the model.                                   |
-| `dfl`             | `tune.uniform(0.4, 12.0)`  | Weight for the Distribution Focal Loss component, emphasizing precise bounding box localization.                                  |
+| `dfl`             | `tune.uniform(0.4, 12.0)`  | Weight for the box-distance regression component, emphasizing precise bounding box localization.                                  |
 | `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range that introduces color variability to help the model generalize.                                            |
 | `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range that varies color intensity to improve robustness.                                                  |
 | `hsv_v`           | `tune.uniform(0.0, 0.9)`   | Value (brightness) augmentation range that helps the model perform under various lighting conditions.                             |
@@ -297,7 +297,7 @@ Ultralytics YOLO26 uses the following default hyperparameters for tuning with Ra
 | `warmup_epochs` | `tune.uniform(0.0, 5.0)`   | Warmup epochs                  |
 | `box`           | `tune.uniform(1.0, 20.0)`  | Box loss weight                |
 | `cls`           | `tune.uniform(0.1, 4.0)`   | Class loss weight              |
-| `dfl`           | `tune.uniform(0.4, 12.0)`  | DFL loss weight                |
+| `dfl`           | `tune.uniform(0.4, 12.0)`  | Box-distance loss weight       |
 | `hsv_h`         | `tune.uniform(0.0, 0.1)`   | Hue augmentation range         |
 | `translate`     | `tune.uniform(0.0, 0.9)`   | Translation augmentation range |
 

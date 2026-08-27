@@ -1953,6 +1953,8 @@ def test_yoloe(tmp_path):
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     model.set_classes(["person", "bus"])
+    model.set_classes(["bus", "person"])
+    assert list(model.names.values()) == ["bus", "person"]
     model(SOURCE, conf=0.01)
 
     from ultralytics import YOLOE

@@ -264,7 +264,9 @@ def build_yolo_dataset(
         dataset = YOLODataset
 
     if fraction is None:
-        fraction = 1.0 if data.get("complete") else get_split_fraction(cfg.fraction, mode)
+        # `mode` drives augmentation, so take the fraction from the split actually being loaded
+        split = "train" if mode == "train" else (cfg.split or "val")
+        fraction = 1.0 if data.get("complete") else get_split_fraction(cfg.fraction, split)
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,

@@ -77,6 +77,10 @@ This example provides simple RT-DETR training and inference examples. For full d
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
 
+!!! tip "Deterministic Training"
+
+    Set `deterministic=False` when training RT-DETR. The `F.grid_sample` call in its deformable attention has no deterministic CUDA backward, so `deterministic=True` cannot make a run reproducible yet still costs around 25% of training throughput.
+
 !!! tip "Faster Inference Trade-Offs"
 
     RT-DETR pretrained weights support two inference-time settings to reduce latency without retraining:

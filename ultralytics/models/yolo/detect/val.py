@@ -340,7 +340,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
-        dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        dataset = self.build_dataset(dataset_path, batch=batch_size, mode=self.args.split or "val")
         return build_dataloader(
             dataset,
             batch_size,

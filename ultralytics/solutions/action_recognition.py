@@ -11,7 +11,7 @@ import torch
 
 from ultralytics.solutions.solutions import BaseSolution, SolutionAnnotator, SolutionResults
 from ultralytics.utils.plotting import colors, save_one_box
-from ultralytics.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.utils.torch_utils import parse_device, select_device, smart_inference_mode
 
 
 class TorchVisionVideoClassifier:
@@ -113,7 +113,8 @@ class ActionRecognition(BaseSolution):
 
     Examples:
         >>> action = ActionRecognition(model="yolo26n.pt", video_classifier_model="s3d")
-        >>> results = action("path/to/video.mp4")
+        >>> frame = cv2.imread("frame.jpg")
+        >>> results = action(frame)
     """
 
     def __init__(self, **kwargs: Any) -> None:
@@ -137,7 +138,8 @@ class ActionRecognition(BaseSolution):
         self.video_cls_overlap_ratio = float(self.CFG["video_cls_overlap_ratio"])
 
         self._video_classifier_model = self.CFG["video_classifier_model"]
-        self._video_classifier_device = "" if self.CFG["device"] is None else self.CFG["device"]
+        # Resolve once so an idle-GPU request ("-1") cannot land the tracker and the classifier on different GPUs
+        self._video_classifier_device = self.track_add_args["device"] = self.device = parse_device(self.CFG["device"])
         self.video_classifier = None
 
         self.crop_history = defaultdict(list)

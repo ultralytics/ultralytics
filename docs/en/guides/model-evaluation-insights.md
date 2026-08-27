@@ -7,7 +7,7 @@ keywords: model evaluation, fine-tuning YOLO, mAP, IoU, confidence score, model 
 
 # Insights on Model Evaluation and Fine-Tuning
 
-After [training](./model-training-tips.md) a YOLO model, the next step is to measure how well it performs and fine-tune it to close the gaps. Evaluation uses metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) to quantify accuracy, while fine-tuning adjusts training parameters to strengthen weak spots so the model meets your [project's objective](./defining-project-goals.md). This guide explains the key evaluation metrics, how to read them, and the fine-tuning techniques that elevate your model's capabilities.
+After [training](./model-training-tips.md) a YOLO model, the next step is to measure how well it performs and fine-tune it to close the gaps. Evaluation uses metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) to quantify accuracy, while fine-tuning adjusts training parameters to strengthen weak spots so the model meets your [project's objective](./defining-project-goals.md). This guide explains the key evaluation metrics, how to read them, and how to act on what they show.
 
 <p align="center">
   <br>
@@ -117,7 +117,7 @@ Image tiling can improve detection accuracy for small objects. By dividing large
 
 ## Conclusion
 
-Evaluating and fine-tuning are what turn a trained model into a dependable, deployable one: metrics like mAP and IoU expose weaknesses, and targeted parameter changes address them. Start with the [validation mode](../modes/val.md) to benchmark your model, then apply the fine-tuning techniques above and keep iterating with new parameters, techniques, and datasets. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
+Evaluating and fine-tuning are what turn a trained model into a dependable, deployable one: metrics like mAP and IoU expose weaknesses, and targeted parameter changes address them. Start with the [validation mode](../modes/val.md) to benchmark your model, then retrain with the arguments covered in the [fine-tuning guide](./finetuning-guide.md) and keep iterating with new parameters, techniques, and datasets. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
 
 ## FAQ
 
@@ -141,7 +141,7 @@ Improving mean average precision (mAP) for a YOLO26 model involves several steps
 2. **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Use techniques like Mosaic and MixUp to create diverse training samples.
 3. **Image Tiling**: Split larger images into smaller tiles to improve detection accuracy for small objects.
 
-Refer to our detailed section on [fine-tuning your model](#fine-tuning-your-model) for specific strategies.
+For the training arguments behind steps 1 and 2, see the [fine-tuning guide](./finetuning-guide.md); step 3 is covered in [image tiling](#image-tiling-for-small-objects).
 
 ### How do I access YOLO26 model evaluation metrics in Python?
 

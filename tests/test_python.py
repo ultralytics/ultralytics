@@ -126,6 +126,7 @@ def test_cfg_rejects_fuzzed_values():
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"fraction": [1000, 1.0, 0]}).fraction == [1000, 1.0, 0]
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 

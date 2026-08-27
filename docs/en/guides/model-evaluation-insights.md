@@ -109,33 +109,7 @@ The `results.box.image_metrics` attribute is a per-image dictionary keyed by ima
 
 ## Fine-Tuning Your Model
 
-Fine-tuning takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model to achieve optimal results by paying close attention to a few key parameters and techniques.
-
-### Starting With a Higher Learning Rate
-
-During normal training, the [learning rate](https://www.ultralytics.com/glossary/learning-rate) starts low and gradually increases over the first few epochs to stabilize early updates. When fine-tuning, the model already carries useful features from pretraining, so you can skip this warmup and start adapting to your new data right away.
-
-Set the `warmup_epochs` training argument to `0` in `model.train()` to disable the warmup phase. Training then continues from the pretrained weights at the configured base learning rate (`lr0`) instead of ramping up to it, adjusting to the nuances of your new data.
-
-!!! example "Fine-tune without learning-rate warmup"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained model
-        model = YOLO("yolo26n.pt")
-
-        # Fine-tune with the warmup phase disabled
-        model.train(data="coco8.yaml", epochs=10, warmup_epochs=0)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo detect train model=yolo26n.pt data=coco8.yaml epochs=10 warmup_epochs=0
-        ```
+Fine-tuning takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model on your own data, adjusting the training arguments covered in the [fine-tuning guide](./finetuning-guide.md).
 
 ### Image Tiling for Small Objects
 
@@ -153,7 +127,7 @@ To evaluate YOLO26 model performance, important metrics include Confidence Score
 
 ### How can I fine-tune a pretrained YOLO26 model for my specific dataset?
 
-Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then set the `warmup_epochs` training argument to `0` in `model.train()` so the learning rate starts at the configured base value immediately instead of ramping up. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning your model](#fine-tuning-your-model).
+Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then retrain from the pretrained weights on your own dataset. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For the training arguments to adjust, see the [fine-tuning guide](./finetuning-guide.md).
 
 ### How can I handle variable image sizes when evaluating my YOLO26 model?
 

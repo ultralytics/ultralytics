@@ -43,8 +43,7 @@ For YOLO deployment, `RVC4` is the higher-performance option and is generally th
 
 !!! note "Compatibility at a glance"
 
-    - Supports Ultralytics YOLO models from `YOLOv5` through `YOLO26`
-    - Supports all main YOLO tasks on both `RVC2` and `RVC4`
+    - See the [supported models table](https://github.com/luxonis/tools#-supported-models) for the currently supported YOLO families and task-specific variants.
     - `RVC4` delivers higher throughput than `RVC2` for the same class of YOLO workloads
     - Converted models are generation-specific, so an export for `RVC2` cannot run on `RVC4`, and an export for `RVC4` cannot run on `RVC2`
 

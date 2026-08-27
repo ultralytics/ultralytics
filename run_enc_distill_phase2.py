@@ -40,9 +40,8 @@ Flags:
                 batch:nbs ratio, so pass this only to break that ratio deliberately.
     --backbone_lr_ratio <float>: coco_det_finetune and multi_det_finetune. Backbone LR = lr0 *
                 this (below 1 preserves distilled backbone features).
-    --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml
-                path per line (#-comments and blanks ignored), or a directory scanned
-                one level deep for ``*/data.yaml``.
+    --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml path or Platform dataset URI
+                per line (#-comments and blanks ignored), or a directory scanned one level deep for ``*/data.yaml``.
     --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
@@ -65,7 +64,7 @@ from filelock import FileLock
 
 from callbacks import nfs_sync, paths, wandb_config
 from ultralytics import YOLO
-from ultralytics.data.utils import IMG_FORMATS
+from ultralytics.data.utils import IMG_FORMATS, convert_ndjson_to_yolo_if_needed
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.models.yolo.detect.val import DETECTION_AREA_RANGES
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
@@ -366,34 +365,40 @@ def _load_recipe(name: str, model_yaml: str, **deltas: str | float | None) -> di
     return recipe
 
 
-def _resolve_dataset_list(datasets_arg: str) -> list[Path]:
-    """Resolve --datasets argument to a sorted list of YOLO data.yaml paths.
+def _resolve_dataset_list(datasets_arg: str) -> list[tuple[str, str]]:
+    """Resolve --datasets argument to sorted dataset names and sources.
 
     Args:
-        datasets_arg (str): Either a file containing one yaml path per line (#-comments and blanks ignored), or a
-            directory scanned one level deep for ``*/data.yaml``.
+        datasets_arg (str): Either a file containing one YAML path or Platform URI per line (#-comments and blanks
+            ignored), or a directory scanned one level deep for ``*/data.yaml``.
 
     Returns:
-        (list[Path]): absolute, sorted, deduplicated paths to existing data.yaml files.
+        (list[tuple[str, str]]): Sorted dataset names and local YAML paths or Platform URIs.
     """
     p = Path(datasets_arg).expanduser().resolve()
     if not p.exists():
         raise SystemExit(f"--datasets path does not exist: {p}")
     if p.is_dir():
-        yamls = sorted(p.glob("*/data.yaml"))
+        sources = [str(path.resolve()) for path in p.glob("*/data.yaml")]
     else:
-        yamls = []
-        for line in p.read_text().splitlines():
-            s = line.strip()
-            if s and not s.startswith("#"):
-                yamls.append(Path(s).expanduser().resolve())
-    yamls = sorted(set(yamls))
-    missing = [y for y in yamls if not y.exists()]
+        sources = [
+            source for line in p.read_text().splitlines() if (source := line.strip()) and not source.startswith("#")
+        ]
+    sources = [source if source.startswith("ul://") else str(Path(source).expanduser().resolve()) for source in sources]
+    missing = [source for source in sources if not source.startswith("ul://") and not Path(source).exists()]
     if missing:
         raise SystemExit(f"missing data.yaml files: {missing}")
-    if not yamls:
+    datasets = sorted(
+        {
+            (source.rstrip("/").rsplit("/", 1)[-1] if source.startswith("ul://") else Path(source).parent.name, source)
+            for source in sources
+        }
+    )
+    if not datasets:
         raise SystemExit(f"--datasets resolved zero data.yaml files from {p}")
-    return yamls
+    if len({name for name, _ in datasets}) != len(datasets):
+        raise SystemExit(f"--datasets contains duplicate dataset names: {p}")
+    return datasets
 
 
 # Published-recipe train_args copied verbatim from a shipped checkpoint (yolo26{size}.pt or
@@ -703,11 +708,11 @@ def _run_multi_det(
         model_override (str): Detector YAML override.
         shard (tuple, optional): Internal dataset shard index and worker count.
     """
-    suite_yamls = _resolve_dataset_list(datasets_arg)
+    suite_datasets = _resolve_dataset_list(datasets_arg)
     shard_index, shard_count = shard
-    if shard_count < 1 or shard_index >= shard_count or shard_count > len(suite_yamls):
+    if shard_count < 1 or shard_index >= shard_count or shard_count > len(suite_datasets):
         raise SystemExit(f"ERROR: internal UL33 shard {shard_index}/{shard_count} is invalid.")
-    dataset_yamls = suite_yamls[shard_index::shard_count]
+    datasets = suite_datasets[shard_index::shard_count]
     parent_save_dir = paths.LOCAL_ROOT / parent_name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
     if teacher_spec:
@@ -726,7 +731,7 @@ def _run_multi_det(
 
     csv_path = paths.multi_results_csv(parent_name, paths.LOCAL_ROOT)
     nfs_csv = paths.multi_results_csv(parent_name)
-    expected = {path.parent.name for path in suite_yamls}
+    expected = {name for name, _ in suite_datasets}
     completed, macro, owns_final = _merge_multi_results(csv_path, nfs_csv, expected)
 
     repo_defaults = not recipe_name
@@ -784,7 +789,7 @@ def _run_multi_det(
         # Ablation lever: run the detector at a non-640 imgsz, e.g. 224 to match the phase-1 distillation grid.
         det_args["imgsz"] = int(imgsz_override)
     print(
-        f"[multi_det_finetune] parent={parent_name} datasets={len(dataset_yamls)}/{len(suite_yamls)} "
+        f"[multi_det_finetune] parent={parent_name} datasets={len(datasets)}/{len(suite_datasets)} "
         f"shard={shard_index}/{shard_count} model={model_yaml}"
     )
     print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
@@ -817,17 +822,17 @@ def _run_multi_det(
 
     # Weights are deleted after val, so skip the upload. Not save=False: without best.pt val scores the last epoch.
     os.environ["WANDB_LOG_MODEL_ARTIFACT"] = "false"
-    for i, ds_yaml in enumerate(dataset_yamls, start=1):
-        basename = ds_yaml.parent.name
+    for i, (basename, data_source) in enumerate(datasets, start=1):
         if basename in completed:
-            print(f"=== [{i}/{len(dataset_yamls)}] {basename}: finalized, skipping ===")
+            print(f"=== [{i}/{len(datasets)}] {basename}: finalized, skipping ===")
             continue
+        ds_yaml = Path(convert_ndjson_to_yolo_if_needed(data_source))
         for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT):
             stale_dir = root / parent_name / basename
             if stale_dir.exists():
                 shutil.rmtree(stale_dir)
         n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, det_args.get("batch", DEFAULT_CFG_DICT["batch"]))
-        print(f"\n=== [{i}/{len(dataset_yamls)}] {basename} ===")
+        print(f"\n=== [{i}/{len(datasets)}] {basename} ===")
         print(
             f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} "
             f"epochs={det_args['epochs']} patience={det_args.get('patience', DEFAULT_CFG_DICT['patience'])}"
@@ -848,6 +853,7 @@ def _run_multi_det(
                 dataset=basename,
                 n_train_images=n_imgs,
                 iters_per_epoch=iters_per_ep,
+                **({"data_source": "platform", "platform_uri": data_source} if data_source.startswith("ul://") else {}),
             ),
         )
         # cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects).

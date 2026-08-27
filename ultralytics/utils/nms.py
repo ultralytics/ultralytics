@@ -153,7 +153,7 @@ def non_max_suppression(
             i = TorchNMS.fast_nms(boxes, scores, iou_thres, iou_func=batch_probiou)
         else:
             boxes = x[:, :4] + c  # boxes (offset by class)
-            # Use torchvision if already imported; on unsupported devices torch_npu/other backends CPU-fallback the fused NMS.
+            # Use torchvision if already imported; on unsupported devices torch_npu backends CPU-fallback the fused NMS.
             if use_torchvision:
                 import torchvision  # scope as slow import
 

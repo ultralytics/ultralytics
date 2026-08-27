@@ -329,7 +329,7 @@ The tables below compare some YOLO models on `RVC2` and `RVC4` OAK platforms.
 
 ### RVC2
 
-Benchmarks below use `FP16` precision with 2 inference threads at `320x320` input size.
+Benchmarks below use `FP16` precision with `2 inference threads` at `320x320` input size. Tests are done on [OAK-D S2](https://shop.luxonis.com/products/oak-d-s2) Luxonis device
 
 | Model        | Variant | Task                  | FPS  |
 | :----------- | :------ | :-------------------- | :--- |
@@ -341,7 +341,7 @@ Benchmarks below use `FP16` precision with 2 inference threads at `320x320` inpu
 
 ### RVC4
 
-Benchmarks below use `INT8` precision with 2 inference threads at `640x640` input size with balanced inference mode.
+Benchmarks below use `INT8` precision with `2 inference threads` at `640x640` input size with `balanced` inference mode. Tests were done on [OAK 4 D](https://shop.luxonis.com/products/oak-4-d) Luxonis device. 
 
 | Model        | Variant | Task                  | FPS   |
 | :----------- | :------ | :-------------------- | :---- |

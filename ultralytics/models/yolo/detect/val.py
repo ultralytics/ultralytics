@@ -329,9 +329,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (Dataset): YOLO dataset.
         """
-        fraction = (
-            1.0 if self.data.get("complete") else get_split_fraction(self.args.fraction, self.args.split or "val")
-        )
+        fraction = get_split_fraction(self.args.fraction, self.args.split or "val")
         return build_yolo_dataset(
             self.args, img_path, batch, self.data, mode=mode, stride=self.stride, fraction=fraction
         )

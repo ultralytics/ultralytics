@@ -224,9 +224,10 @@ The final output of the local workflow is a device-specific NN Archive ready for
 
 ## Running Inference on OAK Cameras
 
-Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For YOLO models, [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network) supports inference and on-device decoding of YOLO outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
+Once you have a converted model, inference on OAK cameras is done with [DepthAI v3](https://docs.luxonis.com/software-v3/depthai). For  [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [pose estimation](../tasks/pose.md) YOLO models, [`dai.node.DetectionNetwork`](https://docs.luxonis.com/software-v3/depthai/depthai-components/nodes/detection_network) supports inference and on-device decoding of model outputs into [ImgDetections](https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_detections/).
 
-For the broader pipeline concepts, examples, and advanced patterns, see the Luxonis [AI Inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
+For other task variants, such as [semantic segmentation](../tasks/semantic.md) and [classification](../tasks/classify.md), as well as broader pipeline concepts, examples, and advanced usage patterns, see the Luxonis [AI Inference documentation](https://docs.luxonis.com/software-v3/ai-inference/inference/).
+
 
 ![Luxonis deployments](images/luxonis_deployment_examples_with_brand_tagline.png)
 

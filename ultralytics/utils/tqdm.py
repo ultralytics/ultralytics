@@ -209,7 +209,7 @@ class TQDM:
     @staticmethod
     def _fit(text: str, width: int) -> str:
         """Truncate text to width display cells, skipping zero-width ANSI codes and counting CJK chars as 2."""
-        cells = i = 0
+        cells = i = cut = 0
         while i < len(text):
             if text[i] == "\033":  # ANSI escape sequence: zero width, runs through its letter terminator
                 while i < len(text) and not text[i].isalpha():
@@ -217,7 +217,9 @@ class TQDM:
             else:
                 cells += 2 if unicodedata.east_asian_width(text[i]) in "WF" else 1
                 if cells > width:
-                    return f"{text[:i]}\033[0m"  # reset so a truncated color does not bleed
+                    return f"{text[:cut]}…\033[0m"  # reset so a truncated color does not bleed
+                if cells < width:
+                    cut = i + 1  # last cut that still leaves a cell for the ellipsis
             i += 1
         return text
 
@@ -297,9 +299,10 @@ class TQDM:
             progress_str = f"{self.desc}: {fields}"
             if self.file.isatty():  # description yields its cells first so the progress fields survive
                 try:  # measure self.file's own terminal, not sys.__stdout__
-                    width = os.get_terminal_size(self.file.fileno()).columns - 1
+                    width = os.get_terminal_size(self.file.fileno()).columns
                 except Exception:  # streams without a usable fileno (io.StringIO, wrapped stdout)
-                    width = shutil.get_terminal_size().columns - 1  # COLUMNS env, else sys.__stdout__
+                    width = shutil.get_terminal_size().columns  # COLUMNS env, else sys.__stdout__
+                width = (width or 80) - 1  # a pty opened without a winsize reports 0 columns
                 progress_str = self._fit(f"{self._fit(self.desc, width - len(fields) - 2)}: {fields}", width)
             # Non-interactive environments avoid the carriage return which creates empty lines
             frame = progress_str if self.noninteractive else f"\r\033[K{progress_str}"

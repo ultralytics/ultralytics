@@ -138,7 +138,7 @@ When you run the training command, the Neptune integration automatically capture
 1. **Configuration/Hyperparameters**: All training arguments (epochs, lr0, optimizer, etc.) are logged under the Configuration section.
 2. **Configuration/Model**: The model architecture and definition.
 3. **Metrics**:
-    - **Train**: `box_loss`, `cls_loss`, `dfl_loss`, `lr` (learning rate).
+    - **Train**: `box_loss`, `cls_loss`, `l1_loss` (`dfl_loss` on DFL-based models), `lr` (learning rate).
     - **Metrics**: `precision`, `recall`, `mAP50`, `mAP50-95`.
 4. **Images**:
     - `Mosaic`: Training batches showing data augmentation.

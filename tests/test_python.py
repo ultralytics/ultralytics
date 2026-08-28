@@ -928,6 +928,10 @@ def test_all_model_yamls():
         if "rtdetr" in m.name:
             if TORCH_1_11:
                 _ = RTDETR(m.name)(SOURCE, imgsz=160)
+        elif TORCH_1_11 and "DeimDecoder" in str(YAML.load(m)["head"][-1]):
+            model = YOLO(m.name)  # a config declares its decoder, so routing must not depend on the filename
+            assert isinstance(model, YOLODETR)
+            model(SOURCE, imgsz=160)  # transformer decoders need a forward pass, not just a build
         else:
             YOLO(m.name)
 
@@ -944,12 +948,14 @@ def test_workflow(isolated_model):
 
 @pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
-@pytest.mark.parametrize("cfg", ["yolo27l.yaml", "yolo27x.yaml"])
+@pytest.mark.parametrize("cfg", ["yolo27m.yaml", "yolo27l.yaml", "yolo27x.yaml"])
 def test_yolodetr_train(cfg, tmp_path):
     """Test YOLODETR train, val, and predict on YOLO26 CSP and UltraViT backbone variants."""
-    model = YOLO(cfg)  # configs carry no 'detr' token, so routing reads the declared decoder
-    assert isinstance(model, YOLODETR)
+    from ultralytics.models.yolodetr import YOLODETRTrainer
+
+    model = YOLO(cfg)
     model.train(data="coco8.yaml", imgsz=160, epochs=1, save=False, project=str(tmp_path))
+    assert type(model.trainer) is YOLODETRTrainer  # training must not fall back to DetectionTrainer
     model.val(data="coco8.yaml", imgsz=160)
     model.predict(SOURCE, imgsz=160)
 

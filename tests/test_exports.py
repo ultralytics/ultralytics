@@ -19,7 +19,7 @@ import torch
 
 from tests import MODEL, SOURCE
 from tests.conftest import isolated_model_path
-from ultralytics import YOLO
+from ultralytics import YOLO, YOLODETR
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS, _handle_deprecation, get_cfg
 from ultralytics.engine.exporter import EXPORT_ENVS, Exporter, export_formats, validate_args
 from ultralytics.utils import (
@@ -54,6 +54,22 @@ def test_export_torchscript(end2end, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
     file = YOLO(isolated_model).export(format="torchscript", imgsz=32, end2end=end2end)
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+
+
+@pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
+def test_export_torchscript_yolodetr():
+    """Test YOLO-DETR TorchScript export keeps family routing through the stamped head metadata."""
+    model = YOLO(YOLO("yolo27l.yaml").export(format="torchscript", imgsz=160))
+    assert isinstance(model, YOLODETR)
+    model(SOURCE, imgsz=160)
+
+
+@pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
+def test_export_onnx_yolodetr():
+    """Test YOLO-DETR ONNX export keeps family routing through the stamped head metadata."""
+    model = YOLO(YOLO("yolo27l.yaml").export(format="onnx", imgsz=160))
+    assert isinstance(model, YOLODETR)
+    model(SOURCE, imgsz=160)
 
 
 @pytest.mark.parametrize("end2end", [False, True])

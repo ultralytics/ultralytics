@@ -13,6 +13,7 @@ import torch.distributed as dist
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
+from ultralytics.nn.autobackend import check_class_names
 from ultralytics.utils import LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
@@ -92,7 +93,7 @@ class DetectionValidator(BaseValidator):
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
-        self.names = model.names
+        self.names = check_class_names(model.names)
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
@@ -561,7 +562,6 @@ class DetectionValidator(BaseValidator):
                         stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                         stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-                    # record mAP for small, medium, large objects as well
                     stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
                     stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
                     stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]

@@ -417,7 +417,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys use [0.0, 1.0]; dataset fraction also accepts positive counts and [train, val] pairs.
+        - Fraction keys use [0.0, 1.0]; dataset fraction also accepts counts and [train, val, test] lists.
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
@@ -454,10 +454,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
                 if k == "fraction" and isinstance(v, list):
-                    if len(v) != 2 or not all(
-                        (type(x) is int and x > 0) or (type(x) is float and 0.0 < x <= 1.0) for x in v
+                    if (
+                        len(v) not in {2, 3}
+                        or not all(v[:2])
+                        or not all((type(x) is int and x >= 0) or (type(x) is float and 0.0 <= x <= 1.0) for x in v)
                     ):
-                        raise ValueError(f"'{k}={v}' is invalid. Use positive [train, val] counts or fractions.")
+                        raise ValueError(f"'{k}={v}' is invalid. Use [train, val] or [train, val, test] counts/ratios.")
                     continue
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:

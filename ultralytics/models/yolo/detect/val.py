@@ -102,11 +102,10 @@ class DetectionValidator(BaseValidator):
         if custom_json:
             self.im_ids = dict(zip(self.dataloader.dataset.im_files, range(len(self.dataloader.dataset.im_files))))
             if self.gdict is None and RANK in {-1, 0}:
-                images, annotations = [], []
+                annotations = []
                 for image_id, label in enumerate(self.dataloader.dataset.labels):
                     h, w = label["shape"]
                     boxes = ops.xywh2ltwh(label["bboxes"] * np.array([w, h, w, h])).tolist()
-                    images.append({"id": image_id})
                     annotations += [
                         {
                             "id": len(annotations) + i + 1,
@@ -118,12 +117,11 @@ class DetectionValidator(BaseValidator):
                         }
                         for i, (b, c) in enumerate(zip(boxes, label["cls"].ravel()))
                     ]
-                self.gdict = {
-                    "images": images,
+                self.gdict = self.dataloader.dataset._coco_data = {
+                    "images": [{"id": i} for i in range(len(self.im_ids))],
                     "annotations": annotations,
                     "categories": [{"id": self.class_map[i], "name": name} for i, name in self.names.items()],
                 }
-                self.dataloader.dataset._coco_data = self.gdict
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
@@ -309,6 +307,8 @@ class DetectionValidator(BaseValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
+        if self.gdict:
+            stats.update({f"metrics/mAP_{x}(B)": 0.0 for x in ("small", "medium", "large")})
         if self.training and self.args.save_json:
             stats = self.eval_json(stats)
         self.metrics.clear_stats()
@@ -534,8 +534,8 @@ class DetectionValidator(BaseValidator):
         if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
             LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
-                if not self.gdict:
-                    for x in pred_json, anno_json:
+                for x in pred_json, anno_json:
+                    if isinstance(x, (str, Path)):
                         assert Path(x).is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 suffix = [suffix] if isinstance(suffix, str) else suffix

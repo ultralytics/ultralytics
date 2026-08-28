@@ -250,7 +250,7 @@ def export_formats():
             "_hailo_model",
             False,
             False,
-            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
+            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou", "model_script"],
             "base",
         ],
         [
@@ -1729,6 +1729,13 @@ class Exporter:
                     )
                     model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
                     model_script.append("allocator_param(width_splitter_defuse=disabled)")
+            if self.args.model_script:
+                # A user-supplied Hailo model script replaces the generated one entirely, so recipes that
+                # Hailo versions alongside the SDK (optimization level, AdaRound, per-layer precision,
+                # per-device quirks) can be used without the exporter tracking them.
+                script = Path(self.args.model_script)
+                model_script = [script.read_text() if script.is_file() else self.args.model_script]
+                LOGGER.info(f"{prefix} using model script from {self.args.model_script}")
             runner.load_model_script("\n".join(model_script))
 
             def calibration_dataset():

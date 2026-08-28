@@ -97,6 +97,33 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
         self.jdict = []
+        custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
+        self.gdict, self.im_ids = (getattr(self.dataloader.dataset, "_coco_data", None) if custom_json else None), None
+        if custom_json:
+            self.im_ids = dict(zip(self.dataloader.dataset.im_files, range(len(self.dataloader.dataset.im_files))))
+            if self.gdict is None and RANK in {-1, 0}:
+                images, annotations = [], []
+                for image_id, label in enumerate(self.dataloader.dataset.labels):
+                    h, w = label["shape"]
+                    boxes = ops.xywh2ltwh(label["bboxes"] * np.array([w, h, w, h])).tolist()
+                    images.append({"id": image_id})
+                    annotations += [
+                        {
+                            "id": len(annotations) + i + 1,
+                            "image_id": image_id,
+                            "category_id": self.class_map[int(c)],
+                            "bbox": b,
+                            "area": b[2] * b[3],
+                            "iscrowd": 0,
+                        }
+                        for i, (b, c) in enumerate(zip(boxes, label["cls"].ravel()))
+                    ]
+                self.gdict = {
+                    "images": images,
+                    "annotations": annotations,
+                    "categories": [{"id": self.class_map[i], "name": name} for i, name in self.names.items()],
+                }
+                self.dataloader.dataset._coco_data = self.gdict
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
@@ -179,6 +206,8 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
+            if self.im_ids is not None:
+                pbatch["image_id"] = self.im_ids[pbatch["im_file"]]
             predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
@@ -279,8 +308,11 @@ class DetectionValidator(BaseValidator):
             (dict[str, Any]): Dictionary containing metrics results.
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
+        stats = self.metrics.results_dict
+        if self.training and self.args.save_json:
+            stats = self.eval_json(stats)
         self.metrics.clear_stats()
-        return self.metrics.results_dict
+        return stats
 
     def print_results(self) -> None:
         """Print training/validation set metrics per class."""
@@ -436,7 +468,7 @@ class DetectionValidator(BaseValidator):
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
-        image_id = int(stem) if stem.isnumeric() else stem
+        image_id = pbatch.get("image_id", int(stem) if stem.isnumeric() else stem)
         box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
@@ -471,45 +503,40 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
-        pred_json = self.save_dir / "predictions.json"  # predictions
-        anno_json = (
+        pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
+        anno_json = self.gdict or (
             self.data["path"]
             / "annotations"
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
-        )  # annotations
+        )
         return self.coco_evaluate(stats, pred_json, anno_json)
 
     def coco_evaluate(
         self,
         stats: dict[str, Any],
-        pred_json: str,
-        anno_json: str,
+        pred_json: str | Path | list,
+        anno_json: str | Path | dict,
         iou_types: str | list[str] = "bbox",
         suffix: str | list[str] = "Box",
     ) -> dict[str, Any]:
         """Evaluate COCO/LVIS metrics using faster-coco-eval library.
 
-        Performs evaluation using the faster-coco-eval library to compute mAP metrics for object detection. Updates the
-        provided stats dictionary with computed metrics including mAP50, mAP50-95, and LVIS-specific metrics if
-        applicable.
-
         Args:
             stats (dict[str, Any]): Dictionary to store computed metrics and statistics.
-            pred_json (str | Path): Path to JSON file containing predictions in COCO format.
-            anno_json (str | Path): Path to JSON file containing ground truth annotations in COCO format.
-            iou_types (str | list[str]): IoU type(s) for evaluation. Can be single string or list of strings. Common
-                values include "bbox", "segm", "keypoints". Defaults to "bbox".
-            suffix (str | list[str]): Suffix to append to metric names in stats dictionary. Should correspond to
-                iou_types if multiple types provided. Defaults to "Box".
+            pred_json (str | Path | list): Path or in-memory predictions in COCO format.
+            anno_json (str | Path | dict): Path or in-memory ground truth in COCO format.
+            iou_types (str | list[str]): IoU types to evaluate, such as "bbox", "segm", or "keypoints".
+            suffix (str | list[str]): Metric suffixes corresponding to the IoU types.
 
         Returns:
             (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
         """
-        if self.args.save_json and (self.is_coco or self.is_lvis) and len(self.jdict):
-            LOGGER.info(f"\nEvaluating faster-coco-eval mAP using {pred_json} and {anno_json}...")
+        if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
+            LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
-                for x in pred_json, anno_json:
-                    assert x.is_file(), f"{x} file not found"
+                if not self.gdict:
+                    for x in pred_json, anno_json:
+                        assert Path(x).is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 suffix = [suffix] if isinstance(suffix, str) else suffix
                 check_requirements("faster-coco-eval>=1.6.7")
@@ -521,21 +548,23 @@ class DetectionValidator(BaseValidator):
                     val = COCOeval_faster(
                         anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=LOGGER.info
                     )
-                    val.params.imgIds = [int(Path(x).stem) for x in self.dataloader.dataset.im_files]  # images to eval
+                    val.params.imgIds = (
+                        anno.getImgIds()
+                        if self.gdict
+                        else [int(Path(x).stem) for x in self.dataloader.dataset.im_files]
+                    )
                     val.evaluate()
                     val.accumulate()
                     val.summarize()
 
-                    # update mAP50-95 and mAP50
-                    stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
-                    stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
+                    if self.is_coco or self.is_lvis:
+                        stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
+                        stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
+                        stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
                     # record mAP for small, medium, large objects as well
                     stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
                     stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
                     stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
-                    # update fitness
-                    stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-
                     if self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]

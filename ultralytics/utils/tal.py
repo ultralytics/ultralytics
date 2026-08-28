@@ -58,6 +58,8 @@ class TaskAlignedAssigner(nn.Module):
         self.stride = stride if stride is not None else [8, 16, 32]
         self.stride_val = self.stride[0] * 2 if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
+        self.global_topk = False  # rank every grid per GT instead of only the anchors inside the GT box
+        self.hard_target = False  # 0/1 cls target for positives instead of the alignment-graded soft label
         self.o2f_k = 0  # o2f: number of ambiguous soft-labeled anchors per GT (0=disabled)
         self.o2f_T = 0.0  # o2f: positive degree of ambiguous anchors, annealed per epoch by E2ELoss.update()
         self.dup_sup = False  # dup suppression: stash certain/sibling pairs for the margin loss
@@ -168,8 +170,9 @@ class TaskAlignedAssigner(nn.Module):
         align_metric *= mask_pos
         pos_align_metrics = align_metric.amax(dim=-1, keepdim=True)  # b, max_num_obj
         pos_overlaps = (overlaps * mask_pos).amax(dim=-1, keepdim=True)  # b, max_num_obj
-        norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
-        target_scores = target_scores * norm_align_metric
+        if not self.hard_target:  # hard_target keeps the 0/1 label get_targets already produced
+            norm_align_metric = (align_metric * pos_overlaps / (pos_align_metrics + self.eps)).amax(-2).unsqueeze(-1)
+            target_scores = target_scores * norm_align_metric
 
         if self.o2f_k and self.topk2 != self.topk:
             # always active when o2f is on: at T=0 ambiguous anchors get explicit 0 labels (hard negatives);
@@ -335,7 +338,12 @@ class TaskAlignedAssigner(nn.Module):
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
             overlaps (torch.Tensor): Overlaps between predicted vs ground truth boxes with shape (bs, max_num_obj, h*w).
         """
-        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
+        # ER-Pose Algorithm 1 ranks every grid per GT; the center prior otherwise keeps candidates inside the GT box
+        mask_in_gts = (
+            mask_gt.expand(-1, -1, pd_bboxes.shape[-2])
+            if self.global_topk
+            else self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
+        )
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
@@ -526,6 +534,66 @@ class TaskAlignedAssigner(nn.Module):
         # Find each grid serve which gt(index)
         target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos
+
+
+class PoseTaskAlignedAssigner(TaskAlignedAssigner):
+    """Assigns ground-truth objects to anchors by keypoint OKS instead of box IoU.
+
+    ER-Pose (https://arxiv.org/abs/2603.08681) replaces the localization term of the task-aligned metric with OKS, so
+    that positive selection and the soft classification target both track pose quality rather than box quality. The
+    pose loss hands over the decoded predicted and padded ground-truth keypoints, both in pixels, before each call.
+
+    Attributes:
+        sigmas (torch.Tensor): Per-keypoint OKS normalization constants, shape (num_keypoints,).
+        pd_kpts (torch.Tensor): Decoded predicted keypoints, shape (bs, num_total_anchors, num_keypoints, 2).
+        gt_kpts (torch.Tensor): Ground truth keypoints, shape (bs, n_max_boxes, num_keypoints, 2 or 3).
+        candidates (torch.Tensor): Candidate mask of the running assignment, shape (bs, n_max_boxes, h*w).
+        oks (torch.Tensor): OKS of every (GT, anchor) pair of the running assignment, shape (bs, n_max_boxes, h*w).
+    """
+
+    sigmas = pd_kpts = gt_kpts = candidates = oks = None
+
+    def forward(self, *args, **kwargs):
+        """Assign, then drop the keypoints so they stop holding memory through backward and the optimizer step."""
+        try:
+            return super().forward(*args, **kwargs)
+        finally:
+            self.pd_kpts = self.gt_kpts = self.candidates = self.oks = None
+
+    def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
+        """Score every (GT, anchor) pair by OKS, which `iou_calculation` then serves to the base class.
+
+        One keypoint is accumulated at a time so the working set stays at (bs, n_max_boxes, h*w) rather than the
+        (num_pairs, num_keypoints, 3) gathers a per-pair formulation needs. On a crowded 640 batch that is 16x less
+        memory under `global_topk`, where every anchor is a candidate, and still cheaper under the center prior.
+        """
+        device = pd_bboxes.device  # the assigner OOM fallback re-runs on CPU, so follow the boxes
+        pd_kpts, gt_kpts, sigmas = (t.to(device) for t in (self.pd_kpts, self.gt_kpts, self.sigmas))
+        area = (gt_bboxes[..., 2:] - gt_bboxes[..., :2]).prod(-1, keepdim=True)  # s^2, (bs, n_max_boxes, 1)
+        vis = gt_kpts[..., 2] != 0 if gt_kpts.shape[-1] == 3 else torch.ones_like(gt_kpts[..., 0], dtype=torch.bool)
+        oks = pd_kpts.new_zeros(self.bs, self.n_max_boxes, pd_kpts.shape[1])
+        for i in range(gt_kpts.shape[2]):
+            d = (pd_kpts[:, None, :, i, 0] - gt_kpts[:, :, None, i, 0]).pow(2) + (
+                pd_kpts[:, None, :, i, 1] - gt_kpts[:, :, None, i, 1]
+            ).pow(2)
+            oks += (-d / ((2 * sigmas[i]).pow(2) * (area + self.eps) * 2)).exp() * vis[:, :, i, None]  # from cocoeval
+        # A ground truth with no visible keypoint has no OKS, so it scores 0 everywhere and select_topk_candidates
+        # drops it: unlike box IoU, this assignment leaves keypoint-free instances unsupervised.
+        self.oks = oks / (vis.sum(-1, keepdim=True) + self.eps)
+        self.candidates = mask_gt.bool()
+        return super().get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt)
+
+    def iou_calculation(self, gt_bboxes, pd_bboxes):
+        """Serve the precomputed OKS of the candidate pairs the base class is grading.
+
+        Args:
+            gt_bboxes (torch.Tensor): Ground truth boxes of the candidate pairs, unused, shape (num_pairs, 4).
+            pd_bboxes (torch.Tensor): Predicted boxes of the candidate pairs, unused, shape (num_pairs, 4).
+
+        Returns:
+            (torch.Tensor): OKS values in [0, 1] for each candidate pair, shape (num_pairs,).
+        """
+        return self.oks[self.candidates]
 
 
 class RotatedTaskAlignedAssigner(TaskAlignedAssigner):

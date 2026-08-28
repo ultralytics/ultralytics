@@ -16,7 +16,14 @@ from ultralytics.utils import RANK
 
 from ultralytics.utils.metrics import CITYSCAPES_WEIGHT, OKS_SIGMA, RLE_WEIGHT
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
-from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
+from ultralytics.utils.tal import (
+    PoseTaskAlignedAssigner,
+    RotatedTaskAlignedAssigner,
+    TaskAlignedAssigner,
+    dist2bbox,
+    dist2rbox,
+    make_anchors,
+)
 from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
@@ -356,10 +363,11 @@ class BCEDiceLoss(nn.Module):
 class KeypointLoss(nn.Module):
     """Criterion class for computing keypoint losses."""
 
-    def __init__(self, sigmas: torch.Tensor) -> None:
-        """Initialize the KeypointLoss class with keypoint sigmas."""
+    def __init__(self, sigmas: torch.Tensor, soks: bool = False) -> None:
+        """Initialize the KeypointLoss class with keypoint sigmas and the Smooth-OKS switch."""
         super().__init__()
         self.sigmas = sigmas
+        self.soks = soks
 
     def forward(
         self, pred_kpts: torch.Tensor, gt_kpts: torch.Tensor, kpt_mask: torch.Tensor, area: torch.Tensor
@@ -368,12 +376,20 @@ class KeypointLoss(nn.Module):
         d = (pred_kpts[..., 0] - gt_kpts[..., 0]).pow(2) + (pred_kpts[..., 1] - gt_kpts[..., 1]).pow(2)
         kpt_loss_factor = kpt_mask.shape[1] / (torch.sum(kpt_mask != 0, dim=1) + 1e-9)
         # e = d / (2 * (area * self.sigmas) ** 2 + 1e-9)  # from formula
-        e = d / ((2 * self.sigmas).pow(2) * (area + 1e-9) * 2)  # from cocoeval
+        e = d / ((2 * self.sigmas).pow(2) * (area + 1e-9) * 2)  # from cocoeval, equals u^2 / 2
+        if self.soks:
+            # Smooth-OKS: keep the Gaussian exponent below u^2 = 1 and switch to
+            # the Laplace exponent (2u - 1) / 2 above it, which is C1 continuous at the seam and decays linearly
+            # instead of quadratically, so large keypoint errors keep a usable gradient. Both branches of where() are
+            # evaluated, hence the clamp: sqrt(0) has an infinite derivative and would poison the backward pass.
+            e = torch.where(e < 0.5, e, (2 * e.clamp(min=0.5)).sqrt() - 0.5)
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
+
+    assigner_class = TaskAlignedAssigner  # tasks grading candidates on something other than box IoU override this
 
     def __init__(
         self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int | None = None
@@ -403,7 +419,7 @@ class v8DetectionLoss:
         if self.class_weights is not None:
             self.class_weights = self.class_weights.to(device).view(1, 1, -1)
 
-        self.assigner = TaskAlignedAssigner(
+        self.assigner = self.assigner_class(
             topk=tal_topk,
             num_classes=self.nc,
             alpha=h.tal_alpha,
@@ -412,6 +428,8 @@ class v8DetectionLoss:
             topk2=tal_topk2,
         )
         self.assigner.monitor = getattr(h, "tal_monitor", False)  # collect assignment stats for tal_monitor callback
+        self.assigner.global_topk = getattr(h, "tal_global", False)
+        self.assigner.hard_target = getattr(h, "tal_hard", False)
         self.assigner.dup_sup = self.dup_sup > 0
         self.bbox_loss = BboxLoss(
             m.reg_max,
@@ -479,6 +497,7 @@ class v8DetectionLoss:
 
         box_scale = imgsz[[1, 0, 1, 0]] if self.sigmoid_box else stride_tensor
         anc_scale = imgsz[[1, 0]] if self.sigmoid_box else stride_tensor
+        self.prepare_assigner(preds, batch, anchor_points, stride_tensor, imgsz)
         _, target_bboxes, target_scores, fg_mask, target_gt_idx = self.assigner(
             pred_scores.detach().sigmoid(),
             (pred_bboxes.detach() * box_scale).type(gt_bboxes.dtype),
@@ -553,6 +572,16 @@ class v8DetectionLoss:
             loss,
             loss.detach(),
         )  # loss(box, cls, dfl)
+
+    def prepare_assigner(
+        self,
+        preds: dict[str, torch.Tensor],
+        batch: dict[str, Any],
+        anchor_points: torch.Tensor,
+        stride_tensor: torch.Tensor,
+        imgsz: torch.Tensor,
+    ) -> None:
+        """Feed the assigner the task-specific predictions it grades on; box IoU needs nothing beyond its arguments."""
 
     def parse_output(
         self, preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]]
@@ -739,13 +768,18 @@ class v8PoseLoss(v8DetectionLoss):
 
     def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int = 10):  # model must be de-paralleled
         """Initialize v8PoseLoss with model parameters and keypoint-specific loss functions."""
+        self.tal_oks = getattr(model.args, "tal_oks", False)  # read before super(), which builds the assigner
+        if self.tal_oks:
+            self.assigner_class = PoseTaskAlignedAssigner
         super().__init__(model, tal_topk, tal_topk2)
         self.kpt_shape = model.model[-1].kpt_shape
         self.bce_pose = nn.BCEWithLogitsLoss()
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]  # number of keypoints
         sigmas = torch.from_numpy(OKS_SIGMA).to(self.device) if is_pose else torch.ones(nkpt, device=self.device) / nkpt
-        self.keypoint_loss = KeypointLoss(sigmas=sigmas)
+        self.keypoint_loss = KeypointLoss(sigmas=sigmas, soks=getattr(self.hyp, "soks", False))
+        if self.tal_oks:
+            self.assigner.sigmas = sigmas
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""
@@ -793,6 +827,51 @@ class v8PoseLoss(v8DetectionLoss):
         y[..., 1] += anchor_points[:, [1]] - 0.5
         return y
 
+    def prepare_assigner(
+        self,
+        preds: dict[str, torch.Tensor],
+        batch: dict[str, Any],
+        anchor_points: torch.Tensor,
+        stride_tensor: torch.Tensor,
+        imgsz: torch.Tensor,
+    ) -> None:
+        """Hand the OKS assigner decoded predicted and padded ground-truth keypoints, both in image pixels."""
+        if not self.tal_oks:
+            return
+        batch_size = preds["kpts"].shape[0]
+        pred_kpts = preds["kpts"].detach().permute(0, 2, 1).contiguous().view(batch_size, -1, *self.kpt_shape)
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts[..., :2].float())  # fp32: pixel d^2 overflows fp16
+        self.assigner.pd_kpts = pred_kpts * stride_tensor.view(1, -1, 1, 1)
+        gt_kpts = batch["keypoints"].to(self.device).float().clone()
+        gt_kpts[..., 0] *= imgsz[1]
+        gt_kpts[..., 1] *= imgsz[0]
+        self.assigner.gt_kpts = self._batch_keypoints(gt_kpts, batch["batch_idx"], batch_size)
+
+    @staticmethod
+    def _batch_keypoints(keypoints: torch.Tensor, batch_idx: torch.Tensor, batch_size: int) -> torch.Tensor:
+        """Pad per-image keypoints into (BS, n_max_boxes, N_kpts_per_object, kpts_dim), ordered as in `preprocess`.
+
+        Args:
+            keypoints (torch.Tensor): Ground truth keypoints, shape (N_kpts_in_batch, N_kpts_per_object, kpts_dim).
+            batch_idx (torch.Tensor): Batch index tensor for keypoints, shape (N_kpts_in_batch,).
+            batch_size (int): Number of images in the batch.
+
+        Returns:
+            (torch.Tensor): Padded keypoints, shape (BS, n_max_boxes, N_kpts_per_object, kpts_dim).
+        """
+        batch_idx = batch_idx.flatten().long()
+        if not len(batch_idx):
+            return torch.zeros((batch_size, 0, *keypoints.shape[1:]), device=keypoints.device)
+
+        # Vectorized fill: compute within-batch position for each keypoint using cumulative offsets
+        max_kpts = torch.unique(batch_idx, return_counts=True)[1].max()  # most instances in a single image
+        out = torch.zeros((batch_size, max_kpts, *keypoints.shape[1:]), device=keypoints.device)
+        offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=keypoints.device)
+        offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
+        within_idx = torch.arange(len(batch_idx), device=keypoints.device) - offsets.cumsum(0)[batch_idx]
+        out[batch_idx, within_idx] = keypoints
+        return out
+
     def _select_target_keypoints(
         self,
         keypoints: torch.Tensor,
@@ -811,34 +890,11 @@ class v8PoseLoss(v8DetectionLoss):
         Returns:
             (torch.Tensor): Selected keypoints tensor, shape (BS, N_anchors, N_kpts_per_object, kpts_dim).
         """
-        batch_idx = batch_idx.flatten()
-        batch_size = len(masks)
+        batched_keypoints = self._batch_keypoints(keypoints, batch_idx, len(masks))
 
-        # Find the maximum number of keypoints in a single image
-        max_kpts = torch.unique(batch_idx, return_counts=True)[1].max()
-
-        # Create a tensor to hold batched keypoints
-        batched_keypoints = torch.zeros(
-            (batch_size, max_kpts, keypoints.shape[1], keypoints.shape[2]), device=keypoints.device
-        )
-
-        # Vectorized fill: compute within-batch position for each keypoint using cumulative offsets
-        batch_idx_long = batch_idx.long()
-        offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=keypoints.device)
-        offsets.scatter_add_(0, batch_idx_long + 1, torch.ones_like(batch_idx_long))
-        offsets = offsets.cumsum(0)
-        within_idx = torch.arange(len(batch_idx), device=keypoints.device) - offsets[batch_idx_long]
-        batched_keypoints[batch_idx_long, within_idx] = keypoints
-
-        # Expand dimensions of target_gt_idx to match the shape of batched_keypoints
+        # Expand dimensions of target_gt_idx to select keypoints from batched_keypoints
         target_gt_idx_expanded = target_gt_idx.unsqueeze(-1).unsqueeze(-1)
-
-        # Use target_gt_idx_expanded to select keypoints from batched_keypoints
-        selected_keypoints = batched_keypoints.gather(
-            1, target_gt_idx_expanded.expand(-1, -1, keypoints.shape[1], keypoints.shape[2])
-        )
-
-        return selected_keypoints
+        return batched_keypoints.gather(1, target_gt_idx_expanded.expand(-1, -1, *keypoints.shape[1:]))
 
     def calculate_keypoints_loss(
         self,

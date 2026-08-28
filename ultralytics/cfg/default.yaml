@@ -114,6 +114,9 @@ o2m: 0.1
 tal_alpha: 0.5 # (float) TAL label assignment alpha for the one-to-many head (0.0=disable, 1.0=full TAL)
 tal_beta: 6.0 # (float) TAL label assignment beta for the one-to
 tal_o2o: True
+tal_oks: False # (bool) grade TAL candidates by keypoint OKS instead of box CIoU
+tal_global: False # (bool) rank every grid per GT instead of only the anchors inside the GT box, dropping the center prior (ER-Pose Algorithm 1); costs memory proportional to n_max_boxes * num_anchors
+tal_hard: False # (bool) give positives a 0/1 cls target instead of the alignment-graded soft label
 topk2: 7
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 dis: 6.0 # (float) distillation loss weight
@@ -140,6 +143,7 @@ l1_scale: norm # (str) when reg_max=1, box L1 loss scale: 'norm' (image-normaliz
 dfl: 1.5 # (float) distribution focal loss gain
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
+soks: False # (bool) Smooth-OKS keypoint loss: Laplace exponent past u^2=1 keeps large keypoint errors from losing their gradient
 rle: 1.0 # (float) rle loss gain (pose tasks)
 angle: 1.0 # (float) oriented angle loss gain (obb tasks)
 nbs: 64 # (int) nominal batch size used for loss normalization

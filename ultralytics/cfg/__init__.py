@@ -297,6 +297,10 @@ CFG_BOOL_KEYS = frozenset(
         "half_channel_box",
         "half_channel_cls",
         "nwd",
+        "tal_oks",
+        "tal_global",
+        "tal_hard",
+        "soks",
     }
 )
 CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment", "aux_fg_sched", "l1_scale"})

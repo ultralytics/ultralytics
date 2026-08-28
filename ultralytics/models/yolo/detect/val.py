@@ -307,10 +307,10 @@ class DetectionValidator(BaseValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
-        if self.gdict:
+        if self.args.save_json and self.args.task == "detect":
             stats.update({f"metrics/mAP_{x}(B)": 0.0 for x in ("small", "medium", "large")})
-        if self.training and self.args.save_json:
-            stats = self.eval_json(stats)
+            if self.training:
+                stats = self.eval_json(stats)
         self.metrics.clear_stats()
         return stats
 

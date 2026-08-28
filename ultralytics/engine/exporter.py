@@ -25,6 +25,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+Apple Core AI           | `coreai`                  | yolo26n.aimodel
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -60,6 +61,7 @@ Inference:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
 """
 
 from __future__ import annotations
@@ -263,6 +265,15 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
             "base",
         ],
+        [
+            "Core AI",
+            "coreai",
+            ".aimodel",
+            True,
+            False,
+            ["batch", "quantize"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -400,7 +411,9 @@ EXPORT_ENVS = {
 
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
-FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend"})
+FP16_FORMATS = frozenset(
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend", "coreai"}
+)
 INT8_FORMATS = frozenset(
     {
         "onnx",
@@ -529,6 +542,7 @@ class Exporter:
         export_rknn: Export model to RKNN format.
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
+        export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
 
@@ -1493,6 +1507,24 @@ class Exporter:
             model=self.model,
             im=self.im,
             output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
+        """Export YOLO model to Apple Core AI *.aimodel format."""
+        assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
+            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
+        )
+        assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.coreai import torch2coreai
+
+        return torch2coreai(
+            model=self.model,
+            im=self.im,
+            output_file=self.file.with_suffix(".aimodel"),
+            quantize=self.args.quantize,
             metadata=self.metadata,
             prefix=prefix,
         )

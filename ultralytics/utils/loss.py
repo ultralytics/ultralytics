@@ -1292,7 +1292,7 @@ class E2ELoss:
         # makes DetectionTrainer.get_model attach the head's aux_fg branch; aux_fg/aux_fg_tgt/aux_fg_t are code-only
         # args whose defaults reproduce the mix-target ablation recipe.
         self.aux_fg = (
-            getattr(model.args, "aux_fg", 0.5)
+            model.args.cls * 0.5
             if getattr(model.args, "aux_fg_on", False) and hasattr(model.model[-1], "aux_fg")
             else 0.0
         )

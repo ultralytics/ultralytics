@@ -104,7 +104,6 @@ If you need model history, reusable variants, more control over metadata and con
 
     Follow the instructions [here](https://github.com/luxonis/hubai-sdk#-installation).
 
-
 !!! example "Example of `YOLO26` conversion from a local `.pt` checkpoint with `hubai-sdk` to `RVC4`"
 
     === "Python"
@@ -213,7 +212,7 @@ If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantizatio
 
         ```bash
         modelconverter convert rvc4 --path output/yolo26n_20260807_104858 \
-        calibration.path calibration_images/
+          calibration.path calibration_images/
         ```
 
 Refer to [Running Inference on OAK Cameras](#running-inference-on-oak-cameras) for deployment instructions after conversion.

@@ -2232,8 +2232,13 @@ def guess_model_task(model):
             elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
                 return "detect"
 
-    # Guess from model filename
     if isinstance(model, (str, Path)):
+        from ultralytics.nn.backends.base import BaseBackend
+
+        if task := BaseBackend.read_metadata(model).get("task"):
+            return task
+
+        # Guess from model filename
         model = Path(model)
         if "-seg" in model.stem or "segment" in model.parts:
             return "segment"

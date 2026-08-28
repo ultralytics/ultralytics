@@ -4,9 +4,45 @@ from __future__ import annotations
 
 import ast
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any
 
 import torch
+
+
+def _read_proto_map(file: Path, path: tuple[int, ...]) -> dict:
+    """Read a protobuf ``map<string, string>`` at a nested field path without importing the model framework."""
+    import mmap
+
+    def fields(buf):
+        """Yield length-delimited protobuf fields as ``(number, payload)`` pairs."""
+        i = 0
+
+        def varint():
+            """Decode the base-128 varint at the current offset."""
+            nonlocal i
+            value = shift = 0
+            while buf[i] & 0x80:
+                value, i, shift = value | (buf[i] & 0x7F) << shift, i + 1, shift + 7
+            value, i = value | buf[i] << shift, i + 1
+            return value
+
+        while i < len(buf):
+            tag = varint()
+            if tag & 7 == 0:
+                varint()
+            elif tag & 7 == 2:
+                length = varint()
+                yield tag >> 3, buf[i : i + length]
+                i += length
+            else:
+                return
+
+    with open(file, "rb") as f:
+        messages = [memoryview(mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ))]
+    for number in path:
+        messages = [payload for message in messages for field, payload in fields(message) if field == number]
+    return {bytes(entry[1]).decode(): bytes(entry.get(2, b"")).decode() for entry in map(dict, map(fields, messages))}
 
 
 class BaseBackend(ABC):
@@ -79,6 +115,23 @@ class BaseBackend(ABC):
         method.
         """
         return self.forward(*args, **kwargs)
+
+    @staticmethod
+    def read_metadata(file: str | Path) -> dict:
+        """Read routing metadata from an ONNX or TensorRT export without loading its inference runtime."""
+        import json
+
+        path = Path(file)
+        try:
+            if path.suffix == ".engine":
+                with open(path, "rb") as f:
+                    length = int.from_bytes(f.read(4), byteorder="little")
+                    return json.loads(f.read(length)) if 0 < length < 1 << 20 else {}
+            if path.suffix == ".onnx":
+                return _read_proto_map(path, (14,))  # ModelProto.metadata_props
+        except Exception:  # noqa: BLE001 - malformed third-party artifacts may fail anywhere in protobuf/JSON parsing
+            return {}
+        return {}
 
     def apply_metadata(self, metadata: dict | None) -> None:
         """Process and apply model metadata to backend attributes.

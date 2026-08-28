@@ -80,7 +80,7 @@ from ultralytics.data import build_dataloader
 from ultralytics.data.dataset import YOLODataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.nn.autobackend import check_class_names, default_class_names
-from ultralytics.nn.modules import C2f, Classify, Detect, RTDETRDecoder, Segment26
+from ultralytics.nn.modules import C2f, Classify, DeimDecoder, Detect, RTDETRDecoder, Segment26
 from ultralytics.nn.tasks import ClassificationModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
     ARM64,
@@ -924,6 +924,7 @@ class Exporter:
             dataset=self.get_int8_calibration_dataloader(prefix) if self.args.int8 else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
+            has_deim=any(isinstance(m, DeimDecoder) for m in self.model.modules()),
             prefix=prefix,
         )
 

@@ -119,6 +119,13 @@ class TensorRTBackend(BaseBackend):
             self.imgsz = list(self.bindings[self.input_name].shape[-2:])
             self.stride = 1
 
+        # DEIM engines built with TensorRT >=10.13 carry auxiliary outputs that exist only to break a faulty
+        # fusion (see `_add_deim_fusion_barrier`). They still need bindings, but must not reach postprocessing.
+        # Filtered after `input_name`, which identifies the input by exclusion from the full output list.
+        declared = (metadata or {}).get("output_names")
+        if declared:
+            self.output_names = [n for n in self.output_names if n in set(declared)]
+
     def forward(self, im: torch.Tensor) -> list[torch.Tensor]:
         """Run NVIDIA TensorRT inference with dynamic shape handling.
 

@@ -90,6 +90,45 @@ def torch2onnx(
     return str(output_file)
 
 
+def _add_deim_fusion_barrier(network, trt) -> list[str]:
+    """Stop TensorRT from fusing across the DEIM deformable-attention grid sampling, and return the marked tensors.
+
+    TensorRT >=10.13 miscompiles the fused deformable cross-attention region of the DEIM decoder: engines lose most of
+    their mAP, vary from build to build, and on TensorRT 11 can emit NaN. Precision is not the cause, since FP32
+    engines degrade the same way and pinning these layers to FP32 yields NaN, so the fusion itself has to be broken.
+    Marking a tensor as a network output forbids fusing across it.
+
+    Both sides of the grid sampling need marking: >=10.13 needs its outputs, while TensorRT 11 needs its inputs, the
+    per-feature-level value tensors. Marking the layer's whole floating point I/O covers both and is read from graph
+    structure, so it survives the ONNX node renumbering that differs between checkpoints.
+
+    The extra tensors are auxiliary. ``metadata["output_names"]`` records the real model outputs so the TensorRT
+    backend can drop them at inference time.
+
+    Args:
+        network (Any): Parsed TensorRT network definition, marked in place.
+        trt (Any): Imported tensorrt module.
+
+    Returns:
+        (list[str]): Names of the tensors marked as auxiliary outputs.
+    """
+    marked, seen = [], set()
+    for i in range(network.num_layers):
+        layer = network.get_layer(i)
+        if "GridSample" not in (layer.name or ""):
+            continue
+        tensors = [layer.get_input(j) for j in range(layer.num_inputs)]
+        tensors += [layer.get_output(j) for j in range(layer.num_outputs)]
+        for tensor in tensors:
+            if tensor is None or tensor.is_network_output or tensor.name in seen:
+                continue
+            if tensor.dtype in {trt.float32, trt.float16}:
+                network.mark_output(tensor)
+                seen.add(tensor.name)
+                marked.append(tensor.name)
+    return marked
+
+
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
@@ -102,6 +141,7 @@ def onnx2engine(
     dataset=None,
     metadata: dict | None = None,
     verbose: bool = False,
+    has_deim: bool = False,
     prefix: str = "",
 ) -> str:
     """Export a YOLO model to TensorRT engine format.
@@ -118,6 +158,8 @@ def onnx2engine(
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
+        has_deim (bool, optional): Model has a DEIM decoder. Enables the TensorRT >=10.13 deformable-attention
+            fusion barrier at every precision.
         prefix (str, optional): Prefix for log messages.
 
     Returns:
@@ -281,6 +323,24 @@ def onnx2engine(
 
     elif half:
         config.set_flag(trt.BuilderFlag.FP16)
+
+    # TensorRT >=10.13 miscompiles the fused DEIM deformable cross-attention. Precision is NOT part of this
+    # condition: FP32 engines are affected too, so the barrier applies at every precision.
+    if has_deim and check_version(trt.__version__, ">=10.13.0"):
+        model_outputs = [network.get_output(i).name for i in range(network.num_outputs)]
+        marked = _add_deim_fusion_barrier(network, trt)
+        if marked:
+            if metadata is not None:
+                metadata["output_names"] = model_outputs
+            LOGGER.info(
+                f"{prefix} DEIM accuracy on TensorRT {trt.__version__}: added a fusion barrier at "
+                f"{len(marked)} deformable-attention tensors."
+            )
+        if check_version(trt.__version__, ">=10.14.0,<10.15.0"):
+            LOGGER.warning(
+                f"{prefix} TensorRT {trt.__version__} miscompiles some DEIM decoders even with the fusion barrier; "
+                "validate mAP for this checkpoint, or export with a different TensorRT release."
+            )
 
     # Write file
     if is_trt10:

@@ -303,6 +303,8 @@ print(results[0].probs.top1)
 
 `imgsz` matters when the export has a fixed input shape: the ONNX and TF SavedModel exports above reject the default of 640, while the TorchScript and NCNN ones accept any size. Which applies depends on the model and the export arguments, so check your own export.
 
+The value is then rounded up to a multiple of the model stride, which is 32 without metadata. A fixed-shape export at 200x200 is therefore fed 224x224 and rejected even though `imgsz=200` matches it. For input sizes that are not multiples of 32, call the backend directly.
+
 ### Calling a Backend Directly
 
 For raw tensors without Ultralytics [preprocessing](https://www.ultralytics.com/glossary/data-preprocessing) and post-processing, use the per-format classes in [`ultralytics.nn.backends`](../reference/nn/backends/base.md), as the [verification example](#verify-your-exported-model) above does. Each takes the exported artifact and a device, and is callable:
@@ -319,6 +321,8 @@ For raw tensors without Ultralytics [preprocessing](https://www.ultralytics.com/
 | PaddlePaddle                | [`PaddleBackend`](../reference/nn/backends/paddle.md)         | BCHW         |
 | MNN                         | [`MNNBackend`](../reference/nn/backends/mnn.md)               | BCHW         |
 | ExecuTorch                  | [`ExecuTorchBackend`](../reference/nn/backends/executorch.md) | BCHW         |
+
+`TensorFlowBackend` covers two formats and defaults to `format="saved_model"`, so pass `format="pb"` for a frozen graph.
 
 Three things the `YOLO()` route handles for you and a direct call does not:
 

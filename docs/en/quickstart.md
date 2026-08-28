@@ -552,7 +552,7 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 [Comet ML]: https://bit.ly/yolov8-readme-comet
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
-[Neptune]: https://neptune.ai/
+[Neptune]: https://github.com/neptune-ai/neptune-client
 [Tensorboard]: ./integrations/tensorboard.md
 [Ray Tune]: ./integrations/ray-tune.md
 [Weights & Biases]: ./integrations/weights-biases.md

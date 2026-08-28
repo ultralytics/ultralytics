@@ -6,11 +6,11 @@ keywords: Neptune, YOLO26, Ultralytics, experiment tracking, MLOps, model regist
 
 !!! warning "Neptune acquisition and SaaS deprecation"
 
-    Neptune has entered into an agreement to be acquired by OpenAI and will wind down its hosted (SaaS) service after a transition period ending March 4, 2026. Review the [official announcement](https://neptune.ai/blog/we-are-joining-openai) and plan migrations or exports accordingly.
+    Neptune was acquired by OpenAI and ended its hosted (SaaS) service on March 4, 2026. Use the [Neptune exporter](https://github.com/neptune-ai/neptune-exporter) to migrate existing experiment data.
 
 # Experiment Tracking with Neptune
 
-[Neptune](https://neptune.ai/) is a metadata store for MLOps, built for teams that run a lot of experiments. It gives you a single place to log, store, display, organize, compare, and query all your model building metadata.
+[Neptune](https://github.com/neptune-ai/neptune-client) was a metadata store for MLOps, built for teams that run a lot of experiments. It provided a single place to log, store, display, organize, compare, and query model-building metadata.
 
 Ultralytics YOLO26 integrates with Neptune to streamline [experiment tracking](https://www.ultralytics.com/glossary/experiment-tracking). This integration allows you to automatically log training metrics, visualize model predictions, and store model artifacts without writing custom logging code.
 
@@ -48,7 +48,7 @@ Before you start training, you need to connect your local environment to your Ne
 
 ### 1. Get Your Credentials
 
-1. Log in to [Neptune.ai](https://neptune.ai/).
+1. Log in to your Neptune workspace.
 2. Create a new project (or select an existing one).
 3. Go to your user menu and get your **API Token**.
 

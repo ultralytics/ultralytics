@@ -7,9 +7,9 @@ keywords: YOLO26, end-to-end detection, NMS-free inference, model export, deploy
 
 # Understanding End-to-End Detection in Ultralytics YOLO26
 
-[YOLO26](../models/yolo26.md) is **NMS-free** by default: it outputs final detections directly from the model, with no [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. Earlier models like [YOLOv8](../models/yolov8.md) and [YOLO11](../models/yolo11.md) produce thousands of overlapping predictions that a separate NMS step has to filter down, which adds latency, complicates export graphs, and can behave inconsistently across hardware platforms.
+[YOLO26 detection-style models](../models/yolo26.md) — detection, segmentation, pose, and OBB — are **NMS-free** by default: they output final detections directly from the model, with no [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. Earlier models like [YOLOv8](../models/yolov8.md) and [YOLO11](../models/yolo11.md) produce thousands of overlapping predictions that a separate NMS step has to filter down, which adds latency, complicates export graphs, and can behave inconsistently across hardware platforms.
 
-This is known as **end-to-end [object detection](https://www.ultralytics.com/glossary/object-detection)**, and it is enabled by default in every YOLO26 detection-style model (detection, segmentation, pose, and OBB). The result is a simpler deployment pipeline and lower latency — YOLO26n runs up to **43% faster than YOLO11n** on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz).
+This is known as **end-to-end [object detection](https://www.ultralytics.com/glossary/object-detection)**, and it is enabled by default. The result is a simpler deployment pipeline and lower latency — YOLO26n runs up to **43% faster than YOLO11n** on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz).
 
 This guide walks you through what changed, whether you need to update your code, which export formats support end-to-end inference, and how to migrate smoothly from older YOLO models.
 

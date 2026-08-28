@@ -20,6 +20,7 @@ from ultralytics.nn.tasks import (
     DetectionModel,
     OBBModel,
     PoseModel,
+    RTDETRDetectionModel,
     SegmentationModel,
     SemanticSegmentationModel,
     WorldModel,
@@ -79,12 +80,6 @@ class YOLO(Model):
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif path.suffix in {".yaml", ".yml"} and yaml_model_load(model)["head"][-1][-2] == "RTDETRDecoder":
-            from ultralytics import RTDETR
-
-            new_instance = RTDETR(model)
-            self.__class__ = type(new_instance)
-            self.__dict__ = new_instance.__dict__
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
@@ -97,6 +92,12 @@ class YOLO(Model):
                 new_instance = RTDETR(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
+
+    def _new(self, cfg: str, task=None, model=None, verbose=False) -> None:
+        """Initialize a model from YAML, selecting RT-DETR from its declared head."""
+        if model is None and yaml_model_load(cfg)["head"][-1][-2] == "RTDETRDecoder":
+            model, task = RTDETRDetectionModel, "detect"
+        super()._new(cfg, task=task, model=model, verbose=verbose)
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

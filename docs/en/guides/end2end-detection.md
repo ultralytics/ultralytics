@@ -138,7 +138,7 @@ The following formats **do not** support end-to-end and automatically fall back 
 
     When you export to one of these formats, Ultralytics automatically switches to the one-to-many head and logs a warning. This means **you'll need NMS in your inference pipeline** for these formats, just like with [YOLOv8](../models/yolov8.md) or [YOLO11](../models/yolo11.md).
 
-For [Hailo](../integrations/hailo.md), the exporter selects the output path automatically and YOLO26 detection models keep their NMS-free one-to-one outputs, so `end2end` cannot be set manually and is rejected if passed.
+For [Hailo](../integrations/hailo.md), the exporter picks the output path from the loaded head rather than from an argument, so `end2end` is rejected if passed: a default YOLO26 detection model keeps its NMS-free one-to-one outputs, while a checkpoint whose head is already `end2end=False` compiles the traditional path with HailoRT NMS.
 
 !!! note "Quantization and runtime version can disable end-to-end"
 
@@ -165,7 +165,8 @@ If you're upgrading an existing project to YOLO26:
 - **Ultralytics API / CLI users:** No changes needed — just update the model name to `yolo26n.pt` (or `yolo26n-seg.pt`, `yolo26n-pose.pt`, `yolo26n-obb.pt`)
 - **Custom post-processing code:** Update to handle the new output shapes — `(N, 300, 6)` for detection, plus task-specific data for [segmentation](../tasks/segment.md), [pose](../tasks/pose.md), and [OBB](../tasks/obb.md). Also note the box format change from `xywh` to `xyxy`
 - **Export pipelines:** Check the [format compatibility](#export-format-compatibility) section for your target format
-- **Quantized exports:** TensorRT older than 8.5.0, TensorRT 10.3.0 with `quantize=8` on JetPack 6, and LiteRT with `quantize=8` or `quantize="w8a16"` all auto-disable end-to-end — upgrade TensorRT, or export at a higher precision, to keep it
+- **TensorRT below 8.5.0:** end-to-end is disabled at every precision — upgrade TensorRT to 8.5.0 or later to keep it
+- **Quantized exports:** TensorRT 10.3.0 with `quantize=8` on JetPack 6, and LiteRT with `quantize=8` or `quantize="w8a16"`, auto-disable end-to-end — export at a higher precision to keep it
 - **FP16 exports:** If you need all outputs in FP16, export with `end2end=False` — see [why output0 stays FP32](../modes/export.md#why-is-output0-fp32-when-exporting-quantized-models-with-end2endtrue)
 - **iOS / CoreML:** End-to-end is fully supported. If you need Xcode Preview support, use `end2end=False` with `nms=True`
 - **Edge devices (NCNN, RKNN):** These formats auto-fallback to one-to-many, so include NMS in your on-device pipeline
@@ -232,7 +233,7 @@ You can check from the Ultralytics Python API or from the exported ONNX model me
         print(metadata.get("end2end"))  # 'True' if end-to-end is enabled
         ```
 
-The two checks answer different questions: the ONNX metadata records the head that was exported, while `predictor.model.end2end` reports whether external NMS is still needed. They disagree for a model exported with `end2end=False, nms=True`, which bakes NMS into the graph and also outputs `(1, 300, 6)` — so the output shape alone does not identify the head. For other task shapes, see the [output shapes FAQ](#my-exported-onnx-model-outputs-1-300-6-is-that-correct).
+The two checks answer different questions: the ONNX metadata records the head that was exported, while `predictor.model.end2end` reports that the backend output is already post-processed and needs no external NMS. They disagree for a model exported with `end2end=False, nms=True`, which uses the one-to-many head but bakes NMS into the graph and also outputs `(1, 300, 6)` — so neither the flag nor the output shape alone identifies the head. For other task shapes, see the [output shapes FAQ](#my-exported-onnx-model-outputs-1-300-6-is-that-correct).
 
 ### Is end-to-end supported for instance segmentation, pose, and OBB tasks?
 

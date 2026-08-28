@@ -374,13 +374,6 @@ def run_ray_tune(
     except ImportError:
         raise ModuleNotFoundError('Ray Tune required but not found. To install run: pip install "ray[tune]"')
 
-    try:
-        import wandb
-
-        assert hasattr(wandb, "__version__")
-    except (ImportError, AssertionError):
-        wandb = False
-
     checks.check_version(ray.__version__, ">=2.0.0", "ray")
     default_space = {
         # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),

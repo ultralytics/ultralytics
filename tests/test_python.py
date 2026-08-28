@@ -1802,6 +1802,22 @@ def test_nn_depth_head_no_dead_parameters():
     assert not unused, f"parameters with no gradient: {unused}"
 
 
+def test_classification_fraction_samples_across_classes(tmp_path):
+    """Sample classification fractions across the class-major ImageFolder ordering."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    for class_index in range(3):
+        class_dir = tmp_path / str(class_index)
+        class_dir.mkdir()
+        for image_index in range(4):
+            cv2.imwrite(str(class_dir / f"{image_index}.jpg"), np.full((16, 16, 3), class_index, dtype=np.uint8))
+    args = copy(DEFAULT_CFG)
+    args.fraction = 0.5
+    samples = ClassificationDataset(tmp_path, args, augment=True).samples
+
+    assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

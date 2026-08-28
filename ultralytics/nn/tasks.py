@@ -323,6 +323,23 @@ class BaseModel(torch.nn.Module):
                 c1, c2 = min(c1, cc1), min(c2, cc2)
                 state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
                 len_updated_csd += 1
+        # cv3+1 objectness: the head's cv3 final conv is widened nc -> nc+1, so those tensors
+        # shape-mismatch the pretrained and intersect_dicts drops them. Backfill rows [0:nc]
+        # from pretrained so the cls rows keep their weights and only the obj row stays random
+        # (per-row analog of the first_conv multi-channel backfill above).
+        head = self.model[-1]
+        if getattr(head, "_cv3_obj", 0):
+            with torch.no_grad():
+                for prefix in ("cv3", "one2one_cv3"):
+                    for i, m in enumerate(getattr(head, prefix, ())):
+                        w_key = f"model.{head.i}.{prefix}.{i}.2.weight"
+                        b_key = f"model.{head.i}.{prefix}.{i}.2.bias"
+                        if w_key in csd and b_key in csd:
+                            m[-1].weight[: head.nc].copy_(csd[w_key].to(m[-1].weight.device))
+                            m[-1].bias[: head.nc].copy_(csd[b_key].to(m[-1].bias.device))
+                            len_updated_csd += 2
+                        else:
+                            LOGGER.warning(f"cv3 obj backfill: pretrained key missing for {w_key}")
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 

@@ -141,12 +141,27 @@ class Detect(nn.Module):
                 ``'none'`` no branch (default, unchanged model); ``'aux'`` branch trained on IoU soft
                 targets as auxiliary supervision, inference untouched; ``'mul'`` adds
                 ``conf = obj * cls``; ``'v5'`` additionally trains ``cls`` on positives only, so
-                background suppression rests entirely on ``obj``.
+                background suppression rests entirely on ``obj``; ``'cv3'`` puts obj as an extra
+                channel of cv3's final conv (v5's own layout) instead of a separate branch.
         """
-        if mode not in {"none", "aux", "mul", "v5"}:
-            raise ValueError(f"objectness must be none/aux/mul/v5, got {mode!r}")
+        if mode not in {"none", "aux", "mul", "v5", "cv3"}:
+            raise ValueError(f"objectness must be none/aux/mul/v5/cv3, got {mode!r}")
         self.objectness = mode
         if mode == "none":
+            return
+        if mode == "cv3":
+            # v5-faithful layout: obj is an extra channel of cv3's final conv, so box/obj/cls all
+            # come from one conv per scale (vs cv4's separate branch reading cls_x). The widened
+            # (nc+1)-row conv is backfilled row-wise from pretrained in tasks.py ``load``: cls rows
+            # keep pretrained weights and only the obj row is random -- same A/B cleanliness as cv4.
+            for i in range(self.nl):
+                last = self.cv3[i][-1]  # nn.Conv2d(c3, nc, 1) in both the legacy and DWConv layouts
+                wide = nn.Conv2d(last.in_channels, last.out_channels + 1, 1, stride=last.stride, padding=last.padding)
+                wide = wide.to(device=last.weight.device, dtype=last.weight.dtype)
+                self.cv3[i] = nn.Sequential(*self.cv3[i][:-1], wide)
+            self._cv3_obj = 1  # load-time marker consumed by tasks.py ``load``
+            if hasattr(self, "one2one_cv2"):
+                self.one2one_cv3 = copy.deepcopy(self.cv3)
             return
         ch = [m[0].conv.in_channels for m in self.cv2]  # PAN channels recovered from the box branch
         c4 = max(16, ch[0] // 8)  # narrower than cv3: one binary score is easier than nc classes
@@ -155,13 +170,16 @@ class Detect(nn.Module):
             device=ref.device, dtype=ref.dtype
         )
         if hasattr(self, "one2one_cv2"):
-            self.one2one_cv4 = copy.deepcopy(self.cv4)
+            # Shared, not deepcopied: the o2o branch's topk=1-trained obj field collapses (see the
+            # obj x end2end findings), and sharing lets the o2o head score with the o2m-trained obj.
+            # The o2o obj loss then co-trains the same weights; that trade-off is the open A/B.
+            self.one2one_cv4 = self.cv4
 
     @property
     def one2many(self):
         """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
         heads = dict(box_head=self.cv2, cls_head=self.cv3)
-        if getattr(self, "objectness", "none") != "none":
+        if getattr(self, "objectness", "none") != "none" and hasattr(self, "cv4"):
             heads["obj_head"] = self.cv4
         return heads
 
@@ -169,7 +187,7 @@ class Detect(nn.Module):
     def one2one(self):
         """Returns the one-to-one head components."""
         heads = dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
-        if getattr(self, "objectness", "none") != "none":
+        if getattr(self, "objectness", "none") != "none" and hasattr(self, "cv4"):
             heads["obj_head"] = self.one2one_cv4
         return heads
 
@@ -216,11 +234,24 @@ class Detect(nn.Module):
             return dict()
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        # flatten(2) rather than view(bs, self.nc, -1): the cv3 layout widens cls to nc + 1.
+        scores = torch.cat([cls_head[i](x[i]).flatten(2) for i in range(self.nl)], dim=-1)
         preds = dict(boxes=boxes, scores=scores, feats=x)
-        if obj_head is not None:
+        if getattr(self, "objectness", "none") == "cv3":
+            self._split_obj(scores, preds)
+        elif obj_head is not None:
             preds["obj"] = self._forward_obj(x, obj_head)
         return preds
+
+    def _split_obj(self, scores: torch.Tensor, preds: dict) -> None:
+        """cv3 layout: peel the +1 obj channel off the (nc+1)-wide cls output.
+
+        ``scores`` arrives (bs, nc + 1, A); the dict keeps nc-wide ``scores`` and a (bs, 1, A)
+        ``obj`` so every downstream consumer (loss, fusion, NMS) sees the same contract as the
+        cv4 branch.
+        """
+        preds["obj"] = scores[:, -1:].contiguous()
+        preds["scores"] = scores[:, :-1]
 
     def forward(
         self, x: list[torch.Tensor]
@@ -274,10 +305,15 @@ class Detect(nn.Module):
                 b[-1].bias.data[: self.nc] = math.log(
                     5 / self.nc / (640 / self.stride[i]) ** 2
                 )  # cls (.01 objects, 80 classes, 640 img)
-        if getattr(self, "objectness", "none") != "none":
+        if getattr(self, "objectness", "none") not in {"none", "cv3"}:
             for heads in (self.one2many, self.one2one) if self.end2end else (self.one2many,):
                 for i, c in enumerate(heads["obj_head"]):
                     c[-1].bias.data[:] = math.log(8 / (640 / self.stride[i]) ** 2)  # obj (v5 prior)
+        elif hasattr(self, "_cv3_obj"):
+            # cv3 layout: the obj row is the last bias of the widened cv3 final conv.
+            for heads in (self.one2many, self.one2one) if self.end2end else (self.one2many,):
+                for i, b in enumerate(heads["cls_head"]):
+                    b[-1].bias.data[-1:] = math.log(8 / (640 / self.stride[i]) ** 2)  # obj (v5 prior)
 
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
         """Decode bounding boxes from predictions."""
@@ -521,9 +557,12 @@ class AnomalyDetect(Detect):
         bs = x[0].shape[0]  # batch size
         cx = x if cls_x is None else cls_x
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        scores = torch.cat([cls_head[i](cx[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
+        # flatten(2) rather than view(bs, self.nc, -1): the cv3 layout widens cls to nc + 1.
+        scores = torch.cat([cls_head[i](cx[i]).flatten(2) for i in range(self.nl)], dim=-1)
         preds = dict(boxes=boxes, scores=scores, feats=x)
-        if obj_head is not None:
+        if getattr(self, "objectness", "none") == "cv3":
+            self._split_obj(scores, preds)
+        elif obj_head is not None:
             preds["obj"] = self._forward_obj(cx, obj_head)
         return preds
 

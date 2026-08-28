@@ -322,13 +322,13 @@ Then launch the training with the Python API:
 | :--------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: |
 | <img src="https://cdn.ul.run/i/2fe1ab11a1401421a564f53a3555dc9c.avif" alt="First image for CutMix"/> | <img src="https://cdn.ul.run/i/0ac9c52812458ada12c57069d2de79c3.avif" alt="Second image for CutMix"/> | <img src="https://cdn.ul.run/i/5c6b7c226fec2a90a78a2077c5c46045.avif" alt="CutMix augmentation enabled"/> |
 
-## Segmentation-Specific Augmentations
+## Copy-Paste Augmentations
 
 ### Copy-Paste (`copy_paste`)
 
 - **Range**: `0.0` - `1.0`
 - **Default**: `{{ copy_paste }}`
-- **Usage**: Only works for segmentation tasks, this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). In `flip` mode, `copy_paste` is the fraction of eligible objects copied: an image with six eligible objects gains three copies at `copy_paste=0.5`. In `mixup` mode, the same value also controls the probability that copy-paste runs. `copy_paste=0.0` disables the transformation.
+- **Usage**: Requires polygon labels, so it applies to segment and OBB tasks; this augmentation copies objects within or between images, controlled by the [`copy_paste_mode`](#copy-paste-mode-copy_paste_mode). In `flip` mode, `copy_paste` is the fraction of eligible objects copied: an image with six eligible objects gains three copies at `copy_paste=0.5`. In `mixup` mode, the same value also controls the probability that copy-paste runs. `copy_paste=0.0` disables the transformation.
 - **Purpose**: Particularly useful for instance segmentation tasks and rare object classes. For example, in industrial defect detection where certain types of defects appear infrequently, copy-paste augmentation can artificially increase the occurrence of these rare defects by copying them from one image to another, helping the model better learn these underrepresented cases without requiring additional defective samples.
 - **Ultralytics' implementation**: [CopyPaste](../reference/data/augment.md#ultralytics.data.augment.CopyPaste)
 - **Note**:

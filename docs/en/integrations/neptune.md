@@ -10,6 +10,6 @@ keywords: Neptune, Ultralytics, experiment tracking, MLOps
 
 # Experiment Tracking with Neptune
 
-Neptune was an experiment-tracking service previously supported by Ultralytics. Its hosted service and API are no longer available. The legacy Ultralytics callback is retained only for existing self-hosted deployments, whose official support and distribution repositories were also discontinued.
+Neptune was an experiment-tracking service previously supported by Ultralytics. Its hosted service and API are no longer available, and Ultralytics no longer includes the retired Neptune callback.
 
 Choose an active [experiment-tracking integration](index.md) for new training runs.

@@ -413,19 +413,18 @@ class TaskAlignedAssigner(nn.Module):
         """
         # (b, max_num_obj, topk)
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=True)
-        if topk_mask is None:
-            topk_mask = (topk_metrics.max(-1, keepdim=True)[0] > self.eps).expand_as(topk_idxs)
-        # (b, max_num_obj, topk)
-        topk_idxs.masked_fill_(~topk_mask, 0)
+        # A grid with no metric is not a candidate. topk over an all-zero row returns indices 0..topk-1, so a GT that
+        # no anchor predicts would otherwise pile its positives onto the first grid cells; the center prior used to
+        # mask that away, leaving this test dead, but global_topk has no such filter.
+        valid = topk_metrics > self.eps
+        topk_mask = valid if topk_mask is None else topk_mask & valid
 
         # (b, max_num_obj, topk, h*w) -> (b, max_num_obj, h*w)
         count_tensor = torch.zeros(metrics.shape, dtype=torch.int8, device=topk_idxs.device)
-        ones = torch.ones_like(topk_idxs[:, :, :1], dtype=torch.int8, device=topk_idxs.device)
+        ones = topk_mask.to(torch.int8)  # a masked-out pick adds nothing, rather than adding to index 0
         for k in range(self.topk):
             # Expand topk_idxs for each value of k and add 1 at the specified positions
-            count_tensor.scatter_add_(-1, topk_idxs[:, :, k : k + 1], ones)
-        # Filter invalid bboxes
-        count_tensor.masked_fill_(count_tensor > 1, 0)
+            count_tensor.scatter_add_(-1, topk_idxs[:, :, k : k + 1], ones[:, :, k : k + 1])
 
         return count_tensor.to(metrics.dtype)
 

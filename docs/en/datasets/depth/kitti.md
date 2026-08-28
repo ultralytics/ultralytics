@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: CC-BY-NC-SA-3.0
+    url: https://creativecommons.org/licenses/by-nc-sa/3.0/
 description: Explore the KITTI depth dataset for monocular depth estimation. Learn about its structure, the Eigen evaluation benchmark, usage, and pretrained YOLO26-Depth models.
 keywords: KITTI dataset, depth estimation, monocular depth, autonomous driving, LiDAR depth, Eigen split, YOLO26-Depth, outdoor depth, Ultralytics
 ---

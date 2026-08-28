@@ -477,6 +477,8 @@ class Exporter:
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
+            if hasattr(m, "convert_to_deploy"):
+                m.convert_to_deploy()
 
         y = None
         for _ in range(2):  # dry runs

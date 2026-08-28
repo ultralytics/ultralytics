@@ -1,4 +1,5 @@
 import argparse
+import json
 import re
 import types
 from copy import deepcopy
@@ -8,6 +9,9 @@ import torch
 
 from ultralytics import RTDETRDEIM
 from ultralytics.engine.exporter import Exporter
+from ultralytics.utils.checks import check_version
+# Reuse the library barrier rather than duplicating it, and keep the upstream name so future merges line up.
+from ultralytics.utils.export.engine import _add_deim_fusion_barrier
 from ultralytics.nn.modules import RTDETRDecoder
 
 
@@ -281,12 +285,38 @@ def build_engine_fp16(
                 n_pinned += 1
         print(f"DINOv3-safe: pinned {n_pinned} attention/norm layers to fp32")
 
+    # Carry the intermediate ONNX metadata into the engine so the TensorRT backend knows task, imgsz and names,
+    # and so it can drop the auxiliary barrier outputs added below.
+    import onnx
+
+    metadata = {p.key: p.value for p in onnx.load(str(onnx_path), load_external_data=False).metadata_props}
+
+    # TensorRT >=10.13 miscompiles the fused DEIM deformable cross-attention. Precision is NOT part of this
+    # condition: FP32 engines are affected too, so the barrier applies at every precision.
+    if check_version(trt.__version__, ">=10.13.0"):
+        model_outputs = [network.get_output(i).name for i in range(network.num_outputs)]
+        marked = _add_deim_fusion_barrier(network, trt)
+        if marked:
+            metadata["output_names"] = model_outputs
+            print(
+                f"DEIM fusion barrier: marked {len(marked)} deformable-attention tensors "
+                f"(TensorRT {trt.__version__}); real outputs {model_outputs}."
+            )
+        if check_version(trt.__version__, ">=10.14.0,<10.15.0"):
+            print(
+                f"WARNING TensorRT {trt.__version__} miscompiles some DEIM decoders even with the fusion "
+                "barrier; validate mAP for this checkpoint, or build with a different TensorRT release."
+            )
+
     print(f"Building {'FP16' if half else 'FP32'} engine → {engine_path}")
     serialized = builder.build_serialized_network(network, config)
     if serialized is None:
         raise RuntimeError("TensorRT engine build failed — check logs above")
 
     with open(engine_path, "wb") as f:
+        meta = json.dumps(metadata)
+        f.write(len(meta).to_bytes(4, byteorder="little", signed=True))
+        f.write(meta.encode())
         f.write(bytes(serialized))
     print(f"Saved {engine_path}")
 

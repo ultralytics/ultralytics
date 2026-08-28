@@ -301,7 +301,7 @@ results = YOLO("resnet18.onnx", task="classify")("path/to/image.jpg", imgsz=224)
 print(results[0].probs.top1)
 ```
 
-`imgsz` matters when the export has a fixed input shape: the ONNX and TF SavedModel exports above reject the default of 640, while the TorchScript and NCNN ones accept any size. Which applies depends on the model and the export arguments, so check your own export.
+`imgsz` matters when the export has a fixed input shape: the ONNX and TF SavedModel exports above reject the default of 640. The TorchScript and NCNN exports above do accept other sizes, but neither exporter guarantees it: both trace from the example tensor, so a model that flattens into a `Linear` layer stays fixed. Check your own export.
 
 The value is then rounded up to a multiple of the model stride, which is 32 without metadata. A fixed-shape export at 200x200 is therefore fed 224x224 and rejected even though `imgsz=200` matches it. For input sizes that are not multiples of 32, call the backend directly.
 

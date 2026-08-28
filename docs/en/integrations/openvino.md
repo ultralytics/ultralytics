@@ -14,7 +14,7 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/AvFh-oTGDaw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/rMllxg8ZLs8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -113,7 +113,7 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
 | `nms`      | `bool`                    | `False`      | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
 | `batch`    | `int`                     | `1`          | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`                     | `None`       | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
-| `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset as a ratio, image count, or `[train, val]` ratios/counts; a list limits `train` or `val`, while `test` remains full.                                                                                                                          |
+| `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

@@ -84,7 +84,7 @@ class YOLO(Model):
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
-            if "RTDETR" in head:  # if RTDETR head
+            if head == "RTDETRDecoder":  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)

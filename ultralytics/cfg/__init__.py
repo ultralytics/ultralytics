@@ -1090,7 +1090,7 @@ def entrypoint(debug: str = "") -> None:
         LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
-    if "rtdetr" in stem:  # guess architecture
+    if Path(model).suffix in {".yaml", ".yml"} and "rtdetr" in stem:  # guess architecture for YAML models
         from ultralytics import RTDETR
 
         model = RTDETR(model)  # no task argument

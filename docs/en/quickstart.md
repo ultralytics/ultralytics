@@ -455,7 +455,7 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
-| `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
+| `neptune`          | `True`                | `bool`    | Legacy Neptune callback for existing self-hosted deployments                                                     |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
 | `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
 | `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
@@ -552,7 +552,6 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 [Comet ML]: https://bit.ly/yolov8-readme-comet
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
-[Neptune]: https://github.com/neptune-ai/neptune-client
 [Tensorboard]: ./integrations/tensorboard.md
 [Ray Tune]: ./integrations/ray-tune.md
 [Weights & Biases]: ./integrations/weights-biases.md

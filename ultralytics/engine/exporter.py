@@ -64,7 +64,6 @@ Inference:
 
 from __future__ import annotations
 
-import itertools
 import json
 import os
 import shutil
@@ -624,7 +623,6 @@ class Exporter:
             family = Path(getattr(model, "yaml_file", None) or model.yaml.get("yaml_file", "")).stem.lower() or (
                 "yolov8" if "C2f" in blocks else "yolo11" if {"C3k2", "C2PSA"} <= blocks else ""
             )
-            self.hailo_yolo26 = family.startswith("yolo26")
             task26 = {Segment26: "segmentation", Pose26: "pose", OBB26: "OBB"}.get(type(model.model[-1]))
             if task26:
                 raise ValueError(f"Hailo export does not currently support YOLO26 {task26} models.")
@@ -1623,18 +1621,16 @@ class Exporter:
 
         calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
         calibration_size = len(calibration_dataloader.dataset)
-        head_index = len(self.model.model) - 1
-        head = self.model.model[head_index]
-        one2one = getattr(self.model, "end2end", False)
-        task = self.model.task
-        yolo26 = self.hailo_yolo26 and one2one and task == "detect"
         LOGGER.warning(
-            f"\nHailo {'level-4 AdaRound' if yolo26 else 'level-2 fine-tuning'} will use "
-            f"{calibration_size} calibration images. "
+            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
             'Pass data="path/to/dataset.yaml". '
             "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"
         )
+        head_index = len(self.model.model) - 1
+        head = self.model.model[head_index]
+        one2one = getattr(self.model, "end2end", False)
+        task = self.model.task
         if task == "classify":
             # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
             # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
@@ -1682,29 +1678,16 @@ class Exporter:
         try:
             runner = ClientRunner(hw_arch=self.args.name)
             runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
-            model_script = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])"]
-            if yolo26:
-                model_script += [
-                    "model_optimization_flavor(optimization_level=4, compression_level=0)",
-                    "post_quantization_optimization(adaround, policy=enabled)",
-                ]
-            else:
-                model_script += [
-                    "model_optimization_flavor(optimization_level=2)",
-                    f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
-                ]
+            model_script = [
+                "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
+                "model_optimization_flavor(optimization_level=2)",
+                f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
+            ]
             if one2one or task == "depth":
                 # a16 on the output(s): the NMS-free detect logits and the single dense depth logit both need the
                 # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
-                if yolo26 and self.args.name != "hailo15l":
-                    # The output layers are only the graph's exit points, so raise the convolutions feeding
-                    # them as well. Hailo-15L rejects a16_w16 on convolutions and keeps the outputs alone.
-                    convs = ", ".join(
-                        layer.inputs[0].rsplit("/", 1)[-1] for layer in runner.get_hn_model().get_output_layers()
-                    )
-                    model_script.append(f"quantization_param([{convs}], precision_mode=a16_w16)")
             elif task in {"classify", "semantic"}:
                 pass  # softmax/class-map is already the graph output; no NMS or activation changes needed
             else:
@@ -1753,24 +1736,12 @@ class Exporter:
                     for image in batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32):
                         yield image, {}
 
-            if yolo26:
-                # AdaRound re-reads the calibration set once per block, which a generator-backed
-                # tf.data.Dataset cannot serve: it is exhausted after the first pass and the compiler then
-                # reports success while emitting a HEF that detects nothing. Fill a preallocated buffer
-                # instead, capped at the 1024 samples AdaRound draws so a large data= stays bounded.
-                calibration = np.empty((min(calibration_size, 1024), *self.imgsz, 3), dtype=np.float32)
-                filled = 0
-                for image, _ in itertools.islice(calibration_dataset(), len(calibration)):
-                    calibration[filled] = image
-                    filled += 1
-                runner.optimize(calibration[:filled])
-            else:
-                runner.optimize(
-                    lambda: tf.data.Dataset.from_generator(
-                        calibration_dataset,
-                        output_signature=(tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32), {}),
-                    )
+            runner.optimize(
+                lambda: tf.data.Dataset.from_generator(
+                    calibration_dataset,
+                    output_signature=(tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32), {}),
                 )
+            )
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(
                 output_dir / "metadata.yaml",

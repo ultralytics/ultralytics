@@ -100,6 +100,11 @@ If you need model history, reusable variants, more control over metadata and con
 
 [`hubai-sdk`](https://docs.luxonis.com/cloud/hubai/model-registry/hubai-sdk/) is the programmatic Python and CLI interface to Luxonis Hub AI. Use it to automate conversions or integrate conversion into another workflow.
 
+!!! tip "Installation of `hubai-sdk`"
+
+    Follow the instructions [here](https://github.com/luxonis/hubai-sdk#-installation).
+
+
 !!! example "Example of `YOLO26` conversion from a local `.pt` checkpoint with `hubai-sdk` to `RVC4`"
 
     === "Python"
@@ -208,7 +213,7 @@ If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantizatio
 
         ```bash
         modelconverter convert rvc4 --path output/yolo26n_20260807_104858 \
-        calibration.path <calibration_data_dir>
+        calibration.path calibration_images/
         ```
 
 Refer to [Running Inference on OAK Cameras](#running-inference-on-oak-cameras) for deployment instructions after conversion.
@@ -282,7 +287,7 @@ For a model hosted on Luxonis Hub, build a `DetectionNetwork` pipeline directly 
                     pipeline.stop()
         ```
 
-Open `http://localhost:8080` in your browser to view the RGB stream and YOLO detections in the OAK Visualizer. If you use a private Hub model, configure your Luxonis Hub API key first (ie. set `DEPTHAI_HUB_API_KEY` env variable) so DepthAI can authenticate when resolving the model identifier. For broader pipeline patterns and a more generic inference example, see the [generic OAK example](https://github.com/luxonis/oak-examples/tree/main/neural-networks/generic-example).
+Open `http://localhost:8082` in your browser to view the RGB stream and YOLO detections in the OAK Visualizer. If you use a private Hub model, configure your Luxonis Hub API key first (i.e. set `DEPTHAI_HUB_API_KEY` env variable) so DepthAI can authenticate when resolving the model identifier. For broader pipeline patterns and a more generic inference example, see the [generic OAK example](https://github.com/luxonis/oak-examples/tree/main/neural-networks/generic-example).
 
 ### Spatial Inference Example
 

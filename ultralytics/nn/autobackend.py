@@ -15,6 +15,7 @@ from ultralytics.utils.downloads import is_url
 from .backends import (
     AscendBackend,
     AxeleraBackend,
+    CoreAIBackend,
     CoreMLBackend,
     DeepXBackend,
     ExecuTorchBackend,
@@ -168,6 +169,7 @@ class AutoBackend(nn.Module):
         "litert": LiteRTBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "coreai": CoreAIBackend,
     }
 
     @torch.no_grad()

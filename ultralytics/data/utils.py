@@ -514,9 +514,10 @@ def find_dataset_yaml(path: Path) -> Path:
 
 
 def get_split_fraction(fraction: float | list[float | int], split: str) -> float | int:
-    """Return the dataset ratio or count for a train or validation split."""
-    if isinstance(fraction, list) and split in {"train", "val"}:
-        return fraction[split == "val"]
+    """Return the dataset ratio or count for a train, validation, or test split."""
+    if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
+        index = splits.index(split)
+        return fraction[index] if index < len(fraction) else 1.0
     return fraction if split == "train" else 1.0
 
 

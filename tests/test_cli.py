@@ -38,19 +38,21 @@ def test_settings_migration(tmp_path: Path, api_key: str) -> None:
     settings_file.write_text(
         json.dumps(
             {
-                "settings_version": "0.0.6",
+                "settings_version": "0.0.7",
                 "runs_dir": "/custom/runs",
                 "api_key": api_key,
                 "hub": True,
+                "neptune": True,
             }
         )
     )
-    settings = SettingsManager(settings_file, version="0.0.7")
+    settings = SettingsManager(settings_file)
 
     assert settings["runs_dir"] == "/custom/runs"
     assert settings["api_key"] == (api_key if api_key.startswith("ul_") else "")
-    assert settings["settings_version"] == "0.0.7"
+    assert settings["settings_version"] == "0.0.8"
     assert "hub" not in settings
+    assert "neptune" not in settings
 
 
 def test_platform_login(monkeypatch) -> None:

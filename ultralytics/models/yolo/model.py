@@ -25,6 +25,7 @@ from ultralytics.nn.tasks import (
     WorldModel,
     YOLOEModel,
     YOLOESegModel,
+    yaml_model_load,
 )
 from ultralytics.utils import ROOT, YAML
 
@@ -78,13 +79,19 @@ class YOLO(Model):
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
+        elif path.suffix in {".yaml", ".yml"} and yaml_model_load(model)["head"][-1][-2] == "RTDETRDecoder":
+            from ultralytics import RTDETR
+
+            new_instance = RTDETR(model)
+            self.__class__ = type(new_instance)
+            self.__dict__ = new_instance.__dict__
         else:
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
-            if "RTDETR" in head:  # if RTDETR head
+            if head == "RTDETRDecoder":  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)

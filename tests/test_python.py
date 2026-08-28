@@ -925,11 +925,11 @@ def test_train_pretrained(scls):
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):
-        if "rtdetr" in m.name:
-            if TORCH_1_11:
-                _ = RTDETR(m.name)(SOURCE, imgsz=160)
-        else:
-            YOLO(m.name)
+        if not TORCH_1_11 and YAML.load(m)["head"][-1][-2] == "RTDETRDecoder":
+            continue
+        model = YOLO(m.name)
+        if isinstance(model, RTDETR):
+            model(SOURCE, imgsz=160)
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")

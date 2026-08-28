@@ -79,7 +79,7 @@ This example provides simple RT-DETR training and inference examples. For full d
 
 !!! tip "Deterministic Training"
 
-    Set `deterministic=False` when training RT-DETR on CUDA. Its deformable attention uses `F.grid_sample`, which has no deterministic CUDA backward, so `deterministic=True` cannot make the run reproducible yet still costs around 25% of training throughput. `seed` still controls weight initialization, data order, and augmentation sampling.
+    Set `deterministic=False` when training RT-DETR on CUDA with PyTorch 2.0 or later. Its deformable attention uses `F.grid_sample`, which has no deterministic CUDA backward, so `deterministic=True` cannot make the run reproducible and can reduce training throughput. `seed` still controls weight initialization, data order, and augmentation sampling.
 
 !!! tip "Faster Inference Trade-Offs"
 

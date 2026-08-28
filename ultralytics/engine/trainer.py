@@ -1251,12 +1251,11 @@ class MultiTrainer:
                     overrides = {
                         **self.args,
                         "data": data,
-                        "project": str(self.save_dir),  # nest per-dataset runs inside the sweep directory
                         "name": name,
                         "resume": False,
                     }
                     run = SimpleNamespace(
-                        project=overrides["project"],
+                        project=str(self.save_dir),  # nest per-dataset runs inside the sweep directory
                         name=overrides["name"],
                         task=overrides.get("task"),
                         mode="train",

@@ -222,7 +222,6 @@ class DetectionValidator(BaseValidator):
                     "im_name": Path(pbatch["im_file"]).name,
                 }
             )
-            # Evaluate
             if self.args.plots:
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.confusion_matrix_conf)
                 if self.args.visualize:

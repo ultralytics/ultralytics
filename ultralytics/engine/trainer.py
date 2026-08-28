@@ -120,8 +120,6 @@ class BaseTrainer:
         >>> trainer.train()
     """
 
-    _MAX_GRAD_NORM = 10.0
-
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize the BaseTrainer class.
 
@@ -850,9 +848,9 @@ class BaseTrainer:
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
         if self.device.type == "npu" and TORCH_2_0:
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self._MAX_GRAD_NORM, foreach=False)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, foreach=False)
         else:
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self._MAX_GRAD_NORM)
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()

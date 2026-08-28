@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import types
 from pathlib import Path
 
@@ -90,6 +91,19 @@ def torch2onnx(
     return str(output_file)
 
 
+def _set_precision_constraint_flag(config, trt, prefix: str = "") -> bool:
+    """Enable TensorRT precision constraints with version-compatible builder flags."""
+    flag = getattr(trt.BuilderFlag, "OBEY_PRECISION_CONSTRAINTS", None)
+    if flag is None:
+        flag = getattr(trt.BuilderFlag, "STRICT_TYPES", None)
+    if flag is None:
+        LOGGER.warning(f"{prefix} TensorRT precision constraints are unavailable; skipping DEIM FP32 pinning.")
+        return False
+
+    config.set_flag(flag)
+    return True
+
+
 def _add_deim_fusion_barrier(network, trt) -> list[str]:
     """Stop TensorRT from fusing across the DEIM deformable-attention grid sampling, and return the marked tensors.
 
@@ -129,6 +143,59 @@ def _add_deim_fusion_barrier(network, trt) -> list[str]:
     return marked
 
 
+def _pin_deim_fp32_layers(network, trt) -> int:
+    """Pin numerically sensitive DEIM TensorRT FP16 layers to FP32."""
+    norm_re = re.compile(r"/(?:norm\d*|gateway/norm)(?:/|$)")
+    pow_re = re.compile(r"/Pow(?:_|$)", re.IGNORECASE)
+    sqrt_re = re.compile(r"/Sqrt(?:_|$)", re.IGNORECASE)
+    softmax_type = getattr(trt.LayerType, "SOFTMAX", None)
+    normalization_type = getattr(trt.LayerType, "NORMALIZATION", None)
+    reduce_type = getattr(trt.LayerType, "REDUCE", None)
+    unary_type = getattr(trt.LayerType, "UNARY", None)
+    elementwise_type = getattr(trt.LayerType, "ELEMENTWISE", None)
+    compute_types = {
+        layer_type
+        for name in (
+            "MATRIX_MULTIPLY",
+            "CONVOLUTION",
+            "ELEMENTWISE",
+            "ACTIVATION",
+            "SOFTMAX",
+            "REDUCE",
+            "UNARY",
+            "NORMALIZATION",
+            "SCALE",
+        )
+        if (layer_type := getattr(trt.LayerType, name, None)) is not None
+    }
+    n_pinned = 0
+    for i in range(network.num_layers):
+        layer = network.get_layer(i)
+        name = layer.name or ""
+        norm_match = norm_re.search(name)
+        pin = (
+            layer.type == softmax_type
+            or layer.type == normalization_type
+            or bool(norm_match)
+            and (
+                layer.type == reduce_type
+                or layer.type == unary_type
+                and bool(sqrt_re.search(name))
+                or layer.type == elementwise_type
+                and bool(pow_re.search(name))
+                or layer.type in compute_types
+            )
+        )
+
+        if pin:
+            layer.precision = trt.float32
+            for output_idx in range(layer.num_outputs):
+                layer.set_output_type(output_idx, trt.float32)
+            n_pinned += 1
+
+    return n_pinned
+
+
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
@@ -158,8 +225,8 @@ def onnx2engine(
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
-        has_deim (bool, optional): Model has a DEIM decoder. Enables the TensorRT >=10.13 deformable-attention
-            fusion barrier at every precision.
+        has_deim (bool, optional): Model has a DEIM decoder. Enables the TensorRT >=10.13 deformable-attention fusion
+            barrier at every precision, and pins FP16-sensitive decoder layers to FP32 on FP16 builds.
         prefix (str, optional): Prefix for log messages.
 
     Returns:
@@ -174,6 +241,13 @@ def onnx2engine(
         INT8 calibration requires a dataset and generates a calibration cache.
         Metadata is serialized and written to the engine file if provided.
     """
+    if metadata is None:
+        from ultralytics.nn.backends.base import BaseBackend
+
+        metadata = BaseBackend.read_metadata(onnx_file) or None
+    head = str((metadata or {}).get("head", ""))
+    has_deim = has_deim or head in {"DeimDecoder", "DeimLayerNormDecoder"}
+
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
@@ -323,6 +397,9 @@ def onnx2engine(
 
     elif half:
         config.set_flag(trt.BuilderFlag.FP16)
+        if has_deim and _set_precision_constraint_flag(config, trt, prefix):
+            n_pinned = _pin_deim_fp32_layers(network, trt)
+            LOGGER.info(f"{prefix} DEIM FP16 stability: pinned {n_pinned} TensorRT layers to FP32.")
 
     # TensorRT >=10.13 miscompiles the fused DEIM deformable cross-attention. Precision is NOT part of this
     # condition: FP32 engines are affected too, so the barrier applies at every precision.

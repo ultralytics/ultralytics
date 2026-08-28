@@ -184,8 +184,14 @@ class Detect(nn.Module):
         Fusing here keeps the head's output an ordinary ``[4 + nc]`` tensor, so NMS, the validators
         and every export format stay unchanged.
         """
-        if "obj" in x and getattr(self, "objectness", "none") in {"mul", "v5"}:
-            scores = scores * x["obj"].sigmoid()
+        if "obj" in x:
+            if getattr(self, "scoring", "cls") == "obj":
+                # Training-time OOD reference mode: conf = obj (broadcast to nc channels so the
+                # [4 + nc] output contract holds). Selected via the ``ood_scoring`` train arg,
+                # which AnomalyRNDTrainer._run_ood_eval applies to the head for OOD eval only.
+                return x["obj"].sigmoid().expand(-1, scores.shape[1], -1)
+            if getattr(self, "objectness", "none") in {"mul", "v5"}:
+                scores = scores * x["obj"].sigmoid()
         return scores
 
     @property

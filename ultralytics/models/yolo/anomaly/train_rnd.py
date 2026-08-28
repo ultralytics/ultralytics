@@ -164,57 +164,71 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         device = self.device
         workers = self.args.workers
 
-        for yaml in yamls:
-            source = _normal_dir_from_yaml(yaml)
-            try:
-                model.memory_bank.reset()
-                n = model.build_memory_bank(str(source), imgsz=640, device=device, batch=batch)
-                if not n:
-                    LOGGER.warning(f"OOD eval: empty bank for {yaml.name}; skipping.")
-                    continue
-
-                overrides = {
-                    "task": "detect",
-                    "mode": "val",
-                    "data": str(yaml),
-                    "split": "val",
-                    "imgsz": 640,
-                    "batch": batch,
-                    "workers": workers,
-                    "device": str(device) if device is not None else None,
-                    "rect": False,
-                    "plots": False,
-                    "verbose": False,
-                    "save_json": False,
-                    "single_cls": True,
-                    "iou": 0.2,
-                    # Score everything the head emits. AP is threshold-free, so the old 0.25 floor
-                    # was deleting ~73% of the correct detections (their median score is 0.065)
-                    # before AP was computed, understating OOD by ~3.7x. The validator re-derives
-                    # the 0.25 numbers by masking, so nothing is lost and fitness is unchanged.
-                    "conf": 0.001,
-                    "end2end": False,
-                }
-                # Pass 1: heatmap prior (memory bank active) — the yoloa_clean fitness signal.
-                validator = YOLOAnomalyValidator(args=overrides)
-                validator(trainer=None, model=model)
-                row = {"category": yaml.parent.name, **validator._ood_map_metrics()}
-
-                # Pass 2: none prior (bank disabled via the ``building`` flag, same toggle the viz
-                # path uses) — bare-detector baseline, logged as ``none_*`` so the per-category
-                # fusion lift (heatmap - none) is visible. Does not change fitness.
-                mb = model.memory_bank
-                saved_building = mb.building
-                mb.building = True
+        # Confidence source for OOD only (the ``ood_scoring`` train arg). Training loss, domain
+        # val and fitness definitions are untouched; the head scoring is restored on exit so the
+        # next domain val reads cls again. ``obj`` is the class-agnostic objectness confidence —
+        # its single channel is not diluted across nc sigmoids, so the conf=0.25 floor survives.
+        scoring = getattr(self.args, "ood_scoring", "cls") or "cls"
+        if scoring not in {"cls", "obj"}:
+            LOGGER.warning(f"ood_scoring={scoring!r} invalid; falling back to 'cls'")
+            scoring = "cls"
+        head = model.model[-1]
+        saved_scoring = getattr(head, "scoring", "cls")
+        head.scoring = scoring
+        try:
+            for yaml in yamls:
+                source = _normal_dir_from_yaml(yaml)
                 try:
-                    validator_none = YOLOAnomalyValidator(args=overrides)
-                    validator_none(trainer=None, model=model)
-                    row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
-                finally:
-                    mb.building = saved_building
+                    model.memory_bank.reset()
+                    n = model.build_memory_bank(str(source), imgsz=640, device=device, batch=batch)
+                    if not n:
+                        LOGGER.warning(f"OOD eval: empty bank for {yaml.name}; skipping.")
+                        continue
 
-                rows.append(row)
-            except Exception as e:
-                LOGGER.warning(f"OOD eval failed for {yaml}: {type(e).__name__}: {e}")
+                    overrides = {
+                        "task": "detect",
+                        "mode": "val",
+                        "data": str(yaml),
+                        "split": "val",
+                        "imgsz": 640,
+                        "batch": batch,
+                        "workers": workers,
+                        "device": str(device) if device is not None else None,
+                        "rect": False,
+                        "plots": False,
+                        "verbose": False,
+                        "save_json": False,
+                        "single_cls": True,
+                        "iou": 0.2,
+                        # Score everything the head emits. AP is threshold-free, so the old 0.25 floor
+                        # was deleting ~73% of the correct detections (their median score is 0.065)
+                        # before AP was computed, understating OOD by ~3.7x. The validator re-derives
+                        # the 0.25 numbers by masking, so nothing is lost and fitness is unchanged.
+                        "conf": 0.001,
+                        "end2end": False,
+                    }
+                    # Pass 1: heatmap prior (memory bank active) — the yoloa_clean fitness signal.
+                    validator = YOLOAnomalyValidator(args=overrides)
+                    validator(trainer=None, model=model)
+                    row = {"category": yaml.parent.name, **validator._ood_map_metrics()}
+
+                    # Pass 2: none prior (bank disabled via the ``building`` flag, same toggle the viz
+                    # path uses) — bare-detector baseline, logged as ``none_*`` so the per-category
+                    # fusion lift (heatmap - none) is visible. Does not change fitness.
+                    mb = model.memory_bank
+                    saved_building = mb.building
+                    mb.building = True
+                    try:
+                        validator_none = YOLOAnomalyValidator(args=overrides)
+                        validator_none(trainer=None, model=model)
+                        row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
+                    finally:
+                        mb.building = saved_building
+
+                    rows.append(row)
+                except Exception as e:
+                    LOGGER.warning(f"OOD eval failed for {yaml}: {type(e).__name__}: {e}")
+        finally:
+            head.scoring = saved_scoring
 
         return rows

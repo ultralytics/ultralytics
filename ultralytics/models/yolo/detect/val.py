@@ -72,7 +72,7 @@ class DetectionValidator(BaseValidator):
                     for subset in getattr(dataset, "datasets", [dataset])
                     if hasattr(subset, "labels")
                     for label in subset.labels
-                    if isinstance(label, dict) and "cls" in label
+                    if isinstance(label, dict) and isinstance(label.get("cls"), (list, tuple, np.ndarray, torch.Tensor))
                 ),
                 default=0,
             )

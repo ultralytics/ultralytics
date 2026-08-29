@@ -130,6 +130,10 @@ def test_cfg_rejects_fuzzed_values():
     assert get_cfg(overrides={"fraction": [1000, 1, 0]}).fraction == [1000, 1.0, 0.0]
     assert type(get_split_fraction([1, 1, 0], "train")) is float
     assert type(get_split_fraction([1, 1, 0], "test")) is float
+    with pytest.raises(ValueError, match="val fraction"):
+        get_split_fraction([1, 0], "val")
+    with pytest.raises(TypeError, match="fraction"):
+        get_cfg(overrides={"fraction": True})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 

@@ -462,6 +462,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         raise ValueError(f"'{k}={v}' is invalid. Use [train, val] or [train, val, test] counts/ratios.")
                     cfg[k] = [float(x) if x in {0, 1} else x for x in v]
                     continue
+                if k == "fraction" and isinstance(v, bool):
+                    raise TypeError(f"'{k}={v}' is of invalid type bool. Valid '{k}' types are int, float, or list")
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
                         raise TypeError(

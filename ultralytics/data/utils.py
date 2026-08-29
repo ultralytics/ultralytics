@@ -513,14 +513,17 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def get_split_fraction(fraction: float | list[float | int], split: str) -> float | int:
+def get_split_fraction(fraction: float | int | list[float | int], split: str) -> float | int:
     """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all)."""
     if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
         index = splits.index(split)
         fraction = fraction[index] if index < len(fraction) else 1.0
     elif split != "train":
         fraction = 1.0
-    return float(fraction) if fraction in {0, 1} else fraction
+    fraction = float(fraction) if fraction in {0, 1} else fraction
+    if split in {"train", "val"} and fraction == 0:
+        raise ValueError(f"{split} fraction must select at least one image")
+    return fraction
 
 
 def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0) -> str | Path:

@@ -79,8 +79,10 @@ class DistillationModel(nn.Module):
         student_model (nn.Module): Trainable student model being distilled.
         student_feats_idx (list[int]): Student FPN/PAN layer indices feeding the transformer decoder.
         teacher_feats_idx (list[int]): Teacher FPN/PAN layer indices feeding the transformer decoder (may differ from
-            `student_feats_idx` for cross-architecture distillation; paired with student levels by position).
-        projector (nn.ModuleList): 1x1-conv-ReLU-1x1-conv projector per feature level.
+            `student_feats_idx` for cross-architecture distillation).
+        teacher_level_sel (list[int]): Position in `teacher_feats_idx` paired with each student level, so a student
+            neck tapping fewer levels (e.g. P3/P5) distills from the teacher levels of matching stride.
+        projector (nn.ModuleList): 1x1-conv-ReLU-1x1-conv projector per student feature level.
         dis (float): Distillation loss weight factor.
     """
 
@@ -100,11 +102,11 @@ class DistillationModel(nn.Module):
         self.student_model = student_model
         self.student_feats_idx = self.get_distill_layers(student_model)
         self.teacher_feats_idx = self.get_distill_layers(self.teacher_model)
-        if len(self.student_feats_idx) != len(self.teacher_feats_idx):
+        if len(self.student_feats_idx) > len(self.teacher_feats_idx):
             raise ValueError(
                 f"Student decoder consumes {len(self.student_feats_idx)} FPN levels "
-                f"({self.student_feats_idx}) but teacher consumes {len(self.teacher_feats_idx)} "
-                f"({self.teacher_feats_idx}); per-level KD needs matching level counts."
+                f"({self.student_feats_idx}) but teacher consumes only {len(self.teacher_feats_idx)} "
+                f"({self.teacher_feats_idx}); per-level KD needs a teacher level for every student level."
             )
         self._parse_distill_config(student_model.args)
         self._init_feature_dicts()
@@ -115,7 +117,16 @@ class DistillationModel(nn.Module):
         teacher_output, student_output = self._dummy_forward(student_model.args.imgsz, device)
         copy_attr(self, student_model)
         self.dis = self.student_model.args.dis
-        self.projector = self._build_neck_projectors(student_output, teacher_output, device)
+        self.teacher_level_sel = self._align_levels(student_output, teacher_output)
+        if len(self.teacher_level_sel) != len(self.teacher_feats_idx):
+            paired = [self.teacher_feats_idx[i] for i in self.teacher_level_sel]
+            LOGGER.info(
+                f"Distillation neck levels: student {self.student_feats_idx} <- teacher {paired} "
+                f"(teacher decoder consumes {self.teacher_feats_idx}, extra levels used for saliency only)"
+            )
+        self.projector = self._build_neck_projectors(
+            student_output, [teacher_output[i] for i in self.teacher_level_sel], device
+        )
         self.query_projector = self._build_query_projector(device)
         self.query_matcher = self._build_query_matcher()
 
@@ -231,11 +242,13 @@ class DistillationModel(nn.Module):
         """Register forward hooks on the FPN/PAN layers feeding the transformer decoder (teacher + student).
 
         Teacher and student may consume their FPN levels at different yaml indices (e.g. teacher `[15, 18, 21]`
-        vs student `[16, 19, 22]`), so each side is hooked at its own indices and the per-level pairing is by
-        position in the lists (which must have equal length).
+        vs student `[16, 19, 22]`), so each side is hooked at its own indices. Every teacher level is hooked even
+        when the student taps fewer of them, because the saliency maps are split out of a token sequence covering
+        all teacher levels; `teacher_level_sel` picks the paired ones afterwards.
         """
-        for s_idx, t_idx in zip(self.student_feats_idx, self.teacher_feats_idx):
+        for t_idx in self.teacher_feats_idx:
             self.teacher_model.model[t_idx].register_forward_hook(FeatureHook(self._teacher_feats, t_idx))
+        for s_idx in self.student_feats_idx:
             self.student_model.model[s_idx].register_forward_hook(FeatureHook(self._student_feats, s_idx))
 
     def _uses_objectness(self):
@@ -333,8 +346,9 @@ class DistillationModel(nn.Module):
         Called by `__setstate__` so re-registration after unpickling never stacks duplicates. Safe to call when the
         relevant submodules do not exist (the `hasattr` guards skip cleanly).
         """
-        for s_idx, t_idx in zip(self.student_feats_idx, self.teacher_feats_idx):
+        for t_idx in self.teacher_feats_idx:
             self.teacher_model.model[t_idx]._forward_hooks.clear()
+        for s_idx in self.student_feats_idx:
             self.student_model.model[s_idx]._forward_hooks.clear()
         t_dec = self.teacher_model.model[-1]
         s_dec = self.student_model.model[-1]
@@ -363,10 +377,39 @@ class DistillationModel(nn.Module):
             self.student_model(torch.zeros(2, 3, imgsz, imgsz, device=device))
         teacher_output = [self._teacher_feats[idx] for idx in self.teacher_feats_idx]
         student_output = [self._student_feats[idx] for idx in self.student_feats_idx]
-        assert all(t.ndim == 4 and s.ndim == 4 for t, s in zip(teacher_output, student_output)), (
+        assert all(f.ndim == 4 for f in teacher_output + student_output), (
             "Expected 4D FPN feature maps at every hook index for transformer-decoder distillation."
         )
         return teacher_output, student_output
+
+    @staticmethod
+    def _align_levels(student_output, teacher_output):
+        """Return the teacher level position paired with each student level.
+
+        Equal level counts keep the documented positional pairing, which lets cross-architecture teachers use
+        different yaml indices. A student neck tapping fewer levels (e.g. a P3/P5 neck against a P3/P4/P5 teacher)
+        is paired by feature map size, so each student level meets the teacher level of the same stride.
+
+        Args:
+            student_output (list[torch.Tensor]): Per-level student features from the dummy forward.
+            teacher_output (list[torch.Tensor]): Per-level teacher features from the dummy forward.
+
+        Returns:
+            (list[int]): Index into `teacher_feats_idx` for each student level.
+        """
+        if len(student_output) == len(teacher_output):
+            return list(range(len(teacher_output)))
+        t_shapes = [tuple(t.shape[-2:]) for t in teacher_output]
+        sel = []
+        for f in student_output:
+            shape = tuple(f.shape[-2:])
+            if shape not in t_shapes:
+                raise ValueError(
+                    f"Student FPN level of size {shape} has no teacher level of the same size (teacher levels "
+                    f"{t_shapes}); cross-neck KD pairs levels by stride."
+                )
+            sel.append(t_shapes.index(shape))
+        return sel
 
     @staticmethod
     def _build_neck_projectors(student_output, teacher_output, device):
@@ -550,17 +593,18 @@ class DistillationModel(nn.Module):
                 cache.clear()
 
     def _neck_loss(self):
-        """Score-weighted L2 loss summed over the FPN levels feeding the decoder, scaled by `self.dis`.
+        """Score-weighted L2 loss summed over the student FPN levels feeding its decoder, scaled by `self.dis`.
 
-        Pairs student/teacher levels by position so the two sides can use different yaml indices.
+        Saliency is computed over every teacher level (its encoder token sequence spans them all), then
+        `teacher_level_sel` picks the level paired with each student level, so a P3/P5 student can learn from the
+        P3 and P5 levels of a P3/P4/P5 teacher.
         """
         teacher_outputs = [self._teacher_feats[idx] for idx in self.teacher_feats_idx]
         teacher_scores = self._teacher_scores(teacher_outputs)
         total = 0.0
-        for i, s_idx in enumerate(self.student_feats_idx):
-            teacher_feat = teacher_outputs[i]
+        for i, (s_idx, t_i) in enumerate(zip(self.student_feats_idx, self.teacher_level_sel)):
             student_feat = self.projector[i](self._student_feats[s_idx])
-            total = total + self.loss_sl2(student_feat, teacher_feat, teacher_scores[i])
+            total = total + self.loss_sl2(student_feat, teacher_outputs[t_i], teacher_scores[t_i])
         return total * self.dis
 
     @staticmethod
@@ -584,11 +628,16 @@ class DistillationModel(nn.Module):
 
         Both sides apply their respective `enc_score_head` to encoder memory; collapsing the class dim with
         sigmoid+max makes the comparison class-agnostic so it tolerates teacher/student label-space mismatches
-        (e.g. Obj365 teacher distilling into a COCO student).
+        (e.g. Obj365 teacher distilling into a COCO student). When the student neck taps fewer FPN levels, the
+        teacher token sequence is split per level and only the paired levels are kept, so both sides carry the
+        same tokens in the same order.
         """
-        t_obj = self._class_agnostic_objectness(self._enc_logits["enc"])
-        s_obj = self._class_agnostic_objectness(self._student_enc_logits["enc"])
-        return F.mse_loss(s_obj, t_obj)
+        t_logits, s_logits = self._enc_logits["enc"], self._student_enc_logits["enc"]
+        if len(self.teacher_level_sel) != len(self.teacher_feats_idx):
+            t_feats = [self._teacher_feats[idx] for idx in self.teacher_feats_idx]
+            parts = torch.split(t_logits, [t.shape[-2] * t.shape[-1] for t in t_feats], dim=1)
+            t_logits = torch.cat([parts[i] for i in self.teacher_level_sel], dim=1)
+        return F.mse_loss(self._class_agnostic_objectness(s_logits), self._class_agnostic_objectness(t_logits))
 
     def _hungarian_match(self, t_boxes, s_boxes, t_scores, s_scores):
         """Match teacher queries (as pseudo-GT) to student queries via the repo's `HungarianMatcher`.

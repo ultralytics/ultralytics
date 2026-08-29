@@ -93,6 +93,49 @@ jobs:
         run: |
           yolo checks
           uv pip list
+      - name: Compare x86 memory formats
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from statistics import median
+          from time import perf_counter_ns
+
+          import cv2
+          import torch
+
+          from ultralytics import YOLO
+          from ultralytics.utils import ASSETS
+
+          torch.set_num_threads(4)
+          torch.set_num_interop_threads(1)
+          cv2.setNumThreads(0)
+          image = cv2.imread(str(ASSETS / "bus.jpg"))
+
+          for weights in ("yolo26n.pt", "yolo11n.pt"):
+              for batch in (1, 4):
+                  source = [image] * batch
+                  common = dict(source=source, device="cpu", imgsz=640, verbose=False)
+                  speedups = []
+                  for trial in range(3):
+                      baseline, candidate = YOLO(weights), YOLO(weights)
+                      baseline.predict(**common, channels_last=False)
+                      candidate.predict(**common)
+                      baseline_times, candidate_times = [], []
+                      for i in range(50):
+                          order = ((baseline, False, baseline_times), (candidate, None, candidate_times))
+                          if i % 2:
+                              order = reversed(order)
+                          for model, channels_last, samples in order:
+                              start = perf_counter_ns()
+                              model.predict(**common, channels_last=channels_last)
+                              samples.append((perf_counter_ns() - start) / 1e6)
+                      base_ms, candidate_ms = median(baseline_times), median(candidate_times)
+                      speedup = (base_ms / candidate_ms - 1) * 100
+                      speedups.append(speedup)
+                      print(f"{weights=} {batch=} {trial=} {base_ms=:.3f} {candidate_ms=:.3f} {speedup=:.2f}%")
+                  print(f"{weights=} {batch=} median_speedup={median(speedups):.2f}% range={min(speedups):.2f}..{max(speedups):.2f}%")
+          PY
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216

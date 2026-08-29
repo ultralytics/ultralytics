@@ -396,22 +396,34 @@ class Tuner:
             ng = len(self.space)
             bounds = np.array([v[:2] for v in self.space.values()])
             span = np.ptp(bounds, axis=1)
-            population = (x[:, 1:] - bounds[:, 0]) / span
-            weights = x[:, 0] - x[:, 0].min() + 1e-6
-            weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
-            genes = population[rng.choice(len(x), p=weights / weights.sum())]
-            # Explore broadly until the elite pool fills, then mutate one gene on average at the elite population scale.
-            scale = sigma * (np.maximum(np.ptp(population, axis=0), 0.01) if len(x) == n else 1)
-            gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
-            mask = np.zeros(ng, dtype=bool)
-            while not mask.any():
-                mask = rng.random(ng) < (1 / ng if len(x) == n else 0.5)
-            genes = np.clip(genes + mask * rng.standard_normal(ng) * scale * gains, 0, 1)
-            hyp = {k: float(bounds[i, 0] + genes[i] * span[i]) for i, k in enumerate(self.space)}
+            mutable = span > 0
+            if mutable.any():
+                population = np.divide(x[:, 1:] - bounds[:, 0], span, out=np.zeros_like(x[:, 1:]), where=mutable)
+                weights = x[:, 0] - x[:, 0].min() + 1e-6
+                weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
+                gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
+                resolution = np.array([1 if k in CFG_INT_KEYS else 1e-5 for k in self.space])
+                scale = sigma * (np.maximum(np.ptp(population, axis=0), 0.01) if len(x) >= n else 1) * gains
+                scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
+                existing = {tuple(row[1:]) for row in x}
+                for _ in range(100):
+                    genes = population[rng.choice(len(x), p=weights / weights.sum())]
+                    mask = rng.random(ng) < (1 / mutable.sum() if len(x) >= n else 0.5)
+                    mask &= mutable
+                    genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
+                    hyp = {k: float(bounds[i, 0] + genes[i] * span[i]) for i, k in enumerate(self.space)}
+                    hyp = self._constrain(hyp)
+                    if tuple(hyp.values()) not in existing:
+                        return hyp
+                raise RuntimeError(f"{self.prefix}Unable to generate a unique hyperparameter mutation")
+            hyp = {k: float(bounds[i, 0]) for i, k in enumerate(self.space)}
         else:
             hyp = {k: getattr(self.args, k) for k in self.space}
 
-        # Constrain to limits
+        return self._constrain(hyp)
+
+    def _constrain(self, hyp: dict[str, float]) -> dict[str, float]:
+        """Constrain hyperparameters to their search bounds and configured types."""
         for k, bounds in self.space.items():
             hyp[k] = round(min(max(hyp[k], bounds[0]), bounds[1]), 5)
 

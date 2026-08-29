@@ -64,11 +64,11 @@ For each iteration, the built-in tuner repeats the following loop:
 
 ### Iterations and Population Size
 
-With the built-in tuner (`use_ray=False`), `iterations` controls the total number of sequential trials. Each trial trains one model with one hyperparameter configuration — for example, `iterations=40` with `epochs=50` schedules 40 independent 50-epoch training runs, not one 50-epoch run with a separate population of 40 candidates.
+With the built-in tuner (`use_ray=False`), `iterations` controls the total number of sequential trials and defaults to 300. Each trial trains one model with one hyperparameter configuration — for example, `iterations=40` with `epochs=50` schedules 40 independent 50-epoch training runs, not one 50-epoch run with a separate population of 40 candidates.
 
 The built-in genetic algorithm has no explicit population size parameter. Once prior trials exist, it selects from up to nine of the highest-fitness configurations and mutates one candidate per iteration.
 
-For parallel trials or more advanced search strategies, set `use_ray=True` to use Ray Tune, which receives `iterations` as `num_samples`. See the [Ray Tune integration guide](../integrations/ray-tune.md) for details.
+For parallel trials or more advanced search strategies, set `use_ray=True` to use Ray Tune, which uses the same 300-trial default and receives `iterations` as `num_samples`. See the [Ray Tune integration guide](../integrations/ray-tune.md) for details.
 
 ## Default Search Space
 

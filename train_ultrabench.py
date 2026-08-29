@@ -20,6 +20,14 @@ from ultralytics.utils.patches import torch_load
 from val_ultrabench import DATASETS, FRACTION, evaluate_run
 
 
+def _disable_platform_logging(trainer) -> None:
+    """Disable Platform run logging while retaining Platform dataset access."""
+    from ultralytics.utils.callbacks.platform import callbacks
+
+    for event, callback in callbacks.items():
+        trainer.callbacks[event].remove(callback)
+
+
 def _validate_predictions(path: Path) -> None:
     """Validate a COCO-format prediction artifact."""
     predictions = json.loads(path.read_text())
@@ -108,6 +116,7 @@ def main() -> None:
         "seed": 0,
     }
     os.environ.update(WANDB_LOG_MODEL="false", WANDB_RUN_GROUP=args.name)
+    loaded.add_callback("on_pretrain_routine_start", _disable_platform_logging)
     results = {}
     pending = []
     for uri, name in zip(datasets, names):

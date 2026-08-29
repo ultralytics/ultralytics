@@ -148,10 +148,9 @@ def create_sweep(optimizer: str) -> None:
 def run_agent(sweep_id: str, gpu: str, count: int | None = None) -> None:
     """Attach one visible GPU to an existing shared sweep."""
     os.environ["CUDA_VISIBLE_DEVICES"] = gpu
-    os.environ.setdefault("WANDB_LOG_MODEL_ARTIFACT", "false")
+    os.environ.setdefault("WANDB_LOG_MODEL", "false")
 
     import wandb
-
     from ultralytics import settings
 
     settings.update({"wandb": True})

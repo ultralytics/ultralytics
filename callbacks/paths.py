@@ -42,22 +42,7 @@ def run_paths(name: str, exist_ok: bool = False) -> dict:
     Returns:
         (dict): Kwargs with ``project``, ``name``, ``save_dir``, ``exist_ok``.
     """
-    return dict(project=WANDB_PROJECT, name=name, save_dir=str(LOCAL_ROOT / name), exist_ok=exist_ok)
-
-
-def multi_results_csv(parent_name: str, root: Path = NFS_MIRROR_ROOT) -> Path:
-    """Return the ``<root>/<parent_name>/multi_results.csv`` path for a multi_det parent run.
-
-    Single source of truth for this layout so the multi_det writer and reader cannot drift on path or filename.
-
-    Args:
-        parent_name (str): multi_det parent run name.
-        root (Path, optional): Base root, the shared NFS_MIRROR_ROOT or the host-local LOCAL_ROOT.
-
-    Returns:
-        (Path): Absolute path to the parent run's aggregate CSV.
-    """
-    return root / parent_name / "multi_results.csv"
+    return {"project": WANDB_PROJECT, "name": name, "save_dir": str(LOCAL_ROOT / name), "exist_ok": exist_ok}
 
 
 def patch_resume(
@@ -75,8 +60,8 @@ def patch_resume(
             the target physical GPU as a different CUDA index).
         data (str, optional): Override dataset path, e.g. when the resuming host mounts the dataset at a different
             location (``data`` is NOT in ``check_resume``'s override whitelist so it must be baked into the checkpoint).
-        grad_clip (float, optional): Clip norm baked in via ``setdefault`` for checkpoints predating ``grad_clip``
-            as a train arg, which would otherwise resume at the 10.0 default, not the 1.0 they trained at.
+        grad_clip (float, optional): Clip norm baked in via ``setdefault`` for checkpoints predating ``grad_clip`` as a
+            train arg, which would otherwise resume at the 10.0 default, not the 1.0 they trained at.
 
     Returns:
         (str): Absolute path of the patched checkpoint (same as input, for chaining).

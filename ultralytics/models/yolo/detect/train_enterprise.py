@@ -26,10 +26,18 @@ from torchvision.ops.misc import FrozenBatchNorm2d
 
 from ultralytics.data import YOLOConcatDataset, build_dataloader
 from ultralytics.models.yolo.detect.train import DetectionTrainer
-from ultralytics.models.yolo.detect.val import DETECTION_AREA_RANGES, DetectionValidator
+from ultralytics.models.yolo.detect.val import DetectionValidator
 from ultralytics.utils import LOGGER, RANK
+from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import DetMetrics
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
+
+DETECTION_AREA_RANGES = {
+    "tiny": [0, 10**2],
+    "small": [0, 32**2],
+    "medium": [32**2, 96**2],
+    "large": [96**2, 1e5**2],
+}
 
 
 def _replace_batch_norm(module: torch.nn.Module, frozen: bool) -> int:
@@ -299,12 +307,14 @@ class EnterpriseDetectionValidator(DetectionValidator):
 
     def init_metrics(self, model: torch.nn.Module) -> None:
         """Initialize metrics, source paths, and the validation criterion."""
+        self.args.save_json = True
         super().init_metrics(model)
         self.source_model = model
         self.source_indices = {source: index for index, source in enumerate(self.slices)}
-        if self.coco_gt is None:
-            self._init_coco_ground_truth(self.data[self.args.split])
-        self.args.save_json = True
+        check_requirements("faster-coco-eval>=1.7.0")
+        from faster_coco_eval import COCO
+
+        self.coco_gt = COCO(self.gdict)
         for metric in self.metrics.source_metrics.values():
             metric.names = model.names
             metric.clear_stats()
@@ -312,9 +322,10 @@ class EnterpriseDetectionValidator(DetectionValidator):
         roots = [Path(path) for path in self.data[self.args.split]]
         self.source_roots = dict(zip(self.slices, roots))
         assert len(self.source_roots) == len(self.slices), "Enterprise offsets and validation dirs disagree"
+        datasets = getattr(self.dataloader.dataset, "datasets", (self.dataloader.dataset,))
         self.source_image_ids = {name: [] for name in self.slices}
-        for path, image_id in self.image_ids.items():
-            name = self._source(path)
+        for image_id, path in enumerate(path for dataset in datasets for path in dataset.im_files):
+            name = self._source(str(path))
             self.source_image_ids[name].append(image_id)
         if self.training:
             self.model = model
@@ -417,11 +428,16 @@ class EnterpriseDetectionValidator(DetectionValidator):
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.coco_results = {}
         self.metrics.localization_results = {}
-        predictions = self.coco_gt.loadRes(self.jdict) if self.jdict else self.jdict
+        predictions = self.coco_gt.loadRes(self._prepare_coco_predictions()) if self.jdict else self.jdict
         for name, (lo, hi) in self.slices.items():
             image_ids = self.source_image_ids[name]
             source = self.coco_evaluate(
-                {}, predictions, self.coco_gt, image_ids=image_ids, category_ids=list(range(lo + 1, hi + 1))
+                {},
+                predictions,
+                self.coco_gt,
+                image_ids=image_ids,
+                category_ids=list(range(lo + 1, hi + 1)),
+                ranges=DETECTION_AREA_RANGES,
             )
             self.metrics.coco_results[name] = {key: source[key] for key in SOURCE_METRIC_KEYS}
             self.metrics.localization_results[name] = (

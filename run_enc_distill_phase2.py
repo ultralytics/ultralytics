@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# ruff: noqa: E402, RUF100
 """Phase 2: Downstream evaluation with distilled backbone.
 
 Usage:
@@ -9,9 +10,7 @@ Usage:
           "inet_adamw_finetune" (ImageNet AdamW ft), "coco_det_finetune" (COCO detection,
           yolo26s.pt-aligned recipe), "coco_det_finetune_frozen" (COCO det, frozen backbone),
           "coco_pose_finetune" (COCO pose), "dota_obb_finetune" (DOTA-v1.0 OBB,
-          yolo26s-obb.pt-aligned recipe), "multi_det_finetune" (sequential per-dataset
-          det fine-tune + val over a list of YOLO-format datasets; logs per-dataset and
-          macro-averaged mAP to a CSV, on the multi-det recipe profile),
+          yolo26s-obb.pt-aligned recipe),
           "obj365v1_det_pretrain" (Objects365-v1 detection pretrain, 150 epochs, any backbone,
           on the obj365v1 profile. Its output checkpoint is then COCO fine-tuned with
           --recipe coco-after-o365, coco-adapt args on the published post-objv1 epoch ladder,
@@ -28,27 +27,27 @@ Flags:
                 muon/sgd became train args lack them in train_args and error at build_optimizer,
                 relaunch those from the recipe instead.
     --fork_from <parent_id>:<fork_step>: wandb-fork continuation (all single-dataset modes)
-    --recipe <name>: coco/multi_det/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
+    --recipe <name>: coco/obj365 modes. Recipe profile stem under cfg/recipes/, defaulting to
                 the mode's profile (coco-preserve or obj365v1). Use coco-adapt for a
                 non-distilled backbone, coco-after-o365 after an obj365 pretrain, or
-                yolo26-published-{det,multi-det,objv1} for MuSGD. UL33 uses default.yaml when omitted.
+                yolo26-published-{det,objv1} for MuSGD.
     --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
                 Needed when the run swaps the checkpoint's trunk into a different neck/head.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
     --batch <int>: override the profile batch (det modes), applied as-is for other modes.
     --nbs <int>: override the profile nbs. A bare --batch already carries the profile's
                 batch:nbs ratio, so pass this only to break that ratio deliberately.
-    --backbone_lr_ratio <float>: coco_det_finetune and multi_det_finetune. Backbone LR = lr0 *
+    --backbone_lr_ratio <float>: coco_det_finetune. Backbone LR = lr0 *
                 this (below 1 preserves distilled backbone features).
-    --datasets <path>: multi_det_finetune only. Either a file with one YOLO data.yaml path or Platform dataset URI
+    --datasets <path>: teacher_frozen_det only. Either a file with one YOLO data.yaml path or Platform dataset URI
                 per line (#-comments and blanks ignored), or a directory scanned one level deep for ``*/data.yaml``.
-    --imgsz <int>: multi_det_finetune/teacher_frozen_det only. Override the canonical det
+    --imgsz <int>: teacher_frozen_det only. Override the canonical det
                 imgsz (640), e.g. 224 to run the frozen backbone at its phase-1 grid.
 """
 
-import csv
+from __future__ import annotations
+
 import json
-import multiprocessing
 import os
 import re
 import shutil
@@ -60,18 +59,15 @@ os.environ["PYTHONPATH"] = _REPO_ROOT + os.pathsep + os.environ.get("PYTHONPATH"
 os.environ.setdefault("OMP_NUM_THREADS", "1")  # before torch: BLAS pools size at init, ignore torch.set_num_threads
 
 import torch
-from filelock import FileLock
 
 from callbacks import nfs_sync, paths, wandb_config
+from callbacks.cls_map import ClsMapTrainer
 from ultralytics import YOLO
-from ultralytics.data.utils import IMG_FORMATS, convert_ndjson_to_yolo_if_needed
-from ultralytics.models.yolo.detect import DetectionTrainer
-from ultralytics.models.yolo.detect.val import DETECTION_AREA_RANGES
 from ultralytics.nn.tasks import guess_model_scale, load_checkpoint
 from ultralytics.nn.teacher_model import TEACHER_REGISTRY, safe_key
-from ultralytics.utils import DEFAULT_CFG_DICT, SETTINGS, YAML
+from ultralytics.utils import SETTINGS, YAML
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
-from ultralytics.utils.torch_utils import intersect_dicts, parse_device
+from ultralytics.utils.torch_utils import intersect_dicts
 
 # teacher_frozen_det: frozen foundation teacher (yolo26-teacherdet.yaml layer 0) + trainable ViTDet pyramid + Detect,
 # the frozen-feature detection ceiling. Supported = ImageNet-stat ViT/ConvNeXt teachers audited (2026-06-24) to run at
@@ -187,6 +183,14 @@ _AUG_ARGS = dict(
 # Every-mode defaults kept out of recipe profiles, recipes override via a later merge.
 # muon/sgd 0.5/0.5 suggested by Jing.
 _TRAIN_DEFAULTS = {"grad_clip": 1.0, "muon": 0.5, "sgd": 0.5}
+
+
+def _load_cls_table(vocab: str) -> dict:
+    """Return the per-dataset class maps for a source vocabulary."""
+    tables = json.loads((Path(_REPO_ROOT) / "cfg" / "ul33_cls_map.json").read_text())
+    if vocab not in tables:
+        raise SystemExit(f"ERROR: --cls_map {vocab!r} not in {sorted(tables)}")
+    return tables[vocab]
 
 
 def _resume_mode(train_args: dict) -> str:
@@ -464,469 +468,90 @@ def _published_det_args(asset: str, model_yaml: str, batch: int) -> dict:
     return out
 
 
-def _dataset_train_stats(data_yaml: Path, batch: int) -> tuple[int, int]:
-    """Count train images and iterations per epoch for one dataset (logging only).
-
-    Args:
-        data_yaml (Path): Dataset config whose `train:` entry resolves to an image dir or a `.txt` list.
-        batch (int): Effective batch size for the iters-per-epoch estimate.
-
-    Returns:
-        (int): Number of training images.
-        (int): Iterations per epoch at the given batch.
-    """
-    d = YAML.load(data_yaml)
-    root = Path(d.get("path", data_yaml.parent))
-    train = d.get("train", "images/train")
-    train_path = Path(train) if Path(train).is_absolute() else root / train
-    if train_path.is_file() and train_path.suffix == ".txt":
-        with train_path.open() as f:
-            n_imgs = sum(1 for line in f if line.strip() and not line.startswith("#"))
-    else:
-        n_imgs = sum(1 for p in train_path.rglob("*") if p.suffix[1:].lower() in IMG_FORMATS)
-    return n_imgs, max(1, (n_imgs + batch - 1) // batch)
-
-
-_MULTI_SIZE_METRICS = {
-    f"{'map50_95' if kind == 'AP' else 'mar'}_{size}": f"metrics/m{kind}_{size}(B)"
-    for size in DETECTION_AREA_RANGES
-    for kind in ("AP", "AR")
-}
-_MULTI_MAP50_SIZE_METRICS = tuple(f"map50_{size}" for size in DETECTION_AREA_RANGES)
-_LEGACY_MULTI_SIZE_METRICS = {f"map_{size}": f"map50_95_{size}" for size in DETECTION_AREA_RANGES}
-_MULTI_METRICS = ("map50", "map50_95", "fitness", "f1", *_MULTI_MAP50_SIZE_METRICS, *_MULTI_SIZE_METRICS)
-
-
-def _read_multi_results(csv_path: Path) -> dict[str, dict[str, float]]:
-    """Read unique dataset rows from one multi_det CSV."""
-    if not csv_path.exists():
-        return {}
-    rows = {}
-    with csv_path.open(newline="") as f:
-        for record in csv.DictReader(f):
-            name = record.pop("dataset")
-            if name in rows:
-                raise ValueError(f"{csv_path}: duplicate row for dataset {name!r}")
-            rows[name] = {
-                _LEGACY_MULTI_SIZE_METRICS.get(key, key): float(value) for key, value in record.items() if value
-            }
-    return rows
-
-
-def _backfill_multi_metrics(run_dirs: tuple[Path, ...], rows: dict[str, dict[str, float]]) -> None:
-    """Backfill F1 and size metrics from each dataset's best-mAP epoch."""
-    for name, row in rows.items():
-        if name == "MACRO" or all(key in row for key in ("f1", *_MULTI_SIZE_METRICS)):
-            continue
-        results_path = next(
-            (run_dir / name / "results.csv" for run_dir in run_dirs if (run_dir / name / "results.csv").exists()), None
-        )
-        if results_path is None:
-            if "f1" not in row:
-                raise FileNotFoundError(f"Cannot backfill F1 for {name!r}: results.csv is missing under {run_dirs}")
-            continue
-        with results_path.open(newline="") as f:
-            best = max(csv.DictReader(f), key=lambda record: float(record["metrics/mAP50-95(B)"]))
-        if "f1" not in row:
-            p, r = float(best["metrics/precision(B)"]), float(best["metrics/recall(B)"])
-            row["f1"] = round(2 * p * r / (p + r), 4) if p + r else 0.0
-        for aggregate_key, result_key in _MULTI_SIZE_METRICS.items():
-            if aggregate_key not in row and result_key in best and float(best[result_key]) >= 0:
-                row[aggregate_key] = round(float(best[result_key]), 4)
-
-
-def _multi_macro(rows: dict[str, dict[str, float]]) -> dict[str, float]:
-    """Calculate each macro metric over datasets with a valid value."""
-    return {
-        key: sum(values) / len(values)
-        for key in _MULTI_METRICS
-        if (values := [result[key] for result in rows.values() if key in result])
-    }
-
-
-def _write_multi_results(csv_path: Path, rows: dict[str, dict[str, float]]) -> None:
-    """Write one canonical multi_det CSV with no duplicate rows."""
-    tmp = csv_path.with_suffix(".tmp")
-    metrics = tuple(key for key in _MULTI_METRICS if any(key in row for row in rows.values()))
-    with tmp.open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=("dataset", *metrics))
-        writer.writeheader()
-        writer.writerows(
-            {"dataset": name, **{key: f"{value:.4f}" for key, value in row.items()}}
-            for name, row in sorted(rows.items(), key=lambda item: (item[0] == "MACRO", item[0]))
-        )
-    tmp.replace(csv_path)
-
-
-def _merge_multi_results(
-    csv_path: Path,
-    nfs_csv: Path,
-    expected: set[str],
-    row: dict[str, str | float] | None = None,
-) -> tuple[dict[str, dict[str, float]], dict[str, float] | None, bool]:
-    """Merge one result into the locked local and NFS aggregate CSVs.
-
-    Args:
-        csv_path (Path): Host-local aggregate CSV path.
-        nfs_csv (Path): Shared aggregate CSV path and lock owner.
-        expected (set[str]): Complete dataset basename set across every shard.
-        row (dict, optional): Completed per-dataset result including its dataset basename.
-
-    Returns:
-        rows (dict): Current unique per-dataset results.
-        macro (dict | None): Final macro metrics once every expected dataset is committed.
-        finalized (bool): Whether this call created the final MACRO row.
-    """
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-    nfs_csv.parent.mkdir(parents=True, exist_ok=True)
-    with FileLock(nfs_csv.with_suffix(".lock")):
-        local, shared = _read_multi_results(csv_path), _read_multi_results(nfs_csv)
-        had_macro = "MACRO" in local or "MACRO" in shared
-        local.pop("MACRO", None)
-        shared.pop("MACRO", None)
-        conflicts = sorted(name for name in local.keys() & shared.keys() if local[name] != shared[name])
-        if conflicts:
-            raise ValueError(f"Conflicting local and NFS multi_results.csv rows for {conflicts}")
-        local.update(shared)
-        if row is not None:
-            name = str(row["dataset"])
-            values = {key: round(float(row[key]), 4) for key in ("map50", "map50_95", "fitness", "f1")}
-            if name in local and {key: local[name][key] for key in values} != values:
-                raise ValueError(f"Conflicting multi_results.csv row for {name!r}")
-            local.setdefault(name, values)
-        _backfill_multi_metrics((csv_path.parent, nfs_csv.parent), local)
-        unexpected = sorted(local.keys() - expected)
-        if unexpected:
-            raise ValueError(f"Existing multi_results.csv contains datasets outside this suite: {unexpected}")
-        macro = _multi_macro(local) if len(local) == len(expected) else None
-        _write_multi_results(csv_path, {**local, **({"MACRO": macro} if macro else {})})
-        mirror_tmp = nfs_csv.with_suffix(".tmp")
-        shutil.copy2(csv_path, mirror_tmp)
-        mirror_tmp.replace(nfs_csv)
-    return local, macro, macro is not None and not had_macro
-
-
-def load_multi_results(parent_name: str, expected: list[str] | None = None) -> tuple[dict, dict]:
-    """Read a completed multi_det aggregate CSV, preferring the shared NFS copy."""
-    csv_path = next(
-        (
-            path
-            for root in (paths.NFS_MIRROR_ROOT, paths.LOCAL_ROOT)
-            if (path := paths.multi_results_csv(parent_name, root)).exists()
-        ),
-        None,
-    )
-    if csv_path is None:
-        raise FileNotFoundError(f"multi_results.csv not found for {parent_name!r} under NFS or local root")
-    per_dataset = _read_multi_results(csv_path)
-    _backfill_multi_metrics((csv_path.parent,), per_dataset)
-    macro = per_dataset.pop("MACRO", None)
-    if macro is None:
-        raise ValueError(f"{csv_path}: no MACRO row, the run is incomplete")
-    missing = sorted(set(expected or ()) - per_dataset)
-    if missing:
-        raise ValueError(f"{csv_path}: missing rows for {missing}")
-    macro.update(_multi_macro(per_dataset))
-    return per_dataset, macro
-
-
-def _load_cls_table(vocab: str) -> dict:
-    """Return the per-dataset class maps for a source vocab, or {} when --cls_map was not passed."""
-    if not vocab:
-        return {}
-    tables = json.loads((Path(_REPO_ROOT) / "cfg" / "ul33_cls_map.json").read_text())
-    if vocab not in tables:
-        raise SystemExit(f"ERROR: --cls_map {vocab!r} not in {sorted(tables)}")
-    return tables[vocab]
-
-
-class _ClsMapTrainer(DetectionTrainer):
-    """DetectionTrainer applying class aliases before pretrained head-row transfer.
-
-    Renames the dataset classes to their mapped source-checkpoint names right before ``model.load()``, so
-    ``BaseModel._remap_cls_by_names`` copies same-name rows plus aliases from ``cfg/ul33_cls_map.json``.
-    ``set_model_attributes()`` restores the real dataset names right after the weights are loaded.
-    """
-
-    cls_map: dict = {}
-
-    def set_model_names_for_load(self, model):
-        """Alias dataset class names to their manually mapped source names."""
-        names = self.data["names"]
-        model.names = {i: self.cls_map.get(str(n).strip().lower(), n) for i, n in names.items()}
-        return model
-
-
-def _run_multi_det(
+def _run_teacher_frozen_det(
     gpu: str,
-    phase1_weights: str,
-    parent_name: str,
-    phase1_wandb_id: str,
-    epochs: int | None,
-    patience: int | None,
-    batch_override: str,
-    lr_override: str,
-    nbs_override: str,
+    name: str,
     datasets_arg: str,
-    freeze_override: str = "",
+    teacher_spec: str,
+    batch_override: str = "",
+    lr_override: str = "",
+    nbs_override: str = "",
     imgsz_override: str = "",
-    teacher_spec: str | None = None,
     seed: int = 0,
     backbone_lr_ratio_override: str = "",
     recipe_name: str = "",
-    cls_map_vocab: str = "",
-    model_override: str = "",
-    shard: tuple[int, int] = (0, 1),
 ) -> None:
-    """Sequentially train + val on a list of YOLO-format detection datasets.
-
-    Per dataset: fresh YOLO(model_yaml) with backbone from phase1_weights, train using repository defaults, then val.
-    Each dataset is its own W&B run named ``{parent_name}-{basename}``. Validation predictions are saved to ``{parent
-    save dir}/{basename}/predictions.json``. Aggregate metrics are written to ``{parent save dir}/multi_results.csv``
-    (mirrored to the NFS run dir) and printed as a macro average at the end.
-
-    Run one single-GPU worker (same DDP-callback-loss caveat as other det modes).
-
-    Args:
-        gpu (str): Single GPU id (e.g. "0").
-        phase1_weights (str): Path to backbone checkpoint for `pretrained=`.
-        parent_name (str): Run name prefix; sub-runs append "-{basename}".
-        phase1_wandb_id (str): Optional W&B parent ID forwarded to wandb_config.
-        epochs (int, optional): Per-dataset epochs, overriding the profile.
-        patience (int, optional): Per-dataset patience, overriding the profile.
-        batch_override (str): CLI --batch override, applied to the profile as a declared delta.
-        lr_override (str): CLI --lr override of the profile lr0.
-        nbs_override (str): CLI --nbs override of the profile nbs.
-        datasets_arg (str): Path to dataset list (file or directory). See _resolve_dataset_list.
-        freeze_override (str): Distilled-student freeze depth. When set (and no teacher_spec), freezes det layers 0..N-1
-            via the trainer freeze arg (e.g. 10 for yolo26l = transferred backbone 0-8 + SPPF 9), so only C2PSA + neck +
-            Detect head train. Mirrors the frozen-teacher ceiling probe for the distilled backbone.
-        imgsz_override (str): Detection image-size override.
-        teacher_spec (str, optional): Frozen-teacher registry key (e.g. "eupe:vitb16"). When set, runs the
-            teacher_frozen_det mode: build yolo26-teacherdet.yaml with this teacher, freeze=1, no phase1 weights or
-            parent push. When None, the standard distilled-student multi_det_finetune mode.
-        seed (int, optional): Training seed for detection-head init and augmentation RNG. Default 0 reproduces prior
-            runs, vary it to sample per-dataset run-to-run variance.
-        backbone_lr_ratio_override (str, optional): Backbone LR = lr0 * this (below 1 preserves distilled features).
-        recipe_name (str, optional): Recipe profile stem under cfg/recipes/, defaulting to repository settings.
-        cls_map_vocab (str, optional): Vocab key in ul33_cls_map.json (coco/obj365/oiv7/ent/entcom). When set, forces
-            cls_remap=true and transfers same-name head rows plus listed aliases instead of the profile's no-transfer
-            default. Pick the vocab matching phase1_weights' pretraining label space.
-        model_override (str): Detector YAML override.
-        shard (tuple, optional): Internal dataset shard index and worker count.
-    """
-    suite_datasets = _resolve_dataset_list(datasets_arg)
-    shard_index, shard_count = shard
-    if shard_count < 1 or shard_index >= shard_count or shard_count > len(suite_datasets):
-        raise SystemExit(f"ERROR: internal UL33 shard {shard_index}/{shard_count} is invalid.")
-    datasets = suite_datasets[shard_index::shard_count]
-    parent_save_dir = paths.LOCAL_ROOT / parent_name
+    """Train the frozen-teacher detector across the requested datasets."""
+    parent_save_dir = paths.LOCAL_ROOT / name
     parent_save_dir.mkdir(parents=True, exist_ok=True)
-    if teacher_spec:
-        # Inject the chosen teacher into a resolved copy of the teacherdet yaml (safe_key form; a colon would crash the
-        # parse_model ast.literal_eval arg handler). Written to the parent dir as run provenance.
-        cfg = YAML.load(_TEACHERDET_YAML)
-        cfg["backbone"][0][3] = [safe_key(teacher_spec)]
-        model_yaml = str(parent_save_dir / "teacherdet.yaml")
-        YAML.save(model_yaml, cfg)
-    else:
-        model_yaml = model_override or _infer_model_yaml(phase1_weights)
-        _assert_backbone_compatible(phase1_weights, model_yaml)
-        # Fail fast on a wrong parent id (e.g. a dir basename) before training the full dataset suite, since
-        # push_summary_to_parent would otherwise drop the downstream link silently at the final step.
-        wandb_config.assert_parent_resolvable(phase1_wandb_id)
-
-    csv_path = paths.multi_results_csv(parent_name, paths.LOCAL_ROOT)
-    nfs_csv = paths.multi_results_csv(parent_name)
-    expected = {name for name, _ in suite_datasets}
-    completed, macro, owns_final = _merge_multi_results(csv_path, nfs_csv, expected)
-
-    repo_defaults = not recipe_name
-    if repo_defaults:
-        if any(
-            (
-                patience,
-                batch_override,
-                lr_override,
-                nbs_override,
-                backbone_lr_ratio_override,
-                imgsz_override,
-                seed,
-            )
-        ) or epochs not in (
-            None,
-            100,
-        ):
-            raise SystemExit("ERROR: repository defaults permit only freeze, the 100-epoch budget, and class mapping.")
-        actual_defaults = {key: DEFAULT_CFG_DICT[key] for key in ("grad_clip", "muon", "sgd")}
-        if actual_defaults != {"grad_clip": 10.0, "muon": 0.2, "sgd": 1.0}:
-            raise SystemExit(f"ERROR: UL33 repository defaults changed: {actual_defaults}")
-        det_args = {"epochs": 100, "deterministic": True, "workers": 4}
-        train_defaults = {}
-        print("[repo defaults] default.yaml + epochs=100 deterministic=True workers=4")
-    else:
-        # Every input to the recipe is loop-invariant, so resolve it once here rather than per dataset.
-        det_args = _load_recipe(
-            recipe_name,
-            model_yaml,
-            epochs=epochs,
-            patience=patience,
-            batch=batch_override,
-            lr0=lr_override,
-            nbs=nbs_override,
-            backbone_lr_ratio=backbone_lr_ratio_override,
-        )
-        train_defaults = {"dropout": 0, "amp": True, "deterministic": True, "workers": 4, **_TRAIN_DEFAULTS}
-    if epochs or patience:
-        print("[multi_det_finetune] NOTE macros are comparable only across equal epoch budgets.")
-    cls_table = _load_cls_table(cls_map_vocab)
-    if cls_map_vocab:
-        # A real cfg key, so it lands in args.yaml and the per-sub-run provenance comparison above.
-        det_args["cls_remap"] = True
-        print(f"[multi_det_finetune] cls_map={cls_map_vocab}: manual head-row transfer, overriding cls_remap=true")
-    if teacher_spec:
-        # Freeze layer 0 (the teacher) via the trainer freeze arg: BaseTrainer re-enables requires_grad for any
-        # non-frozen-listed param (trainer.py:319), so freezing only in __init__ is undone. imgsz is per-teacher.
-        det_args["freeze"] = 1
-        det_args["imgsz"] = _TEACHER_DET_IMGSZ.get(teacher_spec, 640)
-    elif freeze_override:
-        # Frozen distilled-student backbone, with the same trainer re-enable caveat as the teacher branch above.
-        det_args["freeze"] = int(freeze_override)
-    if imgsz_override:
-        # Ablation lever: run the detector at a non-640 imgsz, e.g. 224 to match the phase-1 distillation grid.
-        det_args["imgsz"] = int(imgsz_override)
-    print(
-        f"[multi_det_finetune] parent={parent_name} datasets={len(datasets)}/{len(suite_datasets)} "
-        f"shard={shard_index}/{shard_count} model={model_yaml}"
-    )
-    print(f"[multi_det_finetune] aggregate csv -> {csv_path}")
-
-    recipe_args = {
-        "pretrained": False if teacher_spec else phase1_weights,
-        **({} if repo_defaults else {"seed": seed}),
-        **det_args,
-    }
-    resume_args = {"model": model_yaml, **recipe_args}
-    for basename in completed:
-        args_path = next(
-            (
-                path
-                for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT)
-                if (path := root / parent_name / basename / "args.yaml").exists()
+    cfg = YAML.load(_TEACHERDET_YAML)
+    cfg["backbone"][0][3] = [safe_key(teacher_spec)]
+    model_yaml = str(parent_save_dir / "teacherdet.yaml")
+    YAML.save(model_yaml, cfg)
+    recipe_args = (
+        {
+            "dropout": 0,
+            "amp": True,
+            **_TRAIN_DEFAULTS,
+            **_load_recipe(
+                recipe_name,
+                model_yaml,
+                batch=batch_override,
+                lr0=lr_override,
+                nbs=nbs_override,
+                backbone_lr_ratio=backbone_lr_ratio_override,
             ),
-            None,
-        )
-        if args_path is None:
-            raise FileNotFoundError(
-                f"Cannot verify provenance for completed dataset {basename!r}: args.yaml is missing"
-            )
-        saved_args = YAML.load(args_path)
-        mismatched = {
-            key: (saved_args.get(key), value) for key, value in resume_args.items() if saved_args.get(key) != value
         }
-        if mismatched:
-            raise ValueError(f"Refusing to mix a changed recipe or checkpoint into {parent_name}: {mismatched}")
+        if recipe_name
+        else {}
+    )
+    if not recipe_name and any((batch_override, lr_override, nbs_override, backbone_lr_ratio_override)):
+        raise SystemExit("ERROR: teacher_frozen_det training overrides require --recipe.")
 
-    # Weights are deleted after val, so skip the upload. Not save=False: without best.pt val scores the last epoch.
-    os.environ["WANDB_LOG_MODEL_ARTIFACT"] = "false"
-    for i, (basename, data_source) in enumerate(datasets, start=1):
-        if basename in completed:
-            print(f"=== [{i}/{len(datasets)}] {basename}: finalized, skipping ===")
-            continue
-        ds_yaml = Path(convert_ndjson_to_yolo_if_needed(data_source))
-        for root in (paths.LOCAL_ROOT, paths.NFS_MIRROR_ROOT):
-            stale_dir = root / parent_name / basename
-            if stale_dir.exists():
-                shutil.rmtree(stale_dir)
-        n_imgs, iters_per_ep = _dataset_train_stats(ds_yaml, det_args.get("batch", DEFAULT_CFG_DICT["batch"]))
-        print(f"\n=== [{i}/{len(datasets)}] {basename} ===")
-        print(
-            f"[multi_det_finetune] {basename}: n_train={n_imgs} iters/ep={iters_per_ep} "
-            f"epochs={det_args['epochs']} patience={det_args.get('patience', DEFAULT_CFG_DICT['patience'])}"
-        )
-
+    os.environ.update(WANDB_LOG_MODEL="false", WANDB_RUN_GROUP=name)
+    for dataset, source in _resolve_dataset_list(datasets_arg):
+        save_dir = parent_save_dir / dataset
+        if save_dir.exists():
+            raise FileExistsError(f"Refusing to overwrite existing teacher_frozen_det run: {save_dir}")
         model = YOLO(model_yaml)
         model.add_callback(
             "on_pretrain_routine_start",
             wandb_config.log_config(
                 model=model_yaml,
-                pretrained_from=teacher_spec or phase1_weights,
-                phase1_wandb_id=phase1_wandb_id,
-                mode="teacher_frozen_det" if teacher_spec else "multi_det_finetune",
+                pretrained_from=teacher_spec,
+                mode="teacher_frozen_det",
                 teacher=teacher_spec,
-                cls_map=cls_map_vocab or None,
-                wandb_group=parent_name,
-                parent_run=parent_name,
-                dataset=basename,
-                n_train_images=n_imgs,
-                iters_per_epoch=iters_per_ep,
-                **({"data_source": "platform", "platform_uri": data_source} if data_source.startswith("ul://") else {}),
+                wandb_group=name,
+                parent_run=name,
+                dataset=dataset,
+                **({"data_source": "platform", "platform_uri": source} if source.startswith("ul://") else {}),
             ),
         )
-        # cls_w/o2m/detach_epoch from the MuSGD recipe are not train_args (cfg validator rejects).
-        train_args = {
-            "device": gpu,
-            "project": paths.WANDB_PROJECT,
-            "name": basename,
-            "save_dir": str(parent_save_dir / basename),
-            "exist_ok": False,
-            "data": str(ds_yaml),
-            **train_defaults,
-            **recipe_args,
-        }
-        # Nest the NFS mirror under the parent so different parents' same-basename sub-runs (e.g. two parents both
-        # training `aerial-cows`) don't collide on the flat `NFS_MIRROR_ROOT / Path(save_dir).name` mapping.
-        sync_stop = nfs_sync.start(train_args["save_dir"], paths.NFS_MIRROR_ROOT / parent_name, exclude=("weights/",))
-        if cls_map_vocab:
-            _ClsMapTrainer.cls_map = cls_table.get(basename, {})
-            print(f"[multi_det_finetune] {basename}: cls_map rows={len(_ClsMapTrainer.cls_map)}")
-        model.train(trainer=_ClsMapTrainer if cls_map_vocab else None, **train_args)
-        metrics = model.val(save_json=True, save_dir=train_args["save_dir"])
-        sync_stop()
-        shutil.rmtree(parent_save_dir / basename / "weights")
-        p, r = (float(metrics.results_dict[key]) for key in ("metrics/precision(B)", "metrics/recall(B)"))
-        row = {
-            "dataset": basename,
-            "map50": float(metrics.box.map50),
-            "map50_95": float(metrics.box.map),
-            "fitness": float(metrics.fitness),
-            "f1": 2 * p * r / (p + r) if p + r else 0.0,
-        }
-        completed, macro, finalized = _merge_multi_results(csv_path, nfs_csv, expected, row)
-        owns_final |= finalized
-        print(
-            f"[done] {basename} mAP50={row['map50']:.4f} mAP50-95={row['map50_95']:.4f} "
-            f"fitness={row['fitness']:.4f} F1={row['f1']:.4f}"
-        )
-
-    if macro is None:
-        print(
-            f"[multi_det_finetune] shard {shard_index}/{shard_count} complete; suite={len(completed)}/{len(expected)}"
-        )
-        return
-    print(
-        f"\n[multi_det_finetune] MACRO over {len(completed)} datasets: "
-        f"mAP50={macro['map50']:.4f} mAP50-95={macro['map50_95']:.4f} "
-        f"fitness={macro['fitness']:.4f} F1={macro['f1']:.4f} "
-        f"mAP50-95-T/S/M/L={macro.get('map50_95_tiny', float('nan')):.4f}/"
-        f"{macro.get('map50_95_small', float('nan')):.4f}/"
-        f"{macro.get('map50_95_medium', float('nan')):.4f}/{macro.get('map50_95_large', float('nan')):.4f}"
-    )
-    if owns_final and not teacher_spec:  # frozen-teacher runs have no phase1 distillation parent to push downstream
-        # Auto-resolve the phase-1 run from the backbone dir when no id was passed, so the sweep view self-links.
-        w = Path(phase1_weights)
-        # Bare published weights like yolov8s.pt have no <run>/weights/<file>.pt lineage to link back to.
-        parent_id = phase1_wandb_id or (
-            wandb_config.resolve_run_id_by_name(w.parents[1].name) if w.parent.name == "weights" else ""
-        )
-        print(f"[multi_det_finetune] downstream link -> phase1 wandb id: {parent_id or '(unresolved, skipped)'}")
-        wandb_config.push_summary_to_parent(
-            parent_id,
-            {
-                "downstream_multi_macro_map50_95": float(macro["map50_95"]),
-                "downstream_multi_n_datasets": len(completed),
-            },
-        )
+        sync_stop = nfs_sync.start(save_dir, paths.NFS_MIRROR_ROOT / name, exclude=("weights/",))
+        try:
+            train_args = {
+                "epochs": 100,
+                "workers": 4,
+                "deterministic": True,
+                **recipe_args,
+                "freeze": 1,
+                "imgsz": int(imgsz_override) if imgsz_override else _TEACHER_DET_IMGSZ.get(teacher_spec, 640),
+                "seed": seed,
+                "save_json": True,
+                "max_det": 300,
+                "plots": False,
+            }
+            model.train(
+                data=source,
+                device=gpu,
+                project=paths.WANDB_PROJECT,
+                name=dataset,
+                save_dir=str(save_dir),
+                **train_args,
+            )
+        finally:
+            sync_stop()
+        shutil.rmtree(save_dir / "weights")
 
 
 def main(argv: list[str]) -> None:
@@ -968,6 +593,8 @@ def main(argv: list[str]) -> None:
             raise SystemExit(
                 "ERROR: --freeze is not supported with --teacher (teacher_frozen_det already freezes layer 0)."
             )
+        if model_override:
+            raise SystemExit("ERROR: --model is not supported for teacher_frozen_det.")
         gpu = argv[0] if argv else "0"
         if "," in gpu:
             raise SystemExit(
@@ -976,20 +603,18 @@ def main(argv: list[str]) -> None:
         positionals = [a for a in argv[1:] if a != "teacher_frozen_det"]
         name = positionals[0] if positionals else f"phase2-teacherfrozen-{safe_key(teacher_spec)}"
         _export_hf_token()
-        _run_multi_det(
+        _run_teacher_frozen_det(
             gpu=gpu,
-            phase1_weights="",
-            parent_name=name,
-            phase1_wandb_id="",
-            epochs=None,
-            patience=None,
+            name=name,
+            datasets_arg=datasets_arg,
+            teacher_spec=teacher_spec,
             batch_override=batch_override,
             lr_override=lr_override,
             nbs_override=nbs_override,
-            datasets_arg=datasets_arg,
             imgsz_override=imgsz_override,
             seed=seed,
-            teacher_spec=teacher_spec,
+            backbone_lr_ratio_override=backbone_lr_ratio_override,
+            recipe_name=recipe_name,
         )
         return
     if resume:
@@ -1014,50 +639,9 @@ def main(argv: list[str]) -> None:
     epochs = int(argv[5]) if len(argv) > 5 else resume_args.get("epochs")
     patience = int(argv[6]) if len(argv) > 6 else resume_args.get("patience")
 
-    # _ClsMapTrainer is a DetectionTrainer, so pose/obb heads stay on the automatic name match.
-    if cls_map_vocab and mode not in ("multi_det_finetune", *_COCO_DET_MODES):
+    # The alias trainer is detection-only. Pose and OBB retain automatic same-name remapping.
+    if cls_map_vocab and mode not in (*_COCO_DET_MODES, "obj365v1_det_pretrain"):
         raise SystemExit(f"ERROR: --cls_map is not supported for mode={mode!r}.")
-    if mode == "multi_det_finetune":
-        if not datasets_arg:
-            raise SystemExit("ERROR: mode='multi_det_finetune' requires --datasets <file|dir>.")
-        if resume or fork_from:
-            raise SystemExit("ERROR: --resume and --fork_from are not supported for multi_det_finetune.")
-        multi_args = {
-            "phase1_weights": phase1_weights,
-            "parent_name": name,
-            "phase1_wandb_id": phase1_wandb_id,
-            "epochs": epochs,
-            "patience": patience,
-            "batch_override": batch_override,
-            "lr_override": lr_override,
-            "nbs_override": nbs_override,
-            "datasets_arg": datasets_arg,
-            "freeze_override": freeze_override,
-            "imgsz_override": imgsz_override,
-            "seed": seed,
-            "backbone_lr_ratio_override": backbone_lr_ratio_override,
-            "recipe_name": recipe_name,
-            "cls_map_vocab": cls_map_vocab,
-            "model_override": model_override,
-        }
-        gpus = parse_device(gpu).split(",")
-        if len(set(gpus)) != len(gpus):
-            raise SystemExit(f"ERROR: duplicate multi_det_finetune GPU in {gpu!r}.")
-        if len(gpus) == 1:
-            _run_multi_det(gpu=gpus[0], **multi_args)
-            return
-        context = multiprocessing.get_context("spawn")
-        workers = [
-            context.Process(target=_run_multi_det, kwargs={"gpu": device, "shard": (index, len(gpus)), **multi_args})
-            for index, device in enumerate(gpus)
-        ]
-        for worker in workers:
-            worker.start()
-        for worker in workers:
-            worker.join()
-        if failures := [worker.exitcode for worker in workers if worker.exitcode]:
-            raise SystemExit(f"ERROR: multi_det_finetune workers failed with exit codes {failures}.")
-        return
 
     if "," in gpu and mode not in _DDP_CAPABLE_MODES:
         raise SystemExit(
@@ -1214,7 +798,7 @@ def main(argv: list[str]) -> None:
         # and warmup span (in samples) stay invariant.
         obb_batch = int(batch_override) if batch_override else 32
         obb_scale = obb_batch / 32.0
-        obb_nbs = max(1, int(nbs_override) if nbs_override else int(round(64 * obb_scale)))
+        obb_nbs = max(1, int(nbs_override) if nbs_override else round(64 * obb_scale))
         obb_base_lr = float(lr_override) if lr_override else 0.00125
         obb_lr0 = obb_base_lr * obb_scale
         obb_warmup = 1.0 * obb_scale
@@ -1314,14 +898,13 @@ def main(argv: list[str]) -> None:
     if lr_find_only:
         train_args["lr_find_only"] = True
     if cls_map_vocab:
-        # Table rows are keyed by dataset basename, the same key multi_det uses per sub-run.
-        _ClsMapTrainer.cls_map = _load_cls_table(cls_map_vocab).get(Path(train_args["data"]).stem, {})
-        train_args["cls_remap"] = True
-        print(f"[{mode}] cls_map={cls_map_vocab}: manual head-row transfer, rows={len(_ClsMapTrainer.cls_map)}")
+        cls_map = _load_cls_table(cls_map_vocab).get(Path(train_args["data"]).stem, {})
+        os.environ["PHASE2_CLS_MAP"] = json.dumps(cls_map)
+        print(f"[{mode}] cls_map={cls_map_vocab}: manual head-row transfer, rows={len(cls_map)}")
     # Started from the runner rather than a trainer callback so it survives DDP: under DDP this process is the
     # launcher, which blocks in subprocess.run for the whole run while the children write into save_dir.
     sync_stop = nfs_sync.start(train_args["save_dir"])
-    model.train(trainer=_ClsMapTrainer if cls_map_vocab else None, **train_args)
+    model.train(trainer=ClsMapTrainer if cls_map_vocab else None, **train_args)
     sync_stop()
 
 

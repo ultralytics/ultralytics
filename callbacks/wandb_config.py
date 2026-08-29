@@ -128,65 +128,6 @@ def fork_and_attach(
     return forked_id
 
 
-def push_summary_to_parent(
-    parent_run_id: str,
-    summary: dict,
-    entity: str = paths.WANDB_ENTITY,
-    project: str = paths.WANDB_PROJECT,
-) -> None:
-    """Merge ``summary`` keys into a parent W&B run's summary via the public API.
-
-    Used to attach phase-2 downstream metrics (e.g. multi-det macro mAP) back onto the phase-1 run that produced the
-    backbone, so phase-1 sweep views directly rank recipes by downstream score. Merges by key; existing parent summary
-    entries are preserved. Network or bad-id failures are logged but do not raise, so a multi-day phase-2 run does not
-    abort at the final step on a typo.
-
-    Args:
-        parent_run_id (str): W&B run id of the parent (phase-1) run. Empty/None is a no-op.
-        summary (dict): Keys to merge into the parent's summary.
-        entity (str, optional): WandB entity.
-        project (str, optional): WandB project.
-    """
-    if not parent_run_id or not summary:
-        return
-    import wandb
-
-    try:
-        wandb.Api().run(f"{entity}/{project}/{parent_run_id}").summary.update(summary)
-    except Exception as e:
-        print(f"[wandb] failed to push summary to parent {parent_run_id}: {e}")
-
-
-def assert_parent_resolvable(
-    parent_run_id: str,
-    entity: str = paths.WANDB_ENTITY,
-    project: str = paths.WANDB_PROJECT,
-) -> None:
-    """Fail fast if a non-empty parent run id does not resolve to a real W&B run.
-
-    push_summary_to_parent swallows a bad id at the final step of a multi-day run, silently dropping the downstream
-    link. This asserts at launch so a wrong id (e.g. a dir basename instead of the full timestamped run id) raises in
-    seconds instead. Empty id is allowed and means no parent.
-
-    Args:
-        parent_run_id (str): W&B run id of the parent. Empty or None is allowed (no parent, no-op).
-        entity (str, optional): WandB entity.
-        project (str, optional): WandB project.
-    """
-    if not parent_run_id:
-        return
-    import wandb
-
-    try:
-        wandb.Api().run(f"{entity}/{project}/{parent_run_id}")
-    except Exception as e:
-        raise SystemExit(
-            f"ERROR: phase1_wandb_id {parent_run_id!r} does not resolve to a W&B run in {entity}/{project} "
-            f"({type(e).__name__}). Pass the full timestamped run id like phase1-foo_20260101_010101, or empty "
-            f"for no parent. Otherwise push_summary_to_parent silently drops the downstream link at the final step."
-        )
-
-
 def resolve_run_id_by_name(
     name: str,
     entity: str = paths.WANDB_ENTITY,
@@ -194,10 +135,8 @@ def resolve_run_id_by_name(
 ) -> str:
     """Resolve a run display name to its full W&B run id, or empty string on any failure.
 
-    Lets multi_det auto-link its downstream macro onto the phase-1 run when no explicit id was passed, resolving the
-    phase-1 dir basename to its run id. Never raises: an absent, ambiguous, or unreachable name returns "" so the caller
-    (push_summary_to_parent) no-ops instead of aborting a multi-day run. On duplicate names (crash-retry) the finished,
-    longest-history, latest run wins.
+    Resolve the phase-1 directory basename to its run id. Never raises: an absent, ambiguous, or unreachable name
+    returns "". On duplicate names (crash-retry), the finished, longest-history, latest run wins.
 
     Args:
         name (str): Run display name (e.g. the phase-1 checkpoint's dir basename).

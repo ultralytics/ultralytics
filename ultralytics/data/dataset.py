@@ -842,9 +842,6 @@ class YOLOConcatDataset(ConcatDataset):
     This class is useful to assemble different existing datasets for YOLO training, ensuring they use the same collation
     function.
 
-    Methods:
-        collate_fn: Static method that collates data samples into batches using YOLODataset's collation function.
-
     Examples:
         >>> dataset1 = YOLODataset(...)
         >>> dataset2 = YOLODataset(...)
@@ -855,6 +852,12 @@ class YOLOConcatDataset(ConcatDataset):
     def labels(self) -> list[dict]:
         """Return every sub-dataset's labels, so trainer paths that read labels work on the concatenation."""
         return [lb for d in self.datasets for lb in d.labels]
+
+    def __getitem__(self, index: int) -> dict:
+        """Return a sample with its global concatenated index."""
+        sample = super().__getitem__(index)
+        sample["im_idx"] = index
+        return sample
 
     @staticmethod
     def collate_fn(batch: list[dict]) -> dict:

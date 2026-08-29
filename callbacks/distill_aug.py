@@ -29,7 +29,7 @@ Reference recipes audited (all student-side, all single-crop unless noted):
     of timm default (0.08, 1.0); higher input resolution 336.
 
   EdgeCrafter §A.1 (paper, arXiv:2603.18739) — RRC@224 + HFlip + ColorJitter + Grayscale +
-    GaussianBlur + MixUp. MixUp is provided separately by ``callbacks/mixup.py`` already.
+    GaussianBlur + MixUp.
 
 We mirror UNIC / DUNE single-crop because our distill loss path emits one view per image
 (multi-crop would require restructuring the per-batch tensor and loss; deferred). Order of

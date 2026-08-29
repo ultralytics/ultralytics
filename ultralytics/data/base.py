@@ -410,7 +410,9 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, index: int) -> dict[str, Any]:
         """Return transformed label information for given index."""
-        return self.transforms(self.get_image_and_label(index))
+        label = self.transforms(self.get_image_and_label(index))
+        label["im_idx"] = index
+        return label
 
     def get_image_and_label(self, index: int) -> dict[str, Any]:
         """Get and return label information from the dataset.

@@ -102,8 +102,6 @@ class DetectionValidator(BaseValidator):
         self.gdict = getattr(self.dataloader.dataset, "_coco_data", None) if custom_json else None
         if custom_json:
             datasets = getattr(self.dataloader.dataset, "datasets", (self.dataloader.dataset,))
-            for image_id, label in enumerate(x for d in datasets for x in d.labels):
-                label["_coco_id"] = image_id
             if self.gdict is None and RANK in {-1, 0}:
                 annotations = []
                 for image_id, label in enumerate(x for d in datasets for x in d.labels):
@@ -207,8 +205,8 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
-            if "_coco_id" in batch:
-                pbatch["image_id"] = batch["_coco_id"][si]
+            if self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis):
+                pbatch["image_id"] = batch["im_idx"][si]
             predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
@@ -533,7 +531,6 @@ class DetectionValidator(BaseValidator):
             (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
         """
         if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
-            LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
                 for x in pred_json, anno_json:
                     if isinstance(x, (str, Path)):

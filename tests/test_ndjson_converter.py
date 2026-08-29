@@ -112,7 +112,7 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1]))
 
     monkeypatch.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("cache missed"))
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1])) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1.0, 1.0])) == yaml_path
 
     monkeypatch.undo()
     depth_path = yaml_path.parent / "depth" / "val" / "2.png"

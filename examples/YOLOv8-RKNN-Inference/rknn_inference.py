@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 YOLOv8 RKNN inference with rknn-toolkit2.
@@ -119,6 +118,7 @@ COCO_NAMES = (
 
 
 def sigmoid(x):
+    """Return the element-wise logistic sigmoid of ``x``."""
     return 1.0 / (1.0 + np.exp(-x))
 
 
@@ -217,6 +217,7 @@ def unmap_box(boxes, ratio, pad):
 
 
 def draw(image, boxes, scores, classes, names):
+    """Draw detection boxes and labels on ``image`` in place."""
     for b, s, c in zip(boxes, scores, classes):
         h, w = image.shape[:2]
         x1, y1, x2, y2 = [int(v) for v in np.clip(b, 0, [w, h, w, h])]
@@ -242,6 +243,7 @@ def inference(rknn, img_src, names, conf, nms):
 
 
 def load_rknn(model_path, target):
+    """Load a .rknn model and init the runtime; returns the RKNN object."""
     from rknn.api import RKNN
 
     rknn = RKNN(verbose=False)
@@ -254,6 +256,7 @@ def load_rknn(model_path, target):
 
 
 def run_image(args, rknn, names):
+    """Run inference on each image in ``args.image`` and save the annotated results."""
     for img_path in args.image:
         img_src = cv2.imread(img_path)
         if img_src is None:
@@ -268,6 +271,7 @@ def run_image(args, rknn, names):
 
 
 def run_video(args, rknn, names):
+    """Run inference on a video and write the annotated result to ``args.out``."""
     cap = cv2.VideoCapture(args.video)
     if not cap.isOpened():
         print(f"cannot open video: {args.video}")
@@ -295,6 +299,7 @@ def run_video(args, rknn, names):
 
 
 def main():
+    """Parse command-line arguments and run image/video inference."""
     parser = argparse.ArgumentParser(description="YOLOv8 RKNN inference")
     parser.add_argument("--model", required=True, help=".rknn model path")
     parser.add_argument("--image", nargs="+", help="input image path(s)")

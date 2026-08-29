@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Export a YOLOv8 model to a separate-head ONNX graph for RKNN.
@@ -35,6 +34,15 @@ from torch import nn
 
 
 def export_onnx(pt_path, onnx_path, imgsz=640, opset=17, heads=6):
+    """Export a YOLOv8 model to a separate-head ONNX graph.
+
+    Args:
+        pt_path: Input PyTorch model path.
+        onnx_path: Output ONNX path.
+        imgsz: Square input size.
+        opset: ONNX opset version.
+        heads: Outputs per branch x 3 scales (6 or 9).
+    """
     from ultralytics import YOLO
 
     model = YOLO(pt_path)

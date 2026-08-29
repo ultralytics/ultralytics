@@ -99,10 +99,11 @@ class DetectionValidator(BaseValidator):
         self.seen = 0
         self.jdict = []
         custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
-        self.gdict, self.im_ids = (getattr(self.dataloader.dataset, "_coco_data", None) if custom_json else None), None
+        self.gdict = getattr(self.dataloader.dataset, "_coco_data", None) if custom_json else None
         if custom_json:
             datasets = getattr(self.dataloader.dataset, "datasets", (self.dataloader.dataset,))
-            self.im_ids = {f: i for i, f in enumerate(x for d in datasets for x in d.im_files)}
+            for image_id, label in enumerate(x for d in datasets for x in d.labels):
+                label["_coco_id"] = image_id
             if self.gdict is None and RANK in {-1, 0}:
                 annotations = []
                 for image_id, label in enumerate(x for d in datasets for x in d.labels):
@@ -120,7 +121,7 @@ class DetectionValidator(BaseValidator):
                         for i, (b, c) in enumerate(zip(boxes, label["cls"].ravel()))
                     ]
                 self.gdict = self.dataloader.dataset._coco_data = {
-                    "images": [{"id": i} for i in range(len(self.im_ids))],
+                    "images": [{"id": i} for i in range(len(self.dataloader.dataset))],
                     "annotations": annotations,
                     "categories": [{"id": self.class_map[i], "name": name} for i, name in self.names.items()],
                 }
@@ -206,8 +207,8 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
-            if self.im_ids is not None:
-                pbatch["image_id"] = self.im_ids[pbatch["im_file"]]
+            if "_coco_id" in batch:
+                pbatch["image_id"] = batch["_coco_id"][si]
             predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
@@ -236,7 +237,6 @@ class DetectionValidator(BaseValidator):
             if no_pred:
                 continue
 
-            # Save
             if self.args.save_json or self.args.save_txt:
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:

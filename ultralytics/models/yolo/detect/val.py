@@ -67,7 +67,13 @@ class DetectionValidator(BaseValidator):
         """Warn when dataset object counts exceed max_det and raise the default limit to the observed maximum."""
         maxima = {
             split: max(
-                len(label["cls"]) for subset in getattr(dataset, "datasets", [dataset]) for label in subset.labels
+                (
+                    len(label["cls"])
+                    for subset in getattr(dataset, "datasets", [dataset])
+                    if hasattr(subset, "labels")
+                    for label in subset.labels
+                ),
+                default=0,
             )
             for split, dataset in datasets.items()
         }

@@ -169,6 +169,19 @@ def test_int8_calibration_validates_split():
         exporter.get_int8_calibration_dataloader()
 
 
+def test_int8_calibration_applies_scalar_fraction(tmp_path):
+    """Check a scalar fraction subsets the calibration split instead of silently calibrating on every image."""
+    for split, count in (("train", 2), ("val", 4)):
+        (split_dir := tmp_path / split / "0").mkdir(parents=True)
+        for i in range(count):
+            shutil.copy(SOURCE, split_dir / f"{i}.jpg")
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task="classify")
+    exporter.args = get_cfg(overrides={"data": str(tmp_path), "split": "val", "fraction": 0.5, "batch": 1})
+    exporter.imgsz = [32]
+    assert len(exporter.get_int8_calibration_dataloader().dataset) == 2
+
+
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}

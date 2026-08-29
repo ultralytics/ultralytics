@@ -876,7 +876,7 @@ class Model(torch.nn.Module):
     def tune(
         self,
         use_ray=False,
-        iterations=10,
+        iterations=300,
         *args: Any,
         **kwargs: Any,
     ):

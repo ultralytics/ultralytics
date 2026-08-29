@@ -97,12 +97,11 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
         self.jdict = []
-        self.is_custom_json = (
-            self.training and self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
-        )
+        self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
         self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
         self.build_gdict = self.is_custom_json and self.gdict is None
         self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
+        self.pred_counts = []
         if self.build_gdict:
             self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
         self.metrics.names = model.names
@@ -188,17 +187,16 @@ class DetectionValidator(BaseValidator):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
             cls = pbatch["cls"].cpu().numpy()
-            if self.is_custom_json:
-                pbatch["im_idx"] = self.eval_ids[self.seen - 1]
+            im_idx = self.eval_ids[self.seen - 1] if self.is_custom_json else None
             if self.build_gdict:
                 boxes = ops.xyxy2ltwh(
                     ops.scale_boxes(pbatch["imgsz"], pbatch["bboxes"].clone(), pbatch["ori_shape"], pbatch["ratio_pad"])
                 ).tolist()
-                self.gdict["images"].append({"id": pbatch["im_idx"]})
+                self.gdict["images"].append({"id": im_idx})
                 self.gdict["annotations"].extend(
                     {
-                        "id": (pbatch["im_idx"] << 32 | i) + 1,
-                        "image_id": pbatch["im_idx"],
+                        "id": (im_idx << 32 | i) + 1,
+                        "image_id": im_idx,
                         "category_id": self.class_map[int(c)],
                         "bbox": b,
                         "area": b[2] * b[3],
@@ -207,6 +205,8 @@ class DetectionValidator(BaseValidator):
                     for i, (b, c) in enumerate(zip(boxes, cls))
                 )
             predn = self._prepare_pred(pred)
+            if self.is_custom_json:
+                self.pred_counts.append(len(predn["cls"]))
 
             no_pred = predn["cls"].shape[0] == 0
             self.metrics.update_stats(
@@ -277,17 +277,20 @@ class DetectionValidator(BaseValidator):
                 for key, value in stats_dict.items():
                     merged_stats[key].extend(value)
             gathered_json = [None] * dist.get_world_size()
-            dist.gather_object((self.jdict, self.gdict if self.build_gdict else None), gathered_json, dst=0)
-            self.jdict = [x for jdict, _ in gathered_json for x in jdict]
+            dist.gather_object(
+                (self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), gathered_json, dst=0
+            )
+            self.jdict = [x for jdict, _, _ in gathered_json for x in jdict]
+            self.pred_counts = [x for _, _, counts in gathered_json for x in counts]
             if self.build_gdict:
                 for key in "images", "annotations":
-                    self.gdict[key] = [x for _, gdict in gathered_json for x in gdict[key]]
+                    self.gdict[key] = [x for _, gdict, _ in gathered_json for x in gdict[key]]
             self.metrics.stats = merged_stats
             self._gather_image_metrics(self.metrics.box)
             self.seen = len(self.dataloader.dataset)  # total image count from dataset
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
-            dist.gather_object((self.jdict, self.gdict if self.build_gdict else None), None, dst=0)
+            dist.gather_object((self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), None, dst=0)
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
@@ -305,7 +308,7 @@ class DetectionValidator(BaseValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
-        if self.args.save_json and self.args.task == "detect" and (self.training or self.is_coco or self.is_lvis):
+        if self.args.save_json and self.args.task == "detect":
             stats.update({f"metrics/mAP_{x}(B)": 0.0 for x in ("small", "medium", "large")})
             if self.training:
                 stats = self.eval_json(stats)
@@ -466,7 +469,7 @@ class DetectionValidator(BaseValidator):
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
-        image_id = pbatch.get("im_idx", int(stem) if stem.isnumeric() else stem)
+        image_id = int(stem) if stem.isnumeric() else stem
         box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
@@ -501,7 +504,15 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
-        pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
+        if self.gdict:
+            predictions = iter(self.jdict)
+            pred_json = [
+                {**next(predictions), "image_id": image["id"]}
+                for image, count in zip(self.gdict["images"], self.pred_counts)
+                for _ in range(count)
+            ]
+        else:
+            pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
         anno_json = self.gdict or (
             self.data["path"]
             / "annotations"

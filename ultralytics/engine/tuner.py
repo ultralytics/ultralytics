@@ -363,13 +363,14 @@ class Tuner:
             else:
                 from pymongo.errors import DuplicateKeyError
 
+                default_hyp = self._constrain({k: getattr(self.args, k) for k in self.space})
                 try:
                     self.collection.insert_one({"_id": "defaults", "timestamp": datetime.now().astimezone()})
                 except DuplicateKeyError:  # Another worker already claimed the default generation
-                    history = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
+                    history = np.array([[0.0, *default_hyp.values()]])
                 self.collection.create_index([("fitness", -1)], background=True)
                 if history is None:
-                    return self._constrain({k: getattr(self.args, k) for k in self.space})
+                    return default_hyp
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
         if history is None:

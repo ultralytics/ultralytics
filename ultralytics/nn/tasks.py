@@ -335,8 +335,9 @@ class BaseModel(torch.nn.Module):
                         w_key = f"model.{head.i}.{prefix}.{i}.2.weight"
                         b_key = f"model.{head.i}.{prefix}.{i}.2.bias"
                         if w_key in csd and b_key in csd:
-                            m[-1].weight[: head.nc].copy_(csd[w_key].to(m[-1].weight.device))
-                            m[-1].bias[: head.nc].copy_(csd[b_key].to(m[-1].bias.device))
+                            # pretrained is nc=80 rows; copy its first head.nc rows into the cls rows.
+                            m[-1].weight[: head.nc].copy_(csd[w_key][: head.nc].to(m[-1].weight.device))
+                            m[-1].bias[: head.nc].copy_(csd[b_key][: head.nc].to(m[-1].bias.device))
                             len_updated_csd += 2
                         else:
                             LOGGER.warning(f"cv3 obj backfill: pretrained key missing for {w_key}")

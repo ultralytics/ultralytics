@@ -62,6 +62,7 @@ def main() -> None:
     parser.add_argument("model")
     parser.add_argument("name")
     parser.add_argument("--project", type=Path, default=Path("runs/detect"))
+    parser.add_argument("--imgsz", type=int, default=640)
     args = parser.parse_args()
     datasets = [line for raw in DATASETS.read_text().splitlines() if (line := raw.strip()) and not line.startswith("#")]
     names = [Path(uri).name for uri in datasets]
@@ -91,7 +92,7 @@ def main() -> None:
         "project": str(run_dir.parent),
         "exist_ok": True,
         "epochs": 100,
-        "imgsz": 640,
+        "imgsz": args.imgsz,
         "workers": 4,
         "deterministic": True,
         "fraction": FRACTION,
@@ -160,7 +161,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(dir=run_dir) as temporary:
         summary.save_dir = Path(temporary)
         summary.save_results().replace(run_dir / "multitrain_results.json")
-    evaluate_run(run_dir)
+    evaluate_run(run_dir, args.imgsz)
     for name in names:
         weights = run_dir / name / "weights"
         if weights.is_dir():

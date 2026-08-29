@@ -186,7 +186,7 @@ def evaluate_dataset(dataset: str, data_yaml: Path, run_dir: Path) -> tuple[str,
     return dataset, metrics
 
 
-def evaluate_run(run_dir: Path) -> dict:
+def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
     """Validate and aggregate one completed Ultra Benchmark run."""
     datasets = {
         Path(uri).name: uri
@@ -209,9 +209,15 @@ def evaluate_run(run_dir: Path) -> dict:
     for dataset, uri in datasets.items():
         saved = YAML.load(run_dir / dataset / "args.yaml")
         data_yaml = Path(saved["data"]) if saved.get("data") else None
-        if saved.get("platform_uri") != uri or data_yaml is None or not data_yaml.is_file():
+        if (
+            saved.get("platform_uri") != uri
+            or saved.get("imgsz") != imgsz
+            or data_yaml is None
+            or not data_yaml.is_file()
+        ):
             raise ValueError(
-                f"Invalid local dataset provenance for {dataset}: {saved.get('platform_uri')}, {data_yaml}"
+                f"Invalid local dataset provenance for {dataset}: {saved.get('platform_uri')}, "
+                f"imgsz={saved.get('imgsz')}, {data_yaml}"
             )
         data_yamls[dataset] = data_yaml
 
@@ -236,6 +242,7 @@ def evaluate_run(run_dir: Path) -> dict:
         "valid_dataset_counts": {metric: len(items) for metric, items in values.items()},
         "evaluator": {
             "metric_source": "predictions.json",
+            "training_imgsz": imgsz,
             "max_det": MAX_DET,
             "reference_size": REFERENCE_SIZE,
             "area_scale": "(640 / max(image_width, image_height)) ** 2",
@@ -254,7 +261,9 @@ def main() -> None:
     """Evaluate one completed Ultra Benchmark run."""
     parser = argparse.ArgumentParser()
     parser.add_argument("run_dir", type=Path)
-    evaluate_run(parser.parse_args().run_dir)
+    parser.add_argument("--imgsz", type=int, default=REFERENCE_SIZE)
+    args = parser.parse_args()
+    evaluate_run(args.run_dir, args.imgsz)
 
 
 if __name__ == "__main__":

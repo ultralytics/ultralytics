@@ -198,6 +198,19 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
+def test_autobackend_set_memory_format_parameter_free(monkeypatch):
+    """set_memory_format() must not raise on a real parameter-free nn.Module (regression in AutoBackend._apply)."""
+    import ultralytics.nn.autobackend as ab
+
+    monkeypatch.setattr(ab, "ARM64", False)
+    monkeypatch.setattr(ab, "LINUX", True)
+    monkeypatch.setattr(ab, "WINDOWS", False)
+    monkeypatch.setattr(ab.torch.backends.mkldnn, "is_available", lambda: True)
+    monkeypatch.setattr(ab.torch.backends.mkldnn, "enabled", True)
+    for value in (None, False, True):  # auto default, explicit revert, explicit opt-in all used to hit StopIteration
+        ab.AutoBackend(model=torch.nn.Identity(), device=torch.device("cpu")).set_memory_format(value)
+
+
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     from concurrent.futures import ThreadPoolExecutor

@@ -9,8 +9,10 @@ import numpy as np
 import torch
 from torch import nn
 
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -377,6 +379,32 @@ class AutoBackend(nn.Module):
             self.backend.model.eval()
         return super().eval()
 
+    @smart_inference_mode(False)  # converted weights outlive this call, so they must not be inference tensors
+    def set_memory_format(self, channels_last: bool | None) -> None:
+        """Convert native PyTorch weights to channels-last when supported and requested.
+
+        Args:
+            channels_last (bool | None): Whether to use channels-last memory format, or None for automatic Linux/Windows
+                x86 CPU inference selection.
+        """
+        if channels_last is False:
+            if self.format == "pt":
+                self.to(memory_format=torch.contiguous_format)
+            return
+        cpu_channels_last = self.device.type == "cpu" and not ARM64
+        cpu_channels_last &= torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
+        if channels_last is None:
+            channels_last = cpu_channels_last and (LINUX or WINDOWS) and self.format == "pt"
+        if not channels_last:
+            return
+        if (self.device.type != "cuda" and not cpu_channels_last) or self.format != "pt":
+            LOGGER.warning(
+                f"'channels_last=True' applies only to native PyTorch models on CUDA or x86 CPU with oneDNN enabled, "
+                f"ignoring for format='{self.format}' on '{self.device.type}'."
+            )
+            return
+        self.to(memory_format=torch.channels_last)
+
     def _apply(self, fn) -> AutoBackend:
         """Apply a function to backend.model parameters, buffers, and tensors.
 
@@ -394,5 +422,6 @@ class AutoBackend(nn.Module):
         super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
             self.backend.model._apply(fn)
-            self.backend.device = next(self.backend.model.parameters()).device  # update device after move
+            if (p := next(self.backend.model.parameters(), next(self.backend.model.buffers(), None))) is not None:
+                self.backend.device = p.device  # update device after move; parameter-free modules fall back to a buffer
         return self

@@ -34,7 +34,7 @@ cos_lr: False # (bool) cosine learning rate scheduler
 close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to keep enabled)
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool | str) train precision: True/'fp16' (AMP check), 'bf16', or False/'fp32'; AMP uses FP16 train validation
-fraction: 1.0 # (float | int | list) train ratio/count or [train, val, test] ratios/counts, 1.0 = all, 1 = one
+fraction: 1.0 # (float | int | list) train ratio/count or [train, val, test] values; 0 = none, 1 = all, integer >1 = count
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int), or specific layer indices or module names like "23.cv2" (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples

@@ -196,20 +196,6 @@ class Tuner:
         self.collection = self.mongodb[mongodb_db][mongodb_collection]
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
-    def _get_mongodb_results(self, n: int = 5) -> list:
-        """Get top N results from MongoDB sorted by fitness.
-
-        Args:
-            n (int): Number of top results to retrieve.
-
-        Returns:
-            (list[dict]): List of result documents with fitness scores and hyperparameters.
-        """
-        try:
-            return list(self.collection.find({"fitness": {"$exists": True}}).sort("fitness", -1).limit(n))
-        except Exception:
-            return []
-
     @staticmethod
     def _json_default(x):
         """Convert tensor-like values for JSON serialization."""
@@ -357,24 +343,32 @@ class Tuner:
         """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            n (int): Number of top parents required before switching from exploration to local mutation.
-            sigma (float): Maximum normalized mutation standard deviation.
+            n (int): Number of top parents to consider.
+            sigma (float): Initial normalized mutation standard deviation.
 
         Returns:
             (dict[str, float]): A dictionary containing mutated hyperparameters.
         """
         x = None
+        history = None
+        stale = 0
 
         # Try MongoDB first if available
         if self.mongodb:
-            if results := self._get_mongodb_results(n):
-                # MongoDB already sorted by fitness DESC, so results[0] is best
-                x = np.array(
+            if results := list(
+                self.collection.find({"fitness": {"$exists": True}}, {"fitness": 1, "hyperparameters": 1}).sort(
+                    "_id", 1
+                )
+            ):
+                fitness = np.round([r["fitness"] for r in results], 5)
+                stale = len(results) - 1 - int(np.argmax(fitness))
+                history = np.array(
                     [
                         [r["fitness"]] + [r["hyperparameters"].get(k, self.args.get(k)) for k in self.space]
                         for r in results
                     ]
                 )
+                x = history[np.argsort(-history[:, 0])][:n]
             else:
                 from pymongo.errors import DuplicateKeyError
 
@@ -388,7 +382,11 @@ class Tuner:
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
         if x is None:
-            x = self._local_results_to_array(self._load_local_results(), n=n)
+            results = self._load_local_results()
+            if results:
+                stale = len(results) - 1 - int(np.argmax([r.get("fitness", 0.0) for r in results]))
+            history = self._local_results_to_array(results)
+            x = None if history is None else history[np.argsort(-history[:, 0])][:n]
 
         # Mutate if we have data, otherwise use defaults
         if x is not None:
@@ -403,20 +401,23 @@ class Tuner:
                 weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
                 gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
                 resolution = np.array([1 if k in CFG_INT_KEYS else 1e-5 for k in self.space])
-                scale = sigma * (np.maximum(np.ptp(population, axis=0), 0.01) if len(x) >= n else 1) * gains
+                scale = sigma * (1 - 0.2 * min(stale / 25, 1)) * gains
                 scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
-                existing = {tuple(row[1:]) for row in x}
-                for _ in range(100):
-                    genes = population[rng.choice(len(x), p=weights / weights.sum())]
-                    mask = rng.random(ng) < (1 / mutable.sum() if len(x) >= n else 0.5)
-                    mask &= mutable
-                    genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
+                existing = {tuple(row[1:]) for row in (history if history is not None else x)}
+                for attempt in range(200):
+                    if attempt < 100:
+                        genes = population[rng.choice(len(x), p=weights / weights.sum())]
+                        mask = (rng.random(ng) < 0.5) & mutable
+                        genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
+                    else:
+                        genes = population[rng.choice(len(x), p=weights / weights.sum())].copy()
+                        genes[mutable] = rng.random(mutable.sum())
                     hyp = {k: float(bounds[i, 0] + genes[i] * span[i]) for i, k in enumerate(self.space)}
                     hyp = self._constrain(hyp)
                     if tuple(hyp.values()) not in existing:
                         return hyp
                 raise RuntimeError(f"{self.prefix}Unable to generate a unique hyperparameter mutation")
-            hyp = {k: float(bounds[i, 0]) for i, k in enumerate(self.space)}
+            raise RuntimeError(f"{self.prefix}Hyperparameter search space is exhausted")
         else:
             hyp = {k: getattr(self.args, k) for k in self.space}
 
@@ -427,11 +428,8 @@ class Tuner:
         for k, bounds in self.space.items():
             hyp[k] = round(min(max(hyp[k], bounds[0]), bounds[1]), 5)
 
-        # Update types
-        if "close_mosaic" in hyp:
-            hyp["close_mosaic"] = round(hyp["close_mosaic"])
-        if "epochs" in hyp:
-            hyp["epochs"] = round(hyp["epochs"])
+        for k in CFG_INT_KEYS & hyp.keys():
+            hyp[k] = round(hyp[k])
 
         return hyp
 
@@ -467,12 +465,8 @@ class Tuner:
             start = len(self._load_local_results())
             LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
         for i in range(start, iterations):
-            # Linearly decay sigma from 0.2 → 0.1 over first 300 iterations
-            frac = min(i / 300.0, 1.0)
-            sigma_i = 0.2 - 0.1 * frac
-
             # Mutate hyperparameters
-            mutated_hyp = self._mutate(sigma=sigma_i)
+            mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")
 
             train_args = {**vars(self.args), **mutated_hyp}

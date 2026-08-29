@@ -42,7 +42,7 @@ For a full list of augmentation hyperparameters used in YOLO26 please refer to t
 Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
 - **Selection**: Each iteration selects one of up to nine highest-fitness configurations, weighted by fitness, which preserves relationships between its hyperparameters.
-- **Mutation**: Values are normalized to their search ranges before mutation. The tuner explores broadly while collecting its first nine results, then mutates about one parameter per iteration using the observed spread among the elite configurations. Iteration 1 has no parent and uses the default training hyperparameters as a baseline.
+- **Mutation**: Each iteration mutates roughly half of the parameters using Gaussian steps normalized to their search ranges. As trials accumulate without a new best result, the step size decreases linearly from 0.20 to 0.16 over 25 trials and resets when a new best result is found. Iteration 1 has no parent and uses the default training hyperparameters as a baseline.
 
 ## Preparing for Hyperparameter Tuning
 

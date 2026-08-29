@@ -115,7 +115,7 @@ tal_alpha: 0.5 # (float) TAL label assignment alpha for the one-to-many head (0.
 tal_beta: 6.0 # (float) TAL label assignment beta for the one-to
 tal_o2o: True
 tal_oks: False # (bool) grade TAL candidates by keypoint OKS instead of box CIoU
-tal_global: False # (bool) rank every grid per GT instead of only the anchors inside the GT box, dropping the center prior (ER-Pose Algorithm 1); costs memory proportional to n_max_boxes * num_anchors
+tal_kpt_expand: 0 # (float) with tal_oks, take candidates from the visible keypoints' bounding rect grown by this factor instead of the GT box; large values reach ER-Pose Algorithm 1's whole-image ranking, at memory proportional to n_max_boxes * num_anchors
 tal_hard: False # (bool) give positives a 0/1 cls target instead of the alignment-graded soft label
 topk2: 7
 distill_model: # (str, optional) path to teacher model for knowledge distillation

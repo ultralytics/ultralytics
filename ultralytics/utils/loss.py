@@ -428,7 +428,6 @@ class v8DetectionLoss:
             topk2=tal_topk2,
         )
         self.assigner.monitor = getattr(h, "tal_monitor", False)  # collect assignment stats for tal_monitor callback
-        self.assigner.global_topk = getattr(h, "tal_global", False)
         self.assigner.hard_target = getattr(h, "tal_hard", False)
         self.assigner.dup_sup = self.dup_sup > 0
         self.bbox_loss = BboxLoss(
@@ -780,6 +779,7 @@ class v8PoseLoss(v8DetectionLoss):
         self.keypoint_loss = KeypointLoss(sigmas=sigmas, soks=getattr(self.hyp, "soks", False))
         if self.tal_oks:
             self.assigner.sigmas = sigmas
+            self.assigner.kpt_expand = getattr(self.hyp, "tal_kpt_expand", 0.0)
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""

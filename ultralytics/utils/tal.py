@@ -58,7 +58,6 @@ class TaskAlignedAssigner(nn.Module):
         self.stride = stride if stride is not None else [8, 16, 32]
         self.stride_val = self.stride[0] * 2 if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
-        self.global_topk = False  # rank every grid per GT instead of only the anchors inside the GT box
         self.hard_target = False  # 0/1 cls target for positives instead of the alignment-graded soft label
         self.o2f_k = 0  # o2f: number of ambiguous soft-labeled anchors per GT (0=disabled)
         self.o2f_T = 0.0  # o2f: positive degree of ambiguous anchors, annealed per epoch by E2ELoss.update()
@@ -338,12 +337,7 @@ class TaskAlignedAssigner(nn.Module):
             align_metric (torch.Tensor): Alignment metric with shape (bs, max_num_obj, h*w).
             overlaps (torch.Tensor): Overlaps between predicted vs ground truth boxes with shape (bs, max_num_obj, h*w).
         """
-        # ER-Pose Algorithm 1 ranks every grid per GT; the center prior otherwise keeps candidates inside the GT box
-        mask_in_gts = (
-            mask_gt.expand(-1, -1, pd_bboxes.shape[-2])
-            if self.global_topk
-            else self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
-        )
+        mask_in_gts = self.select_candidates_in_gts(anc_points, gt_bboxes, mask_gt)
         # Get anchor_align metric, (b, max_num_obj, h*w)
         align_metric, overlaps = self.get_box_metrics(pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_in_gts * mask_gt)
         # Get topk_metric mask, (b, max_num_obj, h*w)
@@ -415,7 +409,7 @@ class TaskAlignedAssigner(nn.Module):
         topk_metrics, topk_idxs = torch.topk(metrics, self.topk, dim=-1, largest=True)
         # A grid with no metric is not a candidate. topk over an all-zero row returns indices 0..topk-1, so a GT that
         # no anchor predicts would otherwise pile its positives onto the first grid cells; the center prior used to
-        # mask that away, leaving this test dead, but global_topk has no such filter.
+        # mask that away, leaving this test dead, but a candidate region wider than the GT box does not.
         valid = topk_metrics > self.eps
         topk_mask = valid if topk_mask is None else topk_mask & valid
 
@@ -548,9 +542,36 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         gt_kpts (torch.Tensor): Ground truth keypoints, shape (bs, n_max_boxes, num_keypoints, 2 or 3).
         candidates (torch.Tensor): Candidate mask of the running assignment, shape (bs, n_max_boxes, h*w).
         oks (torch.Tensor): OKS of every (GT, anchor) pair of the running assignment, shape (bs, n_max_boxes, h*w).
+        kpt_expand (float): Candidate region as a multiple of the visible keypoints' bounding rect, 0 to fall back
+            on the base class's ground-truth box center prior.
     """
 
     sigmas = pd_kpts = gt_kpts = candidates = oks = None
+    kpt_expand = 0.0
+
+    def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
+        """Take candidates from the visible keypoints' bounding rect grown by `kpt_expand`, not the GT box.
+
+        Algorithm 1 of the paper ranks every grid per GT, which this reaches as the region grows past the image.
+        Keeping the region keypoint-driven is what lets the box branch go away entirely, so nothing here falls back
+        to `gt_bboxes`: a rect flat on one axis grows along the other, and the base class floors a point-sized one
+        to a stride. A ground truth with no visible keypoint scores 0 OKS everywhere and is dropped either way.
+        """
+        if not self.kpt_expand:
+            return super().select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps)
+        xy = self.gt_kpts[..., :2]
+        vis = (
+            (self.gt_kpts[..., 2:] != 0)
+            if self.gt_kpts.shape[-1] == 3
+            else torch.ones_like(xy[..., :1], dtype=torch.bool)
+        )
+        hi = xy.masked_fill(~vis, -torch.inf).amax(2)
+        lo = xy.masked_fill(~vis, torch.inf).amin(2)
+        half = ((hi - lo) / 2 * self.kpt_expand).nan_to_num_(neginf=0)  # no visible keypoint: collapses to a point
+        half = torch.where(half > 0, half, half.amax(-1, keepdim=True))  # a flat rect grows along its other axis
+        center = ((hi + lo) / 2).nan_to_num_()
+        kpt_bboxes = torch.cat((center - half, center + half), -1)
+        return super().select_candidates_in_gts(xy_centers, kpt_bboxes, mask_gt, eps)
 
     def forward(self, *args, **kwargs):
         """Assign, then drop the keypoints so they stop holding memory through backward and the optimizer step."""
@@ -564,7 +585,7 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
 
         One keypoint is accumulated at a time so the working set stays at (bs, n_max_boxes, h*w) rather than the
         (num_pairs, num_keypoints, 3) gathers a per-pair formulation needs. On a crowded 640 batch that is 16x less
-        memory under `global_topk`, where every anchor is a candidate, and still cheaper under the center prior.
+        memory when `kpt_expand` opens the candidate region up, and still cheaper under the plain center prior.
         """
         device = pd_bboxes.device  # the assigner OOM fallback re-runs on CPU, so follow the boxes
         pd_kpts, gt_kpts, sigmas = (t.to(device) for t in (self.pd_kpts, self.gt_kpts, self.sigmas))

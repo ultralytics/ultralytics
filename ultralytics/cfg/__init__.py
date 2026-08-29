@@ -205,6 +205,7 @@ CFG_FLOAT_KEYS = frozenset(
         "workspace",
         "batch",
         "nwd_c",
+        "tal_kpt_expand",
     }
 )
 CFG_FRACTION_KEYS = frozenset(
@@ -298,7 +299,6 @@ CFG_BOOL_KEYS = frozenset(
         "half_channel_cls",
         "nwd",
         "tal_oks",
-        "tal_global",
         "tal_hard",
         "soks",
     }

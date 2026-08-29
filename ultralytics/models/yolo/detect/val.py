@@ -72,6 +72,7 @@ class DetectionValidator(BaseValidator):
                     for subset in getattr(dataset, "datasets", [dataset])
                     if hasattr(subset, "labels")
                     for label in subset.labels
+                    if isinstance(label, dict) and "cls" in label
                 ),
                 default=0,
             )
@@ -85,8 +86,7 @@ class DetectionValidator(BaseValidator):
         message = (
             f"Dataset images contain up to {observed} objects ({split_counts}), but max_det={args.max_det}. "
             "This mismatch can cap recall and produce invalid validation metrics."
-            " Raising max_det may increase validation time and memory usage, but cannot increase model output capacity;"
-            " low-resolution, query-limited, or exported models may still cap recall."
+            " Raising it may increase validation cost but cannot increase model or export capacity, which may cap recall."
         )
         if args.max_det == DEFAULT_CFG.max_det:
             args.max_det = observed

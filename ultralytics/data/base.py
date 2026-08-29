@@ -388,7 +388,7 @@ class BaseDataset(Dataset):
         bi = np.floor(np.arange(self.ni) / self.batch_size).astype(int)  # batch index
         nb = bi[-1] + 1  # number of batches
 
-        s = np.array([x["shape"] for x in self.labels])  # hw
+        s = np.array([x.pop("shape") for x in self.labels])  # hw
         ar = s[:, 0] / s[:, 1]  # aspect ratio
         irect = ar.argsort()
         self.im_files = [self.im_files[i] for i in irect]
@@ -410,9 +410,7 @@ class BaseDataset(Dataset):
 
     def __getitem__(self, index: int) -> dict[str, Any]:
         """Return transformed label information for given index."""
-        label = self.transforms(self.get_image_and_label(index))
-        label["im_idx"] = index
-        return label
+        return self.transforms(self.get_image_and_label(index))
 
     def get_image_and_label(self, index: int) -> dict[str, Any]:
         """Get and return label information from the dataset.

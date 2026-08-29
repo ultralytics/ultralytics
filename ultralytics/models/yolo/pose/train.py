@@ -9,7 +9,6 @@ from typing import Any
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, RANK
-from ultralytics.utils.torch_utils import unwrap_model
 
 
 class PoseTrainer(yolo.detect.DetectionTrainer):
@@ -80,6 +79,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
                 verbose=verbose and RANK == -1,
             )
         )
+        self.attach_aux_fg(model.model[-1])  # before load so aux weights transfer from aux-trained ckpts
         if weights:
             model.load(weights)
 
@@ -97,12 +97,10 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of the PoseValidator class for validation."""
-        self.loss_names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
-        model = unwrap_model(self.model)
-        if hasattr(model, "student_model"):
-            model = model.student_model  # copy_attr does not copy nn.Module attributes like .model
-        if getattr(model.model[-1], "flow_model", None) is not None:
-            self.loss_names += ("rle_loss",)
+        names = "box_loss", "pose_loss", "kobj_loss", "cls_loss", "dfl_loss"
+        if getattr(self.head, "flow_model", None) is not None:
+            names += ("rle_loss",)
+        self.set_loss_names(*names)
         return yolo.pose.PoseValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

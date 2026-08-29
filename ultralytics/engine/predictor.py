@@ -170,14 +170,14 @@ class BasePredictor:
         """
         if not isinstance(im, torch.Tensor):
             im = torch.from_numpy(np.stack(self.pre_transform(im)))
-            im = im.to(self.device, non_blocking=True)  # transfer as uint8, then reorder on device
+            im = im.to(self.device)  # transfer as uint8, then reorder on device
             im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
             if im.shape[1] == 3:
                 im = im.flip(1)  # BGR to RGB
             im = im.contiguous()
             im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
         else:
-            im = im.to(self.device, non_blocking=True)
+            im = im.to(self.device)
             im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
         return im
 

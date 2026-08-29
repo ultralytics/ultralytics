@@ -88,7 +88,11 @@ class DetectionValidator(BaseValidator):
         )
         if args.max_det == DEFAULT_CFG.max_det:
             args.max_det = observed
-            message += f" Setting max_det={observed} to match the observed maximum."
+            message += (
+                f" Setting max_det={observed} to match the observed maximum. "
+                "This may increase validation time and memory usage, and does not increase the model's output "
+                "capacity, so low-resolution, query-limited, or exported models may still cap recall."
+            )
         else:
             message += f" Keeping the user-specified max_det={args.max_det}."
         if RANK in {-1, 0}:

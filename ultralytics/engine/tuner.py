@@ -261,7 +261,7 @@ class Tuner:
         resume, mutation, and plotting on the same local source of truth when using distributed tuning.
         """
         try:
-            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("iteration", 1))
+            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("_id", 1))
             if not all_results:
                 return
 
@@ -369,7 +369,7 @@ class Tuner:
                     history = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
                 self.collection.create_index([("fitness", -1)], background=True)
                 if history is None:
-                    return {k: getattr(self.args, k) for k in self.space}
+                    return self._constrain({k: getattr(self.args, k) for k in self.space})
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
         if history is None:
@@ -417,10 +417,13 @@ class Tuner:
     def _constrain(self, hyp: dict[str, float]) -> dict[str, float]:
         """Constrain hyperparameters to their search bounds and configured types."""
         for k, bounds in self.space.items():
-            hyp[k] = round(min(max(hyp[k], bounds[0]), bounds[1]), 5)
-
-        for k in CFG_INT_KEYS & hyp.keys():
-            hyp[k] = round(hyp[k])
+            if k in CFG_INT_KEYS:
+                lower, upper = int(np.ceil(bounds[0])), int(np.floor(bounds[1]))
+                if lower > upper:
+                    raise ValueError(f"{self.prefix}Search space for '{k}' contains no integer values")
+                hyp[k] = min(max(round(hyp[k]), lower), upper)
+            else:
+                hyp[k] = min(max(round(hyp[k], 5), bounds[0]), bounds[1])
 
         return hyp
 

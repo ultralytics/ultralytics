@@ -379,7 +379,7 @@ class AutoBackend(nn.Module):
             self.backend.model.eval()
         return super().eval()
 
-    @smart_inference_mode(False)  # converted weights outlive this call, so they must not be inference tensors
+    @smart_inference_mode(False)  # normal retained weights must not become inference tensors during conversion
     def set_memory_format(self, channels_last: bool | None) -> None:
         """Convert native PyTorch weights to channels-last when supported and requested.
 
@@ -387,23 +387,20 @@ class AutoBackend(nn.Module):
             channels_last (bool | None): Whether to use channels-last memory format, or None for automatic Linux/Windows
                 x86 CPU inference selection.
         """
-        if channels_last is False:
-            if self.format == "pt":
-                self.to(memory_format=torch.contiguous_format)
-            return
         cpu_channels_last = self.device.type == "cpu" and not ARM64
         cpu_channels_last &= torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
         if channels_last is None:
             channels_last = cpu_channels_last and (LINUX or WINDOWS) and self.format == "pt"
-        if not channels_last:
+        if self.format != "pt" or (channels_last and self.device.type != "cuda" and not cpu_channels_last):
+            if channels_last:
+                LOGGER.warning(
+                    f"'channels_last=True' applies only to native PyTorch models on CUDA or x86 CPU with oneDNN enabled, "
+                    f"ignoring for format='{self.format}' on '{self.device.type}'."
+                )
             return
-        if (self.device.type != "cuda" and not cpu_channels_last) or self.format != "pt":
-            LOGGER.warning(
-                f"'channels_last=True' applies only to native PyTorch models on CUDA or x86 CPU with oneDNN enabled, "
-                f"ignoring for format='{self.format}' on '{self.device.type}'."
-            )
-            return
-        self.to(memory_format=torch.channels_last)
+        tensor = next(self.backend.model.parameters(), next(self.backend.model.buffers(), None))
+        convert = torch.inference_mode()(self.to) if getattr(tensor, "is_inference", lambda: False)() else self.to
+        convert(memory_format=torch.channels_last if channels_last else torch.contiguous_format)
 
     def _apply(self, fn) -> AutoBackend:
         """Apply a function to backend.model parameters, buffers, and tensors.

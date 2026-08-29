@@ -209,6 +209,16 @@ class DetectionTrainer(BaseTrainer):
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
 
+    def _build_train_pipeline(self):
+        """Build the training pipeline and align the default detection limit with observed dataset object counts."""
+        super()._build_train_pipeline()
+        if self.args.task in {"detect", "segment", "pose", "obb"}:
+            datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
+            yolo.detect.DetectionValidator._check_max_det(self.args, datasets)
+            model = unwrap_model(self.model)
+            if getattr(model, "end2end", False):
+                model.set_head_attr(max_det=self.args.max_det)
+
     def progress_string(self):
         """Return a formatted string of training progress with epoch, GPU memory, loss, instances and size."""
         return ("\n" + "%11s" * (4 + len(self.loss_names))) % (

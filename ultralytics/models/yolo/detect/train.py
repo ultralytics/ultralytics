@@ -212,9 +212,9 @@ class DetectionTrainer(BaseTrainer):
     def _build_train_pipeline(self):
         """Build the training pipeline and align the default detection limit with observed dataset object counts."""
         super()._build_train_pipeline()
-        from ultralytics.models.yolo.detect.val import check_det_dataset_max_det
-
-        check_det_dataset_max_det(self.args, {"train": self.train_loader.dataset, "val": self.test_loader.dataset})
+        yolo.detect.DetectionValidator._check_max_det(
+            self.args, {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
+        )
         model = unwrap_model(self.model)
         if getattr(model, "end2end", False):
             model.set_head_attr(max_det=self.args.max_det)

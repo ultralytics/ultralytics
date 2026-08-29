@@ -14,8 +14,4 @@ keywords: YOLO validation, detection validation, YOLO metrics, Ultralytics, obje
 
 ## ::: ultralytics.models.yolo.detect.val.DetectionValidator
 
-<br><br><hr><br>
-
-## ::: ultralytics.models.yolo.detect.val.check_det_dataset_max_det
-
 <br><br>

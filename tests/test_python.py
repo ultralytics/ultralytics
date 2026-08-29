@@ -198,7 +198,7 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_autobackend_set_memory_format():
+def test_autobackend_set_memory_format(tmp_path):
     """Check memory-format transitions on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
@@ -211,6 +211,12 @@ def test_autobackend_set_memory_format():
         backend.set_memory_format(value)
         expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+
+    model = YOLO(MODEL)
+    model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded
+    model.model.to(memory_format=torch.channels_last)
+    model.save(tmp_path / "model.pt")
+    assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
 def test_restricted_load_threaded():

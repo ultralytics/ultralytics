@@ -161,24 +161,24 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, already RGB and normalized to
+                0.0-1.0, or [(H, W, 3) x N] for list of BGR uint8 arrays. See
+                ultralytics.data.loaders.LoadTensor._single_check for tensor input requirements.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
-        not_tensor = not isinstance(im, torch.Tensor)
-        if not_tensor:
-            im = np.stack(self.pre_transform(im))
-            if im.shape[-1] == 3:
-                im = im[..., ::-1]  # BGR to RGB
-            im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
-            im = np.ascontiguousarray(im)  # contiguous
-            im = torch.from_numpy(im)
-
-        im = im.to(self.device)
-        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
-        if not_tensor:
-            im /= 255  # 0 - 255 to 0.0 - 1.0
+        if not isinstance(im, torch.Tensor):
+            im = torch.from_numpy(np.stack(self.pre_transform(im)))
+            im = im.to(self.device)  # transfer as uint8, then reorder on device
+            im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
+            if im.shape[1] == 3:
+                im = im.flip(1)  # BGR to RGB
+            im = im.contiguous()
+            im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
+        else:
+            im = im.to(self.device)
+            im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):

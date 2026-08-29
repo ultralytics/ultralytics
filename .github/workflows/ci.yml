@@ -137,6 +137,97 @@ jobs:
           cat benchmarks.log >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
 
+  ChannelsLastDiagnostic:
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 25983
+    timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, windows-2022, macos-15-intel, macos-26]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main
+        with:
+          python-version: "3.13"
+          activate-environment: true
+      - name: Install requirements
+        shell: bash
+        run: uv pip install -e . --torch-backend cpu
+      - name: Compare contiguous and default memory formats
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import platform
+          import subprocess
+          from statistics import median
+          from time import perf_counter_ns
+
+          import cv2
+          import torch
+
+          from ultralytics import YOLO
+          from ultralytics.utils import ASSETS
+
+
+          def cpu_name():
+              """Return the host CPU description when exposed by the runner."""
+              if platform.system() == "Darwin":
+                  return subprocess.run(
+                      ["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, check=False, text=True
+                  ).stdout.strip()
+              return platform.processor() or os.environ.get("PROCESSOR_IDENTIFIER", "unknown")
+
+
+          def channels_last_enabled(model):
+              """Return whether the first convolution weight uses channels-last layout."""
+              backend = model.predictor.model.backend.model
+              tensor = next(x for x in backend.parameters() if x.ndim == 4)
+              return tensor.is_contiguous(memory_format=torch.channels_last)
+
+
+          torch.set_num_threads(min(4, os.cpu_count() or 1))
+          torch.set_num_interop_threads(1)
+          cv2.setNumThreads(0)
+          image = cv2.imread(str(ASSETS / "bus.jpg"))
+          print(
+              f"system={platform.system()} machine={platform.machine()} cpu={cpu_name()} "
+              f"torch={torch.__version__} threads={torch.get_num_threads()} mkldnn={torch.backends.mkldnn.is_available()}"
+          )
+
+          for weights in ("yolo26n.pt", "yolo11n.pt"):
+              for batch in (1, 4):
+                  source = [image] * batch
+                  common = dict(source=source, device="cpu", imgsz=640, verbose=False)
+                  speedups = []
+                  for trial in range(3):
+                      baseline, candidate = YOLO(weights), YOLO(weights)
+                      baseline.predict(**common, channels_last=False)
+                      candidate.predict(**common)
+                      print(
+                          f"{weights=} {batch=} {trial=} baseline_channels_last={channels_last_enabled(baseline)} "
+                          f"default_channels_last={channels_last_enabled(candidate)}"
+                      )
+                      baseline_times, candidate_times = [], []
+                      for i in range(50):
+                          order = ((baseline, False, baseline_times), (candidate, None, candidate_times))
+                          if i % 2:
+                              order = reversed(order)
+                          for model, channels_last, samples in order:
+                              start = perf_counter_ns()
+                              model.predict(**common, channels_last=channels_last)
+                              samples.append((perf_counter_ns() - start) / 1e6)
+                      base_ms, candidate_ms = median(baseline_times), median(candidate_times)
+                      speedup = (base_ms / candidate_ms - 1) * 100
+                      speedups.append(speedup)
+                      print(f"{base_ms=:.3f} {candidate_ms=:.3f} throughput_speedup={speedup:.2f}%")
+                  print(
+                      f"{weights=} {batch=} median_throughput_speedup={median(speedups):.2f}% "
+                      f"range={min(speedups):.2f}..{max(speedups):.2f}%"
+                  )
+          PY
+
   Tests:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     permissions:

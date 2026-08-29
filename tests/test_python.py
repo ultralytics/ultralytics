@@ -21,7 +21,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -126,7 +126,14 @@ def test_cfg_rejects_fuzzed_values():
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
-    assert get_cfg(overrides={"fraction": [1000, 1.0, 0]}).fraction == [1000, 1.0, 0]
+    assert get_cfg(overrides={"fraction": 1}).fraction == 1.0
+    assert get_cfg(overrides={"fraction": [1000, 1, 0]}).fraction == [1000, 1.0, 0.0]
+    assert type(get_split_fraction([1, 1, 0], "train")) is float
+    assert type(get_split_fraction([1, 1, 0], "test")) is float
+    with pytest.raises(ValueError, match="val fraction"):
+        get_split_fraction([1, 0], "val")
+    with pytest.raises(TypeError, match="fraction"):
+        get_cfg(overrides={"fraction": True})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 

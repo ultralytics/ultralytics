@@ -155,6 +155,37 @@ class DetectionTrainer(BaseTrainer):
             model.names = self.data["names"]
         return model
 
+    @property
+    def head(self) -> nn.Module:
+        """Return the head of the model that builds the loss criterion (the student model under distillation)."""
+        model = unwrap_model(self.model)
+        return getattr(model, "student_model", model).model[-1]  # copy_attr does not copy .model on the student
+
+    def attach_aux_fg(self, head: nn.Module) -> None:
+        """Attach the training-only class-agnostic foreground auxiliary branch when ``aux_fg_on`` is set.
+
+        Shared by every task trainer and called on a freshly built model before weights are loaded, so the branch is
+        part of the state dict and its weights transfer from aux-trained checkpoints.
+
+        Args:
+            head (nn.Module): Detection head of the model being built.
+        """
+        if not getattr(self.args, "aux_fg_on", False):
+            return
+        if not head.end2end:  # E2ELoss is the only criterion that supervises the aux output
+            LOGGER.warning("aux_fg_on has no effect on a non end-to-end model, skipping the aux foreground branch")
+            return
+        head.build_aux_fg()
+
+    def set_loss_names(self, *names: str) -> None:
+        """Set ``loss_names``, appending the aux foreground term that E2ELoss adds to ``loss_items`` when enabled.
+
+        Args:
+            *names (str): Task loss component names, ordered as the criterion returns them.
+        """
+        aux = getattr(self.args, "aux_fg_on", False) and hasattr(self.head, "aux_fg")
+        self.loss_names = (names + ("aux_fg_loss",)) if aux else names
+
     def get_class_counts(self):
         """Return per-class instance counts from the training dataset labels."""
         classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
@@ -213,8 +244,7 @@ class DetectionTrainer(BaseTrainer):
         else:
             src_p3_stride = getattr(head, "p3_stride", None)
         head.p3_stride = p3_stride  # instance attr (persisted in ckpt), read by head decode and v8DetectionLoss
-        if getattr(self.args, "aux_fg_on", False):  # attach before load so aux weights transfer from aux-trained ckpts
-            head.build_aux_fg()
+        self.attach_aux_fg(head)
         if weights:
             model.load(weights)
         # Recalibrate the P3 box head to the new regression stride: scale its final convs by src/new so decoded boxes
@@ -231,10 +261,7 @@ class DetectionTrainer(BaseTrainer):
 
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss"
-        # E2ELoss appends the aux foreground term when enabled; keep loss_names in sync
-        if getattr(self.args, "aux_fg_on", False) and hasattr(unwrap_model(self.model).model[-1], "aux_fg"):
-            self.loss_names += ("aux_fg_loss",)
+        self.set_loss_names("box_loss", "cls_loss", "dfl_loss")
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

@@ -67,6 +67,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         model = self.set_model_names_for_load(
             OBBModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
+        self.attach_aux_fg(model.model[-1])  # before load so aux weights transfer from aux-trained ckpts
         if weights:
             model.load(weights)
 
@@ -74,7 +75,7 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
 
     def get_validator(self):
         """Return an instance of OBBValidator for validation of YOLO model."""
-        self.loss_names = "box_loss", "cls_loss", "dfl_loss", "angle_loss"
+        self.set_loss_names("box_loss", "cls_loss", "dfl_loss", "angle_loss")
         return yolo.obb.OBBValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

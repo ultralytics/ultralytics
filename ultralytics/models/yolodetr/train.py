@@ -15,7 +15,7 @@ from copy import copy
 from torch import nn, optim
 
 from ultralytics.cfg import DEFAULT_CFG
-from ultralytics.data.augment import Compose, Format, v8_transforms
+from ultralytics.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.rtdetr.train import RTDETRTrainer
 from ultralytics.models.rtdetr.val import RTDETRDataset, RTDETRValidator
@@ -145,7 +145,9 @@ class YOLODETRDataset(RTDETRDataset):
             # Keep v8 MixUp inputs same-sized; current v8 Mosaic no longer carries the old mosaic_border crop hint.
             transforms = v8_transforms(self, self.imgsz, hyp)
         else:
-            transforms = Compose([])
+            # Matches YOLODataset/RTDETRDataset: a no-op resize on the already-square val image whose only
+            # effect is rewriting ratio_pad into the ((gain_h, gain_w), (pad_w, pad_h)) form scale_boxes needs.
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
             Format(
                 bbox_format="xywh",

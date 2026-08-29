@@ -1846,7 +1846,7 @@ class LetterBox(BaseTransform):
         if "instances" in labels:
             labels = self._update_labels(labels, params["ratio"], params["left"], params["top"], params["orig_shape"])
         if labels.get("ratio_pad"):
-            gain_h, gain_w = labels["ratio_pad"][0]
+            gain_h, gain_w = labels["ratio_pad"]
             ratio_w, ratio_h = params["ratio"]
             labels["ratio_pad"] = (
                 (gain_h * ratio_h, gain_w * ratio_w),

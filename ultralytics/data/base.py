@@ -425,12 +425,9 @@ class BaseDataset(Dataset):
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
         label["ratio_pad"] = (
-            (
-                label["resized_shape"][0] / label["ori_shape"][0],
-                label["resized_shape"][1] / label["ori_shape"][1],
-            ),
-            (0.0, 0.0),
-        )  # for evaluation, in the ((gain_h, gain_w), (pad_w, pad_h)) form every scale_* helper expects
+            label["resized_shape"][0] / label["ori_shape"][0],
+            label["resized_shape"][1] / label["ori_shape"][1],
+        )  # for evaluation
         if self.rect:
             label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)

@@ -97,7 +97,9 @@ class DetectionValidator(BaseValidator):
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
         self.jdict = []
-        self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
+        self.is_custom_json = (
+            self.training and self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
+        )
         self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
         self.build_gdict = self.is_custom_json and self.gdict is None
         self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
@@ -195,7 +197,7 @@ class DetectionValidator(BaseValidator):
                 self.gdict["images"].append({"id": pbatch["im_idx"]})
                 self.gdict["annotations"].extend(
                     {
-                        "id": pbatch["im_idx"] << 32 | i,
+                        "id": (pbatch["im_idx"] << 32 | i) + 1,
                         "image_id": pbatch["im_idx"],
                         "category_id": self.class_map[int(c)],
                         "bbox": b,
@@ -307,7 +309,7 @@ class DetectionValidator(BaseValidator):
         """
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
-        if self.args.save_json and self.args.task == "detect":
+        if self.args.save_json and self.args.task == "detect" and (self.training or self.is_coco or self.is_lvis):
             stats.update({f"metrics/mAP_{x}(B)": 0.0 for x in ("small", "medium", "large")})
             if self.training:
                 stats = self.eval_json(stats)

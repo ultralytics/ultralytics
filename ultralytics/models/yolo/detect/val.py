@@ -291,10 +291,6 @@ class DetectionValidator(BaseValidator):
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
-        if self.gdict and RANK in {-1, 0}:
-            self.ejdict = [x.copy() for x in self.jdict]
-            for x in self.jdict:
-                x["image_id"] = int(s) if (s := Path(x["file_name"]).stem).isnumeric() else s
         if self.args.plots and RANK > -1:
             matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
             dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
@@ -505,7 +501,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
-        pred_json = self.ejdict if self.gdict else self.jdict if self.training else self.save_dir / "predictions.json"
+        pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
         anno_json = self.gdict or (
             self.data["path"]
             / "annotations"

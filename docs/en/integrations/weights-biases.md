@@ -20,7 +20,7 @@ keywords: YOLO26, Weights & Biases, model training, experiment tracking, Ultraly
   <strong>Watch:</strong> How to use Ultralytics YOLO26 with Weights and Biases
 </p>
 
-This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases' interactive features.
+This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, and visualizing results using Weights & Biases' interactive features.
 
 ## Weights & Biases
 
@@ -152,8 +152,6 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 
 - **Model Artifacts Management**: Access and share model checkpoints, facilitating easy deployment and collaboration with team members on complex projects.
 
-- **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information see Weights & Biases' [image overlay capabilities](https://docs.wandb.ai/models/track/log/media#image-overlays).
-
 By using these features, you can effectively track, analyze, and optimize your YOLO26 model's training, ensuring the best possible performance and efficiency for your [object detection](https://www.ultralytics.com/glossary/object-detection) tasks.
 
 ## Summary
@@ -206,7 +204,6 @@ The key features include:
 - Visualization of training progress through graphs
 - Resource monitoring (CPU, GPU, memory usage)
 - Model artifacts management and sharing
-- Viewing inference results with image overlays
 
 These features help in tracking experiments, optimizing models, and collaborating more effectively on YOLO26 projects.
 

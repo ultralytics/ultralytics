@@ -1588,8 +1588,6 @@ class Exporter:
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
 
-        if getattr(self.model, "end2end", False):
-            raise ValueError("IMX export is not supported for end2end models.")
         from ultralytics.utils.export.imx import torch2imx
 
         return torch2imx(

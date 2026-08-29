@@ -126,6 +126,7 @@ def test_cfg_rejects_fuzzed_values():
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"fraction": [1000, 1.0, 0]}).fraction == [1000, 1.0, 0]
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
@@ -1821,6 +1822,22 @@ def test_nn_depth_head_no_dead_parameters():
     head(_depth_head_feats())["depth"].sum().backward()
     unused = [n for n, p in head.named_parameters() if p.grad is None]
     assert not unused, f"parameters with no gradient: {unused}"
+
+
+def test_classification_fraction_samples_across_classes(tmp_path):
+    """Sample classification fractions across the class-major ImageFolder ordering."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    for class_index in range(3):
+        class_dir = tmp_path / str(class_index)
+        class_dir.mkdir()
+        for image_index in range(4):
+            cv2.imwrite(str(class_dir / f"{image_index}.jpg"), np.full((16, 16, 3), class_index, dtype=np.uint8))
+    args = copy(DEFAULT_CFG)
+    args.fraction = 0.5
+    samples = ClassificationDataset(tmp_path, args, augment=True).samples
+
+    assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
 
 
 @pytest.fixture

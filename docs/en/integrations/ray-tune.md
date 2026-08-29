@@ -35,7 +35,7 @@ To install the required packages, run:
 
         ```bash
         # Install and update Ultralytics and Ray Tune packages
-        pip install -U ultralytics "ray[tune]"
+        pip install -U ultralytics "ray[tune]" optuna
 
         # Optionally install and enable W&B for per-trial logging
         pip install wandb
@@ -268,7 +268,7 @@ To tune the hyperparameters of your Ultralytics YOLO26 model using Ray Tune, fol
 1. **Install the required packages:**
 
     ```bash
-    pip install -U ultralytics "ray[tune]"
+    pip install -U ultralytics "ray[tune]" optuna
     pip install wandb # optional for logging
     yolo settings wandb=True
     ```

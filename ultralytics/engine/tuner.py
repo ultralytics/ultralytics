@@ -291,11 +291,11 @@ class Tuner:
         with open(self.tune_file, encoding="utf-8") as f:
             return [json.loads(line) for line in f if line.strip()]
 
-    def _local_results_to_array(self, results: list[dict], n: int | None = None) -> np.ndarray | None:
+    def _local_results_to_array(self, results: list[dict]) -> np.ndarray | None:
         """Convert local NDJSON records to a fitness-plus-hyperparameters numpy array."""
         if not results:
             return None
-        x = np.array(
+        return np.array(
             [
                 [r.get("fitness", 0.0)]
                 + [r.get("hyperparameters", {}).get(k, getattr(self.args, k)) for k in self.space]
@@ -303,10 +303,6 @@ class Tuner:
             ],
             dtype=float,
         )
-        if n is None:
-            return x
-        order = np.argsort(-x[:, 0])
-        return x[order][:n]
 
     def _save_local_result(self, result: dict):
         """Append one tuning result to the local NDJSON log."""
@@ -349,9 +345,7 @@ class Tuner:
         Returns:
             (dict[str, float]): A dictionary containing mutated hyperparameters.
         """
-        x = None
         history = None
-        stale = 0
 
         # Try MongoDB first if available
         if self.mongodb:
@@ -360,38 +354,35 @@ class Tuner:
                     "_id", 1
                 )
             ):
-                fitness = np.round([r["fitness"] for r in results], 5)
-                stale = len(results) - 1 - int(np.argmax(fitness))
                 history = np.array(
                     [
                         [r["fitness"]] + [r["hyperparameters"].get(k, self.args.get(k)) for k in self.space]
                         for r in results
                     ]
                 )
-                x = history[np.argsort(-history[:, 0])][:n]
             else:
                 from pymongo.errors import DuplicateKeyError
 
                 try:
                     self.collection.insert_one({"_id": "defaults", "timestamp": datetime.now().astimezone()})
                 except DuplicateKeyError:  # Another worker already claimed the default generation
-                    x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
+                    history = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
                 self.collection.create_index([("fitness", -1)], background=True)
-                if x is None:
+                if history is None:
                     return {k: getattr(self.args, k) for k in self.space}
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
-        if x is None:
+        if history is None:
             results = self._load_local_results()
-            if results:
-                stale = len(results) - 1 - int(np.argmax([r.get("fitness", 0.0) for r in results]))
             history = self._local_results_to_array(results)
-            x = None if history is None else history[np.argsort(-history[:, 0])][:n]
 
         # Mutate if we have data, otherwise use defaults
-        if x is not None:
+        if history is not None:
             rng = np.random.default_rng()
             ng = len(self.space)
+            fitness = np.round(history[:, 0], 5)
+            stale = len(history) - 1 - int(np.argmax(fitness))
+            x = history[np.argsort(-history[:, 0])][:n]
             bounds = np.array([v[:2] for v in self.space.values()])
             span = np.ptp(bounds, axis=1)
             mutable = span > 0
@@ -403,7 +394,7 @@ class Tuner:
                 resolution = np.array([1 if k in CFG_INT_KEYS else 1e-5 for k in self.space])
                 scale = sigma * (1 - 0.2 * min(stale / 25, 1)) * gains
                 scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
-                existing = {tuple(row[1:]) for row in (history if history is not None else x)}
+                existing = {tuple(row[1:]) for row in history}
                 for attempt in range(200):
                     if attempt < 100:
                         genes = population[rng.choice(len(x), p=weights / weights.sum())]

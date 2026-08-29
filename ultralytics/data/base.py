@@ -101,7 +101,7 @@ class BaseDataset(Dataset):
         pad: float = 0.5,
         single_cls: bool = False,
         classes: list[int] | None = None,
-        fraction: float | int = 1.0,
+        fraction: float = 1.0,
         channels: int = 3,
     ):
         """Initialize BaseDataset with given configuration and options.

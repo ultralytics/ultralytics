@@ -1003,20 +1003,22 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
+        split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
-            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
-            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+            if not isinstance(cfg.fraction, list):
+                cfg.fraction = [cfg.fraction] * 3
+            dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=self.args.split)
-            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
+            cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
             dataset = build_yolo_dataset(
                 cfg,
-                data[self.args.split or "val"],
+                data[split],
                 self.args.batch,
                 data,
                 mode="val",

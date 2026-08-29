@@ -13,7 +13,7 @@ import torch.distributed as dist
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.utils import LOGGER, RANK, nms, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
@@ -62,6 +62,40 @@ class DetectionValidator(BaseValidator):
         self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
 
+    @staticmethod
+    def _check_max_det(args, datasets: dict[str, torch.utils.data.Dataset]) -> None:
+        """Warn when dataset object counts exceed max_det and raise the default limit to the observed maximum."""
+        maxima = {
+            split: max(
+                (
+                    len(label["cls"])
+                    for subset in getattr(dataset, "datasets", [dataset])
+                    if hasattr(subset, "labels")
+                    for label in subset.labels
+                    if isinstance(label, dict) and getattr(label.get("cls"), "ndim", 0) > 0
+                ),
+                default=0,
+            )
+            for split, dataset in datasets.items()
+        }
+        observed = max(maxima.values())
+        if observed <= args.max_det:
+            return
+
+        split_counts = ", ".join(f"{split}={count}" for split, count in maxima.items())
+        message = (
+            f"Dataset images contain up to {observed} objects ({split_counts}), but max_det={args.max_det}. "
+            "This mismatch can cap recall and produce invalid validation metrics."
+            " Raising it may increase validation cost but cannot increase model or export capacity, which may cap recall."
+        )
+        if args.max_det == DEFAULT_CFG.max_det:
+            args.max_det = observed
+            message += f" Setting max_det={observed} to match the observed maximum."
+        else:
+            message += f" Keeping the user-specified max_det={args.max_det}."
+        if RANK in {-1, 0}:
+            LOGGER.warning(message)
+
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO validation.
 
@@ -83,6 +117,8 @@ class DetectionValidator(BaseValidator):
         Args:
             model (torch.nn.Module): Model to validate.
         """
+        if not self.training:
+            self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
         self.is_coco = (
             isinstance(val, str)
@@ -95,6 +131,9 @@ class DetectionValidator(BaseValidator):
         self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
+        native_model = model.model if getattr(model, "format", None) == "pt" else model
+        if self.end2end and hasattr(native_model, "set_head_attr"):
+            native_model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
         self.seen = 0
         self.jdict = []
         self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)

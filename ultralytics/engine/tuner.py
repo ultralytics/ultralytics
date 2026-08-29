@@ -17,7 +17,6 @@ Examples:
 from __future__ import annotations
 
 import json
-import random
 import shutil
 import time
 from datetime import datetime
@@ -350,34 +349,16 @@ class Tuner:
         valid = [i for i, result in enumerate(results) if cls._has_training_metrics(result)]
         return valid[int(fitness[valid].argmax())] if valid else int(fitness.argmax())
 
-    @staticmethod
-    def _crossover(x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
-        """BLX-α crossover from up to top-k parents (x[:,0]=fitness, rest=genes)."""
-        k = min(k, len(x))
-        # fitness weights (shifted to >0); fallback to uniform if degenerate
-        weights = x[:, 0] - x[:, 0].min() + 1e-6
-        if not np.isfinite(weights).all() or weights.sum() == 0:
-            weights = np.ones_like(weights)
-        idxs = random.choices(range(len(x)), weights=weights, k=k)
-        parents_mat = np.stack([x[i][1:] for i in idxs], 0)  # (k, ng) strip fitness
-        lo, hi = parents_mat.min(0), parents_mat.max(0)
-        span = hi - lo
-        # given a small value when span is zero to avoid no mutation
-        span = np.where(span == 0, np.random.uniform(0.01, 0.1, span.shape), span)
-        return np.random.uniform(lo - alpha * span, hi + alpha * span)
-
     def _mutate(
         self,
         n: int = 9,
-        mutation: float = 0.5,
         sigma: float = 0.2,
     ) -> dict[str, float]:
         """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
-            n (int): Number of top parents to consider.
-            mutation (float): Probability of a parameter mutation in any given iteration.
-            sigma (float): Standard deviation for Gaussian random number generator.
+            n (int): Number of top parents required before switching from exploration to local mutation.
+            sigma (float): Maximum normalized mutation standard deviation.
 
         Returns:
             (dict[str, float]): A dictionary containing mutated hyperparameters.
@@ -413,18 +394,20 @@ class Tuner:
         if x is not None:
             rng = np.random.default_rng()
             ng = len(self.space)
-
-            # Crossover
-            genes = self._crossover(x)
-
-            # Mutation
+            bounds = np.array([v[:2] for v in self.space.values()])
+            span = np.ptp(bounds, axis=1)
+            population = (x[:, 1:] - bounds[:, 0]) / span
+            weights = x[:, 0] - x[:, 0].min() + 1e-6
+            weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
+            genes = population[rng.choice(len(x), p=weights / weights.sum())]
+            # Explore broadly until the elite pool fills, then mutate one gene on average at the elite population scale.
+            scale = sigma * (np.maximum(np.ptp(population, axis=0), 0.01) if len(x) == n else 1)
             gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
-            factors = np.ones(ng)
-            while np.all(factors == 1):  # mutate until a change occurs (prevent duplicates)
-                mask = rng.random(ng) < mutation
-                step = rng.standard_normal(ng) * (sigma * gains)
-                factors = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
-            hyp = {k: float(genes[i] * factors[i]) for i, k in enumerate(self.space.keys())}
+            mask = np.zeros(ng, dtype=bool)
+            while not mask.any():
+                mask = rng.random(ng) < (1 / ng if len(x) == n else 0.5)
+            genes = np.clip(genes + mask * rng.standard_normal(ng) * scale * gains, 0, 1)
+            hyp = {k: float(bounds[i, 0] + genes[i] * span[i]) for i, k in enumerate(self.space)}
         else:
             hyp = {k: getattr(self.args, k) for k in self.space}
 

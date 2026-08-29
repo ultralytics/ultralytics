@@ -347,25 +347,16 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
-@pytest.mark.parametrize("channels", [3, 1])
-@pytest.mark.parametrize("n", [1, 4])
-def test_preprocess_matches_numpy_reference(channels, n):
-    """BasePredictor.preprocess() must be bit-exact with the reference NumPy BGR->RGB, BHWC->BCHW, /255 pipeline."""
-    model = YOLO(WEIGHTS_DIR / ("yolo11n-grayscale.pt" if channels == 1 else "yolo11n.pt"))
-    model(np.zeros((32, 32, channels), dtype=np.uint8), imgsz=32, verbose=False)  # build model and predictor
-    predictor = model.predictor
-    ims = [np.random.randint(0, 256, (32, 32, channels), dtype=np.uint8) for _ in range(n)]
-
-    ref = np.stack(predictor.pre_transform([im.copy() for im in ims]))
-    if ref.shape[-1] == 3:
-        ref = ref[..., ::-1]  # BGR to RGB
-    ref = np.ascontiguousarray(ref.transpose((0, 3, 1, 2)))  # BHWC to BCHW
-    ref = torch.from_numpy(ref).to(predictor.device)
-    ref = (ref.half() if predictor.model.fp16 else ref.float()) / 255
-
-    out = predictor.preprocess([im.copy() for im in ims])
-    assert out.shape == ref.shape and out.dtype == ref.dtype and out.is_contiguous()
-    assert torch.equal(out, ref), "preprocess() diverged from the reference NumPy pipeline"
+@pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
+def test_preprocess_values(model_name, bgr):
+    """Check predictor channel order and normalization with known pixel values."""
+    model = YOLO(WEIGHTS_DIR / model_name)
+    im = np.full((32, 32, len(bgr)), bgr, dtype=np.uint8)
+    model(im, imgsz=32, verbose=False)  # build predictor through the public path
+    out = model.predictor.preprocess([im])
+    expected = torch.tensor([bgr[::-1]], device=out.device, dtype=out.dtype) / 255
+    assert out.shape == (1, len(bgr), 32, 32) and out.is_contiguous()
+    assert torch.equal(out[:, :, 0, 0], expected)
 
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models

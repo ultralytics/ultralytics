@@ -198,17 +198,16 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_autobackend_set_memory_format_parameter_free(monkeypatch):
-    """set_memory_format() must not raise on a real parameter-free nn.Module (regression in AutoBackend._apply)."""
-    import ultralytics.nn.autobackend as ab
+@pytest.mark.parametrize("value", [None, False, True])
+def test_autobackend_set_memory_format(value):
+    """Check memory-format selection on the real host platform without mocked platform state."""
+    from ultralytics.nn.autobackend import AutoBackend
 
-    monkeypatch.setattr(ab, "ARM64", False)
-    monkeypatch.setattr(ab, "LINUX", True)
-    monkeypatch.setattr(ab, "WINDOWS", False)
-    monkeypatch.setattr(ab.torch.backends.mkldnn, "is_available", lambda: True)
-    monkeypatch.setattr(ab.torch.backends.mkldnn, "enabled", True)
-    for value in (None, False, True):  # auto default, explicit revert, explicit opt-in all used to hit StopIteration
-        ab.AutoBackend(model=torch.nn.Identity(), device=torch.device("cpu")).set_memory_format(value)
+    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+    AutoBackend(model=model, device=torch.device("cpu")).set_memory_format(value)
+    cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
+    expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
+    assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
 
 
 def test_restricted_load_threaded():

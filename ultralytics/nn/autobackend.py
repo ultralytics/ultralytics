@@ -398,8 +398,9 @@ class AutoBackend(nn.Module):
                     f"ignoring for format='{self.format}' on '{self.device.type}'."
                 )
             return
-        tensor = next(self.backend.model.parameters(), next(self.backend.model.buffers(), None))
-        convert = torch.inference_mode()(self.to) if getattr(tensor, "is_inference", lambda: False)() else self.to
+        model = self.backend.model
+        tensor = next(model.parameters(), next(model.buffers(), None))
+        convert = torch.inference_mode()(model.to) if getattr(tensor, "is_inference", lambda: False)() else model.to
         convert(memory_format=torch.channels_last if channels_last else torch.contiguous_format)
 
     def _apply(self, fn) -> AutoBackend:
@@ -419,6 +420,5 @@ class AutoBackend(nn.Module):
         super()._apply(fn)
         if hasattr(self.backend, "model") and isinstance(self.backend.model, nn.Module):
             self.backend.model._apply(fn)
-            if (p := next(self.backend.model.parameters(), next(self.backend.model.buffers(), None))) is not None:
-                self.backend.device = p.device  # update device after move; parameter-free modules fall back to a buffer
+            self.backend.device = next(self.backend.model.parameters()).device  # update device after move
         return self

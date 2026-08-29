@@ -110,6 +110,8 @@ Before diving into the usage instructions for YOLO26 model training with Weights
 | project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
 | name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
 
+Set `WANDB_LOG_MODEL=false` to log metrics without uploading the best checkpoint as a model artifact.
+
 !!! tip "Enable or Disable Weights & Biases"
 
     If you want to enable or disable Weights & Biases logging in Ultralytics, you can use the `yolo settings` command. By default, Weights & Biases logging is disabled.

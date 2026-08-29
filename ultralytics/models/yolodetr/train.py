@@ -16,6 +16,7 @@ from torch import nn, optim
 
 from ultralytics.cfg import DEFAULT_CFG
 from ultralytics.data.augment import Compose, Format, v8_transforms
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.rtdetr.train import RTDETRTrainer
 from ultralytics.models.rtdetr.val import RTDETRDataset, RTDETRValidator
 from ultralytics.nn.tasks import YOLODETRDetectionModel
@@ -273,7 +274,7 @@ class YOLODETRTrainer(RTDETRTrainer):
             prefix=colorstr(f"{mode}: "),
             classes=self.args.classes,
             data=self.data,
-            fraction=self.args.fraction if mode == "train" else 1.0,
+            fraction=1.0 if self.data.get("complete") else get_split_fraction(self.args.fraction, mode),
         )
 
     def _setup_scheduler(self):

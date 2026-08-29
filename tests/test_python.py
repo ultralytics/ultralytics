@@ -198,6 +198,27 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
+def test_autobackend_set_memory_format(tmp_path):
+    """Check memory-format transitions on the real host platform without mocked platform state."""
+    from ultralytics.nn.autobackend import AutoBackend
+
+    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+    backend = AutoBackend(model=model, device=torch.device("cpu"))
+    cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
+    for value in (None, False, True):
+        if value is True and not cpu_supported:
+            model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW
+        backend.set_memory_format(value)
+        expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
+        assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+
+    model = YOLO(MODEL)
+    model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded
+    model.model.to(memory_format=torch.channels_last)
+    model.save(tmp_path / "model.pt")
+    assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
+
+
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     from concurrent.futures import ThreadPoolExecutor
@@ -333,6 +354,18 @@ def test_predict_img(model_name):
         np.zeros((320, 640, channels), dtype=np.uint8),  # numpy
     ]
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
+
+
+@pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
+def test_preprocess_values(model_name, bgr):
+    """Check predictor channel order and normalization with known pixel values."""
+    model = YOLO(WEIGHTS_DIR / model_name)
+    im = np.full((32, 32, len(bgr)), bgr, dtype=np.uint8)
+    model(im, imgsz=32, verbose=False)  # build predictor through the public path
+    out = model.predictor.preprocess([im])
+    expected = torch.tensor([bgr[::-1]], device=out.device, dtype=out.dtype) / 255
+    assert out.shape == (1, len(bgr), 32, 32) and out.is_contiguous()
+    assert torch.equal(out[:, :, 0, 0], expected)
 
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models

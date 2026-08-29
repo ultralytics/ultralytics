@@ -391,13 +391,15 @@ class AutoBackend(nn.Module):
         cpu_channels_last &= torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
         if channels_last is None:
             channels_last = cpu_channels_last and (LINUX or WINDOWS) and self.format == "pt"
-        if self.format != "pt" or (channels_last and self.device.type != "cuda" and not cpu_channels_last):
-            if channels_last:
-                LOGGER.warning(
-                    f"'channels_last=True' applies only to native PyTorch models on CUDA or x86 CPU with oneDNN enabled, "
-                    f"ignoring for format='{self.format}' on '{self.device.type}'."
-                )
+        supported = self.format == "pt" and (self.device.type == "cuda" or cpu_channels_last)
+        if channels_last and not supported:
+            LOGGER.warning(
+                f"'channels_last=True' applies only to native PyTorch models on CUDA or x86 CPU with oneDNN enabled, "
+                f"ignoring for format='{self.format}' on '{self.device.type}'."
+            )
+        if self.format != "pt":
             return
+        channels_last &= supported
         model = self.backend.model
         tensor = next(model.parameters(), next(model.buffers(), None))
         convert = torch.inference_mode()(model.to) if getattr(tensor, "is_inference", lambda: False)() else model.to

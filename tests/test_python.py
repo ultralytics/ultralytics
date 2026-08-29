@@ -198,16 +198,19 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-@pytest.mark.parametrize("value", [None, False, True])
-def test_autobackend_set_memory_format(value):
-    """Check memory-format selection on the real host platform without mocked platform state."""
+def test_autobackend_set_memory_format():
+    """Check memory-format transitions on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
     model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-    AutoBackend(model=model, device=torch.device("cpu")).set_memory_format(value)
+    backend = AutoBackend(model=model, device=torch.device("cpu"))
     cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
-    expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
-    assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+    for value in (None, False, True):
+        if value is True and not cpu_supported:
+            model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW
+        backend.set_memory_format(value)
+        expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
+        assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
 
 
 def test_restricted_load_threaded():

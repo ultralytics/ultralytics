@@ -21,6 +21,7 @@ from ultralytics.utils import (
     TESTS_RUNNING,
     Retry,
     colorstr,
+    env_bool,
 )
 
 PREFIX = colorstr("Platform: ")
@@ -279,7 +280,7 @@ def _get_project_name(trainer):
 def on_pretrain_routine_start(trainer):
     """Initialize Platform logging at training start."""
     global _api_key
-    if TESTS_RUNNING or not trainer.args.project:
+    if TESTS_RUNNING or not trainer.args.project or not env_bool("ULTRALYTICS_PLATFORM", True):
         return
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not _api_key:

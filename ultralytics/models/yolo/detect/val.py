@@ -97,16 +97,15 @@ class DetectionValidator(BaseValidator):
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
         self.seen = 0
-        self.jdict = []
-        custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
-        self.gdict = getattr(self.dataloader.dataset, "_coco_data", None) if custom_json else None
-        if custom_json:
+        self.jdict, self.eval_ids = [], []
+        self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
+        self.gdict = getattr(self.dataloader.dataset, "_coco_data", None) if self.is_custom_json else None
+        if self.is_custom_json:
             datasets = getattr(self.dataloader.dataset, "datasets", (self.dataloader.dataset,))
             if self.gdict is None and RANK in {-1, 0}:
                 annotations = []
                 for image_id, label in enumerate(x for d in datasets for x in d.labels):
-                    h, w = label["shape"]
-                    boxes = ops.xywh2ltwh(label["bboxes"] * np.array([w, h, w, h])).tolist()
+                    boxes = ops.xywh2ltwh(label["bboxes"] * np.tile(label["shape"][::-1], 2)).tolist()
                     annotations += [
                         {
                             "id": len(annotations) + i + 1,
@@ -205,8 +204,6 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
-            if self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis):
-                pbatch["image_id"] = batch["im_idx"][si]
             predn = self._prepare_pred(pred)
 
             cls = pbatch["cls"].cpu().numpy()
@@ -239,6 +236,8 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
+                if self.is_custom_json:
+                    self.eval_ids.append((len(predn_scaled["bboxes"]), int(batch["im_idx"][si])))
             if self.args.save_txt:
                 self.save_one_txt(
                     predn_scaled,
@@ -279,18 +278,17 @@ class DetectionValidator(BaseValidator):
                 for key, value in stats_dict.items():
                     merged_stats[key].extend(value)
             gathered_jdict = [None] * dist.get_world_size()
-            dist.gather_object(self.jdict, gathered_jdict, dst=0)
-            self.jdict = []
-            for jdict in gathered_jdict:
-                self.jdict.extend(jdict)
+            dist.gather_object((self.jdict, self.eval_ids), gathered_jdict, dst=0)
+            self.jdict = [x for jdict, _ in gathered_jdict for x in jdict]
+            self.eval_ids = [x for _, eval_ids in gathered_jdict for x in eval_ids]
             self.metrics.stats = merged_stats
             self._gather_image_metrics(self.metrics.box)
             self.seen = len(self.dataloader.dataset)  # total image count from dataset
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
-            dist.gather_object(self.jdict, None, dst=0)
+            dist.gather_object((self.jdict, self.eval_ids), None, dst=0)
             self._gather_image_metrics(self.metrics.box)
-            self.jdict = []
+            self.jdict, self.eval_ids = [], []
             self.metrics.clear_stats()
         if self.args.plots and RANK > -1:
             matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
@@ -467,7 +465,7 @@ class DetectionValidator(BaseValidator):
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
-        image_id = pbatch.get("image_id", int(stem) if stem.isnumeric() else stem)
+        image_id = int(stem) if stem.isnumeric() else stem
         box = ops.xyxy2xywh(predn["bboxes"])  # xywh
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
@@ -502,7 +500,11 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
-        pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
+        if self.gdict:
+            image_ids = (image_id for n, image_id in self.eval_ids for _ in range(n))
+            pred_json = [{**x, "image_id": image_id} for x, image_id in zip(self.jdict, image_ids)]
+        else:
+            pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
         anno_json = self.gdict or (
             self.data["path"]
             / "annotations"
@@ -518,7 +520,7 @@ class DetectionValidator(BaseValidator):
         iou_types: str | list[str] = "bbox",
         suffix: str | list[str] = "Box",
     ) -> dict[str, Any]:
-        """Evaluate COCO/LVIS metrics using faster-coco-eval library.
+        """Evaluate COCO/LVIS or custom COCO-format detection metrics using faster-coco-eval.
 
         Args:
             stats (dict[str, Any]): Dictionary to store computed metrics and statistics.
@@ -528,9 +530,10 @@ class DetectionValidator(BaseValidator):
             suffix (str | list[str]): Metric suffixes corresponding to the IoU types.
 
         Returns:
-            (dict[str, Any]): Updated stats dictionary containing the computed COCO/LVIS evaluation metrics.
+            (dict[str, Any]): Updated stats dictionary containing the computed COCO-format evaluation metrics.
         """
         if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
+            LOGGER.info("\nEvaluating faster-coco-eval mAP...")
             try:
                 for x in pred_json, anno_json:
                     if isinstance(x, (str, Path)):

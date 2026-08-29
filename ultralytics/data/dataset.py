@@ -841,6 +841,11 @@ class YOLOConcatDataset(ConcatDataset):
 
     This class is useful to assemble different existing datasets for YOLO training, ensuring they use the same collation
     function.
+
+    Examples:
+        >>> dataset1 = YOLODataset(...)
+        >>> dataset2 = YOLODataset(...)
+        >>> combined_dataset = YOLOConcatDataset([dataset1, dataset2])
     """
 
     def __getitem__(self, index: int) -> dict:

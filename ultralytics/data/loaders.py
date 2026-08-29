@@ -550,25 +550,30 @@ class LoadPilAndNumpy:
         pil = isinstance(im, Image.Image)
         if pil:
             flag = "L" if channels == 1 else "RGB"
-            im = np.asarray(im.convert(flag))
-            im = im[..., None] if flag == "L" else im[..., ::-1]
+            im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
+            if flag == "L":
+                im = im[..., None]
         im = np.atleast_3d(im)
         # Both routes validate here: a zero dimension divides by zero in LetterBox, and a batched array reads
-        # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check.
+        # shape[2] as a channel count it is not. Raised rather than asserted so `python -O` keeps the check, and
+        # ahead of the cvtColor calls, which assert on an empty input instead of raising this message.
         if im.ndim != 3 or not all(im.shape):
             raise ValueError(f"Expected a single (H, W, C) image, but got array of shape {im.shape}")
         if pil:
-            return np.ascontiguousarray(im)
+            return im if channels == 1 else cv2.cvtColor(im, cv2.COLOR_RGB2BGR)
         c = im.shape[2]
         if c == channels:
             return im
         if c == 2:  # gray + alpha
             im, c = im[..., :1], 1
+        u8 = im.dtype == np.uint8  # cvtColor rejects dtypes NumPy indexing accepts, float64 among them
         if c == 1:
+            if u8 and channels == 3:
+                return cv2.cvtColor(im[..., 0], cv2.COLOR_GRAY2BGR)
             return np.repeat(im, channels, axis=2)
         if channels == 1:
             return cv2.cvtColor(im, cv2.COLOR_BGRA2GRAY if c == 4 else cv2.COLOR_BGR2GRAY)[..., None]
-        return np.ascontiguousarray(im[..., :3])
+        return cv2.cvtColor(im, cv2.COLOR_BGRA2BGR) if u8 and c == 4 else np.ascontiguousarray(im[..., :3])
 
     def __len__(self) -> int:
         """Return the length of the 'im0' attribute, representing the number of loaded images."""

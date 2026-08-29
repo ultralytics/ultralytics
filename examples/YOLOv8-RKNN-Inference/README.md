@@ -6,6 +6,8 @@ This repository provides an example implementation for running [Ultralytics YOLO
 - `rknn_inference.py` — image and video inference with a `.rknn` model (runs on the PC simulator or on the NPU device),
 - `requirements.txt` — Python dependencies.
 
+> **Tested on**: Orange Pi 5 Max (RK3588). Use `--target rk3588` when running on the device.
+
 > The scripts are adapted from the author's `detect_rknn.py` / `detect_video_rknn.py` /
 > `export_6out_onnx.py` (image / video inference and separate-head export).
 

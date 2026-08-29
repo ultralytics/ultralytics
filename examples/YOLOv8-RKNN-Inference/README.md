@@ -55,8 +55,8 @@ the top and stair-stepped (see the discussion in
 ### 1. Export the separate-head ONNX
 
 ```bash
-python export_onnx.py yolov8n.pt yolov8n_6out.onnx          # 6-output (recommended)
-python export_onnx.py yolov8n.pt yolov8n_9out.onnx --heads 9  # 9-output
+python export_onnx.py yolov8n.pt yolov8n_6out.onnx           # 6-output (recommended)
+python export_onnx.py yolov8n.pt yolov8n_9out.onnx --heads 9 # 9-output
 ```
 
 ### 2. Convert ONNX to RKNN (with rknn-toolkit2)

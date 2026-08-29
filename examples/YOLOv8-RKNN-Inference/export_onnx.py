@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 Export a YOLOv8 model to a separate-head ONNX graph for RKNN.
 
@@ -30,7 +31,7 @@ Usage:
 import argparse
 
 import torch
-import torch.nn as nn
+from torch import nn
 
 
 def export_onnx(pt_path, onnx_path, imgsz=640, opset=17, heads=6):
@@ -69,8 +70,8 @@ def export_onnx(pt_path, onnx_path, imgsz=640, opset=17, heads=6):
             outputs = []
             for i in range(self.detect.nl):
                 feat = detect_inputs[i]
-                box_out = self.detect.cv2[i](feat)          # [1, 4*reg_max, h, w]
-                cls_out = self.detect.cv3[i](feat)          # [1, nc, h, w]
+                box_out = self.detect.cv2[i](feat)  # [1, 4*reg_max, h, w]
+                cls_out = self.detect.cv3[i](feat)  # [1, nc, h, w]
                 cls_prob = torch.sigmoid(cls_out)
                 if self.heads == 9:
                     score_sum = torch.clip(cls_prob.sum(dim=1, keepdim=True), 0, 1)
@@ -86,12 +87,19 @@ def export_onnx(pt_path, onnx_path, imgsz=640, opset=17, heads=6):
     dummy = torch.randn(1, 3, imgsz, imgsz)
     output_names = [f"output{i}" for i in range(n_out)]
     torch.onnx.export(
-        wrapper, dummy, onnx_path,
-        input_names=["images"], output_names=output_names,
-        opset_version=opset, do_constant_folding=True, verbose=False, dynamo=False,
+        wrapper,
+        dummy,
+        onnx_path,
+        input_names=["images"],
+        output_names=output_names,
+        opset_version=opset,
+        do_constant_folding=True,
+        verbose=False,
+        dynamo=False,
     )
 
     import onnx
+
     onnx_model = onnx.load(onnx_path)
     onnx.checker.check_model(onnx_model)
     print(f"ONNX export succeeded: {onnx_path} ({heads}-output)")
@@ -106,7 +114,6 @@ if __name__ == "__main__":
     parser.add_argument("output", help="output .onnx path")
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--opset", type=int, default=17)
-    parser.add_argument("--heads", type=int, choices=[6, 9], default=6,
-                        help="outputs per branch x 3 scales (6 or 9)")
+    parser.add_argument("--heads", type=int, choices=[6, 9], default=6, help="outputs per branch x 3 scales (6 or 9)")
     args = parser.parse_args()
     export_onnx(args.model, args.output, args.imgsz, args.opset, args.heads)

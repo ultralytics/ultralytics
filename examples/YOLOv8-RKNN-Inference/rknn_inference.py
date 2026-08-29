@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """
 YOLOv8 RKNN inference with rknn-toolkit2.
 
@@ -34,18 +35,87 @@ PAD_COLOR = 114  # gray-114 letterbox, matching the rknn_model_zoo calibration
 
 # Default to the COCO label set so the example works out of the box with yolov8n.
 COCO_NAMES = (
-    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck",
-    "boat", "traffic light", "fire hydrant", "stop sign", "parking meter", "bench",
-    "bird", "cat", "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra",
-    "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-    "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove",
-    "skateboard", "surfboard", "tennis racket", "bottle", "wine glass", "cup",
-    "fork", "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
-    "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-    "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse",
-    "remote", "keyboard", "cell phone", "microwave", "oven", "toaster", "sink",
-    "refrigerator", "book", "clock", "vase", "scissors", "teddy bear", "hair drier",
-    "toothbrush")
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "airplane",
+    "bus",
+    "train",
+    "truck",
+    "boat",
+    "traffic light",
+    "fire hydrant",
+    "stop sign",
+    "parking meter",
+    "bench",
+    "bird",
+    "cat",
+    "dog",
+    "horse",
+    "sheep",
+    "cow",
+    "elephant",
+    "bear",
+    "zebra",
+    "giraffe",
+    "backpack",
+    "umbrella",
+    "handbag",
+    "tie",
+    "suitcase",
+    "frisbee",
+    "skis",
+    "snowboard",
+    "sports ball",
+    "kite",
+    "baseball bat",
+    "baseball glove",
+    "skateboard",
+    "surfboard",
+    "tennis racket",
+    "bottle",
+    "wine glass",
+    "cup",
+    "fork",
+    "knife",
+    "spoon",
+    "bowl",
+    "banana",
+    "apple",
+    "sandwich",
+    "orange",
+    "broccoli",
+    "carrot",
+    "hot dog",
+    "pizza",
+    "donut",
+    "cake",
+    "chair",
+    "couch",
+    "potted plant",
+    "bed",
+    "dining table",
+    "toilet",
+    "tv",
+    "laptop",
+    "mouse",
+    "remote",
+    "keyboard",
+    "cell phone",
+    "microwave",
+    "oven",
+    "toaster",
+    "sink",
+    "refrigerator",
+    "book",
+    "clock",
+    "vase",
+    "scissors",
+    "teddy bear",
+    "hair drier",
+    "toothbrush",
+)
 
 
 def sigmoid(x):
@@ -56,21 +126,20 @@ def letter_box(im, new_shape=IMG_SIZE, pad_color=PAD_COLOR):
     """Resize with aspect ratio preserved and pad to new_shape."""
     h, w = im.shape[:2]
     r = min(new_shape[1] / w, new_shape[0] / h)
-    new_unpad = (int(round(w * r)), int(round(h * r)))
+    new_unpad = (round(w * r), round(h * r))
     dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]
     dw, dh = dw / 2, dh / 2
     if (w, h) != new_unpad:
         im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
-    top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
-    left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-    im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT,
-                            value=(pad_color, pad_color, pad_color))
+    top, bottom = round(dh - 0.1), round(dh + 0.1)
+    left, right = round(dw - 0.1), round(dw + 0.1)
+    im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=(pad_color, pad_color, pad_color))
     return im, r, (dw, dh)
 
 
 def dfl_decode(box):
-    """box [1, 4*reg_max, h, w] -> [1, 4, h, w] (distribution focal loss)."""
-    n, c, h, w = box.shape
+    """Box [1, 4*reg_max, h, w] -> [1, 4, h, w] (distribution focal loss)."""
+    n, _c, h, w = box.shape
     prob = box.reshape(n, 4, REG_MAX, h, w)
     prob = np.exp(prob - prob.max(axis=2, keepdims=True))
     prob = prob / prob.sum(axis=2, keepdims=True)
@@ -88,10 +157,10 @@ def post_process(outputs, conf=OBJ_THRESH, nms=NMS_THRESH):
     per = len(outputs) // 3  # 3 -> 9-output, 2 -> 6-output
     all_boxes, all_scores, all_classes = [], [], []
     for i in range(3):
-        box = dfl_decode(outputs[i * per])          # [1, 4, h, w]
+        box = dfl_decode(outputs[i * per])  # [1, 4, h, w]
         cls = outputs[i * per + 1]
         if per == 3:
-            cls = sigmoid(cls)                      # 9-output: cls is logit
+            cls = sigmoid(cls)  # 9-output: cls is logit
         # 6-output: cls is already Sigmoid confidence
         _, _, gh, gw = box.shape
         stride = IMG_SIZE[0] // gw
@@ -101,7 +170,7 @@ def post_process(outputs, conf=OBJ_THRESH, nms=NMS_THRESH):
         x2 = (box[0, 2] + jx + 0.5) * stride
         y2 = (box[0, 3] + jy + 0.5) * stride
 
-        cls_max = cls[0].max(axis=0)                # [h, w]
+        cls_max = cls[0].max(axis=0)  # [h, w]
         cls_id = cls[0].argmax(axis=0)
         mask = cls_max > conf
         if mask.any():
@@ -151,11 +220,10 @@ def draw(image, boxes, scores, classes, names):
     for b, s, c in zip(boxes, scores, classes):
         h, w = image.shape[:2]
         x1, y1, x2, y2 = [int(v) for v in np.clip(b, 0, [w, h, w, h])]
-        label = "{} {:.2f}".format(names[int(c)] if int(c) < len(names) else str(int(c)), s)
+        label = f"{names[int(c)] if int(c) < len(names) else str(int(c))} {s:.2f}"
         print(f"  {label} @ ({x1} {y1} {x2} {y2})")
         cv2.rectangle(image, (x1, y1), (x2, y2), (255, 0, 0), 2)
-        cv2.putText(image, label, (x1, max(y1 - 6, 12)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        cv2.putText(image, label, (x1, max(y1 - 6, 12)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
 
 def inference(rknn, img_src, names, conf, nms):
@@ -175,6 +243,7 @@ def inference(rknn, img_src, names, conf, nms):
 
 def load_rknn(model_path, target):
     from rknn.api import RKNN
+
     rknn = RKNN(verbose=False)
     assert rknn.load_rknn(model_path) == 0, f"failed to load model: {model_path}"
     if target:
@@ -206,8 +275,9 @@ def run_video(args, rknn, names):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    out = args.out or os.path.join(os.path.dirname(args.video),
-                                   f"{os.path.splitext(os.path.basename(args.video))[0]}_rknn.avi")
+    out = args.out or os.path.join(
+        os.path.dirname(args.video), f"{os.path.splitext(os.path.basename(args.video))[0]}_rknn.avi"
+    )
     writer = cv2.VideoWriter(out, cv2.VideoWriter_fourcc(*"XVID"), fps, (width, height))
     frame_id = 0
     while True:
@@ -229,8 +299,7 @@ def main():
     parser.add_argument("--model", required=True, help=".rknn model path")
     parser.add_argument("--image", nargs="+", help="input image path(s)")
     parser.add_argument("--video", help="input video path")
-    parser.add_argument("--target", default=None,
-                        help="NPU target (e.g. rk3588); omit to run the PC simulator")
+    parser.add_argument("--target", default=None, help="NPU target (e.g. rk3588); omit to run the PC simulator")
     parser.add_argument("--conf", type=float, default=OBJ_THRESH)
     parser.add_argument("--nms", type=float, default=NMS_THRESH)
     parser.add_argument("--out_dir", default=None, help="image result directory")

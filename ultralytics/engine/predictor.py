@@ -161,8 +161,8 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, already RGB and normalized
-                to 0.0-1.0, or [(H, W, 3) x N] for list of BGR uint8 arrays. See
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, already RGB and normalized to
+                0.0-1.0, or [(H, W, 3) x N] for list of BGR uint8 arrays. See
                 ultralytics.data.loaders.LoadTensor._single_check for tensor input requirements.
 
         Returns:

@@ -58,6 +58,7 @@ class TaskAlignedAssigner(nn.Module):
         self.stride = stride if stride is not None else [8, 16, 32]
         self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
+        self._oom_warned = False
 
     @torch.no_grad()
     def forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
@@ -98,8 +99,13 @@ class TaskAlignedAssigner(nn.Module):
             if "out of memory" not in str(e).lower():
                 raise
         # Recover outside the except block so e.__traceback__ releases the failed attempt's GPU intermediates.
-        LOGGER.warning("CUDA OutOfMemoryError in TaskAlignedAssigner, retrying with batch_size=1")
         bs, n_max_boxes = self.bs, self.n_max_boxes
+        if not self._oom_warned:
+            LOGGER.warning(
+                f"CUDA out of memory in TaskAlignedAssigner with batch_size={bs} and max_num_obj={n_max_boxes}; "
+                "retrying assignment one image at a time on GPU. Model forward batch size is unchanged."
+            )
+            self._oom_warned = True
         last_gt_idx = (
             mask_gt.squeeze(-1)
             .bool()
@@ -109,10 +115,10 @@ class TaskAlignedAssigner(nn.Module):
             .tolist()
         )
         self.bs = 1
-        results = []
-        for i, self.n_max_boxes in enumerate(last_gt_idx):
-            results.append(
-                self._forward(
+        results = None
+        try:
+            for i, self.n_max_boxes in enumerate(last_gt_idx):
+                result = self._forward(
                     pd_scores[i : i + 1],
                     pd_bboxes[i : i + 1],
                     anc_points,
@@ -120,9 +126,13 @@ class TaskAlignedAssigner(nn.Module):
                     gt_bboxes[i : i + 1, : self.n_max_boxes],
                     mask_gt[i : i + 1, : self.n_max_boxes],
                 )
-            )
-        self.bs, self.n_max_boxes = bs, n_max_boxes
-        return tuple(torch.cat(x, 0) for x in zip(*results))
+                if results is None:
+                    results = tuple(x.new_empty((bs, *x.shape[1:])) for x in result)
+                for output, x in zip(results, result):
+                    output[i] = x[0]
+        finally:
+            self.bs, self.n_max_boxes = bs, n_max_boxes
+        return results
 
     def _forward(self, pd_scores, pd_bboxes, anc_points, gt_labels, gt_bboxes, mask_gt):
         """Compute the task-aligned assignment.

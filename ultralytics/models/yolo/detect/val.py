@@ -100,10 +100,9 @@ class DetectionValidator(BaseValidator):
         self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
         self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
         self.build_gdict = self.is_custom_json and self.gdict is None
-        if self.is_custom_json:
-            self.eval_ids = list(self.dataloader.sampler)
-            if self.build_gdict:
-                self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
+        self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
+        if self.build_gdict:
+            self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
@@ -186,6 +185,7 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
+            cls = pbatch["cls"].cpu().numpy()
             if self.is_custom_json:
                 pbatch["im_idx"] = self.eval_ids[self.seen - 1]
             if self.build_gdict:
@@ -202,11 +202,10 @@ class DetectionValidator(BaseValidator):
                         "area": b[2] * b[3],
                         "iscrowd": 0,
                     }
-                    for i, (b, c) in enumerate(zip(boxes, pbatch["cls"].tolist()))
+                    for i, (b, c) in enumerate(zip(boxes, cls))
                 )
             predn = self._prepare_pred(pred)
 
-            cls = pbatch["cls"].cpu().numpy()
             no_pred = predn["cls"].shape[0] == 0
             self.metrics.update_stats(
                 {
@@ -290,6 +289,10 @@ class DetectionValidator(BaseValidator):
             self._gather_image_metrics(self.metrics.box)
             self.jdict = []
             self.metrics.clear_stats()
+        if self.gdict and RANK in {-1, 0}:
+            self.ejdict = [x.copy() for x in self.jdict]
+            for x in self.jdict:
+                x["image_id"] = int(s) if (s := Path(x["file_name"]).stem).isnumeric() else s
         if self.args.plots and RANK > -1:
             matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
             dist.reduce(matrix, dst=0, op=dist.ReduceOp.SUM)
@@ -500,7 +503,7 @@ class DetectionValidator(BaseValidator):
         Returns:
             (dict[str, Any]): Updated statistics dictionary with COCO/LVIS evaluation results.
         """
-        pred_json = self.jdict if self.training else self.save_dir / "predictions.json"
+        pred_json = self.ejdict if self.gdict else self.jdict if self.training else self.save_dir / "predictions.json"
         anno_json = self.gdict or (
             self.data["path"]
             / "annotations"

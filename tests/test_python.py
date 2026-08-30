@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -222,7 +222,7 @@ def test_autobackend_memory_format(tmp_path):
         expected = cpu_supported and (channels_last is True or (channels_last is None and (LINUX or WINDOWS)))
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
         assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
-    if hasattr(torch, "inference_mode"):
+    if TORCH_1_10:
         with torch.inference_mode():
             model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
         backend = AutoBackend(model=model, device=torch.device("cpu"))

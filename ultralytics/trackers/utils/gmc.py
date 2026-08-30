@@ -72,9 +72,7 @@ class GMC:
             self.feature_params = {
                 "maxCorners": 1000,
                 "qualityLevel": 0.01,
-                # 0, not 1: corners land on integer pixels so minDistance=1 can never reject one, yet whenever
-                # candidates exist it selects OpenCV's grid path, allocating one vector per pixel. Same corners.
-                "minDistance": 0,
+                "minDistance": 0,  # integer-pixel corners: 1 rejects nothing but forces a per-pixel grid
                 "blockSize": 3,
                 "useHarrisDetector": False,
                 "k": 0.04,

@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: Research-Only
+    url: https://www.image-net.org/download.php
 description: Explore the pseudo-labeled ImageNet depth dataset used for knowledge distillation in YOLO26-Depth. Learn how pseudo depth labels are generated, its role, usage, and pretrained models.
 keywords: ImageNet, pseudo-labeled depth, knowledge distillation, monocular depth estimation, Depth Anything, YOLO26-Depth, depth pretraining, Ultralytics
 ---

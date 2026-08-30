@@ -43,8 +43,8 @@ To install the required packages, run:
     === "CLI"
 
         ```bash
-        # Install the required packages for YOLO26 and Comet
-        pip install ultralytics comet_ml torch torchvision
+        # Install YOLO26 and Comet
+        pip install ultralytics comet_ml
         ```
 
 ## Configuring Comet
@@ -60,7 +60,7 @@ After installing the required packages, you'll need to sign up, get a [Comet API
         export COMET_API_KEY=YOUR_API_KEY
         ```
 
-Then, you can initialize your Comet project. Comet will automatically detect the API key and proceed with the setup.
+Then, authenticate with Comet. The Ultralytics callback creates the experiment and uses the YOLO `project` training argument as the Comet project name.
 
 !!! example "Initialize Comet project"
 
@@ -69,7 +69,7 @@ Then, you can initialize your Comet project. Comet will automatically detect the
         ```python
         import comet_ml
 
-        comet_ml.login(project_name="comet-example-yolo26-coco128")
+        comet_ml.login()
         ```
 
 If you are using a Google Colab notebook, the code above will prompt you to enter your API key for initialization.
@@ -258,7 +258,7 @@ To integrate Comet with Ultralytics YOLO26, follow these steps:
 1. **Install the required packages**:
 
     ```bash
-    pip install ultralytics comet_ml torch torchvision
+    pip install ultralytics comet_ml
     ```
 
 2. **Set up your Comet API Key**:
@@ -267,12 +267,12 @@ To integrate Comet with Ultralytics YOLO26, follow these steps:
     export COMET_API_KEY=YOUR_API_KEY
     ```
 
-3. **Initialize your Comet project in your Python code**:
+3. **Authenticate with Comet in your Python code**:
 
     ```python
     import comet_ml
 
-    comet_ml.login(project_name="comet-example-yolo26-coco128")
+    comet_ml.login()
     ```
 
 4. **Train your YOLO26 model and log metrics**:

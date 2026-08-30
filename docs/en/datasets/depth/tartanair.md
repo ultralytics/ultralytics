@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
 description: Explore the TartanAir depth dataset for monocular depth estimation, a large synthetic dataset rendered in AirSim with diverse environments and dense ground truth used to train Ultralytics YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, TartanAir, synthetic dataset, AirSim, visual SLAM, dense depth, monocular depth
 ---

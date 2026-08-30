@@ -212,8 +212,9 @@ def test_autobackend_memory_format(tmp_path):
     cpu_supported = TORCH_1_13 and not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
     for channels_last in (False, True):
         model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-        AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
+        backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is (channels_last and cpu_supported)
+        assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded

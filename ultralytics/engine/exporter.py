@@ -447,9 +447,9 @@ QUANTIZE_PRECISIONS = (
 def hailo_model_script(generated, model_script=None):
     """Return the Hailo model script to compile with, preferring a user-supplied one.
 
-    A user script replaces the generated one entirely, so recipes that Hailo versions alongside the SDK
-    (optimization level, post-quantization algorithm, per-layer precision, per-device quirks) can be used
-    without the exporter tracking them.
+    A user script replaces the generated one entirely, so recipes that Hailo versions alongside the SDK (optimization
+    level, post-quantization algorithm, per-layer precision, per-device quirks) can be used without the exporter
+    tracking them.
 
     Args:
         generated (list[str]): Model script lines generated for the model and task.

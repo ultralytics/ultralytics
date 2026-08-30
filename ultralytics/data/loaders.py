@@ -537,7 +537,7 @@ class LoadPilAndNumpy:
         self.im0 = [self._single_check(im, channels) for im in im0]
         self.mode = "image"
         self.nf = len(self.im0)
-        self.bs = min(batch or self.nf, self.nf)
+        self.bs = min(int(batch), self.nf) if batch and batch >= 1 else self.nf
         self.count = 0
 
     @staticmethod

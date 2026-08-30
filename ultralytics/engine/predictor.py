@@ -156,7 +156,7 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         self._lock = threading.Lock()  # for automatic thread-safe inference
-        self.in_memory_batch = overrides.get("batch") if overrides and "batch" in overrides else None
+        self.in_memory_batch = (overrides or {}).get("batch")
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:

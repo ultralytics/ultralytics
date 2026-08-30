@@ -194,6 +194,7 @@ class Tuner:
         """
         self.mongodb = self._connect(mongodb_uri)
         self.collection = self.mongodb[mongodb_db][mongodb_collection]
+        self.collection.create_index("iteration", unique=True, sparse=True)
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
     @staticmethod
@@ -239,20 +240,28 @@ class Tuner:
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
             iteration (int): Current iteration number.
         """
-        try:
-            self.collection.insert_one(
-                {
-                    "fitness": fitness,
-                    "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
-                    "metrics": metrics,
-                    "datasets": datasets,
-                    "save_dirs": save_dirs,
-                    "timestamp": datetime.now().astimezone(),
-                    "iteration": iteration,
-                }
-            )
-        except Exception as e:
-            LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
+        from pymongo.errors import DuplicateKeyError, PyMongoError
+
+        result = {
+            "fitness": fitness,
+            "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
+            "metrics": metrics,
+            "datasets": datasets,
+            "save_dirs": save_dirs,
+            "timestamp": datetime.now().astimezone(),
+        }
+        while True:
+            try:
+                self.collection.insert_one({**result, "iteration": iteration})
+                return
+            except DuplicateKeyError:
+                latest = self.collection.find_one(
+                    {"iteration": {"$exists": True}}, {"iteration": 1}, sort=[("iteration", -1)]
+                )
+                iteration = latest["iteration"] + 1
+            except PyMongoError as e:
+                LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
+                return
 
     def _sync_mongodb_to_file(self):
         """Sync MongoDB results to the local NDJSON tuning log.

@@ -238,11 +238,11 @@ class Tuner:
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
         """
         try:
-            iteration = self.collection.find_one_and_update(
+            defaults = self.collection.find_one_and_update(
                 {"_id": "defaults"},
                 {"$inc": {"last_iteration": 1}},
                 return_document=True,
-            )["last_iteration"]
+            )
             self.collection.insert_one(
                 {
                     "fitness": fitness,
@@ -251,7 +251,7 @@ class Tuner:
                     "datasets": datasets,
                     "save_dirs": save_dirs,
                     "timestamp": datetime.now().astimezone(),
-                    "iteration": iteration,
+                    "iteration": defaults["last_iteration"],
                 }
             )
         except Exception as e:

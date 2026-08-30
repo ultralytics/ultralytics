@@ -218,7 +218,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
             "isolated-rknn",
         ],
-        ["RDK", "rdk", "_rdk_model", False, False, ["data"], "base"],
+        ["RDK", "rdk", "_rdk_model", False, False, ["name", "quantize", "data", "fraction"], "base"],
         ["ExecuTorch", "executorch", "_executorch_model", True, False, ["batch"], "executorch"],
         [
             "Axelera AI",
@@ -426,6 +426,7 @@ INT8_FORMATS = frozenset(
         "mnn",
         "imx",
         "rknn",
+        "rdk",
         "axelera",
         "deepx",
         "hailo",
@@ -436,7 +437,7 @@ W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "rdk", "axelera", "deepx", "qnn", "hailo", "ascend"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -624,7 +625,10 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "rdk"} and self.args.quantize not in {
+            8,
+            "w8a16",
+        }:
             if self.args.quantize == 32:
                 raise ValueError(
                     f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
@@ -632,8 +636,18 @@ class Exporter:
                 )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
-        if fmt in {"axelera", "hailo"} and not self.args.data:
+        if fmt in {"axelera", "hailo", "rdk"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
+        if fmt == "rdk":
+            if type(model.model[-1]) is not Detect:  # excludes RT-DETR, YOLO-World/YOLOE, segment/pose/obb heads
+                raise ValueError("D-Robotics RDK export only supports YOLO detection models.")
+            assert LINUX and not ARM64, "D-Robotics RDK export is only supported on Linux x86_64."
+            if not self.args.name:
+                LOGGER.warning(
+                    "D-Robotics RDK export requires a missing 'name' arg for the target BPU microarchitecture. "
+                    "Using default name='bayes-e' (RDK X5)."
+                )
+                self.args.name = "bayes-e"
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
             blocks = {str(x[2]) for x in model.yaml.get("backbone", []) + model.yaml.get("head", [])}
@@ -873,6 +887,10 @@ class Exporter:
             from ultralytics.utils.export.executorch import executorch_wrapper
 
             model = executorch_wrapper(model)
+        if fmt == "rdk":
+            from ultralytics.utils.export.rdk import rdk_wrapper
+
+            model = rdk_wrapper(model)
         for m in model.modules():
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
                 m.format = fmt
@@ -1080,6 +1098,8 @@ class Exporter:
 
         f = str(self.file.with_suffix(".onnx"))
         output_names = ["output0", "output1"] if self.model.task == "segment" else ["output0"]
+        if self.args.format == "rdk":  # rdk_wrapper emits an undecoded cls/box pair per detection level
+            output_names = [f"{k}{i}" for i in range(self.model.model[-1].nl) for k in ("cls", "box")]
         dynamic = self.args.dynamic
         if dynamic:
             dynamic = {"images": {0: "batch", 2: "height", 3: "width"}}  # shape(1,3,640,640)
@@ -1566,19 +1586,23 @@ class Exporter:
 
     @try_export
     def export_rdk(self, prefix=colorstr("RDK:")):  # noqa: B008
-        """Export YOLO model to RDK format."""
-        LOGGER.info(f"\n{prefix} starting export...")
-        from ultralytics.utils.export.rdk import apply_rdk_patches, export_rdk, restore_rdk_patches
+        """Export YOLO model to D-Robotics RDK format."""
+        from ultralytics.utils.export.rdk import _check_hb_mapper, onnx2rdk
 
-        patches = apply_rdk_patches(self.model)
-        old_opset = self.args.opset
+        _check_hb_mapper()  # before the ONNX trace, so a missing toolchain does not cost a full export first
+        self.args.opset = 11  # the hb_mapper ONNX parser requires opset 11
+        f_onnx = self.export_onnx()
         try:
-            self.args.opset = 11
-            onnx_path = self.export_onnx()
-            return export_rdk(args=self.args, onnx_path=onnx_path, metadata=self.metadata, prefix=prefix)
+            return onnx2rdk(
+                onnx_file=f_onnx,
+                output_dir=self.file.parent / f"{self.file.stem}_rdk_model",
+                dataset=self.get_int8_calibration_dataloader(prefix),
+                name=self.args.name,
+                metadata=self.metadata,
+                prefix=prefix,
+            )
         finally:
-            self.args.opset = old_opset
-            restore_rdk_patches(patches)
+            Path(f_onnx).unlink(missing_ok=True)  # undecoded head graph, not reusable as a standalone ONNX export
 
     @try_export
     def export_ascend(self, prefix=colorstr("Ascend:")):  # noqa: B008

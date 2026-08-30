@@ -12,30 +12,18 @@ keywords: Ultralytics, ultralytics.utils.export.rdk, API reference, YOLO, Python
 
 <br>
 
-## ::: ultralytics.utils.export.rdk.bpu_detect_forward
+## ::: ultralytics.utils.export.rdk._rdk_forward
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.rdk.apply_rdk_patches
+## ::: ultralytics.utils.export.rdk.rdk_wrapper
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.rdk.restore_rdk_patches
+## ::: ultralytics.utils.export.rdk._check_hb_mapper
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.export.rdk._prepare_calibration_data
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.export.rdk._check_rdk_export_requirements
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.export.rdk._build_hb_mapper_config
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.export.rdk.export_rdk
+## ::: ultralytics.utils.export.rdk.onnx2rdk
 
 <br><br>

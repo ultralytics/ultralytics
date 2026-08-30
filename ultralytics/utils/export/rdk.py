@@ -1,172 +1,116 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""D-Robotics RDK export logic."""
 
 from __future__ import annotations
 
-import random
 import shutil
 import subprocess
+import types
+from itertools import chain, islice
 from pathlib import Path
 
-import cv2
-import numpy as np
+from ultralytics.utils import LOGGER, YAML
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, YAML, colorstr
+CALIBRATION_IMAGES = 20  # hb_mapper per-tensor activation ranges converge well within this many images
 
 
-def bpu_detect_forward(self, x):
-    """Return raw detect head branch outputs for RDK export."""
+def _rdk_forward(self, x: list) -> list:
+    """Return undecoded per-level cls/box head outputs in NHWC, the layout the RDK board-side decoder consumes."""
     heads = self.one2one if self.end2end else self.one2many
-    res = []
-    for i in range(self.nl):
-        # RDK board-side decoding expects cls-first, box-second outputs.
-        res.append(heads["cls_head"][i](x[i]).permute(0, 2, 3, 1).contiguous())
-        res.append(heads["box_head"][i](x[i]).permute(0, 2, 3, 1).contiguous())
-    return res
+    return [
+        heads[k][i](x[i]).permute(0, 2, 3, 1).contiguous() for i in range(self.nl) for k in ("cls_head", "box_head")
+    ]
 
 
-def apply_rdk_patches(model):
-    """Apply export-time patches for the detection-only RDK export path."""
-    from ultralytics.nn.modules import OBB, Detect, Pose, Segment
-
-    if getattr(model, "task", None) != "detect":
-        raise NotImplementedError("RDK export currently supports detection models only.")
-
-    patches = []
-    for module in model.modules():
-        if isinstance(module, Detect) and not isinstance(module, (Segment, Pose, OBB)):
-            patches.append((module, "forward", module.forward))
-            module.forward = bpu_detect_forward.__get__(module, Detect)
-            LOGGER.info(f"{colorstr('RDK:')} patched {type(module).__name__} head for export.")
-    return patches
+def rdk_wrapper(model):
+    """Bind the RDK detect head forward so the exported graph emits undecoded cls/box tensors."""
+    head = model.model[-1]
+    head.forward = types.MethodType(_rdk_forward, head)
+    return model
 
 
-def restore_rdk_patches(patches):
-    """Restore model methods modified during RDK export preparation."""
-    for module, attr, original in reversed(patches):
-        setattr(module, attr, original)
-
-
-def _prepare_calibration_data(data, cal_data_dir: Path, imgsz: tuple[int, int]) -> None:
-    """Generate calibration tensors from the training split of a detection dataset."""
-    from ultralytics.data.utils import check_det_dataset
-
-    dataset = check_det_dataset(data)
-    train_path = dataset.get("train", "")
-    if not train_path:
-        raise ValueError(f"No 'train' split found in {data}.")
-
-    if isinstance(train_path, list):
-        train_path = train_path[0]
-
-    img_dir = Path(train_path)
-    if img_dir.is_file() and img_dir.suffix == ".txt":
-        img_paths = [Path(x.strip()) for x in img_dir.read_text().splitlines() if x.strip()]
-    else:
-        img_paths = list(img_dir.rglob("*.*"))
-
-    img_paths = [p for p in img_paths if p.suffix.lower() in {".jpg", ".jpeg", ".png", ".bmp"}]
-    if not img_paths:
-        raise ValueError(f"No images found for calibration in {train_path}.")
-
-    cal_data_dir.mkdir(parents=True, exist_ok=True)
-    width, height = imgsz[1], imgsz[0]
-    sample_num = min(20, len(img_paths))
-    for idx, img_path in enumerate(random.sample(img_paths, sample_num)):
-        image = cv2.imread(str(img_path))
-        if image is None:
-            continue
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        image = cv2.resize(image, (width, height))
-        image = np.transpose(image, (2, 0, 1))
-        image = np.expand_dims(image, axis=0).astype(np.float32)
-        image.tofile(cal_data_dir / f"cal_{idx}.rgbchw")
-
-
-def _check_rdk_export_requirements(prefix: str) -> None:
-    """Validate the host environment required for the detection-only RDK export path."""
-    if not LINUX or ARM64:
-        raise RuntimeError(f"{prefix} export is only supported on x86_64 Linux hosts.")
-    if shutil.which("hb_mapper") is None:
+def _check_hb_mapper() -> None:
+    """Raise if the D-Robotics hb_mapper compiler is not on PATH."""
+    if not shutil.which("hb_mapper"):
         raise FileNotFoundError(
-            f"{prefix} required tool 'hb_mapper' was not found in PATH. "
-            "Install the RDK export toolchain with `pip install rdkx5-yolo-mapper` "
-            "and ensure `hb_mapper` is available on your shell PATH."
+            "RDK export requires the D-Robotics 'hb_mapper' compiler, which was not found on PATH. Install the "
+            "toolchain, i.e. `pip install rdkx5-yolo-mapper` for RDK X5, and ensure `hb_mapper` is on your PATH. "
+            "See https://docs.ultralytics.com/integrations/drobotics-rdk"
         )
 
 
-def _build_hb_mapper_config(
-    onnx_path: Path, compiler_dir: Path, cal_data_dir: Path, output_prefix: str
-) -> dict[str, dict[str, str | int | float | bool]]:
-    """Build the hb_mapper configuration dictionary for RDK export."""
-    return {
-        "model_parameters": {
-            "onnx_model": str(onnx_path),
-            "march": "bayes-e",
-            "layer_out_dump": False,
-            "working_dir": str(compiler_dir),
-            "output_model_file_prefix": output_prefix,
+def onnx2rdk(
+    onnx_file: str | Path,
+    output_dir: str | Path,
+    dataset,
+    name: str = "bayes-e",
+    metadata: dict | None = None,
+    prefix: str = "",
+) -> str:
+    """Compile an ONNX model to a D-Robotics RDK INT8 .bin model with the hb_mapper compiler.
+
+    Args:
+        onnx_file (str | Path): Path to the source ONNX file exported with undecoded RDK detect head outputs.
+        output_dir (str | Path): Directory to write the compiled RDK model into.
+        dataset (DataLoader): Calibration dataloader (from `Exporter.get_int8_calibration_dataloader`) supplying the
+            letterboxed uint8 RGB NCHW images hb_mapper derives its INT8 activation ranges from.
+        name (str): Target BPU microarchitecture passed to hb_mapper as ``march``, e.g. ``"bayes-e"`` for RDK X5.
+        metadata (dict | None): Optional metadata to save as YAML.
+        prefix (str): Prefix for log messages.
+
+    Returns:
+        (str): Path to the exported RDK model directory.
+    """
+    onnx_file = Path(onnx_file).resolve()
+    output_dir = Path(output_dir).resolve()
+    work_dir = output_dir / "hb_mapper"  # calibration blobs and compiler intermediates, removed on success
+    shutil.rmtree(work_dir, ignore_errors=True)  # drop leftovers from a previous failed export
+    cal_dir = work_dir / "calibration_data"
+    compile_dir = work_dir / "compiler_output"
+    cal_dir.mkdir(parents=True)
+    compile_dir.mkdir(parents=True)
+
+    # hb_mapper reads raw float32 NCHW RGB blobs in 0-255 and applies scale_value itself
+    for i, im in enumerate(islice(chain.from_iterable(batch["img"] for batch in dataset), CALIBRATION_IMAGES)):
+        im.float().numpy().tofile(cal_dir / f"{i}.rgbchw")
+
+    config_file = work_dir / "hb_mapper_config.yaml"
+    YAML.save(
+        config_file,
+        {
+            "model_parameters": {
+                "onnx_model": str(onnx_file),
+                "march": name,
+                "layer_out_dump": False,
+                "working_dir": str(compile_dir),
+                "output_model_file_prefix": onnx_file.stem,
+            },
+            "input_parameters": {
+                "input_name": "",
+                "input_type_rt": "nv12",  # RDK cameras deliver NV12 frames
+                "input_type_train": "rgb",
+                "input_layout_train": "NCHW",
+                "norm_type": "data_scale",
+                "scale_value": 1 / 255,
+            },
+            "calibration_parameters": {
+                "cal_data_dir": str(cal_dir),
+                "cal_data_type": "float32",
+                "calibration_type": "default",
+            },
+            "compiler_parameters": {"jobs": 16, "compile_mode": "latency", "debug": True, "optimize_level": "O3"},
         },
-        "input_parameters": {
-            "input_name": "",
-            "input_type_rt": "nv12",
-            "input_type_train": "rgb",
-            "input_layout_train": "NCHW",
-            "norm_type": "data_scale",
-            "scale_value": 1 / 255,
-        },
-        "calibration_parameters": {
-            "cal_data_dir": str(cal_data_dir),
-            "cal_data_type": "float32",
-            "calibration_type": "default",
-        },
-        "compiler_parameters": {
-            "jobs": 16,
-            "compile_mode": "latency",
-            "debug": True,
-            "optimize_level": "O3",
-        },
-    }
-
-
-def export_rdk(args, onnx_path: str | Path, metadata: dict, prefix: str = colorstr("RDK:")):
-    """Export an Ultralytics detection model through the RDK export path."""
-    _check_rdk_export_requirements(prefix)
-    if not args.data:
-        raise ValueError(f"{prefix} export requires a detection dataset via `data=...` for calibration.")
-
-    imgsz = metadata["imgsz"]  # validated (height, width) matching the exported ONNX input
-    onnx_path = Path(onnx_path).resolve()
-    if not onnx_path.exists():
-        raise FileNotFoundError(f"{prefix} intermediate ONNX file not found at {onnx_path}.")
-
-    save_dir = onnx_path.parent
-    workspace = save_dir / ".rdk_export"
-    cal_data_dir = workspace / "calibration_data"
-    compiler_dir = workspace / "compiler_output"
-    model_dir = save_dir / f"{onnx_path.stem}_rdk_model"
-    model_dir.mkdir(parents=True, exist_ok=True)
-
-    if workspace.exists():
-        shutil.rmtree(workspace)
-    compiler_dir.mkdir(parents=True, exist_ok=True)
-
-    _prepare_calibration_data(args.data, cal_data_dir, tuple(imgsz))
-
-    output_prefix = f"{onnx_path.stem}_bayese_{imgsz[1]}x{imgsz[0]}_nv12"
-    yaml_path = workspace / "hb_mapper_config.yaml"
-    YAML.save(yaml_path, _build_hb_mapper_config(onnx_path, compiler_dir, cal_data_dir, output_prefix))
-
-    LOGGER.info(f"{prefix} compiling ONNX with hb_mapper...")
-    subprocess.run(
-        ["hb_mapper", "makertbin", "--config", str(yaml_path.name), "--model-type", "onnx"],
-        check=True,
-        cwd=workspace,
     )
 
-    compiled_bin = compiler_dir / f"{output_prefix}.bin"
-    if not compiled_bin.exists():
-        raise FileNotFoundError(f"{prefix} compilation completed but {compiled_bin} was not produced.")
-    shutil.copy2(compiled_bin, model_dir / f"{onnx_path.stem}.bin")
-    YAML.save(model_dir / "metadata.yaml", metadata)
-    return model_dir
+    LOGGER.info(f"\n{prefix} starting export with hb_mapper for {name}...")
+    subprocess.run(
+        ["hb_mapper", "makertbin", "--config", str(config_file), "--model-type", "onnx"], check=True, cwd=work_dir
+    )
+
+    compiled = compile_dir / f"{onnx_file.stem}.bin"
+    if not compiled.is_file():
+        raise FileNotFoundError(f"{prefix} hb_mapper completed but {compiled} was not produced.")
+    shutil.move(str(compiled), output_dir / compiled.name)
+    if metadata is not None:
+        YAML.save(output_dir / "metadata.yaml", metadata)
+    shutil.rmtree(work_dir)
+    return str(output_dir)

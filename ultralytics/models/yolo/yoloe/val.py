@@ -131,7 +131,6 @@ class YOLOEDetectValidator(DetectionValidator):
             device=self.device,
         )
 
-    @torch.no_grad()
     def __call__(
         self,
         trainer: Any | None = None,

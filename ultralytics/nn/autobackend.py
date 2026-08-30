@@ -12,7 +12,7 @@ from torch import nn
 from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
-from ultralytics.utils.torch_utils import smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_13, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -174,7 +174,7 @@ class AutoBackend(nn.Module):
         "coreai": CoreAIBackend,
     }
 
-    @torch.no_grad()
+    @smart_inference_mode(False)
     def __init__(
         self,
         model: str | torch.nn.Module = "yolo26n.pt",
@@ -387,7 +387,8 @@ class AutoBackend(nn.Module):
             channels_last (bool | None): Whether to use channels-last memory format, or None for automatic Linux/Windows
                 x86 CPU inference selection.
         """
-        cpu_channels_last = self.device.type == "cpu" and not ARM64
+        # torch<1.13 oneDNN convolutions assert on channels-last outputs whose spatial size collapses to 1x1
+        cpu_channels_last = TORCH_1_13 and self.device.type == "cpu" and not ARM64
         cpu_channels_last &= torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
         if channels_last is None:
             channels_last = cpu_channels_last and (LINUX or WINDOWS) and self.format == "pt"

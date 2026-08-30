@@ -443,15 +443,11 @@ class Predictor(BasePredictor):
 
         # Remove small disconnected regions and holes, then recompute boxes for the post-processed masks
         if min_mask_region_area > 0 and len(pred_masks):
-            # Match upstream: post-processing NMS uses the more permissive of the within-crop and cross-crop thresholds
-            nms_thresh = max(self.args.iou, crop_nms_thresh)
-            # Masks here are in the model input space; convert the area from original-image pixels so the threshold is
-            # independent of imgsz and input aspect ratio (gain is the letterbox scale applied in pre_transform)
-            source = self.batch[1][0]
-            h0, w0 = source.shape[-2:] if isinstance(source, torch.Tensor) else source.shape[:2]
-            gain = min(ih / h0, iw / w0)
+            im0 = self.batch[1][0]
+            h0, w0 = im0.shape[-2:] if isinstance(im0, torch.Tensor) else im0.shape[:2]
+            gain = min(ih / h0, iw / w0)  # pre_transform letterbox scale, masks here are in the model input space
             min_area = min_mask_region_area * gain * gain
-            pred_masks, keep = self.remove_small_regions(pred_masks, min_area, nms_thresh)
+            pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
             pred_scores = pred_scores[keep]
             pred_bboxes = batched_mask_to_box(pred_masks).float()
 

@@ -63,7 +63,6 @@ Inference:
                          yolo26n.tflite             # LiteRT
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
-                         yolo26n.pt2                # ExportedProgram
 """
 
 from __future__ import annotations

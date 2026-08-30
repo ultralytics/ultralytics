@@ -219,7 +219,7 @@ def test_autobackend_memory_format(tmp_path):
         with torch.inference_mode():
             model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
         backend = AutoBackend(model=model, device=torch.device("cpu"))
-        assert not backend.backend.model[0].weight.is_inference()
+        assert not backend.model[0].weight.is_inference()
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded

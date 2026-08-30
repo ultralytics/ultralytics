@@ -117,6 +117,9 @@ export-tensorflow = [
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
 ]
+export-coreai = [
+    "coreai-torch>=0.4.2; platform_system == 'Darwin' and platform_machine == 'arm64' and python_version >= '3.11' and python_version < '3.14'",  # Core AI export
+]
 export-coreml = [
     "numpy<=2.3.5; platform_system != 'Windows' and python_version <= '3.13'",  # pin until CoreML>9.0 fixes numpy>=2.4 int() cast crash
     "coremltools>=9.0; platform_system != 'Windows' and python_version <= '3.13'", # CoreML supported on macOS and Linux

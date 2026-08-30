@@ -17,9 +17,9 @@ Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhon
     Export classification models at `imgsz=224`. Export detect, segment, semantic, depth, pose, and OBB models at
     `imgsz=640`. This 224/640 standard is shared by the official CoreML, LiteRT, and QNN mobile assets.
 
-!!! note "Apple's future Core AI format"
+!!! note "Apple's new Core AI format"
 
-    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, but Ultralytics does not currently export it. CoreML remains the supported format for current Ultralytics releases and broader Apple device compatibility.
+    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, and Ultralytics exports it with `format="coreai"`. CoreML remains the recommended format for the Ultralytics iOS and Flutter SDKs and broader Apple device compatibility.
 
 <p align="center">
   <br>

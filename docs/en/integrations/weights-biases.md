@@ -20,7 +20,7 @@ keywords: YOLO26, Weights & Biases, model training, experiment tracking, Ultraly
   <strong>Watch:</strong> How to use Ultralytics YOLO26 with Weights and Biases
 </p>
 
-This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, fine-tuning, and visualizing results using Weights & Biases' interactive features.
+This guide showcases Ultralytics YOLO26 integration with Weights & Biases for enhanced experiment tracking, model-checkpointing, and visualization of model performance. It also includes instructions for setting up the integration, training, and visualizing results using Weights & Biases' interactive features.
 
 ## Weights & Biases
 
@@ -109,6 +109,7 @@ Before diving into the usage instructions for YOLO26 model training with Weights
 | -------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
 | name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
+| save     | `True`  | Determines whether to upload the best checkpoint as a W&B model artifact.                                          |
 
 !!! tip "Enable or Disable Weights & Biases"
 
@@ -130,7 +131,7 @@ Upon running the usage code snippet above, you can expect the following key outp
 
 - The setup of a new run with its unique ID, indicating the start of the training process.
 - A concise summary of the model's structure, including the number of layers and parameters.
-- Regular updates on important metrics such as box loss, cls loss, dfl loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP scores](https://www.ultralytics.com/glossary/mean-average-precision-map) during each training [epoch](https://www.ultralytics.com/glossary/epoch).
+- Regular updates on important metrics such as box loss, cls loss, box-distance loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP scores](https://www.ultralytics.com/glossary/mean-average-precision-map) during each training [epoch](https://www.ultralytics.com/glossary/epoch).
 - At the end of training, detailed metrics including the model's inference speed, and overall [accuracy](https://www.ultralytics.com/glossary/accuracy) metrics are displayed.
 - Links to the Weights & Biases dashboard for in-depth analysis and visualization of the training process, along with information on local log file locations.
 
@@ -151,8 +152,6 @@ After running the usage code snippet, you can access the Weights & Biases (W&B) 
 - **Resource Monitoring**: Keep track of CPU, GPU, and memory usage to optimize the efficiency of the training process and identify potential bottlenecks in your workflow.
 
 - **Model Artifacts Management**: Access and share model checkpoints, facilitating easy deployment and collaboration with team members on complex projects.
-
-- **Viewing Inference Results with Image Overlay**: Visualize the prediction results on images using interactive overlays in Weights & Biases, providing a clear and detailed view of model performance on real-world data. For more detailed information see Weights & Biases' [image overlay capabilities](https://docs.wandb.ai/models/track/log/media#image-overlays).
 
 By using these features, you can effectively track, analyze, and optimize your YOLO26 model's training, ensuring the best possible performance and efficiency for your [object detection](https://www.ultralytics.com/glossary/object-detection) tasks.
 
@@ -206,7 +205,6 @@ The key features include:
 - Visualization of training progress through graphs
 - Resource monitoring (CPU, GPU, memory usage)
 - Model artifacts management and sharing
-- Viewing inference results with image overlays
 
 These features help in tracking experiments, optimizing models, and collaborating more effectively on YOLO26 projects.
 

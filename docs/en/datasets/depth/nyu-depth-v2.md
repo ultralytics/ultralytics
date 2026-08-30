@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: CC-BY-NC-SA-3.0
+    url: https://creativecommons.org/licenses/by-nc-sa/3.0/
 description: Explore the NYU Depth V2 indoor benchmark for monocular depth estimation. Learn about its structure, usage, pretrained models, and role as the primary YOLO26-Depth evaluation benchmark.
 keywords: Ultralytics, YOLO, depth estimation, NYU Depth V2, indoor RGB-D, Kinect, monocular depth, Eigen split, depth benchmark
 ---

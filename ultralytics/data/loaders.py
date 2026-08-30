@@ -8,7 +8,9 @@ import os
 import time
 import urllib
 from dataclasses import dataclass
+from functools import partial
 from io import BytesIO
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from threading import Thread
 from typing import Any
@@ -19,9 +21,9 @@ import torch
 from PIL import Image, ImageOps
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, IMG_FORMATS, VID_FORMATS
-from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, ops
+from ultralytics.utils import IS_COLAB, IS_KAGGLE, LOGGER, NUM_THREADS, ops
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.patches import imread
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
 
 
 @dataclass
@@ -447,18 +449,35 @@ class LoadImagesAndVideos:
             else:
                 # Handle image files
                 self.mode = "image"
+                if self.bs >= 8 and NUM_THREADS > 1 and (n := min(self.bs - len(imgs), self.ni - self.count)) >= 8:
+                    image_paths = self.files[self.count : self.count + n]
+                    # Keep fallback formats serial: their lazy PIL plugin registration is not thread-safe.
+                    if not any(Path(x).suffix.lower() in PIL_FALLBACK_SUFFIXES for x in image_paths):
+                        with ThreadPool(min(n, NUM_THREADS)) as pool:
+                            decoded = pool.map(partial(imread, flags=self.cv2_flag), image_paths)
+                        for i, (image_path, im0) in enumerate(zip(image_paths, decoded)):
+                            self._append_image(paths, imgs, info, image_path, im0, self.count + i + 1)
+                        self.count += n  # move to the next batch of files
+                        if self.count >= self.ni and imgs:  # flush images before starting videos
+                            break
+                        continue
+
                 im0 = imread(path, flags=self.cv2_flag)  # BGR
-                if im0 is None:
-                    LOGGER.warning(f"Image Read Error {path}")
-                else:
-                    paths.append(path)
-                    imgs.append(im0)
-                    info.append(f"image {self.count + 1}/{self.nf} {path}: ")
+                self._append_image(paths, imgs, info, path, im0, self.count + 1)
                 self.count += 1  # move to the next file
                 if self.count >= self.ni and imgs:  # end of image list, flush only a non-empty batch
                     break
 
         return paths, imgs, info
+
+    def _append_image(self, paths: list, imgs: list, info: list, path: str, im0: np.ndarray | None, idx: int):
+        """Append a decoded image to the batch lists, or warn and skip it if decoding failed."""
+        if im0 is None:
+            LOGGER.warning(f"Image Read Error {path}")
+        else:
+            paths.append(path)
+            imgs.append(im0)
+            info.append(f"image {idx}/{self.nf} {path}: ")
 
     def _new_video(self, path: str):
         """Create a new video capture object for the given path and initialize video-related attributes."""

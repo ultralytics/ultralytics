@@ -55,16 +55,16 @@ Knowledge distillation improves student [mAP](yolo-performance-metrics.md) acros
 | [YOLO26l-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 55.0                                   | **56.0**                                | 54.4                                         | **55.5**                                      |
 | [YOLO26x-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 57.5                                   | **57.9**                                | 56.9                                         | **57.4**                                      |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce a distilled row with `yolo val detect model=yolo26n-distill.pt data=coco.yaml device=0`; add `end2end=False` for the non-e2e column.
 - **e2e** values use the default NMS-free inference path; non-e2e values use traditional NMS post-processing (`end2end=False`). See [End-to-End Detection](end2end-detection.md) for details.
 
 ## Prerequisites
 
 Before you begin, ensure you meet the following requirements:
 
-- **Trained Teacher Model**: A pre-trained, high-accuracy teacher model from the same YOLO family as the student model (e.g., YOLO26).
-- **Matching Dataset and Task**: Both the teacher and student models must use the exact same dataset and task configuration.
-- **GPU Resources**: Sufficient GPU memory (VRAM) to load and run both models concurrently during training (refer to the [FAQ](#does-knowledge-distillation-slow-down-training) for typical VRAM overhead).
+- **Trained teacher model**: a `.pt` checkpoint from the same YOLO family as the student.
+- **Matching task**: use a teacher for the same task as the student and train it on relevant data.
+- **GPU resources**: enough memory to hold both models; the teacher runs forward-only without gradients or optimizer state.
 
 ### Recommended Model Pairs
 
@@ -89,7 +89,7 @@ Cross-family distillation (e.g., YOLO11 teacher with YOLO26 student) is **not su
 1. The **teacher model** remains frozen in `eval` mode and runs inference on each batch
 2. The **student model** trains with standard task losses plus distillation guidance
 3. Features are extracted from both models at the three neck layers that feed the Detect-family head
-4. A **projector network** (lightweight MLP) aligns student feature dimensions to match the teacher
+4. A projector of two **1×1 convolutions with ReLU** aligns each student feature map to the teacher's channels
 5. A **score-weighted L2 loss** compares projected student features with teacher features, weighted by the teacher's classification confidence
 6. The distillation loss combines with standard losses using the `dis` weight
 
@@ -108,7 +108,7 @@ flowchart TD
     AF --> SW
 
     S --> D[Detection Head]:::proc
-    D --> DL[box_loss + cls_loss + dfl_loss]:::proc
+    D --> DL[box_loss + cls_loss + l1_loss]:::proc
 
     SW --> |× dis| DIS[distillation loss]:::proc
     DL --> TOTAL[Total Loss]:::out
@@ -126,6 +126,8 @@ flowchart TD
 ## Task Support
 
 The distillation implementation extracts features from the three neck layers that feed the model's Detect-family head. Because the **segment**, **pose**, and **obb** heads inherit from the same `Detect` architecture, distillation is technically compatible with those tasks as well.
+
+Classification, semantic segmentation, depth estimation, and RT-DETR do not use a compatible Detect-family head and are not supported.
 
 !!! warning
 
@@ -213,7 +215,7 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
 
 ### Resuming Distillation Training
 
-Distillation training supports resuming from checkpoints. The teacher model is rebuilt automatically from the `distill_model` path:
+Distillation training supports resuming from checkpoints. The teacher model is rebuilt automatically from the `distill_model` path recorded in the checkpoint:
 
 !!! example "Resume Distillation Training"
 
@@ -237,7 +239,7 @@ Distillation training supports resuming from checkpoints. The teacher model is r
 When distillation is enabled, an additional `dis_loss` column appears in training logs:
 
 ```text
-      Epoch    GPU_mem   box_loss   cls_loss   dfl_loss   dis_loss  Instances       Size
+      Epoch    GPU_mem   box_loss   cls_loss    l1_loss   dis_loss  Instances       Size
       1/80      46.2G      1.566      5.404    0.003249      6.658        231        640
 ```
 
@@ -258,11 +260,11 @@ Add the `distill_model` parameter—everything else works identically. An extra 
 
 ### Does knowledge distillation slow down training?
 
-Yes. Expect 1.2-1.5x slower training and ~1.1x more GPU memory because the teacher model runs inference on each batch. The teacher runs in `eval` mode without gradients, keeping overhead manageable. Use `amp=True` to reduce impact.
+Yes. The teacher adds a forward pass for every batch, so the time and memory overhead depend on the teacher/student pair. The teacher runs in `eval` mode without gradients or optimizer state.
 
 ### Which tasks and models are supported?
 
-Knowledge distillation works with **detect**, **segment**, **pose**, and **obb** tasks because it distills features from the three neck layers that feed the Detect-family head. **Classify** and **semantic** tasks are not supported.
+Knowledge distillation works with **detect**, **segment**, **pose**, and **obb** tasks because it distills features from the three neck layers that feed the Detect-family head. **Classify**, **semantic**, **depth**, and RT-DETR are not supported.
 
 Only **detect** has been experimentally verified for accuracy improvements. Segment, pose, and obb are technically compatible but not yet benchmarked.
 

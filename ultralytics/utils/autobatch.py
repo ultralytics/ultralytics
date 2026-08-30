@@ -15,7 +15,7 @@ from ultralytics.utils.torch_utils import autocast, get_torch_device_backend, pr
 def check_train_batch_size(
     model: torch.nn.Module,
     imgsz: int = 640,
-    amp: bool = True,
+    amp: bool | torch.dtype = True,
     batch: float = -1,
     max_num_obj: int = 1,
     dataset_size: int = 0,
@@ -25,7 +25,7 @@ def check_train_batch_size(
     Args:
         model (torch.nn.Module): YOLO model to check batch size for.
         imgsz (int, optional): Image size used for training.
-        amp (bool, optional): Use automatic mixed precision if True.
+        amp (bool | torch.dtype, optional): Whether to use mixed precision, or the autocast dtype.
         batch (int | float, optional): Fraction of GPU memory to use. If -1, use default.
         max_num_obj (int, optional): The maximum number of objects from dataset.
         dataset_size (int, optional): Total number of training images. If > 0, batch size will not exceed this value.

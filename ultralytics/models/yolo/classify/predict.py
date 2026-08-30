@@ -58,10 +58,21 @@ class ClassificationPredictor(BasePredictor):
         self.transforms = (
             transforms if size == max(self.imgsz) and self.model.format == "pt" else classify_transforms(self.imgsz)
         )
+        if self.args.preprocess_tensor and self.source_type.tensor:  # drop ToTensor, raw sources are already tensors
+            import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
+            if any(
+                not isinstance(t, (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)) for t in self.transforms.transforms
+            ):
+                raise NotImplementedError("'preprocess_tensor=True' requires standard classification transforms.")
+            self.tensor_transforms = T.Compose([t for t in self.transforms.transforms if not isinstance(t, T.ToTensor)])
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""
-        if not isinstance(img, torch.Tensor):
+        if isinstance(img, torch.Tensor):
+            if self.args.preprocess_tensor:  # raw (B, C, H, W) tensor at original resolution
+                img = self.tensor_transforms(img)
+        else:
             img = torch.stack(
                 [self.transforms(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in img], dim=0
             )

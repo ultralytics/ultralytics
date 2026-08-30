@@ -179,6 +179,8 @@ class BasePredictor:
         else:
             im = im.to(self.device)
             im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
+            if self.args.preprocess_tensor:
+                im = self.pre_transform_tensor(im)  # letterbox raw original-resolution tensor on-device
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -206,15 +208,36 @@ class BasePredictor:
         Returns:
             (list[np.ndarray]): List of transformed images.
         """
-        same_shapes = len({x.shape for x in im}) == 1
-        letterbox = LetterBox(
+        letterbox = self._letterbox(len({x.shape for x in im}) == 1)
+        return [letterbox(image=x) for x in im]
+
+    def _letterbox(self, same_shapes: bool = True) -> LetterBox:
+        """Build the LetterBox shared by the numpy and tensor pre-transforms, overridden per model family.
+
+        Args:
+            same_shapes (bool): Whether every image in the batch has the same shape, required for min-rectangle padding.
+
+        Returns:
+            (LetterBox): Transform matching this predictor's model input requirements.
+        """
+        return LetterBox(
             self.imgsz,
             auto=same_shapes
             and self.args.rect
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
             stride=self.model.stride,
         )
-        return [letterbox(image=x) for x in im]
+
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
+
+        Args:
+            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
+
+        Returns:
+            (torch.Tensor): Transformed tensor.
+        """
+        return self._letterbox().apply_tensor(im)
 
     def postprocess(self, preds, img, orig_imgs):
         """Post-process predictions for an image and return them."""
@@ -275,6 +298,7 @@ class BasePredictor:
             vid_stride=self.args.vid_stride,
             buffer=self.args.stream_buffer,
             channels=getattr(self.model, "channels", 3),
+            preprocess_tensor=self.args.preprocess_tensor,
         )
         self.source_type = self.dataset.source_type
         if (

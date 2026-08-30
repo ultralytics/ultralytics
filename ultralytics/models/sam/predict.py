@@ -139,6 +139,9 @@ class Predictor(BasePredictor):
         im = im.to(self.device)
         if not_tensor:
             im = (im - self.mean) / self.std
+        elif self.args.preprocess_tensor:
+            im = self.pre_transform_tensor(im) * 255  # letterbox in [0-1], then scale to [0-255]
+            im = (im - self.mean) / self.std
         im = im.half() if self.model.fp16 else im.float()
         return im
 
@@ -166,8 +169,12 @@ class Predictor(BasePredictor):
             1
         """
         assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.imgsz, auto=False, center=False)
+        letterbox = self._letterbox()
         return [letterbox(image=x) for x in im]
+
+    def _letterbox(self, same_shapes: bool = True) -> LetterBox:
+        """Return a LetterBox that resizes to the model input size and pads bottom-right, as SAM expects."""
+        return LetterBox(self.imgsz, auto=False, center=False)
 
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image.
@@ -2235,32 +2242,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         """Extract image features using the model's backbone."""
         return self.model.backbone.forward_image(im)
 
-    def pre_transform(self, im):
-        """Perform initial transformations on the input image for preprocessing.
-
-        This method applies transformations such as resizing to prepare the image for further preprocessing. Currently,
-        batched inference is not supported; hence the list length should be 1.
-
-        Args:
-            im (list[np.ndarray]): List containing a single image in HWC numpy array format.
-
-        Returns:
-            (list[np.ndarray]): List containing the transformed image.
-
-        Raises:
-            AssertionError: If the input list contains more than one image.
-
-        Examples:
-            >>> predictor = SAM3SemanticPredictor()
-            >>> predictor.imgsz = [1024, 1024]  # normally set by setup_source()
-            >>> image = np.random.rand(480, 640, 3)  # Single HWC image
-            >>> transformed = predictor.pre_transform([image])
-            >>> print(len(transformed))
-            1
-        """
-        assert len(im) == 1, "SAM model does not currently support batched inference"
-        letterbox = LetterBox(self.imgsz, auto=False, center=False, scale_fill=True)  # hardcode here for sam3
-        return [letterbox(image=x) for x in im]
+    def _letterbox(self, same_shapes: bool = True) -> LetterBox:
+        """Return a LetterBox that stretches inputs to the model input size, as SAM3 semantic segmentation expects."""
+        return LetterBox(self.imgsz, auto=False, center=False, scale_fill=True)
 
     def _prepare_geometric_prompts(self, src_shape, bboxes=None, labels=None):
         """Prepare prompts by normalizing bounding boxes and points to the destination shape."""

@@ -518,8 +518,8 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
+            args = get_cfg(overrides={**self.overrides, **kwargs})
             if type(self.predictor) is not predictor:
-                args = get_cfg(overrides={**self.overrides, **kwargs})
                 self.predictor = predictor(
                     overrides={
                         "task": self.model.task,
@@ -540,7 +540,7 @@ class YOLOE(Model):
             self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
-                dataset = load_inference_source(source)
+                dataset = load_inference_source(source, preprocess_tensor=args.preprocess_tensor)
                 if dataset.mode in {"video", "stream"}:
                     # NOTE: set the first frame as refer image for videos/streams inference
                     refer_image = next(iter(dataset))[1][0]

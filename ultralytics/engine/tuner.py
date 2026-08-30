@@ -194,7 +194,6 @@ class Tuner:
         """
         self.mongodb = self._connect(mongodb_uri)
         self.collection = self.mongodb[mongodb_db][mongodb_collection]
-        self.collection.create_index("iteration", unique=True, sparse=True)
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
     @staticmethod
@@ -240,7 +239,8 @@ class Tuner:
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
             iteration (int): Current iteration number.
         """
-        from pymongo.errors import DuplicateKeyError, PyMongoError
+        from pymongo import ReturnDocument
+        from pymongo.errors import PyMongoError
 
         result = {
             "fitness": fitness,
@@ -250,18 +250,26 @@ class Tuner:
             "save_dirs": save_dirs,
             "timestamp": datetime.now().astimezone(),
         }
-        while True:
-            try:
-                self.collection.insert_one({**result, "iteration": iteration})
-                return
-            except DuplicateKeyError:
-                latest = self.collection.find_one(
-                    {"iteration": {"$exists": True}}, {"iteration": 1}, sort=[("iteration", -1)]
-                )
-                iteration = latest["iteration"] + 1
-            except PyMongoError as e:
-                LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
-                return
+        try:
+            latest = self.collection.find_one(
+                {"fitness": {"$exists": True}}, {"iteration": 1}, sort=[("iteration", -1)]
+            )
+            iteration = max(iteration, latest["iteration"] + 1 if latest else 1)
+            counter = self.collection.find_one_and_update(
+                {"_id": "defaults"},
+                [
+                    {
+                        "$set": {
+                            "last_iteration": {"$max": [{"$add": [{"$ifNull": ["$last_iteration", 0]}, 1]}, iteration]}
+                        }
+                    }
+                ],
+                upsert=True,
+                return_document=ReturnDocument.AFTER,
+            )
+            self.collection.insert_one({**result, "iteration": counter["last_iteration"]})
+        except PyMongoError as e:
+            LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
 
     def _sync_mongodb_to_file(self):
         """Sync MongoDB results to the local NDJSON tuning log.

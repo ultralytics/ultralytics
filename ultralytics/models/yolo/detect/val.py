@@ -162,10 +162,8 @@ class DetectionValidator(BaseValidator):
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',
                 'cls', and 'extra' tensors.
         """
-        if isinstance(preds, (list, tuple)):
-            preds = preds[0]  # select only inference output
-        if preds.device.type == "mps":  # MPS: variable-shape NMS ops pollute the graph cache, run on CPU instead
-            preds = preds.float().cpu()
+        if self.device.type == "mps":  # MPS: variable-shape NMS ops pollute the graph cache, run on CPU instead
+            preds = (preds[0] if isinstance(preds, (list, tuple)) else preds).float().cpu()
         outputs = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -226,10 +224,8 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        device = preds[0]["bboxes"].device  # postprocess moves predictions to CPU on MPS, follow it with annotations
-        if device != batch["batch_idx"].device:
-            keys = ("batch_idx", "cls", "bboxes", "keypoints", "masks")
-            batch.update({k: batch[k].to(device) for k in keys if torch.is_tensor(batch.get(k))})
+        if self.device.type == "mps":  # postprocess runs NMS on CPU for MPS, move the batch there to match
+            batch.update({k: v.cpu() for k, v in batch.items() if torch.is_tensor(v)})
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
@@ -270,7 +266,7 @@ class DetectionValidator(BaseValidator):
                 self.confusion_matrix.process_batch(predn, pbatch, conf=self.confusion_matrix_conf)
                 if self.args.visualize:
                     self.confusion_matrix.plot_matches(
-                        batch["img"][si].to(device),  # plot_matches builds tensors on the image device
+                        batch["img"][si],
                         pbatch["im_file"],
                         self.save_dir,
                         self.args.show_labels,

@@ -131,9 +131,9 @@ class BboxLoss(nn.Module):
         """Compute IoU and DFL losses for bounding boxes."""
         # MPS: variable-shape masked ops pollute the graph cache, compute on CPU and move the losses back
         if (_dev := pred_bboxes.device).type == "mps":
-            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (
-                t.cpu()
-                for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride)
+            imgsz, stride, target_scores_sum = imgsz.cpu(), stride.cpu(), target_scores_sum.cpu()
+            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask = (
+                t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask)
             )
         weight = target_scores[fg_mask].sum(-1, keepdim=True)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
@@ -239,9 +239,9 @@ class RotatedBboxLoss(BboxLoss):
         """Compute IoU and DFL losses for rotated bounding boxes."""
         # MPS: see BboxLoss.forward
         if (_dev := pred_bboxes.device).type == "mps":
-            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride = (
-                t.cpu()
-                for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask, imgsz, stride)
+            imgsz, stride, target_scores_sum = imgsz.cpu(), stride.cpu(), target_scores_sum.cpu()
+            pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask = (
+                t.cpu() for t in (pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, fg_mask)
             )
         weight = target_scores[fg_mask].sum(-1, keepdim=True)
         iou = probiou(pred_bboxes[fg_mask], target_bboxes[fg_mask], floor=self.floor)
@@ -395,7 +395,7 @@ class v8DetectionLoss:
             counts = counts.to(dtype=torch.int32)
             nb = int(counts.max())
             if self.device.type == "mps":
-                nb = max(nb, 512)  # MPS: pad to a fixed bucket so varying box counts don't grow the graph cache
+                nb = 1 << (nb - 1).bit_length()  # MPS: bucket shapes to a power of two to bound graph cache growth
             out = torch.zeros(batch_size, nb, ne - 1, device=self.device)
             offsets = torch.zeros(batch_size + 1, dtype=torch.long, device=self.device)
             offsets.scatter_add_(0, batch_idx + 1, torch.ones_like(batch_idx))
@@ -1047,7 +1047,7 @@ class v8OBBLoss(v8DetectionLoss):
             counts = counts.to(dtype=torch.int32)
             nb = int(counts.max())
             if self.device.type == "mps":
-                nb = max(nb, 512)  # MPS: pad to a fixed bucket so varying box counts don't grow the graph cache
+                nb = 1 << (nb - 1).bit_length()  # MPS: bucket shapes to a power of two to bound graph cache growth
             out = torch.zeros(batch_size, nb, 6, device=self.device)
             packed_targets = targets[:, 1:].clone()
             packed_targets[:, 1:5].mul_(scale_tensor)

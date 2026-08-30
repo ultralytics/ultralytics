@@ -100,7 +100,7 @@ class SegmentationValidator(DetectionValidator):
         """
         proto = preds[0][1] if isinstance(preds[0], tuple) else preds[1]
         preds = super().postprocess(preds[0])
-        proto = proto.to(preds[0]["bboxes"].device)  # NMS runs on CPU for MPS devices
+        proto = proto.cpu() if self.device.type == "mps" else proto  # postprocess above ran NMS on CPU
         imgsz = [4 * x for x in proto.shape[2:]]  # get image size from proto
         for i, pred in enumerate(preds):
             coefficient = pred.pop("extra")

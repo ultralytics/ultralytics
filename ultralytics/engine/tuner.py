@@ -394,7 +394,8 @@ class Tuner:
                 weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
                 gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
                 resolution = np.array([1 if k in CFG_INT_KEYS else 1e-5 for k in self.space])
-                scale = sigma * (1 - 0.2 * min(stale / 25, 1)) * gains
+                decay = 1 - 0.2 * min(stale / 25, 1)
+                scale = sigma * decay * gains
                 scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
                 existing = {tuple(row[1:]) for row in history}
                 covariance = None
@@ -406,10 +407,13 @@ class Tuner:
                         out=np.zeros((n_elite, ng)),
                         where=mutable,
                     )
-                    covariance = np.cov(elite, rowvar=False) + np.diag(np.square(scale * 0.2))
+                    covariance = np.cov(elite, rowvar=False) * decay**2 + np.diag(np.square(scale))
                 for attempt in range(200):
                     parent = population[rng.choice(len(x), p=weights / weights.sum())]
-                    if attempt >= 100 or rng.random() < 0.1:
+                    if attempt >= 100:
+                        genes = parent.copy()
+                        genes[mutable] = rng.random(mutable.sum())
+                    elif rng.random() < 0.1:
                         genes = parent.copy()
                         mask = (rng.random(ng) < 0.5) & mutable
                         genes[mask] = rng.random(mask.sum())

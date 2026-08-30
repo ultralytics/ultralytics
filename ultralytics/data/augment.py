@@ -1825,7 +1825,7 @@ class LetterBox(BaseTransform):
         """
         p = self.get_params({"img": im[0].permute(1, 2, 0)})  # geometry only; reads .shape, not pixels
         if tuple(im.shape[2:]) != p["new_unpad"][::-1]:
-            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)
+            im = F.interpolate(im, size=p["new_unpad"][::-1], mode="bilinear", align_corners=False)  # cv2.INTER_LINEAR
         return F.pad(im, (p["left"], p["right"], p["top"], p["bottom"]), value=self.padding_value / 255)
 
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any]) -> dict[str, Any]:

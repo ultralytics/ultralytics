@@ -22,7 +22,7 @@ class RTDETRPredictor(BasePredictor):
 
     Methods:
         postprocess: Postprocess raw model predictions to generate bounding boxes and confidence scores.
-        pre_transform: Pre-transform input images before feeding them into the model for inference.
+        _letterbox: Build the scale-fill LetterBox that RT-DETR inputs require.
 
     Examples:
         >>> from ultralytics.utils import ASSETS
@@ -68,30 +68,6 @@ class RTDETRPredictor(BasePredictor):
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
 
-    def pre_transform(self, im):
-        """Pre-transform input images before feeding them into the model for inference.
-
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
-
-        Args:
-            im (list[np.ndarray]): Input images of shape [(H, W, 3) x N].
-
-        Returns:
-            (list): List of pre-transformed images ready for model inference.
-        """
-        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
-        return [letterbox(image=x) for x in im]
-
-    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
-        """Pre-transform a raw (B, C, H, W) tensor on-device before inference.
-
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
-
-        Args:
-            im (torch.Tensor): Normalized input tensor of shape (B, C, H, W) at original resolution.
-
-        Returns:
-            (torch.Tensor): Transformed tensor.
-        """
-        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
-        return letterbox.apply_tensor(im)
+    def _letterbox(self, same_shapes: bool = True) -> LetterBox:
+        """Return a LetterBox that scale-fills inputs to a square aspect ratio, as RT-DETR expects."""
+        return LetterBox(self.imgsz, auto=False, scale_fill=True)

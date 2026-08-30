@@ -52,24 +52,19 @@ class ClassificationPredictor(BasePredictor):
 
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""
-        import torchvision.transforms as T
-
         super().setup_source(source)
-        transforms = getattr(self.model.model, "transforms", None)
-        first = transforms.transforms[0] if isinstance(transforms, T.Compose) and transforms.transforms else None
-        updated = first is not None and hasattr(first, "size") and first.size != max(self.imgsz)
+        transforms = getattr(self.model.model, "transforms", None)  # missing on YAML-built and legacy checkpoints
+        size = getattr(transforms.transforms[0], "size", max(self.imgsz)) if transforms is not None else None
         self.transforms = (
-            classify_transforms(self.imgsz)
-            if updated or self.model.format != "pt" or transforms is None
-            else transforms
+            transforms if size == max(self.imgsz) and self.model.format == "pt" else classify_transforms(self.imgsz)
         )
-        self.tensor_transforms = None
-        if self.args.preprocess_tensor and self.source_type.tensor:
-            supported = (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)
-            if not isinstance(self.transforms, T.Compose) or any(
-                not isinstance(t, supported) for t in self.transforms.transforms
+        if self.args.preprocess_tensor and self.source_type.tensor:  # drop ToTensor, raw sources are already tensors
+            import torchvision.transforms as T  # scope for faster 'import ultralytics'
+
+            if any(
+                not isinstance(t, (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)) for t in self.transforms.transforms
             ):
-                raise NotImplementedError("Raw tensor preprocessing requires standard classification transforms.")
+                raise NotImplementedError("'preprocess_tensor=True' requires standard classification transforms.")
             self.tensor_transforms = T.Compose([t for t in self.transforms.transforms if not isinstance(t, T.ToTensor)])
 
     def preprocess(self, img):

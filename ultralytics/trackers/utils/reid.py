@@ -16,6 +16,7 @@ import torch
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 
@@ -23,6 +24,7 @@ REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
 
+    @smart_inference_mode(False)
     def __init__(self, model: str, imgsz: int = 224, device: str | torch.device | None = None, fp16: bool = False):
         """Initialize encoder for re-identification.
 

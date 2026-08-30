@@ -170,7 +170,7 @@ Ultralytics YOLO26 stands out from other object detection solutions like OpenCV 
 1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO26 provides superior accuracy in [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md) tasks.
 2. **Ease of Use**: User-friendly API allows for quick implementation and integration without extensive coding.
 3. **Real-time Performance**: Optimized for high-speed inference, suitable for real-time applications.
-4. **Diverse Applications**: Supports various tasks including multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.
+4. **Diverse Applications**: Supports multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.
 5. **Comprehensive Documentation**: Extensive [documentation](../index.md) and [blog resources](https://www.ultralytics.com/blog) to guide users through every step.
 
 For more detailed comparisons and use cases, explore our [Ultralytics Blog](https://www.ultralytics.com/blog/ai-use-cases-transforming-your-future).

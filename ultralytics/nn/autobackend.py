@@ -204,8 +204,7 @@ class AutoBackend(nn.Module):
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
         if (
-            format == "pt"
-            and isinstance(model, nn.Module)
+            isinstance(model, nn.Module)
             and TORCH_1_9
             and any(x.is_inference() for x in (*model.parameters(), *model.buffers()))
         ):

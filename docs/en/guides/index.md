@@ -58,7 +58,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 ### Evaluate & troubleshoot
 
 - [YOLO Performance Metrics](yolo-performance-metrics.md) ⭐ ESSENTIAL: Understand the key metrics like mAP, IoU, and [F1 score](https://www.ultralytics.com/glossary/f1-score) used to evaluate the performance of your YOLO models. Includes practical examples and tips on how to improve detection accuracy and speed.
-- [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md): Evaluate computer vision models with metrics like mAP and IoU, then fine-tune training parameters such as learning-rate warmup to improve detection accuracy.
+- [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md): Evaluate computer vision models with metrics like mAP and IoU, then act on what the metrics expose to improve detection accuracy.
 - [Model Testing](model-testing.md): Learn how to test computer vision models on unseen data, validate YOLO26 models, and catch overfitting, underfitting, and data leakage before deployment.
 - [YOLO Common Issues](yolo-common-issues.md) ⭐ RECOMMENDED: Practical solutions and troubleshooting tips to the most frequently encountered issues when working with Ultralytics YOLO models.
 - [Maintaining Your Computer Vision Model](model-monitoring-and-maintenance.md): Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.

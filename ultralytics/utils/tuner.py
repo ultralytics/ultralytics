@@ -350,7 +350,7 @@ def run_ray_tune(
     space: dict | None = None,
     grace_period: int = 10,
     gpu_per_trial: int | None = None,
-    iterations: int = 10,
+    iterations: int = 300,
     search_alg="optuna",
     **train_args,
 ):

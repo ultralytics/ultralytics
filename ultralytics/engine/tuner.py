@@ -428,7 +428,7 @@ class Tuner:
 
         return hyp
 
-    def __call__(self, iterations: int = 10, cleanup: bool = True):
+    def __call__(self, iterations: int = 300, cleanup: bool = True):
         """Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the specified number of iterations, performing the following steps:

@@ -852,6 +852,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
+    if isinstance(fraction, list):
+        fraction = [get_split_fraction(fraction, split) for split in ("train", "val", "test")[: len(fraction)]]
+    else:
+        fraction = get_split_fraction(fraction, "train")
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
     source_hash = hashlib.sha256(repr((source_id, fraction)).encode()).hexdigest()[:8]

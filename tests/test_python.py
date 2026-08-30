@@ -3,6 +3,7 @@
 import contextlib
 import csv
 import os
+import platform
 import shutil
 import tarfile
 import urllib
@@ -21,7 +22,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -126,7 +127,14 @@ def test_cfg_rejects_fuzzed_values():
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
-    assert get_cfg(overrides={"fraction": [1000, 1.0, 0]}).fraction == [1000, 1.0, 0]
+    assert get_cfg(overrides={"fraction": 1}).fraction == 1.0
+    assert get_cfg(overrides={"fraction": [1000, 1, 0]}).fraction == [1000, 1.0, 0.0]
+    assert type(get_split_fraction([1, 1, 0], "train")) is float
+    assert type(get_split_fraction([1, 1, 0], "test")) is float
+    with pytest.raises(ValueError, match="val fraction"):
+        get_split_fraction([1, 0], "val")
+    with pytest.raises(TypeError, match="fraction"):
+        get_cfg(overrides={"fraction": True})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
@@ -198,19 +206,27 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_autobackend_set_memory_format(tmp_path):
-    """Check memory-format transitions on the real host platform without mocked platform state."""
+def test_autobackend_memory_format(tmp_path):
+    """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
-    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-    backend = AutoBackend(model=model, device=torch.device("cpu"))
-    cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
-    for value in (None, False, True):
-        if value is True and not cpu_supported:
-            model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW
-        backend.set_memory_format(value)
-        expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
+    cpu_supported = (
+        TORCH_1_13
+        and platform.machine() in {"AMD64", "x86_64"}
+        and torch.backends.mkldnn.is_available()
+        and torch.backends.mkldnn.enabled
+    )
+    for channels_last in (None, False, True):
+        model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
+        expected = cpu_supported and (channels_last is True or (channels_last is None and (LINUX or WINDOWS)))
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+        assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
+    if hasattr(torch, "inference_mode"):
+        with torch.inference_mode():
+            model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"))
+        assert not backend.model[0].weight.is_inference()
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded

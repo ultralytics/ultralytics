@@ -619,7 +619,6 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
-        fmt_name = dict(zip(fmts_dict["Argument"], fmts_dict["Format"]))[fmt]
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
@@ -682,7 +681,7 @@ class Exporter:
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
-                LOGGER.warning(f"{fmt_name} export does not support end2end models, disabling end2end branch.")
+                LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False

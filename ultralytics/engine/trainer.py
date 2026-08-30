@@ -601,12 +601,7 @@ class BaseTrainer:
 
             # Validation
             final_epoch = epoch + 1 >= self.epochs
-            should_val = (
-                (self.args.val and (epoch + 1) % self.args.val_period == 0)
-                or final_epoch
-                or self.stopper.possible_stop
-                or self.stop
-            )
+            should_val = (self.args.val and epoch % self.args.val_period == 0) or final_epoch or self.stop
             if should_val:
                 self._clear_memory(None if self.device.type == "mps" else 0.5)  # prevent VRAM spike
                 self.metrics, self.fitness = self.validate()
@@ -621,9 +616,7 @@ class BaseTrainer:
             if RANK in {-1, 0}:
                 val_metrics = self.metrics if should_val else dict.fromkeys(self.metrics, "")  # blank skipped epochs
                 self.save_metrics(metrics={**self.label_loss_items(self.tloss), **val_metrics, **self.lr})
-                if should_val:
-                    self.stop |= self.stopper(epoch + 1, self.fitness)
-                self.stop |= final_epoch
+                self.stop |= self.stopper(epoch + 1, self.fitness) or final_epoch
                 if self.args.time:
                     self.stop |= (time.time() - self.train_time_start) > (self.args.time * 3600)
 
@@ -782,7 +775,7 @@ class BaseTrainer:
         # Save checkpoints
         self.wdir.mkdir(parents=True, exist_ok=True)  # ensure weights directory exists
         self.last.write_bytes(serialized_ckpt)  # save last.pt
-        if self.best_fitness is not None and self.best_fitness == self.fitness:
+        if self.best_fitness == self.fitness:
             self.best.write_bytes(serialized_ckpt)  # save best.pt
         if (self.save_period > 0) and (self.epoch % self.save_period == 0):
             (self.wdir / f"epoch{self.epoch}.pt").write_bytes(serialized_ckpt)  # save epoch, i.e. 'epoch3.pt'
@@ -942,8 +935,7 @@ class BaseTrainer:
         t = time.time() - self.train_time_start
         self.csv.parent.mkdir(parents=True, exist_ok=True)  # ensure parent directory exists
         s = "" if self.csv.exists() else ("%s," * n % ("epoch", "time", *keys)).rstrip(",") + "\n"
-        # Empty strings for skipped val epochs stay empty (parsed as NaN); numbers get %.6g formatting
-        row = ",".join("" if v == "" else f"{v:.6g}" for v in [self.epoch + 1, t, *vals])
+        row = ",".join("" if v == "" else f"{v:.6g}" for v in (self.epoch + 1, t, *vals))  # "" for skipped val epochs
         with open(self.csv, "a", encoding="utf-8") as f:
             f.write(s + row + "\n")
 
@@ -987,7 +979,7 @@ class BaseTrainer:
                     ckpt_args["data"] = self.args.data
 
                 resume = True
-                self.args = get_cfg(overrides=ckpt_args)
+                self.args = get_cfg(ckpt_args)
                 self.args.model = self.args.resume = str(last)  # reinstate model
                 for k in (
                     "imgsz",
@@ -1002,6 +994,7 @@ class BaseTrainer:
                     "time",
                     "freeze",
                     "val",
+                    "val_period",
                     "plots",
                     "distill_model",
                     "save_dir",

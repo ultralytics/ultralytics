@@ -215,6 +215,11 @@ def test_autobackend_memory_format(tmp_path):
         backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is (channels_last and cpu_supported)
         assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
+    if hasattr(torch, "inference_mode"):
+        with torch.inference_mode():
+            model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"))
+        assert not backend.backend.model[0].weight.is_inference()
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded

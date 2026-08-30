@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -12,7 +13,7 @@ from torch import nn
 from ultralytics.utils import ARM64, LOGGER
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
-from ultralytics.utils.torch_utils import TORCH_1_13, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -202,6 +203,13 @@ class AutoBackend(nn.Module):
         device = device or torch.device("cpu")
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
+        if (
+            format == "pt"
+            and isinstance(model, nn.Module)
+            and TORCH_1_9
+            and any(x.is_inference() for x in (*model.parameters(), *model.buffers()))
+        ):
+            model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
         # Check if format supports FP16
         fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}

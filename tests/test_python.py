@@ -211,7 +211,7 @@ def test_autobackend_set_memory_format(tmp_path):
 
     model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
     backend = AutoBackend(model=model, device=torch.device("cpu"))
-    cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
+    cpu_supported = TORCH_1_13 and not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
     for value in (None, False, True):
         if value is True and not cpu_supported:
             model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW

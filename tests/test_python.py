@@ -3,6 +3,7 @@
 import contextlib
 import csv
 import os
+import platform
 import shutil
 import tarfile
 import urllib
@@ -205,19 +206,27 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_autobackend_set_memory_format(tmp_path):
-    """Check memory-format transitions on the real host platform without mocked platform state."""
+def test_autobackend_memory_format(tmp_path):
+    """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
-    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-    backend = AutoBackend(model=model, device=torch.device("cpu"))
-    cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
-    for value in (None, False, True):
-        if value is True and not cpu_supported:
-            model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW
-        backend.set_memory_format(value)
-        expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
+    cpu_supported = (
+        TORCH_1_13
+        and platform.machine() in {"AMD64", "x86_64"}
+        and torch.backends.mkldnn.is_available()
+        and torch.backends.mkldnn.enabled
+    )
+    for channels_last in (None, False, True):
+        model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
+        expected = cpu_supported and (channels_last is True or (channels_last is None and (LINUX or WINDOWS)))
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+        assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
+    if hasattr(torch, "inference_mode"):
+        with torch.inference_mode():
+            model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"))
+        assert not backend.model[0].weight.is_inference()
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded
@@ -440,9 +449,24 @@ def test_predict_ndarray_channels():
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+    bgra = np.zeros((8, 8, 4), dtype="float64")
+    assert LoadPilAndNumpy(bgra, channels=3).im0[0].shape == (8, 8, 3)  # non-OpenCV dtype also falls back for BGRA
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         im = np.zeros((8, 8, source_channels), dtype=np.uint8)
         assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+
+
+def test_single_check_channel_order_and_contiguity():
+    """Test LoadPilAndNumpy._single_check() keeps BGR order and C-contiguous output through cv2 conversions."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
+    check = LoadPilAndNumpy._single_check
+    rgb = Image.fromarray(np.full((2, 2, 3), (10, 20, 30), dtype=np.uint8))  # PIL is R, G, B
+    bgra = np.full((2, 2, 4), (10, 20, 30, 255), dtype=np.uint8)  # ndarray is already B, G, R, A
+    gray = np.full((2, 2, 1), 42, dtype=np.uint8)
+    for im, expected in ((check(rgb, 3), (30, 20, 10)), (check(bgra, 3), (10, 20, 30)), (check(gray, 3), (42, 42, 42))):
+        assert tuple(im[0, 0].tolist()) == expected
+        assert im.flags["C_CONTIGUOUS"]
 
 
 @pytest.mark.slow

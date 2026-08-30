@@ -146,7 +146,7 @@ class Tuner:
         Returns:
             (MongoClient): Connected MongoDB client instance.
         """
-        check_requirements("pymongo>=3.9")
+        check_requirements("pymongo")
 
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
@@ -239,36 +239,24 @@ class Tuner:
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
             iteration (int): Current iteration number.
         """
-        from pymongo import ReturnDocument
-
-        result = {
-            "fitness": fitness,
-            "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
-            "metrics": metrics,
-            "datasets": datasets,
-            "save_dirs": save_dirs,
-            "timestamp": datetime.now().astimezone(),
-        }
         try:
-            latest = self.collection.find_one(
-                {"fitness": {"$exists": True}, "iteration": {"$exists": True}},
-                {"iteration": 1},
-                sort=[("iteration", -1)],
-            )
-            iteration = max(iteration, latest["iteration"] + 1 if latest else 1)
-            counter = self.collection.find_one_and_update(
+            self.collection.update_one({"_id": "defaults"}, {"$max": {"last_iteration": iteration - 1}})
+            iteration = self.collection.find_one_and_update(
                 {"_id": "defaults"},
-                [
-                    {
-                        "$set": {
-                            "last_iteration": {"$max": [{"$add": [{"$ifNull": ["$last_iteration", 0]}, 1]}, iteration]}
-                        }
-                    }
-                ],
-                upsert=True,
-                return_document=ReturnDocument.AFTER,
+                {"$inc": {"last_iteration": 1}},
+                return_document=True,
+            )["last_iteration"]
+            self.collection.insert_one(
+                {
+                    "fitness": fitness,
+                    "hyperparameters": {k: (v.item() if hasattr(v, "item") else v) for k, v in hyperparameters.items()},
+                    "metrics": metrics,
+                    "datasets": datasets,
+                    "save_dirs": save_dirs,
+                    "timestamp": datetime.now().astimezone(),
+                    "iteration": iteration,
+                }
             )
-            self.collection.insert_one({**result, "iteration": counter["last_iteration"]})
         except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
 

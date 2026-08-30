@@ -569,8 +569,8 @@ A finished prompt-free run is re-parameterized into a checkpoint that reports it
 from ultralytics import YOLOE
 
 # Weights written by the prompt-free run and by the text-prompt run it started from. Each
-# rerun creates a new directory (train2, train3, ...), so take the paths the runs printed.
-model = YOLOE("runs/segment/train2/weights/best.pt")  # prompt-free run, its head is already fused
+# rerun creates a new directory (train-2, train-3, ...), so take the paths the runs printed.
+model = YOLOE("runs/segment/train-2/weights/best.pt")  # prompt-free run, its head is already fused
 text_model = YOLOE("runs/segment/train/weights/best.pt")  # text-prompt run, its head is still unfused
 
 names = list(YOLOE("yoloe-26l-seg-pf.pt").model.names.values())  # the 4,585-name vocabulary, or your own list

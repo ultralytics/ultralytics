@@ -1192,7 +1192,7 @@ class ClassificationDataset:
         self.cache_ram = cache_mode == "ram"  # cache images into RAM
         self.cache_disk = cache_mode == "disk"  # cache images on hard drive as uncompressed *.npy files
         if self.cache_dir:
-            self.cache_dir = prepare_cache_dir(self.cache_dir, self.prefix, "classification disk cache")
+            self.cache_dir = prepare_cache_dir(self.cache_dir, self.prefix)
             if self.cache_dir is None:
                 self.cache_disk = False
         self.samples = self.verify_images()  # filter out bad images
@@ -1236,7 +1236,8 @@ class ClassificationDataset:
             im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists():  # load npy
-                fn.parent.mkdir(parents=True, exist_ok=True)
+                if self.cache_dir:
+                    fn.parent.mkdir(parents=True, exist_ok=True)  # digest-sharded subdirectory
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image

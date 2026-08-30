@@ -81,7 +81,8 @@ Caching is an important technique to improve the efficiency of training machine 
 Caching can be controlled when training YOLO26 using the `cache` parameter:
 
 - **`cache=True`**: Stores dataset images in RAM, providing the fastest access speed but at the cost of increased memory usage.
-- **`cache='disk'`**: Stores the images on disk, slower than RAM but faster than loading fresh data each time.
+- **`cache='disk'`**: Stores the images as `.npy` files beside the source images, slower than RAM but faster than loading fresh data each time.
+- **`cache='/local/cache'`**: Stores the `.npy` files under the given directory instead, useful when the dataset lives on a read-only or slow network mount.
 - **`cache=False`**: Disables caching, relying entirely on disk I/O, which is the slowest option.
 
 ### Mixed Precision Training

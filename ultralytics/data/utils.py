@@ -196,13 +196,20 @@ def parse_image_cache(cache: bool | str | os.PathLike[str]) -> tuple[str | None,
     if isinstance(cache, os.PathLike):
         return "disk", Path(cache)
     if isinstance(cache, str) and (cache := cache.strip()):
-        cache_mode = cache.lower()
-        return (cache_mode, None) if cache_mode in {"ram", "disk"} else ("disk", Path(cache))
+        if (cache_mode := cache.lower()) in {"ram", "disk"}:
+            return cache_mode, None
+        if "/" in cache or os.sep in cache or Path(cache).is_dir():
+            return "disk", Path(cache)
+        LOGGER.warning(f"Unrecognized cache={cache!r}, not a cache mode or directory, disabling image caching")
     return None, None
 
 
 def get_cache_file_path(im_file: str | Path, cache_dir: str | Path | None = None) -> Path:
-    """Return the *.npy cache path for an image, optionally rooted under a dedicated cache directory."""
+    """Return the *.npy cache path for an image, optionally rooted under a dedicated cache directory.
+
+    Redirected caches are named `sha256(absolute image path)` and sharded by the first two digest characters, so they
+    are opaque and are cleared by deleting the cache directory.
+    """
     file = Path(im_file)
     if cache_dir is None:
         return file.with_suffix(".npy")
@@ -210,16 +217,16 @@ def get_cache_file_path(im_file: str | Path, cache_dir: str | Path | None = None
     return Path(cache_dir) / digest[:2] / f"{digest}.npy"
 
 
-def prepare_cache_dir(cache_dir: str | Path, prefix: str, context: str = "caching images to disk") -> Path | None:
-    """Create and validate a cache directory, returning None if it is unavailable."""
+def prepare_cache_dir(cache_dir: str | Path, prefix: str) -> Path | None:
+    """Create and validate a disk cache directory, returning None if it is unavailable."""
     cache_dir = Path(cache_dir)
     try:
         cache_dir.mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        LOGGER.warning(f"{prefix}Skipping {context}, cache directory {cache_dir} unavailable: {e}")
+        LOGGER.warning(f"{prefix}Skipping caching images to disk, cache directory {cache_dir} unavailable: {e}")
         return None
     if not is_dir_writeable(cache_dir):
-        LOGGER.warning(f"{prefix}Skipping {context}, cache directory not writable: {cache_dir}")
+        LOGGER.warning(f"{prefix}Skipping caching images to disk, cache directory not writable: {cache_dir}")
         return None
     return cache_dir
 

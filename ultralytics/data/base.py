@@ -329,7 +329,8 @@ class BaseDataset(Dataset):
         f = self.npy_files[i]
         if not f.exists():
             try:
-                f.parent.mkdir(parents=True, exist_ok=True)
+                if self.cache_dir:
+                    f.parent.mkdir(parents=True, exist_ok=True)  # digest-sharded subdirectory
                 np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
             except Exception as e:
                 f.unlink(missing_ok=True)

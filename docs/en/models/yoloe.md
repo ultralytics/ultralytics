@@ -368,7 +368,7 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
 
 `predict_memory` extracts the prompt embeddings and stores them in a memory bank that updates the model's class embeddings. Once the memory bank is populated, later calls without prompts predict directly from the stored embeddings, so prompts collected from one image can be reused on any number of following images.
 
-Set `class_mode` when initializing the model to control how the class embeddings are built from the memory bank:
+Pass `class_mode` to control how the class embeddings are built from the memory bank:
 
 - `"prototype"`: each class gets one embedding, the mean of its visual prompt embeddings. For text-labeled classes, that prototype is blended with the text embedding using the per-class weight given in `vp_weight` (defaults to 1, i.e. visual only).
 - `"retrieval"`: each class keeps multiple embeddings (one text embedding plus every visual prompt embedding). At inference the highest similarity across a class's embeddings is used as its score. This is more accurate but the cost grows with the number of stored embeddings, and `vp_weight` is unused since the embeddings are never combined.
@@ -383,8 +383,7 @@ Set `class_mode` when initializing the model to control how the class embeddings
         from ultralytics import YOLOE
         from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
-        # Initialize a YOLOE model with the memory bank in prototype mode
-        model = YOLOE("yoloe-26l-seg.pt", class_mode="prototype")
+        model = YOLOE("yoloe-26l-seg.pt")
 
         # Run inference on an image, using the provided visual prompts as guidance
         results1 = model.predict_memory(
@@ -399,6 +398,7 @@ Set `class_mode` when initializing the model to control how the class embeddings
                 "cls": ["person"],
             },
             vp_weight={"person": 0.5},  # weight of the visual prompt relative to the text embedding, per class
+            class_mode="prototype",  # the default, one mean embedding per class
             predictor=YOLOEVPSegPredictor,
         )
 

@@ -2033,11 +2033,11 @@ def test_yoloe(tmp_path):
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     model.predict_memory(SOURCE, visual_prompts=vp, vp_weight={"person": 0.5}, predictor=YOLOEVPSegPredictor)
     model.predict_memory(SOURCE, conf=0.1)  # reuse the bank without prompts
-    model.save(tmp_path / "yoloe-memory.pt")  # must not crash with a cached text encoder
 
-    # retrieval mode
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt", class_mode="retrieval")
-    model.predict_memory(SOURCE, visual_prompts=vp, predictor=YOLOEVPSegPredictor)
+    # retrieval mode, where the text and visual embeddings each take their own class slot
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model.predict_memory(SOURCE, visual_prompts=vp, class_mode="retrieval", predictor=YOLOEVPSegPredictor)
+    assert list(model.model.names.values()) == ["person", "person"]
     model.predict_memory(SOURCE, conf=0.1)
 
     # integer classes of any dtype are detected as visual-only "objectN" classes

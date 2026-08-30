@@ -1386,7 +1386,7 @@ class SettingsManager(JSONDict):
         /new/runs/dir
     """
 
-    def __init__(self, file=SETTINGS_FILE, version="0.0.7"):
+    def __init__(self, file=SETTINGS_FILE, version="0.0.8"):
         """Initialize the SettingsManager with default settings and load user settings."""
         import hashlib
         import uuid
@@ -1411,7 +1411,6 @@ class SettingsManager(JSONDict):
             "comet": True,  # Comet integration
             "dvc": True,  # DVC integration
             "mlflow": True,  # MLflow integration
-            "neptune": True,  # Neptune integration
             "raytune": True,  # Ray Tune integration
             "tensorboard": False,  # TensorBoard logging
             "wandb": False,  # Weights & Biases logging

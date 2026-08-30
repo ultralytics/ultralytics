@@ -155,7 +155,8 @@ class BaseBackend(ABC):
 
         Single-file formats embed metadata in a length-prefixed JSON header (``.engine``), a zip entry
         (``.torchscript``, ``.tflite``) or protobuf string map entries (``.onnx``, ``.mlpackage``), and every other
-        format writes a ``metadata.yaml`` sidecar beside or inside the export. MNN keeps it in a flatbuffer
+        format writes a ``metadata.yaml`` sidecar beside or inside the export. Core AI has its own
+        ``metadata.json`` inside the ``.aimodel`` asset. MNN keeps it in a flatbuffer
         ``bizCode`` field and Triton serves it over HTTP, so neither is read here.
 
         Args:
@@ -181,6 +182,8 @@ class BaseBackend(ABC):
                 return _read_proto_map(next(p.glob("*.onnx")) if p.is_dir() else p, (14,))  # metadata_props
             if p.suffix in {".mlpackage", ".mlmodel"}:  # description.metadata.userDefined
                 return _read_proto_map(next(p.rglob("*.mlmodel")) if p.is_dir() else p, (2, 100, 100))
+            if p.suffix == ".aimodel":  # Core AI keeps it in the asset's own metadata.json
+                return json.loads((p / "metadata.json").read_text()).get("creatorDefinedMetadata", {})
             sidecar = (p if p.is_dir() else p.parent) / "metadata.yaml"  # openvino, ncnn, paddle, saved_model, ...
             if p.suffix == ".pb":  # a frozen graph keeps its metadata in the sibling saved_model directory
                 sidecar = next(p.resolve().parent.rglob(f"{p.stem}_saved_model*/metadata.yaml"), sidecar)

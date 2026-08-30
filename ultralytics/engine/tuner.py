@@ -146,7 +146,7 @@ class Tuner:
         Returns:
             (MongoClient): Connected MongoDB client instance.
         """
-        check_requirements("pymongo")
+        check_requirements("pymongo>=3.9")
 
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError

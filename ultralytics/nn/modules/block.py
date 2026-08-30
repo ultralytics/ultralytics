@@ -311,8 +311,10 @@ class C2f(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through C2f layer."""
         y = [self.cv1(x)]
-        split = y[0][:, self.c :]
-        y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
+        x = y[0][:, -self.c :]  # y[0] is the full cv1 output, so chain only its second half
+        for m in self.m:
+            x = m(x)
+            y.append(x)
         return self.cv2(torch.cat(y, 1))
 
 
@@ -662,9 +664,11 @@ class C2fAttn(nn.Module):
             (torch.Tensor): Output tensor after processing.
         """
         y = [self.cv1(x)]
-        split = y[0][:, self.c :]
-        y.extend(m(y[-1] if i else split) for i, m in enumerate(self.m))
-        y.append(self.attn(y[-1], guide))
+        x = y[0][:, -self.c :]  # y[0] is the full cv1 output, so chain only its second half
+        for m in self.m:
+            x = m(x)
+            y.append(x)
+        y.append(self.attn(x, guide))
         return self.cv2(torch.cat(y, 1))
 
 
@@ -871,8 +875,10 @@ class RepNCSPELAN4(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through RepNCSPELAN4 layer."""
         y = [self.cv1(x)]
-        split = y[0][:, self.c :]
-        y.extend(m(y[-1] if i else split) for i, m in enumerate([self.cv2, self.cv3]))
+        x = y[0][:, -self.c :]  # y[0] is the full cv1 output, so chain only its second half
+        for m in (self.cv2, self.cv3):
+            x = m(x)
+            y.append(x)
         return self.cv4(torch.cat(y, 1))
 
 

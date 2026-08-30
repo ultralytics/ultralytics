@@ -400,33 +400,31 @@ class Tuner:
                 scale = sigma * decay * gains
                 scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
                 existing = {tuple(row[1:]) for row in history}
-                covariance = None
-                if len(history) >= 4:
-                    n_elite = min(max(3, int(np.ceil(len(history) * 0.2))), 30)
+                covariance = confidence = None
+                if len(history) >= 30:
+                    n_elite = min(int(np.ceil(len(history) * 0.2)), 30)
+                    confidence = min(n_elite / mutable.sum(), 1)
                     elite = np.divide(
                         history[order[:n_elite], 1:] - bounds[:, 0],
                         span,
                         out=np.zeros((n_elite, ng)),
                         where=mutable,
                     )
-                    covariance = np.cov(elite, rowvar=False) * decay**2 + np.diag(np.square(scale))
+                    covariance = np.cov(elite, rowvar=False) * decay**2 * confidence + np.diag(
+                        np.square(scale) / mutable.sum()
+                    )
                 for attempt in range(200):
-                    parent = population[rng.choice(len(x), p=weights / weights.sum())]
-                    if attempt >= 100:
-                        genes = parent.copy()
-                        genes[mutable] = rng.random(mutable.sum())
-                    elif rng.random() < 0.1:
-                        genes = parent.copy()
+                    if attempt < 100:
+                        genes = population[rng.choice(len(x), p=weights / weights.sum())]
                         mask = (rng.random(ng) < 0.5) & mutable
-                        genes[mask] = rng.random(mask.sum())
-                    elif covariance is not None:
-                        proposal = rng.multivariate_normal(parent, covariance)
-                        mask = (rng.random(ng) < 0.5) & mutable
-                        genes = np.where(mask, proposal, parent)
+                        if covariance is not None and rng.random() < 0.4 * confidence:
+                            genes = np.where(mask, rng.multivariate_normal(genes, covariance), genes)
+                            genes = 1 - np.abs(genes % 2 - 1)
+                        else:
+                            genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
                     else:
-                        mask = (rng.random(ng) < 0.5) & mutable
-                        genes = parent + mask * rng.standard_normal(ng) * scale
-                    genes = 1 - np.abs(genes % 2 - 1)
+                        genes = population[rng.choice(len(x), p=weights / weights.sum())].copy()
+                        genes[mutable] = rng.random(mutable.sum())
                     hyp = {k: float(bounds[i, 0] + genes[i] * span[i]) for i, k in enumerate(self.space)}
                     hyp = self._constrain(hyp)
                     if tuple(hyp.values()) not in existing:

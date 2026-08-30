@@ -513,7 +513,20 @@ def find_dataset_yaml(path: Path) -> Path:
     return files[0]
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
+def get_split_fraction(fraction: float | list[float | int], split: str) -> float | int:
+    """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all)."""
+    if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
+        index = splits.index(split)
+        fraction = fraction[index] if index < len(fraction) else 1.0
+    elif split != "train":
+        fraction = 1.0
+    fraction = float(fraction) if fraction in {0, 1} else fraction
+    if split in {"train", "val"} and fraction == 0:
+        raise ValueError(f"{split} fraction must select at least one image")
+    return fraction
+
+
+def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
@@ -522,7 +535,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path) -> str | Path:
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(data))
+        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction))
     return data
 
 

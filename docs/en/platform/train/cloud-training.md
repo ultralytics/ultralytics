@@ -455,7 +455,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
     | `time`          | float  | null      | 0.1-720             | Wall-clock training limit in hours, overrides epochs       |
     | `seed`          | int    | 0         | 0-2147483647        | Random seed for reproducibility                            |
     | `deterministic` | bool   | True      | -                   | Deterministic training mode                                |
-    | `amp`           | bool   | True      | -                   | Automatic mixed precision                                  |
+    | `amp`           | bool/str | True      | true/false/fp16/bf16/fp32 | Training precision                                         |
     | `compile`       | bool   | False     | -                   | Compile with `torch.compile` (slower first epoch)          |
     | `close_mosaic`  | int    | 10        | 0-50                | Disable mosaic in final N epochs                           |
     | `save_period`   | int    | -1        | -1-100              | Save checkpoint every N epochs                             |
@@ -501,7 +501,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
     | Parameter     | Type  | Default | Range   | Description                          |
     | ------------- | ----- | ------- | ------- | ------------------------------------ |
-    | `fraction`    | float | 1.0     | 0.1-1.0 | Fraction of dataset to use           |
+    | `fraction`    | float, int, or list | 1.0 | >0, test >=0 | Training ratio/count or split values; `1` is all, integers >1 are counts, and test `0`/`0.0` is none |
     | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
     | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
     | `rect`        | bool  | False   | -       | Rectangular training                 |
@@ -529,7 +529,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
     | ---------------- | ----- | ------- | --------- | --------------------------- |
     | `box`            | float | 7.5     | 1-50      | Box loss weight             |
     | `cls`            | float | 0.5     | 0.2-4     | Classification loss weight  |
-    | `dfl`            | float | 1.5     | 0.4-6     | Distribution focal loss     |
+    | `dfl`            | float | 1.5     | 0.4-6     | Box-distance loss weight    |
     | `pose`           | float | 12.0    | 1-50      | Pose loss weight (pose only)|
     | `kobj`           | float | 1.0     | 0.5-10    | Keypoint objectness (pose)  |
     | `label_smoothing`| float | 0.0     | 0.0-0.1   | Label smoothing factor      |

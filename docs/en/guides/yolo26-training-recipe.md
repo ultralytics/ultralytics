@@ -23,10 +23,10 @@ All YOLO26 base models were trained in two stages: **[Objects365v1](../datasets/
 Key design choices across all sizes:
 
 - **[Objects365](../datasets/detect/objects365.md) pretraining** for every size before the COCO stage
-- **End-to-end training** (`end2end=True`) with NMS-free one-to-one head
+- **[End-to-end training](end2end-detection.md)** (`end2end=True`) with NMS-free one-to-one head
 - **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (2D linear weights and 4D conv filters, which are reshaped to 2D)
 - **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled for the final epochs (`close_mosaic=8` in pretraining, `close_mosaic=10` on COCO)
-- **Aggressive scale augmentation** (0.56-0.95) to handle objects at different sizes
+- **Aggressive scale augmentation** (0.5-0.95) to handle objects at different sizes
 - **Minimal rotation/shear** for most sizes, keeping geometric distortion low
 
 ## Stage 1: Objects365 Pretraining
@@ -177,7 +177,7 @@ These are the stage 2 values, applied on top of the Objects365 weights above. Th
 
 ### Optimizer and Learning Rate
 
-These optimizer and schedule settings drove COCO pretraining for each size; note how the N model stands apart from the rest:
+These optimizer and schedule settings drove COCO fine-tuning for each size; note how the N model stands apart from the rest:
 
 | Setting         | N       | S       | M       | L       | X       |
 | --------------- | ------- | ------- | ------- | ------- | ------- |
@@ -228,7 +228,7 @@ For a detailed explanation of each technique, see the [YOLO Data Augmentation gu
 
 Values shown as `~0` are below 0.01 in the actual checkpoints (for example, `degrees=0.00012` for the S model) — the augmentation is effectively disabled.
 
-Larger models use more aggressive augmentation overall (higher mixup, copy-paste, and scale), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful rotation, shear, and BGR augmentation.
+Larger models use more aggressive augmentation overall (higher mixup and scale), since they have more capacity and benefit from stronger [regularization](https://www.ultralytics.com/glossary/regularization). The N model is the only size with meaningful rotation, shear, and BGR augmentation.
 
 ### Internal Training Parameters
 
@@ -276,7 +276,7 @@ Fine-tuning with defaults is a strong baseline. Only adjust hyperparameters if y
 **Small datasets (< 1,000 images):**
 
 - Reduce augmentation strength: `mosaic=0.5`, `mixup=0.0`, `copy_paste=0.0`
-- Lower learning rate: `lr0=0.001`
+- Lower learning rate with an explicit optimizer: `optimizer=AdamW`, `lr0=0.001`
 - Use fewer [epochs](https://www.ultralytics.com/glossary/epoch) with patience: `epochs=50`, `patience=20`
 - Consider freezing backbone layers: `freeze=10`
 

@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: Other
+    url: https://github.com/apple/ARKitScenes/blob/main/LICENSE
 description: Explore the ARKitScenes depth dataset for monocular depth estimation. Learn about its structure, usage, pretrained models, and role in YOLO26-Depth training.
 keywords: Ultralytics, YOLO, depth estimation, ARKitScenes, indoor RGB-D, LiDAR, monocular depth, depth dataset
 ---

@@ -175,6 +175,8 @@ For mobile applications (iOS/Android), you'll need to:
 2. **Load Model**: Load the `.pte` file in your application
 3. **Run Inference**: Process images and get predictions
 
+#### iOS
+
 Example iOS integration (Objective-C/C++):
 
 ```objc
@@ -194,6 +196,16 @@ auto tensor = from_blob(input, {1, 3, 640, 640});
 
 // Run inference
 const auto result = module.forward(tensor);
+```
+
+#### Android
+
+Add the [ExecuTorch Android AAR](https://docs.pytorch.org/executorch/stable/using-executorch-android.html) from Maven Central:
+
+```kotlin
+dependencies {
+    implementation("org.pytorch:executorch-android:<version>")
+}
 ```
 
 Example Android integration (Kotlin):

@@ -140,6 +140,7 @@ Use the [`convert_coco()`](../reference/data/converter.md#ultralytics.data.conve
 
 ```text
 my_dataset/converted/
+├── images/      # created but left empty
 └── labels/
     ├── train/   # from instances_train.json
     │   ├── img_001.txt
@@ -285,13 +286,13 @@ for line in label_file.read_text().strip().splitlines():
 
 ### Wrong Class IDs After Conversion
 
-If your model trains but detects wrong object classes, you're likely using `cls91to80=True` (default) on a custom dataset. This maps your `category_id` values through the COCO 91-to-80 lookup table, which is only correct for the standard [COCO dataset](../datasets/detect/coco.md).
+If your model trains but detects wrong object classes, you're likely using `cls91to80=True` (default) on a custom dataset. This maps your `category_id` values through the COCO 91-to-80 lookup table, which is only correct for the standard [COCO dataset](../datasets/detect/coco.md). A `category_id` with no COCO-80 counterpart maps to nothing and raises `TypeError: must be real number, not NoneType` during conversion instead of producing wrong labels.
 
 **Solution**: Always use `cls91to80=False` for custom datasets.
 
 ### No Labels Found During Training
 
-If training shows `WARNING: No labels found` or `0 images, N backgrounds`, your label files are not in the expected directory. `convert_coco()` saves labels to a separate output directory (e.g., `save_dir/labels/train/`), but YOLO expects `labels/` parallel to `images/` inside your dataset directory.
+If the label scan reports `0 images, N backgrounds` and training then aborts with `ValueError: train: No labels found in .../labels/train.cache`, your label files are not in the expected directory. `convert_coco()` saves labels to a separate output directory (e.g., `save_dir/labels/train/`), but YOLO expects `labels/` parallel to `images/` inside your dataset directory.
 
 **Solution**: Move label files to match the expected [directory structure](#3-organize-directory-structure). Make sure `labels/train/` is a sibling of `images/train/`.
 
@@ -303,9 +304,9 @@ If you get `KeyError: 'bbox'` or similar errors when running `convert_coco()`, y
 
 ### Empty Label Files After Conversion
 
-If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height.
+If conversion completes but `.txt` files are empty or missing, all annotations may have `iscrowd: 1` (common with [SAM](../models/sam.md)-generated masks), or [bounding boxes](https://www.ultralytics.com/glossary/bounding-box) have zero width or height. Running with `use_keypoints=True` over a detection-only export produces the same result, because annotations without a `keypoints` field are skipped entirely.
 
-**Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`.
+**Solution**: Inspect your JSON annotations for `iscrowd` values. If using SAM masks, preprocess the JSON to set `iscrowd: 0`. If you passed `use_keypoints=True`, confirm your annotations actually carry `keypoints`.
 
 ### Box-Shaped Polygons From Mask Annotations
 
@@ -345,7 +346,7 @@ The `cls91to80` parameter controls how COCO `category_id` values are mapped to Y
 
 ### Can I train YOLO directly on COCO JSON without converting?
 
-Not with the current YOLO training pipeline — annotations must be in YOLO `.txt` format with one file per image. Use `convert_coco()` to convert your COCO JSON first, then follow this [guide](#step-by-step-conversion-guide) to organize and train. For more on supported formats, see [dataset formats](../datasets/detect/index.md).
+Not without custom code. The default training pipeline expects YOLO `.txt` labels with one file per image, so either run `convert_coco()` and follow this [step-by-step guide](#step-by-step-conversion-guide), or subclass the dataset to parse the COCO JSON on the fly — see [Train YOLO on COCO JSON Without Conversion](coco-json-training.md). For more on supported formats, see [dataset formats](../datasets/detect/index.md).
 
 ### Can I convert COCO segmentation annotations to YOLO format?
 

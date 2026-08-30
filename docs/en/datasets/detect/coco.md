@@ -49,6 +49,8 @@ The COCO dataset is split into three subsets:
 
 The COCO dataset is widely used for training and evaluating [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) models in object detection (such as [Ultralytics YOLO](../../models/yolo26.md), [Faster R-CNN](https://arxiv.org/abs/1506.01497), and [SSD](https://arxiv.org/abs/1512.02325)), [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) (such as [Mask R-CNN](https://arxiv.org/abs/1703.06870)), and keypoint detection (such as [OpenPose](https://arxiv.org/abs/1812.08008)). The dataset's diverse set of object categories, large number of annotated images, and standardized evaluation metrics make it an essential resource for computer vision researchers and practitioners.
 
+Annotations exported from labeling tools in COCO JSON follow this same structure. To train on your own COCO-format data, see [Convert COCO Annotations to YOLO](../../guides/coco-to-yolo.md).
+
 ## Dataset YAML
 
 A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. In the case of the COCO dataset, the `coco.yaml` file is maintained at [https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml).

@@ -168,7 +168,7 @@ cv2.destroyAllWindows()  # destroy all opened windows
 Ultralytics YOLO26 is renowned for its speed, [accuracy](https://www.ultralytics.com/glossary/accuracy), and ease of integration, making it a top choice for object mapping and tracking. Key advantages include:
 
 1. **State-of-the-art Performance**: Delivers high accuracy in real-time object detection.
-2. **Flexibility**: Supports various tasks such as detection, tracking, and distance calculation.
+2. **Flexibility**: Supports detection, tracking, and distance calculation in a single pipeline.
 3. **Community and Support**: Extensive documentation and active GitHub community for troubleshooting and enhancements.
 4. **Ease of Use**: Intuitive API simplifies complex tasks, allowing for rapid deployment and iteration.
 

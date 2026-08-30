@@ -126,6 +126,13 @@ To pull the latest image:
 sudo docker pull ultralytics/ultralytics:latest
 ```
 
+To build an image yourself instead, clone the repository and pass the matching Dockerfile from the table above, using the repository root as the build context:
+
+```bash
+# Build the CPU image locally from docker/Dockerfile-cpu
+sudo docker build -t ultralytics/ultralytics:latest-cpu -f docker/Dockerfile-cpu .
+```
+
 ---
 
 ## Running Ultralytics in Docker Container

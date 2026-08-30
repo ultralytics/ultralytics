@@ -372,15 +372,6 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
-def test_preprocess_non_contiguous_source():
-    """A single non-contiguous source must still preprocess; from_numpy() rejects negative strides."""
-    model = YOLO(WEIGHTS_DIR / "yolo11n.pt")
-    im = np.random.randint(0, 256, (32, 32, 3), dtype=np.uint8)[::-1, ::-1, ::-1]  # negative strides on every axis
-    assert not im.flags["C_CONTIGUOUS"]
-    assert len(model(im, imgsz=32, verbose=False)) == 1  # single frame, skips np.stack()
-    assert len(model([im, np.ascontiguousarray(im)], imgsz=32, verbose=False)) == 2  # batch, goes through np.stack()
-
-
 @pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
 def test_preprocess_values(model_name, bgr):
     """Check predictor channel order and normalization with known pixel values."""

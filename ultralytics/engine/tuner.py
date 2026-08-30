@@ -146,7 +146,7 @@ class Tuner:
         Returns:
             (MongoClient): Connected MongoDB client instance.
         """
-        check_requirements("pymongo")
+        check_requirements("pymongo>=3.9")
 
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
@@ -240,10 +240,24 @@ class Tuner:
             iteration (int): Current iteration number.
         """
         try:
-            self.collection.update_one({"_id": "defaults"}, {"$max": {"last_iteration": iteration - 1}})
+            latest = self.collection.find_one(
+                {"fitness": {"$exists": True}, "iteration": {"$exists": True}},
+                {"iteration": 1},
+                sort=[("iteration", -1)],
+            )
+            iteration = max(iteration, latest["iteration"] + 1 if latest else 1)
             iteration = self.collection.find_one_and_update(
                 {"_id": "defaults"},
-                {"$inc": {"last_iteration": 1}},
+                [
+                    {
+                        "$set": {
+                            "last_iteration": {
+                                "$max": [iteration, {"$add": [{"$ifNull": ["$last_iteration", iteration - 1]}, 1]}]
+                            }
+                        }
+                    }
+                ],
+                upsert=True,
                 return_document=True,
             )["last_iteration"]
             self.collection.insert_one(

@@ -78,6 +78,12 @@ yolo predict model=yolo26n.pt
 
 This downloads the pretrained `yolo26n.pt` checkpoint automatically, runs it on the bundled example images, and saves the annotated results to `runs/detect/predict/`.
 
+Point `source` at an image, video, directory, URL, or stream to run on your own data. Use `source=0` for a live webcam, and add `show=True` to display the annotated stream as it runs:
+
+```bash
+yolo predict model=yolo26n.pt source=0 show=True
+```
+
 The same prediction in Python:
 
 ```python
@@ -89,7 +95,7 @@ results = model("https://ultralytics.com/images/bus.jpg")  # run inference
 
 ## Run Your First Training
 
-Train the same model on the bundled [COCO8](datasets/detect/coco8.md) dataset for 3 epochs:
+Train the same model on the auto-downloading [COCO8](datasets/detect/coco8.md) dataset for 3 epochs:
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml epochs=3
@@ -110,7 +116,7 @@ Swap `coco8.yaml` for your own dataset's YAML to train on your data — see [Tra
 
 ## Next Steps
 
-Check out [YOLO26](models/yolo26.md) for benchmarks and every model variant, or browse [Tasks](tasks/index.md) to find the one that matches your problem — detection, segmentation, semantic segmentation, depth, classification, pose, or OBB. To train on your own data, format it with the [Datasets guide](datasets/index.md) and run [Train mode](modes/train.md). For deeper API coverage beyond this page, see the [Python Guide](usage/python.md) and [CLI Guide](usage/cli.md), or skip straight to a ready-made pipeline with [Solutions](solutions/index.md).
+Check out [YOLO26](models/yolo26.md) for benchmarks and every model variant, or browse [Tasks](tasks/index.md) to find the one that matches your problem — detection, segmentation, semantic segmentation, depth, classification, pose, or OBB. To train on your own data, format it with the [Datasets guide](datasets/index.md) and run [Train mode](modes/train.md). For deeper API coverage beyond this page, see the [Python Guide](usage/python.md) and [CLI Guide](usage/cli.md), set persistent directories and integration toggles in [Settings](usage/settings.md), or skip straight to a ready-made pipeline with [Solutions](solutions/index.md).
 
 ## FAQ
 
@@ -129,6 +135,18 @@ pip install git+https://github.com/ultralytics/ultralytics.git
 ```
 
 Ensure the Git command-line tool is installed on your system.
+
+### How do I install Ultralytics from source for development?
+
+Clone the repository and install it in editable mode so Python runs your local files and picks up every change without reinstalling:
+
+```bash
+git clone https://github.com/ultralytics/ultralytics
+cd ultralytics
+pip install -e .
+```
+
+For forks, custom branches, and pinning a fork in `requirements.txt`, see [Development Installation](help/contributing.md#development-installation).
 
 ### Can I install Ultralytics YOLO using conda?
 

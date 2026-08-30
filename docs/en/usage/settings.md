@@ -76,7 +76,7 @@ The table below overviews the adjustable settings within Ultralytics, including 
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
 | ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.7'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
+| `settings_version` | `'0.0.8'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                              |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
@@ -88,7 +88,6 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
-| `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
 | `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
 | `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
@@ -102,10 +101,9 @@ Revisit these settings as you progress through projects or experiments to ensure
 [Ultralytics Platform]: https://platform.ultralytics.com
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
-[Comet ML]: https://bit.ly/yolov8-readme-comet
+[Comet ML]: ../integrations/comet.md
 [ClearML]: ../integrations/clearml.md
 [MLFlow]: ../integrations/mlflow.md
-[Neptune]: https://neptune.ai/
 [Tensorboard]: ../integrations/tensorboard.md
 [Ray Tune]: ../integrations/ray-tune.md
 [Weights & Biases]: ../integrations/weights-biases.md

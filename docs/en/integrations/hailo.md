@@ -180,7 +180,7 @@ When `data` is omitted, Ultralytics uses a task-specific lightweight calibration
 model.export(format="hailo", name="hailo8", data="my_dataset.yaml")
 ```
 
-`fraction` selects the portion of the dataset used for calibration. More images help only when they represent the deployment domain; out-of-domain images can reduce quantized accuracy and increase optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
+`fraction` selects the ratio or image count used for calibration. `[train, val, test]` lists limit each split, two-item lists leave `test` full, and `0` skips test. More images help only when they represent the deployment domain. Out-of-domain images can reduce quantized accuracy and increase optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
 
 ### Accuracy Expectations by Model Family
 
@@ -336,16 +336,16 @@ Model and pipeline choices often matter more than compiler flags:
 
 ## Export Arguments
 
-| Argument   | Type          | Default   | Description                                                                                                                                                                 |
-| :--------- | :------------ | :-------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | `str`         | `hailo8l` | Target Hailo accelerator architecture                                                                                                                                       |
-| `imgsz`    | `int`, `list` | `640`     | Fixed model input size                                                                                                                                                      |
-| `data`     | `str`         | `None`    | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset. |
-| `fraction` | `float`       | `1.0`     | Fraction of calibration images to use                                                                                                                                       |
-| `quantize` | `int`         | `8`       | Hailo export uses INT8 quantization                                                                                                                                         |
-| `simplify` | `bool`        | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
-| `conf`     | `float`       | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
-| `iou`      | `float`       | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
+| Argument   | Type                      | Default   | Description                                                                                                                                                                 |
+| :--------- | :------------------------ | :-------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | `str`                     | `hailo8l` | Target Hailo accelerator architecture                                                                                                                                       |
+| `imgsz`    | `int`, `list`             | `640`     | Fixed model input size                                                                                                                                                      |
+| `data`     | `str`                     | `None`    | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset. |
+| `fraction` | `float`, `int`, or `list` | `1.0`     | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                    |
+| `quantize` | `int`                     | `8`       | Hailo export uses INT8 quantization                                                                                                                                         |
+| `simplify` | `bool`                    | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
+| `conf`     | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
+| `iou`      | `float`                   | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
 
 For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported.
 

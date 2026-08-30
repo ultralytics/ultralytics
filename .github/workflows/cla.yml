@@ -20,7 +20,7 @@ permissions:
 
 jobs:
   CLA:
-    if: github.event_name == 'pull_request_target' || (github.event.issue.pull_request && (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I sign the CLA'))
+    if: github.event_name == 'pull_request_target' || (github.event.issue.pull_request && (github.event.comment.body == 'recheck' || contains(github.event.comment.body, 'I have read the CLA Document and I sign the CLA')))
     concurrency:
       group: cla-${{ github.event.pull_request.number || github.event.issue.number }}
     runs-on: ubuntu-latest

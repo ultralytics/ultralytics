@@ -2,7 +2,6 @@
 
 import asyncio
 import json
-import random
 import threading
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -106,14 +105,14 @@ def test_convert_depth_ndjson_preserves_scale(tmp_path, depth_server):
 
 
 def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server, monkeypatch):
-    """Reuse complete depth conversions and reconvert when the completion marker is invalidated."""
+    """Reuse a complete subset and reconvert when its completion marker is invalidated."""
     base_url, _ = depth_server
     manifest = tmp_path / "depth.ndjson"
     _write_manifest(manifest, base_url)
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1]))
 
     monkeypatch.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("cache missed"))
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1.0, 1.0])) == yaml_path
 
     monkeypatch.undo()
     depth_path = yaml_path.parent / "depth" / "val" / "2.png"
@@ -121,7 +120,7 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     data = YAML.load(yaml_path)
     data.pop("complete")
     YAML.save(yaml_path, data)
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets")) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1])) == yaml_path
     assert depth_path.is_file()
 
 
@@ -159,18 +158,18 @@ def test_convert_depth_ndjson_rejects_missing_url(tmp_path):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 
-def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
-    """Keep the existing deterministic automatic split behavior for non-depth tasks."""
+def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
+    """Select requested splits while preserving full metadata and two-item list behavior."""
     base_url, _ = depth_server
     records = [
-        {"type": "dataset", "task": "detect", "class_names": {"0": "object"}},
+        {"type": "dataset", "task": "detect"},
         *[
             {
                 "type": "image",
                 "file": f"{index}.jpg",
                 "url": f"{base_url}/train.jpg?signature={index}",
-                "split": "train",
-                "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
+                "split": "test" if index == 9 else "train",
+                "annotations": {"boxes": [[2 if index == 9 else 0, 0.5, 0.5, 1, 1]]},
             }
             for index in range(10)
         ],
@@ -178,8 +177,10 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
-
-    order = list(range(1, len(records)))
-    random.Random(0).shuffle(order)
-    assert (yaml_path.parent / "images" / "val" / f"{order[0]}.jpg").is_file()
+    for fraction, expected_test in (([0.25, 1], {"10.jpg"}), ([0.25, 1, 0], set())):
+        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction))
+        files = [
+            {p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val", "test")
+        ]
+        assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, expected_test]
+        assert YAML.load(yaml_path)["nc"] == 3

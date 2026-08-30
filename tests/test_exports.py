@@ -169,6 +169,24 @@ def test_int8_calibration_validates_split():
         exporter.get_int8_calibration_dataloader()
 
 
+@pytest.mark.parametrize("task", ["classify", "detect"])
+@pytest.mark.parametrize(("fraction", "expected"), [(2, 2), ([1, 3, 0], 3)])
+def test_int8_calibration_fraction(task, fraction, expected, tmp_path):
+    """Check scalar and list fractions select the requested calibration split size for classification and detection."""
+    data = "coco8.yaml"
+    if task == "classify":
+        for split, count in (("train", 2), ("val", 4)):
+            (split_dir := tmp_path / split / "0").mkdir(parents=True)
+            for i in range(count):
+                shutil.copy(SOURCE, split_dir / f"{i}.jpg")
+        data = str(tmp_path)
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task=task)
+    exporter.args = get_cfg(overrides={"data": data, "split": "val", "fraction": fraction, "batch": 1})
+    exporter.imgsz = [32]
+    assert len(exporter.get_int8_calibration_dataloader().dataset) == expected
+
+
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}

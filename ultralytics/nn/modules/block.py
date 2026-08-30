@@ -311,7 +311,7 @@ class C2f(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through C2f layer."""
         y = [self.cv1(x)]
-        x = y[0][:, -self.c :]  # y[0] is the full cv1 output, so chain only its second half
+        x = y[0][:, self.c :]  # y[0] is the full cv1 output, so chain only its second half
         for m in self.m:
             x = m(x)
             y.append(x)
@@ -664,7 +664,7 @@ class C2fAttn(nn.Module):
             (torch.Tensor): Output tensor after processing.
         """
         y = [self.cv1(x)]
-        x = y[0][:, -self.c :]  # y[0] is the full cv1 output, so chain only its second half
+        x = y[0][:, self.c :]  # y[0] is the full cv1 output, so chain only its second half
         for m in self.m:
             x = m(x)
             y.append(x)
@@ -875,7 +875,7 @@ class RepNCSPELAN4(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass through RepNCSPELAN4 layer."""
         y = [self.cv1(x)]
-        x = y[0][:, -self.c :]  # y[0] is the full cv1 output, so chain only its second half
+        x = y[0][:, y[0].shape[1] - self.c :]  # cv1 output is c3 wide, so chain only its trailing self.c channels
         for m in (self.cv2, self.cv3):
             x = m(x)
             y.append(x)

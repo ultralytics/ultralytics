@@ -9,9 +9,9 @@ title: Multi-Object Tracking Datasets
 
 Multi-object tracking is a critical component in video analytics that identifies objects and maintains unique IDs for each detected object across video frames. Ultralytics YOLO provides powerful tracking capabilities that can be applied to various domains including surveillance, sports analytics, and traffic monitoring.
 
-## Dataset Format (Coming Soon)
+## Dataset Format
 
-Ultralytics tracking currently reuses detection, segmentation, pose, or OBB models without requiring tracker-specific training. Native tracker-training support is under active development.
+Track mode does not train a tracker or require a tracker-specific dataset. Train a detection, segmentation, pose, or OBB model with that task's standard dataset format, then use the resulting weights with `model.track()` or `yolo track`. The selected tracker associates the model's predictions across frames at inference time.
 
 ## Available Trackers
 
@@ -106,10 +106,6 @@ To use Multi-Object Tracking with Ultralytics YOLO, you can start by using the P
 
 These commands load the YOLO26 model and use it for tracking objects in the given video source with specific confidence (`conf`) and [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (`iou`) thresholds. For more details, refer to the [track mode documentation](../../modes/track.md).
 
-### What are the upcoming features for training trackers in Ultralytics?
-
-Ultralytics is continuously enhancing its AI models. An upcoming feature will enable the training of standalone trackers. Until then, Multi-Object Detector leverages pretrained detection, segmentation, pose, or OBB models for tracking without requiring standalone training. Stay updated by following our [blog](https://www.ultralytics.com/blog).
-
 ### Why should I use Ultralytics YOLO for multi-object tracking?
 
 Ultralytics YOLO is a state-of-the-art [object detection](https://www.ultralytics.com/glossary/object-detection) model known for its real-time performance and high [accuracy](https://www.ultralytics.com/glossary/accuracy). Using YOLO for multi-object tracking provides several advantages:
@@ -123,7 +119,7 @@ For more details on setting up and using YOLO for tracking, visit our [track usa
 
 ### Can I use custom datasets for multi-object tracking with Ultralytics YOLO?
 
-Yes, you can use custom datasets for multi-object tracking with Ultralytics YOLO. While support for standalone tracker training is an upcoming feature, you can already use pretrained models on your custom datasets. Prepare your datasets in the appropriate format compatible with YOLO and follow the documentation to integrate them.
+Yes. Train a detection, segmentation, pose, or OBB model on your custom dataset, then pass its weights to `model.track()`. The tracker itself runs during inference and does not require separate training data.
 
 ### How do I interpret the results from the Ultralytics YOLO tracking model?
 

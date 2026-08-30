@@ -38,6 +38,7 @@ from .utils import (
     check_file_speeds,
     get_cache_file_path,
     get_hash,
+    get_split_fraction,
     img2label_paths,
     load_dataset_cache_file,
     load_depth,
@@ -100,7 +101,6 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
-        assert not (self.use_segments and self.use_keypoints), "Can not use both segments and keypoints."
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -1034,8 +1034,6 @@ class SemanticDataset(YOLODataset):
         mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if mask.ndim == 3:
-            mask = mask[..., 0]  # Windows patched cv2.imread expands grayscale reads to (H, W, 1)
         if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:
             mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
         if self.label_mapping:
@@ -1151,15 +1149,12 @@ class ClassificationDataset:
         torch_transforms (callable): PyTorch transforms to be applied to the images.
         root (str): Root directory of the dataset.
         prefix (str): Prefix for logging and cache filenames.
-        img_cache (np.ndarray): Contiguous uint8 buffer holding all cached images when caching in RAM.
-        img_offsets (np.ndarray): Flat offset of each image within img_cache.
-        img_shapes (list): (h, w, c) shape of each cached image.
 
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
-        cache_images: Decode all images once into a single contiguous RAM buffer.
+        cache_images: Decode images into one contiguous RAM cache.
     """
 
     def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
@@ -1185,8 +1180,13 @@ class ClassificationDataset:
         self.root = self.base.root
 
         # Initialize attributes
-        if augment and args.fraction < 1.0:  # reduce training fraction
-            self.samples = self.samples[: round(len(self.samples) * args.fraction)]
+        fraction = 1.0 if is_ndjson else get_split_fraction(args.fraction, prefix or ("train" if augment else "val"))
+        count = fraction if isinstance(fraction, int) else round(len(self.samples) * fraction)
+        self.samples = (
+            [self.samples[i] for i in np.linspace(0, len(self.samples) - 1, count, dtype=int)]
+            if count < len(self.samples)
+            else self.samples
+        )
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         cache_mode, self.cache_dir = parse_image_cache(args.cache)
         self.cache_ram = cache_mode == "ram"  # cache images into RAM
@@ -1233,9 +1233,7 @@ class ClassificationDataset:
         """
         f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
         if self.cache_ram:
-            h, w, c = self.img_shapes[i]
-            pos = self.img_offsets[i]
-            im = self.img_cache[pos : pos + h * w * c].reshape(h, w, c)  # zero-copy view
+            im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists():  # load npy
                 fn.parent.mkdir(parents=True, exist_ok=True)
@@ -1268,9 +1266,7 @@ class ClassificationDataset:
                     disable=LOCAL_RANK > 0,
                 )
             )
-        self.img_shapes = [im.shape for im in ims]
-        self.img_offsets = np.cumsum([0] + [im.size for im in ims[:-1]])
-        self.img_cache = np.concatenate([im.reshape(-1) for im in ims])
+        self.img_cache = BaseDataset._ImageCache(ims)
 
     def verify_images(self) -> list[tuple]:
         """Verify all images in dataset.

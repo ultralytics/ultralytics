@@ -112,11 +112,11 @@ The Train tab has three subtabs:
 
 Interactive metric charts over epochs, split into **Training** and **Validation** views when the run produced validation artifacts. The chart groups follow the metrics the run reported:
 
-| Chart Group       | Charts                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------- |
-| **Metrics**       | The task metrics listed under [Model Header](#model-header)                           |
-| **Loss**          | One chart per loss component (box, cls, dfl, …), training solid and validation dashed |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                |
+| Chart Group       | Charts                                                                           |
+| ----------------- | -------------------------------------------------------------------------------- |
+| **Metrics**       | The task metrics listed under [Model Header](#model-header)                      |
+| **Loss**          | One chart per loss component (box, cls, …), training solid and validation dashed |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                           |
 
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 

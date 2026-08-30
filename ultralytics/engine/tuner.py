@@ -240,7 +240,6 @@ class Tuner:
             iteration (int): Current iteration number.
         """
         from pymongo import ReturnDocument
-        from pymongo.errors import PyMongoError
 
         result = {
             "fitness": fitness,
@@ -252,7 +251,9 @@ class Tuner:
         }
         try:
             latest = self.collection.find_one(
-                {"fitness": {"$exists": True}}, {"iteration": 1}, sort=[("iteration", -1)]
+                {"fitness": {"$exists": True}, "iteration": {"$exists": True}},
+                {"iteration": 1},
+                sort=[("iteration", -1)],
             )
             iteration = max(iteration, latest["iteration"] + 1 if latest else 1)
             counter = self.collection.find_one_and_update(
@@ -268,7 +269,7 @@ class Tuner:
                 return_document=ReturnDocument.AFTER,
             )
             self.collection.insert_one({**result, "iteration": counter["last_iteration"]})
-        except PyMongoError as e:
+        except Exception as e:
             LOGGER.warning(f"{self.prefix}MongoDB save failed: {e}")
 
     def _sync_mongodb_to_file(self):

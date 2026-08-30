@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import platform
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -10,7 +11,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from ultralytics.utils import ARM64, LOGGER
+from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13, smart_inference_mode
@@ -185,7 +186,7 @@ class AutoBackend(nn.Module):
         fp16: bool = False,
         fuse: bool = True,
         verbose: bool = True,
-        channels_last: bool = False,
+        channels_last: bool | None = None,
     ):
         """Initialize the AutoBackend for inference.
 
@@ -197,7 +198,7 @@ class AutoBackend(nn.Module):
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
-            channels_last (bool): Use channels-last memory format for supported native PyTorch models.
+            channels_last (bool, optional): Use channels-last memory format, or auto-enable it on supported x86 CPUs.
         """
         super().__init__()
         device = device or torch.device("cpu")
@@ -245,10 +246,12 @@ class AutoBackend(nn.Module):
             supported = device_type == "cuda" or (
                 TORCH_1_13
                 and device_type == "cpu"
-                and not ARM64
+                and platform.machine() in {"AMD64", "x86_64"}
                 and torch.backends.mkldnn.is_available()
                 and torch.backends.mkldnn.enabled
             )
+            if channels_last is None:
+                channels_last = device_type == "cpu" and supported and (LINUX or WINDOWS)
             if channels_last and not supported:
                 LOGGER.warning(f"'channels_last=True' is not supported on '{device_type}', ignoring.")
             self.backend.model.to(

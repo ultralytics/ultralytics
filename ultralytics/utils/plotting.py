@@ -971,7 +971,7 @@ def plot_images(
                         kpts_[..., 0] *= w  # scale to pixels
                         kpts_[..., 1] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
-                        kpts_ *= scale
+                        kpts_[..., :2] *= scale
                 kpts_[..., 0] += x
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):

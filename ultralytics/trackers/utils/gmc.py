@@ -72,7 +72,7 @@ class GMC:
             self.feature_params = {
                 "maxCorners": 1000,
                 "qualityLevel": 0.01,
-                "minDistance": 1,
+                "minDistance": 0,  # integer-pixel corners: 1 rejects nothing but forces a per-pixel grid
                 "blockSize": 3,
                 "useHarrisDetector": False,
                 "k": 0.04,

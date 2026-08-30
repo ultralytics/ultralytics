@@ -58,19 +58,19 @@ Using the maximum batch size supported by your GPU, you can fully take advantage
   <strong>Watch:</strong> How to Use Batch Inference with Ultralytics YOLO26 | Speed Up Object Detection in Python 🎉
 </p>
 
-With respect to YOLO26, you can set the `batch` parameter in the [training configuration](../modes/train.md) to match your GPU capacity. Also, setting `batch=-1` in your training script will automatically determine the [batch size](https://www.ultralytics.com/glossary/batch-size) that can be efficiently processed based on your device's capabilities. By fine-tuning the batch size, you can make the most of your GPU resources and improve the overall training process.
+With respect to YOLO26, you can set the `batch` parameter in the [Train mode arguments](../modes/train.md) to match your GPU capacity. On a single accelerator, `batch=-1` profiles the model and picks a [batch size](https://www.ultralytics.com/glossary/batch-size) targeting roughly 60% memory utilization; a fraction such as `batch=0.70` targets a different share. Multi-GPU runs require an explicit global batch size that is a multiple of the device count. On CPU and Apple silicon, AutoBatch warns and falls back to `batch=16`.
 
 ### Subset Training
 
 Subset training is a smart strategy that involves training your model on a smaller set of data that represents the larger dataset. It can save time and resources, especially during initial model development and testing. If you are running short on time or experimenting with different model configurations, subset training is a good option.
 
-When it comes to YOLO26, you can easily implement subset training by using the `fraction` parameter. This parameter lets you specify what fraction of your dataset to use for training. For example, setting `fraction=0.1` will train your model on 10% of the data. You can use this technique for quick iterations and tuning your model before committing to training a model using a full dataset. Subset training helps you make rapid progress and identify potential issues early on.
+When it comes to YOLO26, you can easily implement subset training with the `fraction` parameter. Use a ratio such as `fraction=0.1` for 10% of the training data, an integer such as `fraction=300` for exactly 300 training images, or a `[train, val, test]` list such as `fraction=[300, 100, 0]` to limit each split and skip test images. Two-item lists such as `[300, 100]` leave the test split full. NDJSON datasets select evenly spaced records before downloading them, so repeated runs reuse the exact subset. This technique supports quick iterations and tuning before committing to the full dataset.
 
 ### Multi-scale Training
 
-Multiscale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust.
+Multi-scale training is a technique that improves your model's ability to generalize by training it on images of varying sizes. Your model can learn to detect objects at different scales and distances and become more robust.
 
-For example, when you train YOLO26, you can enable multiscale training by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` randomly zooms training images by a factor between 0.5 and 1.5 during training. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
+For example, when you train YOLO26, you can enable scale augmentation by setting the `scale` parameter. This parameter adjusts the size of training images by a specified factor, simulating objects at different distances. For example, setting `scale=0.5` randomly zooms training images by a factor between 0.5 and 1.5 during training. Configuring this parameter allows your model to experience a variety of image scales and improve its detection capabilities across different object sizes and scenarios.
 
 Ultralytics also supports image-size multi-scale training via the `multi_scale` parameter. Unlike `scale`, which zooms images and then pads/crops back to `imgsz`, `multi_scale` changes `imgsz` itself each batch (rounded to the model stride). For example, with `imgsz=640` and `multi_scale=0.25`, the training size is sampled from 480 up to 800 in stride steps (e.g., 480, 512, 544, ..., 800), while `multi_scale=0.0` keeps a fixed size.
 
@@ -94,20 +94,21 @@ Mixed precision training uses both 16-bit (FP16) and 32-bit (FP32) floating-poin
 
 To implement mixed precision training, you'll need to modify your training scripts and ensure your hardware (like GPUs) supports it. Many modern [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) frameworks, such as [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), offer built-in support for mixed precision.
 
-Mixed precision training is straightforward when working with YOLO26. You can use the `amp` flag in your training configuration. Setting `amp=True` enables Automatic Mixed Precision (AMP) training. Mixed precision training is a simple yet effective way to optimize your model training process.
+Mixed precision training is straightforward when working with YOLO26: AMP is already on by default (`amp=True`). On a CUDA GPU, YOLO runs a one-time capability check at the start of training and falls back to full FP32 if it fails; on CPU and Apple silicon AMP is skipped entirely. Set `amp=False` to force FP32.
 
 ### Pretrained Weights
 
 Using pretrained weights is a smart way to speed up your model's training process. Pretrained weights come from models already trained on large datasets, giving your model a head start. [Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) adapts pretrained models to new, related tasks. Fine-tuning a pretrained model involves starting with these weights and then continuing training on your specific dataset. This method of training results in faster training times and often better performance because the model starts with a solid understanding of basic features.
 
-The `pretrained` parameter makes transfer learning easy with YOLO26. Setting `pretrained=True` will use default pretrained weights, or you can specify a path to a custom pretrained model. Using pretrained weights and transfer learning effectively boosts your model's capabilities and reduces training costs.
+Pretrained weights come from the `model` argument, so `model=yolo26n.pt` already starts from COCO weights. The `pretrained` parameter controls whether those weights are kept (`True`, the default), discarded (`False`), or replaced by another checkpoint (`pretrained=path/to/best.pt`). Setting `pretrained=True` on a `*.yaml` model does not fetch weights on its own. See [How to Fine-Tune YOLO on a Custom Dataset](./finetuning-guide.md) for the full transfer-learning workflow.
 
 ### Other Techniques to Consider When Handling a Large Dataset
 
 There are a couple of other techniques to consider when handling a large dataset:
 
-- **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate.
+- **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. For behavior no argument exposes, such as per-layer learning rates or gradient clipping, [subclass the trainer](./custom-trainer.md).
 - **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
+- **Channels-last memory format**: `channels_last=True` uses NHWC memory layout on CUDA, which can improve convolution performance on compatible hardware. Other devices warn and keep the default layout.
 
 ## The Number of Epochs To Train For
 
@@ -166,7 +167,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
     - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
-For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
+For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on the number of training iterations.
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml optimizer=MuSGD
@@ -195,19 +196,19 @@ Training computer vision models involves following good practices, optimizing yo
 
 ### How can I improve GPU utilization when training a large dataset with Ultralytics YOLO?
 
-To improve GPU utilization, set the `batch` parameter in your training configuration to the maximum size supported by your GPU. This ensures that you make full use of the GPU's capabilities, reducing training time. If you encounter memory errors, incrementally reduce the batch size until training runs smoothly. For YOLO26, setting `batch=-1` in your training script will automatically determine the optimal batch size for efficient processing. For further information, refer to the [training configuration](../modes/train.md).
+To improve GPU utilization, set the `batch` parameter to the maximum size supported by your GPU. On a single accelerator, `batch=-1` profiles the model and targets roughly 60% memory utilization. It falls back to `batch=16` on CPU and Apple silicon, while multi-GPU runs require an explicit global batch size that is a multiple of the device count. For further information, refer to the [Train mode arguments](../modes/train.md).
 
 ### What is mixed precision training, and how do I enable it in YOLO26?
 
-Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. This approach speeds up training and reduces memory usage without sacrificing model [accuracy](https://www.ultralytics.com/glossary/accuracy). To enable mixed precision training in YOLO26, set the `amp` parameter to `True` in your training configuration. This activates Automatic Mixed Precision (AMP) training. For more details on this optimization technique, see the [training configuration](../modes/train.md).
+Mixed precision training utilizes both 16-bit (FP16) and 32-bit (FP32) floating-point types to balance computational speed and precision. In YOLO26 it is enabled by default through `amp=True`; set `amp=False` to force FP32. AMP is skipped on CPU and Apple silicon. For more details, see the [Train mode arguments](../modes/train.md).
 
-### How does multiscale training enhance YOLO26 model performance?
+### How does multi-scale training enhance YOLO26 model performance?
 
-Multiscale training enhances model performance by training on images of varying sizes, allowing the model to better generalize across different scales and distances. In YOLO26, you can enable multiscale training by setting the `scale` parameter in the training configuration. For example, `scale=0.5` samples a zoom factor between 0.5 and 1.5, then pads/crops back to `imgsz`. This technique simulates objects at different distances, making the model more robust across various scenarios. For settings and more details, check out the [training configuration](../modes/train.md).
+Multi-scale training enhances model performance by training on images of varying sizes, allowing the model to better generalize across different scales and distances. YOLO26 offers two separate parameters for this. `scale=0.5` samples a zoom factor between 0.5 and 1.5 and then pads or crops back to a fixed `imgsz`, while `multi_scale=0.25` varies `imgsz` itself each batch in stride steps. For settings and more details, check out the [Train mode documentation](../modes/train.md).
 
 ### How can I use pretrained weights to speed up training in YOLO26?
 
-Using pretrained weights can greatly accelerate training and enhance model accuracy by leveraging a model already familiar with foundational visual features. In YOLO26, simply set the `pretrained` parameter to `True` or provide a path to your custom pretrained weights in the training configuration. This method, called transfer learning, allows models trained on large datasets to be effectively adapted to your specific application. Learn more about how to use pretrained weights and their benefits in the [training configuration guide](../modes/train.md).
+Using pretrained weights can greatly accelerate training and enhance model accuracy by leveraging a model already familiar with foundational visual features. Load them through the `model` argument, as in `model=yolo26n.pt`; `pretrained` then decides whether those weights are kept (`True`, the default), discarded (`False`), or replaced by another checkpoint (`pretrained=path/to/best.pt`, the way to transfer weights into a `model=*.yaml` build). Learn more in the [Train mode documentation](../modes/train.md).
 
 ### What is the recommended number of epochs for training a model, and how do I set this in YOLO26?
 

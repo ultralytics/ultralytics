@@ -59,7 +59,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     pip install -U pip
     git clone https://github.com/ultralytics/ultralytics
     cd ultralytics
-    pip install -e ".[export]" onnxslim
+    pip install -e . onnx onnxslim
     ```
 
 2.  Clone the DeepStream-Yolo repository

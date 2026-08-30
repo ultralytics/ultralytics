@@ -11,7 +11,7 @@ This guide walks you through building a **semantic image search** engine using [
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zplKRlX3sLg"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/eotJNQwboWA"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>

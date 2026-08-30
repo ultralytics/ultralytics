@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 from copy import copy
+from typing import Any
 
 import torch
 import torch.nn.functional as F
@@ -150,6 +151,26 @@ class RTDETRDEIMSegmentationValidator(SegmentationValidator):
                 }
             )
         return outputs
+
+    def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
+        """Map predictions from square imgsz space back to the original image size.
+
+        RT-DETR stretches each image to a square, so width and height use different ratios. ``ops.scale_boxes`` and
+        ``ops.scale_masks`` assume one uniform gain plus letterbox padding and cannot express that.
+        """
+        img_h, img_w = pbatch["imgsz"]
+        ori_h, ori_w = pbatch["ori_shape"]
+        bboxes = predn["bboxes"].clone()
+        bboxes[..., [0, 2]] *= ori_w / img_w
+        bboxes[..., [1, 3]] *= ori_h / img_h
+        masks = F.interpolate(
+            predn["masks"][None].float(), (ori_h, ori_w), mode="bilinear", align_corners=False
+        )[0]
+        return {
+            **predn,
+            "bboxes": ops.clip_boxes(bboxes, pbatch["ori_shape"]),
+            "masks": (masks > 0.5).byte(),
+        }
 
 
 class RTDETRDEIMSegmentationTrainer(RTDETRDEIMTrainer):

@@ -40,7 +40,7 @@ def _load_completed_args(child: Path, uri: str, provenance: dict) -> dict | None
     if not predictions_path.is_file() or not args_path.is_file():
         return None
     saved = YAML.load(args_path) or {}
-    if any(key not in saved for key in (*provenance, "platform_uri", "data", "train_metrics")):
+    if any(key not in saved for key in (*provenance, "platform_uri", "data", "max_det", "train_metrics")):
         return None
     _validate_predictions(predictions_path)
     mismatched = {key: (saved.get(key), value) for key, value in provenance.items() if saved.get(key) != value}
@@ -50,6 +50,8 @@ def _load_completed_args(child: Path, uri: str, provenance: dict) -> dict | None
         mismatched["data"] = (saved["data"], "existing local YAML")
     if not isinstance(saved["train_metrics"], dict) or not saved["train_metrics"]:
         mismatched["train_metrics"] = (saved["train_metrics"], "non-empty metrics dictionary")
+    if type(saved["max_det"]) is not int or saved["max_det"] < 1:
+        mismatched["max_det"] = (saved["max_det"], "positive integer")
     if mismatched:
         raise ValueError(f"Refusing to skip {child.name} with changed provenance: {mismatched}")
     return saved
@@ -97,14 +99,13 @@ def main() -> None:
         "deterministic": True,
         "fraction": FRACTION,
         "save_json": True,
-        "max_det": 300,
         "plots": False,
     }
     source_sha256 = source_hash.hexdigest()
     provenance = {
         "source_name": source_model.name,
         "source_sha256": source_sha256,
-        **{key: common[key] for key in ("epochs", "imgsz", "fraction", "save_json", "max_det", "deterministic")},
+        **{key: common[key] for key in ("epochs", "imgsz", "fraction", "save_json", "deterministic")},
         "cls_remap": True,
         "seed": 0,
     }
@@ -138,7 +139,8 @@ def main() -> None:
         if not predictions_path.is_file():
             predictions_path.write_text("[]")
         _validate_predictions(predictions_path)
-        resolved_data = Path(torch_load(checkpoint)["train_args"]["data"]).resolve()
+        train_args = torch_load(checkpoint)["train_args"]
+        resolved_data = Path(train_args["data"]).resolve()
         if not resolved_data.is_file():
             raise FileNotFoundError(f"Resolved dataset YAML is missing for {name}: {resolved_data}")
         saved = YAML.load(child / "args.yaml")
@@ -148,6 +150,7 @@ def main() -> None:
             source_model=str(source_model),
             source_name=source_model.name,
             source_sha256=source_sha256,
+            max_det=train_args["max_det"],
             train_metrics={key: float(value) for key, value in results[name].items()},
         )
         YAML.save(child / "args.yaml", saved)

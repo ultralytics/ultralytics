@@ -27,7 +27,6 @@ from faster_coco_eval import COCO, COCOeval_faster  # noqa: E402, RUF100
 
 DATASETS = Path(__file__).with_name("ul37_platform_uris.txt")
 REFERENCE_SIZE = 640
-MAX_DET = 300
 MIN_BUCKET_OBJECTS = 10
 SIZE_RANGES = {"tiny": [0, 10**2], "small": [0, 32**2], "medium": [32**2, 96**2], "large": [96**2, 1e5**2]}
 SIZE_LABELS = {"tiny": "T", "small": "S", "medium": "M", "large": "L"}
@@ -77,7 +76,9 @@ def build_ground_truth(data_yaml: str | Path) -> tuple[COCO, dict[str, int], dic
     )
 
 
-def evaluate_predictions(ground_truth: COCO, detections: list[dict]) -> tuple[dict[str, float], dict[str, float]]:
+def evaluate_predictions(
+    ground_truth: COCO, detections: list[dict], max_det: int
+) -> tuple[dict[str, float], dict[str, float]]:
     """Calculate size-aware AP50 and AP50-95 from saved detections."""
     predictions = (
         ground_truth.loadRes(detections)
@@ -102,7 +103,7 @@ def evaluate_predictions(ground_truth: COCO, detections: list[dict]) -> tuple[di
         print_function=lambda *args, **kwargs: None,
     )
     evaluator.params.imgIds = ground_truth.getImgIds()
-    evaluator.params.maxDets = [1, 10, MAX_DET]
+    evaluator.params.maxDets = [1, 10, max_det]
     evaluator.evaluate()
     evaluator.accumulate()
     evaluator.summarize()
@@ -119,7 +120,7 @@ def evaluate_predictions(ground_truth: COCO, detections: list[dict]) -> tuple[di
     return ap50, {size: float(evaluator.stats_as_dict[f"AP_{size}"]) for size in SIZE_RANGES}
 
 
-def calculate_overall_metrics(ground_truth: COCO, detections: list[dict]) -> dict[str, float]:
+def calculate_overall_metrics(ground_truth: COCO, detections: list[dict], max_det: int) -> dict[str, float]:
     """Calculate overall Ultralytics mAP and F1 from saved detections."""
     detections_by_image = defaultdict(list)
     for detection in detections:
@@ -128,7 +129,7 @@ def calculate_overall_metrics(ground_truth: COCO, detections: list[dict]) -> dic
     correct, confidence, predicted_classes, target_classes = [], [], [], []
     for image_id in ground_truth.getImgIds():
         targets = ground_truth.loadAnns(ground_truth.getAnnIds(imgIds=[image_id]))
-        predictions = sorted(detections_by_image[image_id], key=lambda item: item["score"], reverse=True)[:MAX_DET]
+        predictions = sorted(detections_by_image[image_id], key=lambda item: item["score"], reverse=True)[:max_det]
         target_classes.extend(target["category_id"] for target in targets)
         matches = np.zeros((len(predictions), len(IOU_THRESHOLDS)), dtype=bool)
         if targets and predictions:
@@ -165,7 +166,7 @@ def calculate_overall_metrics(ground_truth: COCO, detections: list[dict]) -> dic
     }
 
 
-def evaluate_dataset(dataset: str, data_yaml: Path, run_dir: Path) -> tuple[str, dict[str, float]]:
+def evaluate_dataset(dataset: str, data_yaml: Path, run_dir: Path, max_det: int) -> tuple[str, dict[str, float]]:
     """Evaluate one dataset from its prediction artifact."""
     with contextlib.redirect_stdout(io.StringIO()):
         ground_truth, file_ids, size_objects = build_ground_truth(data_yaml)
@@ -173,9 +174,9 @@ def evaluate_dataset(dataset: str, data_yaml: Path, run_dir: Path) -> tuple[str,
     for detection in detections:
         detection["image_id"] = file_ids[detection["file_name"]]
     with contextlib.redirect_stdout(io.StringIO()):
-        ap50, ap5095 = evaluate_predictions(ground_truth, detections)
+        ap50, ap5095 = evaluate_predictions(ground_truth, detections, max_det)
     metrics = {
-        **calculate_overall_metrics(ground_truth, detections),
+        **calculate_overall_metrics(ground_truth, detections, max_det),
         **{f"mAP50-{SIZE_LABELS[size]}": ap50[size] for size in SIZE_RANGES},
         **{f"mAP50-95-{SIZE_LABELS[size]}": ap5095[size] for size in SIZE_RANGES},
     }
@@ -205,13 +206,14 @@ def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
     if set(core_results) != datasets.keys() or any(result is None for result in core_results.values()):
         raise ValueError("multitrain_results.json does not contain 37 successful datasets")
 
-    data_yamls = {}
+    data_yamls, max_dets = {}, {}
     for dataset, uri in datasets.items():
         saved = YAML.load(run_dir / dataset / "args.yaml")
         data_yaml = Path(saved["data"]) if saved.get("data") else None
         if (
             saved.get("platform_uri") != uri
             or saved.get("imgsz") != imgsz
+            or type(saved.get("max_det")) is not int
             or data_yaml is None
             or not data_yaml.is_file()
         ):
@@ -220,12 +222,14 @@ def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
                 f"imgsz={saved.get('imgsz')}, {data_yaml}"
             )
         data_yamls[dataset] = data_yaml
+        max_dets[dataset] = saved["max_det"]
 
     rows = {}
     values = defaultdict(list)
     with ProcessPoolExecutor(max_workers=4, mp_context=multiprocessing.get_context("spawn")) as executor:
         futures = {
-            executor.submit(evaluate_dataset, dataset, data_yamls[dataset], run_dir): dataset for dataset in datasets
+            executor.submit(evaluate_dataset, dataset, data_yamls[dataset], run_dir, max_dets[dataset]): dataset
+            for dataset in datasets
         }
         for future in as_completed(futures):
             dataset, metrics = future.result()
@@ -243,7 +247,7 @@ def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
         "evaluator": {
             "metric_source": "predictions.json",
             "training_imgsz": imgsz,
-            "max_det": MAX_DET,
+            "max_det": dict(sorted(max_dets.items())),
             "reference_size": REFERENCE_SIZE,
             "area_scale": "(640 / max(image_width, image_height)) ** 2",
             "min_bucket_objects": MIN_BUCKET_OBJECTS,

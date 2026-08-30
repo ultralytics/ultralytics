@@ -13,8 +13,7 @@ import torch.distributed as dist
 from ultralytics.data import build_dataloader, build_yolo_dataset, converter
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.engine.validator import BaseValidator
-from ultralytics.nn.autobackend import check_class_names
-from ultralytics.utils import LOGGER, RANK, nms, ops
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, nms, ops
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.metrics import ConfusionMatrix, DetMetrics, box_iou
 from ultralytics.utils.plotting import plot_images
@@ -63,6 +62,40 @@ class DetectionValidator(BaseValidator):
         self.niou = self.iouv.numel()
         self.metrics = DetMetrics()
 
+    @staticmethod
+    def _check_max_det(args, datasets: dict[str, torch.utils.data.Dataset]) -> None:
+        """Warn when dataset object counts exceed max_det and raise the default limit to the observed maximum."""
+        maxima = {
+            split: max(
+                (
+                    len(label["cls"])
+                    for subset in getattr(dataset, "datasets", [dataset])
+                    if hasattr(subset, "labels")
+                    for label in subset.labels
+                    if isinstance(label, dict) and getattr(label.get("cls"), "ndim", 0) > 0
+                ),
+                default=0,
+            )
+            for split, dataset in datasets.items()
+        }
+        observed = max(maxima.values())
+        if observed <= args.max_det:
+            return
+
+        split_counts = ", ".join(f"{split}={count}" for split, count in maxima.items())
+        message = (
+            f"Dataset images contain up to {observed} objects ({split_counts}), but max_det={args.max_det}. "
+            "This mismatch can cap recall and produce invalid validation metrics."
+            " Raising it may increase validation cost but cannot increase model or export capacity, which may cap recall."
+        )
+        if args.max_det == DEFAULT_CFG.max_det:
+            args.max_det = observed
+            message += f" Setting max_det={observed} to match the observed maximum."
+        else:
+            message += f" Keeping the user-specified max_det={args.max_det}."
+        if RANK in {-1, 0}:
+            LOGGER.warning(message)
+
     def preprocess(self, batch: dict[str, Any]) -> dict[str, Any]:
         """Preprocess batch of images for YOLO validation.
 
@@ -84,6 +117,8 @@ class DetectionValidator(BaseValidator):
         Args:
             model (torch.nn.Module): Model to validate.
         """
+        if not self.training:
+            self._check_max_det(self.args, {self.args.split or "val": self.dataloader.dataset})
         val = self.data.get(self.args.split, "")  # validation path
         self.is_coco = (
             isinstance(val, str)
@@ -93,35 +128,21 @@ class DetectionValidator(BaseValidator):
         self.is_lvis = isinstance(val, str) and "lvis" in val and not self.is_coco  # is LVIS
         self.class_map = converter.coco80_to_coco91_class() if self.is_coco else list(range(1, len(model.names) + 1))
         self.args.save_json |= self.args.val and (self.is_coco or self.is_lvis) and not self.training  # run final val
-        self.names = check_class_names(model.names)
+        self.names = model.names
         self.nc = len(model.names)
         self.end2end = getattr(model, "end2end", False)
+        native_model = model.model if getattr(model, "format", None) == "pt" else model
+        if self.end2end and hasattr(native_model, "set_head_attr"):
+            native_model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
         self.seen = 0
-        self.jdict, self.eval_ids = [], []
+        self.jdict = []
         self.is_custom_json = self.args.save_json and self.args.task == "detect" and not (self.is_coco or self.is_lvis)
-        self.gdict = getattr(self.dataloader.dataset, "_coco_data", None) if self.is_custom_json else None
-        if self.is_custom_json:
-            datasets = getattr(self.dataloader.dataset, "datasets", (self.dataloader.dataset,))
-            if self.gdict is None and RANK in {-1, 0}:
-                annotations = []
-                for image_id, label in enumerate(x for d in datasets for x in d.labels):
-                    boxes = ops.xywh2ltwh(label["bboxes"] * np.tile(label["shape"][::-1], 2)).tolist()
-                    annotations += [
-                        {
-                            "id": len(annotations) + i + 1,
-                            "image_id": image_id,
-                            "category_id": self.class_map[int(c)],
-                            "bbox": b,
-                            "area": b[2] * b[3],
-                            "iscrowd": 0,
-                        }
-                        for i, (b, c) in enumerate(zip(boxes, label["cls"].ravel()))
-                    ]
-                self.gdict = self.dataloader.dataset._coco_data = {
-                    "images": [{"id": i} for i in range(len(self.dataloader.dataset))],
-                    "annotations": annotations,
-                    "categories": [{"id": self.class_map[i], "name": name} for i, name in self.names.items()],
-                }
+        self.gdict = getattr(self, "gdict", None) if self.is_custom_json else None
+        self.build_gdict = self.is_custom_json and self.gdict is None
+        self.eval_ids = list(self.dataloader.sampler) if self.is_custom_json else None
+        self.pred_counts = []
+        if self.build_gdict:
+            self.gdict = {"images": [], "annotations": [], "categories": [{"id": x} for x in self.class_map]}
         self.metrics.names = model.names
         self.metrics.clear_stats()
         self.metrics.clear_image_metrics()
@@ -204,9 +225,28 @@ class DetectionValidator(BaseValidator):
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)
-            predn = self._prepare_pred(pred)
-
             cls = pbatch["cls"].cpu().numpy()
+            im_idx = self.eval_ids[self.seen - 1] if self.is_custom_json else None
+            if self.build_gdict:
+                boxes = ops.xyxy2ltwh(
+                    ops.scale_boxes(pbatch["imgsz"], pbatch["bboxes"].clone(), pbatch["ori_shape"], pbatch["ratio_pad"])
+                ).tolist()
+                self.gdict["images"].append({"id": im_idx})
+                self.gdict["annotations"].extend(
+                    {
+                        "id": (im_idx << 32 | i) + 1,
+                        "image_id": im_idx,
+                        "category_id": self.class_map[int(c)],
+                        "bbox": b,
+                        "area": b[2] * b[3],
+                        "iscrowd": 0,
+                    }
+                    for i, (b, c) in enumerate(zip(boxes, cls))
+                )
+            predn = self._prepare_pred(pred)
+            if self.is_custom_json:
+                self.pred_counts.append(len(predn["cls"]))
+
             no_pred = predn["cls"].shape[0] == 0
             self.metrics.update_stats(
                 {
@@ -236,8 +276,6 @@ class DetectionValidator(BaseValidator):
                 predn_scaled = self.scale_preds(predn, pbatch)
             if self.args.save_json:
                 self.pred_to_json(predn_scaled, pbatch)
-                if self.is_custom_json:
-                    self.eval_ids.append((len(predn_scaled["bboxes"]), int(batch["im_idx"][si])))
             if self.args.save_txt:
                 self.save_one_txt(
                     predn_scaled,
@@ -277,18 +315,23 @@ class DetectionValidator(BaseValidator):
             for stats_dict in gathered_stats:
                 for key, value in stats_dict.items():
                     merged_stats[key].extend(value)
-            gathered_jdict = [None] * dist.get_world_size()
-            dist.gather_object((self.jdict, self.eval_ids), gathered_jdict, dst=0)
-            self.jdict = [x for jdict, _ in gathered_jdict for x in jdict]
-            self.eval_ids = [x for _, eval_ids in gathered_jdict for x in eval_ids]
+            gathered_json = [None] * dist.get_world_size()
+            dist.gather_object(
+                (self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), gathered_json, dst=0
+            )
+            self.jdict = [x for jdict, _, _ in gathered_json for x in jdict]
+            self.pred_counts = [x for _, _, counts in gathered_json for x in counts]
+            if self.build_gdict:
+                for key in "images", "annotations":
+                    self.gdict[key] = [x for _, gdict, _ in gathered_json for x in gdict[key]]
             self.metrics.stats = merged_stats
             self._gather_image_metrics(self.metrics.box)
             self.seen = len(self.dataloader.dataset)  # total image count from dataset
         elif RANK > 0:
             dist.gather_object(self.metrics.stats, None, dst=0)
-            dist.gather_object((self.jdict, self.eval_ids), None, dst=0)
+            dist.gather_object((self.jdict, self.gdict if self.build_gdict else None, self.pred_counts), None, dst=0)
             self._gather_image_metrics(self.metrics.box)
-            self.jdict, self.eval_ids = [], []
+            self.jdict = []
             self.metrics.clear_stats()
         if self.args.plots and RANK > -1:
             matrix = torch.as_tensor(self.confusion_matrix.matrix, device=self.device)
@@ -305,11 +348,9 @@ class DetectionValidator(BaseValidator):
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         stats = self.metrics.results_dict
         if self.args.save_json and self.args.task == "detect":
-            size_keys = [f"metrics/mAP_{x}(B)" for x in ("small", "medium", "large")]
-            stats.update(dict.fromkeys(size_keys, 0.0))
+            stats.update({f"metrics/mAP_{x}(B)": 0.0 for x in ("small", "medium", "large")})
             if self.training:
-                evaluated = self.eval_json(stats.copy())
-                stats.update({key: evaluated[key] for key in size_keys if key in evaluated})
+                stats = self.eval_json(stats)
         self.metrics.clear_stats()
         return stats
 
@@ -493,13 +534,6 @@ class DetectionValidator(BaseValidator):
             ),
         }
 
-    def _prepare_coco_predictions(self) -> list[dict[str, Any]]:
-        """Return in-memory predictions aligned with the generated COCO ground-truth image IDs."""
-        if not self.gdict:
-            return self.jdict
-        image_ids = (image_id for n, image_id in self.eval_ids for _ in range(n))
-        return [{**prediction, "image_id": image_id} for prediction, image_id in zip(self.jdict, image_ids)]
-
     def eval_json(self, stats: dict[str, Any]) -> dict[str, Any]:
         """Evaluate YOLO output in JSON format and return performance statistics.
 
@@ -518,6 +552,17 @@ class DetectionValidator(BaseValidator):
             / ("instances_val2017.json" if self.is_coco else f"lvis_v1_{self.args.split}.json")
         )
         return self.coco_evaluate(stats, pred_json, anno_json)
+
+    def _prepare_coco_predictions(self) -> list[dict[str, Any]]:
+        """Return predictions aligned with generated COCO ground-truth image IDs."""
+        if not self.gdict:
+            return self.jdict
+        predictions = iter(self.jdict)
+        return [
+            {**next(predictions), "image_id": image["id"]}
+            for image, count in zip(self.gdict["images"], self.pred_counts)
+            for _ in range(count)
+        ]
 
     def coco_evaluate(
         self,
@@ -556,10 +601,14 @@ class DetectionValidator(BaseValidator):
                         assert Path(x).is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 suffix = [suffix] if isinstance(suffix, str) else suffix
-                check_requirements("faster-coco-eval>=1.7.0")
+                check_requirements(f"faster-coco-eval>={'1.7.0' if ranges else '1.6.7'}")
                 from faster_coco_eval import COCO, COCOeval_faster
 
-                anno = COCO(anno_json) if isinstance(anno_json, (str, Path, dict)) else anno_json
+                if isinstance(anno_json, (str, Path, dict)):
+                    anno = getattr(self, "_coco_api", None) or COCO(anno_json)
+                    self._coco_api = anno
+                else:
+                    anno = anno_json
                 pred = (
                     pred_json
                     if isinstance(pred_json, COCO)
@@ -574,14 +623,13 @@ class DetectionValidator(BaseValidator):
                     else anno.loadRes(pred_json)
                 )
                 for i, iou_type in enumerate(iou_types):
-                    kwargs = {"ranges": ranges} if ranges and iou_type == "bbox" and not class_agnostic else {}
                     val = COCOeval_faster(
                         anno,
                         pred,
                         iouType=iou_type,
                         lvis_style=self.is_lvis,
                         print_function=LOGGER.debug if self.training else LOGGER.info,
-                        **kwargs,
+                        **({"ranges": ranges} if ranges and iou_type == "bbox" and not class_agnostic else {}),
                     )
                     val.params.imgIds = (
                         image_ids
@@ -611,7 +659,7 @@ class DetectionValidator(BaseValidator):
                                 stats[f"metrics/mAP_{size}(B)"] = results[f"AP_{size}"]
                                 if ranges:
                                     stats[f"metrics/mAR_{size}(B)"] = results[f"AR_{size}"]
-                    if self.is_lvis:
+                    if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]
                         stats[f"metrics/APf({suffix[i][0]})"] = val.stats_as_dict["APf"]

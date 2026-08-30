@@ -88,7 +88,6 @@ dev = [
     "pytest-cov",
     "pytest-xdist>=3.0.0",
     "coverage[toml]",
-    "ruff>=0.9.1",
     "zensical>=0.0.53; python_version >= '3.10'",
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
@@ -167,7 +166,7 @@ logging = [
 extra = [
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
-    "faster-coco-eval>=1.7.0", # COCO mAP with custom area ranges
+    "faster-coco-eval>=1.6.7", # COCO mAP
 ]
 typing = [
     "types-pillow",
@@ -226,10 +225,6 @@ split_before_first_argument = false
 [tool.ruff]
 line-length = 120
 target-version = "py38"
-
-[tool.ruff.lint]
-extend-select = ["F", "I", "D", "UP", "RUF", "FA"]
-ignore = ["D100", "D104", "D203", "D205", "D212", "D213", "D401", "D406", "D407", "D413", "RUF001", "RUF002", "RUF012"]
 
 [tool.ruff.format]
 docstring-code-format = true

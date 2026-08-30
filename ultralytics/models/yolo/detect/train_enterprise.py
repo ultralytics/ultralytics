@@ -312,9 +312,6 @@ class EnterpriseDetectionValidator(DetectionValidator):
         self.source_model = model
         self.source_indices = {source: index for index, source in enumerate(self.slices)}
         check_requirements("faster-coco-eval>=1.7.0")
-        from faster_coco_eval import COCO
-
-        self.coco_gt = COCO(self.gdict)
         for metric in self.metrics.source_metrics.values():
             metric.names = model.names
             metric.clear_stats()
@@ -425,6 +422,9 @@ class EnterpriseDetectionValidator(DetectionValidator):
 
     def get_stats(self) -> dict[str, Any]:
         """Return source-aware metrics without merged-dataset COCO evaluation."""
+        from faster_coco_eval import COCO
+
+        self.coco_gt = COCO(self.gdict)
         self.metrics.process(save_dir=self.save_dir, plot=self.args.plots, on_plot=self.on_plot)
         self.metrics.coco_results = {}
         self.metrics.localization_results = {}

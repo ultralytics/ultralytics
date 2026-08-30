@@ -168,7 +168,7 @@ def on_train_end(trainer):
     """Save the best model as an artifact and log final plots at the end of training."""
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     _log_plots(trainer.plots, step=trainer.epoch + 1)
-    if env_bool("WANDB_LOG_MODEL", True) and trainer.best.exists():
+    if trainer.args.save and env_bool("WANDB_LOG_MODEL", True) and trainer.best.exists():
         art = wb.Artifact(type="model", name=f"run_{wb.run.id}_model")
         art.add_file(trainer.best)
         wb.run.log_artifact(art, aliases=["best"])

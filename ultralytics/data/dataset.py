@@ -853,12 +853,6 @@ class YOLOConcatDataset(ConcatDataset):
         """Return every sub-dataset's labels, so trainer paths that read labels work on the concatenation."""
         return [lb for d in self.datasets for lb in d.labels]
 
-    def __getitem__(self, index: int) -> dict:
-        """Return a sample with its global concatenated index."""
-        sample = super().__getitem__(index)
-        sample["im_idx"] = index
-        return sample
-
     @staticmethod
     def collate_fn(batch: list[dict]) -> dict:
         """Collate data samples into batches.

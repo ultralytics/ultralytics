@@ -69,7 +69,7 @@ class SegmentationValidator(DetectionValidator):
         """
         super().init_metrics(model)
         if self.args.save_json:
-            check_requirements("faster-coco-eval>=1.7.0")
+            check_requirements("faster-coco-eval>=1.6.7")
         # More accurate vs faster
         self.process = ops.process_mask_native if self.args.save_json or self.args.save_txt else ops.process_mask
 

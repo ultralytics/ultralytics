@@ -109,6 +109,7 @@ Before diving into the usage instructions for YOLO26 model training with Weights
 | -------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
 | name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
+| save     | `True`  | Determines whether to upload the best checkpoint as a W&B model artifact.                                          |
 
 Set `WANDB_LOG_MODEL=false` to log metrics without uploading the best checkpoint as a model artifact.
 

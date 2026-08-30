@@ -576,7 +576,6 @@ nav:
       - MLflow: integrations/mlflow.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
-      - Neptune: integrations/neptune.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
@@ -833,7 +832,6 @@ nav:
               - comet: reference/utils/callbacks/comet.md
               - dvc: reference/utils/callbacks/dvc.md
               - mlflow: reference/utils/callbacks/mlflow.md
-              - neptune: reference/utils/callbacks/neptune.md
               - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md

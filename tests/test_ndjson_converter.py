@@ -112,7 +112,7 @@ def test_convert_depth_ndjson_reuses_existing_conversion(tmp_path, depth_server,
     yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1]))
 
     monkeypatch.setattr(YAML, "save", lambda *_args, **_kwargs: pytest.fail("cache missed"))
-    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1, 1])) == yaml_path
+    assert asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[1.0, 1.0])) == yaml_path
 
     monkeypatch.undo()
     depth_path = yaml_path.parent / "depth" / "val" / "2.png"
@@ -158,8 +158,8 @@ def test_convert_depth_ndjson_rejects_missing_url(tmp_path):
         asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets"))
 
 
-def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
-    """Keep the existing deterministic automatic split behavior for non-depth tasks."""
+def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
+    """Select requested splits while preserving full metadata and two-item list behavior."""
     base_url, _ = depth_server
     records = [
         {"type": "dataset", "task": "detect"},
@@ -177,8 +177,10 @@ def test_convert_ndjson_preserves_non_depth_auto_split(tmp_path, depth_server):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=[0.25, 1]))
-
-    files = [{p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val", "test")]
-    assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, {"10.jpg"}]
-    assert YAML.load(yaml_path)["nc"] == 3
+    for fraction, expected_test in (([0.25, 1], {"10.jpg"}), ([0.25, 1, 0], set())):
+        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction))
+        files = [
+            {p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val", "test")
+        ]
+        assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, expected_test]
+        assert YAML.load(yaml_path)["nc"] == 3

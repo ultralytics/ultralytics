@@ -35,10 +35,11 @@ To install the required packages, run:
 
         ```bash
         # Install and update Ultralytics and Ray Tune packages
-        pip install -U ultralytics "ray[tune]"
+        pip install -U ultralytics "ray[tune]" optuna
 
-        # Optionally install W&B for logging
+        # Optionally install and enable W&B for per-trial logging
         pip install wandb
+        yolo settings wandb=True
         ```
 
 ## Usage
@@ -61,15 +62,15 @@ To install the required packages, run:
 
 The `tune()` method in YOLO26 provides an easy-to-use interface for hyperparameter tuning with Ray Tune. It accepts several arguments that allow you to customize the tuning process. Below is a detailed explanation of each parameter:
 
-| Parameter       | Type                        | Description                                                                                                                                                                                                                                                                                                                                                                                        | Default Value |
-| --------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `data`          | `str`                       | The dataset YAML to run the tuner on, specifying the training and [validation data](https://www.ultralytics.com/glossary/validation-data) paths and other dataset-specific settings. Classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).                                                                                                             |               |
-| `space`         | `dict, optional`            | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLO26 uses a default search space with various hyperparameters.                                                                                                                         |               |
-| `grace_period`  | `int, optional`             | The grace period in [epochs](https://www.ultralytics.com/glossary/epoch) for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping.                                                       | 10            |
-| `gpu_per_trial` | `int, optional`             | The number of GPUs to allocate per trial during tuning. This helps manage GPU usage, particularly in multi-GPU environments. If not provided, the tuner will use all available GPUs.                                                                                                                                                                                                               | `None`        |
-| `iterations`    | `int, optional`             | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                                                                                                                     | 10            |
-| `search_alg`    | `str or Searcher, optional` | Ray Tune search strategy to use. You can pass a Ray searcher object directly, or use a supported string such as `optuna`, `hyperopt`, `bayesopt`, `bohb`, `hebo`, `nevergrad`, `zoopt`, `ax`, or `random`. String-based searchers automatically use the default task metric and `mode="max"`. If not provided, Ray Tune falls back to its default random search strategy, `BasicVariantGenerator`. | `None`        |
-| `**train_args`  | `dict, optional`            | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, [batch size](https://www.ultralytics.com/glossary/batch-size), and other training-specific configurations.                                                                                                                                            | {}            |
+| Parameter       | Type                        | Description                                                                                                                                                                                                                                                                                                                                                             | Default Value |
+| --------------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `data`          | `str`                       | The dataset YAML to run the tuner on, specifying the training and [validation data](https://www.ultralytics.com/glossary/validation-data) paths and other dataset-specific settings. Classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).                                                                                  |               |
+| `space`         | `dict, optional`            | A dictionary defining the hyperparameter search space for Ray Tune. Each key corresponds to a hyperparameter name, and the value specifies the range of values to explore during tuning. If not provided, YOLO26 uses a default search space with various hyperparameters.                                                                                              |               |
+| `grace_period`  | `int, optional`             | The grace period in [epochs](https://www.ultralytics.com/glossary/epoch) for the [ASHA scheduler](https://docs.ray.io/en/latest/tune/api/schedulers.html) in Ray Tune. The scheduler will not terminate any trial before this number of epochs, allowing the model to have some minimum training before making a decision on early stopping.                            | 10            |
+| `gpu_per_trial` | `int, optional`             | The number of GPUs Ray allocates to each trial. Set this explicitly to use GPU training; when omitted, trials receive no GPU resources.                                                                                                                                                                                                                                 | `None`        |
+| `iterations`    | `int, optional`             | The maximum number of trials to run during tuning. This parameter helps control the total number of hyperparameter combinations tested, ensuring the tuning process does not run indefinitely.                                                                                                                                                                          | 300           |
+| `search_alg`    | `str or Searcher, optional` | Ray Tune search strategy to use. You can pass a Ray searcher object directly, or use a supported string such as `optuna`, `hyperopt`, `bayesopt`, `bohb`, `hebo`, `nevergrad`, `zoopt`, `ax`, or `random`. String-based searchers automatically use the default task metric and `mode="max"`. The default uses Optuna multivariate TPE with parallel-aware suggestions. | `"optuna"`    |
+| `**train_args`  | `dict, optional`            | Additional arguments to pass to the `train()` method during tuning. These arguments can include settings like the number of training epochs, [batch size](https://www.ultralytics.com/glossary/batch-size), and other training-specific configurations.                                                                                                                 | {}            |
 
 By customizing these parameters, you can fine-tune the hyperparameter optimization process to suit your specific needs and available computational resources.
 
@@ -87,6 +88,7 @@ The following table lists the default search space parameters for hyperparameter
 | `warmup_momentum` | `tune.uniform(0.0, 0.95)`  | Initial momentum value that gradually increases during the warmup period.                                                         |
 | `box`             | `tune.uniform(1.0, 20.0)`  | Weight for the bounding box loss component, balancing localization accuracy in the model.                                         |
 | `cls`             | `tune.uniform(0.1, 4.0)`   | Weight for the classification loss component, balancing class prediction accuracy in the model.                                   |
+| `cls_pw`          | `tune.uniform(0.0, 1.0)`   | Class weighting power, from disabled (`0.0`) to full inverse-frequency weighting (`1.0`).                                         |
 | `dfl`             | `tune.uniform(0.4, 12.0)`  | Weight for the box-distance regression component, emphasizing precise bounding box localization.                                  |
 | `hsv_h`           | `tune.uniform(0.0, 0.1)`   | Hue augmentation range that introduces color variability to help the model generalize.                                            |
 | `hsv_s`           | `tune.uniform(0.0, 0.9)`   | Saturation augmentation range that varies color intensity to improve robustness.                                                  |
@@ -132,7 +134,7 @@ In the code snippet above, we create a YOLO model with the "yolo26n.pt" pretrain
 
 ## Search Algorithm Example
 
-You can select a Ray Tune search strategy by name. For string-based search algorithms, Ultralytics will automatically use the current task's default optimization metric and `mode="max"`. If `search_alg` is not provided, Ray Tune uses its default random search strategy, `BasicVariantGenerator`.
+You can select a Ray Tune search strategy by name. For string-based search algorithms, Ultralytics will automatically use the current task's default optimization metric and `mode="max"`. If `search_alg` is not provided, Ultralytics uses Optuna multivariate TPE with parallel-aware suggestions.
 
 !!! example "Using string `search_alg` with `model.tune()`"
 
@@ -266,8 +268,9 @@ To tune the hyperparameters of your Ultralytics YOLO26 model using Ray Tune, fol
 1. **Install the required packages:**
 
     ```bash
-    pip install -U ultralytics "ray[tune]"
+    pip install -U ultralytics "ray[tune]" optuna
     pip install wandb # optional for logging
+    yolo settings wandb=True
     ```
 
 2. **Load your YOLO26 model and start tuning:**
@@ -297,6 +300,7 @@ Ultralytics YOLO26 uses the following default hyperparameters for tuning with Ra
 | `warmup_epochs` | `tune.uniform(0.0, 5.0)`   | Warmup epochs                  |
 | `box`           | `tune.uniform(1.0, 20.0)`  | Box loss weight                |
 | `cls`           | `tune.uniform(0.1, 4.0)`   | Class loss weight              |
+| `cls_pw`        | `tune.uniform(0.0, 1.0)`   | Class weighting power          |
 | `dfl`           | `tune.uniform(0.4, 12.0)`  | Box-distance loss weight       |
 | `hsv_h`         | `tune.uniform(0.0, 0.1)`   | Hue augmentation range         |
 | `translate`     | `tune.uniform(0.0, 0.9)`   | Translation augmentation range |
@@ -311,22 +315,20 @@ To integrate Weights & Biases (W&B) with your Ultralytics YOLO26 tuning process:
 
     ```bash
     pip install wandb
+    wandb login
+    yolo settings wandb=True
     ```
 
-2. **Modify your tuning script:**
+2. **Run the tuner:**
 
     ```python
-    import wandb
-
     from ultralytics import YOLO
-
-    wandb.init(project="YOLO-Tuning", entity="your-entity")
 
     # Load YOLO model
     model = YOLO("yolo26n.pt")
 
-    # Tune hyperparameters
-    result_grid = model.tune(data="coco8.yaml", use_ray=True)
+    # Each Ray trial creates its own W&B run in this project
+    result_grid = model.tune(data="coco8.yaml", project="YOLO-Tuning", use_ray=True)
     ```
 
 This setup will allow you to monitor the tuning process, track hyperparameter configurations, and visualize results in W&B.

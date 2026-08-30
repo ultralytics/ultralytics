@@ -17,6 +17,7 @@ import numpy as np
 from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
@@ -830,7 +831,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
-        fraction (float | int | list): Train ratio/count or [train, val] ratios/counts to download.
+        fraction (float | int | list): Train ratio/count or [train, val, test] ratios/counts to download.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
@@ -851,6 +852,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
+    if isinstance(fraction, list):
+        fraction = [get_split_fraction(fraction, split) for split in ("train", "val", "test")[: len(fraction)]]
+    else:
+        fraction = get_split_fraction(fraction, "train")
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
     source_hash = hashlib.sha256(repr((source_id, fraction)).encode()).hexdigest()[:8]
@@ -1005,11 +1010,13 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
-    selected = [r for r in image_records if r["split"] == "test"]
-    for split, limit in zip(("train", "val"), fraction if isinstance(fraction, list) else (fraction, 1.0)):
-        records = sorted((r for r in image_records if r["split"] == split), key=lambda r: r["file"])
-        count = min(limit if type(limit) is int else round(len(records) * limit), len(records))
-        selected.extend(records[i] for i in np.linspace(0, len(records) - 1, count, dtype=int))
+    selected = []
+    for split in ("train", "val", "test"):
+        limit = get_split_fraction(fraction, split)
+        if limit:
+            records = sorted((r for r in image_records if r["split"] == split), key=lambda r: r["file"])
+            count = min(limit if type(limit) is int else round(len(records) * limit), len(records))
+            selected.extend(records[i] for i in np.linspace(0, len(records) - 1, count, dtype=int))
     image_records = selected
     split_counts = {split: sum(r["split"] == split for r in image_records) for split in ("train", "val", "test")}
 

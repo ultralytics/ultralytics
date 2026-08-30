@@ -3,13 +3,28 @@
 from __future__ import annotations
 
 import json
+import types
 import zipfile
 from pathlib import Path
 
 import torch
 
+from ultralytics.nn.modules import Detect
 from ultralytics.utils import LOGGER
 from ultralytics.utils.export.engine import _NormalizeCoords
+
+
+def _litert_grouped_topk(x: torch.Tensor, k: int, groups: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select the top k of x along dim 1 with int32 indices, which GPU delegates accept and int64 they do not."""
+    values, index = Detect._grouped_topk(x, k, groups)
+    return values, index.int()
+
+
+def _litert_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+    """Select index (batch, k) rows of x along dim 1 without gather_nd, which GPU delegates do not implement."""
+    b, n = x.shape[:2]
+    offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
+    return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
 
 
 def torch2litert(
@@ -64,6 +79,15 @@ def torch2litert(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )
 
+    for m in model.modules():  # int32 indices and a gather_nd-free gather keep the head on the GPU delegate
+        if isinstance(m, Detect):
+            m._grouped_topk = _litert_grouped_topk
+            m._gather = types.MethodType(_litert_gather, m)
+
+    # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement
+    litert_torch.fx_infra.decomp.add_pre_lower_decomp(
+        torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
+    )
     edge_model = litert_torch.convert(model, (im,))
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)

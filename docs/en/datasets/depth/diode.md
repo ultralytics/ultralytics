@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: MIT
+    url: https://github.com/diode-dataset/diode-devkit/blob/master/LICENSE
 description: Explore the DIODE depth dataset for monocular depth estimation. Learn about its dense indoor/outdoor structure, usage, pretrained models, and role in YOLO26-Depth training.
 keywords: Ultralytics, YOLO, depth estimation, DIODE, dense depth, indoor outdoor, FARO laser scanner, monocular depth, depth dataset
 ---

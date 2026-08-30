@@ -4,8 +4,8 @@
 * `.pt` YOLO checkpoints — loaded via `YOLO()`; embeddings are pulled from the second-to-last
 layer through the predictor's `embed=[...]` argument (works with classification and ReID
 backbones).
-* Any other extension (`.torchscript`, `.onnx`, `.engine`, `.openvino`, …) — loaded via
-`AutoBackend`; the model is expected to output the embedding tensor directly.
+* Compatible exported models (`.torchscript`, `.onnx`, `.engine`, OpenVINO model directories, …) —
+loaded via `AutoBackend`; the model is expected to output the embedding tensor directly.
 """
 
 from __future__ import annotations

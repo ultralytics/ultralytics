@@ -552,8 +552,8 @@ class ConfusionMatrix(DataExportMixin):
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
             filter_empty (bool, optional): Whether to hide rows and columns whose ground truth and prediction counts are
                 both zero, e.g. when evaluating on a subset of the trained classes.
-            show_values (bool | None, optional): Whether to annotate each cell with its value. If None, cells are
-                annotated when the plotted matrix has fewer than 30 classes.
+            show_values (bool | None, optional): Whether to annotate non-empty cells with their values. If None, cells
+                are annotated when the plotted matrix has fewer than 30 classes.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
 
@@ -562,31 +562,28 @@ class ConfusionMatrix(DataExportMixin):
 
         fig, ax = plt.subplots(1, 1, figsize=(12, 9))
         names, n = list(self.names.values()), self.nc
-        keep_idx = slice(None)  # rows/cols retained, replaced by a strided slice when downsampling below
-        if self.nc >= 100:  # downsample for large class count
-            k = max(2, self.nc // 60)  # step size for downsampling, always > 1
+        if filter_empty:  # drop empty classes first so populated ones survive any downsampling below
+            keep = (self.matrix.sum(0) + self.matrix.sum(1)) > 0  # rows/cols with ground truths or predictions
+            keep[self.nc :] = True  # always retain the background row and column
+            array = array[keep][:, keep]  # filter matrix rows and cols
+            names = [names[i] for i in np.flatnonzero(keep[: self.nc])]  # filter class names
+            n = len(names)  # number of retained classes
+        if n >= 100:  # downsample for large class count
+            k = max(2, n // 60)  # step size for downsampling, always > 1
             keep_idx = slice(None, None, k)  # create slice instead of array
             names = names[keep_idx]  # slice class names
             array = array[keep_idx, :][:, keep_idx]  # slice matrix rows and cols
-            n = (self.nc + k - 1) // k  # number of retained classes
+            n = (n + k - 1) // k  # number of retained classes
         nc = n if self.task in {"classify", "semantic"} else n + 1  # adjust for background if needed
         ticklabels = "auto"
         if 0 < nc < 99:
             ticklabels = names if self.task in {"classify", "semantic"} else [*names, "background"]
-            if filter_empty:  # drop classes with neither ground truths nor predictions
-                counts = self.matrix[keep_idx, :][:, keep_idx][:nc, :nc]  # same rows/cols as plotted array
-                keep = np.flatnonzero(counts.sum(0) + counts.sum(1))
-                if keep.size:  # keep the full matrix if it is entirely empty
-                    array = array[np.ix_(keep, keep)]
-                    ticklabels = [ticklabels[i] for i in keep]
-                    nc = len(keep)
         xy_ticks = np.arange(len(ticklabels)) if ticklabels != "auto" else np.arange(nc)
         tick_fontsize = max(6, 15 - 0.1 * nc)  # Minimum size is 6
         label_fontsize = max(6, 12 - 0.1 * nc)
         title_fontsize = max(6, 12 - 0.1 * nc)
         btm = max(0.1, 0.25 - 0.001 * nc)  # Minimum value is 0.1
-        if show_values is None:
-            show_values = nc < 30  # annotate small matrices only
+        show_values = nc < 30 if show_values is None else show_values  # annotate small matrices by default
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")  # suppress empty matrix RuntimeWarning: All-NaN slice encountered
             im = ax.imshow(array, cmap="Blues", vmin=0.0, interpolation="none")

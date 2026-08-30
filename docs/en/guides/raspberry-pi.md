@@ -74,7 +74,7 @@ The Docker image already includes Ultralytics, so you can go straight to [export
 
 #### Install Ultralytics Package
 
-Here we will install Ultralytics package on the Raspberry Pi with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other formats.
+Here we will install the Ultralytics package on the Raspberry Pi. Export dependencies for formats such as [NCNN](../integrations/ncnn.md) are installed automatically the first time you export a [PyTorch](https://www.ultralytics.com/glossary/pytorch) model, so only the base package is needed here.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -84,10 +84,10 @@ Here we will install Ultralytics package on the Raspberry Pi with optional depen
     pip install -U pip
     ```
 
-2. Install `ultralytics` pip package with optional dependencies
+2. Install `ultralytics` pip package
 
     ```bash
-    pip install ultralytics[export]
+    pip install ultralytics
     ```
 
 3. Reboot the device
@@ -422,9 +422,9 @@ To set up Ultralytics YOLO26 on a Raspberry Pi without Docker, follow these step
     sudo apt install python3-pip -y
     pip install -U pip
     ```
-2. Install the Ultralytics package with optional dependencies:
+2. Install the Ultralytics package:
     ```bash
-    pip install ultralytics[export]
+    pip install ultralytics
     ```
 3. Reboot the device to apply changes:
     ```bash

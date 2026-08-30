@@ -137,15 +137,22 @@ class ActionRecognition(BaseSolution):
         self.skip_frame = max(1, int(self.CFG["skip_frame"]))
         self.video_cls_overlap_ratio = float(self.CFG["video_cls_overlap_ratio"])
 
-        self._video_classifier_model = self.CFG["video_classifier_model"]
         # Resolve once so an idle-GPU request ("-1") cannot land the tracker and the classifier on different GPUs
-        self._video_classifier_device = self.track_add_args["device"] = self.device = parse_device(self.CFG["device"])
+        self.track_add_args["device"] = self.device = parse_device(self.CFG["device"])
         self.video_classifier = None
 
         self.crop_history = defaultdict(list)
         self.frame_counter = 0
         self.pred_labels = {}
         self.pred_confs = {}
+
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Drop retired IDs from action bookkeeping so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        super().forget_tracks(track_ids)
+        for track_id in track_ids:
+            self.crop_history.pop(track_id, None)
+            self.pred_labels.pop(track_id, None)
+            self.pred_confs.pop(track_id, None)
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Process a frame to detect, track, and recognize actions.
@@ -159,9 +166,7 @@ class ActionRecognition(BaseSolution):
         """
         # Lazy-load the video classifier on first use
         if self.video_classifier is None:
-            self.video_classifier = TorchVisionVideoClassifier(
-                self._video_classifier_model, self._video_classifier_device
-            )
+            self.video_classifier = TorchVisionVideoClassifier(self.CFG["video_classifier_model"], self.device)
             self.num_video_sequence_samples = max(
                 self.num_video_sequence_samples, self.video_classifier.min_temporal_size
             )
@@ -213,13 +218,6 @@ class ActionRecognition(BaseSolution):
 
         plot_im = annotator.result()
         self.display_output(plot_im)
-
-        # Clean up lost tracks
-        current = set(self.track_ids) if self.track_ids is not None else set()
-        for tid in set(self.crop_history.keys()) - current:
-            self.crop_history.pop(tid, None)
-            self.pred_labels.pop(tid, None)
-            self.pred_confs.pop(tid, None)
 
         return SolutionResults(
             plot_im=plot_im,

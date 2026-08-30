@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
 from ultralytics.utils import ASSETS, WEIGHTS_DIR, checks
 
 # Shared test constants for model, config, data source, and environment info
@@ -10,6 +11,7 @@ SOURCE = ASSETS / "bus.jpg"
 SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]  # file, dir, and glob patterns
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
+HAS_ACTION_RECOGNITION = "s3d" in TorchVisionVideoClassifier.available_models()  # torchvision>=0.14 video weights
 TASK_MODEL_DATA = sorted(
     [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
 )  # (task, model, data) tuples
@@ -31,6 +33,7 @@ __all__ = (
     "CFG",
     "CUDA_DEVICE_COUNT",
     "CUDA_IS_AVAILABLE",
+    "HAS_ACTION_RECOGNITION",
     "MODEL",
     "SOLUTION_ASSETS",
     "SOURCE",

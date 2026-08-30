@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, HAS_ACTION_RECOGNITION, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_VERSION
 
@@ -17,16 +17,6 @@ from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_VERSION
 def run(cmd: str) -> None:
     """Execute a shell command using subprocess."""
     subprocess.run(cmd.split(), check=True)
-
-
-def has_action_recognition_support() -> bool:
-    """Return True when ActionRecognition's default TorchVision backend is available."""
-    try:
-        from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
-
-        return "s3d" in TorchVisionVideoClassifier.available_models()
-    except Exception:
-        return False
 
 
 def test_special_modes() -> None:
@@ -235,13 +225,7 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
         "trackzone",
         pytest.param(
             "action",
-            marks=pytest.mark.skipif(
-                not has_action_recognition_support(),
-                reason=(
-                    "ActionRecognition requires a torchvision build with pretrained video model weights "
-                    "(for example the default 's3d' backend)."
-                ),
-            ),
+            marks=pytest.mark.skipif(not HAS_ACTION_RECOGNITION, reason="torchvision build lacks s3d video weights"),
         ),
     ],
 )

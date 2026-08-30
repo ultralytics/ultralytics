@@ -146,7 +146,7 @@ class Tuner:
         Returns:
             (MongoClient): Connected MongoDB client instance.
         """
-        check_requirements("pymongo>=3.9")
+        check_requirements("pymongo")
 
         from pymongo import MongoClient
         from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
@@ -227,7 +227,6 @@ class Tuner:
         metrics: dict,
         datasets: dict[str, dict],
         save_dirs: dict[str, str],
-        iteration: int,
     ):
         """Save results to MongoDB with proper type conversion.
 
@@ -237,27 +236,11 @@ class Tuner:
             metrics (dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             datasets (dict[str, dict]): Per-dataset metrics for the iteration.
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
-            iteration (int): Current iteration number.
         """
         try:
-            latest = self.collection.find_one(
-                {"fitness": {"$exists": True}, "iteration": {"$exists": True}},
-                {"iteration": 1},
-                sort=[("iteration", -1)],
-            )
-            iteration = max(iteration, latest["iteration"] + 1 if latest else 1)
             iteration = self.collection.find_one_and_update(
                 {"_id": "defaults"},
-                [
-                    {
-                        "$set": {
-                            "last_iteration": {
-                                "$max": [iteration, {"$add": [{"$ifNull": ["$last_iteration", iteration - 1]}, 1]}]
-                            }
-                        }
-                    }
-                ],
-                upsert=True,
+                {"$inc": {"last_iteration": 1}},
                 return_document=True,
             )["last_iteration"]
             self.collection.insert_one(
@@ -284,6 +267,8 @@ class Tuner:
             all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("_id", 1))
             if not all_results:
                 return
+            last_iteration = max(r["iteration"] for r in all_results)
+            self.collection.update_one({"_id": "defaults"}, {"$max": {"last_iteration": last_iteration}}, upsert=True)
 
             with open(self.tune_file, "w", encoding="utf-8") as f:
                 f.writelines(
@@ -507,7 +492,7 @@ class Tuner:
                 n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
-                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], i + 1)
+                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"])
                 self._sync_mongodb_to_file()
                 total_mongo_iterations = self.collection.count_documents({"fitness": {"$exists": True}})
                 if total_mongo_iterations >= iterations:

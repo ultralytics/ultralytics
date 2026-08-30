@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import platform
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -10,7 +11,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
+from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
 from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13, smart_inference_mode
@@ -245,7 +246,7 @@ class AutoBackend(nn.Module):
             supported = device_type == "cuda" or (
                 TORCH_1_13
                 and device_type == "cpu"
-                and not ARM64
+                and platform.machine() in {"AMD64", "x86_64"}
                 and torch.backends.mkldnn.is_available()
                 and torch.backends.mkldnn.enabled
             )

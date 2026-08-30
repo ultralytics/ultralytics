@@ -3,6 +3,7 @@
 import contextlib
 import csv
 import os
+import platform
 import shutil
 import tarfile
 import urllib
@@ -209,7 +210,12 @@ def test_autobackend_memory_format(tmp_path):
     """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
-    cpu_supported = TORCH_1_13 and not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
+    cpu_supported = (
+        TORCH_1_13
+        and platform.machine() in {"AMD64", "x86_64"}
+        and torch.backends.mkldnn.is_available()
+        and torch.backends.mkldnn.enabled
+    )
     for channels_last in (None, False, True):
         model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
         backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)

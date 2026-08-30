@@ -211,9 +211,8 @@ class DetectionTrainer(BaseTrainer):
             return
         weights = self.compute_class_weights(class_counts)
         weights = weights / weights.mean()  # normalize so mean equals 1.0
-        model = self.model
-        if hasattr(unwrap_model(model), "student_model"):
-            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model = unwrap_model(self.model)  # DDP/compile wrappers do not forward attribute reads to the inner model
+        model = getattr(model, "student_model", model)  # distillation: the student model builds the loss criterion
         model.class_weights = torch.from_numpy(weights).to(self.device)
         LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 

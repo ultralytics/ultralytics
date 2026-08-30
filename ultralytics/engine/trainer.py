@@ -414,11 +414,11 @@ class BaseTrainer:
             )
 
         self._build_train_pipeline()
+        self.set_class_weights()  # dataloader is ready, and ModelEMA below deepcopies the weights into the EMA
         self.validator = self.get_validator()
         if self.args.distill_model is not None and "dis_loss" not in self.loss_names:
             self.loss_names += ("dis_loss",)
         self.ema = ModelEMA(self.model)
-        self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -601,7 +601,7 @@ class BaseTrainer:
 
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
-                self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
+                self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride"])
 
             # Validation
             final_epoch = epoch + 1 >= self.epochs

@@ -444,6 +444,30 @@ QUANTIZE_PRECISIONS = (
 )
 
 
+def hailo_model_script(generated, model_script=None):
+    """Return the Hailo model script to compile with, preferring a user-supplied one.
+
+    A user script replaces the generated one entirely, so recipes that Hailo versions alongside the SDK
+    (optimization level, post-quantization algorithm, per-layer precision, per-device quirks) can be used
+    without the exporter tracking them.
+
+    Args:
+        generated (list[str]): Model script lines generated for the model and task.
+        model_script (str | None): Path to a Hailo model script (.alls), or the script text itself.
+
+    Returns:
+        (str): The model script to pass to the Hailo compiler.
+
+    Examples:
+        >>> hailo_model_script(["normalization1 = normalization([0, 0, 0], [255, 255, 255])"])
+        'normalization1 = normalization([0, 0, 0], [255, 255, 255])'
+    """
+    if not model_script:
+        return "\n".join(generated)
+    script = Path(model_script)
+    return script.read_text() if script.is_file() else model_script
+
+
 def validate_args(format, passed_args, valid_args):
     """Validate arguments based on the export format.
 
@@ -1762,13 +1786,8 @@ class Exporter:
                     model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
                     model_script.append("allocator_param(width_splitter_defuse=disabled)")
             if self.args.model_script:
-                # A user-supplied Hailo model script replaces the generated one entirely, so recipes that
-                # Hailo versions alongside the SDK (optimization level, AdaRound, per-layer precision,
-                # per-device quirks) can be used without the exporter tracking them.
-                script = Path(self.args.model_script)
-                model_script = [script.read_text() if script.is_file() else self.args.model_script]
-                LOGGER.info(f"{prefix} using model script from {self.args.model_script}")
-            runner.load_model_script("\n".join(model_script))
+                LOGGER.info(f"{prefix} using model script {self.args.model_script}")
+            runner.load_model_script(hailo_model_script(model_script, self.args.model_script))
 
             def calibration_dataset():
                 for batch in calibration_dataloader:

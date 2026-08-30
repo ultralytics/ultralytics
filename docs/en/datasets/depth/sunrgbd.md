@@ -1,5 +1,7 @@
 ---
 comments: true
+license:
+    name: None
 description: Explore the SUN RGB-D depth dataset for monocular depth estimation. Learn about its structure, usage, pretrained models, and role in YOLO26-Depth training.
 keywords: Ultralytics, YOLO, depth estimation, SUN RGB-D, indoor RGB-D, multi-sensor, monocular depth, depth dataset
 ---

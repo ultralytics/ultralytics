@@ -780,6 +780,9 @@ class v8PoseLoss(v8DetectionLoss):
         if self.tal_oks:
             self.assigner.sigmas = sigmas
             self.assigner.kpt_expand = getattr(self.hyp, "tal_kpt_expand", 0.0)
+            self.assigner.metric = getattr(self.hyp, "tal_kpt_metric", "oks")
+            if self.assigner.metric not in {"oks", "rect"}:
+                raise ValueError(f"tal_kpt_metric must be 'oks' or 'rect', not {self.assigner.metric!r}")
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Calculate the total loss and detach it for pose estimation."""

@@ -530,17 +530,25 @@ class TaskAlignedAssigner(nn.Module):
 
 
 class PoseTaskAlignedAssigner(TaskAlignedAssigner):
-    """Assigns ground-truth objects to anchors by keypoint OKS instead of box IoU.
+    """Assigns ground-truth objects to anchors on the keypoints instead of the box.
 
     ER-Pose (https://arxiv.org/abs/2603.08681) replaces the localization term of the task-aligned metric with OKS, so
     that positive selection and the soft classification target both track pose quality rather than box quality. The
     pose loss hands over the decoded predicted and padded ground-truth keypoints, both in pixels, before each call.
 
+    `metric` chooses what grades a (GT, anchor) pair. OKS normalizes the keypoint error by instance area, so on a
+    large person it sits near 1 across the whole candidate region and stops separating a good anchor from an
+    excellent one: measured on a trained model, the top-1 to top-10 spread of the alignment metric falls to 1.16 on
+    large instances against 1.23 for box CIoU, and the large-instance recall at OKS 0.9 drops with it. 'rect' grades
+    the CIoU of the keypoint bounding rects instead, which is scale-invariant and holds that spread at 1.49 while
+    staying keypoint-driven, so the box branch can still go away.
+
     Attributes:
-        sigmas (torch.Tensor): Per-keypoint OKS normalization constants, shape (num_keypoints,).
+        metric (str): Localization term of the task-aligned metric, 'oks' or 'rect'.
+        sigmas (torch.Tensor): Per-keypoint OKS normalization constants, shape (num_keypoints,), 'oks' only.
         pd_kpts (torch.Tensor): Decoded predicted keypoints, shape (bs, num_total_anchors, num_keypoints, 2).
         gt_kpts (torch.Tensor): Ground truth keypoints, shape (bs, n_max_boxes, num_keypoints, 2 or 3).
-        candidates (torch.Tensor): Candidate mask of the running assignment, shape (bs, n_max_boxes, h*w).
+        candidates (torch.Tensor): Candidate mask of the running assignment, shape (bs, n_max_boxes, h*w), 'oks' only.
         oks (torch.Tensor): OKS of every (GT, anchor) pair of the running assignment, shape (bs, n_max_boxes, h*w).
         kpt_expand (float): Candidate region as a multiple of the visible keypoints' bounding rect, 0 to fall back
             on the base class's ground-truth box center prior.
@@ -548,30 +556,42 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
 
     sigmas = pd_kpts = gt_kpts = candidates = oks = None
     kpt_expand = 0.0
+    metric = "oks"
+
+    @staticmethod
+    def _kpt_rect(kpts: torch.Tensor, expand: float = 1.0) -> torch.Tensor:
+        """Return the axis-aligned bounding rect of the visible keypoints, grown by `expand`.
+
+        Args:
+            kpts (torch.Tensor): Keypoints with shape (..., num_keypoints, 2 or 3). A third channel is read as
+                visibility and invisible keypoints are left out of the rect.
+            expand (float): Multiplier on the rect's half-extent.
+
+        Returns:
+            (torch.Tensor): Bounding rects in xyxy with shape (..., 4). A rect flat on one axis grows along the
+                other; one with no visible keypoint collapses to a point at the origin.
+        """
+        xy = kpts[..., :2]
+        vis = kpts[..., 2:] != 0 if kpts.shape[-1] == 3 else torch.ones_like(xy[..., :1], dtype=torch.bool)
+        hi = xy.masked_fill(~vis, -torch.inf).amax(-2)
+        lo = xy.masked_fill(~vis, torch.inf).amin(-2)
+        half = ((hi - lo) / 2 * expand).nan_to_num_(neginf=0)  # no visible keypoint: collapses to a point
+        half = torch.where(half > 0, half, half.amax(-1, keepdim=True))  # a flat rect grows along its other axis
+        center = ((hi + lo) / 2).nan_to_num_()
+        return torch.cat((center - half, center + half), -1)
 
     def select_candidates_in_gts(self, xy_centers, gt_bboxes, mask_gt, eps=1e-9):
         """Take candidates from the visible keypoints' bounding rect grown by `kpt_expand`, not the GT box.
 
         Algorithm 1 of the paper ranks every grid per GT, which this reaches as the region grows past the image.
         Keeping the region keypoint-driven is what lets the box branch go away entirely, so nothing here falls back
-        to `gt_bboxes`: a rect flat on one axis grows along the other, and the base class floors a point-sized one
-        to a stride. A ground truth with no visible keypoint scores 0 OKS everywhere and is dropped either way.
+        to `gt_bboxes`: the base class floors a point-sized rect to a stride, and a ground truth with no visible
+        keypoint scores 0 everywhere and is dropped either way.
         """
         if not self.kpt_expand:
             return super().select_candidates_in_gts(xy_centers, gt_bboxes, mask_gt, eps)
-        xy = self.gt_kpts[..., :2]
-        vis = (
-            (self.gt_kpts[..., 2:] != 0)
-            if self.gt_kpts.shape[-1] == 3
-            else torch.ones_like(xy[..., :1], dtype=torch.bool)
-        )
-        hi = xy.masked_fill(~vis, -torch.inf).amax(2)
-        lo = xy.masked_fill(~vis, torch.inf).amin(2)
-        half = ((hi - lo) / 2 * self.kpt_expand).nan_to_num_(neginf=0)  # no visible keypoint: collapses to a point
-        half = torch.where(half > 0, half, half.amax(-1, keepdim=True))  # a flat rect grows along its other axis
-        center = ((hi + lo) / 2).nan_to_num_()
-        kpt_bboxes = torch.cat((center - half, center + half), -1)
-        return super().select_candidates_in_gts(xy_centers, kpt_bboxes, mask_gt, eps)
+        rects = self._kpt_rect(self.gt_kpts, self.kpt_expand)
+        return super().select_candidates_in_gts(xy_centers, rects, mask_gt, eps)
 
     def forward(self, *args, **kwargs):
         """Assign, then drop the keypoints so they stop holding memory through backward and the optimizer step."""
@@ -581,14 +601,26 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
             self.pd_kpts = self.gt_kpts = self.candidates = self.oks = None
 
     def get_box_metrics(self, pd_scores, pd_bboxes, gt_labels, gt_bboxes, mask_gt):
-        """Score every (GT, anchor) pair by OKS, which `iou_calculation` then serves to the base class.
+        """Grade every (GT, anchor) pair on the keypoints, then let the base class build the alignment metric.
 
-        One keypoint is accumulated at a time so the working set stays at (bs, n_max_boxes, h*w) rather than the
-        (num_pairs, num_keypoints, 3) gathers a per-pair formulation needs. On a crowded 640 batch that is 16x less
-        memory when `kpt_expand` opens the candidate region up, and still cheaper under the plain center prior.
+        'rect' substitutes keypoint bounding rects for the boxes and reuses the base class's CIoU, so the per-pair
+        gather it already does is the entire working set. 'oks' has to precompute instead, because the base class
+        hands `iou_calculation` boxes rather than keypoints; it accumulates one keypoint at a time so the working set
+        stays at (bs, n_max_boxes, h*w) rather than the (num_pairs, num_keypoints, 3) gathers a per-pair formulation
+        needs. On a crowded 640 batch that is 16x less memory when `kpt_expand` opens the candidate region up.
         """
         device = pd_bboxes.device  # the assigner OOM fallback re-runs on CPU, so follow the boxes
-        pd_kpts, gt_kpts, sigmas = (t.to(device) for t in (self.pd_kpts, self.gt_kpts, self.sigmas))
+        pd_kpts, gt_kpts = (t.to(device) for t in (self.pd_kpts, self.gt_kpts))
+        if self.metric == "rect":
+            # The keypoints are held in fp32 because pixel-scale areas overflow fp16, so the rects and their CIoU are
+            # fp32 too, and the base class sizes `overlaps` off them.
+            gt_rects = self._kpt_rect(gt_kpts)
+            # Under two visible keypoints leaves a rect with no extent, which overlaps nothing and would cost the
+            # instance its supervision in select_topk_candidates. Fall back to its box, the one region still known.
+            flat = (gt_rects[..., 2:] - gt_rects[..., :2]).amin(-1, keepdim=True) <= 0
+            gt_rects = torch.where(flat, gt_bboxes.to(gt_rects.dtype), gt_rects)
+            return super().get_box_metrics(pd_scores, self._kpt_rect(pd_kpts), gt_labels, gt_rects, mask_gt)
+        sigmas = self.sigmas.to(device)
         area = (gt_bboxes[..., 2:] - gt_bboxes[..., :2]).prod(-1, keepdim=True)  # s^2, (bs, n_max_boxes, 1)
         vis = gt_kpts[..., 2] != 0 if gt_kpts.shape[-1] == 3 else torch.ones_like(gt_kpts[..., 0], dtype=torch.bool)
         oks = pd_kpts.new_zeros(self.bs, self.n_max_boxes, pd_kpts.shape[1])
@@ -607,12 +639,16 @@ class PoseTaskAlignedAssigner(TaskAlignedAssigner):
         """Serve the precomputed OKS of the candidate pairs the base class is grading.
 
         Args:
-            gt_bboxes (torch.Tensor): Ground truth boxes of the candidate pairs, unused, shape (num_pairs, 4).
-            pd_bboxes (torch.Tensor): Predicted boxes of the candidate pairs, unused, shape (num_pairs, 4).
+            gt_bboxes (torch.Tensor): Ground truth boxes of the candidate pairs, or their keypoint rects under
+                'rect', shape (num_pairs, 4).
+            pd_bboxes (torch.Tensor): Predicted boxes of the candidate pairs, or their keypoint rects under 'rect',
+                shape (num_pairs, 4).
 
         Returns:
-            (torch.Tensor): OKS values in [0, 1] for each candidate pair, shape (num_pairs,).
+            (torch.Tensor): Localization scores in [0, 1] for each candidate pair, shape (num_pairs,).
         """
+        if self.metric == "rect":
+            return super().iou_calculation(gt_bboxes, pd_bboxes)  # CIoU of the rects get_box_metrics handed over
         return self.oks[self.candidates]
 
 

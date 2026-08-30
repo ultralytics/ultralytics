@@ -174,7 +174,7 @@ class AutoBackend(nn.Module):
         "coreai": CoreAIBackend,
     }
 
-    @torch.no_grad()
+    @smart_inference_mode(False)
     def __init__(
         self,
         model: str | torch.nn.Module = "yolo26n.pt",

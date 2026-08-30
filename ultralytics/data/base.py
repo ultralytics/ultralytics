@@ -348,14 +348,10 @@ class BaseDataset(Dataset):
         import shutil
 
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
-        if self.cache_dir:
-            cache_root = prepare_cache_dir(self.cache_dir, self.prefix)
-            if cache_root is None:
-                self.cache = None
-                return False
-        else:
-            cache_root = Path(self.im_files[0]).parent
-
+        cache_root = prepare_cache_dir(self.cache_dir, self.prefix) if self.cache_dir else Path(self.im_files[0]).parent
+        if cache_root is None:
+            self.cache = None
+            return False
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             im_file = random.choice(self.im_files)

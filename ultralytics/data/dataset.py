@@ -1200,9 +1200,7 @@ class ClassificationDataset:
             self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
         if args.single_cls:
             self.samples = [(f, 0) for f, _ in self.samples]
-        self.samples = [
-            [*list(x), get_cache_file_path(x[0], self.cache_dir), None] for x in self.samples
-        ]  # file, index, npy, im
+        self.samples = [[*list(x), get_cache_file_path(x[0], self.cache_dir), None] for x in self.samples]
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)

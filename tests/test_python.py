@@ -205,19 +205,15 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_autobackend_set_memory_format(tmp_path):
-    """Check memory-format transitions on the real host platform without mocked platform state."""
+def test_autobackend_memory_format(tmp_path):
+    """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
-    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-    backend = AutoBackend(model=model, device=torch.device("cpu"))
     cpu_supported = TORCH_1_13 and not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
-    for value in (None, False, True):
-        if value is True and not cpu_supported:
-            model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW
-        backend.set_memory_format(value)
-        expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
-        assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+    for channels_last in (False, True):
+        model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
+        assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is (channels_last and cpu_supported)
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded

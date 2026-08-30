@@ -97,6 +97,7 @@ def main() -> None:
         "imgsz": args.imgsz,
         "workers": 4,
         "deterministic": True,
+        "channels_last": True,
         "fraction": FRACTION,
         "save_json": True,
         "plots": False,

@@ -151,9 +151,6 @@ jobs:
         python: ["3.13"]
         torch: [latest]
         include:
-          - os: windows-11-arm
-            python: "3.12" # PyTorch Windows ARM64 wheels require Python 3.12
-            torch: latest
           - os: ubuntu-latest
             python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
             torch: "1.8.0"
@@ -194,12 +191,12 @@ jobs:
         run: python tests/cache_test_assets.py
       - name: Pytest tests
         shell: bash # for Windows compatibility
-        # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism and run single-process,
-        # while the 3-vCPU/7GB macos-26 runners cap at 2 workers to avoid memory starvation.
+        # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
+        # single-process, and the 3-vCPU/7GB macos-26 runners cap at 2 workers to avoid memory starvation.
         run: |
           xdist="-n auto --dist=loadfile"
           [[ "${{ matrix.os }}" == "macos-26" ]] && xdist="-n 2 --dist=loadfile"
-          [[ "${{ matrix.os }}" == *"-arm" ]] && xdist=""
+          [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && xdist=""
           pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base
         env:
           YOLO_AUTOINSTALL: "false"
@@ -226,9 +223,6 @@ jobs:
         python: ["3.13"]
         torch: [latest]
         include:
-          - os: windows-11-arm
-            python: "3.12" # PyTorch Windows ARM64 wheels require Python 3.12
-            torch: latest
           # Legacy PyTorch shards keep NumPy <2 only where the older torch builds actually need it.
           - os: ubuntu-latest
             python: "3.8" # torch 1.8.0 requires python >=3.6, <=3.9
@@ -352,11 +346,11 @@ jobs:
         uses: ultralytics/actions/retry@main
         with:
           shell: bash # for Windows compatibility
-          # -n 2 limits parallelism for resource-heavy base export tests on shared runners. ARM runners are
+          # -n 2 limits parallelism for resource-heavy base export tests on shared runners. The ARM runner is
           # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
           run: |
             pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
-            if [[ "${{ matrix.os }}" == *"-arm" ]]; then
+            if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"
             else
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"

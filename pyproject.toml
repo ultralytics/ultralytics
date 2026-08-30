@@ -100,7 +100,7 @@ export-base = [
     "onnxruntime<1.20.0; python_version < '3.11' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "onnxruntime>=1.20.0; python_version >= '3.11'",
     "nncf>=2.14.0,<4.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
-    "openvino>=2024.0.0; platform_system != 'Windows' or platform_machine != 'ARM64'",  # no Windows ARM64 wheels
+    "openvino>=2024.0.0",  # OpenVINO export
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
 export-legacy-torch = [

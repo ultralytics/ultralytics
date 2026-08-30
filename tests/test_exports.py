@@ -243,7 +243,6 @@ def test_torch2onnx_serializes_concurrent_exports(monkeypatch, tmp_path):
     assert max_active == 1, f"Expected max 1 concurrent export, got {max_active}"
 
 
-@pytest.mark.skipif(WINDOWS and ARM64, reason="OpenVINO not supported on Windows ARM64")
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize("end2end", [False, True])
 def test_export_openvino(end2end, isolated_model):
@@ -253,7 +252,6 @@ def test_export_openvino(end2end, isolated_model):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(WINDOWS and ARM64, reason="OpenVINO not supported on Windows ARM64")
 @pytest.mark.skipif(not TORCH_2_1, reason="OpenVINO requires torch>=2.1")
 @pytest.mark.parametrize(
     "task, dynamic, quantize, batch, nms, end2end",

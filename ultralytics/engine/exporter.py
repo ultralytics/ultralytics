@@ -1189,7 +1189,6 @@ class Exporter:
     @try_export
     def export_openvino(self, prefix=colorstr("OpenVINO:")):  # noqa: B008
         """Export YOLO model to OpenVINO format."""
-        assert not (WINDOWS and ARM64), "OpenVINO export is not supported on Windows ARM64."
         from ultralytics.utils.export.openvino import torch2openvino
 
         # OpenVINO <= 2025.1.0 error on macOS 15.4+: https://github.com/openvinotoolkit/openvino/issues/30023

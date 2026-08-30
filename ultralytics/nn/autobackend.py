@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import platform
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -9,10 +11,10 @@ import numpy as np
 import torch
 from torch import nn
 
-from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
+from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
-from ultralytics.utils.torch_utils import TORCH_1_13, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -184,6 +186,7 @@ class AutoBackend(nn.Module):
         fp16: bool = False,
         fuse: bool = True,
         verbose: bool = True,
+        channels_last: bool | None = None,
     ):
         """Initialize the AutoBackend for inference.
 
@@ -195,11 +198,18 @@ class AutoBackend(nn.Module):
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
+            channels_last (bool, optional): Use channels-last memory format, or auto-enable it on supported x86 CPUs.
         """
         super().__init__()
         device = device or torch.device("cpu")
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
+        if (
+            isinstance(model, nn.Module)
+            and TORCH_1_9
+            and any(x.is_inference() for x in (*model.parameters(), *model.buffers()))
+        ):
+            model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
         # Check if format supports FP16
         fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
@@ -230,6 +240,25 @@ class AutoBackend(nn.Module):
         elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
+
+        if format == "pt":
+            device_type = torch.device(self.backend.device).type
+            supported = device_type == "cuda" or (
+                TORCH_1_13
+                and device_type == "cpu"
+                and platform.machine() in {"AMD64", "x86_64"}
+                and torch.backends.mkldnn.is_available()
+                and torch.backends.mkldnn.enabled
+            )
+            if channels_last is None:
+                channels_last = device_type == "cpu" and supported and (LINUX or WINDOWS)
+            if channels_last and not supported:
+                LOGGER.warning(f"'channels_last=True' is not supported on '{device_type}', ignoring.")
+            self.backend.model.to(
+                memory_format=torch.channels_last if channels_last and supported else torch.contiguous_format
+            )
+        elif channels_last:
+            LOGGER.warning(f"'channels_last=True' applies only to native PyTorch models, ignoring format='{format}'.")
 
         self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
         self.format = format
@@ -378,33 +407,6 @@ class AutoBackend(nn.Module):
         if hasattr(self.backend, "model") and hasattr(self.backend.model, "eval"):
             self.backend.model.eval()
         return super().eval()
-
-    @smart_inference_mode(False)  # normal retained weights must not become inference tensors during conversion
-    def set_memory_format(self, channels_last: bool | None) -> None:
-        """Convert native PyTorch weights to channels-last when supported and requested.
-
-        Args:
-            channels_last (bool | None): Whether to use channels-last memory format, or None for automatic Linux/Windows
-                x86 CPU inference selection.
-        """
-        # torch<1.13 oneDNN convolutions assert on channels-last outputs whose spatial size collapses to 1x1
-        cpu_channels_last = TORCH_1_13 and self.device.type == "cpu" and not ARM64
-        cpu_channels_last &= torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
-        if channels_last is None:
-            channels_last = cpu_channels_last and (LINUX or WINDOWS) and self.format == "pt"
-        supported = self.format == "pt" and (self.device.type == "cuda" or cpu_channels_last)
-        if channels_last and not supported:
-            LOGGER.warning(
-                f"'channels_last=True' applies only to native PyTorch models on CUDA or x86 CPU with oneDNN enabled, "
-                f"ignoring for format='{self.format}' on '{self.device.type}'."
-            )
-        if self.format != "pt":
-            return
-        channels_last &= supported
-        model = self.backend.model
-        tensor = next(model.parameters(), next(model.buffers(), None))
-        convert = torch.inference_mode()(model.to) if getattr(tensor, "is_inference", lambda: False)() else model.to
-        convert(memory_format=torch.channels_last if channels_last else torch.contiguous_format)
 
     def _apply(self, fn) -> AutoBackend:
         """Apply a function to backend.model parameters, buffers, and tensors.

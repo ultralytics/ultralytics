@@ -619,9 +619,8 @@ class Exporter:
         self.device = select_device("cpu" if self.args.device is None else self.args.device)
 
         # Argument compatibility checks
-        fmt_index = fmts_dict["Argument"].index(fmt)
-        fmt_name = fmts_dict["Format"][fmt_index]
-        fmt_keys = fmts_dict["Arguments"][fmt_index]
+        fmt_name = dict(zip(fmts_dict["Argument"], fmts_dict["Format"]))[fmt]
+        fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
             if self.args.quantize == 32:

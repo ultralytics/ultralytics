@@ -157,6 +157,8 @@ def export_formats():
 
 Choose a unique `Suffix` (e.g. `"_partner_model"` or `".partner"`) — this same suffix drives runtime auto-detection (see [Format Detection](#format-detection)).
 
+The `Env` column names a key in `EXPORT_ENVS`, the dictionary in `exporter.py` that owns each CI export environment: its Python version, extras groups, torch pin, extra requirements, package indexes, and a `smoke` export command. Use `"base"` only when the SDK installs cleanly alongside the standard test dependencies; a partner toolchain with conflicting pins needs its own `isolated-<format>` entry (see `isolated-imx` and `isolated-axelera`). `tests/test_exports.py` is partitioned by `--export-env`, so this value decides which CI job actually exercises your format.
+
 ### Main Export Flow Integration
 
 `Exporter.__call__` auto-dispatches to `export_<format>()` methods by name. For non-TensorFlow formats the dispatch is a single line at the end of `__call__`:
@@ -171,20 +173,20 @@ else:
 
 No manual flag wiring is required to register a new export method.
 
-If your format needs pre-validation — mutually exclusive args, hardware checks, or default-arg coercion — add it inside `__call__` next to the existing format-specific blocks (search for `if fmt == "imx":` for an example):
+If your format needs pre-validation — mutually exclusive args, hardware checks, or unsupported tasks — add it inside `__call__` next to the existing format-specific blocks (search for `if fmt == "imx":` for an example):
 
 ```python
-if fmt == "partner_format":
-    if self.args.quantize != 8:
-        LOGGER.warning("Partner format requires quantize=8, setting quantize=8.")
-        self.args.quantize = 8
-    if model.task not in {"detect", "segment"}:
-        raise ValueError("Partner format only supports detection and segmentation models.")
+if fmt == "partner_format" and model.task not in {"detect", "segment"}:
+    raise ValueError("Partner format only supports detection and segmentation models.")
 ```
+
+Do not hand-roll precision coercion here. An accelerator that only runs INT8 joins the shared `if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"}` set already in `__call__`, which warns and coerces `quantize` for every INT8-only format.
 
 #### Argument Validation Framework
 
 Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry; a genuinely new argument must first be registered and validated in the shared configuration owner.
+
+`quantize` is the one exception: `validate_args()` subtracts it from the `Arguments`-driven check and gates it instead on the `FP16_FORMATS`, `INT8_FORMATS`, `W8A16_FORMATS`, `W8A32_FORMATS`, and `FP32_UNSUPPORTED_FORMATS` frozensets in `exporter.py`. Add your format to every precision set its runtime actually supports, and to `FP32_UNSUPPORTED_FORMATS` if it cannot run FP32 — a format that lists `quantize` in its `Arguments` column but is missing from `INT8_FORMATS` rejects `quantize=8` with an `AssertionError`.
 
 ### Model Modification Guidelines
 
@@ -241,12 +243,11 @@ def torch2partner(model, output_dir, metadata, dataset=None, prefix=""):
 
 #### Adding Optional Dependencies to `pyproject.toml`
 
-Register your integration's dependencies under `[project.optional-dependencies]` in [`pyproject.toml`](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml). Add packages used by the export pipeline to the existing `export` extras group; runtime-only packages can go in `export` as well unless they introduce a heavyweight dependency that would bloat that group, in which case open a discussion to add a dedicated extras group.
+Register your integration's dependencies under `[project.optional-dependencies]` in [`pyproject.toml`](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) as a dedicated `export-<format>` group. Do not add partner pins to the aggregate `export` group: it is a meta-group of `export-base`, `export-tensorflow`, `export-coreml`, and `export-litert` that every `pip install "ultralytics[export]"` installs, so adding to it ships your SDK to users who will never run your format. Existing partner groups such as `export-coreai`, `export-deepx`, and `export-executorch` stay out of it for exactly this reason.
 
 ```toml
 [project.optional-dependencies]
-export = [
-    # ... existing entries ...
+export-partner = [
     "partner-compiler>=2.0.0; platform_system == 'Linux'",  # Partner export compiler
     "partner-runtime-sdk>=2.0.0; platform_system == 'Linux'",  # Partner runtime SDK
 ]
@@ -254,10 +255,10 @@ export = [
 
 Use platform markers (`platform_system`, `platform_machine`, `python_version`) to scope dependencies that don't install cleanly across all environments. Keep version bounds permissive (`>=`, optional `<X.0.0` upper bound only when a known incompatibility exists).
 
-After editing, contributors install your integration with:
+Reference the new group from the `extras` list of your `EXPORT_ENVS` entry so CI installs it, and document the install command on your integration page:
 
 ```bash
-pip install "ultralytics[export]"
+pip install "ultralytics[export-partner]"
 ```
 
 #### Validation Process
@@ -317,7 +318,7 @@ Adding a new runtime integration is a four-step process:
 
 #### Backend Class Implementation
 
-A backend extends [`BaseBackend`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/base.py) and implements two methods: `load_model()` and `forward()`. The base class already handles common attributes (`device`, `fp16`, `stride`, `names`, `task`, `imgsz`, `end2end`, `dynamic`, `metadata`) and provides `apply_metadata()` to populate them from the `metadata.yaml` saved during export.
+A backend extends [`BaseBackend`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/base.py) and implements two methods: `load_model()` and `forward()`. The base class already handles common attributes (`device`, `fp16`, `stride`, `names`, `task`, `imgsz`, `end2end`, `dynamic`, `metadata`), provides `read_metadata()` to locate and parse the metadata saved during export (a `metadata.yaml` sidecar, or metadata embedded in the artifact), and `apply_metadata()` to populate the attributes from it. Call `self.apply_metadata(self.read_metadata(w))` as every shipped backend does — do not re-derive the sidecar path yourself.
 
 ```python
 # ultralytics/nn/backends/partner.py
@@ -328,7 +329,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -345,18 +346,12 @@ class PartnerBackend(BaseBackend):
         import partner_runtime_sdk
 
         w = Path(weight)
-        if w.is_dir():
-            model_file = next(w.rglob("*.partner"))
-            metadata_file = w / "metadata.yaml"
-        else:
-            model_file = w
-            metadata_file = w.parent / "metadata.yaml"
+        model_file = next(w.rglob("*.partner")) if w.is_dir() else w
 
         self.model = partner_runtime_sdk.Model(str(model_file), device=self.device)
         self.model.load()
 
-        if metadata_file.exists():
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor):
         """Run inference using the partner runtime."""
@@ -406,7 +401,9 @@ if (
 
 #### Format Detection
 
-Format auto-detection is driven entirely by the `Suffix` column of `export_formats()`. The shared [`AutoBackend._model_type()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py) method walks the registered suffixes and returns the first match, so picking a unique suffix in `export_formats()` (e.g. `"_partner_model"` or `".partner"`) is enough — no edits to `_model_type()` are required.
+Format auto-detection is driven entirely by the `Suffix` column of `export_formats()`. The shared [`AutoBackend._model_type()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/autobackend.py) method substring-matches the registered suffixes against the file name and returns the first hit, so a suffix that is unique and not a substring of an existing one (e.g. `"_partner_model"` or `".partner"`) needs no edits to `_model_type()`.
+
+Append the new row at the end of `export_formats()` rather than inserting it: `_model_type()` carries a positional special case, `types[5] |= name.endswith(".mlmodel")`, where index 5 is the CoreML row, and shifting it breaks CoreML detection. An unavoidably overlapping suffix needs an explicit override in `_model_type()` instead — the existing `_qnn.onnx` and `.tflite` branches are the precedent.
 
 ## Documentation
 
@@ -591,7 +588,7 @@ Ultralytics maintains an automated testing infrastructure that validates all int
 
 - **Continuous Integration**: All export and runtime functionality is tested in the CI pipeline.
 - **Cross-Platform Validation**: Automated testing for Linux, macOS, and Windows environments.
-- **Python Compatibility**: Testing across all supported Python versions (3.8–3.13).
+- **Python Compatibility**: Every pull request runs Python 3.13 on ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a Python 3.8 / torch 1.8.0 floor job. Python 3.9–3.12 are covered by the scheduled slow-test shards, not on every PR.
 - **Functional Unit Tests**: Comprehensive unit testing for both export pipelines and runtime integrations.
 - **Regression Testing**: Automated regression testing to prevent performance and functionality degradation.
 - **Performance Benchmarking**: Automated performance testing and regression detection.

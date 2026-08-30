@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -226,7 +226,8 @@ def test_autobackend_memory_format(tmp_path):
         with torch.inference_mode():
             model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
         backend = AutoBackend(model=model, device=torch.device("cpu"))
-        assert not backend.model[0].weight.is_inference()
+        if TORCH_1_10:
+            assert not backend.model[0].weight.is_inference()
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded

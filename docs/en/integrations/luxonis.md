@@ -205,7 +205,7 @@ If you plan to [quantize](https://www.ultralytics.com/glossary/model-quantizatio
     === "CLI"
 
         ```bash
-        modelconverter convert rvc4 --path output/yolo26n_20260807_104858 \
+        modelconverter convert rvc4 --path output/yolo26n_20260807_104858/yolo26n.tar.xz \
           calibration.path calibration_images/
         ```
 

@@ -27,6 +27,7 @@ Multi-GPU: pass comma-joined physical GPU ids (e.g. 4,5). Recipe knobs are
 plain train args, nfs_sync runs in this parent process, and wandb group/tags
 travel as env vars, so all survive DDP. batch is global (split across ranks).
 """
+from __future__ import annotations
 
 import os
 import re

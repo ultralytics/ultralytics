@@ -151,6 +151,7 @@ def run_agent(sweep_id: str, gpu: str, count: int | None = None) -> None:
     os.environ.setdefault("WANDB_LOG_MODEL", "false")
 
     import wandb
+
     from ultralytics import settings
 
     settings.update({"wandb": True})

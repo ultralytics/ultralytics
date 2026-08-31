@@ -167,18 +167,18 @@ _DET_MODES = (*_SCALED_MODES, "coco_pose_finetune")
 # Modes allowed multiple GPUs. See the DDP guard in main().
 _DDP_CAPABLE_MODES = (*_COCO_DET_MODES, "obj365v1_det_pretrain")
 
-_AUG_ARGS = dict(
-    hsv_h=0.015,
-    hsv_s=0.4,
-    hsv_v=0.4,
-    translate=0.1,
-    scale=0.5,
-    fliplr=0.5,
-    mosaic=1,
-    auto_augment="randaugment",
-    erasing=0.4,
-    crop_fraction=1,
-)
+_AUG_ARGS = {
+    "hsv_h": 0.015,
+    "hsv_s": 0.4,
+    "hsv_v": 0.4,
+    "translate": 0.1,
+    "scale": 0.5,
+    "fliplr": 0.5,
+    "mosaic": 1,
+    "auto_augment": "randaugment",
+    "erasing": 0.4,
+    "crop_fraction": 1,
+}
 
 # Every-mode defaults kept out of recipe profiles, recipes override via a later merge.
 # muon/sgd 0.5/0.5 suggested by Jing.

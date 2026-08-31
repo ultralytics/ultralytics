@@ -149,9 +149,6 @@ def resolve_run_id_by_name(
     import wandb
 
     try:  # empty match -> sorted([])[-1] raises IndexError -> caught -> ""
-        return sorted(
-            wandb.Api().runs(f"{entity}/{project}", filters={"displayName": name}),
-            key=lambda r: (r.state == "finished", r.summary.get("_step", -1) if r.summary else -1, str(r.createdAt)),
-        )[-1].id
+        return max(wandb.Api().runs(f"{entity}/{project}", filters={"displayName": name}), key=lambda r: (r.state == "finished", r.summary.get("_step", -1) if r.summary else -1, str(r.createdAt))).id
     except Exception:
         return ""

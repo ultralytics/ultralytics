@@ -5,8 +5,8 @@ from __future__ import annotations
 from abc import abstractmethod
 
 import torch
-import torch.nn as nn
 from PIL import Image
+from torch import nn
 
 from ultralytics.utils.torch_utils import smart_inference_mode
 
@@ -28,7 +28,6 @@ class ImageModel(nn.Module):
     @abstractmethod
     def encode_image(self, image, dtype):
         """Encode image inputs into normalized feature vectors."""
-        pass
 
 
 class MobileCLIPImageTS(ImageModel):

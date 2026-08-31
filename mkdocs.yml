@@ -713,7 +713,10 @@ nav:
               - classify:
                   - predict: reference/models/yolo/classify/predict.md
                   - train: reference/models/yolo/classify/train.md
+                  - train_image_encoder: reference/models/yolo/classify/train_image_encoder.md
+                  - train_text: reference/models/yolo/classify/train_text.md
                   - val: reference/models/yolo/classify/val.md
+                  - val_image_encoder: reference/models/yolo/classify/val_image_encoder.md
               - depth:
                   - calibrate: reference/models/yolo/depth/calibrate.md
                   - predict: reference/models/yolo/depth/predict.md
@@ -722,6 +725,7 @@ nav:
               - detect:
                   - predict: reference/models/yolo/detect/predict.md
                   - train: reference/models/yolo/detect/train.md
+                  - train_enterprise: reference/models/yolo/detect/train_enterprise.md
                   - val: reference/models/yolo/detect/val.md
               - model: reference/models/yolo/model.md
               - obb:
@@ -773,6 +777,8 @@ nav:
               - tensorrt: reference/nn/backends/tensorrt.md
               - triton: reference/nn/backends/triton.md
           - distill_model: reference/nn/distill_model.md
+          - image_encoder: reference/nn/image_encoder.md
+          - image_model: reference/nn/image_model.md
           - modules:
               - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md
@@ -780,7 +786,9 @@ nav:
               - head: reference/nn/modules/head.md
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
+              - vit_blocks: reference/nn/modules/vit_blocks.md
           - tasks: reference/nn/tasks.md
+          - teacher_model: reference/nn/teacher_model.md
           - text_model: reference/nn/text_model.md
       - optim:
           - muon: reference/optim/muon.md
@@ -861,6 +869,7 @@ nav:
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md
+          - knn_eval: reference/utils/knn_eval.md
           - logger: reference/utils/logger.md
           - loss: reference/utils/loss.md
           - metrics: reference/utils/metrics.md

@@ -1,0 +1,2 @@
+numpy
+opencv-python

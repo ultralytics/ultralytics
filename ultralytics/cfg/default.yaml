@@ -39,7 +39,7 @@ profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int), or specific layer indices or module names like "23.cv2" (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
-channels_last: # (bool, optional) auto-enable channels_last on supported Linux/Windows x86 CPU inference; opt-in elsewhere
+channels_last: # (bool, optional) auto-enable for CUDA training on PyTorch 1.11+ and supported x86 CPU inference
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)

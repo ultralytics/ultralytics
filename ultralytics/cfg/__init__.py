@@ -961,7 +961,11 @@ def entrypoint(debug: str = "") -> None:
         LOGGER.warning(f"'model' argument is missing. Using default 'model={model}'.")
     overrides["model"] = model
     stem = Path(model).stem.lower()
-    if "rtdetr" in stem:  # guess architecture
+    if "deim" in stem or ("rtdetr" in stem and "-seg" in stem):  # DEIM adds the segment task RT-DETR lacks
+        from ultralytics import RTDETRDEIM
+
+        model = RTDETRDEIM(model)  # no task argument, inferred from the checkpoint
+    elif "rtdetr" in stem:  # guess architecture
         from ultralytics import RTDETR
 
         model = RTDETR(model)  # no task argument

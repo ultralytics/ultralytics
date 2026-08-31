@@ -456,12 +456,13 @@ class Predictor(BasePredictor):
             >>> predictor.setup_model(model=sam_model, verbose=True)
         """
         device = select_device(self.args.device, verbose=verbose)
-        if self.args.channels_last:
-            LOGGER.warning("'channels_last=True' is not supported for SAM predictors, ignoring.")
+        channels_last = self.args.channels_last and device.type == "cuda"
+        if self.args.channels_last and not channels_last:
+            LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{device.type}'.")
         if model is None:
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
-        model = model.to(device)
+        model = model.to(device, memory_format=torch.channels_last if channels_last else torch.preserve_format)
         model = model.half() if self.args.quantize == 16 else model.float()
         model.eval()
         self.model = model

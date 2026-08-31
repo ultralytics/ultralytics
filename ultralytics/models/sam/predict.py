@@ -465,7 +465,10 @@ class Predictor(BasePredictor):
         if model is None:
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
-        model = model.to(device, memory_format=torch.channels_last if channels_last else torch.preserve_format)
+        memory_format = torch.channels_last if channels_last else torch.preserve_format
+        if self.args.channels_last is False:
+            memory_format = torch.contiguous_format
+        model = model.to(device, memory_format=memory_format)
         model = model.half() if self.args.quantize == 16 else model.float()
         model.eval()
         self.model = model

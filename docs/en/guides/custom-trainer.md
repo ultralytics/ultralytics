@@ -401,4 +401,4 @@ model = YOLO("yolo26n.pt")
 model.train(data="coco8.yaml", box=10.0, cls=1.5, dfl=2.0)
 ```
 
-On YOLO26, `dfl` scales the logged `l1_loss` because its detection head uses `reg_max: 1`; on YOLOv8 and YOLO11 it scales `dfl_loss`.
+On YOLO26, `dfl` scales the logged `l1_loss` because its detection head uses `reg_max: 1`; on models with `reg_max > 1` it scales `dfl_loss`.

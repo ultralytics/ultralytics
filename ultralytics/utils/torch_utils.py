@@ -87,7 +87,15 @@ def smart_inference_mode(mode=True):
     def decorate(fn):
         """Apply appropriate torch decorator for inference mode based on torch version."""
         if not mode:
-            return torch.inference_mode(False)(torch.no_grad()(fn)) if TORCH_1_9 else torch.no_grad()(fn)
+            if TORCH_1_9:
+
+                @functools.wraps(fn)
+                def disable(*args, **kwargs):
+                    with torch.inference_mode(False), torch.no_grad():
+                        return fn(*args, **kwargs)
+
+                return disable
+            return torch.no_grad()(fn)
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -970,10 +978,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
                         with cuda_memory_usage(device) as cuda_info:
                             anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
-                            # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
-                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (overlaps, bbox_scores, gathered
-                            # pd_scores, two pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
-                            # fp32-equivalents (pred/target + two op temps of the unreduced BCE in v8DetectionLoss:
+                            # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
+                            # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:
                             # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                             sim = (
                                 torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),

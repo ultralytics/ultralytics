@@ -6,7 +6,8 @@ creator:
     type: Person
     url: https://engineering.nyu.edu/faculty/yann-lecun
 license:
-    name: None
+    name: CC-BY-SA-3.0
+    url: https://creativecommons.org/licenses/by-sa/3.0/
 description: Train YOLO image classification models on MNIST, a benchmark of 70,000 28x28 grayscale handwritten digit images in 10 classes, split 60k/10k.
 keywords: MNIST, dataset, handwritten digits, image classification, deep learning, machine learning, training set, testing set, NIST
 ---

@@ -98,13 +98,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
     export MLFLOW_KEEP_RUN_ACTIVE=True
     ```
 
-    The value is parsed case-insensitively; only the string `true` enables this behavior, and any other value (including unset) keeps the default of closing the run. Remember to close it manually afterwards with `mlflow.end_run()`.
-
-5. **Kill MLflow Server Instances**: To stop all running MLflow instances, run:
-
-    ```bash
-    ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
-    ```
+    The values `1`, `true`, `yes`, `on`, `y`, and `t` enable this behavior (case-insensitive). Any other value, including an unset variable, keeps the default of closing the run. Remember to close it manually afterwards with `mlflow.end_run()`.
 
 ### Logging
 
@@ -200,11 +194,7 @@ To start an MLflow server for tracking your experiments in Ultralytics YOLO, use
 mlflow server --backend-store-uri runs/mlflow
 ```
 
-This command starts a local server at `http://127.0.0.1:5000` by default. If you need to stop running MLflow server instances, use the following bash command:
-
-```bash
-ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
-```
+This command starts a local server at `http://127.0.0.1:5000` by default. Press `Ctrl+C` in that terminal to stop it.
 
 Refer to the [commands section](#commands) for more command options.
 
@@ -216,7 +206,7 @@ Set the `MLFLOW_KEEP_RUN_ACTIVE` environment variable to `True` before training:
 export MLFLOW_KEEP_RUN_ACTIVE=True
 ```
 
-By default this is `False`, so Ultralytics calls `mlflow.end_run()` once training completes. With `MLFLOW_KEEP_RUN_ACTIVE=True` the run stays open so you can log extra metrics, parameters, or artifacts from the same Python session — close it yourself with `mlflow.end_run()` when finished. The value is parsed case-insensitively; only `true` enables this behavior.
+By default this is `False`, so Ultralytics calls `mlflow.end_run()` once training completes. With `MLFLOW_KEEP_RUN_ACTIVE=True` the run stays open so you can log extra metrics, parameters, or artifacts from the same Python session — close it yourself with `mlflow.end_run()` when finished. The values `1`, `true`, `yes`, `on`, `y`, and `t` enable this behavior (case-insensitive).
 
 ### What are the benefits of integrating MLflow with Ultralytics YOLO for experiment tracking?
 

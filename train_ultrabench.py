@@ -34,8 +34,8 @@ def _validate_predictions(path: Path) -> None:
         raise ValueError(f"Invalid COCO predictions: {path}")
 
 
-def _load_completed_args(child: Path, uri: str, provenance: dict) -> tuple[dict, bool] | None:
-    """Return validated completion provenance and whether it was recovered, or None for an incomplete child."""
+def _load_completed_args(child: Path, uri: str, provenance: dict) -> dict | None:
+    """Return validated completion provenance, or None for an incomplete child."""
     predictions_path, args_path = child / "predictions.json", child / "args.yaml"
     if not predictions_path.is_file() or not args_path.is_file():
         return None
@@ -69,7 +69,10 @@ def _load_completed_args(child: Path, uri: str, provenance: dict) -> tuple[dict,
         mismatched["max_det"] = (saved["max_det"], "positive integer")
     if mismatched:
         raise ValueError(f"Refusing to skip {child.name} with changed provenance: {mismatched}")
-    return saved, recovered
+    if recovered:
+        saved.update(platform_uri=uri, **provenance)
+        YAML.save(args_path, saved)
+    return saved
 
 
 def main() -> None:
@@ -128,14 +131,10 @@ def main() -> None:
     os.environ.update(ULTRALYTICS_PLATFORM="false", WANDB_LOG_MODEL="false", WANDB_RUN_GROUP=args.name)
     results = {}
     pending = []
-    recovered = []
     for uri, name in zip(datasets, names):
         child = run_dir / name
         if (completed := _load_completed_args(child, uri, provenance)) is not None:
-            completed, was_recovered = completed
             results[name] = completed["train_metrics"]
-            if was_recovered:
-                recovered.append((uri, name))
             continue
 
         if child.exists():
@@ -147,7 +146,7 @@ def main() -> None:
         results.update({name: trained.get(name) for _, name in pending})
 
     del loaded
-    for uri, name in [*pending, *recovered]:
+    for uri, name in pending:
         if not results[name]:
             continue
         child = run_dir / name

@@ -10,6 +10,7 @@ segmentation tasks.
 
 from __future__ import annotations
 
+import platform
 from collections import OrderedDict, defaultdict
 from copy import deepcopy
 from typing import TYPE_CHECKING, Any
@@ -456,7 +457,9 @@ class Predictor(BasePredictor):
             >>> predictor.setup_model(model=sam_model, verbose=True)
         """
         device = select_device(self.args.device, verbose=verbose)
-        channels_last = self.args.channels_last and device.type == "cuda"
+        channels_last = (
+            self.args.channels_last is not False and device.type == "cuda" and platform.machine() in {"AMD64", "x86_64"}
+        )
         if self.args.channels_last and not channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{device.type}'.")
         if model is None:

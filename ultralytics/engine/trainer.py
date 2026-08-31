@@ -991,6 +991,7 @@ class BaseTrainer:
                     "freeze",
                     "val",
                     "plots",
+                    "channels_last",
                     "distill_model",
                     "save_dir",
                 ):  # allow arg updates to reduce memory or update device on resume

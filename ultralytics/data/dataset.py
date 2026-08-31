@@ -1177,7 +1177,11 @@ class ClassificationDataset:
         # Initialize attributes
         fraction = 1.0 if is_ndjson else get_split_fraction(args.fraction, prefix or ("train" if augment else "val"))
         count = fraction if isinstance(fraction, int) else round(len(self.samples) * fraction)
-        self.samples = self.samples[:count] if count < len(self.samples) else self.samples
+        self.samples = (
+            [self.samples[i] for i in np.linspace(0, len(self.samples) - 1, count, dtype=int)]
+            if count < len(self.samples)
+            else self.samples
+        )
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files

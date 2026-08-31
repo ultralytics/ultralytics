@@ -237,7 +237,7 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
         yolo export model=yolo26n.pt format=onnx end2end=False
         ```
 
-    The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority.
+    The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority. See the [End-to-End Detection guide](../guides/end2end-detection.md) for output formats, export compatibility, and migration steps.
 
 ## YOLOE-26: Open-Vocabulary Detection and Segmentation
 

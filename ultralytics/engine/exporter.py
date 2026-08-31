@@ -679,9 +679,9 @@ class Exporter:
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
-                # Disable end2end branch for certain export formats as they does not support topk
+                # Disable the end2end branch for formats without top-k support
                 model.end2end = False
-                LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+                LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
@@ -1003,20 +1003,22 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
+        split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
-            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
-            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+            if not isinstance(cfg.fraction, list):
+                cfg.fraction = [cfg.fraction] * 3
+            dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=self.args.split)
-            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
+            cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
             dataset = build_yolo_dataset(
                 cfg,
-                data[self.args.split or "val"],
+                data[split],
                 self.args.batch,
                 data,
                 mode="val",
@@ -1588,8 +1590,6 @@ class Exporter:
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
 
-        if getattr(self.model, "end2end", False):
-            raise ValueError("IMX export is not supported for end2end models.")
         from ultralytics.utils.export.imx import torch2imx
 
         return torch2imx(

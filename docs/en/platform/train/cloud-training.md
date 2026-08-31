@@ -501,7 +501,7 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
     | Parameter     | Type  | Default | Range   | Description                          |
     | ------------- | ----- | ------- | ------- | ------------------------------------ |
-    | `fraction`    | float, int, or list | 1.0 | positive | Training ratio/count or `[train, val]` ratios/counts; `1.0` is all, `1` is one |
+    | `fraction`    | float, int, or list | 1.0 | >0, test >=0 | Training ratio/count or split values; `1` is all, integers >1 are counts, and test `0`/`0.0` is none |
     | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
     | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
     | `rect`        | bool  | False   | -       | Rectangular training                 |

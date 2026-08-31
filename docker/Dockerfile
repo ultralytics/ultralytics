@@ -3,8 +3,8 @@
 # Builds ultralytics/ultralytics:latest image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Image is CUDA-optimized for YOLO single/multi-GPU training and inference
 
-# Start FROM PyTorch image https://hub.docker.com/r/pytorch/pytorch or nvcr.io/nvidia/pytorch:25.02-py3
-FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
+# Start FROM Python image https://hub.docker.com/_/python
+FROM python:3.14-slim-trixie
 
 # Set environment variables
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
@@ -33,6 +33,11 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+# Install the latest stable PyTorch for CUDA (https://pytorch.org/get-started/locally/)
+RUN pip install uv && \
+    uv pip install --system --no-cache torch==2.13.0 torchvision==0.28.0 \
+    --index-url https://download.pytorch.org/whl/cu130
+
 # Create working directory
 WORKDIR /ultralytics
 
@@ -41,7 +46,7 @@ COPY . .
 RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
-# Install pip packages (uv already installed in base image)
+# Install pip packages
 RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 

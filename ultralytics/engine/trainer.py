@@ -318,7 +318,8 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU
-        if self.args.channels_last and self.device.type == "cuda":
+        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")

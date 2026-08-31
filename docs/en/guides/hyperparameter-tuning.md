@@ -41,8 +41,8 @@ For a full list of augmentation hyperparameters used in YOLO26 please refer to t
 
 Ultralytics YOLO uses [genetic algorithms](https://en.wikipedia.org/wiki/Genetic_algorithm) to optimize hyperparameters. Genetic algorithms are inspired by the mechanism of natural selection and genetics.
 
-- **Crossover**: Each iteration combines genes from up to nine of the highest-fitness configurations seen so far, using BLX-α crossover with fitness-weighted parent selection.
-- **Mutation**: The recombined candidate is then perturbed by a log-normal multiplicative factor applied to each hyperparameter (with probability 0.5 per parameter). The mutation strength sigma decays linearly from 0.2 to 0.1 over the first 300 iterations, so the algorithm explores broadly early and refines as it converges. Iteration 1 has no parents to crossover from and uses the default training hyperparameters as a baseline.
+- **Selection**: Each iteration selects one of up to nine highest-fitness configurations, weighted by fitness. After 30 results, the best 20% of all results (up to 30) also estimate parameter covariance, with influence that grows as elite evidence accumulates.
+- **Mutation**: Each iteration mutates roughly half of the parameters using Gaussian steps normalized to their search ranges. Once covariance is active, a confidence-weighted share of at most 40% uses correlated steps, with reflection returning those steps within bounds without accumulating clipped values. As trials accumulate without improvement, step sizes narrow linearly by up to 20% over 25 trials and reset when a new best result is found. Iteration 1 has no parent and uses the default training hyperparameters as a baseline.
 
 ## Preparing for Hyperparameter Tuning
 
@@ -64,11 +64,11 @@ For each iteration, the built-in tuner repeats the following loop:
 
 ### Iterations and Population Size
 
-With the built-in tuner (`use_ray=False`), `iterations` controls the total number of sequential trials. Each trial trains one model with one hyperparameter configuration — for example, `iterations=40` with `epochs=50` schedules 40 independent 50-epoch training runs, not one 50-epoch run with a separate population of 40 candidates.
+With the built-in tuner (`use_ray=False`), `iterations` controls the total number of sequential trials and defaults to 300. Each trial trains one model with one hyperparameter configuration — for example, `iterations=40` with `epochs=50` schedules 40 independent 50-epoch training runs, not one 50-epoch run with a separate population of 40 candidates.
 
-The built-in genetic algorithm has no explicit population size parameter. Once prior trials exist, it samples up to nine of the highest-fitness configurations as parents, applies BLX-α crossover and mutation, and produces one candidate per iteration.
+The built-in genetic algorithm has no explicit population size parameter. Once prior trials exist, it selects from up to nine of the highest-fitness configurations and mutates one candidate per iteration.
 
-For parallel trials or more advanced search strategies, set `use_ray=True` to use Ray Tune, which receives `iterations` as `num_samples`. See the [Ray Tune integration guide](../integrations/ray-tune.md) for details.
+For parallel trials or more advanced search strategies, set `use_ray=True` to use Ray Tune, which uses the same 300-trial default and receives `iterations` as `num_samples`. See the [Ray Tune integration guide](../integrations/ray-tune.md) for details.
 
 ## Default Search Space
 
@@ -300,7 +300,7 @@ The top-level `fitness` is the arithmetic mean of the per-dataset `fitness` valu
 
 #### tune_scatter_plots.png
 
-This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Hyperparameters whose default value is 0 (for example, `degrees` and `shear` below) may evolve only slowly from their initial seed because the multiplicative mutation factor has very little to expand from a near-zero value.
+This file contains scatter plots generated from `tune_results.ndjson`, helping you visualize relationships between different hyperparameters and performance metrics. Mutation uses each hyperparameter's configured range, so values can evolve from zero-valued defaults such as `degrees` and `shear`.
 
 - **Format**: PNG
 - **Usage**: Exploratory data analysis
@@ -320,7 +320,7 @@ Using these results, you can make more informed decisions for future model train
 
 ## Conclusion
 
-Hyperparameter tuning in Ultralytics YOLO is both simple to launch and powerful under the hood, combining BLX-α crossover with log-normal mutation in a genetic algorithm. Following the loop outlined in this guide lets you systematically tune your model for better performance, then reuse the resulting `best_hyperparameters.yaml` to initialize future training runs. To scale tuning across parallel trials and more advanced search algorithms, continue with the [Ray Tune integration guide](../integrations/ray-tune.md), or run managed jobs with configurable hyperparameters and real-time metrics tracking on [Ultralytics Platform](https://platform.ultralytics.com) via [cloud training](../platform/train/cloud-training.md).
+Hyperparameter tuning in Ultralytics YOLO is both simple to launch and powerful under the hood, using fitness-weighted selection and range-normalized mutation in a genetic algorithm. Following the loop outlined in this guide lets you systematically tune your model for better performance, then reuse the resulting `best_hyperparameters.yaml` to initialize future training runs. To scale tuning across parallel trials and more advanced search algorithms, continue with the [Ray Tune integration guide](../integrations/ray-tune.md), or run managed jobs with configurable hyperparameters and real-time metrics tracking on [Ultralytics Platform](https://platform.ultralytics.com) via [cloud training](../platform/train/cloud-training.md).
 
 For settings that no argument exposes, such as per-layer learning rates or a custom fitness metric, [subclass the trainer](custom-trainer.md) instead. For deeper insights, explore the [`Tuner` class](../reference/engine/tuner.md) source code. If you have questions or feature requests, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 
@@ -350,7 +350,7 @@ For more details, check the [Ultralytics YOLO configuration page](../usage/cfg.m
 
 Genetic algorithms in Ultralytics YOLO26 provide a robust method for exploring the hyperparameter space, leading to highly optimized model performance. Key benefits include:
 
-- **Efficient Search**: BLX-α crossover combines genes from the highest-fitness parents, while log-normal mutation perturbs the result to discover new candidates.
+- **Efficient Search**: Fitness-weighted selection preserves strong configurations while range-normalized mutation explores new candidates.
 - **Avoiding Local Minima**: By introducing randomness, they help in avoiding local minima, ensuring better global optimization.
 - **Performance Metrics**: They adapt based on a task-specific fitness score (mAP50-95 for detection).
 

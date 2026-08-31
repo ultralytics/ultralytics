@@ -437,7 +437,8 @@ class BaseTrainer:
         self.train_time_start = time.time()
         self.run_callbacks("on_train_start")
         LOGGER.info(
-            f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
+            f"Using {len(self.train_loader.dataset)} train, {len(self.test_loader.dataset)} val images for "
+            f"fraction={self.args.fraction} at imgsz={self.args.imgsz}\n"
             f"Using {self.train_loader.num_workers * (self.world_size or 1)} dataloader workers\n"
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
             f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
@@ -783,7 +784,7 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
 
             # Task-specific dataset checking
             if self.args.task == "classify":

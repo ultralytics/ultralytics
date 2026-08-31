@@ -89,6 +89,10 @@ jobs:
             uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
+            if [[ "${{ matrix.os }}" == "macos-26" ]]; then
+              # Exercise the Core AI benchmark rows on the Apple silicon macOS runner
+              uv pip install "${uv_system_args[@]}" -e ".[export-coreai]" --torch-backend cpu
+            fi
       - name: Check environment
         run: |
           yolo checks

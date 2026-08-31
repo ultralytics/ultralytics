@@ -13,7 +13,7 @@ Object tracking in the realm of video analytics is a critical task that not only
 
 !!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
 
-    Starting with Ultralytics YOLO v8.4.63, new tracking algorithms are available: [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack). These trackers improve multi-object tracking performance and ID consistency.
+    Starting with Ultralytics YOLO v8.4.63, [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack) are available alongside BoT-SORT and ByteTrack.
 
 ## Why Choose Ultralytics YOLO for Object Tracking?
 
@@ -109,14 +109,14 @@ To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB
 
 Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
 
-| Tracker                           | Config file       | Motion model               | Appearance / ReID         | Camera motion compensation | Occlusion handling                              |
-| --------------------------------- | ----------------- | -------------------------- | ------------------------- | -------------------------- | ----------------------------------------------- |
-| **[BoT-SORT](#bot-sort)**         | `botsort.yaml`    | Linear Kalman              | Optional (`with_reid`)    | Yes (sparseOptFlow / ECC)  | Track buffer + ReID rebinding                   |
-| **[ByteTrack](#bytetrack)**       | `bytetrack.yaml`  | Linear Kalman              | None                      | No                         | Two-stage low-conf rescue                       |
-| **[OC-SORT](#oc-sort)**           | `ocsort.yaml`     | Observation-centric Kalman | None                      | No                         | ORU, OCM, OCR re-update from last observation   |
-| **[Deep OC-SORT](#deep-oc-sort)** | `deepocsort.yaml` | Observation-centric Kalman | Optional (`with_reid`)    | Optional (`gmc_method`)    | OC-SORT + adaptive appearance EMA               |
-| **[FastTracker](#fasttracker)**   | `fasttrack.yaml`  | Linear Kalman + rollback   | None                      | No                         | Kalman rollback + bbox enlargement on occlusion |
-| **[TrackTrack](#tracktrack)**     | `tracktrack.yaml` | Linear Kalman (NSA)        | Optional (HMIoU fallback) | Yes (sparseOptFlow / ECC)  | Iterative multi-cue association + TAI           |
+| Tracker                           | Config file       | Motion model               | Appearance / ReID      | Camera motion compensation  | Occlusion handling                              |
+| --------------------------------- | ----------------- | -------------------------- | ---------------------- | --------------------------- | ----------------------------------------------- |
+| **[BoT-SORT](#bot-sort)**         | `botsort.yaml`    | Linear Kalman              | Optional (`with_reid`) | Configurable (`gmc_method`) | Track buffer + ReID rebinding                   |
+| **[ByteTrack](#bytetrack)**       | `bytetrack.yaml`  | Linear Kalman              | None                   | No                          | Two-stage low-conf rescue                       |
+| **[OC-SORT](#oc-sort)**           | `ocsort.yaml`     | Observation-centric Kalman | None                   | No                          | ORU, OCM, OCR re-update from last observation   |
+| **[Deep OC-SORT](#deep-oc-sort)** | `deepocsort.yaml` | Observation-centric Kalman | Optional (`with_reid`) | Configurable (`gmc_method`) | OC-SORT + optional adaptive appearance EMA      |
+| **[FastTracker](#fasttracker)**   | `fasttrack.yaml`  | Linear Kalman + rollback   | None                   | No                          | Kalman rollback + bbox enlargement on occlusion |
+| **[TrackTrack](#tracktrack)**     | `tracktrack.yaml` | Linear Kalman (NSA)        | Optional (`with_reid`) | Configurable (`gmc_method`) | Iterative multi-cue association + TAI           |
 
 ### Which Tracker Should I Use?
 
@@ -125,7 +125,7 @@ Use this flow to pick a starting point; `tracktrack.yaml` is used when you pass 
 1. **Need the fastest, simplest baseline?** → **ByteTrack** (no ReID, no camera-motion compensation, minimum overhead).
 2. **Handheld, drone, or moving-camera footage?** → **BoT-SORT** (adds camera-motion compensation and optional ReID).
 3. **Non-linear motion (sports, dancing, abrupt turns) and no ReID?** → **OC-SORT** (observation-centric corrections without appearance cost).
-4. **Crowded moving-camera scenes where ID swaps are the main problem?** → **Deep OC-SORT** or **TrackTrack** (both add adaptive appearance fusion; TrackTrack also adds multi-cue association and duplicate-ID suppression).
+4. **Crowded moving-camera scenes where ID swaps are the main problem?** → **Deep OC-SORT** or **TrackTrack** (both support optional appearance matching; TrackTrack also adds multi-cue association and duplicate-ID suppression).
 5. **Frequent partial overlap in real-time, no ReID budget?** → **FastTracker** (occlusion-aware ByteTrack variant with Kalman rollback).
 
 ## Switching Trackers
@@ -206,22 +206,22 @@ The following parameters are common to most tracker YAML files; not every parame
 
 !!! warning "Tracker Threshold Information"
 
-    If a detection's confidence score falls below `track_high_thresh`, the tracker will not update that object, resulting in no active tracks.
+    Detections at or above `track_high_thresh` enter the first association stage. Detections between `track_low_thresh` and `track_high_thresh` can recover existing tracks when the selected tracker enables low-confidence association, but they do not start new tracks. Detections at or below `track_low_thresh` are ignored.
 
-| Parameter           | Valid Values or Ranges                                                    | Description                                                                                                                                                                                          |
-| ------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tracker_type`      | `botsort`, `bytetrack`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                          |
-| `track_high_thresh` | `0.0-1.0`                                                                 | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                            |
-| `track_low_thresh`  | `0.0-1.0`                                                                 | Threshold for the second association over low-confidence detections. For OC-SORT and Deep OC-SORT this applies only when `use_byte: True`.                                                           |
-| `new_track_thresh`  | `0.0-1.0`                                                                 | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                             |
-| `track_buffer`      | `>=0`                                                                     | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                   |
-| `match_thresh`      | `0.0-1.0`                                                                 | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                             |
-| `fuse_score`        | `True`, `False`                                                           | Whether to fuse confidence scores with IoU distances before matching.                                                                                                                                |
-| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none`                             | Global motion compensation method. Helps account for camera movement.                                                                                                                                |
-| `proximity_thresh`  | `0.0-1.0`                                                                 | Minimum IoU required for a valid ReID match. Ensures spatial closeness before using appearance cues.                                                                                                 |
-| `appearance_thresh` | `0.0-1.0`                                                                 | Minimum appearance similarity required for ReID.                                                                                                                                                     |
-| `with_reid`         | `True`, `False`                                                           | Enable appearance-based matching for better tracking across occlusions. Supported by BoT-SORT, Deep OC-SORT, and TrackTrack.                                                                         |
-| `model`             | `auto` or path to an exported file                                        | ReID model. `auto` uses native YOLO backbone features when available; otherwise falls back to `yolo26n-cls.pt`. Pass a `.torchscript`, `.onnx`, `.engine`, `.openvino`, … file for a custom encoder. |
+| Parameter           | Valid Values or Ranges                                                    | Description                                                                                                                                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tracker_type`      | `botsort`, `bytetrack`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                                                                                 |
+| `track_high_thresh` | `0.0-1.0`                                                                 | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                                                                                   |
+| `track_low_thresh`  | `0.0-1.0`                                                                 | Lower bound for low-confidence recovery detections. OC-SORT and Deep OC-SORT use these only when `use_byte: True`; TrackTrack includes them in its penalized association pool.                                                                              |
+| `new_track_thresh`  | `0.0-1.0`                                                                 | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                                                                                    |
+| `track_buffer`      | `>=0`                                                                     | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                                                                          |
+| `match_thresh`      | `0.0-1.0`                                                                 | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                                                                                    |
+| `fuse_score`        | `True`, `False`                                                           | Whether to fuse confidence scores with IoU distances before matching.                                                                                                                                                                                       |
+| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none`                             | Global motion compensation method. Helps account for camera movement.                                                                                                                                                                                       |
+| `proximity_thresh`  | `0.0-1.0`                                                                 | Minimum IoU required for a valid ReID match. Ensures spatial closeness before using appearance cues.                                                                                                                                                        |
+| `appearance_thresh` | `0.0-1.0`                                                                 | Minimum normalized appearance similarity required for ReID.                                                                                                                                                                                                 |
+| `with_reid`         | `True`, `False`                                                           | Enable appearance-based matching for better tracking across occlusions. Supported by BoT-SORT, Deep OC-SORT, and TrackTrack.                                                                                                                                |
+| `model`             | `auto` or compatible ReID model path                                      | ReID model. `auto` uses native YOLO backbone features when available; otherwise falls back to `yolo26n-cls.pt`. A custom encoder can be a `.pt` checkpoint or an exported model such as `.torchscript`, `.onnx`, `.engine`, or an OpenVINO model directory. |
 
 #### Tracker-specific Arguments
 
@@ -241,7 +241,7 @@ ReID is disabled by default to minimize overhead. Enable it by setting `with_rei
 **ReID model options:**
 
 - **`model: auto`** — Uses native YOLO detector features, adding minimal overhead. Ideal when you need some ReID without a large performance hit. Falls back to `yolo26n-cls.pt` if the detector does not expose compatible features.
-- **Exported ReID model** — Point `model:` at an exported file (`.torchscript`, `.onnx`, `.engine`, `.openvino`, etc.) for more discriminative embeddings at the cost of an extra forward pass per crop. The encoder is loaded via `AutoBackend`, so any export format Ultralytics supports works without code changes.
+- **Custom ReID model** — Point `model:` at a `.pt` checkpoint or a compatible exported embedding model, such as `.torchscript`, `.onnx`, `.engine`, or an OpenVINO model directory. Exported models are loaded through `AutoBackend` and must output an embedding tensor directly.
 
 Ready-to-use ONNX encoders are published for every model size. Set `model:` to one of these names and the file is downloaded automatically the first time the tracker runs (the same way YOLO weights are fetched) — no manual export or download step required:
 
@@ -302,13 +302,13 @@ Expand the sections below for each tracker's design, specific parameters, and tu
 
 **BoT-SORT-specific arguments:**
 
-| Parameter           | Valid Values or Ranges                        | Description                                                                                                              |
-| ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Camera-motion-compensation backend. `sparseOptFlow` is the default. `none` disables CMC.                                 |
-| `with_reid`         | `True`, `False`                               | Enable appearance-based matching. Off by default.                                                                        |
-| `model`             | `auto` or path to a ReID model                | ReID model. `auto` uses native YOLO features when available; otherwise pass a `.torchscript` / `.onnx` / `.engine` path. |
-| `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU before appearance features are considered.                                                                   |
-| `appearance_thresh` | `0.0-1.0`                                     | Minimum cosine similarity required for a ReID match. Raise to reduce identity swaps.                                     |
+| Parameter           | Valid Values or Ranges                        | Description                                                                                                    |
+| ------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Camera-motion-compensation backend. `sparseOptFlow` is the default. `none` disables CMC.                       |
+| `with_reid`         | `True`, `False`                               | Enable appearance-based matching. Off by default.                                                              |
+| `model`             | `auto` or compatible ReID model path          | `auto` uses native YOLO features when available; custom models can be `.pt` checkpoints or compatible exports. |
+| `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU before appearance features are considered.                                                         |
+| `appearance_thresh` | `0.0-1.0`                                     | Minimum normalized appearance similarity required for a ReID match. Raise to make matching stricter.           |
 
 **Tuning tips:**
 
@@ -359,11 +359,13 @@ There is no appearance model and no camera-motion compensation.
 - **Sparse detections:** enable `use_byte: True`.
 - **Long occlusions:** raise `track_buffer` so OCR has more lost tracks to rebind.
 
+With OBB models, OCR uses the Kalman-predicted oriented box because an oriented last-observation history is not retained.
+
 #### Deep OC-SORT
 
 [Deep OC-SORT](https://arxiv.org/abs/2302.11813) augments OC-SORT with appearance information and camera-motion compensation:
 
-- **Adaptive appearance fusion:** detection embeddings are fused into the cost matrix with weight modulated by detection confidence and overlap.
+- **Appearance matching:** cosine embedding distance is gated by overlap and fused with motion cost.
 - **Dynamic appearance EMA:** track embeddings update with an EMA whose smoothing factor adapts to detection confidence.
 - **Camera Motion Compensation:** Kalman states are warped frame-to-frame via sparse optical flow, ORB, or ECC.
 
@@ -371,21 +373,21 @@ There is no appearance model and no camera-motion compensation.
 
 **Deep OC-SORT-specific arguments:**
 
-| Parameter           | Valid Values or Ranges                        | Description                                                                                                              |
-| ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `with_reid`         | `True`, `False`                               | Enable appearance-based matching. Off by default.                                                                        |
-| `model`             | `auto`, exported ReID model file              | ReID model. `auto` reuses native YOLO features; otherwise pass an exported file (`.torchscript`, `.onnx`, `.engine`, …). |
-| `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU before appearance features are considered.                                                                   |
-| `appearance_thresh` | `0.0-1.0`                                     | Minimum cosine similarity required for a ReID match.                                                                     |
-| `alpha_fixed_emb`   | `0.0-1.0`                                     | Base EMA factor for track-embedding updates. Higher values preserve the older embedding longer.                          |
-| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Global motion compensation method.                                                                                       |
-| `delta_t`           | `>=1`                                         | Temporal window (frames) for velocity-direction computation in OCM (inherited from OC-SORT).                             |
-| `inertia`           | `0.0-1.0`                                     | Weight of the velocity-consistency cost (inherited from OC-SORT).                                                        |
-| `use_byte`          | `True`, `False`                               | Enable a ByteTrack-style second association over low-confidence detections (inherited from OC-SORT).                     |
+| Parameter           | Valid Values or Ranges                        | Description                                                                                                    |
+| ------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `with_reid`         | `True`, `False`                               | Enable appearance-based matching. Off by default.                                                              |
+| `model`             | `auto` or compatible ReID model path          | `auto` uses native YOLO features when available; custom models can be `.pt` checkpoints or compatible exports. |
+| `proximity_thresh`  | `0.0-1.0`                                     | Minimum IoU before appearance features are considered.                                                         |
+| `appearance_thresh` | `0.0-1.0`                                     | Minimum normalized appearance similarity required for a ReID match.                                            |
+| `alpha_fixed_emb`   | `0.0-1.0`                                     | Base EMA factor for track-embedding updates. Higher values preserve the older embedding longer.                |
+| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Global motion compensation method.                                                                             |
+| `delta_t`           | `>=1`                                         | Temporal window (frames) for velocity-direction computation in OCM (inherited from OC-SORT).                   |
+| `inertia`           | `0.0-1.0`                                     | Weight of the velocity-consistency cost (inherited from OC-SORT).                                              |
+| `use_byte`          | `True`, `False`                               | Enable a ByteTrack-style second association over low-confidence detections (inherited from OC-SORT).           |
 
 **Tuning tips:**
 
-- **Identity swaps in crowds:** raise `appearance_thresh` (e.g. `0.92-0.95`) and lower `alpha_fixed_emb` so embeddings adapt more slowly.
+- **Identity swaps in crowds:** raise `appearance_thresh` (e.g. `0.92-0.95`) and raise `alpha_fixed_emb` so embeddings adapt more slowly.
 - **Moving camera:** set `gmc_method: sparseOptFlow` (Deep OC-SORT defaults to `none`).
 - **Lower latency:** keep `with_reid: False` (default) for motion + CMC only; enable ReID only when ID swaps dominate errors.
 
@@ -418,34 +420,34 @@ There is no appearance model and no camera-motion compensation.
 - **Frequent partial occlusions:** lower `occ_cover_thresh` (e.g. `0.5-0.6`).
 - **Duplicate IDs around overlap:** lower `init_iou_suppress` (e.g. `0.5`).
 - **Long occlusions:** raise `occ_reappear_window` and `track_buffer` together.
-- **Fast-moving targets:** raise `dampen_motion_occ` (closer to `1.0`) and lower `enlarge_bbox_occ`.
+- **Fast-moving targets:** raise `dampen_motion_occ` (closer to `1.0`); raise `enlarge_bbox_occ` only when a wider search region improves recovery.
 
 #### TrackTrack
 
 [TrackTrack](https://openaccess.thecvf.com/content/CVPR2025/papers/Shim_Focusing_on_Tracks_for_Online_Multi-Object_Tracking_CVPR_2025_paper.pdf) (Shim et al., CVPR 2025) is the default tracker. It reasons from each track's perspective with multi-cue iterative association:
 
-- **Track-Perspective-Based Association (TPA):** combines HMIoU, cosine ReID distance, confidence-projection distance, and corner-angle distance. Assignment is solved iteratively with a relaxing threshold.
+- **Track-Perspective-Based Association (TPA):** combines HMIoU, optional cosine ReID distance, confidence-projection distance, and corner-angle distance. Assignment is solved iteratively with a relaxing threshold.
 - **Track-Aware Initialization (TAI):** suppresses duplicate spawns before a new ID is created.
 
 **Best for:** crowded scenes with frequent occlusion where duplicate IDs are a problem.
 
 **TrackTrack-specific arguments:**
 
-| Parameter        | Valid Values or Ranges                        | Description                                                                         |
-| ---------------- | --------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `iou_weight`     | `0.0-1.0`                                     | Weight of HMIoU distance in the multi-cue cost matrix.                              |
-| `reid_weight`    | `0.0-1.0`                                     | Weight of cosine ReID distance. Falls back to HMIoU if ReID is disabled.            |
-| `conf_weight`    | `0.0-1.0`                                     | Weight of confidence-projection distance.                                           |
-| `angle_weight`   | `0.0-1.0`                                     | Weight of corner-angle distance.                                                    |
-| `penalty_p`      | `0.0-1.0`                                     | Cost penalty for low-confidence detections.                                         |
-| `penalty_q`      | `0.0-1.0`                                     | Cost penalty for detections recovered by secondary NMS.                             |
-| `reduce_step`    | `0.0-1.0`                                     | Match-threshold relaxation per iteration.                                           |
-| `tai_thr`        | `0.0-1.0`                                     | IoU threshold for Track-Aware Initialization NMS.                                   |
-| `min_track_len`  | `>=0`                                         | Minimum history length before a new track is confirmed.                             |
-| `lost_match_thr` | `0.0-1.0`                                     | Looser cost gate for relaxed lost-rebind pass; `0` disables it.                     |
-| `with_reid`      | `True`, `False`                               | Enable cosine-ReID appearance matching (uses native YOLO features). Off by default. |
-| `model`          | `auto`, ReID file                             | ReID model; `auto` uses native YOLO features, otherwise an exported ReID file.      |
-| `gmc_method`     | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Global motion compensation method.                                                  |
+| Parameter        | Valid Values or Ranges                        | Description                                                                                                    |
+| ---------------- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `iou_weight`     | `0.0-1.0`                                     | Weight of HMIoU distance when ReID is enabled; otherwise HMIoU is used directly.                               |
+| `reid_weight`    | `0.0-1.0`                                     | Weight of cosine ReID distance when ReID is enabled; otherwise it is ignored.                                  |
+| `conf_weight`    | `0.0-1.0`                                     | Weight of confidence-projection distance.                                                                      |
+| `angle_weight`   | `0.0-1.0`                                     | Weight of corner-angle distance.                                                                               |
+| `penalty_p`      | `0.0-1.0`                                     | Cost penalty for low-confidence detections.                                                                    |
+| `penalty_q`      | `0.0-1.0`                                     | Cost penalty for detections recovered by secondary NMS.                                                        |
+| `reduce_step`    | `0.0-1.0`                                     | Match-threshold relaxation per iteration.                                                                      |
+| `tai_thr`        | `0.0-1.0`                                     | IoU threshold for Track-Aware Initialization NMS.                                                              |
+| `min_track_len`  | `>=0`                                         | Minimum history length before a new track is confirmed.                                                        |
+| `lost_match_thr` | `0.0-1.0`                                     | Looser cost gate for relaxed lost-rebind pass; `0` disables it.                                                |
+| `with_reid`      | `True`, `False`                               | Enable cosine-ReID appearance matching (uses native YOLO features). Off by default.                            |
+| `model`          | `auto` or compatible ReID model path          | `auto` uses native YOLO features when available; custom models can be `.pt` checkpoints or compatible exports. |
+| `gmc_method`     | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none` | Global motion compensation method.                                                                             |
 
 **Tuning tips:**
 
@@ -453,6 +455,8 @@ There is no appearance model and no camera-motion compensation.
 - **Fast camera motion:** keep `gmc_method: sparseOptFlow` enabled.
 - **Small/fast objects:** raise `angle_weight` slightly and lower `min_track_len`.
 - **Enable ReID only when needed:** it adds inference cost; for short occlusions, the default multi-cue cost is usually sufficient.
+
+With Segment and Pose models, TrackTrack skips loose-NMS detection recovery so masks and keypoints remain aligned with their detections.
 
 ## Python Examples
 
@@ -623,7 +627,7 @@ Finally, after all threads have completed their task, the windows displaying the
         """Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
-            model_name (str): The YOLO26 model object.
+            model_name (str): Model checkpoint name or path loaded inside the thread.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
         """
         model = YOLO(model_name)
@@ -714,7 +718,7 @@ To run object tracking on multiple video streams simultaneously, you can use Pyt
         """Run YOLO tracker in its own thread for concurrent processing.
 
         Args:
-            model_name (str): The YOLO26 model object.
+            model_name (str): Model checkpoint name or path loaded inside the thread.
             filename (str): The path to the video file or the identifier for the webcam/external camera source.
         """
         model = YOLO(model_name)

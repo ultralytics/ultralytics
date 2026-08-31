@@ -351,6 +351,7 @@ class v8DetectionLoss:
 
         # YOLOv5-style objectness (see Detect.set_objectness). 'none' keeps the 3-term loss vector.
         self.objectness = getattr(m, "objectness", "none")
+        self.obj_target = getattr(h, "obj_target", "soft")  # 'hard' = positives get 1.0 (TAL did the filtering)
         nl = len(m.stride)
         # v5 weights the objectness loss per level because P3 holds most of the negatives.
         self.obj_balance = {3: [4.0, 1.0, 0.4], 5: [4.0, 1.0, 0.25, 0.06, 0.02]}.get(nl, [1.0] * nl)
@@ -465,8 +466,11 @@ class v8DetectionLoss:
             pred_obj = preds["obj"].squeeze(1)  # (bs, num_anchors)
             tobj = torch.zeros_like(pred_obj)
             if fg_mask.sum():
-                iou = bbox_iou(pred_bboxes[fg_mask], (target_bboxes / stride_tensor)[fg_mask], xywh=False, CIoU=True)
-                tobj[fg_mask] = iou.detach().squeeze(-1).clamp_(0).to(tobj.dtype)
+                if self.obj_target == "hard":
+                    tobj[fg_mask] = 1.0  # TAL already filtered for quality; IoU supervision is box+cls's job
+                else:
+                    iou = bbox_iou(pred_bboxes[fg_mask], (target_bboxes / stride_tensor)[fg_mask], xywh=False, CIoU=True)
+                    tobj[fg_mask] = iou.detach().squeeze(-1).clamp_(0).to(tobj.dtype)
             obj_loss = self.bce(pred_obj, tobj)  # (bs, num_anchors), reduction='none'
             splits = [f.shape[2] * f.shape[3] for f in preds["feats"]]
             bg = ~fg_mask

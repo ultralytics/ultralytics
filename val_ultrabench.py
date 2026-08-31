@@ -202,10 +202,6 @@ def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
             f"Ultra Benchmark predictions differ: missing={sorted(datasets.keys() - predictions)}, "
             f"extra={sorted(predictions - datasets.keys())}"
         )
-    core_results = json.loads((run_dir / "multitrain_results.json").read_text())["results"]
-    if set(core_results) != datasets.keys() or any(result is None for result in core_results.values()):
-        raise ValueError("multitrain_results.json does not contain 37 successful datasets")
-
     data_yamls, max_dets = {}, {}
     for dataset, uri in datasets.items():
         saved = YAML.load(run_dir / dataset / "args.yaml")

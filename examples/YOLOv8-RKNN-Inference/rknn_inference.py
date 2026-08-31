@@ -153,8 +153,8 @@ def post_process(outputs, imgsz, conf=OBJ_THRESH, nms=NMS_THRESH):
 
     outputs: fp32 tensors, either [box, cls, score_sum] x scales (9-output, cls
              is logit) or [box, cls] x scales (6-output, cls is already Sigmoid).
-    imgsz: square input size (w, h); used for stride decoding.
-    Returns boxes in the letterboxed input space, or (None, None, None).
+    imgsz: square input size (w, h); used for stride decoding. Returns boxes in the letterboxed input space, or (None,
+    None, None).
     """
     # 6-output is [box, Sigmoid(cls)] x scales; 9-output is [box, cls_logit, score_sum]
     # x scales. Infer the outputs-per-scale from the total count (3 or 4 scales).

@@ -50,7 +50,7 @@ the top and stair-stepped (see the discussion in
    git clone https://github.com/ultralytics/ultralytics.git
    cd ultralytics/examples/YOLOv8-RKNN-Inference
    pip install -r requirements.txt
-   pip install -e ../..  # local ultralytics package, imported by export_onnx.py
+   pip install -e ../.. # local ultralytics package, imported by export_onnx.py
    ```
 
 ## 🚀 Usage

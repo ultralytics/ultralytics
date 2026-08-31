@@ -41,8 +41,8 @@ def export_onnx(pt_path, onnx_path, imgsz=640, opset=17, heads=6):
         onnx_path: Output ONNX path.
         imgsz: Square input size.
         opset: ONNX opset version.
-        heads: Outputs per branch for a 3-scale model (6 or 9); the total output
-            count scales with the detection layers (8 or 12 for a 4-scale model).
+        heads: Outputs per branch for a 3-scale model (6 or 9); the total output count scales with the detection layers
+            (8 or 12 for a 4-scale model).
     """
     from ultralytics import YOLO
 

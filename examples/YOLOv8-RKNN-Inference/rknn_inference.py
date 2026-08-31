@@ -123,7 +123,7 @@ def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
 
 
-def letter_box(im, new_shape=IMG_SIZE, pad_color=PAD_COLOR):
+def letter_box(im, new_shape, pad_color=PAD_COLOR):
     """Resize with aspect ratio preserved and pad to new_shape."""
     h, w = im.shape[:2]
     r = min(new_shape[1] / w, new_shape[0] / h)
@@ -148,11 +148,12 @@ def dfl_decode(box):
     return (prob * acc).sum(axis=2)
 
 
-def post_process(outputs, conf=OBJ_THRESH, nms=NMS_THRESH):
+def post_process(outputs, imgsz, conf=OBJ_THRESH, nms=NMS_THRESH):
     """Decode the separate-head outputs into (xyxy, scores, classes).
 
     outputs: fp32 tensors, either [box, cls, score_sum] x scales (9-output, cls
              is logit) or [box, cls] x scales (6-output, cls is already Sigmoid).
+    imgsz: square input size (w, h); used for stride decoding.
     Returns boxes in the letterboxed input space, or (None, None, None).
     """
     # 6-output is [box, Sigmoid(cls)] x scales; 9-output is [box, cls_logit, score_sum]
@@ -168,7 +169,7 @@ def post_process(outputs, conf=OBJ_THRESH, nms=NMS_THRESH):
         if per == 3:
             cls = sigmoid(cls)  # 9-output: cls is logit
         _, _, gh, gw = box.shape
-        stride = IMG_SIZE[0] // gw
+        stride = imgsz[0] // gw
         jx, jy = np.meshgrid(np.arange(gw), np.arange(gh))
         x1 = (-box[0, 0] + jx + 0.5) * stride
         y1 = (-box[0, 1] + jy + 0.5) * stride
@@ -232,14 +233,14 @@ def draw(image, boxes, scores, classes, names):
         cv2.putText(image, label, (x1, max(y1 - 6, 12)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
 
-def inference(rknn, img_src, names, conf, nms):
+def inference(rknn, img_src, names, conf, nms, imgsz):
     """Run one frame; returns the annotated BGR image."""
-    img_lb, ratio, pad = letter_box(img_src.copy())
+    img_lb, ratio, pad = letter_box(img_src.copy(), new_shape=imgsz)
     input_data = cv2.cvtColor(img_lb, cv2.COLOR_BGR2RGB)
     input_data = input_data[np.newaxis, ...]  # [1, h, w, 3] static-batch input
     outputs = rknn.inference(inputs=[input_data])
     outputs = [o.astype(np.float32) for o in outputs]
-    boxes, scores, classes = post_process(outputs, conf, nms)
+    boxes, scores, classes = post_process(outputs, imgsz, conf, nms)
     img_draw = img_src.copy()
     if boxes is not None:
         draw(img_draw, unmap_box(boxes, ratio, pad), scores, classes, names)
@@ -261,7 +262,7 @@ def load_rknn(model_path, target):
     return rknn
 
 
-def run_image(args, rknn, names):
+def run_image(args, rknn, names, imgsz):
     """Run inference on each image in ``args.image`` and save the annotated results."""
     for img_path in args.image:
         img_src = cv2.imread(img_path)
@@ -269,14 +270,14 @@ def run_image(args, rknn, names):
             print(f"cannot read {img_path}")
             continue
         print(f"\n[{os.path.basename(img_path)}] {os.path.basename(args.model)}:")
-        img_draw = inference(rknn, img_src, names, args.conf, args.nms)
+        img_draw = inference(rknn, img_src, names, args.conf, args.nms, imgsz)
         out = args.out_dir or os.path.dirname(img_path)
         out_path = os.path.join(out, f"{os.path.splitext(os.path.basename(img_path))[0]}_rknn.jpg")
         cv2.imwrite(out_path, img_draw)
         print(f"  result saved: {out_path}")
 
 
-def run_video(args, rknn, names):
+def run_video(args, rknn, names, imgsz):
     """Run inference on a video and write the annotated result to ``args.out``."""
     cap = cv2.VideoCapture(args.video)
     if not cap.isOpened():
@@ -294,7 +295,7 @@ def run_video(args, rknn, names):
         ok, frame = cap.read()
         if not ok:
             break
-        img_draw = inference(rknn, frame, names, args.conf, args.nms)
+        img_draw = inference(rknn, frame, names, args.conf, args.nms, imgsz)
         writer.write(img_draw)
         frame_id += 1
         if frame_id % 30 == 1:
@@ -306,13 +307,12 @@ def run_video(args, rknn, names):
 
 def main():
     """Parse command-line arguments and run image/video inference."""
-    global IMG_SIZE  # --imgsz overrides the 640x640 default
     parser = argparse.ArgumentParser(description="YOLOv8 RKNN inference")
     parser.add_argument("--model", required=True, help=".rknn model path")
     parser.add_argument(
         "--imgsz",
         type=int,
-        default=IMG_SIZE[0],
+        default=640,
         help="square input size, must match the size used at export/conversion",
     )
     parser.add_argument("--image", nargs="+", help="input image path(s)")
@@ -327,14 +327,14 @@ def main():
     if not args.image and not args.video:
         parser.error("provide --image or --video")
 
-    IMG_SIZE = (args.imgsz, args.imgsz)
+    imgsz = (args.imgsz, args.imgsz)
     names = list(COCO_NAMES)
     rknn = load_rknn(args.model, args.target)
     try:
         if args.image:
-            run_image(args, rknn, names)
+            run_image(args, rknn, names, imgsz)
         if args.video:
-            run_video(args, rknn, names)
+            run_video(args, rknn, names, imgsz)
     finally:
         rknn.release()
 

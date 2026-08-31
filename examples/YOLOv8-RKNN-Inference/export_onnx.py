@@ -105,7 +105,7 @@ def export_onnx(pt_path, onnx_path, imgsz=640, opset=17, heads=6):
         opset_version=opset,
         do_constant_folding=True,
         verbose=False,
-        dynamo=False,
+        **({"dynamo": False} if torch.__version__ >= "2.4" else {}),
     )
 
     import onnx

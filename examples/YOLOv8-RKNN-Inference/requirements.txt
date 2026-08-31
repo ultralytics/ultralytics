@@ -1,2 +1,3 @@
 numpy
+onnx
 opencv-python

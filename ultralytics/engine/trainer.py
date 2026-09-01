@@ -1248,7 +1248,8 @@ class MultiTrainer:
                     f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
                 )
                 path = Path(str(data))
-                name = path.parent.resolve().name if path.stem == "data" and path.parent.name else path.stem
+                parent = path.parent.name
+                name = Path(os.path.abspath(path.parent)).name if path.stem == "data" and parent else path.stem
                 run_name = name
                 try:
                     overrides = {

@@ -373,16 +373,84 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
-@pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
-def test_preprocess_values(model_name, bgr):
+@pytest.mark.parametrize(
+    ("model_name", "bgr", "imgsz"),
+    [("yolo11n.pt", [0, 127, 255], 32), ("yolo11n-grayscale.pt", [127], 32), ("yolo26n-cls.pt", [0, 127, 255], 224)],
+)
+def test_preprocess_values(model_name, bgr, imgsz):
     """Check predictor channel order and normalization with known pixel values."""
     model = YOLO(WEIGHTS_DIR / model_name)
     im = np.full((32, 32, len(bgr)), bgr, dtype=np.uint8)
-    model(im, imgsz=32, verbose=False)  # build predictor through the public path
+    model(im, imgsz=imgsz, verbose=False)  # classify at 224 keeps the checkpoint's own transforms
     out = model.predictor.preprocess([im])
     expected = torch.tensor([bgr[::-1]], device=out.device, dtype=out.dtype) / 255
-    assert out.shape == (1, len(bgr), 32, 32) and out.is_contiguous()
+    assert out.shape == (1, len(bgr), imgsz, imgsz) and out.is_contiguous()
     assert torch.equal(out[:, :, 0, 0], expected)
+
+
+def test_classify_preprocess_channel_mixing_fallback():
+    """A channel-mixing stage before ToTensor must keep the host path, which sees true RGB rather than BGR."""
+    import torchvision.transforms as T
+
+    tfl = [T.Resize(224), T.CenterCrop(224), T.Grayscale(3), T.ToTensor()]
+    model = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    model.model.transforms = T.Compose(tfl)
+    im = np.full((32, 32, 3), [0, 127, 255], dtype=np.uint8)  # channels differ, so Grayscale weights expose a swap
+    model(im, imgsz=224, verbose=False)  # build predictor through the public path
+    expected = T.Compose(tfl)(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB)))[None]
+    assert torch.equal(model.predictor.preprocess([im]).cpu(), expected)
+
+
+def test_classify_preprocess_split_guard_fires():
+    """The Resize/CenterCrop/ToTensor/Normalize shape classify_transforms() emits must take the device split."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    model(SOURCE, imgsz=224, verbose=False)
+    assert model.predictor.pil_transforms is not None and model.predictor.device_transforms is not None
+
+
+@pytest.mark.parametrize(
+    "case", ["no_totensor", "trailing_dtype", "trailing_stochastic", "normalize_subclass", "compose_subclass"]
+)
+def test_classify_preprocess_split_guard_rejects(case):
+    """A pipeline missing ToTensor, or with a non-Normalize trailing stage, must keep the per-image host path."""
+    import torchvision.transforms as T
+
+    class PerImageNormalize(T.Normalize):
+        """A Normalize subclass whose output depends on being called once per image, not once per batch."""
+
+        def __call__(self, tensor):
+            return tensor - tensor.mean()  # per-image mean: not equal to a single call over a stacked batch
+
+    class HalvingCompose(T.Compose):
+        """A Compose subclass with extra behavior that flattening its stages would silently drop."""
+
+        def __call__(self, img):
+            return super().__call__(img) * 0.5
+
+    head = [T.Resize(224), T.CenterCrop(224)]
+    tf = {
+        "no_totensor": T.Compose([*head, T.PILToTensor(), T.ConvertImageDtype(torch.float)]),  # no ToTensor at all
+        "trailing_dtype": T.Compose([*head, T.ToTensor(), T.ConvertImageDtype(torch.float64)]),  # not Normalize
+        "trailing_stochastic": T.Compose([*head, T.ToTensor(), T.RandomHorizontalFlip(p=0.5)]),  # draws per-image
+        "normalize_subclass": T.Compose([*head, T.ToTensor(), PerImageNormalize((0, 0, 0), (1, 1, 1))]),
+        "compose_subclass": HalvingCompose([*head, T.ToTensor()]),  # its __call__ must not be bypassed
+    }[case]
+    model = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    model.model.transforms = tf
+
+    def split(left, right):
+        """A left/right half-and-half image: spatially asymmetric, so a horizontal flip is not a no-op."""
+        im = np.empty((32, 32, 3), dtype=np.uint8)
+        im[:, :16], im[:, 16:] = left, right
+        return im
+
+    ims = [split([0, 127, 255], [255, 127, 0]), split([255, 0, 127], [0, 255, 127])]
+    model(ims[0], imgsz=224, verbose=False)  # build predictor through the public path
+    torch.manual_seed(0)
+    expected = torch.stack([tf(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in ims])
+    torch.manual_seed(0)
+    assert model.predictor.device_transforms is None  # rejected, so the per-image host path is kept
+    assert torch.equal(model.predictor.preprocess(ims).cpu(), expected)
 
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models

@@ -208,6 +208,7 @@ class Tuner:
         hyperparameters: dict[str, float],
         datasets: dict[str, dict],
         save_dirs: dict[str, str] | None = None,
+        failed_datasets: list[str] | None = None,
     ) -> dict:
         """Build one local tuning result record."""
         result = {
@@ -218,6 +219,8 @@ class Tuner:
         }
         if save_dirs:
             result["save_dirs"] = save_dirs
+        if failed_datasets:
+            result["failed_datasets"] = failed_datasets
         return result
 
     def _save_to_mongodb(
@@ -227,6 +230,7 @@ class Tuner:
         metrics: dict,
         datasets: dict[str, dict],
         save_dirs: dict[str, str],
+        failed_datasets: list[str],
     ):
         """Save results to MongoDB with proper type conversion.
 
@@ -236,6 +240,7 @@ class Tuner:
             metrics (dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             datasets (dict[str, dict]): Per-dataset metrics for the iteration.
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
+            failed_datasets (list[str]): Dataset runs that did not produce training metrics.
         """
         try:
             self.collection.insert_one(
@@ -245,6 +250,7 @@ class Tuner:
                     "metrics": metrics,
                     "datasets": datasets,
                     "save_dirs": save_dirs,
+                    "failed_datasets": failed_datasets,
                     "timestamp": datetime.now().astimezone(),
                     "iteration": self.collection.find_one_and_update(
                         {"_id": "defaults"}, {"$inc": {"last_iteration": 1}}, return_document=True
@@ -276,6 +282,7 @@ class Tuner:
                             result.get("hyperparameters", {}),
                             result.get("datasets", {}),
                             result.get("save_dirs"),
+                            result.get("failed_datasets"),
                         ),
                         default=self._json_default,
                     )
@@ -325,7 +332,8 @@ class Tuner:
     def _has_training_metrics(result: dict, require_all: bool = False) -> bool:
         """Return whether a tuning result contains training metrics."""
         datasets = result.get("datasets", {})
-        trained = [bool(metrics) and not metrics.get("failed") for metrics in datasets.values()]
+        failed = set(result.get("failed_datasets", ()))
+        trained = [bool(metrics) and dataset not in failed for dataset, metrics in datasets.items()]
         return bool(trained) and (all(trained) if require_all else any(trained))
 
     @classmethod
@@ -492,10 +500,11 @@ class Tuner:
                 data = [data]
             model = YOLO(train_args["model"])
             trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
+            raw_metrics = trainer.train()
+            failed_datasets = [dataset for dataset, metrics in raw_metrics.items() if not metrics]
             metric = TASK2METRIC[train_args["task"]]
             dataset_metrics = {
-                dataset: metrics or {metric: 0.0, "fitness": 0.0, "failed": True}
-                for dataset, metrics in trainer.train().items()
+                dataset: metrics or {metric: 0.0, "fitness": 0.0} for dataset, metrics in raw_metrics.items()
             }
             save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]
@@ -508,12 +517,15 @@ class Tuner:
                 mutated_hyp,
                 dataset_metrics,
                 {dataset: str(s) for dataset, s in zip(dataset_metrics, save_dir)},
+                failed_datasets,
             )
             if self._has_training_metrics(result, require_all=True):
                 n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
-                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"])
+                self._save_to_mongodb(
+                    fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], failed_datasets
+                )
                 self._sync_mongodb_to_file()
                 total_mongo_iterations = self.collection.count_documents({"fitness": {"$exists": True}})
                 if total_mongo_iterations >= iterations:

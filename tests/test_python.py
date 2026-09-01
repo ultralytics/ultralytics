@@ -363,6 +363,9 @@ def test_predict_img(model_name):
     assert len(model(source=[im, im], save=True, save_txt=True, imgsz=32)) == 2  # batch
     assert len(list(model(source=[im, im], save=True, stream=True, imgsz=32))) == 2  # stream
     assert len(model(torch.zeros(320, 640, channels).numpy().astype(np.uint8), imgsz=32)) == 1  # tensor to numpy
+    assert len(model(source=[im] * 10, imgsz=32, batch=4)) == 10  # explicit batch chunks in-memory lists
+    assert model.predictor.dataset.bs == 4  # ...instead of inferring all 10 images in a single batch
+    assert len(model(source=[im] * 10, imgsz=32)) == 10 and model.predictor.dataset.bs == 10  # default unchanged
     batch = [
         str(SOURCE),  # filename
         Path(SOURCE),  # Path

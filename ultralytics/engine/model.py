@@ -538,6 +538,8 @@ class Model(torch.nn.Module):
                 self.model.set_head_attr(
                     max_det=max(self.predictor.args.max_det, 300), agnostic_nms=self.predictor.args.agnostic_nms
                 )
+        # An explicit batch also batches in-memory PIL/numpy lists, which otherwise infer in a single batch
+        self.predictor.in_memory_batch = kwargs.get("batch")
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
@@ -580,7 +582,6 @@ class Model(torch.nn.Module):
 
         register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
-        kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
 

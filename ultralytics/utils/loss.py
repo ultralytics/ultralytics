@@ -1208,7 +1208,11 @@ class E2ELoss:
     def __init__(self, model, loss_fn=v8DetectionLoss):
         """Initialize E2ELoss with one-to-many and one-to-one detection losses using the provided model."""
         self.one2many = loss_fn(model, tal_topk=10)
-        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=1)
+        # o2o_topk2 is how many anchors survive the second narrowing pass per GT (1 = NMS-free
+        # default). It is the o2o positive count, and objectness is a dense per-anchor score:
+        # at 1 the o2o obj branch sees a tenth of o2m's positive signal and its scores never
+        # calibrate, which is the measured o2o obj collapse. Exposed to sweep that.
+        self.one2one = loss_fn(model, tal_topk=7, tal_topk2=getattr(model.args, "o2o_topk2", 1) or 1)
         self.updates = 0
         self.total = 1.0
         # init gain

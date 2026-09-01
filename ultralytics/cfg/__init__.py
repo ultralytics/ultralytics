@@ -211,6 +211,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "o2o_topk2",  # feeds torch.topk(k=...) directly; a float would fail deep in the assigner
     }
 )
 CFG_BOOL_KEYS = frozenset(

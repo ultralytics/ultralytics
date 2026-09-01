@@ -158,7 +158,7 @@ def test_afss_callback_restores_sidecar_state(tmp_path):
 
 def test_afss_refresh_and_checkpoint_callbacks(tmp_path, monkeypatch):
     """Test clean-score refresh, last-seen updates, and sidecar checkpoint writes."""
-    import ultralytics.utils.afss as afss
+    from ultralytics.utils import afss
 
     class Dataset:
         im_files = ["img0.jpg", "img1.jpg"]

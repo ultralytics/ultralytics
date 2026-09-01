@@ -2079,7 +2079,8 @@ class RealNVP(nn.Module):
         if x.dtype == torch.float32 and self.s[0][0].weight.dtype != torch.float32:
             self.float()
         z, log_det = self.backward_p(x)
-        return self.prior.log_prob(z) + log_det
+        # Closed-form log N(z; 0, I) in 2-D; fp32 keeps z**2 from overflowing under AMP.
+        return -0.5 * (z.float() ** 2).sum(-1) - math.log(2 * math.pi) + log_det
 
 
 class _CSPLayer2(nn.Module):

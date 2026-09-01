@@ -98,18 +98,18 @@ class YOLO(Model):
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
-            if "RTDETR" in head:  # if RTDETR head
+            if head in {"DeimDecoder", "RTDETRDecoderEfficient"}:  # YOLO-DETR head
+                from ultralytics import YOLODETR
+
+                new_instance = YOLODETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
+            elif "RTDETR" in head:  # RT-DETR head
                 from ultralytics import RTDETR
 
-                    new_instance = YOLODETR(self)
-                    self.__class__ = type(new_instance)
-                    self.__dict__ = new_instance.__dict__
-                elif "RTDETR" in head_name:  # RT-DETR head
-                    from ultralytics import RTDETR
-
-                    new_instance = RTDETR(self)
-                    self.__class__ = type(new_instance)
-                    self.__dict__ = new_instance.__dict__
+                new_instance = RTDETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

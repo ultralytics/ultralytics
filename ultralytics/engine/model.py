@@ -515,7 +515,7 @@ class Model(torch.nn.Module):
             not self.predictor
             or self.predictor.args.device != args.get("device", self.predictor.args.device)
             or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
-            or self.predictor.requested_quantize != QUANTIZE_ALIASES.get(str(args.get("quantize")).lower())
+            or self.predictor.requested_quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)

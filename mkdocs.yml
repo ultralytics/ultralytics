@@ -142,6 +142,7 @@ nav:
           - Simple Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
       - YOLO26 🚀: models/yolo26.md
+      - YOLO27 (Research): models/yolo27.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh

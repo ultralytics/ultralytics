@@ -19,7 +19,7 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO, YOLODETR
+from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
@@ -1009,12 +1009,12 @@ def test_workflow(isolated_model):
     model.export(format="torchscript")  # WARNING: Windows slow CI export bug
 
 
-@pytest.mark.skipif(not TORCH_1_11, reason="YOLODETR uses RT-DETR components that require torch>=1.11")
+@pytest.mark.skipif(not TORCH_1_11, reason="yolo27 DEIM models use RT-DETR components that require torch>=1.11")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_yolodetr_train(tmp_path, cfg="yolo27x.yaml"):
-    """Test YOLODETR train, val, and predict on the UltraViT backbone variant."""
+    """Test DEIM-routed YOLO train, val, and predict on the UltraViT backbone variant."""
     model = YOLO(cfg)  # configs carry no 'detr' token, so routing reads the declared decoder
-    assert isinstance(model, YOLODETR)
+    assert type(model) is YOLO and model._deim  # DEIM models keep the YOLO facade and route via task_map
     model.train(data="coco8.yaml", imgsz=160, epochs=1, save=False, project=str(tmp_path))
     model.val(data="coco8.yaml", imgsz=160)
     model.predict(SOURCE, imgsz=160)

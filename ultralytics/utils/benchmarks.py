@@ -39,7 +39,7 @@ from pathlib import Path
 import numpy as np
 import torch.cuda
 
-from ultralytics import RTDETR, YOLO, YOLODETR, YOLOWorld
+from ultralytics import RTDETR, YOLO, YOLOWorld
 from ultralytics.cfg import TASK2DATA, TASK2METRIC
 from ultralytics.engine.exporter import export_formats
 from ultralytics.nn.modules import Segment26
@@ -205,7 +205,7 @@ def benchmark(
                     verbose=False,
                     **kwargs,
                 )
-                if isinstance(model, (RTDETR, YOLODETR)):
+                if isinstance(model, RTDETR) or (isinstance(model, YOLO) and model._deim):
                     exported_model = type(model)(filename)
                 else:
                     exported_model = YOLO(filename, task=model.task)

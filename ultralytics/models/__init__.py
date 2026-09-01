@@ -5,9 +5,8 @@ from .llm import LLM
 from .nas import NAS
 from .rtdetr import RTDETR
 from .yolo import YOLO, YOLOE, YOLOWorld
-from .yolodetr import YOLODETR
 
-__all__ = "LLM", "NAS", "RTDETR", "SAM", "YOLO", "YOLODETR", "YOLOE", "FastSAM", "YOLOWorld"  # allow simpler import
+__all__ = "LLM", "NAS", "RTDETR", "SAM", "YOLO", "YOLOE", "FastSAM", "YOLOWorld"  # allow simpler import
 
 
 def __getattr__(name):

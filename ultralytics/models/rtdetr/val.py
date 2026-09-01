@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from copy import copy
 from pathlib import Path
 from typing import Any
 
 import torch
 
 from ultralytics.data import YOLODataset
+from ultralytics.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
@@ -187,3 +189,180 @@ class RTDETRValidator(DetectionValidator):
                     "score": round(s, 5),
                 }
             )
+
+
+_NO_AUG_EPOCH = 4  # DEIM trains the final epochs without augmentation
+_DEIM_DEFAULTS = {  # DEIM trainer-only knobs; not added to default.yaml, popped by DEIMTrainer before get_cfg
+    "backbone_lr_ratio": 0.1,
+}
+
+
+def compute_deim_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -> float:
+    """Linearly decay an augmentation probability to 0 by the no-aug stage boundary.
+
+    Args:
+        base_prob (float): Probability configured in the hyperparameters.
+        epoch (int): Current epoch.
+        stop_epoch (int): Epoch at which the probability reaches 0.
+
+    Returns:
+        (float): Decayed probability for this epoch.
+    """
+    base_prob = float(base_prob)
+    if base_prob <= 0.0 or stop_epoch <= 0 or epoch >= stop_epoch:
+        return 0.0
+    return base_prob * max(0.0, 1.0 - (float(epoch) / float(stop_epoch)))
+
+
+def compute_policy_epochs(hyp) -> tuple[int, int, int]:
+    """Compute DEIM stage boundaries from ``epochs`` and the fixed four-epoch no-augmentation tail.
+
+    Args:
+        hyp (SimpleNamespace | IterableSimpleNamespace): Hyperparameters carrying the total epoch count.
+
+    Returns:
+        start (int): End of stage 1, where the flat learning rate begins.
+        mid (int): End of stage 2 and start of stage 3, where the cosine decay begins.
+        stop (int): End of stage 3 and start of the no-augmentation tail.
+    """
+    epochs = max(1, int(hyp.epochs))
+    stop = epochs - min(_NO_AUG_EPOCH, epochs)
+    start = min(4, max(0, stop - 1))
+    mid = start + (stop - start) // 2
+    if not (0 <= start <= mid <= stop <= epochs):
+        raise ValueError(
+            f"compute_policy_epochs produced invalid boundaries: "
+            f"start={start}, mid={mid}, stop={stop}, epochs={epochs}."
+        )
+    return start, mid, stop
+
+
+class DEIMDataset(RTDETRDataset):
+    """RT-DETR dataset variant that linearly decays YOLO augmentation probabilities over epochs.
+
+    All augmentation probabilities (mosaic, mixup, copy_paste) decay from their base hyp value to 0 linearly across
+    ``[0, stop_epoch]``, where ``stop_epoch`` leaves the final four epochs for the DEIM no-aug tail. Past stop_epoch
+    every augmentation is hard-zeroed.
+    """
+
+    def __init__(self, *args, data=None, **kwargs):
+        """Stash base hyp values then defer to the parent for normal dataset construction.
+
+        Args:
+            *args (Any): Positional arguments forwarded to RTDETRDataset.
+            data (dict, optional): Dataset dictionary.
+            **kwargs (Any): Keyword arguments forwarded to RTDETRDataset; hyp is required.
+        """
+        hyp = kwargs["hyp"]
+        self.base_hyp = copy(hyp)
+        self.policy_epochs = compute_policy_epochs(hyp)
+        super().__init__(*args, data=data, **kwargs)
+        if self.augment:
+            self.set_epoch(0)
+
+    def _build_v8_epoch_hyp(self, epoch: int):
+        """Clone the base hyp and apply linear decay; zero everything past the no-aug boundary.
+
+        Args:
+            epoch (int): Current epoch.
+
+        Returns:
+            (SimpleNamespace | IterableSimpleNamespace): Copy of the base hyperparameters with the augmentation
+                probabilities decayed for this epoch.
+        """
+        hyp = copy(self.base_hyp)
+        _, _, stop = self.policy_epochs
+        if epoch >= stop:
+            for key in (
+                "mosaic",
+                "mixup",
+                "copy_paste",
+                "cutmix",
+                "degrees",
+                "translate",
+                "scale",
+                "shear",
+                "perspective",
+                "hsv_h",
+                "hsv_s",
+                "hsv_v",
+            ):
+                setattr(hyp, key, 0.0)
+            hyp.augmentations = []
+        else:
+            hyp.mosaic = compute_deim_scheduled_prob(self.base_hyp.mosaic, epoch, stop)
+            hyp.mixup = compute_deim_scheduled_prob(self.base_hyp.mixup, epoch, stop)
+            hyp.copy_paste = compute_deim_scheduled_prob(self.base_hyp.copy_paste, epoch, stop)
+        return hyp
+
+    def build_transforms(self, hyp=None):
+        """Build v8 transforms with current (possibly decayed) hyp values.
+
+        Args:
+            hyp (SimpleNamespace | IterableSimpleNamespace, optional): Hyperparameters for this epoch.
+
+        Returns:
+            (Compose): Transform pipeline ending in the Format transform.
+        """
+        if self.augment:
+            hyp.mosaic = hyp.mosaic if not self.rect else 0.0
+            hyp.mixup = hyp.mixup if not self.rect else 0.0
+            hyp.cutmix = hyp.cutmix if not self.rect else 0.0
+            # Keep v8 MixUp inputs same-sized; current v8 Mosaic no longer carries the old mosaic_border crop hint.
+            transforms = v8_transforms(self, self.imgsz, hyp)
+        else:
+            # Matches YOLODataset/RTDETRDataset: a no-op resize on the already-square val image whose only
+            # effect is rewriting ratio_pad into the ((gain_h, gain_w), (pad_w, pad_h)) form scale_boxes needs.
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
+        transforms.append(
+            Format(
+                bbox_format="xywh",
+                normalize=True,
+                return_mask=self.use_segments,
+                return_keypoint=self.use_keypoints,
+                batch_idx=True,
+                mask_ratio=hyp.mask_ratio,
+                mask_overlap=hyp.overlap_mask,
+            )
+        )
+        return transforms
+
+    def set_epoch(self, epoch: int) -> None:
+        """Rebuild transforms with decayed hyp probabilities for the current epoch.
+
+        Args:
+            epoch (int): Current epoch.
+        """
+        self.epoch = epoch
+        if self.augment:
+            self.transforms = self.build_transforms(hyp=self._build_v8_epoch_hyp(epoch))
+
+
+class DEIMValidator(RTDETRValidator):
+    """RT-DETR validator that ignores DEIM trainer-only arguments."""
+
+    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
+        """Initialize validator after removing DEIM-only args from the standard CFG namespace.
+
+        Args:
+            dataloader (torch.utils.data.DataLoader, optional): Dataloader for validation.
+            save_dir (Path, optional): Directory for saving results.
+            args (SimpleNamespace, optional): Validator arguments.
+            _callbacks (list, optional): Callbacks registered on the validator.
+        """
+        super().__init__(dataloader, save_dir=save_dir, args=self._sanitize_args(args), _callbacks=_callbacks)
+
+    @staticmethod
+    def _sanitize_args(args):
+        """Return args without the DEIM trainer-only knobs, which fail get_cfg's alignment check.
+
+        Args:
+            args (SimpleNamespace | dict | None): Validator arguments.
+
+        Returns:
+            (dict | None): Args dict without the trainer-only keys, or None when args is None.
+        """
+        if args is None:
+            return None
+        args = args if isinstance(args, dict) else vars(args)
+        return {k: v for k, v in args.items() if k not in _DEIM_DEFAULTS}

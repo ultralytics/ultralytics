@@ -11,7 +11,7 @@ import torch
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import Model
-from ultralytics.models import yolo
+from ultralytics.models import rtdetr, yolo
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.backends.base import BaseBackend
 from ultralytics.nn.tasks import (
@@ -23,6 +23,7 @@ from ultralytics.nn.tasks import (
     SegmentationModel,
     SemanticSegmentationModel,
     WorldModel,
+    YOLODETRDetectionModel,
     YOLOEModel,
     YOLOESegModel,
     guess_model_family,
@@ -34,9 +35,10 @@ class YOLO(Model):
     """YOLO (You Only Look Once) object detection model.
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
-    (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
+    (YOLOWorld, YOLOE or RTDETR) based on the model filename. It supports various computer vision tasks including object
     detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented bounding box
-    detection.
+    detection. DEIM-decoder detection models (e.g. yolo27 m/l/x with a DeimDecoder head) keep this facade but route the
+    detect task to the RT-DETR pipeline (DEIMTrainer/DEIMValidator/RTDETRPredictor) through ``task_map``.
 
     Attributes:
         model: The loaded YOLO model instance.
@@ -61,8 +63,9 @@ class YOLO(Model):
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
-        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
-        YOLOE) based on the model filename.
+        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld, YOLOE
+        or RTDETR) based on the model filename. DEIM-decoder models are not morphed; instead ``self._deim`` records the
+        routing decision and ``task_map`` serves them the RT-DETR pipeline.
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
@@ -72,13 +75,9 @@ class YOLO(Model):
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
         family = guess_model_family(path)
-        if family == "yolodetr":
-            from ultralytics import YOLODETR
-
-            new_instance = YOLODETR(path)
-            self.__class__ = type(new_instance)
-            self.__dict__ = new_instance.__dict__
-        elif family == "rtdetr":
+        # Set before super().__init__(): Model._new() consults task_map when building from a YAML.
+        self._deim = family == "yolodetr"
+        if family == "rtdetr":
             from ultralytics import RTDETR
 
             new_instance = RTDETR(path)
@@ -98,12 +97,8 @@ class YOLO(Model):
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
-            if head == "DeimDecoder":  # YOLO-DETR head
-                from ultralytics import YOLODETR
-
-                new_instance = YOLODETR(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
+            if head == "DeimDecoder":  # DEIM head confirmed post-load (covers .pt weights and renamed exports)
+                self._deim = True
             elif "RTDETR" in head:  # RT-DETR head
                 from ultralytics import RTDETR
 
@@ -111,9 +106,56 @@ class YOLO(Model):
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 
+    def train(self, trainer=None, **kwargs):
+        """Train the model, routing DEIM-specific kwargs so they survive get_cfg's alignment check.
+
+        Args:
+            trainer (BaseTrainer, optional): Trainer instance overriding the default one.
+            **kwargs (Any): Training arguments; for DEIM-routed models, DEIM-specific keys are moved into
+                self.overrides first because get_cfg rejects any key that default.yaml does not define.
+
+        Returns:
+            (dict): Training metrics.
+        """
+        if self._deim:
+            deim = {k: kwargs.pop(k) for k in list(kwargs) if k in rtdetr.val._DEIM_DEFAULTS}
+            if deim:
+                self.overrides = {**self.overrides, **deim}
+        return super().train(trainer=trainer, **kwargs)
+
+    def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
+        """Run prediction, defaulting conf to 0.5 for DEIM-routed models since the decoder applies no NMS.
+
+        Args:
+            source (str | Path | int | Image.Image | list | tuple | np.ndarray | torch.Tensor, optional): Source of the
+                images or videos to predict on.
+            stream (bool): Treat the source as a continuous stream.
+            predictor (BasePredictor, optional): Predictor instance overriding the default one.
+            **kwargs (Any): Prediction arguments forwarded to the predictor.
+
+        Returns:
+            (list[Results]): Prediction results, one entry per image.
+
+        Notes:
+            The 0.5 default matches DETR visualization defaults. An explicitly passed conf always wins, including
+            conf=0.0, because the check is against None rather than falsiness.
+        """
+        if self._deim and kwargs.get("conf") is None:  # unset, or None from default.yaml; an explicit value always wins
+            kwargs["conf"] = 0.5
+        return super().predict(source, stream, predictor, **kwargs)
+
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
         """Map head to model, trainer, validator, and predictor classes."""
+        if self._deim:  # DEIM-decoder detect models run the RT-DETR pipeline with the DEIM trainer/validator
+            return {
+                "detect": {
+                    "model": YOLODETRDetectionModel,
+                    "trainer": rtdetr.train.DEIMTrainer,
+                    "validator": rtdetr.val.DEIMValidator,
+                    "predictor": rtdetr.predict.RTDETRPredictor,
+                }
+            }
         return {
             "classify": {
                 "model": ClassificationModel,

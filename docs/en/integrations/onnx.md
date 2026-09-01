@@ -6,7 +6,7 @@ keywords: YOLO26, ONNX, model export, Ultralytics, ONNX Runtime, machine learnin
 
 # ONNX Export for YOLO26 Models
 
-???+ tip "~43% faster CPU inference"
+???+ tip "~43% faster CPU ONNX inference: YOLO26n vs YOLO11n"
 
     - YOLO26n runs up to 43% faster than YOLO11n on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz). See the [YOLO26 model page](../models/yolo26.md) for the full comparison.
 

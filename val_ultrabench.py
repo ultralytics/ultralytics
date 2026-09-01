@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Score overall mAP/F1 and 640-relative Tiny/Small/Medium/Large AP from Ultra Benchmark prediction JSONs."""
+"""Score overall mAP/F1 and size-aware AP from Ultra Benchmark prediction JSONs."""
 
 from __future__ import annotations
 
@@ -34,8 +34,10 @@ IOU_THRESHOLDS = np.linspace(0.5, 0.95, 10)
 FRACTION = [1000, 1.0, 0]
 
 
-def build_ground_truth(data_yaml: str | Path) -> tuple[COCO, dict[str, int], dict[str, int]]:
-    """Build 640-relative COCO ground truth for one validation split."""
+def build_ground_truth(
+    data_yaml: str | Path, reference_size: int | None
+) -> tuple[COCO, dict[str, int], dict[str, int]]:
+    """Build COCO ground truth for one validation split."""
     data = check_det_dataset(data_yaml, autodownload=False, split="val")
     cfg = get_cfg(overrides={"task": "detect", "imgsz": REFERENCE_SIZE, "cache": False, "workers": 0})
     dataset = build_yolo_dataset(cfg, data["val"], 16, data, mode="val", stride=32)
@@ -48,7 +50,7 @@ def build_ground_truth(data_yaml: str | Path) -> tuple[COCO, dict[str, int], dic
         height, width = label["shape"]
         images.append({"id": image_id, "file_name": Path(path).name, "height": height, "width": width})
         boxes = ops.xywh2ltwh(label["bboxes"]) * (width, height, width, height)
-        area_scale = (REFERENCE_SIZE / max(width, height)) ** 2
+        area_scale = (reference_size / max(width, height)) ** 2 if reference_size else 1.0
         for cls, box in zip(label["cls"].reshape(-1), boxes):
             annotations.append(
                 {
@@ -77,7 +79,7 @@ def build_ground_truth(data_yaml: str | Path) -> tuple[COCO, dict[str, int], dic
 
 
 def evaluate_predictions(
-    ground_truth: COCO, detections: list[dict], max_det: int
+    ground_truth: COCO, detections: list[dict], max_det: int, reference_size: int | None
 ) -> tuple[dict[str, float], dict[str, float]]:
     """Calculate size-aware AP50 and AP50-95 from saved detections."""
     predictions = (
@@ -91,9 +93,10 @@ def evaluate_predictions(
             }
         )
     )
-    for annotation in predictions.anns.values():
-        image = ground_truth.imgs[annotation["image_id"]]
-        annotation["area"] *= (REFERENCE_SIZE / max(image["width"], image["height"])) ** 2
+    if reference_size:
+        for annotation in predictions.anns.values():
+            image = ground_truth.imgs[annotation["image_id"]]
+            annotation["area"] *= (reference_size / max(image["width"], image["height"])) ** 2
     evaluator = COCOeval_faster(
         ground_truth,
         predictions,
@@ -166,15 +169,17 @@ def calculate_overall_metrics(ground_truth: COCO, detections: list[dict], max_de
     }
 
 
-def evaluate_dataset(dataset: str, data_yaml: Path, run_dir: Path, max_det: int) -> tuple[str, dict[str, float]]:
+def evaluate_dataset(
+    dataset: str, data_yaml: Path, run_dir: Path, max_det: int, reference_size: int | None
+) -> tuple[str, dict[str, float]]:
     """Evaluate one dataset from its prediction artifact."""
     with contextlib.redirect_stdout(io.StringIO()):
-        ground_truth, file_ids, size_objects = build_ground_truth(data_yaml)
+        ground_truth, file_ids, size_objects = build_ground_truth(data_yaml, reference_size)
     detections = json.loads((run_dir / dataset / "predictions.json").read_text())
     for detection in detections:
         detection["image_id"] = file_ids[detection["file_name"]]
     with contextlib.redirect_stdout(io.StringIO()):
-        ap50, ap5095 = evaluate_predictions(ground_truth, detections, max_det)
+        ap50, ap5095 = evaluate_predictions(ground_truth, detections, max_det, reference_size)
     metrics = {
         **calculate_overall_metrics(ground_truth, detections, max_det),
         **{f"mAP50-{SIZE_LABELS[size]}": ap50[size] for size in SIZE_RANGES},
@@ -187,7 +192,7 @@ def evaluate_dataset(dataset: str, data_yaml: Path, run_dir: Path, max_det: int)
     return dataset, metrics
 
 
-def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
+def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE, reference_size: int | None = REFERENCE_SIZE) -> dict:
     """Validate and aggregate one completed Ultra Benchmark run."""
     datasets = {
         Path(uri).name: uri
@@ -224,7 +229,9 @@ def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
     values = defaultdict(list)
     with ProcessPoolExecutor(max_workers=4, mp_context=multiprocessing.get_context("spawn")) as executor:
         futures = {
-            executor.submit(evaluate_dataset, dataset, data_yamls[dataset], run_dir, max_dets[dataset]): dataset
+            executor.submit(
+                evaluate_dataset, dataset, data_yamls[dataset], run_dir, max_dets[dataset], reference_size
+            ): dataset
             for dataset in datasets
         }
         for future in as_completed(futures):
@@ -244,13 +251,13 @@ def evaluate_run(run_dir: Path, imgsz: int = REFERENCE_SIZE) -> dict:
             "metric_source": "predictions.json",
             "training_imgsz": imgsz,
             "max_det": dict(sorted(max_dets.items())),
-            "reference_size": REFERENCE_SIZE,
-            "area_scale": "(640 / max(image_width, image_height)) ** 2",
+            "reference_size": reference_size,
+            "area_scale": f"({reference_size} / max(image_width, image_height)) ** 2" if reference_size else "1.0",
             "min_bucket_objects": MIN_BUCKET_OBJECTS,
             "unit": "percent",
         },
     }
-    destination = run_dir / "val_ultrabench.json"
+    destination = run_dir / ("val_ultrabench.json" if reference_size else "val_ultrabench_native.json")
     temporary = destination.with_suffix(".tmp")
     temporary.write_text(json.dumps(output, indent=2))
     temporary.replace(destination)
@@ -262,8 +269,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("run_dir", type=Path)
     parser.add_argument("--imgsz", type=int, default=REFERENCE_SIZE)
+    parser.add_argument("--native-size-bins", action="store_true")
     args = parser.parse_args()
-    evaluate_run(args.run_dir, args.imgsz)
+    evaluate_run(args.run_dir, args.imgsz, None if args.native_size_bins else REFERENCE_SIZE)
 
 
 if __name__ == "__main__":

@@ -156,6 +156,60 @@ def test_afss_callback_restores_sidecar_state(tmp_path):
     assert len(trainer.afss_current_indices) == 1
 
 
+def test_afss_refresh_and_checkpoint_callbacks(tmp_path, monkeypatch):
+    """Test clean-score refresh, last-seen updates, and sidecar checkpoint writes."""
+    import ultralytics.utils.afss as afss
+
+    class Dataset:
+        im_files = ["img0.jpg", "img1.jpg"]
+
+    class Loader:
+        dataset = Dataset()
+
+        def close(self):
+            pass
+
+    class Validator:
+        def __init__(self, loader, save_dir, args):
+            self.metrics = SimpleNamespace(
+                box=SimpleNamespace(
+                    image_metrics={"img0.jpg": {"precision": 0.9, "recall": 0.8}, "img1.jpg": {"precision": 0.4}}
+                )
+            )
+
+        def __call__(self, trainer):
+            return None
+
+    scheduler = afss.AFSSScheduler(2, warmup_epochs=0)
+    trainer = SimpleNamespace(
+        afss_scheduler=scheduler,
+        afss_current_indices=[0],
+        epoch=0,
+        epochs=20,
+        world_size=0,
+        batch_size=4,
+        args=SimpleNamespace(plots=True, save_json=True, save_txt=True, verbose=True),
+        data={"train": "train"},
+        save_dir=tmp_path,
+        wdir=tmp_path,
+        get_dataloader=lambda *args, **kwargs: Loader(),
+        get_validator=lambda: Validator(None, None, None),
+    )
+    afss.afss_refresh_metrics(trainer)
+    np.testing.assert_allclose(scheduler.precision, [0.9, 0.4])
+    np.testing.assert_allclose(scheduler.recall, [0.8, 0.0])
+
+    refreshed = []
+    monkeypatch.setattr(afss, "afss_refresh_metrics", lambda _: refreshed.append(True))
+    afss.afss_on_epoch_end(trainer)
+    assert scheduler.last_seen.tolist() == [0, -1]
+    assert refreshed == [True]
+
+    afss.afss_save_state(trainer)
+    restored = torch.load(tmp_path / "afss_state.pt", weights_only=False)
+    np.testing.assert_array_equal(restored["last_seen"], scheduler.last_seen)
+
+
 @pytest.mark.parametrize(
     "trainer_cls,validator_cls,predictor_cls,data,model,weights",
     [

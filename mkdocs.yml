@@ -443,7 +443,7 @@ nav:
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
       - Oriented Bounding Boxes (OBB):
-          - OBB Datasets: datasets/obb/index.md
+          - datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md
           - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md

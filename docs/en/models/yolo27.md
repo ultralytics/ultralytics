@@ -1,26 +1,20 @@
 ---
 comments: true
-description: YOLO27 is an in-development Ultralytics research family combining compact P3/P5 CNN detection with auxiliary foreground supervision, and DEIM-decoder models with YOLO26 CSP or UltraViT backbones.
-keywords: YOLO27, Ultralytics YOLO, object detection, UltraViT, DETR, DEIM, P3 P5 detection, computer vision, AI
+description: YOLO27 is an in-development Ultralytics research family pairing a streamlined two-scale CNN design for small models with query-based NMS-free detection for large models.
+keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI
 ---
 
 # Ultralytics YOLO27
 
 ## Overview
 
-YOLO27 is an in-development Ultralytics object detection research family. It combines two complementary directions:
-compact CNN detection for the N and S scales, and a query-based DEIM-decoder design for the M, L, and X scales. The
-reported results are preliminary COCO validation measurements, not released model checkpoints.
+YOLO27 is an in-development Ultralytics object detection research family. It explores two complementary designs:
+a streamlined CNN architecture for the small N and S models, and a query-based, NMS-free architecture for the larger
+M, L, and X models. The results below are preliminary COCO validation measurements, not released model checkpoints.
 
-The compact models remove the P4/16 detection level and predict only from P3/8 and P5/32 features. At a 640-pixel
-input, this changes the dense detection grid from 8,400 locations (80 × 80, 40 × 40, and 20 × 20) to 6,800 locations
-(80 × 80 and 20 × 20), and the neck dams upsampled features with a fixed 0.5 scaling (SNI) before top-down fusion.
-The design keeps the fine-resolution P3 grid for small objects while cutting the mid-level head computation.
-
-The larger-model path uses multi-scale P3/P4/P5 features with a DEIM decoder. Its X design combines an UltraViT
-backbone, a hybrid multi-scale encoder, and a fixed set of object queries to produce end-to-end detections.
-**YOLO27x reaches 60.5 mAP on COCO validation at 12.3 ms on an NVIDIA T4**, the strongest reported accuracy in the
-current research results.
+Across the five scales, YOLO27 reaches **41.6-60.5 mAP on COCO** at **1.8-12.3 ms latency on an NVIDIA T4**. The
+small models are built for speed, while the larger models trade compute for accuracy — YOLO27x sets the family
+record at **60.5 mAP**, the strongest result in the current research line.
 
 !!! warning "Research preview"
 
@@ -29,53 +23,42 @@ current research results.
 
 ## Key Features
 
-### Compact P3/P5 CNN Detection for N and S
+- **Streamlined two-scale detection (N/S)**
+  Standard detectors predict objects on three feature maps — fine, medium, and coarse. YOLO27 N and S drop the
+  medium one and predict only on a fine map (for small objects) and a coarse map (for large objects). This removes a
+  large chunk of detection-head computation, making the models faster while keeping accuracy competitive.
 
-YOLO27 N and S remove the P4 detection level from an otherwise YOLO26-style CNN. At 640 pixels the head runs on an
-80 × 80 P3 grid and a 20 × 20 P5 grid — 6,800 candidate locations instead of the 8,400 of a P3/P4/P5 head — keeping
-the fine grid that matters for small objects while dropping the mid-level head entirely. Upsampled features in the
-neck are damped by a constant 0.5 scale (SNI) before fusion, which stabilizes the two-level topology, and the
-backbone P3 stage width expands per scale through a named `bbp3e` scale parameter. Both sizes train with the MuSGD
-optimizer and a tunable classification-head learning-rate multiplier.
+- **Stronger small-object detection (N/S)**
+  The early, high-resolution feature stage is widened so it can capture more fine-grained detail. Combined with the
+  surviving fine prediction map, this improves localization and regression for small objects — the hardest category
+  for compact models.
 
-### Auxiliary Foreground Supervision
+- **Stable two-scale training (N/S)**
+  A fixed scaling on the fused features keeps the two prediction scales balanced during training, so the simplified
+  architecture trains as reliably as the full three-scale design.
 
-The compact detection head attaches a training-only auxiliary branch that predicts one class-agnostic foreground
-logit at every head input location. The branch is a small 3 × 3 convolution followed by a 1 × 1 prediction layer and
-receives the same non-detached features as the detection head. It therefore sends direct deep-supervision gradients
-into the backbone and neck rather than only learning its own output.
+- **Auxiliary foreground supervision (N/S)**
+  During training, an extra lightweight branch learns to tell "object" from "background" at every location, giving
+  the backbone and neck a stronger learning signal early on and gradually aligning with the final detection head.
+  The branch is used only during training and is removed for inference and export, so it costs nothing at deployment.
 
-Its target follows the model's end-to-end training schedule (o2m): early in training, the target gives foreground
-credit to the denser one-to-many assignment; as training progresses, the auxiliary emphasis shifts toward the
-one-to-one positives used by the deployed head. This helps the shared features transition toward end-to-end
-detection without treating one-to-many positives as background too early. The branch is declared in the model
-configuration (`aux_fg: True`), and both the branch and its loss are absent from inference and export, so they add
-no deployment cost.
+- **Query-based detection without NMS (M/L/X)**
+  The larger models replace dense prediction with a transformer decoder that refines a fixed set of object queries
+  and directly outputs the final detections — no non-maximum suppression post-processing needed. YOLO27m and YOLO27l
+  pair this decoder with the proven YOLO26-style convolutional backbone, while YOLO27x adds an UltraViT backbone that
+  uses self-attention in its deepest stage to capture global context, plus a hybrid encoder that fuses features
+  across scales.
 
-### DEIM-Decoder M, L, and X Designs
+- **Purpose-built training recipes**
+  The small models train with MuSGD (the hybrid Muon + SGD optimizer introduced in YOLO26) with a tunable
+  classification-head learning rate. The larger models train with a flat-then-cosine learning-rate schedule, a
+  gentler learning rate for the pretrained backbone, and an augmentation schedule that fades out mosaic-style
+  augmentations at the end of training for a cleaner final convergence.
 
-The M, L, and X scales replace dense prediction with a query-based DEIM decoder — a D-FINE-style transformer decoder
-with iterative bounding-box refinement, denoising queries, and one-to-many auxiliary matching during training. The
-decoder refines a fixed set of 300 object queries against fused multi-scale features and directly returns the final
-detections, avoiding a separate non-maximum-suppression stage. M and L pair a YOLO26-style CSP backbone and FPN/PAN
-neck with 2-layer and 4-layer decoders; the layer count is the main capacity knob between them. Training uses a
-flat-cosine learning-rate schedule, a separate backbone learning rate (`backbone_lr_ratio`), and an augmentation
-schedule that decays mosaic/mixup/copy-paste to zero for a final no-augmentation stage.
-
-### UltraViT Backbone for X
-
-The X configuration pairs the DEIM decoder with UltraViT and a hybrid encoder neck. UltraViT's early and
-intermediate stages use reparameterizable convolutional token mixers and convolutional feed-forward blocks, which
-preserve efficient spatial processing at high resolution; the coarsest stage uses multi-head self-attention, where
-global context is least expensive. The hybrid encoder then fuses P3, P4, and P5 features through top-down and
-bottom-up paths before the decoder. It is the current accuracy leader of the reported family at **60.5 mAP** with
-**12.3 ms** T4 latency.
-
-### One Model Facade
-
-Both architectures are served by the single `YOLO` class: the detect task routes to the standard CNN pipeline or the
-DEIM pipeline automatically based on the model head, so training, validation, prediction, and export use the same
-interface across all five scales.
+- **One simple interface**
+  Both architectures are used through the same `YOLO` class. The right training, validation, prediction, and export
+  pipeline is selected automatically from the model, so code written for one YOLO27 scale works unchanged for the
+  others.
 
 ## Performance Metrics
 
@@ -104,14 +87,14 @@ corresponding models are finalized.
 
 No. YOLO27 is an active research effort, and no released weights or stable production interface are documented here.
 
-### Why do YOLO27 N and S use only P3 and P5 outputs?
+### Why do YOLO27 N and S predict on only two scales?
 
-Dropping the P4 level removes the mid-sized 40 × 40 prediction grid at a 640-pixel input, leaving the fine 80 × 80
-P3 grid for small objects and the coarse 20 × 20 P5 grid for large ones. SNI feature damping and auxiliary
-foreground supervision maintain the accuracy-latency tradeoff of the two-level head.
+Most detectors predict on three feature maps at different resolutions. YOLO27 N and S keep the fine map that small
+objects depend on and the coarse map that large objects need, and skip the medium one. This cuts a significant share
+of detection-head computation, and the training improvements above keep the accuracy-latency tradeoff competitive.
 
 ### What makes the YOLO27x result notable?
 
 YOLO27x is the reported accuracy leader, reaching 60.5 mAP on COCO validation at 12.3 ms T4 latency. It combines the
-UltraViT backbone, a hybrid multi-scale encoder, and a 300-query DEIM decoder that produces end-to-end detections
+UltraViT backbone, multi-scale feature fusion, and a query-based detector that produces final detections directly,
 without NMS.

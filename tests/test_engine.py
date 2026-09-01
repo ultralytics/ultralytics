@@ -239,7 +239,10 @@ def test_afss_checkpoint_embeds_state(tmp_path):
     trainer.read_results_csv = dict
 
     assert trainer.save_model()
-    checkpoint = torch.load(trainer.last, weights_only=False)
+    try:
+        checkpoint = torch.load(trainer.last, weights_only=False)
+    except TypeError:  # PyTorch < 1.13
+        checkpoint = torch.load(trainer.last)
     assert checkpoint["afss_state"]["version"] == AFSSScheduler.STATE_VERSION
     assert checkpoint["afss_state"]["num_images"] == 2
 

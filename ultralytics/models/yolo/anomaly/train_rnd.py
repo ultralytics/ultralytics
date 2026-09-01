@@ -16,8 +16,13 @@ The OOD loop is intentionally simple:
 from __future__ import annotations
 
 import math
+import random
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
+
+import numpy as np
+import torch
 from torch import distributed as dist
 
 from ultralytics.models.yolo.anomaly.train import AnomalyTrainer
@@ -64,6 +69,34 @@ def _normal_dir_from_yaml(yaml_path: str | Path) -> Path:
         train = root / train
     good = train / "good"
     return good if good.is_dir() else train
+
+
+@contextmanager
+def _frozen_rng():
+    """Run a block, then rewind every global RNG it touched.
+
+    Used to keep ``ood_end2end``'s extra eval passes purely ADDITIVE. The memory-bank build
+    draws on global RNG and is reproducible only by replaying the same draw sequence: three
+    back-to-back ``_run_ood_eval`` calls on one model give prior-ON mAP10_50
+    0.1957 / 0.2026 / 0.2019, while prior-OFF (bank disabled) stays at 0.195577 to six
+    decimals — so it is the bank, not the detector. Without this, an extra pass would shift
+    every later category's prior-ON number and ``ood_end2end=True`` runs would stop being
+    comparable with ``False`` ones on the o2m columns they are supposed to share.
+    """
+    state = (
+        torch.get_rng_state(),
+        torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
+        random.getstate(),
+        np.random.get_state(),
+    )
+    try:
+        yield
+    finally:
+        torch.set_rng_state(state[0])
+        if state[1] is not None:
+            torch.cuda.set_rng_state_all(state[1])
+        random.setstate(state[2])
+        np.random.set_state(state[3])
 
 
 def _average_ood_rows(rows: list[dict]) -> dict[str, float]:
@@ -157,8 +190,9 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             args.plots = False
             args.verbose = False
             tag = "o2m" if main_e2e else "o2o"
-            v = YOLOAnomalyValidator(self.test_loader, save_dir=self.save_dir, args=args)
-            res = v(trainer=None, model=deepcopy(self.ema.ema).eval())
+            with _frozen_rng():  # additive only — this pass runs before the OOD loop, see _frozen_rng
+                v = YOLOAnomalyValidator(self.test_loader, save_dir=self.save_dir, args=args)
+                res = v(trainer=None, model=deepcopy(self.ema.ema).eval())
             return {k.replace("metrics/", f"metrics/{tag}_"): val for k, val in (res or {}).items()
                     if k.startswith("metrics/")}
         except Exception as e:  # noqa: BLE001
@@ -273,17 +307,18 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                         # out of 300, which reads as a 100x "collapse" that is pure postprocessing.
                         # o2m never shows it because NMS dedups the copies by IoU.
                         e2e_overrides = {**overrides, "end2end": True, "agnostic_nms": scoring == "obj"}
-                        v_e2e = YOLOAnomalyValidator(args=e2e_overrides)
-                        v_e2e(trainer=None, model=model)
-                        row.update({f"e2e_{k}": v for k, v in v_e2e._ood_map_metrics().items()})
+                        with _frozen_rng():  # keeps the o2m columns identical to an ood_end2end=False run
+                            v_e2e = YOLOAnomalyValidator(args=e2e_overrides)
+                            v_e2e(trainer=None, model=model)
+                            row.update({f"e2e_{k}": v for k, v in v_e2e._ood_map_metrics().items()})
 
-                        mb.building = True
-                        try:
-                            v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
-                            v_e2e_none(trainer=None, model=model)
-                            row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
-                        finally:
-                            mb.building = saved_building
+                            mb.building = True
+                            try:
+                                v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
+                                v_e2e_none(trainer=None, model=model)
+                                row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
+                            finally:
+                                mb.building = saved_building
 
                     rows.append(row)
                 except Exception as e:

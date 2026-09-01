@@ -94,12 +94,16 @@ nms: False # (bool) fuse NMS into exported model when backend supports; if True,
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
+backbone_lr_ratio: 1.0 # (float) backbone learning-rate ratio: backbone params train at lr0*backbone_lr_ratio; 1.0 = same LR for all layers
+cls_lr_mult: 3.0 # (float) cls-head (cv3/one2one_cv3) and semantic auxiliary head learning-rate multiplier for MuSGD; 1.0 disables the boost
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf
 momentum: 0.937 # (float) SGD momentum or Adam beta1
 weight_decay: 0.0005 # (float) weight decay (L2 regularization)
 warmup_epochs: 3.0 # (float) warmup epochs (fractions allowed)
 warmup_momentum: 0.8 # (float) initial momentum during warmup
 warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
+muon: 0.2 # (float) MuSGD scaling factor for the Muon update on muon param groups
+sgd: 1.0 # (float) MuSGD scaling factor for the SGD update on muon param groups
 distill_model: # (str, optional) path to teacher model for knowledge distillation
 dis: 6.0 # (float) distillation loss weight
 box: 7.5 # (float) box loss gain

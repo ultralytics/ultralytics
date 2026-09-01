@@ -192,9 +192,6 @@ class RTDETRValidator(DetectionValidator):
 
 
 _NO_AUG_EPOCH = 4  # DEIM trains the final epochs without augmentation
-_DEIM_DEFAULTS = {  # DEIM trainer-only knobs; not added to default.yaml, popped by DEIMTrainer before get_cfg
-    "backbone_lr_ratio": 0.1,
-}
 
 
 def compute_deim_scheduled_prob(base_prob: float, epoch: int, stop_epoch: int) -> float:
@@ -339,30 +336,4 @@ class DEIMDataset(RTDETRDataset):
 
 
 class DEIMValidator(RTDETRValidator):
-    """RT-DETR validator that ignores DEIM trainer-only arguments."""
-
-    def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks=None):
-        """Initialize validator after removing DEIM-only args from the standard CFG namespace.
-
-        Args:
-            dataloader (torch.utils.data.DataLoader, optional): Dataloader for validation.
-            save_dir (Path, optional): Directory for saving results.
-            args (SimpleNamespace, optional): Validator arguments.
-            _callbacks (list, optional): Callbacks registered on the validator.
-        """
-        super().__init__(dataloader, save_dir=save_dir, args=self._sanitize_args(args), _callbacks=_callbacks)
-
-    @staticmethod
-    def _sanitize_args(args):
-        """Return args without the DEIM trainer-only knobs, which fail get_cfg's alignment check.
-
-        Args:
-            args (SimpleNamespace | dict | None): Validator arguments.
-
-        Returns:
-            (dict | None): Args dict without the trainer-only keys, or None when args is None.
-        """
-        if args is None:
-            return None
-        args = args if isinstance(args, dict) else vars(args)
-        return {k: v for k, v in args.items() if k not in _DEIM_DEFAULTS}
+    """RT-DETR validator for DEIM-decoder models."""

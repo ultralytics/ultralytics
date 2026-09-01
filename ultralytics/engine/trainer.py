@@ -1129,8 +1129,6 @@ class BaseTrainer:
                     g[1][fullname] = param
                 else:  # weight (with decay)
                     g[0][fullname] = param
-        if not use_muon:
-            g = [x.values() for x in g[:3]]  # convert to list of params
 
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = {"lr": lr, "betas": (momentum, 0.999), "weight_decay": 0.0}
@@ -1145,14 +1143,30 @@ class BaseTrainer:
             )
 
         num_params = [len(g[0]), len(g[1]), len(g[2])]  # number of param groups
-        g[2] = {"params": g[2], **optim_args, "param_group": "bias"}
-        g[0] = {"params": g[0], **optim_args, "weight_decay": decay, "param_group": "weight"}
-        g[1] = {"params": g[1], **optim_args, "weight_decay": 0.0, "param_group": "bn"}
-        muon, sgd = (0.2, 1.0)
+        blr = self.args.backbone_lr_ratio  # backbone params form separate groups at lr * blr when blr != 1.0
+        prefixes = tuple(f"model.{i}." for i in range(len(unwrap_model(model).yaml["backbone"]))) if blr != 1.0 else ()
+        settings = [
+            {"weight_decay": decay, "param_group": "weight"},
+            {"weight_decay": 0.0, "param_group": "bn"},
+            {"param_group": "bias"},
+        ]
+        muon, sgd = self.args.muon, self.args.sgd
         if use_muon:
             num_params[0] = len(g[3])  # update number of params
-            g[3] = {"params": g[3], **optim_args, "weight_decay": decay, "use_muon": True, "param_group": "muon"}
-            # higher lr for certain parameters in MuSGD when finetuning
+            settings.append({"weight_decay": decay, "use_muon": True, "param_group": "muon"})
+        groups = []
+        for params, s in zip(g, settings):
+            splits = [(params, {})]
+            if prefixes:  # discounted backbone LR: backbone params form a separate group at lr * blr
+                splits = [
+                    ({k: v for k, v in params.items() if k.startswith(prefixes)}, {"lr": lr * blr}),
+                    ({k: v for k, v in params.items() if not k.startswith(prefixes)}, {}),
+                ]
+            for p, extra in splits:
+                groups.append({"params": p if use_muon else list(p.values()), **optim_args, **s, **extra})
+        g = groups
+        if use_muon:
+            # higher lr for cls heads (cv3/one2one_cv3) and semantic auxiliary heads in MuSGD when finetuning
             target = unwrap_model(model)
             head = getattr(target, "student_model", target).model[-1]
             heads = (getattr(head, "cv3", None), getattr(head, "one2one_cv3", None))
@@ -1163,7 +1177,7 @@ class BaseTrainer:
                 p1, p2 = [], []
                 for k, v in p.items():
                     (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
-                g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
+                g_.extend([{"params": p1, **x, "lr": lr * self.args.cls_lr_mult}, {"params": p2, **x}])
             g = g_
         optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
 

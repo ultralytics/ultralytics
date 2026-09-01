@@ -7,14 +7,13 @@ from copy import copy
 
 from torch import nn, optim
 
-from ultralytics.cfg import DEFAULT_CFG
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel, YOLODETRDetectionModel
 from ultralytics.utils import LOGGER, RANK, colorstr
 from ultralytics.utils.torch_utils import unwrap_model
 
-from .val import _DEIM_DEFAULTS, DEIMDataset, DEIMValidator, RTDETRDataset, RTDETRValidator, compute_policy_epochs
+from .val import DEIMDataset, DEIMValidator, RTDETRDataset, RTDETRValidator, compute_policy_epochs
 
 
 class RTDETRTrainer(DetectionTrainer):
@@ -97,31 +96,12 @@ class RTDETRTrainer(DetectionTrainer):
 
 
 class DEIMTrainer(RTDETRTrainer):
-    """RT-DETR trainer for DeimDecoder models with augmentation decay + optional flat-cosine LR.
+    """RT-DETR trainer for DeimDecoder models with augmentation decay + flat-cosine LR.
 
-    DEIM hyperparameter defaults live on this class and are overridable via ``model.train(...)`` kwargs.
-    ``default.yaml`` is intentionally not extended.
-
-    Supported kwargs (defaults shown):
-        backbone_lr_ratio (float): Multiplier applied to backbone LR. Default 0.1.
+    ``backbone_lr_ratio`` (a default.yaml arg) discounts the backbone param groups' LR in ``build_optimizer``.
     """
 
     _epoch_callback_registered = False
-
-    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
-        """Pop DEIM kwargs from overrides before get_cfg, then write them onto self.args.
-
-        Args:
-            cfg (str | dict, optional): Base configuration.
-            overrides (dict, optional): Configuration overrides, which may carry DEIM-specific keys.
-            _callbacks (list, optional): Callbacks registered on the trainer.
-        """
-        overrides = dict(overrides or {})
-        deim_overrides = {k: overrides.pop(k) for k in list(overrides) if k in _DEIM_DEFAULTS}
-        super().__init__(cfg=cfg, overrides=overrides, _callbacks=_callbacks)
-        for k, default in _DEIM_DEFAULTS.items():
-            # A resume restores the checkpoint value onto self.args, so only fall back to the default when unset.
-            setattr(self.args, k, deim_overrides.get(k, getattr(self.args, k, default)))
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load().

@@ -106,23 +106,6 @@ class YOLO(Model):
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 
-    def train(self, trainer=None, **kwargs):
-        """Train the model, routing DEIM-specific kwargs so they survive get_cfg's alignment check.
-
-        Args:
-            trainer (BaseTrainer, optional): Trainer instance overriding the default one.
-            **kwargs (Any): Training arguments; for DEIM-routed models, DEIM-specific keys are moved into
-                self.overrides first because get_cfg rejects any key that default.yaml does not define.
-
-        Returns:
-            (dict): Training metrics.
-        """
-        if self._deim:
-            deim = {k: kwargs.pop(k) for k in list(kwargs) if k in rtdetr.val._DEIM_DEFAULTS}
-            if deim:
-                self.overrides = {**self.overrides, **deim}
-        return super().train(trainer=trainer, **kwargs)
-
     def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
         """Run prediction, defaulting conf to 0.5 for DEIM-routed models since the decoder applies no NMS.
 

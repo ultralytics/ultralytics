@@ -217,6 +217,10 @@ CFG_FLOAT_KEYS = frozenset(
         "time",
         "workspace",
         "batch",
+        "muon",
+        "sgd",
+        "cls_lr_mult",
+        "backbone_lr_ratio",
     }
 )
 CFG_FRACTION_KEYS = frozenset(

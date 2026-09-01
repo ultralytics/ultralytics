@@ -170,10 +170,14 @@ class Detect(nn.Module):
             device=ref.device, dtype=ref.dtype
         )
         if hasattr(self, "one2one_cv2"):
-            # Shared, not deepcopied: the o2o branch's topk=1-trained obj field collapses (see the
-            # obj x end2end findings), and sharing lets the o2o head score with the o2m-trained obj.
-            # The o2o obj loss then co-trains the same weights; that trade-off is the open A/B.
-            self.one2one_cv4 = self.cv4
+            # Deepcopied, NOT shared. Sharing was tried (850a54af2) on the theory that the o2o
+            # obj field was collapsed and could borrow the o2m-trained one; the collapse turned
+            # out to be a postprocessing artifact, and once measured correctly sharing is worse
+            # on BOTH branches: o2o obj-only OOD mAP10_50 0.22 (dedicated) vs 0.03-0.09 (shared),
+            # and o2m OOD -0.03..-0.10 through ep9 of a matched A/B. A dedicated head can learn
+            # o2o's own anchor set; a shared one is pulled to o2m's ~10-positives-per-GT anchors
+            # and scores the o2o boxes, which sit elsewhere, badly.
+            self.one2one_cv4 = copy.deepcopy(self.cv4)
 
     @property
     def one2many(self):

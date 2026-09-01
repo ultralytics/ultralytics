@@ -23,26 +23,26 @@ record at **60.5 mAP**, the strongest result in the current research line.
 
 ## Key Features
 
-- **Streamlined two-scale detection (N/S)**
+- **Streamlined two-scale detection**
   Standard detectors predict objects on three feature maps — fine, medium, and coarse. YOLO27 N and S drop the
   medium one and predict only on a fine map (for small objects) and a coarse map (for large objects). This removes a
   large chunk of detection-head computation, making the models faster while keeping accuracy competitive.
 
-- **Stronger small-object detection (N/S)**
+- **Stronger small-object detection**
   The early, high-resolution feature stage is widened so it can capture more fine-grained detail. Combined with the
   surviving fine prediction map, this improves localization and regression for small objects — the hardest category
   for compact models.
 
-- **Stable two-scale training (N/S)**
+- **Stable two-scale training**
   A fixed scaling on the fused features keeps the two prediction scales balanced during training, so the simplified
   architecture trains as reliably as the full three-scale design.
 
-- **Auxiliary foreground supervision (N/S)**
+- **Auxiliary foreground supervision**
   During training, an extra lightweight branch learns to tell "object" from "background" at every location, giving
   the backbone and neck a stronger learning signal early on and gradually aligning with the final detection head.
   The branch is used only during training and is removed for inference and export, so it costs nothing at deployment.
 
-- **Query-based detection without NMS (M/L/X)**
+- **Query-based detection without NMS**
   The larger models replace dense prediction with a transformer decoder that refines a fixed set of object queries
   and directly outputs the final detections — no non-maximum suppression post-processing needed. YOLO27m and YOLO27l
   pair this decoder with the proven YOLO26-style convolutional backbone, while YOLO27x adds an UltraViT backbone that

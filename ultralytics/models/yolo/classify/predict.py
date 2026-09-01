@@ -56,51 +56,34 @@ class ClassificationPredictor(BasePredictor):
         """Set up source and inference mode and classify transforms."""
         import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-        def flatten(tfl):
-            """Inline nested Compose transforms into one ordered list of leaf transforms."""
-            return [x for t in tfl for x in (flatten(t.transforms) if type(t) is T.Compose else [t])]
-
         super().setup_source(source)
         transforms = getattr(self.model.model, "transforms", None)  # missing on YAML-built and legacy checkpoints
         size = getattr(transforms.transforms[0], "size", max(self.imgsz)) if transforms is not None else None
         self.transforms = (
             transforms if size == max(self.imgsz) and self.model.format == "pt" else classify_transforms(self.imgsz)
         )
-        # Split at ToTensor so PIL ops stay on the host and tensor ops run once per batch on device, which is
-        # only valid for the shape classify_transforms() emits. Before it, Resize/CenterCrop resample each
-        # channel independently, so deferring BGR to RGB past them is exact; a channel-mixing stage such as
-        # Grayscale or ColorJitter needs real RGB order. After it, Normalize preserves dtype and applies
-        # elementwise, so batching it is equivalent; ConvertImageDtype would override the model-dtype cast and
-        # a random transform would draw once per batch instead of once per image. Anything else keeps the
-        # original single-pass host path. Matched by exact type, not isinstance: a subclass may override
-        # __call__ with behavior that depends on being invoked once per image rather than once per batch.
-        # Restricted to 3-channel models: the split relies on BasePredictor.preprocess()'s BGR-to-RGB flip,
-        # which only fires for a 3-channel tensor (engine/predictor.py), so a non-3-channel checkpoint keeps
-        # the original path instead of silently skipping that reorder.
-        tfl = flatten([self.transforms])  # a Compose subclass stays an opaque leaf, so the split rejects it
-        i = next((i for i, t in enumerate(tfl) if type(t) is T.ToTensor), None)
+        tfl = getattr(self.transforms, "transforms", ())
         split = (
-            i is not None
-            and all(type(t) in (T.Resize, T.CenterCrop) for t in tfl[:i])
-            and all(type(t) is T.Normalize for t in tfl[i + 1 :])
+            type(self.transforms) is T.Compose
+            and tuple(map(type, tfl)) == (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)
             and getattr(self.model, "channels", 3) == 3
         )
-        self.pil_transforms = T.Compose(tfl[:i]) if split else None
-        self.device_transforms = T.Compose(tfl[i + 1 :]) if split else None
+        self.host_transforms = T.Compose(tfl[:2]) if split else None
+        self.device_transform = tfl[-1] if split else None
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Resize and crop images on the host, leaving uint8 BGR for the device-side conversion."""
-        return [np.array(self.pil_transforms(Image.fromarray(x))) for x in im]
+        return [np.array(self.host_transforms(Image.fromarray(x))) for x in im]
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""
-        if self.device_transforms is None and not isinstance(img, torch.Tensor):  # non-splittable pipeline
+        if self.device_transform is None and not isinstance(img, torch.Tensor):
             img = torch.stack([self.transforms(Image.fromarray(cv2.cvtColor(x, cv2.COLOR_BGR2RGB))) for x in img], 0)
             img = img.to(self.model.device)
             return img.half() if self.model.fp16 else img.float()
         is_tensor = isinstance(img, torch.Tensor)
         img = super().preprocess(img)
-        return img if is_tensor else self.device_transforms(img)
+        return img if is_tensor else self.device_transform(img)
 
     def postprocess(self, preds, img, orig_imgs):
         """Process predictions to return Results objects with classification probabilities.

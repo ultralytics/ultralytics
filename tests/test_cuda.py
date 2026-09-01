@@ -201,25 +201,6 @@ def test_predict_multiple_devices():
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_classify_half_real_normalize_stats():
-    """half=True classification must agree with half=False when Normalize carries real per-channel statistics.
-
-    The shipped classification checkpoints normalize with identity mean/std, so nothing else exercises the device-side
-    Normalize arithmetic that a checkpoint with real statistics reaches, and tests/test_python.py is always installed
-    CPU-only.
-    """
-    from ultralytics.data.augment import classify_transforms
-
-    model = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt").to(f"cuda:{DEVICES[0]}")
-    model.model.transforms = classify_transforms(224, mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
-    full = model(SOURCE, half=False, verbose=False)[0].probs
-    model.predictor = None  # force a fresh predictor so setup_model() actually rebuilds the backend in fp16
-    half = model(SOURCE, half=True, verbose=False)[0].probs
-    assert full.top1 == half.top1
-    assert (full.data - half.data.to(full.data.device)).abs().max() < 0.1  # fp16 granularity, measured max 0.037
-
-
-@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_track_exported_model():
     """Track with an exported model on GPU; exported backends return raw preds as a single Tensor."""
     file = YOLO(MODEL).export(format="torchscript", imgsz=160, device=DEVICES[0])

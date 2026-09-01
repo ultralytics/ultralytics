@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 
-from ultralytics.utils import LOGGER, LOCAL_RANK, RANK
+from ultralytics.utils import LOCAL_RANK, LOGGER, RANK
 
 
 class AFSSScheduler:
@@ -165,7 +165,11 @@ def afss_on_epoch_end(trainer):
     epoch = trainer.epoch
     trainer.afss_scheduler.update_last_seen(trainer.afss_current_indices, epoch)
     warmup = math.ceil(trainer.afss_scheduler.warmup_epochs)
-    if epoch >= warmup and (epoch - warmup) % 5 == 0 and trainer.epochs - epoch > trainer.afss_scheduler.FULL_FINAL_EPOCHS:
+    if (
+        epoch >= warmup
+        and (epoch - warmup) % 5 == 0
+        and trainer.epochs - epoch > trainer.afss_scheduler.FULL_FINAL_EPOCHS
+    ):
         afss_refresh_metrics(trainer)
 
 

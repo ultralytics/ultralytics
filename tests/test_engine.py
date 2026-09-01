@@ -6,8 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-import pytest
 import numpy as np
+import pytest
 import torch
 
 from tests import MODEL, SOURCE, TASK_MODEL_DATA

@@ -632,7 +632,12 @@ class BaseTrainer:
                 self._setup_scheduler()
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
-            self.run_callbacks("on_fit_epoch_end")
+            try:
+                self.run_callbacks("on_fit_epoch_end")
+            finally:
+                close = getattr(self.validator.dataloader, "close", None)
+                if callable(close):
+                    close()
             # clear if memory utilization > 50%; always clear on MPS due to leak https://github.com/ultralytics/ultralytics/issues/22621
             self._clear_memory(None if self.device.type == "mps" else 0.5)
 

@@ -142,7 +142,6 @@ class BaseValidator:
         self.plots = {}
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
-    @smart_inference_mode()
     def __call__(self, trainer=None, model=None):
         """Execute validation process, running inference on dataloader and computing performance metrics.
 
@@ -153,6 +152,23 @@ class BaseValidator:
         Returns:
             (dict): Dictionary containing validation statistics.
         """
+        completed = False
+        try:
+            results = self._validate(trainer, model)
+            completed = True
+            return results
+        finally:
+            if trainer is None or not completed:
+                close = getattr(self.dataloader, "close", None)
+                if callable(close):
+                    try:
+                        close()
+                    except Exception:
+                        if completed:
+                            raise
+
+    @smart_inference_mode()
+    def _validate(self, trainer=None, model=None):
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:
@@ -241,38 +257,34 @@ class BaseValidator:
         bar = TQDM(self.dataloader, desc=self.get_desc(), total=len(self.dataloader))
         self.init_metrics(unwrap_model(model))
         self.jdict = []  # empty before each val
-        try:
-            for batch_i, batch in enumerate(bar):
-                self.run_callbacks("on_val_batch_start")
-                self.batch_i = batch_i
-                # Preprocess
-                with dt[0]:
-                    batch = self.preprocess(batch)
+        for batch_i, batch in enumerate(bar):
+            self.run_callbacks("on_val_batch_start")
+            self.batch_i = batch_i
+            # Preprocess
+            with dt[0]:
+                batch = self.preprocess(batch)
 
-                with autocast(self.training and self.args.quantize == 16, device=self.device.type):
-                    # Inference
-                    with dt[1]:
-                        preds = model(batch["img"], augment=augment)
+            with autocast(self.training and self.args.quantize == 16, device=self.device.type):
+                # Inference
+                with dt[1]:
+                    preds = model(batch["img"], augment=augment)
 
-                    # Loss
-                    with dt[2]:
-                        if self.training:
-                            for k, v in model.loss(batch, preds)[1].items():
-                                self.loss[k] += v
+                # Loss
+                with dt[2]:
+                    if self.training:
+                        for k, v in model.loss(batch, preds)[1].items():
+                            self.loss[k] += v
 
-                # Postprocess
-                with dt[3]:
-                    preds = self.postprocess(preds)
+            # Postprocess
+            with dt[3]:
+                preds = self.postprocess(preds)
 
-                self.update_metrics(preds, batch)
-                if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
-                    self.plot_val_samples(batch, batch_i)
-                    self.plot_predictions(batch, preds, batch_i)
+            self.update_metrics(preds, batch)
+            if self.args.plots and batch_i < 3 and RANK in {-1, 0}:
+                self.plot_val_samples(batch, batch_i)
+                self.plot_predictions(batch, preds, batch_i)
 
-                self.run_callbacks("on_val_batch_end")
-        finally:
-            if hasattr(self.dataloader, "close"):
-                self.dataloader.close()
+            self.run_callbacks("on_val_batch_end")
 
         stats = {}
         self.gather_stats()

@@ -325,7 +325,8 @@ class Tuner:
     def _has_training_metrics(result: dict, require_all: bool = False) -> bool:
         """Return whether a tuning result contains training metrics."""
         datasets = result.get("datasets", {})
-        return bool(datasets) and (all(datasets.values()) if require_all else any(datasets.values()))
+        trained = [bool(metrics) and not metrics.get("failed") for metrics in datasets.values()]
+        return bool(trained) and (all(trained) if require_all else any(trained))
 
     @classmethod
     def _best_result_index(cls, results: list[dict], fitness: np.ndarray) -> int:
@@ -493,7 +494,8 @@ class Tuner:
             trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
             metric = TASK2METRIC[train_args["task"]]
             dataset_metrics = {
-                dataset: metrics or {metric: 0.0, "fitness": 0.0} for dataset, metrics in trainer.train().items()
+                dataset: metrics or {metric: 0.0, "fitness": 0.0, "failed": True}
+                for dataset, metrics in trainer.train().items()
             }
             save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]

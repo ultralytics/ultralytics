@@ -211,3 +211,10 @@ results.csv
 fuzz-sources/
 fuzz-datasets/
 fuzz-models/
+
+# Artifacts written to the checkout root by solutions and tests
+# (VisualAISearch index + downloaded images, NDJSON dataset download)
+coco8-ndjson.ndjson
+embeddings.npy
+images.zip
+paths.npy

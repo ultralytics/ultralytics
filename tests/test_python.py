@@ -19,7 +19,7 @@ from PIL import Image
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
-from ultralytics import RTDETR, YOLO, YOLOWorld
+from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
@@ -2004,15 +2004,11 @@ def test_process_mask_native_chunked():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
-def test_yolo_world(tmp_path):
+def test_yolo_world():
     """Test YOLO world models with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
     model.set_classes(["tree", "window"])
     model(SOURCE, conf=0.01)
-
-    # Dispatch follows the loaded class, not the filename, in both directions
-    assert isinstance(YOLO(shutil.copy(WEIGHTS_DIR / "yolov8s-worldv2.pt", tmp_path / "custom.pt")), YOLOWorld)
-    assert type(YOLO(shutil.copy(MODEL, tmp_path / "custom-world.pt"))) is YOLO
 
     model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
     # Training from a pretrained model. Eval is included at the final stage of training.

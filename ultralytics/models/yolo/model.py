@@ -33,9 +33,9 @@ class YOLO(Model):
     """YOLO (You Only Look Once) object detection model.
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
-    (YOLOWorld, YOLOE or RTDETR) based on the class a checkpoint loads, or on the filename for YAML configs. It supports
-    various computer vision tasks including object detection, instance segmentation, semantic segmentation,
-    classification, pose estimation, and oriented bounding box detection.
+    (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
+    detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented bounding box
+    detection.
 
     Attributes:
         model: The loaded YOLO model instance.
@@ -60,8 +60,8 @@ class YOLO(Model):
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
-        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld,
-        YOLOE or RTDETR) based on the class a checkpoint loads, or on the filename for YAML configs.
+        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
+        YOLOE) based on the model filename.
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
@@ -70,30 +70,28 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOWorld config
+        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif "yoloe" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOE config
+        elif "yoloe" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOE PyTorch model
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:
-            # Default YOLO initialization; a checkpoint dispatches on the class it loads, whatever its filename
+            # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
-            new_instance = None
             if "RTDETR" in head:  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)
-            elif isinstance(self.model, WorldModel):
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
+            elif isinstance(self.model, WorldModel):  # e.g. `ul://…/yolov8l-worldv2`, no suffix for the filename test
                 new_instance = YOLOWorld(self)
-            elif isinstance(self.model, YOLOEModel):
-                new_instance = YOLOE(self)
-            if new_instance:
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 

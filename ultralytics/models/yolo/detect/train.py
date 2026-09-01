@@ -15,7 +15,7 @@ from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, RANK
 from ultralytics.utils.afss import afss_on_epoch_end, afss_on_epoch_start
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
@@ -229,8 +229,19 @@ class DetectionTrainer(BaseTrainer):
         """Build the training pipeline and align the default detection limit with observed dataset object counts."""
         super()._build_train_pipeline()
         if hasattr(self, "afss_current_indices") and hasattr(self.train_loader.dataset, "active_indices"):
-            self.train_loader.dataset.active_indices = self.afss_current_indices
-            self.train_loader.reset()
+            if self.world_size > 1:
+                # Rebuild the sampler together with the active dataset after OOM recovery.
+                self.train_loader.close()
+                self.train_loader = self.get_dataloader(
+                    self.data["train"],
+                    batch_size=self.batch_size // self.world_size,
+                    rank=LOCAL_RANK,
+                    mode="train",
+                    active_indices=self.afss_current_indices,
+                )
+            else:
+                self.train_loader.dataset.active_indices = self.afss_current_indices
+                self.train_loader.reset()
             self.nb = len(self.train_loader)
         if self.args.task in {"detect", "segment", "pose", "obb"}:
             datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}

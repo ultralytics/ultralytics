@@ -60,8 +60,8 @@ class YOLO(Model):
     def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
-        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
-        YOLOE) based on the model filename.
+        This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld,
+        YOLOE or RTDETR) based on the class a checkpoint loads, or on the filename for YAML configs.
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
@@ -70,16 +70,16 @@ class YOLO(Model):
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
-        if "-world" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOWorld PyTorch model
+        if "-world" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOWorld config
             new_instance = YOLOWorld(path, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
-        elif "yoloe" in path.stem and path.suffix in {".pt", ".yaml", ".yml"}:  # if YOLOE PyTorch model
+        elif "yoloe" in path.stem and path.suffix in {".yaml", ".yml"}:  # if YOLOE config
             new_instance = YOLOE(path, task=task, verbose=verbose)
             self.__class__ = type(new_instance)
             self.__dict__ = new_instance.__dict__
         else:
-            # Continue with default YOLO initialization
+            # Default YOLO initialization; a checkpoint dispatches on the class it loads, whatever its filename
             super().__init__(model=model, task=task, verbose=verbose)
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
@@ -89,7 +89,7 @@ class YOLO(Model):
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)
-            elif isinstance(self.model, WorldModel):  # renamed or `ul://` checkpoint the filename test missed
+            elif isinstance(self.model, WorldModel):
                 new_instance = YOLOWorld(self, verbose=verbose)
             elif isinstance(self.model, YOLOEModel):
                 new_instance = YOLOE(self, task=task, verbose=verbose)

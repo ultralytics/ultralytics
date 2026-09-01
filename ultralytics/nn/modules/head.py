@@ -2256,7 +2256,8 @@ class DeimDecoder(RTDETRDecoder):
         features = self._project_encoder_features(feats)
         enc_outputs_scores = self.enc_score_head(features)
 
-        topk_ind = torch.topk(enc_outputs_scores.max(-1).values, self.num_queries, dim=1).indices.view(-1)
+        groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
+        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
         batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
         top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
         top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)

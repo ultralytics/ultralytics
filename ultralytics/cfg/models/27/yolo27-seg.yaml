@@ -5,7 +5,6 @@
 # The neck dams upsampled features with SNI x0.5 (Scale) before fusion, and the backbone P3
 # stage C3k2 expansion is per-scale via the `bbp3e` scales arg: the 4th element of a scales
 # entry is a dict of named values referenced by name in layer args (see backbone layer 4).
-# Model docs: https://docs.ultralytics.com/models/yolo27
 # Task docs: https://docs.ultralytics.com/tasks/segment
 
 # Parameters

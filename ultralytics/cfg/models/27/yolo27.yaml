@@ -6,7 +6,6 @@
 # stage C3k2 expansion is per-scale via the `bbp3e` scales arg: the 4th element of a scales
 # entry is a dict of named values referenced by name in layer args (see backbone layer 4).
 # Detection m/l/x scales are the standalone DEIM-decoder yolo27{m,l,x}.yaml models.
-# Model docs: https://docs.ultralytics.com/models/yolo27
 # Task docs: https://docs.ultralytics.com/tasks/detect
 
 # Parameters

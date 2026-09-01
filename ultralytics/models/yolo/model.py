@@ -38,7 +38,7 @@ class YOLO(Model):
     (YOLOWorld, YOLOE or RTDETR) based on the model filename. It supports various computer vision tasks including object
     detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented bounding box
     detection. DEIM-decoder detection models (e.g. yolo27 m/l/x with a DeimDecoder head) keep this facade but route the
-    detect task to the RT-DETR pipeline (DEIMTrainer/DEIMValidator/RTDETRPredictor) through ``task_map``.
+    detect task to the RT-DETR pipeline (DEIMTrainer/RTDETRValidator/RTDETRPredictor) through ``task_map``.
 
     Attributes:
         model: The loaded YOLO model instance.
@@ -47,6 +47,7 @@ class YOLO(Model):
 
     Methods:
         __init__: Initialize a YOLO model with automatic type detection.
+        predict: Run prediction, defaulting conf to 0.5 for DEIM-routed models.
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
 
     Examples:
@@ -135,7 +136,7 @@ class YOLO(Model):
                 "detect": {
                     "model": YOLODETRDetectionModel,
                     "trainer": rtdetr.train.DEIMTrainer,
-                    "validator": rtdetr.val.DEIMValidator,
+                    "validator": rtdetr.val.RTDETRValidator,
                     "predictor": rtdetr.predict.RTDETRPredictor,
                 }
             }

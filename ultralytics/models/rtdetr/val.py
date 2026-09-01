@@ -333,7 +333,3 @@ class DEIMDataset(RTDETRDataset):
         self.epoch = epoch
         if self.augment:
             self.transforms = self.build_transforms(hyp=self._build_v8_epoch_hyp(epoch))
-
-
-class DEIMValidator(RTDETRValidator):
-    """RT-DETR validator for DEIM-decoder models."""

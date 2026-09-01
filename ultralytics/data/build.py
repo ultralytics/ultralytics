@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import os
 import random
+import sys
 from collections.abc import Iterator
 from copy import copy
 from pathlib import Path
@@ -377,9 +378,9 @@ def build_dataloader(
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        # Fork workers so they inherit the dataset copy-on-write; Python 3.14 defaults to forkserver, which pickles
-        # the (potentially multi-GB) label cache to every worker at startup and gives each a full private copy
-        multiprocessing_context="fork" if nw > 0 and hasattr(os, "fork") else None,
+        # Fork workers on Linux so they inherit the dataset copy-on-write; Python 3.14 defaults to forkserver, which
+        # pickles the (potentially multi-GB) label cache to every worker at startup and gives each a full private copy
+        multiprocessing_context="fork" if nw > 0 and sys.platform.startswith("linux") else None,
         prefetch_factor=4 if nw > 0 else None,  # increase over default 2
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),

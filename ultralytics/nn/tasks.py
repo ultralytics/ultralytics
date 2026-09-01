@@ -47,7 +47,6 @@ from ultralytics.nn.modules import (
     Conv,
     Conv2,
     ConvTranspose,
-    Scale,  # noqa: F401  # resolved by name from model YAMLs via globals() in parse_model
     Depth,
     Detect,
     DWConv,
@@ -74,6 +73,7 @@ from ultralytics.nn.modules import (
     ResNetLayer,
     RTDETRDecoder,
     SCDown,
+    Scale,  # noqa: F401  # resolved by name from model YAMLs via globals() in parse_model
     Segment,
     Segment26,
     SemanticSegment,

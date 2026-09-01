@@ -13,7 +13,7 @@ from ultralytics.nn.tasks import RTDETRDetectionModel, YOLODETRDetectionModel
 from ultralytics.utils import LOGGER, RANK, colorstr
 from ultralytics.utils.torch_utils import unwrap_model
 
-from .val import DEIMDataset, DEIMValidator, RTDETRDataset, RTDETRValidator, compute_policy_epochs
+from .val import DEIMDataset, RTDETRDataset, RTDETRValidator, compute_policy_epochs
 
 
 class RTDETRTrainer(DetectionTrainer):
@@ -200,17 +200,17 @@ class DEIMTrainer(RTDETRTrainer):
         return super().train(*args, **kwargs)
 
     def get_validator(self):
-        """Return a DEIMValidator with loss_names extended for the DEIM head.
+        """Return an RTDETRValidator with loss_names extended for the DEIM head.
 
         Returns:
-            (DEIMValidator): Validator whose loss names match the head in use.
+            (RTDETRValidator): Validator whose loss names match the head in use.
         """
         loss_names = ["giou_loss", "cls_loss", "l1_loss"]
         head_name = type(unwrap_model(self.model).model[-1]).__name__
         if head_name == "DeimDecoder":
             loss_names += ["fgl_loss", "ddf_loss"]
         self.loss_names = tuple(loss_names)
-        return DEIMValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """Build optimizer with 6 param groups split head/backbone; 'auto' resolves to AdamW with DEIM LR defaults.

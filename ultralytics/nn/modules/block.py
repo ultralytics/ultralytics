@@ -9,7 +9,7 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from ultralytics.utils.torch_utils import fuse_conv_and_bn
+from ultralytics.utils.torch_utils import autocast, fuse_conv_and_bn
 
 from .conv import Conv, DWConv, GhostConv, LightConv, RepConv, autopad
 from .transformer import TransformerBlock
@@ -1333,7 +1333,7 @@ class Attention(nn.Module):
             x = x.transpose(-2, -1).reshape(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         else:
             # Attention scores in fp32: under autocast the bf16/fp16 matmul + softmax is numerically unstable
-            with torch.autocast(device_type=x.device.type, enabled=False):
+            with autocast(enabled=False, device=x.device.type):
                 attn = (q.float().transpose(-2, -1) @ k.float()) * self.scale
                 attn = attn.softmax(dim=-1)
             x = (v @ attn.transpose(-2, -1).to(v.dtype)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))

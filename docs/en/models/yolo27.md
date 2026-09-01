@@ -18,13 +18,15 @@ surpass 60 mAP on COCO**, while the compact YOLO27n/s improve on YOLO26n/s accur
 
 ### YOLO27 vs YOLO26
 
-| Scale | YOLO26 mAP<sup>val<br>50-95</sup> | YOLO27 mAP<sup>val<br>50-95</sup> | Δ mAP    | YOLO26 T4 (ms) | YOLO27 T4 (ms) |
-| ----- | --------------------------------- | --------------------------------- | -------- | -------------- | -------------- |
-| n     | 40.9                              | 41.6                              | +0.7     | 1.7            | 1.8            |
-| s     | 48.6                              | 49.2                              | +0.6     | 2.5            | 2.7            |
-| m     | 53.1                              | 55.7                              | **+2.6** | 4.7            | **4.6**        |
-| l     | 55.0                              | 57.7                              | +2.7     | 6.2            | 6.5            |
-| x     | 57.5                              | 60.5                              | **+3.0** | 11.8           | 12.1           |
+YOLO26 is compared using its end-to-end (one-to-one head) numbers, matching YOLO27's NMS-free evaluation.
+
+| Scale | YOLO26 mAP<sup>val<br>50-95 (e2e)</sup> | YOLO27 mAP<sup>val<br>50-95</sup> | Δ mAP    | YOLO26 T4 (ms) | YOLO27 T4 (ms) |
+| ----- | --------------------------------------- | --------------------------------- | -------- | -------------- | -------------- |
+| n     | 40.1                                    | 41.6                              | +1.5     | 1.7            | 1.8            |
+| s     | 47.8                                    | 49.2                              | +1.4     | 2.5            | 2.7            |
+| m     | 52.5                                    | 55.7                              | **+3.2** | 4.7            | **4.6**        |
+| l     | 54.4                                    | 57.7                              | +3.3     | 6.2            | 6.5            |
+| x     | 56.9                                    | 60.5                              | **+3.6** | 11.8           | 12.1           |
 
 <sup>YOLO27m is evaluated at a 512-pixel input; YOLO26m and all other scales use 640 pixels.</sup>
 
@@ -81,7 +83,7 @@ surpass 60 mAP on COCO**, while the compact YOLO27n/s improve on YOLO26n/s accur
 
 - **YOLO27n / YOLO27s** — edge devices, drones, and real-time video: the fastest models in the family, with improved
   small-object detection from the dual-scale design.
-- **YOLO27m / YOLO27l** — the accuracy-speed sweet spot on GPUs: YOLO27m alone improves on YOLO26m by 2.6 mAP while
+- **YOLO27m / YOLO27l** — the accuracy-speed sweet spot on GPUs: YOLO27m alone improves on YOLO26m by 3.2 mAP while
   running faster, making it the default choice for production GPU deployment.
 - **YOLO27x** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.0 mAP
   at a larger input size while staying real-time on GPU.
@@ -131,7 +133,7 @@ be reproduced with `yolo val model=yolo27n.pt data=coco.yaml`.
     | YOLO27m | 512                         | 55.7                       | 161.5 ± 7.0                 | 4.6                            | 27.2                     | 83.4                    |
     | YOLO27l | 640                         | 57.7                       | 258.7 ± 11.6                | 6.5                            | 30.4                     | 85.4                    |
     | YOLO27x | 640                         | 60.5                       | 414.4 ± 19.5                | 12.1                           | 65.6                     | 173.1                   |
-    | YOLO27x | 800                         | **61.0**                   | 414.4 ± 19.5                | 17.1                           | 65.6                     | 266.8                   |
+    | YOLO27x | 800                         | **61.0**                   | 622.5 ± 30.2                | 17.1                           | 65.6                     | 266.8                   |
 
 === "Segmentation (COCO)"
 
@@ -237,10 +239,10 @@ repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](.
 
 ### Should I upgrade from YOLO26?
 
-Yes, for most use cases. YOLO27 improves accuracy at every scale: +0.7/+0.6 mAP for the compact n/s models at
-essentially the same speed, and +2.6/+2.7/+3.0 mAP for m/l/x. YOLO27x is the first Ultralytics model to surpass 60
-mAP on COCO. Note that YOLO27m is evaluated at a 512-pixel input (versus 640 for YOLO26m), which is part of its
-speed advantage.
+Yes, for most use cases. YOLO27 improves end-to-end accuracy at every scale: +1.5/+1.4 mAP for the compact n/s
+models at essentially the same speed, and +3.2/+3.3/+3.6 mAP for m/l/x. YOLO27x is the first Ultralytics model to
+surpass 60 mAP on COCO. Note that YOLO27m is evaluated at a 512-pixel input (versus 640 for YOLO26m), which is part
+of its speed advantage.
 
 ### Is YOLO27 a drop-in replacement for YOLO26?
 

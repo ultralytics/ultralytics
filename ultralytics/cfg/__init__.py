@@ -641,9 +641,9 @@ def check_dict_alignment(
     """
     custom = _handle_deprecation(custom)
     base_keys, custom_keys = (frozenset(x.keys()) for x in (base, custom))
-    # Allow 'augmentations' as a valid custom parameter for custom Albumentations transforms
+    # Allow custom training parameters that are not part of the shared inference configuration.
     if allowed_custom_keys is None:
-        allowed_custom_keys = {"augmentations", "save_dir"}
+        allowed_custom_keys = {"augmentations", "save_dir", "afss"}
     if mismatched := [k for k in custom_keys if k not in base_keys and k not in allowed_custom_keys]:
         from difflib import get_close_matches
 

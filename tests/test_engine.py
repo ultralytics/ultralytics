@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -111,7 +111,7 @@ def test_afss_updates_active_dataset_length():
 
 
 def test_afss_callback_restores_sidecar_state(tmp_path):
-    """Test AFSS callback restores a saved scheduler state before sampling."""
+    """Test AFSS callback restores a legacy sidecar state before sampling."""
     from ultralytics.utils.afss import AFSSScheduler, afss_on_epoch_start
 
     source = AFSSScheduler(4, warmup_epochs=0, seed=3)
@@ -155,13 +155,20 @@ def test_afss_callback_restores_sidecar_state(tmp_path):
     np.testing.assert_array_equal(trainer.afss_scheduler.precision, source.precision)
     assert len(trainer.afss_current_indices) == 1
 
+    (tmp_path / "afss_state.pt").unlink()
+    trainer.ckpt = {"afss_state": source.state_dict()}
+    trainer.afss_current_indices = list(range(4))
+    del trainer.afss_scheduler
+    afss_on_epoch_start(trainer)
+    np.testing.assert_array_equal(trainer.afss_scheduler.precision, source.precision)
 
-def test_afss_refresh_and_checkpoint_callbacks(tmp_path, monkeypatch):
-    """Test clean-score refresh, last-seen updates, and sidecar checkpoint writes."""
+
+def test_afss_refresh_and_checkpoint_state(tmp_path, monkeypatch):
+    """Test clean-score refresh and last-seen updates use complete image paths."""
     from ultralytics.utils import afss
 
     class Dataset:
-        im_files = ["img0.jpg", "img1.jpg"]
+        im_files = ["/set_a/img.jpg", "/set_b/img.jpg"]
 
     class Loader:
         dataset = Dataset()
@@ -173,7 +180,10 @@ def test_afss_refresh_and_checkpoint_callbacks(tmp_path, monkeypatch):
         def __init__(self, loader, save_dir, args):
             self.metrics = SimpleNamespace(
                 box=SimpleNamespace(
-                    image_metrics={"img0.jpg": {"precision": 0.9, "recall": 0.8}, "img1.jpg": {"precision": 0.4}}
+                    image_metrics={
+                        "/set_a/img.jpg": {"precision": 0.9, "recall": 0.8},
+                        "/set_b/img.jpg": {"precision": 0.4},
+                    }
                 )
             )
 
@@ -205,9 +215,67 @@ def test_afss_refresh_and_checkpoint_callbacks(tmp_path, monkeypatch):
     assert scheduler.last_seen.tolist() == [0, -1]
     assert refreshed == [True]
 
-    afss.afss_save_state(trainer)
-    restored = torch.load(tmp_path / "afss_state.pt", weights_only=False)
-    np.testing.assert_array_equal(restored["last_seen"], scheduler.last_seen)
+
+def test_afss_checkpoint_embeds_state(tmp_path):
+    """Test training checkpoints carry AFSS state for exact resume."""
+    from ultralytics.utils.afss import AFSSScheduler
+
+    model = torch.nn.Linear(2, 2)
+    trainer = BaseTrainer.__new__(BaseTrainer)
+    trainer.ema = SimpleNamespace(ema=model, updates=0)
+    trainer.model = model
+    trainer.optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    trainer.scaler = SimpleNamespace(state_dict=lambda: {})
+    trainer.metrics = {}
+    trainer.fitness = trainer.best_fitness = 0.0
+    trainer.epoch = 0
+    trainer.args = SimpleNamespace()
+    trainer.csv = tmp_path / "results.csv"
+    trainer.wdir = tmp_path / "weights"
+    trainer.last = trainer.wdir / "last.pt"
+    trainer.best = trainer.wdir / "best.pt"
+    trainer.save_period = -1
+    trainer.afss_scheduler = AFSSScheduler(2, seed=5)
+    trainer.read_results_csv = lambda: {}
+
+    assert trainer.save_model()
+    checkpoint = torch.load(trainer.last, weights_only=False)
+    assert checkpoint["afss_state"]["version"] == AFSSScheduler.STATE_VERSION
+    assert checkpoint["afss_state"]["num_images"] == 2
+
+
+def test_afss_preserves_flag_for_ddp_and_resume(monkeypatch):
+    """Test AFSS remains enabled after trainer configuration is rebuilt."""
+    callbacks = defaultdict(list)
+
+    def fake_init(self, cfg, overrides, _callbacks):
+        self.args = SimpleNamespace(task="detect", afss=False)
+        self.callbacks = callbacks
+
+    monkeypatch.setattr(BaseTrainer, "__init__", fake_init)
+    trainer = detect.DetectionTrainer(overrides={"sampler": "afss"})
+    assert trainer.args.afss is True
+
+
+def test_active_rect_subset_uses_consistent_batch_shapes():
+    """Test rectangular active subsets derive one shape per new batch."""
+    from ultralytics.data.base import BaseDataset
+
+    dataset = BaseDataset.__new__(BaseDataset)
+    dataset.rect = True
+    dataset.batch_size = 2
+    dataset.batch_shapes = np.asarray([[32, 64], [64, 32], [128, 64]])
+    dataset.batch = np.asarray([0, 0, 1, 1, 2])
+    dataset.labels = [{"shape": (32, 64)} for _ in range(5)]
+    dataset._active_indices = None
+    dataset._active_batch_shapes = None
+    dataset.load_image = lambda index: (np.zeros((8, 8, 3), dtype=np.uint8), (8, 8), (8, 8))
+    dataset.update_labels_info = lambda label: label
+
+    dataset.active_indices = [0, 2, 4]
+    assert dataset.get_image_and_label(0)["rect_shape"].tolist() == [64, 64]
+    assert dataset.get_image_and_label(1)["rect_shape"].tolist() == [64, 64]
+    assert dataset.get_image_and_label(2)["rect_shape"].tolist() == [128, 64]
 
 
 @pytest.mark.parametrize(

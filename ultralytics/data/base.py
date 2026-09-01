@@ -137,6 +137,7 @@ class BaseDataset(Dataset):
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
         self._active_indices = None
+        self._active_batch_shapes = None
         self.rect = rect
         self.batch_size = batch_size
         self.stride = stride
@@ -422,6 +423,16 @@ class BaseDataset(Dataset):
             indices (list[int] | None): List of active indices, or None to reset.
         """
         self._active_indices = list(indices) if indices is not None else None
+        self._active_batch_shapes = None
+        if self.rect and self._active_indices is not None:
+            active = np.asarray(self._active_indices, dtype=np.intp)
+            batch_size = max(int(self.batch_size), 1)
+            num_batches = math.ceil(len(active) / batch_size)
+            self._active_batch_shapes = np.empty((num_batches, 2), dtype=self.batch_shapes.dtype)
+            source_shapes = self.batch_shapes[self.batch[active]] if len(active) else np.empty((0, 2))
+            for batch_index in range(num_batches):
+                start = batch_index * batch_size
+                self._active_batch_shapes[batch_index] = source_shapes[start : start + batch_size].max(axis=0)
 
     def _active_index(self, index: int) -> int:
         """Map a dataset position to its original image index when a subset is active."""
@@ -440,6 +451,7 @@ class BaseDataset(Dataset):
         Returns:
             (dict[str, Any]): Label dictionary with image and metadata.
         """
+        active_position = index
         index = self._active_index(index)
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
@@ -449,7 +461,10 @@ class BaseDataset(Dataset):
             label["resized_shape"][1] / label["ori_shape"][1],
         )  # for evaluation
         if self.rect:
-            label["rect_shape"] = self.batch_shapes[self.batch[index]]
+            if self._active_batch_shapes is not None:
+                label["rect_shape"] = self._active_batch_shapes[active_position // max(int(self.batch_size), 1)]
+            else:
+                label["rect_shape"] = self.batch_shapes[self.batch[index]]
         return self.update_labels_info(label)
 
     def __len__(self) -> int:

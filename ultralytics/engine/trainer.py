@@ -315,6 +315,7 @@ class BaseTrainer:
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
+        self.ckpt = {"afss_state": ckpt.get("afss_state")} if ckpt else None
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU
@@ -456,6 +457,7 @@ class BaseTrainer:
             self.run_callbacks("on_train_epoch_start")
             if self.nb != old_nb:
                 self.last_opt_step -= epoch * (old_nb - self.nb)
+                nw = self._get_warmup_iterations(self.nb)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 self.scheduler.step()
@@ -744,32 +746,32 @@ class BaseTrainer:
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
-        torch.save(
-            {
-                "epoch": self.epoch,
-                "best_fitness": self.best_fitness,
-                "model": None,  # resume and final checkpoints derive from EMA
-                "ema": ema,
-                "updates": self.ema.updates,
-                "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
-                "scaler": self.scaler.state_dict(),
-                "train_args": vars(self.args),  # save as dict
-                "train_metrics": {**self.metrics, "fitness": self.fitness},
-                "train_results": self.read_results_csv(),
-                "date": datetime.now().astimezone().isoformat(),
-                "version": __version__,
-                "git": {
-                    "root": str(GIT.root),
-                    "branch": GIT.branch,
-                    "commit": GIT.commit,
-                    "message": GIT.message,
-                    "origin": GIT.origin,
-                },
-                "license": "AGPL-3.0 (https://ultralytics.com/license)",
-                "docs": "https://docs.ultralytics.com",
+        checkpoint = {
+            "epoch": self.epoch,
+            "best_fitness": self.best_fitness,
+            "model": None,  # resume and final checkpoints derive from EMA
+            "ema": ema,
+            "updates": self.ema.updates,
+            "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+            "scaler": self.scaler.state_dict(),
+            "train_args": vars(self.args),  # save as dict
+            "train_metrics": {**self.metrics, "fitness": self.fitness},
+            "train_results": self.read_results_csv(),
+            "date": datetime.now().astimezone().isoformat(),
+            "version": __version__,
+            "git": {
+                "root": str(GIT.root),
+                "branch": GIT.branch,
+                "commit": GIT.commit,
+                "message": GIT.message,
+                "origin": GIT.origin,
             },
-            buffer,
-        )
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
+        }
+        if hasattr(self, "afss_scheduler"):
+            checkpoint["afss_state"] = self.afss_scheduler.state_dict()
+        torch.save(checkpoint, buffer)
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
         # Save checkpoints

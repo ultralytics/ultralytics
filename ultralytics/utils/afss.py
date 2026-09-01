@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 from copy import copy
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -16,6 +15,7 @@ from ultralytics.utils import LOCAL_RANK, LOGGER, RANK
 class AFSSScheduler:
     """Schedule training images by their per-image learning sufficiency."""
 
+    STATE_VERSION = 1
     # Constants from AFSS: https://arxiv.org/abs/2603.17684
     EASY_THRESHOLD = 0.85
     MODERATE_THRESHOLD = 0.55
@@ -79,18 +79,26 @@ class AFSSScheduler:
         """Refresh precision and recall from the validator's per-image metrics."""
         for filename, metrics in image_metrics.items():
             index = index_by_name.get(str(filename))
-            if index is None:
-                index = index_by_name.get(Path(filename).name)
             if index is not None:
                 self.precision[index] = metrics.get("precision", 0.0)
                 self.recall[index] = metrics.get("recall", 0.0)
 
     def state_dict(self) -> dict[str, np.ndarray]:
-        """Return the scheduler state for checkpoint sidecar storage."""
-        return {"precision": self.precision, "recall": self.recall, "last_seen": self.last_seen}
+        """Return the versioned scheduler state for checkpoint storage."""
+        return {
+            "version": self.STATE_VERSION,
+            "num_images": self.num_images,
+            "precision": self.precision,
+            "recall": self.recall,
+            "last_seen": self.last_seen,
+        }
 
     def load_state_dict(self, state: dict[str, np.ndarray]) -> None:
         """Restore scheduler state when resuming a run."""
+        if state.get("version", self.STATE_VERSION) != self.STATE_VERSION:
+            raise ValueError("Unsupported AFSS state version")
+        if state.get("num_images", self.num_images) != self.num_images:
+            raise ValueError("AFSS state does not match the current dataset")
         if not all(np.asarray(state[key]).shape == (self.num_images,) for key in ("precision", "recall", "last_seen")):
             raise ValueError("AFSS state does not match the current dataset")
         self.precision = np.asarray(state["precision"], dtype=np.float32)
@@ -111,12 +119,19 @@ def afss_on_epoch_start(trainer):
         dataset = _unwrap_dataset(trainer.train_loader.dataset)
         trainer.afss_scheduler = AFSSScheduler(len(dataset), trainer.args.warmup_epochs, trainer.args.seed)
         trainer.afss_current_indices = list(range(len(dataset)))
-        state_path = trainer.wdir / "afss_state.pt"
-        if state_path.exists():
+        state_path = None
+        state = getattr(trainer, "ckpt", None) or {}
+        state = state.get("afss_state")
+        if state is None:
+            state_path = trainer.wdir / "afss_state.pt"
+            if not state_path.exists():
+                state_path = None
+        if state is None and state_path is not None:
             try:
                 state = torch.load(state_path, map_location="cpu", weights_only=False)
             except TypeError:  # PyTorch < 2.0
                 state = torch.load(state_path, map_location="cpu")
+        if state is not None:
             try:
                 trainer.afss_scheduler.load_state_dict(state)
             except (KeyError, ValueError):
@@ -192,17 +207,10 @@ def afss_refresh_metrics(trainer):
         dataset = _unwrap_dataset(loader.dataset)
         index_by_name = {}
         for index, filename in enumerate(dataset.im_files):
-            index_by_name.setdefault(str(filename), index)
-            index_by_name.setdefault(Path(filename).name, index)
+            index_by_name[str(filename)] = index
         trainer.afss_scheduler.update_metrics(validator.metrics.box.image_metrics, index_by_name)
         LOGGER.info(f"AFSS refreshed {len(validator.metrics.box.image_metrics)} image scores")
     if trainer.world_size > 1:
         payload = [trainer.afss_scheduler.state_dict() if RANK == 0 else None]
         dist.broadcast_object_list(payload, src=0)
         trainer.afss_scheduler.load_state_dict(payload[0])
-
-
-def afss_save_state(trainer):
-    """Save AFSS state alongside model checkpoints."""
-    if hasattr(trainer, "afss_scheduler") and RANK in {-1, 0}:
-        torch.save(trainer.afss_scheduler.state_dict(), trainer.wdir / "afss_state.pt")

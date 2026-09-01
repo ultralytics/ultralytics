@@ -16,7 +16,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
-from ultralytics.utils.afss import afss_on_epoch_end, afss_on_epoch_start, afss_save_state
+from ultralytics.utils.afss import afss_on_epoch_end, afss_on_epoch_start
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
@@ -62,12 +62,13 @@ class DetectionTrainer(BaseTrainer):
         """
         overrides = dict(overrides or {})
         sampler = overrides.pop("sampler", None)
-        afss = overrides.pop("afss", False) or sampler == "afss"
+        afss = overrides.get("afss", False) or sampler == "afss"
         super().__init__(cfg, overrides, _callbacks)
+        afss = bool(afss or getattr(self.args, "afss", False))
         if afss and self.args.task in {"detect", "segment", "pose", "obb"}:
+            self.args.afss = True
             self.add_callback("on_train_epoch_start", afss_on_epoch_start)
             self.add_callback("on_train_epoch_end", afss_on_epoch_end)
-            self.add_callback("on_model_save", afss_save_state)
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Build YOLO Dataset for training or validation.
@@ -218,13 +219,19 @@ class DetectionTrainer(BaseTrainer):
 
     def get_validator(self):
         """Return a DetectionValidator for YOLO model validation."""
+        validator_args = copy(self.args)
+        validator_args.__dict__.pop("afss", None)
         return yolo.detect.DetectionValidator(
-            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+            self.test_loader, save_dir=self.save_dir, args=validator_args, _callbacks=self.callbacks
         )
 
     def _build_train_pipeline(self):
         """Build the training pipeline and align the default detection limit with observed dataset object counts."""
         super()._build_train_pipeline()
+        if hasattr(self, "afss_current_indices") and hasattr(self.train_loader.dataset, "active_indices"):
+            self.train_loader.dataset.active_indices = self.afss_current_indices
+            self.train_loader.reset()
+            self.nb = len(self.train_loader)
         if self.args.task in {"detect", "segment", "pose", "obb"}:
             datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
             yolo.detect.DetectionValidator._check_max_det(self.args, datasets)

@@ -855,7 +855,7 @@ def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, A
     for k in "optimizer", "best_fitness", "ema", "updates", "scaler":  # keys
         x[k] = None
     x["epoch"] = -1
-    x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS}  # strip non-default keys
+    x["train_args"] = {k: v for k, v in args.items() if k in DEFAULT_CFG_KEYS or k == "afss"}  # strip non-default keys
     # x['model'].args = x['train_args']
 
     # Save

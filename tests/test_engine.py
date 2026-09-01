@@ -229,7 +229,7 @@ def test_afss_checkpoint_embeds_state(tmp_path):
     trainer.metrics = {}
     trainer.fitness = trainer.best_fitness = 0.0
     trainer.epoch = 0
-    trainer.args = SimpleNamespace()
+    trainer.args = SimpleNamespace(afss=True)
     trainer.csv = tmp_path / "results.csv"
     trainer.wdir = tmp_path / "weights"
     trainer.last = trainer.wdir / "last.pt"
@@ -242,6 +242,11 @@ def test_afss_checkpoint_embeds_state(tmp_path):
     checkpoint = torch.load(trainer.last, weights_only=False)
     assert checkpoint["afss_state"]["version"] == AFSSScheduler.STATE_VERSION
     assert checkpoint["afss_state"]["num_images"] == 2
+
+    from ultralytics.utils.torch_utils import strip_optimizer
+
+    stripped = strip_optimizer(trainer.last)
+    assert stripped["train_args"]["afss"] is True
 
 
 def test_afss_preserves_flag_for_ddp_and_resume(monkeypatch):

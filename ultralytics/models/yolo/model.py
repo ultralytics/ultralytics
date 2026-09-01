@@ -90,9 +90,9 @@ class YOLO(Model):
 
                 new_instance = RTDETR(self)
             elif isinstance(self.model, WorldModel):
-                new_instance = YOLOWorld(self, verbose=verbose)
+                new_instance = YOLOWorld(self)
             elif isinstance(self.model, YOLOEModel):
-                new_instance = YOLOE(self, task=task, verbose=verbose)
+                new_instance = YOLOE(self)
             if new_instance:
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__

@@ -1,25 +1,37 @@
 ---
 comments: true
-description: YOLO27 is an in-development Ultralytics research family pairing a streamlined two-scale CNN design for small models with query-based NMS-free detection for large models.
-keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI
+description: YOLO27 from Ultralytics pairs a streamlined two-scale CNN design for compact models with query-based NMS-free detection for large models, delivering state-of-the-art real-time object detection.
+keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI, real-time inference
 ---
 
 # Ultralytics YOLO27
 
 ## Overview
 
-YOLO27 is an in-development Ultralytics object detection research family. It explores two complementary designs:
-a streamlined CNN architecture for the small N and S models, and a query-based, NMS-free architecture for the larger
-M, L, and X models. The results below are preliminary COCO validation measurements, not released model checkpoints.
+[Ultralytics](https://www.ultralytics.com) YOLO27 is a family of real-time vision models built around two
+complementary designs: a streamlined CNN architecture for the compact N and S models, and a query-based, NMS-free
+architecture for the larger M, L, and X models. Both designs are end-to-end and deploy through the same interface.
 
-Across the five scales, YOLO27 reaches **41.6-60.5 mAP on COCO** at **1.8-12.3 ms latency on an NVIDIA T4**. The
-small models are built for speed, while the larger models trade compute for accuracy — YOLO27x sets the family
-record at **60.5 mAP**, the strongest result in the current research line.
+Across its five detection scales, YOLO27 reaches **41.6-60.5 mAP on COCO** at **1.8-12.3 ms latency on an NVIDIA
+T4**. The compact models are built for speed, while the larger models trade compute for accuracy — YOLO27x sets the
+family record at **60.5 mAP**.
 
-!!! warning "Research preview"
+!!! example "Quickstart"
 
-    YOLO27 is under active development. Architectures, training recipes, supported tasks, weights, and deployment
-    behavior may change before release. This page documents the current detection research only.
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo27n.pt")  # load a pretrained YOLO27n model
+        results = model("path/to/bus.jpg")  # run inference
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo predict model=yolo27n.pt source=path/to/bus.jpg
+        ```
 
 ## Key Features
 
@@ -36,10 +48,10 @@ record at **60.5 mAP**, the strongest result in the current research line.
 
 - **Auxiliary foreground supervision**
   During training, an extra lightweight branch learns to tell "object" from "background" at every location. It is
-  designed to close the gap between the denser one-to-many supervision used early in training and the one-to-one
-  head that produces the final predictions, boosting the accuracy of the one-to-one head that actually runs at
-  inference. The branch is used only during training and is removed for inference and export, so it costs nothing at
-  deployment.
+  designed to close the gap between the denser one-to-many supervision used during training and the one-to-one head
+  that produces the final predictions — cutting that accuracy gap from 0.9/0.8 mAP on YOLO26n/s to just 0.4 mAP on
+  YOLO27n/s, so the deployed one-to-one head keeps nearly all of the training-time accuracy. The branch is used only
+  during training and is removed for inference and export, so it costs nothing at deployment.
 
 - **Query-based detection without NMS**
   The larger models replace dense prediction with a transformer decoder that refines a fixed set of object queries
@@ -53,11 +65,31 @@ record at **60.5 mAP**, the strongest result in the current research line.
   pipeline is selected automatically from the model, so code written for one YOLO27 scale works unchanged for the
   others.
 
+---
+
+## Supported Tasks and Modes
+
+YOLO27 supports the following tasks across its five model scales, with training, validation, inference, and export
+support:
+
+| Model      | Filenames                                                                            | Task                                         | Training | Validation | Inference | Export |
+| ---------- | ------------------------------------------------------------------------------------ | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLO27     | `yolo27n.pt` `yolo27s.pt` `yolo27m.pt` `yolo27l.pt` `yolo27x.pt`                     | [Detection](../tasks/detect.md)              | ✅       | ✅         | ✅        | ✅     |
+| YOLO27-seg | `yolo27n-seg.pt` `yolo27s-seg.pt` `yolo27m-seg.pt` `yolo27l-seg.pt` `yolo27x-seg.pt` | [Instance Segmentation](../tasks/segment.md) | ✅       | ✅         | ✅        | ✅     |
+| YOLO27-cls | `yolo27n-cls.pt` `yolo27s-cls.pt` `yolo27m-cls.pt` `yolo27l-cls.pt` `yolo27x-cls.pt` | [Classification](../tasks/classify.md)       | ✅       | ✅         | ✅        | ✅     |
+
+!!! note "Two architecture paths"
+
+    YOLO27 detection uses two designs under one interface: the N and S scales use the streamlined CNN architecture,
+    while the M, L, and X scales use the query-based NMS-free architecture. Segmentation and classification models
+    all use the CNN architecture. Support for additional tasks is under development.
+
+---
+
 ## Performance Metrics
 
-The following are preliminary research measurements. Detection accuracy is reported on the COCO validation set with
-latency on an NVIDIA T4; segmentation and classification tables list model size and inference speed on CPU (ONNX) and
-GPU (TensorRT).
+Detection accuracy is reported on the COCO validation set with latency on an NVIDIA T4; the segmentation and
+classification tables list model size and inference speed on CPU (ONNX) and GPU (TensorRT).
 
 === "Detection (COCO)"
 
@@ -95,18 +127,77 @@ GPU (TensorRT).
     | YOLO27l-cls | 224                         | 24.8 ± 1.6                  | **1.935 ± 0.075**           | 15.5                     | 8.4                     |
     | YOLO27x-cls | 224                         | 44.1 ± 3.4                  | **1.951 ± 0.038**           | 32.8                     | 18.6                    |
 
-## Current Scope
+---
 
-YOLO27 research currently covers object detection, instance segmentation, and classification. Support for additional
-tasks will be documented when the corresponding models are finalized.
+## Usage Examples
+
+This section provides simple YOLO27 training and inference examples. For full documentation on these and other
+[modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md),
+[Val](../modes/val.md), and [Export](../modes/export.md) docs pages.
+
+Note that the example below is for YOLO27 [Detect](../tasks/detect.md) models for [object
+detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks, see the
+[Segment](../tasks/segment.md) and [Classify](../tasks/classify.md) docs.
+
+!!! example
+
+    === "Python"
+
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration
+        `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a COCO-pretrained YOLO27n model
+        model = YOLO("yolo27n.pt")
+
+        # Run inference with the YOLO27n model on the 'bus.jpg' image
+        results = model("path/to/bus.jpg")
+
+        # Train the model on the COCO8 example dataset for 100 epochs
+        results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
+        ```
+
+    === "CLI"
+
+        CLI commands are available to directly run the models:
+
+        ```bash
+        # Load a COCO-pretrained YOLO27n model and run inference on the 'bus.jpg' image
+        yolo predict model=yolo27n.pt source=path/to/bus.jpg
+
+        # Load a COCO-pretrained YOLO27n model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolo27n.pt data=coco8.yaml epochs=100 imgsz=640
+        ```
+
+YOLO27 code, models, and documentation are available in the [Ultralytics GitHub
+repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](../index.md) under
+[AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license)
+licenses.
 
 ---
 
 ## FAQ
 
-### Is YOLO27 released?
+### What are the key improvements in YOLO27?
 
-No. YOLO27 is an active research effort, and no released weights or stable production interface are documented here.
+- **Streamlined two-scale detection (N/S)**: drops the medium prediction map for a faster head with competitive accuracy
+- **Stronger small-object detection (N/S)**: a widened early feature stage improves small-object localization
+- **Auxiliary foreground supervision (N/S)**: cuts the one-to-many vs one-to-one accuracy gap from 0.9/0.8 mAP on
+  YOLO26n/s to 0.4 mAP on YOLO27n/s, at zero inference cost
+- **Query-based NMS-free detection (M/L/X)**: a transformer decoder outputs final detections directly
+- **One simple interface**: both architectures run through the same `YOLO` class
+
+### What tasks does YOLO27 support?
+
+YOLO27 supports three tasks across its five scales (n, s, m, l, x):
+
+- [Object Detection](../tasks/detect.md)
+- [Instance Segmentation](../tasks/segment.md)
+- [Image Classification](../tasks/classify.md)
+
+Support for additional tasks is under development.
 
 ### Why do YOLO27 N and S predict on only two scales?
 
@@ -116,6 +207,22 @@ of detection-head computation, and the training improvements above keep the accu
 
 ### What makes the YOLO27x result notable?
 
-YOLO27x is the reported accuracy leader, reaching 60.5 mAP on COCO validation at 12.3 ms T4 latency. It combines the
+YOLO27x is the family accuracy leader, reaching 60.5 mAP on COCO validation at 12.3 ms T4 latency. It combines the
 UltraViT backbone, multi-scale feature fusion, and a query-based detector that produces final detections directly,
 without NMS.
+
+### How do I get started with YOLO27?
+
+YOLO27 models are available through the `ultralytics` package. Install or update the package and load a model:
+
+```python
+from ultralytics import YOLO
+
+# Load a pretrained YOLO27 nano model
+model = YOLO("yolo27n.pt")
+
+# Run inference on an image
+results = model("image.jpg")
+```
+
+See the [Usage Examples](#usage-examples) section for training, validation, and export instructions.

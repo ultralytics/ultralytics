@@ -141,8 +141,8 @@ nav:
           - Configuration: usage/cfg.md
           - Simple Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
-      - YOLO26 🚀: models/yolo26.md
-      - YOLO27 (Research): models/yolo27.md
+      - YOLO26: models/yolo26.md
+      - YOLO27 🚀: models/yolo27.md
       - Languages:
           - 🇬🇧&nbsp English: https://ultralytics.com/docs
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh
@@ -176,7 +176,7 @@ nav:
       - OBB: tasks/obb.md
   - Models:
       - models/index.md
-      - YOLO26 🚀: models/yolo26.md
+      - YOLO26: models/yolo26.md
       - YOLO12: models/yolo12.md
       - YOLO11: models/yolo11.md
       - YOLOv10: models/yolov10.md

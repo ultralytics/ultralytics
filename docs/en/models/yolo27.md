@@ -1,6 +1,6 @@
 ---
 comments: true
-description: YOLO27 from Ultralytics pairs a streamlined two-scale CNN design for compact models with query-based NMS-free detection for large models, delivering state-of-the-art real-time object detection.
+description: YOLO27 from Ultralytics pairs a streamlined dual-scale CNN design for compact models with query-based NMS-free detection for large models, and is the first Ultralytics family to surpass 60 mAP on COCO.
 keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI, real-time inference
 ---
 
@@ -12,9 +12,21 @@ keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detec
 complementary designs: a streamlined CNN architecture for the compact N and S models, and a query-based, NMS-free
 architecture for the larger M, L, and X models. Both designs are end-to-end and deploy through the same interface.
 
-Across its five detection scales, YOLO27 reaches **41.6-60.5 mAP on COCO** at **1.8-12.3 ms latency on an NVIDIA
-T4**. The compact models are built for speed, while the larger models trade compute for accuracy — YOLO27x sets the
-family record at **60.5 mAP**.
+Across its five detection scales, YOLO27 reaches **41.6-60.5 mAP on COCO** at **1.8-12.1 ms latency on an NVIDIA
+T4** — and up to **61.0 mAP** with YOLO27x at a larger 800-pixel input. YOLO27x is the **first Ultralytics model to
+surpass 60 mAP on COCO**, while the compact YOLO27n/s improve on YOLO26n/s accuracy at essentially the same speed.
+
+### YOLO27 vs YOLO26
+
+| Scale | YOLO26 mAP<sup>val<br>50-95</sup> | YOLO27 mAP<sup>val<br>50-95</sup> | Δ mAP    | YOLO26 T4 (ms) | YOLO27 T4 (ms) |
+| ----- | --------------------------------- | --------------------------------- | -------- | -------------- | -------------- |
+| n     | 40.9                              | 41.6                              | +0.7     | 1.7            | 1.8            |
+| s     | 48.6                              | 49.2                              | +0.6     | 2.5            | 2.7            |
+| m     | 53.1                              | 55.7                              | **+2.6** | 4.7            | **4.6**        |
+| l     | 55.0                              | 57.7                              | +2.7     | 6.2            | 6.5            |
+| x     | 57.5                              | 60.5                              | **+3.0** | 11.8           | 12.1           |
+
+<sup>YOLO27m is evaluated at a 512-pixel input; YOLO26m and all other scales use 640 pixels.</sup>
 
 !!! example "Quickstart"
 
@@ -35,7 +47,7 @@ family record at **60.5 mAP**.
 
 ## Key Features
 
-- **Streamlined two-scale detection**
+- **Dual-scale detection**
   Standard detectors predict objects on three feature maps — fine, medium, and coarse. YOLO27 N and S drop the
   medium one and predict only on a fine map (for small objects) and a coarse map (for large objects), with a fixed
   scaling on the fused features keeping the two scales balanced. This removes a large chunk of detection-head
@@ -46,7 +58,7 @@ family record at **60.5 mAP**.
   surviving fine prediction map, this improves localization and regression for small objects — the hardest category
   for compact models.
 
-- **Auxiliary foreground supervision**
+- **Foreground alignment supervision**
   During training, an extra lightweight branch learns to tell "object" from "background" at every location. It is
   designed to close the gap between the denser one-to-many supervision used during training and the one-to-one head
   that produces the final predictions — cutting that accuracy gap from 0.9/0.8 mAP on YOLO26n/s to just 0.4 mAP on
@@ -64,6 +76,15 @@ family record at **60.5 mAP**.
   Both architectures are used through the same `YOLO` class. The right training, validation, prediction, and export
   pipeline is selected automatically from the model, so code written for one YOLO27 scale works unchanged for the
   others.
+
+## Which YOLO27 Should I Use?
+
+- **YOLO27n / YOLO27s** — edge devices, drones, and real-time video: the fastest models in the family, with improved
+  small-object detection from the dual-scale design.
+- **YOLO27m / YOLO27l** — the accuracy-speed sweet spot on GPUs: YOLO27m alone improves on YOLO26m by 2.6 mAP while
+  running faster, making it the default choice for production GPU deployment.
+- **YOLO27x** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.0 mAP
+  at a larger input size while staying real-time on GPU.
 
 ---
 
@@ -88,20 +109,23 @@ support:
 
 ## Performance Metrics
 
-Detection accuracy is reported on the COCO validation set with latency on an NVIDIA T4; the segmentation and
-classification tables list model size and inference speed on CPU (ONNX) and GPU (TensorRT).
+Detection accuracy is reported on the COCO validation set with latency on an NVIDIA T4 (TensorRT); the segmentation
+and classification tables list model size and inference speed on CPU (ONNX) and GPU (TensorRT). Accuracy numbers can
+be reproduced with `yolo val model=yolo27n.pt data=coco.yaml`.
 
 === "Detection (COCO)"
 
-    YOLO27m is evaluated at a 512-pixel input; all other detection scales use 640 pixels.
+    YOLO27m is evaluated at a 512-pixel input; all other detection scales use 640 pixels. YOLO27x is additionally
+    reported at an 800-pixel input.
 
-    | Model   | Size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Latency<br><sup>T4 (ms)</sup> | Params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-    | ------- | --------------------------- | -------------------------- | ----------------------------- | ------------------------ | ----------------------- |
-    | YOLO27n | 640                         | 41.6                       | 1.8                           | 3.0                      | 7.2                     |
-    | YOLO27s | 640                         | 49.2                       | 2.7                           | 11.8                     | 28.2                    |
-    | YOLO27m | 512                         | 55.7                       | 4.4                           | 27.2                     | 83.4                    |
-    | YOLO27l | 640                         | 57.7                       | 6.5                           | 30.4                     | 85.4                    |
-    | YOLO27x | 640                         | **60.5**                   | **12.3**                      | 65.6                     | 173.1                   |
+    | Model   | Size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | CPU ONNX<br><sup>(ms)</sup> | T4 TensorRT<br><sup>(ms)</sup> | Params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+    | ------- | --------------------------- | -------------------------- | --------------------------- | ------------------------------ | ------------------------ | ----------------------- |
+    | YOLO27n | 640                         | 41.6                       | —                           | 1.8                            | 3.0                      | 7.2                     |
+    | YOLO27s | 640                         | 49.2                       | —                           | 2.7                            | 11.8                     | 28.2                    |
+    | YOLO27m | 512                         | 55.7                       | 161.5 ± 7.0                 | 4.6                            | 27.2                     | 83.4                    |
+    | YOLO27l | 640                         | 57.7                       | 258.7 ± 11.6                | 6.5                            | 30.4                     | 85.4                    |
+    | YOLO27x | 640                         | 60.5                       | 414.4 ± 19.5                | 12.1                           | 65.6                     | 173.1                   |
+    | YOLO27x | 800                         | **61.0**                   | 414.4 ± 19.5                | 17.1                           | 65.6                     | 266.8                   |
 
 === "Segmentation (COCO)"
 
@@ -173,8 +197,8 @@ detection](https://www.ultralytics.com/glossary/object-detection). For additiona
 
 YOLO27 code, models, and documentation are available in the [Ultralytics GitHub
 repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](../index.md) under
-[AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license)
-licenses.
+[AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and
+[Enterprise](https://www.ultralytics.com/license) licenses.
 
 ---
 
@@ -182,22 +206,25 @@ licenses.
 
 ### What are the key improvements in YOLO27?
 
-- **Streamlined two-scale detection (N/S)**: drops the medium prediction map for a faster head with competitive accuracy
+- **Dual-scale detection (N/S)**: drops the medium prediction map for a faster head with competitive accuracy
 - **Stronger small-object detection (N/S)**: a widened early feature stage improves small-object localization
-- **Auxiliary foreground supervision (N/S)**: cuts the one-to-many vs one-to-one accuracy gap from 0.9/0.8 mAP on
+- **Foreground alignment supervision (N/S)**: cuts the one-to-many vs one-to-one accuracy gap from 0.9/0.8 mAP on
   YOLO26n/s to 0.4 mAP on YOLO27n/s, at zero inference cost
 - **Query-based NMS-free detection (M/L/X)**: a transformer decoder outputs final detections directly
 - **One simple interface**: both architectures run through the same `YOLO` class
 
-### What tasks does YOLO27 support?
+### Should I upgrade from YOLO26?
 
-YOLO27 supports three tasks across its five scales (n, s, m, l, x):
+Yes, for most use cases. YOLO27 improves accuracy at every scale: +0.7/+0.6 mAP for the compact n/s models at
+essentially the same speed, and +2.6/+2.7/+3.0 mAP for m/l/x. YOLO27x is the first Ultralytics model to surpass 60
+mAP on COCO. Note that YOLO27m is evaluated at a 512-pixel input (versus 640 for YOLO26m), which is part of its
+speed advantage.
 
-- [Object Detection](../tasks/detect.md)
-- [Instance Segmentation](../tasks/segment.md)
-- [Image Classification](../tasks/classify.md)
+### Is YOLO27 a drop-in replacement for YOLO26?
 
-Support for additional tasks is under development.
+Yes. All YOLO27 models use the same `YOLO` class and the same train/val/predict/export API as YOLO26 — the correct
+pipeline (CNN or query-based) is selected automatically from the model. Swapping `yolo26n.pt` for `yolo27n.pt` is
+the only change required.
 
 ### Why do YOLO27 N and S predict on only two scales?
 
@@ -207,9 +234,9 @@ of detection-head computation, and the training improvements above keep the accu
 
 ### What makes the YOLO27x result notable?
 
-YOLO27x is the family accuracy leader, reaching 60.5 mAP on COCO validation at 12.3 ms T4 latency. It combines the
-UltraViT backbone, multi-scale feature fusion, and a query-based detector that produces final detections directly,
-without NMS.
+YOLO27x is the first Ultralytics model to surpass 60 mAP on COCO, reaching 60.5 mAP at a 640-pixel input (12.1 ms on
+an NVIDIA T4) and 61.0 mAP at an 800-pixel input (17.1 ms). It combines the UltraViT backbone, multi-scale feature
+fusion, and a query-based detector that produces final detections directly, without NMS.
 
 ### How do I get started with YOLO27?
 

@@ -28,7 +28,6 @@ __all__ = (
     "Detect",
     "Pose",
     "RTDETRDecoder",
-    "RTDETRDecoderEfficient",
     "Segment",
     "SemanticSegment",
     "YOLOEDetect",
@@ -1808,131 +1807,6 @@ class RTDETRDecoder(nn.Module):
         xavier_uniform_(self.query_pos_head.layers[1].weight)
         for layer in self.input_proj:
             xavier_uniform_(layer[0].weight)
-
-
-class RTDETRDecoderEfficient(RTDETRDecoder):
-    """RT-DETR decoder with v2-style efficiency tweaks on the base MSDeformAttn path.
-
-    Signature is the base `RTDETRDecoder` params plus `efficient_ms`. Behavioral changes over `RTDETRDecoder` are
-    expressed by overriding the parent's `_build_*` factory hooks so the correct submodules are constructed once (no
-    build-then-replace):
-
-    - `input_proj`: `nn.Identity()` when a backbone channel already matches `hd`, else `Conv2d(1x1, bias=False) + BN`.
-    - `query_pos_head`: DEIM-style 3-layer `MLP(4, hd, hd)` (vs base's 2-layer `MLP(4, 2*hd, hd)`).
-    - `enc_output`: `nn.Identity()`; encoder features feed `enc_score_head` directly via `_project_encoder_features`.
-    - `enc_bbox_head`/`dec_bbox_head`: built with the ctor `act` (origin's `mlp_act`, silu on Efficient YAMLs).
-    - `decoder.fixed_query_pos = True` hoists `pos_mlp(refer_bbox)` out of the per-layer loop.
-    - `efficient_ms=True` rebuilds the decoder with `n_levels=1` cross-attention and round-robin per-layer scheduling.
-
-    `learnt_init_query=True` is rejected: the enc_output skip leaves no matching-init path.
-
-    Examples:
-        >>> decoder = RTDETRDecoderEfficient(nc=80, ch=(512, 1024, 2048), hd=256, nq=300, efficient_ms=True)
-    """
-
-    def __init__(
-        self,
-        nc: int = 80,
-        ch: tuple = (512, 1024, 2048),
-        hd: int = 256,
-        nq: int = 300,
-        ndp: int = 4,
-        nh: int = 8,
-        ndl: int = 6,
-        d_ffn: int = 1024,
-        dropout: float = 0.0,
-        act: nn.Module = nn.ReLU(),
-        eval_idx: int = -1,
-        nd: int = 100,
-        label_noise_ratio: float = 0.5,
-        box_noise_scale: float = 1.0,
-        learnt_init_query: bool = False,
-        efficient_ms: bool = False,
-    ):
-        """Initialize the RTDETRDecoderEfficient module.
-
-        Args:
-            nc (int): Number of classes.
-            ch (tuple): Channels in the backbone feature maps.
-            hd (int): Dimension of hidden layers.
-            nq (int): Number of query points.
-            ndp (int): Number of decoder points per attention head per level.
-            nh (int): Number of heads in multi-head attention.
-            ndl (int): Number of decoder layers.
-            d_ffn (int): Dimension of the feed-forward networks.
-            dropout (float): Dropout rate.
-            act (nn.Module): Activation function.
-            eval_idx (int): Evaluation index.
-            nd (int): Number of denoising.
-            label_noise_ratio (float): Label noise ratio.
-            box_noise_scale (float): Box noise scale.
-            learnt_init_query (bool): Unsupported (raises); enc_output is skipped so init pathway does not match.
-            efficient_ms (bool): Enable round-robin single-level cross-attention per decoder layer.
-        """
-        if learnt_init_query:
-            raise ValueError("RTDETRDecoderEfficient does not support learnt_init_query=True.")
-        if isinstance(act, str):
-            act = {"relu": nn.ReLU(), "gelu": nn.GELU(), "silu": nn.SiLU()}[act]
-        # Store the activation class for the _build_* hooks invoked during super().__init__().
-        self._act_cls = type(act) if isinstance(act, nn.Module) else act
-        super().__init__(
-            nc,
-            ch,
-            hd,
-            nq,
-            ndp,
-            nh,
-            ndl,
-            d_ffn,
-            dropout,
-            act,
-            eval_idx,
-            nd,
-            label_noise_ratio,
-            box_noise_scale,
-            learnt_init_query,
-        )
-        self.efficient_ms = efficient_ms
-        if efficient_ms:
-            self.nl = 1
-            decoder_layer = DeformableTransformerDecoderLayer(hd, nh, d_ffn, dropout, act, 1, ndp)
-            self.decoder = DeformableTransformerDecoder(hd, decoder_layer, ndl, eval_idx, efficient_ms=True)
-        # Hoist query_pos out of the decoder layer loop (compute once from initial refer_bbox).
-        self.decoder.fixed_query_pos = True
-
-    def _build_input_proj(self, ch: tuple, hd: int) -> nn.ModuleList:
-        """Skip the 1x1 conv projection when a backbone channel already matches hd."""
-        return nn.ModuleList(
-            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
-        )
-
-    def _build_query_pos_head(self, hd: int) -> "MLP":
-        """DEIM-style 3-layer query_pos MLP with the head's own activation."""
-        return MLP(4, hd, hd, num_layers=3, act=self._act_cls)
-
-    def _build_enc_output(self, hd: int) -> nn.Module:
-        """Skip the encoder-memory projection; _project_encoder_features scores from masked memory directly."""
-        return nn.Identity()
-
-    def _build_bbox_head(self, hd: int) -> "MLP":
-        """Build the bbox-regression MLP with the head's own activation (origin's `mlp_act`) instead of base ReLU."""
-        return MLP(hd, hd, 4, num_layers=3, act=self._act_cls)
-
-    def _reset_parameters(self):
-        """Initialize parameters; skips enc_output (Identity) and input_proj (may contain nn.Identity)."""
-        bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
-        constant_(self.enc_score_head.bias, bias_cls)
-        constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
-        constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
-        for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
-            constant_(cls_.bias, bias_cls)
-            constant_(reg_.layers[-1].weight, 0.0)
-            constant_(reg_.layers[-1].bias, 0.0)
-        xavier_uniform_(self.query_pos_head.layers[0].weight)
-
-    def _project_encoder_features(self, feats: torch.Tensor) -> torch.Tensor:
-        """Skip enc_output projection; score directly from masked encoder memory."""
-        return self.valid_mask.to(feats.dtype) * feats
 
 
 class v10Detect(Detect):

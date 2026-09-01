@@ -2,9 +2,8 @@
 
 """Standalone DEIM-style loss with FGL (Fine-Grained Localization) and DDF (Decoupled Distillation Focal) terms.
 
-This loss is used by the ``DeimDecoder`` head and by ``RTDETRDecoderEfficient`` (with FGL/DDF gains zeroed).
-``RTDETRDecoder`` continues to use ``RTDETRDetectionLoss``. Dispatch is performed in
-``YOLODETRDetectionModel.init_criterion``.
+This loss is used by the ``DeimDecoder`` head. ``RTDETRDecoder`` continues to use ``RTDETRDetectionLoss``. Dispatch is
+performed in ``YOLODETRDetectionModel.init_criterion``.
 """
 
 from __future__ import annotations

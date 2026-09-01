@@ -235,14 +235,6 @@ def torch2coreml(
                 op_selector=lambda op: op.op_type not in fp32_ops
             )
             LOGGER.info(f"{prefix} DETR-style head on GPU (ALL) route; pinning {sorted(fp32_ops)} ops to FP32")
-        elif any(getattr(m, "efficient_ms", False) for m in model.modules()):
-            # Single-level (efficient_ms) deformable attention: the Neural Engine mis-lowers the transpose that
-            # feeds grid_sample and the fp16 result collapses. Pinning transpose to fp32 forces it onto the CPU
-            # and recovers accuracy; gated to efficient_ms since the same pin breaks the multi-level decoders.
-            convert_kwargs["compute_precision"] = ct.transform.FP16ComputePrecision(
-                op_selector=lambda op: op.op_type != "transpose"
-            )
-            LOGGER.info(f"{prefix} efficient_ms DETR head on Neural Engine; pinning transpose to FP32")
     ct_model = ct.convert(ts, **convert_kwargs)
     bits, mode = (8, "kmeans") if weight_int8 else (16, "linear") if fp16 else (32, None)
     if bits < 32:

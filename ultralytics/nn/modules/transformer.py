@@ -793,8 +793,6 @@ class DeformableTransformerDecoder(nn.Module):
         decoder_layer: nn.Module,
         num_layers: int,
         eval_idx: int = -1,
-        efficient_ms: bool = False,
-        fixed_query_pos: bool = False,
     ):
         """Initialize the DeformableTransformerDecoder with the given parameters.
 
@@ -803,27 +801,12 @@ class DeformableTransformerDecoder(nn.Module):
             decoder_layer (nn.Module): Decoder layer module.
             num_layers (int): Number of decoder layers.
             eval_idx (int): Index of the layer to use during evaluation.
-            efficient_ms (bool): If True, layer `i` attends only to level `order[i % n_levels]` (smallest first,
-                round-robin). The per-layer scale is fixed by index, so `num_layers` can change at inference without
-                shifting assignments. Cross-attention must use `n_levels=1`.
-            fixed_query_pos (bool): If True, compute `pos_mlp(refer_bbox)` once from the initial reference and reuse
-                across all decoder layers instead of recomputing after every bbox refinement.
         """
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)
         self.num_layers = num_layers
         self.hidden_dim = hidden_dim
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
-        self.efficient_ms = efficient_ms
-        self.fixed_query_pos = fixed_query_pos
-
-    def __setstate__(self, state):
-        """Backfill `efficient_ms` / `fixed_query_pos` for pickles saved before these flags were added."""
-        self.__dict__.update(state)
-        if "efficient_ms" not in self.__dict__:
-            self.efficient_ms = False
-        if "fixed_query_pos" not in self.__dict__:
-            self.fixed_query_pos = False
 
     def forward(
         self,
@@ -860,33 +843,9 @@ class DeformableTransformerDecoder(nn.Module):
         last_refined_bbox = None
         refer_bbox = refer_bbox.sigmoid()
 
-        # Round-robin schedule: layer i attends to level order[i % n_levels], smallest first.
-        # Assignments repeat every n_levels layers, so num_layers can vary at inference (e.g.
-        # early-exit) without shifting per-layer assignments.
-        if self.efficient_ms:
-            n_levels = len(shapes)
-            level_sizes = [h * w for h, w in shapes]
-            level_starts = [0]
-            for s in level_sizes[:-1]:
-                level_starts.append(level_starts[-1] + s)
-            order = sorted(range(n_levels), key=lambda j: level_sizes[j])
-
-        # Hoist query_pos out of the loop when fixed: compute once from the initial refer_bbox and reuse.
-        query_pos_fixed = pos_mlp(refer_bbox) if self.fixed_query_pos else None
-
         for i, layer in enumerate(self.layers):
-            if self.efficient_ms:
-                lv = order[i % n_levels]
-                start = level_starts[lv]
-                end = start + level_sizes[lv]
-                feats_i = feats[:, start:end]
-                shapes_i = [shapes[lv]]
-                pmask_i = padding_mask[:, start:end] if padding_mask is not None else None
-            else:
-                feats_i, shapes_i, pmask_i = feats, shapes, padding_mask
-
-            query_pos = query_pos_fixed if query_pos_fixed is not None else pos_mlp(refer_bbox)
-            output = layer(output, refer_bbox, feats_i, shapes_i, pmask_i, attn_mask, query_pos)
+            query_pos = pos_mlp(refer_bbox)
+            output = layer(output, refer_bbox, feats, shapes, padding_mask, attn_mask, query_pos)
 
             bbox = bbox_head[i](output)
             refined_bbox = torch.sigmoid(bbox + inverse_sigmoid(refer_bbox))

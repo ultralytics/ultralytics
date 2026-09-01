@@ -2128,12 +2128,6 @@ class RepNCSPELAN5(nn.Module):
         self.cv3 = _CSPLayer2(c4, c4, n, e)
         self.cv4 = Conv(c3 + (2 * c4), c2, 1, 1)
 
-    def forward_chunk(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass using chunk()."""
-        y = list(self.cv1(x).chunk(2, 1))
-        y.extend(m(y[-1]) for m in (self.cv2, self.cv3))
-        return self.cv4(torch.cat(y, 1))
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Forward pass using split()."""
         y = list(self.cv1(x).split((self.c, self.c), 1))

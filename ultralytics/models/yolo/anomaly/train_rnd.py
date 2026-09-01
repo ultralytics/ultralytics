@@ -96,6 +96,13 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         if RANK not in (-1, 0) or self.ema is None:
             return metrics, fitness
 
+        # In-domain on the OTHER branch. The domain val above inherits ``end2end`` from the model
+        # yaml (True for yolo26), so ``metrics/*`` is the o2o branch; this adds the o2m mirror as
+        # ``metrics/o2m_*``. Together with the ``e2e_*`` OOD keys below a run then reports the full
+        # 2x2 — {in-domain, OOD} x {o2m, o2o} — instead of one cell of each.
+        if getattr(self.args, "ood_end2end", False):
+            metrics.update(self._domain_other_branch())
+
         v2_cfg = getattr(unwrap_model(self.model), "yaml", {}).get("anomaly", {})
         freq = int(v2_cfg.get("test_val_freq", 0))
         if freq <= 0 or (self.epoch + 1) % freq != 0:
@@ -129,6 +136,34 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             del ema_eval
 
         return metrics, fitness
+
+    def _domain_other_branch(self) -> dict[str, float]:
+        """Re-run in-domain val on whichever of o2m/o2o the main pass did not use.
+
+        A fresh validator on the same ``test_loader`` rather than re-calling ``self.validator``:
+        the trainer-mode call writes back into trainer state (loss, plots, speed), so invoking it
+        twice per epoch would corrupt the numbers the first pass produced. ``trainer=None`` with an
+        explicit model is the same pattern ``_run_ood_eval`` uses.
+
+        Failures are swallowed — this is a reporting extra and must never take a run down.
+        """
+        from copy import copy
+
+        try:
+            args = copy(self.args)
+            # The main pass took the model yaml's value (True for yolo26); take the other one.
+            main_e2e = bool(getattr(unwrap_model(self.model), "end2end", True))
+            args.end2end = not main_e2e
+            args.plots = False
+            args.verbose = False
+            tag = "o2m" if main_e2e else "o2o"
+            v = YOLOAnomalyValidator(self.test_loader, save_dir=self.save_dir, args=args)
+            res = v(trainer=None, model=deepcopy(self.ema.ema).eval())
+            return {k.replace("metrics/", f"metrics/{tag}_"): val for k, val in (res or {}).items()
+                    if k.startswith("metrics/")}
+        except Exception as e:  # noqa: BLE001
+            LOGGER.warning(f"in-domain other-branch val failed: {type(e).__name__}: {e}")
+            return {}
 
     def _resolve_test_yamls(self, v2_cfg: dict) -> list[Path]:
         """Resolve explicit ``test_data_yamls`` or expand ``test_root`` + ``test_categories``."""
@@ -172,6 +207,7 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         if scoring not in {"cls", "obj"}:
             LOGGER.warning(f"ood_scoring={scoring!r} invalid; falling back to 'cls'")
             scoring = "cls"
+        e2e = bool(getattr(self.args, "ood_end2end", False))
         head = model.model[-1]
         saved_scoring = getattr(head, "scoring", "cls")
         head.scoring = scoring
@@ -224,6 +260,30 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                         row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
                     finally:
                         mb.building = saved_building
+
+                    # Passes 3-4 (``ood_end2end``): the same two passes on the ONE2ONE branch, i.e.
+                    # the NMS-free path deployment actually uses. Everything above is o2m, so
+                    # without this a run reports no number for what it would ship.
+                    if e2e:
+                        # agnostic_nms is REQUIRED here whenever scoring='obj'. obj is broadcast
+                        # across all nc channels to keep the [4+nc] contract, so every channel of
+                        # an anchor is identical; Detect.get_topk_index's per-class path then takes
+                        # top-k anchors, flattens (k x nc) and takes top-k of THAT, filling every
+                        # max_det slot with ~max_det/nc distinct boxes — measured at 6 unique boxes
+                        # out of 300, which reads as a 100x "collapse" that is pure postprocessing.
+                        # o2m never shows it because NMS dedups the copies by IoU.
+                        e2e_overrides = {**overrides, "end2end": True, "agnostic_nms": scoring == "obj"}
+                        v_e2e = YOLOAnomalyValidator(args=e2e_overrides)
+                        v_e2e(trainer=None, model=model)
+                        row.update({f"e2e_{k}": v for k, v in v_e2e._ood_map_metrics().items()})
+
+                        mb.building = True
+                        try:
+                            v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
+                            v_e2e_none(trainer=None, model=model)
+                            row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
+                        finally:
+                            mb.building = saved_building
 
                     rows.append(row)
                 except Exception as e:

@@ -161,7 +161,7 @@ output = model.model(torch.zeros(1, 3, 640, 640))
 print(type(output))
 ```
 
-`model.info()` 显示 0 FLOPs 通常意味着前向传播失败。先解决通道数、空间尺寸和 `from` 索引问题，再开始训练。
+`model.info()` 显示 0 FLOPs 可能意味着前向传播失败，也可能是 THOP 未安装或不支持某个自定义算子。直接运行随机输入前向可区分这两类问题；如果前向也失败，先解决通道数、空间尺寸和 `from` 索引问题，再开始训练。
 
 ### 层级 C：新增网络模块
 
@@ -200,10 +200,10 @@ class ResearchBlock(nn.Module):
 
 ### 层级 D：定制训练、损失或数据管线
 
-只需要在训练生命周期插入行为时，优先使用 callback；需要替换某个训练步骤时，继承任务 Trainer 并只覆盖对应方法：
+只需要在训练生命周期插入行为时，优先使用 callback；需要替换某个训练步骤时，继承任务 Trainer 并只覆盖对应方法。将自定义 Trainer 放在可导入的模块中：
 
 ```python
-from ultralytics import YOLO
+# research_trainer.py
 from ultralytics.models.yolo.detect import DetectionTrainer
 
 
@@ -215,11 +215,21 @@ class ResearchTrainer(DetectionTrainer):
         batch = super().preprocess_batch(batch)
         # 在这里加入确有必要的 batch 级处理
         return batch
+```
 
+再从训练脚本导入并传入这个类：
+
+```python
+# train.py
+from ultralytics import YOLO
+
+from research_trainer import ResearchTrainer
 
 model = YOLO("yolo26n.pt")
 model.train(data="path/to/dataset.yaml", trainer=ResearchTrainer)
 ```
+
+独立模块对多 GPU 训练尤其重要：Ultralytics 会生成临时 DDP 启动脚本，并从 `trainer.__class__.__module__` 重新导入 Trainer。若类只定义在调用脚本的 `__main__` 中，子进程将无法导入它。
 
 不要复制整个训练循环。继承最具体的任务 Trainer 并调用 `super()`，可以保留 AMP、DDP、EMA、断点续训、日志和验证等现有行为。
 
@@ -236,7 +246,7 @@ python -m venv .venv
 # Linux/macOS: source .venv/bin/activate
 # Windows PowerShell: .venv\Scripts\Activate.ps1
 python -m pip install -U pip
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,export-base]"
 ```
 
 editable 安装保证你修改的本地源码就是 Python 实际导入的代码。用下面的命令确认没有误用全局安装：

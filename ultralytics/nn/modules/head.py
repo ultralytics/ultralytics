@@ -183,11 +183,30 @@ class Detect(nn.Module):
             one2one = self.forward_head(x_detach, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
+            if hasattr(self, "aux_fg"):  # training-only foreground auxiliary (yolo27), inert in eval/export
+                bs = x[0].shape[0]  # batch size
+                preds["aux_fg"] = torch.cat([self.aux_fg[i](x[i]).view(bs, 1, -1) for i in range(self.nl)], -1)
             return preds
         y = self._inference(preds["one2one"] if self.end2end else preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+    def build_aux_fg(self) -> None:
+        """Attach the training-only class-agnostic foreground auxiliary branch (yolo27 recipe).
+
+        Adds a per-level branch (3x3 Conv + 1x1 Conv) on the same features that feed the detection heads, predicting a
+        single class-agnostic "foreground here" logit per anchor, supervised by E2ELoss toward a target built from the
+        one2many/one2one assignments. The features are not detached, so the branch injects deep-supervision gradients
+        into the backbone and neck. It does not participate in inference or export and adds no deployment cost. Must be
+        called after model construction (requires computed strides), before optimizer and EMA setup.
+        """
+        c3 = max(self.cv2[0][0].conv.in_channels, min(self.nc, 100))  # hidden channels, matching the cls branch
+        self.aux_fg = nn.ModuleList(
+            nn.Sequential(Conv(head[0].conv.in_channels, c3, 3), nn.Conv2d(c3, 1, 1)) for head in self.cv2
+        )
+        for i, aux in enumerate(self.aux_fg):
+            aux[-1].bias.data[:] = math.log(5 / (640 / self.stride[i]) ** 2)  # ~object density per anchor
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities based on multiple-level feature maps.

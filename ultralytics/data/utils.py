@@ -448,7 +448,7 @@ def polygon2mask(
         (np.ndarray): A binary mask of the specified image size with the polygons filled in.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
-    polygons = np.asarray(polygons, dtype=np.int32)
+    polygons = np.asarray(polygons).astype(np.int32)  # round, truncating shrinks every mask
     polygons = polygons.reshape((polygons.shape[0], -1, 2))
     cv2.fillPoly(mask, polygons, color=color)
     nh, nw = (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio)

@@ -377,6 +377,11 @@ class BaseModel(torch.nn.Module):
             return 0
 
         src_lookup = {_norm(v): k for k, v in src_names.items()}
+        # COCO target classes with no direct name in Obj365 → use a close semantic equivalent
+        aliases = {"bird": "wild bird", "sports ball": "baseball"}
+        for tgt_name, src_name in aliases.items():
+            if tgt_name not in src_lookup and _norm(src_name) in src_lookup:
+                src_lookup[tgt_name] = src_lookup[_norm(src_name)]
         idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
         n_match = int((idx >= 0).sum())
         # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)
@@ -2102,6 +2107,7 @@ def parse_model(d, ch, verbose=True):
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
     reg_max = d.get("reg_max", 16)
+    aux_fg = d.get("aux_fg", False)  # yolo27: training-only class-agnostic foreground branch on the Detect head
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     scale_vars = {}  # optional named per-scale args, from a scales entry's 4th element (a dict)
@@ -2288,6 +2294,8 @@ def parse_model(d, ch, verbose=True):
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        if m is Detect:
+            m_.aux_fg_on = aux_fg  # architecture flag; DetectionTrainer attaches the branch before weight loading
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type

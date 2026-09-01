@@ -13,6 +13,7 @@
 nc: 80 # number of classes
 end2end: True # whether to use end-to-end mode
 reg_max: 1 # DFL bins
+aux_fg: True # training-only class-agnostic foreground branch on the Detect head (mix target, o2m schedule)
 scales: # model compound scaling constants
   # [depth, width, max_channels, {named per-scale args}]
   n: [0.50, 0.25, 1024, {bbp3e: 0.5}]

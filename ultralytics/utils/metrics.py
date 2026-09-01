@@ -163,7 +163,9 @@ def bbox_iou(
             if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
                 v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
                 with torch.no_grad():
-                    alpha = v / (v - iou + (1 + eps))
+                    # Low-precision dtypes (bf16/fp16) can round box w/h so inter > union, i.e. iou > 1;
+                    # without the clamp the denominator hits 0 and alpha goes inf, poisoning the box loss
+                    alpha = v / (v - iou + (1 + eps)).clamp_(min=eps)
                 return iou - (rho2 / c2 + v * alpha)  # CIoU
             return iou - rho2 / c2  # DIoU
         c_area = cw * ch + eps  # convex area

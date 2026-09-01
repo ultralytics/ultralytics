@@ -199,6 +199,10 @@ class DetectionTrainer(BaseTrainer):
         model = self.set_model_names_for_load(
             DetectionModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)
         )
+        # Attach the training-only aux-fg branch before weight loading so its weights transfer from aux-trained
+        # checkpoints; enabled by the model YAML (head.aux_fg_on) or inherited from aux-trained source weights
+        if getattr(model.model[-1], "aux_fg_on", False) or hasattr(getattr(weights, "model", [None])[-1], "aux_fg"):
+            model.model[-1].build_aux_fg()
         if weights:
             model.load(weights)
         return model

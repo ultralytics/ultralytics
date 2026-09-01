@@ -477,6 +477,7 @@ class v8DetectionLoss:
         )
 
         target_scores_sum = max(target_scores.sum(), 1)
+        self._cache = {"fg_mask": fg_mask}  # branch assignment, read by E2ELoss's aux-fg target (yolo27)
 
         # Cls loss with optional class weighting
         bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
@@ -1349,6 +1350,12 @@ class E2ELoss:
         self.o2m_copy = self.o2m
         # final gain
         self.final_o2m = 0.1
+        # yolo27 aux-fg recipe (hardcoded, architecture-owned via the head's aux_fg branch): gain is half the cls
+        # gain, target is 'mix' (o2o positive = 1, o2m-only anchors at a degree decaying 0.75 -> 0 over training),
+        # branch weight follows the decaying one2many weight ('o2m' schedule)
+        self.aux_fg = model.args.cls * 0.5 if hasattr(model.model[-1], "aux_fg") else 0.0
+        self.aux_fg_t = 0.75  # initial degree of the o2m-only ("ambiguous") anchors in the mix target
+        self.aux_fg_t_cur = self.aux_fg_t  # decayed across training by update()
 
     def __call__(self, preds: Any, batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size."""
@@ -1356,13 +1363,48 @@ class E2ELoss:
         one2many, one2one = preds["one2many"], preds["one2one"]
         loss_one2many = self.one2many.loss(one2many, batch)
         loss_one2one = self.one2one.loss(one2one, batch)
-        return loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o, loss_one2one[1]
+        total = loss_one2many[0] * self.o2m + loss_one2one[0] * self.o2o
+        loss_items = loss_one2one[1]
+        if self.aux_fg:  # class-agnostic foreground supervision on the head-input (trunk) features
+            # The aux branch is training-only, so "aux_fg" is absent at validation; report 0 to keep the loss_items
+            # keys stable. The o2m schedule folds in before logging so the branch decay is visible in aux_fg_loss.
+            aux = (
+                self.aux_fg * self.o2m * self._aux_fg_loss(preds["aux_fg"])
+                if "aux_fg" in preds
+                else total.new_zeros(())
+            )
+            total = torch.cat((total, (aux * one2one["scores"].shape[0]).view(1)))
+            loss_items["aux_fg_loss"] = aux.detach()
+        return total, loss_items
+
+    def _aux_fg_loss(self, aux_pred: torch.Tensor) -> torch.Tensor:
+        """Class-agnostic foreground BCE toward the 'mix' target built from the cached branch assignments.
+
+        The one2one positive per GT gets a hard 1.0 and the one2many-only ("ambiguous") anchors get the decaying
+        degree ``aux_fg_t_cur``, so the trunk supervision slides from the dense one2many foreground toward a pure
+        one2one target as the one2one branch takes over, without contradicting the one2many head early on. The
+        denominator is the fixed foreground union count rather than the target sum, so the decaying degree changes
+        the target shape without shrinking the loss magnitude.
+
+        Args:
+            aux_pred (torch.Tensor): Foreground logits with shape (bs, 1, num_anchors).
+
+        Returns:
+            (torch.Tensor): Scalar foreground auxiliary loss.
+        """
+        o2m = self.one2many._cache["fg_mask"]  # dense one2many foreground
+        o2o = self.one2one._cache["fg_mask"]  # single one2one positive per GT
+        target = torch.maximum(o2o.float(), self.aux_fg_t_cur * o2m.float()).unsqueeze(1)  # (bs, 1, anchors)
+        loss = F.binary_cross_entropy_with_logits(aux_pred.float(), target, reduction="none")
+        return loss.sum() / (o2m | o2o).sum().clamp(min=1)
 
     def update(self) -> None:
         """Update the weights for one-to-many and one-to-one losses based on the decay schedule."""
         self.updates += 1
         self.o2m = self.decay(self.updates)
         self.o2o = max(self.total - self.o2m, 0)
+        if self.aux_fg:  # slide the mix target from the dense o2m foreground toward pure o2o
+            self.aux_fg_t_cur = self.aux_fg_t * max(1 - self.updates / max(self.one2one.hyp.epochs - 1, 1), 0)
 
     def decay(self, x) -> float:
         """Calculate the decayed weight for one-to-many loss based on the current update step."""

@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 import pytest
+import numpy as np
 import torch
 
 from tests import MODEL, SOURCE, TASK_MODEL_DATA
@@ -34,6 +35,125 @@ def test_export(monkeypatch, tmp_path):
     assert test_func in exporter.callbacks["on_export_start"], "on_export_start callback not registered"
     f = exporter(model=YOLO("yolo26n.yaml").model)
     YOLO(f)(SOURCE)  # exported model inference
+
+
+def test_afss_scheduler_and_state_roundtrip():
+    """Test AFSS difficulty buckets, deterministic sampling, and checkpoint state."""
+    from ultralytics.utils.afss import AFSSScheduler
+
+    scheduler = AFSSScheduler(100, seed=7)
+    assert scheduler.sample_indices(0) == list(range(100))
+
+    scheduler.precision[:50] = scheduler.recall[:50] = 0.9
+    scheduler.precision[50:80] = scheduler.recall[50:80] = 0.7
+    scheduler.last_seen[:] = 0
+    selected = scheduler.sample_indices(4)
+    assert set(range(80, 100)).issubset(selected)
+    assert len(selected) < 100
+    assert selected == scheduler.sample_indices(4)
+
+    scheduler.update_metrics({"img0.jpg": {"precision": 0.25, "recall": 0.5}}, {"img0.jpg": 0})
+    restored = AFSSScheduler(100)
+    restored.load_state_dict(scheduler.state_dict())
+    np.testing.assert_array_equal(restored.precision, scheduler.precision)
+    np.testing.assert_array_equal(restored.recall, scheduler.recall)
+    np.testing.assert_array_equal(restored.last_seen, scheduler.last_seen)
+
+
+def test_afss_updates_active_dataset_length():
+    """Test AFSS changes the active dataset before the next epoch iterator is created."""
+    from ultralytics.utils.afss import AFSSScheduler, afss_on_epoch_start
+
+    class Dataset:
+        def __init__(self):
+            self._active_indices = None
+
+        def __len__(self):
+            return len(self._active_indices) if self._active_indices is not None else 10
+
+        @property
+        def active_indices(self):
+            return self._active_indices
+
+        @active_indices.setter
+        def active_indices(self, indices):
+            self._active_indices = list(indices)
+
+    class Loader:
+        def __init__(self):
+            self.dataset = Dataset()
+            self.reset_count = 0
+
+        def __len__(self):
+            return len(self.dataset)
+
+        def reset(self):
+            self.reset_count += 1
+
+    scheduler = AFSSScheduler(10, warmup_epochs=0, seed=0)
+    scheduler.precision[:5] = scheduler.recall[:5] = 0.95
+    loader = Loader()
+    trainer = SimpleNamespace(
+        afss_scheduler=scheduler,
+        afss_current_indices=list(range(10)),
+        train_loader=loader,
+        epoch=0,
+        epochs=100,
+        world_size=0,
+        batch_size=4,
+        args=SimpleNamespace(warmup_epochs=0, seed=0),
+        nb=3,
+    )
+    afss_on_epoch_start(trainer)
+    assert len(loader.dataset) < 10
+    assert loader.reset_count == 1
+    assert trainer.nb == len(loader)
+
+
+def test_afss_callback_restores_sidecar_state(tmp_path):
+    """Test AFSS callback restores a saved scheduler state before sampling."""
+    from ultralytics.utils.afss import AFSSScheduler, afss_on_epoch_start
+
+    source = AFSSScheduler(4, warmup_epochs=0, seed=3)
+    source.precision[:] = source.recall[:] = 0.9
+    torch.save(source.state_dict(), tmp_path / "afss_state.pt")
+
+    class Dataset:
+        _active_indices = None
+
+        def __len__(self):
+            return 4
+
+        @property
+        def active_indices(self):
+            return self._active_indices
+
+        @active_indices.setter
+        def active_indices(self, indices):
+            self._active_indices = list(indices)
+
+    class Loader:
+        def __init__(self):
+            self.dataset = Dataset()
+
+        def __len__(self):
+            return len(self.dataset)
+
+        def reset(self):
+            pass
+
+    trainer = SimpleNamespace(
+        train_loader=Loader(),
+        afss_current_indices=list(range(4)),
+        epoch=0,
+        epochs=20,
+        world_size=0,
+        args=SimpleNamespace(warmup_epochs=0, seed=3),
+        wdir=tmp_path,
+    )
+    afss_on_epoch_start(trainer)
+    np.testing.assert_array_equal(trainer.afss_scheduler.precision, source.precision)
+    assert len(trainer.afss_current_indices) == 1
 
 
 @pytest.mark.parametrize(

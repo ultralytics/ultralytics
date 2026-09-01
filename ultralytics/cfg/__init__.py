@@ -1066,7 +1066,7 @@ def entrypoint(debug: str = "") -> None:
             check_dict_alignment(full_args_dict, {a: ""})
 
     # Check keys
-    check_dict_alignment(full_args_dict, overrides)
+    check_dict_alignment(full_args_dict, overrides, allowed_custom_keys={"augmentations", "save_dir", "sampler", "afss"})
 
     # Mode
     mode = overrides.get("mode")

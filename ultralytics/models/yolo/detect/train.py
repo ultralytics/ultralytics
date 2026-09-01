@@ -16,6 +16,7 @@ from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils.afss import afss_on_epoch_end, afss_on_epoch_start, afss_save_state
 from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_images, plot_labels
 from ultralytics.utils.torch_utils import torch_distributed_zero_first, unwrap_model
@@ -59,7 +60,14 @@ class DetectionTrainer(BaseTrainer):
             overrides (dict, optional): Dictionary of parameter overrides for the default configuration.
             _callbacks (dict, optional): Dictionary of callback functions to be executed during training.
         """
+        overrides = dict(overrides or {})
+        sampler = overrides.pop("sampler", None)
+        afss = overrides.pop("afss", False) or sampler == "afss"
         super().__init__(cfg, overrides, _callbacks)
+        if afss and self.args.task in {"detect", "segment", "pose", "obb"}:
+            self.add_callback("on_train_epoch_start", afss_on_epoch_start)
+            self.add_callback("on_train_epoch_end", afss_on_epoch_end)
+            self.add_callback("on_model_save", afss_save_state)
 
     def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Build YOLO Dataset for training or validation.
@@ -75,7 +83,9 @@ class DetectionTrainer(BaseTrainer):
         gs = max(int(unwrap_model(self.model).stride.max()), 32)
         return build_yolo_dataset(self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs)
 
-    def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
+    def get_dataloader(
+        self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train", active_indices=None
+    ):
         """Construct and return dataloader for the specified mode.
 
         Args:
@@ -83,6 +93,7 @@ class DetectionTrainer(BaseTrainer):
             batch_size (int): Number of images per batch.
             rank (int): Process rank for distributed training.
             mode (str): 'train' for training dataloader, 'val' for validation dataloader.
+            active_indices (list[int], optional): Active image indices for AFSS sampling.
 
         Returns:
             (DataLoader): PyTorch dataloader object.
@@ -90,6 +101,8 @@ class DetectionTrainer(BaseTrainer):
         assert mode in {"train", "val"}, f"Mode must be 'train' or 'val', not {mode}."
         with torch_distributed_zero_first(rank):  # init dataset *.cache only once if DDP
             dataset = self.build_dataset(dataset_path, mode, batch_size)
+        if active_indices is not None:
+            dataset.active_indices = active_indices
         shuffle = mode == "train"
         if getattr(dataset, "rect", False) and shuffle and not np.all(dataset.batch_shapes == dataset.batch_shapes[0]):
             LOGGER.warning("'rect=True' is incompatible with DataLoader shuffle, setting shuffle=False")

@@ -81,6 +81,13 @@ Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/
         yolo detect train data=coco8.yaml model=yolo26n.yaml pretrained=yolo26n.pt epochs=100 imgsz=640
         ```
 
+For large detection datasets, `sampler="afss"` enables Anti-Forgetting Sampling. AFSS keeps difficult images in every
+epoch and periodically revisits learned images.
+
+```python
+model.train(data="coco.yaml", epochs=100, sampler="afss")
+```
+
 ### Multi-GPU Training
 
 Multi-GPU training allows for more efficient utilization of available hardware resources by distributing the training load across multiple GPUs. This feature is available through both the Python API and the command-line interface. To enable multi-GPU training, specify the GPU device IDs you wish to use.

@@ -136,6 +136,7 @@ class BaseDataset(Dataset):
         self.labels = self.get_labels()
         self.update_labels(include_class=classes)  # single_cls and include_class
         self.ni = len(self.labels)  # number of images
+        self._active_indices = None
         self.rect = rect
         self.batch_size = batch_size
         self.stride = stride
@@ -408,6 +409,24 @@ class BaseDataset(Dataset):
         self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image
 
+    @property
+    def active_indices(self):
+        """Return active image indices, or all indices if not set."""
+        return self._active_indices if self._active_indices is not None else range(self.ni)
+
+    @active_indices.setter
+    def active_indices(self, indices: list[int] | None) -> None:
+        """Set active image indices.
+
+        Args:
+            indices (list[int] | None): List of active indices, or None to reset.
+        """
+        self._active_indices = list(indices) if indices is not None else None
+
+    def _active_index(self, index: int) -> int:
+        """Map a dataset position to its original image index when a subset is active."""
+        return self._active_indices[index] if self._active_indices is not None else index
+
     def __getitem__(self, index: int) -> dict[str, Any]:
         """Return transformed label information for given index."""
         return self.transforms(self.get_image_and_label(index))
@@ -421,6 +440,7 @@ class BaseDataset(Dataset):
         Returns:
             (dict[str, Any]): Label dictionary with image and metadata.
         """
+        index = self._active_index(index)
         label = deepcopy(self.labels[index])  # requires deepcopy() https://github.com/ultralytics/ultralytics/pull/1948
         label.pop("shape", None)  # shape is for rect, remove it
         label["img"], label["ori_shape"], label["resized_shape"] = self.load_image(index)
@@ -434,7 +454,7 @@ class BaseDataset(Dataset):
 
     def __len__(self) -> int:
         """Return the length of the labels list for the dataset."""
-        return len(self.labels)
+        return len(self.active_indices)
 
     def update_labels_info(self, label: dict[str, Any]) -> dict[str, Any]:
         """Customize your label format here."""

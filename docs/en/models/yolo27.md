@@ -62,22 +62,50 @@ record at **60.5 mAP**, the strongest result in the current research line.
 
 ## Performance Metrics
 
-The following preliminary measurements were reported on the COCO validation set at 640-pixel input. Latency was
-measured on an NVIDIA T4; parameters and FLOPs are measured on the fused deployment graphs.
+The following are preliminary research measurements. Detection accuracy is reported on the COCO validation set with
+latency on an NVIDIA T4; segmentation and classification tables list model size and inference speed on CPU (ONNX) and
+GPU (TensorRT).
 
-| Model   | mAP<sup>val<br>50-95</sup> | Latency<br><sup>T4 (ms)</sup> | Params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------- | -------------------------- | ----------------------------- | ------------------------ | ----------------------- |
-| YOLO27n | 41.6                       | 1.8                           | 3.0                      | 7.2                     |
-| YOLO27s | 49.2                       | 2.7                           | 11.8                     | 28.2                    |
-| YOLO27m | 55.7                       | 4.4                           | 27.2                     | 83.4                    |
-| YOLO27l | 57.7                       | 6.5                           | 30.4                     | 85.4                    |
-| YOLO27x | **60.5**                   | **12.3**                      | 65.6                     | 173.1                   |
+=== "Detection (COCO)"
+
+    YOLO27m is evaluated at a 512-pixel input; all other detection scales use 640 pixels.
+
+    | Model   | Size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Latency<br><sup>T4 (ms)</sup> | Params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+    | ------- | --------------------------- | -------------------------- | ----------------------------- | ------------------------ | ----------------------- |
+    | YOLO27n | 640                         | 41.6                       | 1.8                           | 3.0                      | 7.2                     |
+    | YOLO27s | 640                         | 49.2                       | 2.7                           | 11.8                     | 28.2                    |
+    | YOLO27m | 512                         | 55.7                       | 4.4                           | 27.2                     | 83.4                    |
+    | YOLO27l | 640                         | 57.7                       | 6.5                           | 30.4                     | 85.4                    |
+    | YOLO27x | 640                         | **60.5**                   | **12.3**                      | 65.6                     | 173.1                   |
+
+=== "Segmentation (COCO)"
+
+    Measured at a 640-pixel input.
+
+    | Model       | Size<br><sup>(pixels)</sup> | CPU ONNX<br><sup>(ms)</sup> | TensorRT<br><sup>(ms)</sup> | Params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+    | ----------- | --------------------------- | --------------------------- | --------------------------- | ------------------------ | ----------------------- |
+    | YOLO27n-seg | 640                         | 63.1 ± 3.1                  | **2.092 ± 0.051**           | 3.0                      | 11.1                    |
+    | YOLO27s-seg | 640                         | 119.0 ± 5.0                 | **3.562 ± 0.046**           | 11.6                     | 42.9                    |
+    | YOLO27m-seg | 640                         | 280.7 ± 15.1                | **7.409 ± 0.193**           | 25.4                     | 139.4                   |
+    | YOLO27l-seg | 640                         | 343.0 ± 7.7                 | **9.198 ± 0.194**           | 30.0                     | 161.0                   |
+    | YOLO27x-seg | 640                         | 672.7 ± 54.8                | **18.123 ± 0.545**          | 67.5                     | 361.3                   |
+
+=== "Classification (ImageNet)"
+
+    Measured at a 224-pixel input.
+
+    | Model       | Size<br><sup>(pixels)</sup> | CPU ONNX<br><sup>(ms)</sup> | TensorRT<br><sup>(ms)</sup> | Params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+    | ----------- | --------------------------- | --------------------------- | --------------------------- | ------------------------ | ----------------------- |
+    | YOLO27n-cls | 224                         | 4.2 ± 0.6                   | **1.131 ± 0.046**           | 2.9                      | 0.6                     |
+    | YOLO27s-cls | 224                         | 7.3 ± 0.7                   | **1.412 ± 0.025**           | 6.9                      | 1.9                     |
+    | YOLO27m-cls | 224                         | 16.8 ± 1.1                  | **1.905 ± 0.053**           | 12.4                     | 6.2                     |
+    | YOLO27l-cls | 224                         | 24.8 ± 1.6                  | **1.935 ± 0.075**           | 15.5                     | 8.4                     |
+    | YOLO27x-cls | 224                         | 44.1 ± 3.4                  | **1.951 ± 0.038**           | 32.8                     | 18.6                    |
 
 ## Current Scope
 
-YOLO27 results currently cover object detection. Segmentation and classification configurations derived from the
-compact CNN architecture exist as research configs, and support for additional tasks will be documented when the
-corresponding models are finalized.
+YOLO27 research currently covers object detection, instance segmentation, and classification. Support for additional
+tasks will be documented when the corresponding models are finalized.
 
 ---
 

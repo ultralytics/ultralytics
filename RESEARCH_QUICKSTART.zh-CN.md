@@ -221,9 +221,9 @@ class ResearchTrainer(DetectionTrainer):
 
 ```python
 # train.py
-from ultralytics import YOLO
-
 from research_trainer import ResearchTrainer
+
+from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
 model.train(data="path/to/dataset.yaml", trainer=ResearchTrainer)

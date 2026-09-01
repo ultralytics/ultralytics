@@ -128,7 +128,6 @@ class BasePredictor:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        self.requested_quantize = self.args.quantize  # setup_model overwrites args.quantize with the achieved value
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25
@@ -437,7 +436,6 @@ class BasePredictor:
         )
 
         self.device = self.model.device  # update device
-        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()

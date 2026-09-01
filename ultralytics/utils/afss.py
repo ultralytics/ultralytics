@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from copy import copy
+from typing import Any
 
 import numpy as np
 import torch
@@ -83,7 +84,7 @@ class AFSSScheduler:
                 self.precision[index] = metrics.get("precision", 0.0)
                 self.recall[index] = metrics.get("recall", 0.0)
 
-    def state_dict(self) -> dict[str, np.ndarray]:
+    def state_dict(self) -> dict[str, Any]:
         """Return the versioned scheduler state for checkpoint storage."""
         return {
             "version": self.STATE_VERSION,
@@ -93,7 +94,7 @@ class AFSSScheduler:
             "last_seen": self.last_seen,
         }
 
-    def load_state_dict(self, state: dict[str, np.ndarray]) -> None:
+    def load_state_dict(self, state: dict[str, Any]) -> None:
         """Restore scheduler state when resuming a run."""
         if state.get("version", self.STATE_VERSION) != self.STATE_VERSION:
             raise ValueError("Unsupported AFSS state version")

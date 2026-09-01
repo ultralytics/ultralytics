@@ -708,6 +708,7 @@ nav:
                   - vl_combiner: reference/models/sam/sam3/vl_combiner.md
           - utils:
               - loss: reference/models/utils/loss.md
+              - loss_dfine: reference/models/utils/loss_dfine.md
               - ops: reference/models/utils/ops.md
           - yolo:
               - classify:
@@ -777,9 +778,11 @@ nav:
               - activation: reference/nn/modules/activation.md
               - block: reference/nn/modules/block.md
               - conv: reference/nn/modules/conv.md
+              - dfine_transformer: reference/nn/modules/dfine_transformer.md
               - head: reference/nn/modules/head.md
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
+              - vit_blocks: reference/nn/modules/vit_blocks.md
           - tasks: reference/nn/tasks.md
           - text_model: reference/nn/text_model.md
       - optim:

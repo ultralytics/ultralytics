@@ -14,4 +14,8 @@ keywords: RTDETRTrainer, real-time object detection, Vision Transformers, YOLO, 
 
 ## ::: ultralytics.models.rtdetr.train.RTDETRTrainer
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.rtdetr.train.DEIMTrainer
+
 <br><br>

@@ -164,7 +164,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
     Each entry in `image_metrics` contains the following keys:
 
     | Key         | Description                                       |
-    |-------------|---------------------------------------------------|
+    | ----------- | ------------------------------------------------- |
     | `precision` | Precision score for the image (`tp / (tp + fp)`). |
     | `recall`    | Recall score for the image (`tp / (tp + fn)`).    |
     | `f1`        | Harmonic mean of precision and recall.            |

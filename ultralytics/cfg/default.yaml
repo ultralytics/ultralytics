@@ -34,12 +34,12 @@ cos_lr: False # (bool) cosine learning rate scheduler
 close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to keep enabled)
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool | str) train precision: True/'fp16' (AMP check), 'bf16', or False/'fp32'; AMP uses FP16 train validation
-fraction: 1.0 # (float | int | list) train ratio/count or [train, val] ratios/counts; 1.0 = all, 1 = one
+fraction: 1.0 # (float | int | list) train ratio/count or split values; 1 = all, integer >1 = count, test 0 = none
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
-freeze: # (int | list, optional) freeze first N layers (int) or specific layer indices (list)
+freeze: # (int | list, optional) freeze first N layers (int), or specific layer indices or module names like "23.cv2" (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
-channels_last: False # (bool) use channels_last (NHWC) memory format for conv train/inference; CUDA-only, speeds up Tensor-Core GPUs
+channels_last: # (bool, optional) auto-enable for CUDA training on PyTorch 1.11+ and supported x86 CPU inference
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)
@@ -52,7 +52,7 @@ multi_label: False # (bool) multi-label classification mode with sigmoid+BCE (cl
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
-save_json: False # (bool) save results to COCO JSON (detect/segment/pose) or PNG masks (semantic) for external evaluation
+save_json: False # (bool) save COCO JSON (detect/segment/pose), compute detect size metrics, or save semantic PNG masks
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image
@@ -129,8 +129,8 @@ bgr: 0.0 # (float) RGB↔BGR channel swap probability
 mosaic: 1.0 # (float) mosaic augmentation probability
 mixup: 0.0 # (float) MixUp augmentation probability
 cutmix: 0.0 # (float) CutMix augmentation probability
-copy_paste: 0.0 # (float) segmentation copy-paste fraction of eligible objects
-copy_paste_mode: flip # (str) copy-paste strategy for segmentation: flip or mixup
+copy_paste: 0.0 # (float) segment/obb copy-paste fraction of eligible objects
+copy_paste_mode: flip # (str) copy-paste strategy for segment/obb: flip or mixup
 auto_augment: randaugment # (str) classification auto augmentation policy: randaugment, autoaugment, augmix
 erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)
 

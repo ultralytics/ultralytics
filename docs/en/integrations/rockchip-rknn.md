@@ -159,7 +159,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 | `simplify` | `bool`                    | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                     |
 | `opset`    | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                           |
 | `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                  |
-| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val]` ratios/counts; a list limits `train` or `val`, while `test` remains full.                                                                                                                     |
+| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                    |
 | `device`   | `str`                     | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                   |
 
 !!! tip
@@ -211,16 +211,16 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
     | Model   | Format | Precision | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
     | ------- | ------ | --------- | ------ | --------- | ----------- | ---------------------- |
-    | YOLO26n | `rknn` | FP16      | ✅      | 7.2       | 0.477       | 58.5                   |
-    | YOLO26n | `rknn` | INT8      | ✅      | 4.1       | 0.463       | 41.2                   |
-    | YOLO26s | `rknn` | FP16      | ✅      | 21.0      | 0.569       | 93.8                   |
-    | YOLO26s | `rknn` | INT8      | ✅      | 12.0      | 0.554       | 61.9                   |
-    | YOLO26m | `rknn` | FP16      | ✅      | 43.0      | 0.608       | 226.3                  |
-    | YOLO26m | `rknn` | INT8      | ✅      | 22.0      | 0.603       | 122.0                  |
-    | YOLO26l | `rknn` | FP16      | ✅      | 53.0      | 0.628       | 264.7                  |
-    | YOLO26l | `rknn` | INT8      | ✅      | 28.0      | 0.617       | 145.3                  |
-    | YOLO26x | `rknn` | FP16      | ✅      | 113.0     | 0.664       | 655.4                  |
-    | YOLO26x | `rknn` | INT8      | ✅      | 58.0      | 0.649       | 287.4                  |
+    | YOLO26n | `rknn` | FP16      | ✅     | 7.2       | 0.477       | 58.5                   |
+    | YOLO26n | `rknn` | INT8      | ✅     | 4.1       | 0.463       | 41.2                   |
+    | YOLO26s | `rknn` | FP16      | ✅     | 21.0      | 0.569       | 93.8                   |
+    | YOLO26s | `rknn` | INT8      | ✅     | 12.0      | 0.554       | 61.9                   |
+    | YOLO26m | `rknn` | FP16      | ✅     | 43.0      | 0.608       | 226.3                  |
+    | YOLO26m | `rknn` | INT8      | ✅     | 22.0      | 0.603       | 122.0                  |
+    | YOLO26l | `rknn` | FP16      | ✅     | 53.0      | 0.628       | 264.7                  |
+    | YOLO26l | `rknn` | INT8      | ✅     | 28.0      | 0.617       | 145.3                  |
+    | YOLO26x | `rknn` | FP16      | ✅     | 113.0     | 0.664       | 655.4                  |
+    | YOLO26x | `rknn` | INT8      | ✅     | 58.0      | 0.649       | 287.4                  |
 
     Benchmarked with `ultralytics 8.4.60`
 

@@ -64,7 +64,7 @@ With respect to YOLO26, you can set the `batch` parameter in the [Train mode arg
 
 Subset training is a smart strategy that involves training your model on a smaller set of data that represents the larger dataset. It can save time and resources, especially during initial model development and testing. If you are running short on time or experimenting with different model configurations, subset training is a good option.
 
-When it comes to YOLO26, you can easily implement subset training with the `fraction` parameter. Use a ratio such as `fraction=0.1` for 10% of the training data, an integer such as `fraction=300` for exactly 300 training images, or a `[train, val]` list such as `fraction=[300, 100]` to limit both splits. NDJSON datasets select evenly spaced records before downloading them, so repeated runs reuse the exact subset. This technique supports quick iterations and tuning before committing to the full dataset.
+When it comes to YOLO26, you can easily implement subset training with the `fraction` parameter. Use a ratio such as `fraction=0.1` for 10% of the training data, an integer such as `fraction=300` for exactly 300 training images, or a `[train, val, test]` list such as `fraction=[300, 100, 0]` to limit each split and skip test images. Two-item lists such as `[300, 100]` leave the test split full. NDJSON datasets select evenly spaced records before downloading them, so repeated runs reuse the exact subset. This technique supports quick iterations and tuning before committing to the full dataset.
 
 ### Multi-scale Training
 
@@ -108,7 +108,7 @@ There are a couple of other techniques to consider when handling a large dataset
 
 - **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. For behavior no argument exposes, such as per-layer learning rates or gradient clipping, [subclass the trainer](./custom-trainer.md).
 - **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
-- **Channels-last memory format**: `channels_last=True` uses NHWC memory layout on CUDA, which can improve convolution performance on compatible hardware. Other devices warn and keep the default layout.
+- **Channels-last memory format**: CUDA training automatically uses the faster NHWC memory layout on PyTorch 1.11 and newer. Set `channels_last=False` to keep NCHW; PyTorch 1.10 and older, CPU, and MPS remain NCHW by default.
 
 ## The Number of Epochs To Train For
 
@@ -167,7 +167,7 @@ Different optimizers have various strengths and weaknesses. Let's take a glimpse
     - A good choice when you want SGD-like generalization but need smoother convergence than vanilla SGD.
     - Especially relevant for [YOLO26 training recipes](./yolo26-training-recipe.md); if unsure, start with `optimizer=auto` and compare against MuSGD on your dataset.
 
-For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on model configuration.
+For YOLO26, the `optimizer` parameter lets you choose from various optimizers, including SGD, MuSGD, Adam, Adamax, AdamW, NAdam, RAdam, and RMSProp, or you can set it to `auto` for automatic selection based on the number of training iterations.
 
 ```bash
 yolo train model=yolo26n.pt data=coco8.yaml optimizer=MuSGD

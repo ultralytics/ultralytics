@@ -254,7 +254,7 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 | `simplify` | `bool`                    | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                  |
 | `opset`    | `int`                     | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                         |
 | `data`     | `str`                     | `None`         | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects the default calibration dataset for the model task. |
-| `fraction` | `float`, `int`, or `list` | `1.0`          | Calibration subset as a ratio, image count, or `[train, val]` ratios/counts; a list limits `train` or `val`, while `test` remains full.                                                                  |
+| `fraction` | `float`, `int`, or `list` | `1.0`          | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                 |
 | `device`   | `str`                     | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                   |
 
 !!! note "Precision"

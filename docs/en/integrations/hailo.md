@@ -180,7 +180,7 @@ When `data` is omitted, Ultralytics uses a task-specific lightweight calibration
 model.export(format="hailo", name="hailo8", data="my_dataset.yaml")
 ```
 
-`fraction` selects the ratio or image count used for calibration; `[train, val]` lists limit those splits, while `test` remains full. More images help only when they represent the deployment domain; out-of-domain images can reduce quantized accuracy and increase optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
+`fraction` selects the ratio or image count used for calibration. `[train, val, test]` lists limit each split, two-item lists leave `test` full, and `0` skips test. More images help only when they represent the deployment domain. Out-of-domain images can reduce quantized accuracy and increase optimization time. If the INT8 HEF loses accuracy relative to the original PyTorch model, first improve the calibration data before changing model or runtime settings.
 
 ### Accuracy Expectations by Model Family
 
@@ -341,7 +341,7 @@ Model and pipeline choices often matter more than compiler flags:
 | `name`     | `str`                     | `hailo8l` | Target Hailo accelerator architecture                                                                                                                                       |
 | `imgsz`    | `int`, `list`             | `640`     | Fixed model input size                                                                                                                                                      |
 | `data`     | `str`                     | `None`    | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset. |
-| `fraction` | `float`, `int`, or `list` | `1.0`     | Calibration subset as a ratio, image count, or `[train, val]` ratios/counts; a list limits `train` or `val`, while `test` remains full                                      |
+| `fraction` | `float`, `int`, or `list` | `1.0`     | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                    |
 | `quantize` | `int`                     | `8`       | Hailo export uses INT8 quantization                                                                                                                                         |
 | `simplify` | `bool`                    | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
 | `conf`     | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |

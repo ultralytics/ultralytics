@@ -11,7 +11,7 @@ from torch.nn import functional as F
 
 from ultralytics.data import YOLOConcatDataset, build_dataloader, build_yolo_dataset
 from ultralytics.data.augment import LoadVisualPrompt
-from ultralytics.data.utils import check_det_dataset
+from ultralytics.data.utils import check_det_dataset, get_split_fraction
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.models.yolo.segment import SegmentationValidator
 from ultralytics.nn.modules.head import YOLOEDetect
@@ -113,8 +113,9 @@ class YOLOEDetectValidator(DetectionValidator):
             data.get(self.args.split, data.get("val")),
             self.args.batch,
             data,
-            mode=self.args.split or "val",
+            mode="val",
             rect=False,
+            fraction=get_split_fraction(self.args.fraction, self.args.split or "val"),
         )
         if isinstance(dataset, YOLOConcatDataset):
             for d in dataset.datasets:
@@ -130,7 +131,6 @@ class YOLOEDetectValidator(DetectionValidator):
             device=self.device,
         )
 
-    @smart_inference_mode()
     def __call__(
         self,
         trainer: Any | None = None,

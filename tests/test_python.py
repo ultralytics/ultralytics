@@ -3,6 +3,7 @@
 import contextlib
 import csv
 import os
+import platform
 import shutil
 import tarfile
 import urllib
@@ -21,7 +22,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -42,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -126,6 +127,14 @@ def test_cfg_rejects_fuzzed_values():
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"fraction": 1}).fraction == 1.0
+    assert get_cfg(overrides={"fraction": [1000, 1, 0]}).fraction == [1000, 1.0, 0.0]
+    assert type(get_split_fraction([1, 1, 0], "train")) is float
+    assert type(get_split_fraction([1, 1, 0], "test")) is float
+    with pytest.raises(ValueError, match="val fraction"):
+        get_split_fraction([1, 0], "val")
+    with pytest.raises(TypeError, match="fraction"):
+        get_cfg(overrides={"fraction": True})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
 
 
@@ -195,6 +204,36 @@ def test_select_device(monkeypatch):
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "01,03")  # leading zeros are valid for CUDA's atoi-style parsing
     assert torch_utils.parse_device("3") == "1"  # visible ids normalize like requested ids
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
+
+
+def test_autobackend_memory_format(tmp_path):
+    """Check backend memory formats on the real host platform without mocked platform state."""
+    from ultralytics.nn.autobackend import AutoBackend
+
+    cpu_supported = (
+        TORCH_1_13
+        and platform.machine() in {"AMD64", "x86_64"}
+        and torch.backends.mkldnn.is_available()
+        and torch.backends.mkldnn.enabled
+    )
+    for channels_last in (None, False, True):
+        model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
+        expected = cpu_supported and (channels_last is True or (channels_last is None and (LINUX or WINDOWS)))
+        assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+        assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
+    if hasattr(torch, "inference_mode"):
+        with torch.inference_mode():
+            model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"))
+        if TORCH_1_10:
+            assert not backend.model[0].weight.is_inference()
+
+    model = YOLO(MODEL)
+    model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded
+    model.model.to(memory_format=torch.channels_last)
+    model.save(tmp_path / "model.pt")
+    assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
 def test_restricted_load_threaded():
@@ -334,6 +373,18 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
+@pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
+def test_preprocess_values(model_name, bgr):
+    """Check predictor channel order and normalization with known pixel values."""
+    model = YOLO(WEIGHTS_DIR / model_name)
+    im = np.full((32, 32, len(bgr)), bgr, dtype=np.uint8)
+    model(im, imgsz=32, verbose=False)  # build predictor through the public path
+    out = model.predictor.preprocess([im])
+    expected = torch.tensor([bgr[::-1]], device=out.device, dtype=out.dtype) / 255
+    assert out.shape == (1, len(bgr), 32, 32) and out.is_contiguous()
+    assert torch.equal(out[:, :, 0, 0], expected)
+
+
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
 def test_predict_classes_with_max_det(model_name):
     """Test classes-before-max_det and reset reused-call filters for end2end and NMS-based models."""
@@ -399,9 +450,24 @@ def test_predict_ndarray_channels():
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+    bgra = np.zeros((8, 8, 4), dtype="float64")
+    assert LoadPilAndNumpy(bgra, channels=3).im0[0].shape == (8, 8, 3)  # non-OpenCV dtype also falls back for BGRA
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         im = np.zeros((8, 8, source_channels), dtype=np.uint8)
         assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+
+
+def test_single_check_channel_order_and_contiguity():
+    """Test LoadPilAndNumpy._single_check() keeps BGR order and C-contiguous output through cv2 conversions."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
+    check = LoadPilAndNumpy._single_check
+    rgb = Image.fromarray(np.full((2, 2, 3), (10, 20, 30), dtype=np.uint8))  # PIL is R, G, B
+    bgra = np.full((2, 2, 4), (10, 20, 30, 255), dtype=np.uint8)  # ndarray is already B, G, R, A
+    gray = np.full((2, 2, 1), 42, dtype=np.uint8)
+    for im, expected in ((check(rgb, 3), (30, 20, 10)), (check(bgra, 3), (10, 20, 30)), (check(gray, 3), (42, 42, 42))):
+        assert tuple(im[0, 0].tolist()) == expected
+        assert im.flags["C_CONTIGUOUS"]
 
 
 @pytest.mark.slow
@@ -1802,6 +1868,22 @@ def test_nn_depth_head_no_dead_parameters():
     assert not unused, f"parameters with no gradient: {unused}"
 
 
+def test_classification_fraction_samples_across_classes(tmp_path):
+    """Sample classification fractions across the class-major ImageFolder ordering."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    for class_index in range(3):
+        class_dir = tmp_path / str(class_index)
+        class_dir.mkdir()
+        for image_index in range(4):
+            cv2.imwrite(str(class_dir / f"{image_index}.jpg"), np.full((16, 16, 3), class_index, dtype=np.uint8))
+    args = copy(DEFAULT_CFG)
+    args.fraction = 0.5
+    samples = ClassificationDataset(tmp_path, args, augment=True).samples
+
+    assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""
@@ -1953,6 +2035,8 @@ def test_yoloe(tmp_path):
     # text-prompts
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     model.set_classes(["person", "bus"])
+    model.set_classes(["bus", "person"])
+    assert list(model.names.values()) == ["bus", "person"]
     model(SOURCE, conf=0.01)
 
     from ultralytics import YOLOE

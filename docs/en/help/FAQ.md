@@ -130,7 +130,7 @@ Key distinctions include:
 - [End-to-End NMS-Free Inference](../guides/end2end-detection.md): YOLO26 is natively end-to-end, producing predictions directly without non-maximum suppression (NMS), reducing latency and simplifying deployment.
 - DFL Removal: YOLO26 removes the Distribution Focal Loss module, simplifying export and improving compatibility with edge and low-power devices.
 - MuSGD Optimizer: A hybrid of SGD and Muon (inspired by Moonshot AI's Kimi K2) for more stable training and faster convergence.
-- CPU Performance: YOLO26 delivers up to 43% faster CPU inference, making it ideal for devices without GPUs.
+- CPU Performance: YOLO26n runs up to 43% faster than YOLO11n on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz), making it ideal for devices without GPUs.
 - Task-Specific Optimizations: Enhanced segmentation with semantic loss and multi-scale protos, RLE for precision pose estimation, and improved OBB decoding with angle loss.
 - Tasks: Both models support [object detection](https://www.ultralytics.com/glossary/object-detection) and instance segmentation, while YOLO26 also adds [semantic segmentation](../tasks/semantic.md) for dense pixel-level prediction and [monocular depth estimation](../tasks/depth.md) for per-pixel depth. Both models also support classification, pose estimation, and oriented object detection (OBB) in a unified framework.
 

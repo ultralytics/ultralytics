@@ -14,7 +14,7 @@ from torch import nn
 from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_13, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, smart_inference_mode
 
 from .backends import (
     AscendBackend,
@@ -206,7 +206,7 @@ class AutoBackend(nn.Module):
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
         if (
             isinstance(model, nn.Module)
-            and TORCH_1_9
+            and TORCH_1_10
             and any(x.is_inference() for x in (*model.parameters(), *model.buffers()))
         ):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation

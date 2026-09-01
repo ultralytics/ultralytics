@@ -227,7 +227,6 @@ class Tuner:
         metrics: dict,
         datasets: dict[str, dict],
         save_dirs: dict[str, str],
-        iteration: int,
     ):
         """Save results to MongoDB with proper type conversion.
 
@@ -237,7 +236,6 @@ class Tuner:
             metrics (dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             datasets (dict[str, dict]): Per-dataset metrics for the iteration.
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
-            iteration (int): Current iteration number.
         """
         try:
             self.collection.insert_one(
@@ -248,7 +246,9 @@ class Tuner:
                     "datasets": datasets,
                     "save_dirs": save_dirs,
                     "timestamp": datetime.now().astimezone(),
-                    "iteration": iteration,
+                    "iteration": self.collection.find_one_and_update(
+                        {"_id": "defaults"}, {"$inc": {"last_iteration": 1}}, return_document=True
+                    )["last_iteration"],
                 }
             )
         except Exception as e:
@@ -261,9 +261,11 @@ class Tuner:
         resume, mutation, and plotting on the same local source of truth when using distributed tuning.
         """
         try:
-            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("_id", 1))
+            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("iteration", 1))
             if not all_results:
                 return
+            last_iteration = max(r["iteration"] for r in all_results)
+            self.collection.update_one({"_id": "defaults"}, {"$max": {"last_iteration": last_iteration}}, upsert=True)
 
             with open(self.tune_file, "w", encoding="utf-8") as f:
                 f.writelines(
@@ -383,7 +385,8 @@ class Tuner:
             ng = len(self.space)
             fitness = np.round(history[:, 0], 5)
             stale = len(history) - 1 - int(np.argmax(fitness))
-            x = history[np.argsort(-history[:, 0])][:n]
+            order = np.argsort(-history[:, 0])
+            x = history[order][:n]
             bounds = np.array([v[:2] for v in self.space.values()])
             span = np.ptp(bounds, axis=1)
             mutable = span > 0
@@ -393,14 +396,32 @@ class Tuner:
                 weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
                 gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
                 resolution = np.array([1 if k in CFG_INT_KEYS else 1e-5 for k in self.space])
-                scale = sigma * (1 - 0.2 * min(stale / 25, 1)) * gains
+                decay = 1 - 0.2 * min(stale / 25, 1)
+                scale = sigma * decay * gains
                 scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
                 existing = {tuple(row[1:]) for row in history}
+                covariance = confidence = None
+                if len(history) >= 30:
+                    n_elite = min(int(np.ceil(len(history) * 0.2)), 30)
+                    confidence = min(n_elite / mutable.sum(), 1)
+                    elite = np.divide(
+                        history[order[:n_elite], 1:] - bounds[:, 0],
+                        span,
+                        out=np.zeros((n_elite, ng)),
+                        where=mutable,
+                    )
+                    covariance = np.cov(elite, rowvar=False) * decay**2 * confidence + np.diag(
+                        np.square(scale) / mutable.sum()
+                    )
                 for attempt in range(200):
                     if attempt < 100:
                         genes = population[rng.choice(len(x), p=weights / weights.sum())]
                         mask = (rng.random(ng) < 0.5) & mutable
-                        genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
+                        if covariance is not None and rng.random() < 0.4 * confidence:
+                            genes = np.where(mask, rng.multivariate_normal(genes, covariance), genes)
+                            genes = 1 - np.abs(genes % 2 - 1)
+                        else:
+                            genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
                     else:
                         genes = population[rng.choice(len(x), p=weights / weights.sum())].copy()
                         genes[mutable] = rng.random(mutable.sum())
@@ -487,7 +508,7 @@ class Tuner:
                 n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
-                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], i + 1)
+                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"])
                 self._sync_mongodb_to_file()
                 total_mongo_iterations = self.collection.count_documents({"fitness": {"$exists": True}})
                 if total_mongo_iterations >= iterations:

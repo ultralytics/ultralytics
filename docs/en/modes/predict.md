@@ -538,7 +538,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 === "Detect"
 
     | Attribute           | Type            | Shape     | Description                                           |
-    |---------------------|-----------------|-----------|-------------------------------------------------------|
+    | ------------------- | --------------- | --------- | ----------------------------------------------------- |
     | `result.boxes`      | `Boxes`         | `(N)`     | Detection boxes.                                      |
     | `result.boxes.data` | `torch.float32` | `(N,6/7)` | Raw `[x1,y1,x2,y2,conf,cls]`, plus optional track ID. |
     | `result.boxes.xyxy` | `torch.float32` | `(N,4)`   | `xyxy` pixel boxes.                                   |
@@ -548,7 +548,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 === "Segment"
 
     | Attribute           | Type          | Shape         | Description                         |
-    |---------------------|---------------|---------------|-------------------------------------|
+    | ------------------- | ------------- | ------------- | ----------------------------------- |
     | `result.boxes`      | `Boxes`       | `(N)`         | Instance boxes/classes/confidences. |
     | `result.masks`      | `Masks`       | `(N)`         | Instance masks.                     |
     | `result.masks.data` | `torch.uint8` | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
@@ -558,7 +558,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 === "Semantic"
 
     | Attribute                   | Type                                            | Shape   | Description                                         |
-    |-----------------------------|-------------------------------------------------|---------|-----------------------------------------------------|
+    | --------------------------- | ----------------------------------------------- | ------- | --------------------------------------------------- |
     | `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                                    |
     | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs, dtype selected by class count. |
     | `result.masks`              | -                                               | -       | No instance masks.                                  |
@@ -567,7 +567,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 === "Classify"
 
     | Attribute               | Type            | Shape   | Description            |
-    |-------------------------|-----------------|---------|------------------------|
+    | ----------------------- | --------------- | ------- | ---------------------- |
     | `result.probs`          | `Probs`         | `(C,)`  | Class probabilities.   |
     | `result.probs.data`     | `torch.float32` | `(C,)`  | Probability per class. |
     | `result.probs.top1`     | `int`           | `()`    | Top class ID.          |
@@ -577,7 +577,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 === "Pose"
 
     | Attribute               | Type            | Shape       | Description                                |
-    |-------------------------|-----------------|-------------|--------------------------------------------|
+    | ----------------------- | --------------- | ----------- | ------------------------------------------ |
     | `result.boxes`          | `Boxes`         | `(N)`       | Instance boxes.                            |
     | `result.keypoints`      | `Keypoints`     | `(N)`       | Keypoints.                                 |
     | `result.keypoints.data` | `torch.float32` | `(N,K,2/3)` | `x,y` plus optional visibility/confidence. |
@@ -587,7 +587,7 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 === "OBB"
 
     | Attribute             | Type            | Shape     | Description                              |
-    |-----------------------|-----------------|-----------|------------------------------------------|
+    | --------------------- | --------------- | --------- | ---------------------------------------- |
     | `result.obb`          | `OBB`           | `(N)`     | Oriented boxes.                          |
     | `result.obb.data`     | `torch.float32` | `(N,7/8)` | Raw rotated boxes with confidence/class. |
     | `result.obb.xywhr`    | `torch.float32` | `(N,5)`   | `xywhr` rotated boxes.                   |

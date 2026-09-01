@@ -225,7 +225,7 @@ def test_afss_checkpoint_embeds_state(tmp_path):
     trainer.ema = SimpleNamespace(ema=model, updates=0)
     trainer.model = model
     trainer.optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-    trainer.scaler = SimpleNamespace(state_dict=lambda: {})
+    trainer.scaler = SimpleNamespace(state_dict=dict)
     trainer.metrics = {}
     trainer.fitness = trainer.best_fitness = 0.0
     trainer.epoch = 0
@@ -236,7 +236,7 @@ def test_afss_checkpoint_embeds_state(tmp_path):
     trainer.best = trainer.wdir / "best.pt"
     trainer.save_period = -1
     trainer.afss_scheduler = AFSSScheduler(2, seed=5)
-    trainer.read_results_csv = lambda: {}
+    trainer.read_results_csv = dict
 
     assert trainer.save_model()
     checkpoint = torch.load(trainer.last, weights_only=False)

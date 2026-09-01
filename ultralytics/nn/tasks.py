@@ -1698,8 +1698,6 @@ class _SafeLoad:
 
         import torch.nn.modules as torch_nn
 
-        import ultralytics.models.utils.loss as rtdetr_loss
-        import ultralytics.models.utils.ops as rtdetr_ops
         import ultralytics.nn.modules as ul_nn
         import ultralytics.utils.loss as ul_loss
         import ultralytics.utils.tal as ul_tal
@@ -1726,8 +1724,8 @@ class _SafeLoad:
         _scan(ul_tasks)  # ultralytics task models
 
         # Criteria pickled inside pre-8.4.95 checkpoints (`ema.criterion` is stripped at save since then): the plain
-        # loss classes plus the nn.Module box losses, assigners and the RT-DETR matcher they hold.
-        for mod in (ul_loss, ul_tal, rtdetr_loss, rtdetr_ops):
+        # loss classes plus the nn.Module box losses and assigners they hold.
+        for mod in (ul_loss, ul_tal):
             allow += [
                 klass for _, klass in inspect.getmembers(mod, inspect.isclass) if klass.__module__ == mod.__name__
             ]

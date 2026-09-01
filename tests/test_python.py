@@ -246,14 +246,13 @@ def test_restricted_load_threaded():
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
 
 
-@pytest.mark.parametrize("cfg", [CFG, "rtdetr-l.yaml"])
-def test_restricted_load_criterion(tmp_path, cfg):
+def test_restricted_load_criterion(tmp_path):
     """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
-    from ultralytics.nn.tasks import DetectionModel, RTDETRDetectionModel, torch_safe_load
+    from ultralytics.nn.tasks import DetectionModel, torch_safe_load
     from ultralytics.utils import DEFAULT_CFG
 
-    model = (RTDETRDetectionModel if "rtdetr" in cfg else DetectionModel)(cfg, verbose=False)
-    model.args, model.nc = DEFAULT_CFG, 80  # the trainer sets both before init_criterion
+    model = DetectionModel(CFG, verbose=False)
+    model.args = DEFAULT_CFG
     model.criterion = model.init_criterion()
     torch.save({"model": model}, tmp_path / "legacy.pt")
     assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None

@@ -373,15 +373,18 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
-@pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
-def test_preprocess_values(model_name, bgr):
+@pytest.mark.parametrize(
+    ("model_name", "bgr", "imgsz"),
+    [("yolo11n.pt", [0, 127, 255], 32), ("yolo11n-grayscale.pt", [127], 32), ("yolo26n-cls.pt", [0, 127, 255], 224)],
+)
+def test_preprocess_values(model_name, bgr, imgsz):
     """Check predictor channel order and normalization with known pixel values."""
     model = YOLO(WEIGHTS_DIR / model_name)
     im = np.full((32, 32, len(bgr)), bgr, dtype=np.uint8)
-    model(im, imgsz=32, verbose=False)  # build predictor through the public path
+    model(im, imgsz=imgsz, verbose=False)  # classify at 224 keeps the checkpoint's own transforms
     out = model.predictor.preprocess([im])
     expected = torch.tensor([bgr[::-1]], device=out.device, dtype=out.dtype) / 255
-    assert out.shape == (1, len(bgr), 32, 32) and out.is_contiguous()
+    assert out.shape == (1, len(bgr), imgsz, imgsz) and out.is_contiguous()
     assert torch.equal(out[:, :, 0, 0], expected)
 
 

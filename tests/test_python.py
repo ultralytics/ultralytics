@@ -401,6 +401,15 @@ def test_classify_preprocess_channel_mixing_fallback():
     assert torch.equal(model.predictor.preprocess([im]).cpu(), expected)
 
 
+def test_classify_preprocess_split_guard_rejects_non_3_channel():
+    """A model reporting a non-3-channel count must keep the per-image host path, matching preprocess()'s reorder."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")
+    model(SOURCE, imgsz=224, verbose=False)  # build the predictor through the public path
+    model.predictor.model.channels = 4
+    model.predictor.setup_source(SOURCE)
+    assert model.predictor.pil_transforms is None and model.predictor.device_transforms is None
+
+
 def test_classify_preprocess_split_guard_fires():
     """The Resize/CenterCrop/ToTensor/Normalize shape classify_transforms() emits must take the device split."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-cls.pt")

@@ -74,12 +74,16 @@ class ClassificationPredictor(BasePredictor):
         # a random transform would draw once per batch instead of once per image. Anything else keeps the
         # original single-pass host path. Matched by exact type, not isinstance: a subclass may override
         # __call__ with behavior that depends on being invoked once per image rather than once per batch.
+        # Restricted to 3-channel models: the split relies on BasePredictor.preprocess()'s BGR-to-RGB flip,
+        # which only fires for a 3-channel tensor (engine/predictor.py), so a non-3-channel checkpoint keeps
+        # the original path instead of silently skipping that reorder.
         tfl = flatten([self.transforms])  # a Compose subclass stays an opaque leaf, so the split rejects it
         i = next((i for i, t in enumerate(tfl) if type(t) is T.ToTensor), None)
         split = (
             i is not None
             and all(type(t) in (T.Resize, T.CenterCrop) for t in tfl[:i])
             and all(type(t) is T.Normalize for t in tfl[i + 1 :])
+            and getattr(self.model, "channels", 3) == 3
         )
         self.pil_transforms = T.Compose(tfl[:i]) if split else None
         self.device_transforms = T.Compose(tfl[i + 1 :]) if split else None

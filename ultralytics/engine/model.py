@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
+from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
@@ -515,7 +515,7 @@ class Model(torch.nn.Module):
             not self.predictor
             or self.predictor.args.device != args.get("device", self.predictor.args.device)
             or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
-            or self.predictor.quantize != args.get("quantize")
+            or self.predictor.requested_quantize != QUANTIZE_ALIASES.get(str(args.get("quantize")).lower())
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)

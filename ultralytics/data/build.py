@@ -81,6 +81,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def __iter__(self) -> Iterator:
         """Yield one epoch of batches from the persistent iterator."""
+        if self.iterator is None:
+            self.iterator = self._get_iterator()
         for _ in range(len(self)):
             yield next(self.iterator)
 
@@ -96,8 +98,10 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def close(self):
         """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
-        if hasattr(self.iterator, "_workers"):
-            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+        iterator = getattr(self, "iterator", None)
+        if iterator is not None and hasattr(iterator, "_workers"):
+            iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+        self.iterator = None
 
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""

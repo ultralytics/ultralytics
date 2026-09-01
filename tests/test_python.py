@@ -61,6 +61,19 @@ def test_dataloader_caps_workers_to_batches():
         two_batches.close()
 
 
+def test_dataloader_close_releases_workers_and_restarts():
+    """Test closed dataloaders release workers and can be iterated again."""
+    loader = build_dataloader(range(16), batch=4, workers=2, shuffle=False, device="cpu")
+    workers = list(loader.iterator._workers)
+    try:
+        list(loader)
+        loader.close()
+        assert all(not worker.is_alive() for worker in workers)
+        assert len(list(loader)) == 4
+    finally:
+        loader.close()
+
+
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler

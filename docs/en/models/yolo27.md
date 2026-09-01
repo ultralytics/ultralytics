@@ -25,22 +25,21 @@ record at **60.5 mAP**, the strongest result in the current research line.
 
 - **Streamlined two-scale detection**
   Standard detectors predict objects on three feature maps — fine, medium, and coarse. YOLO27 N and S drop the
-  medium one and predict only on a fine map (for small objects) and a coarse map (for large objects). This removes a
-  large chunk of detection-head computation, making the models faster while keeping accuracy competitive.
+  medium one and predict only on a fine map (for small objects) and a coarse map (for large objects), with a fixed
+  scaling on the fused features keeping the two scales balanced. This removes a large chunk of detection-head
+  computation, making the models faster while training as reliably as the full three-scale design.
 
 - **Stronger small-object detection**
   The early, high-resolution feature stage is widened so it can capture more fine-grained detail. Combined with the
   surviving fine prediction map, this improves localization and regression for small objects — the hardest category
   for compact models.
 
-- **Stable two-scale training**
-  A fixed scaling on the fused features keeps the two prediction scales balanced during training, so the simplified
-  architecture trains as reliably as the full three-scale design.
-
 - **Auxiliary foreground supervision**
-  During training, an extra lightweight branch learns to tell "object" from "background" at every location, giving
-  the backbone and neck a stronger learning signal early on and gradually aligning with the final detection head.
-  The branch is used only during training and is removed for inference and export, so it costs nothing at deployment.
+  During training, an extra lightweight branch learns to tell "object" from "background" at every location. It is
+  designed to close the gap between the denser one-to-many supervision used early in training and the one-to-one
+  head that produces the final predictions, boosting the accuracy of the one-to-one head that actually runs at
+  inference. The branch is used only during training and is removed for inference and export, so it costs nothing at
+  deployment.
 
 - **Query-based detection without NMS**
   The larger models replace dense prediction with a transformer decoder that refines a fixed set of object queries
@@ -48,12 +47,6 @@ record at **60.5 mAP**, the strongest result in the current research line.
   pair this decoder with the proven YOLO26-style convolutional backbone, while YOLO27x adds an UltraViT backbone that
   uses self-attention in its deepest stage to capture global context, plus a hybrid encoder that fuses features
   across scales.
-
-- **Purpose-built training recipes**
-  The small models train with MuSGD (the hybrid Muon + SGD optimizer introduced in YOLO26) with a tunable
-  classification-head learning rate. The larger models train with a flat-then-cosine learning-rate schedule, a
-  gentler learning rate for the pretrained backbone, and an augmentation schedule that fades out mosaic-style
-  augmentations at the end of training for a cleaner final convergence.
 
 - **One simple interface**
   Both architectures are used through the same `YOLO` class. The right training, validation, prediction, and export

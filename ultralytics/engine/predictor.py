@@ -128,6 +128,7 @@ class BasePredictor:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        self.quantize = self.args.quantize  # requested precision; setup_model overwrites args with the achieved one
         self.save_dir = get_save_dir(self.args)
         if self.args.conf is None:
             self.args.conf = 0.25  # default conf=0.25

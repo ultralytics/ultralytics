@@ -515,10 +515,12 @@ class Model(torch.nn.Module):
             not self.predictor
             or self.predictor.args.device != args.get("device", self.predictor.args.device)
             or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
+            or self.predictor.quantize != args.get("quantize")
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
+            kwargs.pop("quantize", None)  # unchanged by definition here, and args holds the achieved precision
             save_keys = ("project", "name", "save_dir", "exist_ok")
             prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)
             setup_keys = ("device", "dnn", "data", "end2end", "compile", "channels_last", "quantize")

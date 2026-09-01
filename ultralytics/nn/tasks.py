@@ -1699,6 +1699,8 @@ class _SafeLoad:
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
+        import ultralytics.utils.loss as ul_loss
+        import ultralytics.utils.tal as ul_tal
         from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
@@ -1720,6 +1722,13 @@ class _SafeLoad:
         _scan(torch_nn)  # PyTorch nn modules
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
+
+        # Criteria pickled inside pre-8.4.95 checkpoints (`ema.criterion` is stripped at save since then): the plain
+        # loss classes plus the nn.Module box losses and assigners they hold.
+        for mod in (ul_loss, ul_tal):
+            allow += [
+                klass for _, klass in inspect.getmembers(mod, inspect.isclass) if klass.__module__ == mod.__name__
+            ]
 
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
         allow.append(IterableSimpleNamespace)

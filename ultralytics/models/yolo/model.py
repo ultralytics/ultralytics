@@ -84,10 +84,16 @@ class YOLO(Model):
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
+            new_instance = None
             if "RTDETR" in head:  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)
+            elif isinstance(self.model, WorldModel):  # renamed or `ul://` checkpoint the filename test missed
+                new_instance = YOLOWorld(self, verbose=verbose)
+            elif isinstance(self.model, YOLOEModel):
+                new_instance = YOLOE(self, task=task, verbose=verbose)
+            if new_instance:
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 

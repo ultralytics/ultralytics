@@ -2010,8 +2010,9 @@ class Proto26(Proto):
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
-            # Constant scale (P4/P5 -> P3) keeps the upsample static for dynamic-shape CoreML export
-            up_feat = F.interpolate(up_feat, scale_factor=2 ** (i + 1), mode="nearest")
+            # Integer stride ratio (P4/P5 -> P3, or P5 -> P3 on two-level heads) evaluates to a constant at trace
+            # time, keeping the upsample static for dynamic-shape CoreML export
+            up_feat = F.interpolate(up_feat, scale_factor=feat.shape[-2] // up_feat.shape[-2], mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training and return_semantic:

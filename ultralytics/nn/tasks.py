@@ -2104,11 +2104,13 @@ def parse_model(d, ch, verbose=True):
     reg_max = d.get("reg_max", 16)
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
+    scale_vars = {}  # optional named per-scale args, from a scales entry's 4th element (a dict)
     if scales:
         if not scale:
             scale = next(iter(scales.keys()))
             LOGGER.warning(f"no model scale passed. Assuming scale='{scale}'.")
-        depth, width, max_channels = scales[scale]
+        depth, width, max_channels = scales[scale][:3]
+        scale_vars = scales[scale][3] if len(scales[scale]) > 3 else {}
     restricted = _SafeLoad.restricted()
     if act:
         # redefine default activation, i.e. Conv.default_act = torch.nn.SiLU(). Under restricted loading, resolve the
@@ -2193,7 +2195,9 @@ def parse_model(d, ch, verbose=True):
         for j, a in enumerate(args):
             if isinstance(a, str):
                 with contextlib.suppress(ValueError):
-                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+                    args[j] = (
+                        locals()[a] if a in locals() else scale_vars[a] if a in scale_vars else ast.literal_eval(a)
+                    )
         n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
         if m in base_modules:
             c1, c2 = ch[f], args[0]
@@ -2313,7 +2317,7 @@ def yaml_model_load(path):
         path = path.with_name(new_stem + path.suffix)
 
     unified_path = re.sub(r"(\d+)([nslmx])(.+)?$", r"\1\3", str(path))  # i.e. yolov8x.yaml -> yolov8.yaml
-    yaml_file = check_yaml(unified_path, hard=False) or check_yaml(path)
+    yaml_file = check_yaml(path, hard=False) or check_yaml(unified_path)  # exact file wins over the unified config
     d = YAML.load(yaml_file)  # model dict
     d["scale"] = guess_model_scale(path)
     d["yaml_file"] = str(path)

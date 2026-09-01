@@ -56,7 +56,7 @@ class TaskAlignedAssigner(nn.Module):
         self.alpha = alpha
         self.beta = beta
         self.stride = stride if stride is not None else [8, 16, 32]
-        self.stride_val = self.stride[1] if len(self.stride) > 1 else self.stride[0]
+        self.stride_val = self.stride[0] * 2 if len(self.stride) > 1 else self.stride[0]
         self.eps = eps
         self._oom_warned = False
 

@@ -11,7 +11,7 @@ Deploying computer vision models on specialized NPU hardware requires a compatib
 ## What is DEEPX?
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx_cover.avif" alt="DEEPX NPU Inference">
+  <img width="640" src="https://cdn.ul.run/i/e9365c5acf3cdcbfc6526467c3e58fcf.avif" alt="DEEPX NPU Inference">
 </p>
 
 [DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
@@ -128,16 +128,16 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                        |
-| :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
-| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.    |
-| `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                            |
-| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                   |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
-| `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
+| Argument   | Type             | Default   | Description                                                                                                                                                                                                                |
+| :--------- | :--------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'deepx'` | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                                                                                                      |
+| `imgsz`    | `int` or `tuple` | `640`     | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width.                                                                         |
+| `quantize` | `int` or `str`   | `8`/auto  | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                                                                            |
+| `simplify` | `bool`           | `True`    | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                    |
+| `opset`    | `int`            | `None`    | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                           |
+| `data`     | `str`            | `None`    | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
+| `device`   | `str`            | `None`    | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                |
+| `optimize` | `bool`           | `False`   | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                                                                                                       |
 
 !!! tip
 
@@ -228,7 +228,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
     === "Raspberry Pi 5 + DX-M1 M.2 Module"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx-m1-npu-vs-pytorch.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/857bf50e3c613f76c2b26b28311106ce.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
         </div>
 
         | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|

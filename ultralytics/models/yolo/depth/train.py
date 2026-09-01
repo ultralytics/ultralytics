@@ -81,7 +81,7 @@ class DepthTrainer(DetectionTrainer):
         per_map_cap = max(1, 1_000_000 // sample_size)  # bound total memory to ~1M values
         values = []
         for idx in indices:
-            d = dataset._load_depth(idx)  # shared loader sanitizes non-finite GT to 0
+            d = dataset._load_depth(idx)
             if d is None:
                 continue
             v = d[d > 0].ravel()

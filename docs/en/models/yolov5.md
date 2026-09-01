@@ -10,7 +10,7 @@ keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pretraine
 
 YOLOv5u represents an advancement in [object detection](https://www.ultralytics.com/glossary/object-detection) methodologies. Originating from the foundational architecture of the [YOLOv5](https://github.com/ultralytics/yolov5) model developed by Ultralytics, YOLOv5u integrates the anchor-free, objectness-free split head, a feature previously introduced in the [YOLOv8](yolov8.md) models. This adaptation refines the model's architecture, leading to an improved accuracy-speed tradeoff in object detection tasks. Given the empirical results and its derived features, YOLOv5u provides an efficient alternative for those seeking robust solutions in both research and practical applications.
 
-![YOLOv5 object detection model architecture and performance](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov5-splash.avif)
+![YOLOv5 object detection model architecture and performance](https://cdn.ul.run/i/76b943ef63f00f48350f0afddcbd15f9.avif)
 
 !!! warning "Models trained with the original YOLOv5 repo are not compatible with the Ultralytics library"
 
@@ -39,9 +39,6 @@ The YOLOv5u models, with various pretrained weights, excel in [Object Detection]
 This table provides a detailed overview of the YOLOv5u model variants, highlighting their applicability in object detection tasks and support for various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv5u models in a wide range of object detection scenarios.
 
 ## Performance Metrics
-
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5"]'></canvas>
 

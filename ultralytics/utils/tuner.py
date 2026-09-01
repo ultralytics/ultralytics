@@ -322,6 +322,20 @@ def _resolve_ray_search_alg(search_alg, task, space, iterations):
         if requirements:
             checks.check_requirements(requirements)
 
+        if normalized == "optuna":
+            from optuna.samplers import TPESampler
+            from ray.tune.search.optuna import OptunaSearch
+
+            return (
+                OptunaSearch(
+                    sampler=TPESampler(multivariate=True, constant_liar=True),
+                    metric=TASK2METRIC[task],
+                    mode="max",
+                ),
+                space,
+                normalized,
+            )
+
         from ray.tune.search import create_searcher
 
         return create_searcher(normalized, metric=TASK2METRIC[task], mode="max"), space, normalized
@@ -336,8 +350,8 @@ def run_ray_tune(
     space: dict | None = None,
     grace_period: int = 10,
     gpu_per_trial: int | None = None,
-    iterations: int = 10,
-    search_alg=None,
+    iterations: int = 300,
+    search_alg="optuna",
     **train_args,
 ):
     """Run hyperparameter tuning using Ray Tune.
@@ -349,8 +363,9 @@ def run_ray_tune(
         gpu_per_trial (int, optional): The number of GPUs to allocate per trial.
         iterations (int, optional): The maximum number of trials to run.
         search_alg (str | ray.tune.search.Searcher | ray.tune.search.SearchAlgorithm, optional): Search algorithm to
-            use. Strings are resolved to supported Ray Tune searchers. Pre-instantiated objects are reused, and known
-            searchers with special Tune param_space requirements are normalized automatically.
+            use. Defaults to Optuna multivariate TPE. Strings are resolved to supported Ray Tune searchers,
+            pre-instantiated objects are reused, and known searchers with special Tune param_space requirements are
+            normalized automatically.
         **train_args (Any): Additional arguments to pass to the `train()` method.
 
     Returns:
@@ -373,13 +388,6 @@ def run_ray_tune(
         from ray.tune.schedulers import ASHAScheduler, HyperBandForBOHB
     except ImportError:
         raise ModuleNotFoundError('Ray Tune required but not found. To install run: pip install "ray[tune]"')
-
-    try:
-        import wandb
-
-        assert hasattr(wandb, "__version__")
-    except (ImportError, AssertionError):
-        wandb = False
 
     checks.check_version(ray.__version__, ">=2.0.0", "ray")
     default_space = {
@@ -408,7 +416,7 @@ def run_ray_tune(
         "mosaic": tune.uniform(0.0, 1.0),  # image mosaic (probability)
         "mixup": tune.uniform(0.0, 1.0),  # image mixup (probability)
         "cutmix": tune.uniform(0.0, 1.0),  # image cutmix (probability)
-        "copy_paste": tune.uniform(0.0, 1.0),  # segment copy-paste (probability)
+        "copy_paste": tune.uniform(0.0, 1.0),  # segment/obb copy-paste (object fraction)
         "close_mosaic": tune.randint(0, 11),  # close dataloader mosaic (epochs)
     }
 
@@ -438,6 +446,12 @@ def run_ray_tune(
             config["name"] = base_name
 
         results = model_to_train.train(**config)
+        if isinstance(config.get("data"), (list, tuple)):
+            metric = TASK2METRIC[task]
+            return {
+                metric: sum((metrics or {}).get(metric, 0.0) for metrics in results.values()) / len(results),
+                "epoch": config.get("epochs") or DEFAULT_CFG_DICT["epochs"],
+            }
         return results.results_dict
 
     # Get search space

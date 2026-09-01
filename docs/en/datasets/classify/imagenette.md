@@ -65,7 +65,7 @@ To train a model on the ImageNette dataset for 100 [epochs](https://www.ultralyt
 
 The ImageNette dataset contains colored images of various objects and scenes, providing a diverse dataset for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks. Here are some examples of images from the dataset:
 
-![ImageNette classification dataset sample images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenette-sample-image.avif)
+![ImageNette classification dataset sample images](https://cdn.ul.run/i/c974580dea2d1610c994357dc6c24fbf.avif)
 
 The example showcases the variety and complexity of the images in the ImageNette dataset, highlighting the importance of a diverse dataset for training robust image classification models.
 
@@ -117,7 +117,7 @@ To use these datasets, simply replace `imagenette` with `imagenette160` or `imag
         yolo classify train data=imagenette320 model=yolo26n-cls.pt epochs=100 imgsz=320
         ```
 
-These smaller versions of the dataset allow for rapid iterations during development while still providing realistic image classification tasks. You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/).
+These smaller versions of the dataset allow for rapid iterations during development while still providing realistic image classification tasks. You can also manage classification datasets and run training in the cloud with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/imagenette).
 
 ## Citations and Acknowledgments
 

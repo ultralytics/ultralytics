@@ -9,7 +9,7 @@
 # └── datasets
 #     └── depth-hypersim
 #         ├── images/{train,val}  # RGB images
-#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+#         └── depth/{train,val}   # paired 16-bit *.png depth maps (images/ -> depth/)
 
 path: depth-hypersim # dataset root dir (relative to Ultralytics settings 'datasets_dir')
 train: images/train # train images (relative to 'path') 68242 images

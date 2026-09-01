@@ -53,13 +53,10 @@ class ClassificationPredictor(BasePredictor):
     def setup_source(self, source):
         """Set up source and inference mode and classify transforms."""
         super().setup_source(source)
-        updated = (
-            self.model.model.transforms.transforms[0].size != max(self.imgsz)
-            if hasattr(self.model.model, "transforms") and hasattr(self.model.model.transforms.transforms[0], "size")
-            else False
-        )
+        transforms = getattr(self.model.model, "transforms", None)  # missing on YAML-built and legacy checkpoints
+        size = getattr(transforms.transforms[0], "size", max(self.imgsz)) if transforms is not None else None
         self.transforms = (
-            classify_transforms(self.imgsz) if updated or self.model.format != "pt" else self.model.model.transforms
+            transforms if size == max(self.imgsz) and self.model.format == "pt" else classify_transforms(self.imgsz)
         )
 
     def preprocess(self, img):

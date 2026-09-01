@@ -7,7 +7,7 @@ keywords: YOLO, YOLO26, troubleshooting, installation errors, model training, GP
 # Troubleshooting Common YOLO Issues
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-common-issues.avif" alt="YOLO common training and deployment issues">
+  <img width="800" src="https://cdn.ul.run/i/6016dbdee5493d18b34ccd8c54450d6d.avif" alt="YOLO common training and deployment issues">
 </p>
 
 This guide covers the most common problems you'll hit when working with Ultralytics YOLO26, grouped by where they occur: [installation](#installation-errors), [model training](#model-training-issues), [prediction](#issues-related-to-model-predictions), and [deployment](#deployment-challenges). Jump to the category that matches your error, or scan the [FAQ](#faq) for quick answers. Each entry states the issue and a concrete fix you can apply directly.
@@ -125,7 +125,7 @@ You can access these metrics from the training logs or by using tools like Tenso
 
 - [TensorBoard](https://www.tensorflow.org/tensorboard): TensorBoard is a popular choice for visualizing training metrics, including loss, [accuracy](https://www.ultralytics.com/glossary/accuracy), and more. You can integrate it with your YOLO26 training process.
 - [Comet](../integrations/comet.md): Comet provides an extensive toolkit for experiment tracking and comparison. It allows you to track metrics, hyperparameters, and even model weights. Integration with YOLO models is also straightforward, providing you with a complete overview of your experiment cycle.
-- [Ultralytics Platform](https://platform.ultralytics.com/): Ultralytics Platform offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
+- [Ultralytics Platform](https://platform.ultralytics.com): Ultralytics Platform offers a specialized environment for tracking YOLO models, giving you a one-stop platform to manage metrics, datasets, and even collaborate with your team. Given its tailored focus on YOLO, it offers more customized tracking options.
 
 #### How to Check if Training is Happening on the GPU
 
@@ -304,7 +304,7 @@ If the 'device' value shows 'null' in the training logs, it generally means the 
 
 ### How can I monitor and track my YOLO26 model training progress?
 
-Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com/). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
+Tracking and visualizing training progress can be efficiently managed through tools like [TensorBoard](https://www.tensorflow.org/tensorboard), [Comet](../integrations/comet.md), and [Ultralytics Platform](https://platform.ultralytics.com). These tools allow you to log and visualize metrics such as loss, [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and mAP. Implementing [early stopping](#continuous-monitoring-parameters) based on these metrics can also help achieve better training outcomes.
 
 ### What should I do if YOLO26 is not recognizing my dataset format?
 

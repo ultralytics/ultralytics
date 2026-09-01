@@ -16,6 +16,20 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 **Review gate:** for every addition, the reviewer decides whether deleting or changing existing code would have fixed the problem instead — if it would, that is a blocking finding. A missing or thin PR description is never itself a finding.
 
+## PR Review
+
+- Require a reproducible production bug or a broadly useful feature; close incorrect, niche, speculative, or AI-generated bloat.
+- Treat new arguments and PRs with more than 50 net added non-documentation code lines, counting tests and offsetting additions with deletions, as high-barrier exceptions. The PR author must strongly justify why the complete change cannot be smaller or use an existing owner, and defend how it avoids duplication and improves maintainability or scalability.
+- Delete mock tests, including monkeypatched platform or device state. Prefer focused validation of the real code path on real CI targets, adding only minimal regression coverage for a high-risk gap.
+- Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
+- Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.
+- Preserve an existing implementation when a maintainer explicitly requests it remain temporarily disabled at its owner
+  with a linked tracking issue; require the issue to document the evidence needed to re-enable it.
+- Require production-ready behavior across supported tasks, platforms, versions, and integrations affected by the owner change.
+- Remind unsigned contributors to complete the CLA. Do not close PRs opened by Ultralytics organization team members.
+- Merge only the exact cold-reviewed live head after terminal-green checks and zero unresolved review threads.
+- Fix accepted contributions on their existing PR branches; never create replacement or follow-up PRs for review repairs.
+
 NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Workflow
@@ -50,6 +64,9 @@ ruff format . && ruff check --fix .
 # Regenerate docs/en/reference/ after adding/removing/renaming public APIs (docs.yml runs this)
 python docs/build_reference.py
 
+# Prepare the complete docs tree and validate it with Zensical strict mode
+python docs/build_docs.py
+
 # Fastest end-to-end smoke test (auto-downloads yolo26n.pt, runs on 2 local asset images)
 yolo predict model=yolo26n.pt
 ```
@@ -67,14 +84,15 @@ The user-facing `Model` facade in `ultralytics/engine/model.py` (`.train()`, `.v
 - `ultralytics/nn/` — `tasks.py` builds models from YAMLs (`parse_model`), `modules/` is the layer zoo referenced by name in YAMLs, `autobackend.py` gives unified inference across all export formats.
 - `ultralytics/cfg/` — `default.yaml` defines ALL train/val/predict/export args (the `overrides` dict flows through `get_cfg` everywhere), plus model/dataset/tracker YAMLs, the `yolo` CLI `entrypoint`, and arg deprecation via `_handle_deprecation`.
 - `ultralytics/data/`, `ultralytics/utils/`, `ultralytics/solutions/`, `ultralytics/trackers/` — datasets/augmentation, shared utilities and lifecycle `callbacks/` (integration loggers, excluded from coverage), end-user apps, and BoT-SORT/ByteTrack.
+- Keep export-format behavior in its module under `ultralytics/utils/export/`. Bind format-specific code onto the head at export time, as `tf_wrapper` does for `kpts_decode` and `_get_decode_boxes`, or set an attribute the head reads; do not add new `self.format` branches to `ultralytics/nn/modules/head.py`.
 
 Adding a task or family means a Trainer/Validator/Predictor triplet wired into `task_map`, a model class in `nn/tasks.py`, and a YAML in `cfg/models/`.
 
 ## Conventions
 
 - Every Python file starts with `# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license` — Ultralytics Actions adds headers automatically; don't add or revert them manually.
-- Google-style docstrings with types in parentheses (`arg1 (int): ...`); Ruff enforces `convention = "google"` and formats docstring code blocks; the Actions bot also runs docformatter, prettier (YAML/JSON/Markdown), and codespell — expect bot commits on PR branches. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (mkdocs requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
+- Google-style docstrings with types in parentheses (`arg1 (int): ...`); Ruff enforces `convention = "google"` and formats docstring code blocks; the Actions bot also runs docformatter, prettier (YAML/JSON/Markdown), and codespell — expect bot commits on PR branches. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (the documentation dialect requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
 - Tests hit the live network: weights (e.g. `yolo26n.pt`) and assets auto-download from GitHub releases; shared constants (`MODEL`, `CFG`, `SOURCE`) live in `tests/__init__.py`, with `MODEL` deliberately under a "path with spaces" directory.
 - Releases: bump `__version__` in `ultralytics/__init__.py`; on push to main, `publish.yml` detects the increment, then tags, creates the GitHub release, and publishes to PyPI (gated to the ultralytics repo and glenn-jocher).
-- Docs: docs.ultralytics.com is published from a separate portal repo, so relative `.md` cross-file links are the correct convention in `docs/en/`.
+- Docs: `docs/build_docs.py` prepares macros, references, and comparison pages before running `zensical build --strict`. Its local output intentionally omits production-owned site chrome. Production is rendered by the centralized publisher, so relative `.md` cross-file links are the correct convention in `docs/en/`.
 - Tasks and modes are listed in one canonical order everywhere — tables, navs, prose, code, and the Ultralytics Platform: `detect, segment, semantic, depth, classify, pose, obb` and `train, val, predict, export, track, benchmark`. `TASKS` and `MODES` in `ultralytics/cfg/__init__.py` are ordered tuples that define it; never introduce a different ordering.

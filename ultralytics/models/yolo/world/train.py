@@ -86,7 +86,9 @@ class WorldTrainer(DetectionTrainer):
         )
         if weights:
             model.load(weights)
-        self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)
+        # the caller's Model shares this dict, so a bare append outlives the trainer and stacks on every later one
+        if on_pretrain_routine_end not in self.callbacks["on_pretrain_routine_end"]:
+            self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)
 
         return model
 

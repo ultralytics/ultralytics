@@ -6,7 +6,7 @@ keywords: YOLO26, OpenVINO, model export, Intel, AI inference, CPU speedup, GPU 
 
 # Intel OpenVINO Export
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ecosystem.avif" alt="OpenVINO Intel AI inference toolkit">
+<img width="1024" src="https://cdn.ul.run/i/c3120a6b5d08e902d20cc1447249c1ac.avif" alt="OpenVINO Intel AI inference toolkit">
 
 In this guide, we cover exporting YOLO26 models to the [OpenVINO](https://docs.openvino.ai/) format, which can provide up to 3x [CPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/cpu-device.html) speedup, as well as accelerating YOLO inference on Intel [GPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/gpu-device.html) and [NPU](https://docs.openvino.ai/2025/openvino-workflow/running-inference/inference-devices-and-modes/npu-device.html) hardware.
 
@@ -14,7 +14,7 @@ OpenVINO, short for Open Visual Inference & [Neural Network](https://www.ultraly
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/AvFh-oTGDaw"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/rMllxg8ZLs8"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -104,16 +104,16 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
 
 ## Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                      |
-| ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'openvino'`   | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `quantize` | `int` or `str`   | `None`         | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
-| `dynamic`  | `bool`           | `False`        | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
-| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
-| `batch`    | `int`            | `1`            | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
-| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
+| Argument   | Type                      | Default      | Description                                                                                                                                                                                                                                                      |
+| ---------- | ------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'openvino'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`    | `int` or `tuple`          | `640`        | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `quantize` | `int` or `str`            | `None`       | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
+| `dynamic`  | `bool`                    | `False`      | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
+| `nms`      | `bool`                    | `False`      | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
+| `batch`    | `int`                     | `1`          | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
+| `data`     | `str`                     | `None`       | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -219,7 +219,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultraX7-358H-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/77186d2ff07d47c8d926468ebdecf8e1.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -250,7 +250,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Panther Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultraX7-358H-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/0e59bd9390255fd2bca31c34193b1442.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -281,7 +281,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultraX7-358H-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/755a0515d5283c2e1227fe177d2d1981.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -316,7 +316,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/49405e2a81ee5cedcb04c0cb1751bed9.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -347,7 +347,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Lunar Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/070db9675dfee5a2662aa09f0ba42c33.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -378,7 +378,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® AI Boost NPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-258V-npu.avif" alt="Intel Core Ultra NPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/ed172cc0d4eff0c333c3cdd584600c3d.avif" alt="Intel Core Ultra NPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -413,7 +413,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Integrated Intel® Arc™ GPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-155H-gpu.avif" alt="Intel Core Ultra GPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/532d3bb375fcadaab3e1d13526f4638e.avif" alt="Intel Core Ultra GPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"
@@ -444,7 +444,7 @@ Benchmarks below run on Intel® Core™ Ultra™ X7 358H, Intel® Core™ Ultra�
     === "Intel® Meteor Lake CPU"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/openvino-ultra7-155H-cpu.avif" alt="Intel Core Ultra CPU benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/9fc9ef5ec0d44f4405819edff62c1672.avif" alt="Intel Core Ultra CPU benchmarks">
         </div>
 
         ??? abstract "Detailed Benchmark Results"

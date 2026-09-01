@@ -119,8 +119,7 @@ def onnx2saved_model(
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
-        ),
-        cmds="--extra-index-url https://pypi.ngc.nvidia.com",  # onnx_graphsurgeon only on NVIDIA
+        )
     )
 
     LOGGER.info(f"\n{prefix} starting export with tensorflow {tf.__version__}...")

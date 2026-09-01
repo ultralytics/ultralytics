@@ -17,7 +17,7 @@
 
 namespace yolo {
 
-// Ultralytics color palette (https://docs.ultralytics.com/), returned as BGR for OpenCV.
+// Ultralytics color palette (https://docs.ultralytics.com), returned as BGR for OpenCV.
 // Indexed by class id so each class always gets the same, distinct color. Mirrors
 // ultralytics.utils.plotting.Colors (hex palette), converted to BGR.
 inline cv::Scalar Color(int class_id) {

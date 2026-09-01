@@ -20,15 +20,6 @@ use_directory_urls: true # use directory-style URLs instead of file-based paths
 # Theme customization
 theme:
   name: material
-  language: en
-  custom_dir: docs/overrides/
-  logo: https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Reverse.svg
-  favicon: https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/logo/favicon-yolo.png
-  icon:
-    repo: fontawesome/brands/github
-  # font:  # disabled for faster page load times
-  #  text: Helvetica
-  #  code: Roboto Mono
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -48,56 +39,8 @@ theme:
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-  features:
-    - content.action.edit
-    - content.code.annotate
-    - content.code.copy
-    - content.tooltips
-    - toc.follow
-    - navigation.top
-    - navigation.tabs
-    - navigation.tabs.sticky
-    - navigation.prune
-    - navigation.footer
-    - navigation.tracking
-    - navigation.instant
-    - navigation.instant.progress
-    - announce.dismiss
-    - navigation.indexes
-    - navigation.sections # groups top-level sections instead of expanding all
-    - content.tabs.link # all content tabs with the same label change simultaneously
-    # - search.highlight
-    # - search.share
-    # - search.suggest
 
-# Customization
-copyright: <a href="https://www.ultralytics.com/" target="_blank">© 2026 Ultralytics Inc.</a> All rights reserved.
-extra: # version:
-  homepage: https://www.ultralytics.com/
-  #   provider: mike # version drop-down menu
-  robots: robots.txt
-  analytics:
-    provider: google
-    property: G-2M5EHKC0BH
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/ultralytics
-    - icon: fontawesome/brands/linkedin
-      link: https://www.linkedin.com/company/ultralytics/
-    - icon: fontawesome/brands/x-twitter
-      link: https://x.com/ultralytics
-    - icon: fontawesome/brands/youtube
-      link: https://youtube.com/ultralytics?sub_confirmation=1
-    - icon: fontawesome/brands/docker
-      link: https://hub.docker.com/r/ultralytics/ultralytics/
-    - icon: fontawesome/brands/python
-      link: https://pypi.org/project/ultralytics/
-    - icon: fontawesome/brands/discord
-      link: https://discord.com/invite/ultralytics
-    - icon: fontawesome/brands/reddit
-      link: https://reddit.com/r/ultralytics
-    - icon: fontawesome/brands/weixin
-      link: https://weixin.qq.com/r/mp/LxckPDfEgWr_rXNf90I9
+extra:
   alternate:
     - name: 🇬🇧 English
       link: /
@@ -138,16 +81,6 @@ extra: # version:
     - name: 🇸🇦 العربية
       link: /ar/
       lang: ar
-
-extra_css:
-  - stylesheets/style.css
-
-extra_javascript:
-  - https://cdn.jsdelivr.net/gh/ultralytics/llm@v0.2.8/js/chat.min.js
-  - https://unpkg.com/tablesort@5.7.0/dist/tablesort.min.js
-  - javascript/extra.js
-  - javascript/giscus.js
-  - javascript/tablesort.js
 
 markdown_extensions:
   - admonition
@@ -210,7 +143,7 @@ nav:
           - Advanced Customization: usage/engine.md
       - YOLO26 🚀: models/yolo26.md
       - Languages:
-          - 🇬🇧&nbsp English: https://ultralytics.com/docs/
+          - 🇬🇧&nbsp English: https://ultralytics.com/docs
           - 🇨🇳&nbsp 简体中文: https://docs.ultralytics.com/zh
           - 🇰🇷&nbsp 한국어: https://docs.ultralytics.com/ko
           - 🇯🇵&nbsp 日本語: https://docs.ultralytics.com/ja
@@ -242,26 +175,27 @@ nav:
       - OBB: tasks/obb.md
   - Models:
       - models/index.md
-      - YOLOv3: models/yolov3.md
-      - YOLOv4: models/yolov4.md
-      - YOLOv5: models/yolov5.md
-      - YOLOv6: models/yolov6.md
-      - YOLOv7: models/yolov7.md
-      - YOLOv8: models/yolov8.md
-      - YOLOv9: models/yolov9.md
-      - YOLOv10: models/yolov10.md
-      - YOLO11: models/yolo11.md
-      - YOLO12: models/yolo12.md
       - YOLO26 🚀: models/yolo26.md
-      - SAM (Segment Anything Model): models/sam.md
-      - SAM 2 (Segment Anything Model 2): models/sam-2.md
+      - YOLO12: models/yolo12.md
+      - YOLO11: models/yolo11.md
+      - YOLOv10: models/yolov10.md
+      - YOLOv9: models/yolov9.md
+      - YOLOv8: models/yolov8.md
+      - YOLOv7: models/yolov7.md
+      - YOLOv6: models/yolov6.md
+      - YOLOv5: models/yolov5.md
+      - YOLOv4: models/yolov4.md
+      - YOLOv3: models/yolov3.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md
+      - SAM 2 (Segment Anything Model 2): models/sam-2.md
+      - SAM (Segment Anything Model): models/sam.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
       - FastSAM (Fast Segment Anything Model): models/fast-sam.md
       - YOLO-NAS (Neural Architecture Search): models/yolo-nas.md
       - RT-DETR (Realtime Detection Transformer): models/rtdetr.md
       - YOLO-World: models/yolo-world.md
       - YOLOE (Real-Time Seeing Anything): models/yoloe.md
+      - Ultralytics LLM Interface: models/llm.md
   - Compare:
       - compare/index.md
       - YOLO26:
@@ -617,6 +551,7 @@ nav:
           - Clearml Logging: yolov5/tutorials/clearml-logging-integration.md
   - Integrations:
       - Integrations: integrations/index.md
+      - Agent Skills: integrations/agent-skills.md
       - Albumentations: integrations/albumentations.md
       - Amazon SageMaker: integrations/amazon-sagemaker.md
       - Ambarella: integrations/ambarella.md
@@ -640,7 +575,6 @@ nav:
       - MLflow: integrations/mlflow.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
-      - Neptune: integrations/neptune.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
@@ -662,6 +596,7 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
+      - YAML2ModelGraph: integrations/yaml2modelgraph.md
   - Platform:
       - Platform: platform/index.md
       - Quickstart: platform/quickstart.md
@@ -735,6 +670,7 @@ nav:
               - predict: reference/models/fastsam/predict.md
               - utils: reference/models/fastsam/utils.md
               - val: reference/models/fastsam/val.md
+          - llm: reference/models/llm.md
           - nas:
               - model: reference/models/nas/model.md
               - predict: reference/models/nas/predict.md
@@ -819,6 +755,7 @@ nav:
               - ascend: reference/nn/backends/ascend.md
               - axelera: reference/nn/backends/axelera.md
               - base: reference/nn/backends/base.md
+              - coreai: reference/nn/backends/coreai.md
               - coreml: reference/nn/backends/coreml.md
               - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
@@ -893,7 +830,6 @@ nav:
               - comet: reference/utils/callbacks/comet.md
               - dvc: reference/utils/callbacks/dvc.md
               - mlflow: reference/utils/callbacks/mlflow.md
-              - neptune: reference/utils/callbacks/neptune.md
               - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
@@ -906,6 +842,7 @@ nav:
           - export:
               - ascend: reference/utils/export/ascend.md
               - axelera: reference/utils/export/axelera.md
+              - coreai: reference/utils/export/coreai.md
               - coreml: reference/utils/export/coreml.md
               - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md
@@ -949,40 +886,3 @@ nav:
       - EHS Policy: help/environmental-health-safety.md
       - Security Policy: help/security.md
       - Privacy Policy: help/privacy.md
-
-# Plugins --------------------------------------------------------------------------------------------------------------
-plugins:
-  - search:
-      enabled: false
-  # Macros are handled by minijinja in build_docs.py
-  #  - macros:
-  #      include_yaml:
-  #        - ultralytics/cfg/default.yaml
-  # Docstrings are rendered ahead of time via docs/build_reference.py (no mkdocstrings dependency)
-  #  - mkdocstrings:
-  #      enabled: true
-  #      default_handler: python
-  #      handlers:
-  #        python:
-  #          options:
-  #            docstring_options:
-  #              ignore_init_summary: true
-  #            merge_init_into_class: true
-  #            docstring_style: google
-  #            show_root_heading: true
-  #            show_source: true
-  #            separate_signature: true
-  #            line_length: 80
-  #            show_signature_annotations: true
-  #            show_symbol_type_heading: true # insiders
-  #            show_symbol_type_toc: true # insiders
-  #            show_inheritance_diagram: true # insiders
-  - ultralytics:
-      add_desc: False
-      add_image: True
-      add_authors: True
-      add_json_ld: True
-      add_share_buttons: True
-      add_css: False
-      default_image: https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png
-      default_author: glenn.jocher@ultralytics.com

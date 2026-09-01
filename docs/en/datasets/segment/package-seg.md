@@ -13,7 +13,7 @@ keywords: Package Segmentation Dataset, Ultralytics, computer vision, package id
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-train-ultralytics-yolo-on-package-segmentation-dataset.ipynb" target="_blank"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Package Segmentation Dataset In Colab"></a>
 
-The [Ultralytics](https://www.ultralytics.com/) Package Segmentation Dataset is a curated collection of 2,197 annotated images of packages for training [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) models on a single `package` class. Built for logistics and warehouse-automation use cases like package identification, sorting, and handling, it pairs directly with [Ultralytics YOLO](../../models/yolo26.md) for real-time package analysis in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) pipelines. Explore more segmentation datasets on our [datasets overview page](index.md).
+The [Ultralytics](https://www.ultralytics.com) Package Segmentation Dataset is a curated collection of 2,197 annotated images of packages for training [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) models on a single `package` class. Built for logistics and warehouse-automation use cases like package identification, sorting, and handling, it pairs directly with [Ultralytics YOLO](../../models/yolo26.md) for real-time package analysis in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) pipelines. Explore more segmentation datasets on our [datasets overview page](index.md).
 
 <p align="center">
   <br>
@@ -48,7 +48,7 @@ In modern warehouses, [vision AI solutions](https://www.ultralytics.com/solution
 
 Package segmentation models can identify damaged packages by analyzing their shape and appearance. By detecting irregularities or deformations in package outlines, these models help ensure that only intact packages proceed through the supply chain, reducing customer complaints and return rates. This is a key aspect of [quality control in manufacturing](https://www.ultralytics.com/blog/improving-manufacturing-with-computer-vision) and is vital for maintaining product integrity.
 
-The complete Package Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/).
+The complete Package Segmentation Dataset can also be browsed and managed on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/package-seg).
 
 ## Dataset YAML
 
@@ -104,7 +104,7 @@ To train an [Ultralytics YOLO26n](../../models/yolo26.md) model on the Package S
 
 Below is an example from the Package Segmentation Dataset with its segmentation masks overlaid, outlining detected packages:
 
-![Package segmentation dataset sample for logistics](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/package-seg-sample.avif)
+![Package segmentation dataset sample for logistics](https://cdn.ul.run/i/0f69b252d02b4774b1a4caccc60602ef.avif)
 
 The dataset spans varied locations, environments, and package densities, so models trained on it see the range of real-world logistics scenes they need to generalize across. See the [segmentation task](../../tasks/segment.md) page for related workflows.
 

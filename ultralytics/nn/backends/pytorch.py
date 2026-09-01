@@ -9,6 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
+from ultralytics.utils.torch_utils import unwrap_model
 
 from .base import BaseBackend
 
@@ -71,6 +72,7 @@ class PyTorchBackend(BaseBackend):
 
         self.model = model
         self.end2end = getattr(model, "end2end", False)
+        self.base_model = isinstance(unwrap_model(model), BaseModel)
 
     def forward(
         self, im: torch.Tensor, augment: bool = False, embed: list | None = None, **kwargs: Any
@@ -86,6 +88,8 @@ class PyTorchBackend(BaseBackend):
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
+        if not self.base_model:  # a foreign nn.Module defines no `augment`/`embed` contract to honor
+            return self.model(im, **kwargs)
         return self.model(im, augment=augment, embed=embed, **kwargs)
 
 
@@ -112,17 +116,12 @@ class TorchScriptBackend(BaseBackend):
         Args:
             weight (str): Path to the .torchscript model file.
         """
-        import json
-
         import torchvision  # noqa - required for TorchScript model deserialization
 
         LOGGER.info(f"Loading {weight} for TorchScript inference...")
-        extra_files = {"config.txt": ""}
-        self.model = torch.jit.load(weight, _extra_files=extra_files, map_location=self.device)
+        self.model = torch.jit.load(weight, map_location=self.device)
         self.model.half() if self.fp16 else self.model.float()
-
-        if extra_files["config.txt"]:
-            self.apply_metadata(json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items())))
+        self.apply_metadata(self.read_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
         """Run TorchScript inference.

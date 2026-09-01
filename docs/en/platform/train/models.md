@@ -79,16 +79,28 @@ Each model page has the following tabs:
 | **Export**   | Format conversion with GPU selection          |
 | **Deploy**   | Endpoint creation and management              |
 
+### Model Header
+
+Above the tabs, the header shows the model color (editable), the name (click to rename), the task badge, the checkpoint's `ultralytics` version, and a [license](projects.md#create-project) selector. Its actions are **Clone Model** (on completed models with weights that you don't already own), **Download**, **Star**, **Share** (public models), and a **More actions** menu holding **Information**, **Refresh**, and **Delete Model**.
+
+Directly below, one card per task metric shows the final value over a sparkline of its training progression — click any card to jump to the charts — alongside a card linking the dataset the model was trained on.
+
+| Task                | Summary metrics                                     |
+| ------------------- | --------------------------------------------------- |
+| **Detect**, **OBB** | mAP50, mAP50-95, precision, recall                  |
+| **Segment**         | The same four metrics, mask (M) variants            |
+| **Pose**            | The same four metrics, keypoint (P) variants        |
+| **Classify**        | Top-1 accuracy, Top-5 accuracy                      |
+| **Semantic**        | mIoU, pixel accuracy                                |
+| **Depth**           | δ1, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
+
 ### Overview Tab
 
-Displays model metadata and key metrics:
+The **Run Information** card records how the run executed: status, start time, runtime, compute cost with the GPU and hourly rate, the `ultralytics` version, host details (hostname, environment, OS, Python, CPU, GPU), the parent model, the pinned dataset version, Git repository, branch and commit when the run reported them, and a reproducible `yolo train` command you can copy.
 
-- Model name (editable), status badge, task type
-- Final metrics (mAP50, mAP50-95, precision, recall)
-- Metric sparkline charts showing training progression
-- Training arguments (epochs, batch size, image size, etc.)
-- Dataset link (when trained with a Platform dataset)
-- Download button for model weights
+While a run is active the card shows live progress — epoch counter, progress bar, elapsed time, ETA, accruing cost — and a **Cancel** button. If a run fails, an error banner replaces it with the captured error and **View full console logs** and **Retry Training** actions.
+
+Below it, **Training Configuration** lists every hyperparameter used and **Performance Metrics** lists the final evaluation results. Both tables are searchable and have an **Export data** menu (Copy JSON, Download CSV, Download JSON).
 
 ![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/5e7fa4c46cadf75c87934a8734838f2c.avif)<!-- screenshot -->
 
@@ -98,14 +110,15 @@ The Train tab has three subtabs:
 
 #### Charts Subtab
 
-Interactive training metric charts showing loss curves and performance metrics over epochs:
+Interactive metric charts over epochs, split into **Training** and **Validation** views when the run produced validation artifacts. The chart groups follow the metrics the run reported:
 
-| Chart Group         | Metrics                                        |
-| ------------------- | ---------------------------------------------- |
-| **Metrics**         | mAP50, mAP50-95, precision, recall             |
-| **Training Loss**   | train/box_loss, train/cls_loss, train/dfl_loss |
-| **Validation Loss** | val/box_loss, val/cls_loss, val/dfl_loss       |
-| **Learning Rate**   | lr/pg0, lr/pg1, lr/pg2                         |
+| Chart Group       | Charts                                                                           |
+| ----------------- | -------------------------------------------------------------------------------- |
+| **Metrics**       | The task metrics listed under [Model Header](#model-header)                      |
+| **Loss**          | One chart per loss component (box, cls, …), training solid and validation dashed |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                           |
+
+Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
 ![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/640ad65e65f173c9088f9637dd98da54.avif)<!-- screenshot -->
 
@@ -113,25 +126,26 @@ Interactive training metric charts showing loss curves and performance metrics o
 
 Live console output from the training process:
 
-- Real-time log streaming during training
+- Real-time log streaming during training, retaining the last 2000 lines
 - Epoch progress bars and validation results
-- Error detection with highlighted error banners
-- ANSI color support for formatted output
+- Fatal-error detection that ends the run and surfaces the message in a banner
+- ANSI color support, an optional timestamp column, and one-click copy as plain text
 
 ![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/45125323b2fa8bb95dfc4e067f5c01f2.avif)<!-- screenshot -->
 
 #### System Subtab
 
-GPU and system metrics during training:
+A host card summarizing the training instance (hostname, CPU, GPU, RAM and disk totals, and when it was last seen), followed by per-epoch charts:
 
-| Metric         | Description                |
-| -------------- | -------------------------- |
-| **GPU Util**   | GPU utilization percentage |
-| **GPU Memory** | GPU memory usage           |
-| **GPU Temp**   | GPU temperature            |
-| **CPU Usage**  | CPU utilization            |
-| **RAM**        | System memory usage        |
-| **Disk**       | Disk usage                 |
+| Chart                        | Description                            |
+| ---------------------------- | -------------------------------------- |
+| **CPU & RAM Usage**          | CPU and system memory utilization      |
+| **GPU Utilization & Memory** | GPU compute and GPU memory utilization |
+| **GPU Temperature**          | Average temperature across GPUs        |
+| **Network I/O**              | Download and upload throughput         |
+| **Disk I/O**                 | Read and write throughput              |
+
+GPU, network, and disk charts appear only when the run reported those counters.
 
 ![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/6e614bf9749f5eba38c384858c05ca0a.avif)<!-- screenshot -->
 
@@ -158,7 +172,7 @@ Create and manage dedicated inference endpoints. See [Deployments](../deploy/ind
 
 ## Validation Plots
 
-After training completes, view detailed validation analysis:
+After training completes, the **Validation** view inside the Charts subtab shows a detailed analysis of the final epoch.
 
 ### Confusion Matrix
 
@@ -168,7 +182,7 @@ Interactive heatmap showing prediction accuracy per class:
 
 ### PR/F1 Curves
 
-When the training run provides them, the **Validation** subtab also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
+When the training run provides them, the **Validation** view also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
 ![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/78226b971bd48bed8f043a377a37c6e9.avif)<!-- screenshot -->
 
@@ -178,6 +192,20 @@ When the training run provides them, the **Validation** subtab also displays per
 | **F1-Confidence**        | F1 score at different confidence levels  |
 | **Precision-Confidence** | Precision at different confidence levels |
 | **Recall-Confidence**    | Recall at different confidence levels    |
+
+### Per-Image Diagnostics
+
+Detection models trained with a [saved dataset version](cloud-training.md#save-dataset-version-optional) also get per-image validation analysis, which points at the data behind a disappointing score:
+
+- **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
+- **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
+- **Classes associated with failures**, ranking which classes appear most often in the weakest images
+
+!!! note "Requirements"
+
+    Per-image diagnostics need a signed-in viewer, a completed [detection](../../tasks/detect.md) run, and a linked
+    dataset version — the immutable snapshot is what makes each image's ground truth recoverable. Runs that did not
+    record per-image metrics show a short notice instead.
 
 ## Export Model
 
@@ -231,7 +259,7 @@ The Platform supports export to [20 deployment formats](../../modes/export.md#ex
 
 ### NVIDIA Jetson TensorRT Targets
 
-Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. As of July 2026, the Jetson export workers use JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11 inside the export container.
+Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. As of July 2026, Jetson TensorRT exports are built with JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11.
 
 | Target selection           | API `gpuType`          | Memory | GPU architecture   | Python | CUDA | TensorRT   | Measured YOLO26n FP16 export | Physical build/load validation                |
 | -------------------------- | ---------------------- | -----: | ------------------ | ------ | ---- | ---------- | ---------------------------: | --------------------------------------------- |
@@ -258,8 +286,8 @@ When exporting to RKNN format, select your target Rockchip device:
 | ------- | -------------------- |
 | RK3588  | High-end edge SoC    |
 | RK3576  | Mid-range edge SoC   |
-| RK3568  | Mid-range edge SoC   |
 | RK3566  | Mid-range edge SoC   |
+| RK3568  | Mid-range edge SoC   |
 | RK3562  | Entry-level edge SoC |
 | RV1103  | Vision processor     |
 | RV1106  | Vision processor     |
@@ -287,7 +315,7 @@ Export jobs progress through the following statuses:
 
 ### Bulk Export Actions
 
-- **Export All**: Click `Export All` to start export jobs for all CPU-based formats with default settings.
+- **Export All**: Click `Export All` to start export jobs for all CPU-based formats with default settings. Formats that need a GPU selection, are unavailable for this model, or already have an export are skipped and listed for you.
 - **Delete All Exports**: Click `Delete All` to remove all exports for the model.
 
 ### Format Restrictions
@@ -296,18 +324,19 @@ Some export formats have architecture or task restrictions:
 
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                                                                                                                                  |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 or W8A16                                                                                                                              |
 | **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
-| **Hailo**    | INT8 HEF output; select the target Hailo architecture                                                                                                                                  |
+| **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
 | **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
 
 !!! note "Additional Export Rules"
 
-    - Classification exports do not include NMS.
+    - Classification, semantic segmentation, and depth exports do not include NMS, and MNN embeds NMS only for detect and pose.
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
+    - Only one export per format can run at a time for a given model.
 
 ## Clone Model
 
@@ -315,10 +344,11 @@ Clone a model to a different project:
 
 1. Open the model page
 2. Click **Clone Model**
-3. Select the destination project
-4. Click **Clone Model**
+3. Select the destination project, or choose **New Project** to create one inline
+4. Optionally give the clone a different name
+5. Click **Clone Model**
 
-The model and its weights are copied to the target project.
+The model and its weights are copied to the target project. **Clone Model** appears on completed models with weights that you do not already own.
 
 ## Download Model
 
@@ -349,6 +379,15 @@ When training with Platform datasets using the [`ul://` URI format](../data/data
 
     The `ul://` scheme resolves to your Platform dataset. The trained model's Overview tab will show a link back to this dataset (see [Using Platform Datasets](../api/index.md#using-platform-datasets)).
 
+## Custom Metadata
+
+Open **More actions** and select **Information** to review two sections:
+
+- **Ultralytics Metadata**: Read-only Platform details such as the model ID, project, source dataset, task, status, and timestamps
+- **Custom Metadata**: Your own JSON object for evaluation context, release tracking, governance, or other model-specific data
+
+Custom metadata is separate from training-owned model information, environment details, and training arguments. Workspace viewers can inspect it, while members with edit access can replace the object. The serialized metadata object is limited to 500,000 characters, and each top-level key is limited to 128 characters. Save an empty object (`{}`) to clear custom metadata.
+
 ## Visibility Settings
 
 Control who can see your model:
@@ -358,13 +397,13 @@ Control who can see your model:
 | **Private** | Only you and workspace members can access |
 | **Public**  | Anyone can view on Explore page           |
 
-To change visibility, click the visibility badge (e.g., `private` or `public`) in the page header. Visibility is set at the project level, so this controls all models in the project. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
+Visibility is set at the project level, so it controls every model in the project. To change it, click the visibility badge (`private` or `public`) beside the project name in the breadcrumb at the top of the page. Switching to private takes effect immediately. Switching to public shows a confirmation dialog before applying.
 
 ## Delete Model
 
 Remove a model you no longer need:
 
-1. Click the **Delete model** trash icon in the model header
+1. Open the **More actions** menu in the model header and select **Delete Model**
 2. Confirm deletion
 
 !!! note "Trash and Restore"
@@ -389,7 +428,7 @@ Ultralytics Platform fully supports all YOLO architectures with dedicated projec
 - [**YOLOv8**](../../models/yolov8.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov8](https://platform.ultralytics.com/ultralytics/yolov8)
 - [**YOLOv5**](../../models/yolov5.md): n, s, m, l, x variants — [platform.ultralytics.com/ultralytics/yolov5](https://platform.ultralytics.com/ultralytics/yolov5)
 
-YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect, segment, and classify.
+YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../tasks/segment.md), [semantic](../../tasks/semantic.md), [depth](../../tasks/depth.md), [classify](../../tasks/classify.md), [pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md). YOLO11 and YOLOv8 support the same set except semantic segmentation and depth, while YOLOv5 supports detect only.
 
 ### Can I download my trained model?
 

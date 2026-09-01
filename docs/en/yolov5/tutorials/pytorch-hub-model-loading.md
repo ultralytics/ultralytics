@@ -60,7 +60,7 @@ model = torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 # Images
 for f in "zidane.jpg", "bus.jpg":
-    torch.hub.download_url_to_file("https://ultralytics.com/images/" + f, f)  # download 2 images
+    torch.hub.download_url_to_file(f"https://ultralytics.com/images/{f}", f)  # download 2 images
 im1 = Image.open("zidane.jpg")  # PIL image
 im2 = cv2.imread("bus.jpg")[..., ::-1]  # OpenCV image (BGR to RGB)
 
@@ -80,8 +80,8 @@ results.pandas().xyxy[0]  # im1 predictions (pandas)
 # 3  986.00  304.00  1028.0  420.0    0.286865     27     tie
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-inference-results-zidane.avif" width="500" alt="YOLO inference results on zidane.jpg">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-inference-results-on-bus.avif" width="300" alt="YOLO inference results on bus.jpg">
+<img src="https://cdn.ul.run/i/2c629c77c52cd4aa1641eb7435b17b74.avif" width="500" alt="YOLO inference results on zidane.jpg">
+<img src="https://cdn.ul.run/i/547184dd9a2ca246746a5cbb799157f0.avif" width="300" alt="YOLO inference results on bus.jpg">
 
 For all inference options see YOLOv5 `AutoShape()` forward [method](https://github.com/ultralytics/yolov5/blob/30e4c4f09297b67afedf8b2bcd851833ddc9dead/models/common.py#L243-L252).
 
@@ -363,7 +363,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", path="yolov5s_paddle_mode
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

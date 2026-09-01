@@ -22,10 +22,10 @@ Streamlit makes it simple to build and deploy interactive web applications. Comb
   <strong>Watch:</strong> How to Build a Live Inference App with Ultralytics YOLO26 & Streamlit | Detection & Segmentation 🚀
 </p>
 
-|                                                                 Aquaculture                                                                 |                                                           Animal Husbandry                                                            |
-| :-----------------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
-| ![Fish Detection using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fish-detection-ultralytics-yolov8.avif) | ![Animals Detection using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/animals-detection-yolov8.avif) |
-|                                                   Fish Detection using Ultralytics YOLO26                                                   |                                              Animals Detection using Ultralytics YOLO26                                               |
+|                                              Aquaculture                                               |                                             Animal Husbandry                                              |
+| :----------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------: |
+| ![Fish Detection using Ultralytics YOLO26](https://cdn.ul.run/i/bc7f3d6a3540c0b6e4b7fbd559d4cd54.avif) | ![Animals Detection using Ultralytics YOLO26](https://cdn.ul.run/i/88f6470efef82fd4195c3a0507e2d739.avif) |
+|                                Fish Detection using Ultralytics YOLO26                                 |                                Animals Detection using Ultralytics YOLO26                                 |
 
 ## Advantages of Live Inference
 

@@ -10,7 +10,7 @@ keywords: YOLO26, RKNN, model export, Ultralytics, Rockchip, INT8 quantization, 
 When deploying computer vision models on embedded devices, especially those powered by Rockchip processors, having a compatible model format is essential. Exporting [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) models to RKNN format ensures optimized performance and compatibility with Rockchip's hardware. This guide will walk you through converting your YOLO26 models to RKNN format, including floating-point and INT8 quantized exports, enabling efficient deployment on Rockchip platforms.
 
 <p align="center">
-  <img width="50%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/rockchip-rknn-overview.avif" alt="Rockchip RKNN export for NPU deployment">
+  <img width="50%" src="https://cdn.ul.run/i/3c3fcbb470dabcabbe1b5c926fee152a.avif" alt="Rockchip RKNN export for NPU deployment">
 </p>
 
 !!! note
@@ -71,6 +71,10 @@ To install the required packages, run:
 For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
 ### Usage
+
+!!! note
+
+    FP16 export is supported for all tasks. INT8 export is currently only supported for detection models, with more task support coming in the future.
 
 The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation run on Rockchip NPU hardware. Export your model, then load the exported model to run inference or validate its accuracy. By default, RKNN export uses the floating-point build path (`quantize=16`) for FP16-capable Rockchip targets. Use `quantize=8` to build an INT8-quantized RKNN model with calibration data. RKNN export does not expose a separate FP32 mode; the FP16 default does not request FP32.
 
@@ -145,18 +149,18 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
 ### Export Arguments
 
-| Argument   | Type             | Default    | Description                                                                                                                                                                                                                                                 |
-| ---------- | ---------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                                                                                                         |
-| `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                           |
-| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                     |
-| `name`     | `str`            | `'rk3588'` | Specifies the Rockchip target. `rk3588`, `rk3576`, `rk3566`, `rk3568`, `rk3562`, `rk2118`, and `rv1126b` support FP16 (`quantize=16` or unset) and INT8 (`quantize=8`); `rv1103`, `rv1106`, `rv1103b`, and `rv1106b` are INT8-only (`quantize=8` or unset). |
-| `quantize` | `int` or `str`   | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags.                             |
-| `simplify` | `bool`           | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                     |
-| `opset`    | `int`            | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                           |
-| `data`     | `str`            | `None`     | Dataset YAML used for INT8 calibration. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                                                                                               |
-| `fraction` | `float`          | `1.0`      | Fraction of calibration images to use for INT8 quantization.                                                                                                                                                                                                |
-| `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                   |
+| Argument   | Type                      | Default    | Description                                                                                                                                                                                                                                                 |
+| ---------- | ------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'rknn'`   | Target format for the exported model, defining compatibility with Rockchip deployment environments.                                                                                                                                                         |
+| `imgsz`    | `int` or `tuple`          | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                           |
+| `batch`    | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                     |
+| `name`     | `str`                     | `'rk3588'` | Specifies the Rockchip target. `rk3588`, `rk3576`, `rk3566`, `rk3568`, `rk3562`, `rk2118`, and `rv1126b` support FP16 (`quantize=16` or unset) and INT8 (`quantize=8`); `rv1103`, `rv1106`, `rv1103b`, and `rv1106b` are INT8-only (`quantize=8` or unset). |
+| `quantize` | `int` or `str`            | `None`     | Quantization precision: unset or `16` builds FP16 for FP16-capable targets; unset auto-enables INT8 for INT8-only targets; `8` builds INT8. RKNN export has no separate FP32 mode. Replaces the deprecated `half`/`int8` flags.                             |
+| `simplify` | `bool`                    | `True`     | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                                     |
+| `opset`    | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. Defaults to 19 if unset, and values above 19 are reduced to 19.                                                                                                                           |
+| `data`     | `str`                     | `None`     | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task.                                  |
+| `fraction` | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                    |
+| `device`   | `str`                     | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                   |
 
 !!! tip
 
@@ -187,7 +191,7 @@ Once installed, run inference and validation on your Rockchip device exactly as 
 
     If you encounter a log message indicating that the RKNN runtime version does not match the RKNN Toolkit version and the inference fails, please replace `/usr/lib/librknnrt.so` with official [librknnrt.so file](https://github.com/airockchip/rknn-toolkit2/blob/master/rknpu2/runtime/Linux/librknn_api/aarch64/librknnrt.so).
 
-    ![RKNN export screenshot](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/rockchip-rknn-export-log.avif)
+    ![RKNN export screenshot](https://cdn.ul.run/i/90077c647a22b3a29612d2701c6f2108.avif)
 
 ## Real-World Applications
 
@@ -205,15 +209,20 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
 !!! tip "Performance"
 
-    | Model   | Format | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
-    | ------- | ------ | ------ | --------- | ----------- | ---------------------- |
-    | YOLO26n | `rknn` | ✅     | 7.1       | 0.479       | 65.7                   |
-    | YOLO26s | `rknn` | ✅     | 20.9      | 0.571       | 99.2                   |
-    | YOLO26m | `rknn` | ✅     | 42.5      | 0.610       | 235.3                  |
-    | YOLO26l | `rknn` | ✅     | 52.1      | 0.630       | 280.5                  |
-    | YOLO26x | `rknn` | ✅     | 112.2     | 0.666       | 669.1                  |
+    | Model   | Format | Precision | Status | Size (MB) | mAP50-95(B) | Inference time (ms/im) |
+    | ------- | ------ | --------- | ------ | --------- | ----------- | ---------------------- |
+    | YOLO26n | `rknn` | FP16      | ✅      | 7.2       | 0.477       | 58.5                   |
+    | YOLO26n | `rknn` | INT8      | ✅      | 4.1       | 0.463       | 41.2                   |
+    | YOLO26s | `rknn` | FP16      | ✅      | 21.0      | 0.569       | 93.8                   |
+    | YOLO26s | `rknn` | INT8      | ✅      | 12.0      | 0.554       | 61.9                   |
+    | YOLO26m | `rknn` | FP16      | ✅      | 43.0      | 0.608       | 226.3                  |
+    | YOLO26m | `rknn` | INT8      | ✅      | 22.0      | 0.603       | 122.0                  |
+    | YOLO26l | `rknn` | FP16      | ✅      | 53.0      | 0.628       | 264.7                  |
+    | YOLO26l | `rknn` | INT8      | ✅      | 28.0      | 0.617       | 145.3                  |
+    | YOLO26x | `rknn` | FP16      | ✅      | 113.0     | 0.664       | 655.4                  |
+    | YOLO26x | `rknn` | INT8      | ✅      | 58.0      | 0.649       | 287.4                  |
 
-    Benchmarked with `ultralytics 8.4.23`
+    Benchmarked with `ultralytics 8.4.60`
 
     !!! note
 
@@ -269,4 +278,4 @@ The Ultralytics YOLO export to RKNN format supports Rockchip platforms with floa
 
 ### How does the performance of RKNN models compare to other formats on Rockchip devices?
 
-RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) in RKNN format achieves an inference time of 65.7 ms/image, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.
+RKNN models generally outperform other formats like ONNX or LiteRT on Rockchip devices due to their optimization for Rockchip's NPUs. For instance, benchmarks on the Radxa Rock 5B (RK3588) show that [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) in RKNN format achieves an inference time of 58.5 ms/image in FP16 and 41.2 ms/image in INT8, significantly faster than other formats. This performance advantage is consistent across various YOLO26 model sizes, as demonstrated in the [benchmarks section](#benchmarks). By leveraging the dedicated NPU hardware, RKNN models minimize latency and maximize throughput, making them ideal for real-time applications on Rockchip-based edge devices.

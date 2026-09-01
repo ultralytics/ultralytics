@@ -61,6 +61,9 @@ Label Studio offers [several export formats](https://labelstud.io/guide/export).
 | **YOLO** / **COCO**  | No    | Annotation files only — the dataset imports with no images                           |
 | **Pascal VOC XML**   | No    | XML label files cannot be read                                                       |
 
+In a COCO export, every annotation must carry a `bbox` to be read, crowd regions (`"iscrowd": 1`) are skipped, and the
+category names become your class names — so a COCO archive does not need `classes.txt` to keep its labels.
+
 !!! warning "Pascal VOC imports without annotations"
 
     Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import and the annotations do not. Choose YOLO with Images or COCO with Images instead.

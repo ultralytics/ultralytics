@@ -1,38 +1,47 @@
 ---
 comments: true
-description: Discover a variety of models supported by Ultralytics, including YOLOv3 to YOLO26, NAS, SAM, and RT-DETR for detection, segmentation, semantic segmentation, depth estimation, and more.
-keywords: Ultralytics, supported models, YOLOv3, YOLOv4, YOLOv5, YOLOv6, YOLOv7, YOLOv8, YOLOv9, YOLOv10, YOLO11, SAM, SAM2, SAM3, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
+description: Discover a variety of models supported by Ultralytics, including YOLO26 back to YOLOv3, NAS, SAM, and RT-DETR for detection, segmentation, semantic segmentation, depth estimation, and more.
+keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5, YOLOv4, YOLOv3, SAM3, SAM2, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, YOLOE, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics
 
-Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [multi-object tracking](../modes/track.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
+Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 
 ## Featured Models
 
-Here are some of the key models supported:
+Start with [YOLO26](yolo26.md) for a new project: it is the latest Ultralytics release and the only one covering all seven tasks. [YOLO11](yolo11.md) is the mature alternative, with pretrained checkpoints for each of its five tasks. Pick a specialized family only when you need promptable segmentation ([SAM 3](sam-3.md)), open-vocabulary detection ([YOLOE](yoloe.md), [YOLO-World](yolo-world.md)), or a transformer detector ([RT-DETR](rtdetr.md)).
 
-1. **[YOLOv3](yolov3.md)**: The third iteration of the YOLO model family, originally by Joseph Redmon, known for its efficient real-time object detection capabilities.
-2. **[YOLOv4](yolov4.md)**: A darknet-native update to YOLOv3, released by Alexey Bochkovskiy in 2020.
-3. **[YOLOv5](yolov5.md)**: An improved version of the YOLO architecture by Ultralytics, offering better performance and speed trade-offs compared to previous versions.
-4. **[YOLOv6](yolov6.md)**: Released by [Meituan](https://www.meituan.com/) in 2022, and in use in many of the company's autonomous delivery robots.
-5. **[YOLOv7](yolov7.md)**: Updated YOLO models released in 2022 by the authors of YOLOv4. Only inference is supported.
-6. **[YOLOv8](yolov8.md)**: A versatile model featuring enhanced capabilities such as [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation), pose/keypoints estimation, and classification.
-7. **[YOLOv9](yolov9.md)**: An experimental model trained on the Ultralytics [YOLOv5](yolov5.md) codebase implementing Programmable Gradient Information (PGI).
-8. **[YOLOv10](yolov10.md)**: By Tsinghua University, featuring NMS-free training and efficiency-accuracy driven architecture, delivering state-of-the-art performance and latency.
-9. **[YOLO11](yolo11.md)**: Ultralytics' YOLO models delivering high performance across multiple tasks including detection, segmentation, pose estimation, tracking, and classification.
-10. **[YOLO26](yolo26.md) 🚀 NEW**: Ultralytics' **latest** next-generation YOLO model optimized for edge deployment with end-to-end NMS-free inference.
-11. **[Segment Anything Model (SAM)](sam.md)**: Meta's original Segment Anything Model (SAM).
-12. **[Segment Anything Model 2 (SAM2)](sam-2.md)**: The next generation of Meta's Segment Anything Model for videos and images.
-13. **[Segment Anything Model 3 (SAM3)](sam-3.md) 🚀 NEW**: Meta's third generation Segment Anything Model with Promptable Concept Segmentation for text and image exemplar-based segmentation.
-14. **[Mobile Segment Anything Model (MobileSAM)](mobile-sam.md)**: MobileSAM for mobile applications, by Kyung Hee University.
-15. **[Fast Segment Anything Model (FastSAM)](fast-sam.md)**: FastSAM by Image & Video Analysis Group, Institute of Automation, Chinese Academy of Sciences.
-16. **[YOLO-NAS](yolo-nas.md)**: YOLO [Neural Architecture Search](https://www.ultralytics.com/glossary/neural-architecture-search-nas) (NAS) Models.
-17. **[Real-Time Detection Transformers (RT-DETR)](rtdetr.md)**: Baidu's PaddlePaddle real-time Detection [Transformer](https://www.ultralytics.com/glossary/transformer) (RT-DETR) models.
-18. **[YOLO-World](yolo-world.md)**: Real-time Open Vocabulary Object Detection models from Tencent AI Lab.
-19. **[YOLOE](yoloe.md)**: An improved open-vocabulary object detector that maintains YOLO's real-time performance while detecting arbitrary classes beyond its training data.
+The table lists every documented model with the tasks it covers, which of the [train, val, predict and export](../modes/index.md) modes Ultralytics supports for it, and when to choose it. [Track](../modes/track.md) is not listed separately: it runs on top of predict for Detect, Segment, Pose and OBB models, while SAM 2 and SAM 3 track through their own video predictors. [Benchmark](../modes/benchmark.md) is not listed either, because it wraps export and val across formats rather than adding support of its own.
+
+| Model                           | Tasks                                                 | Modes                       | Choose it for                                                                                                                                                                                    |
+| ------------------------------- | ----------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **[YOLO26](yolo26.md) 🚀 NEW**  | Detect, Segment, Semantic, Depth, Classify, Pose, OBB | Train, Val, Predict, Export | New projects: end-to-end NMS-free inference, edge-optimized deployment, and the widest task coverage                                                                                             |
+| **[YOLO12](yolo12.md)**         | Detect, Segment, Classify, Pose, OBB                  | Train, Val, Predict, Export | Benchmarking the attention-centric community release; pretrained weights cover detection only                                                                                                    |
+| **[YOLO11](yolo11.md)**         | Detect, Segment, Classify, Pose, OBB                  | Train, Val, Predict, Export | Stable production workloads, with pretrained checkpoints for every task it supports                                                                                                              |
+| **[YOLOv10](yolov10.md)**       | Detect                                                | Train, Val, Predict, Export | NMS-free detection research from Tsinghua University                                                                                                                                             |
+| **[YOLOv9](yolov9.md)**         | Detect, Segment                                       | Train, Val, Predict, Export | Programmable Gradient Information (PGI), implemented on the Ultralytics [YOLOv5](yolov5.md) codebase                                                                                             |
+| **[YOLOv8](yolov8.md)**         | Detect, Segment, Classify, Pose, OBB                  | Train, Val, Predict, Export | Existing YOLOv8 pipelines and established third-party integrations                                                                                                                               |
+| **[YOLOv7](yolov7.md)**         | Detect                                                | Predict                     | Running an upstream-trained YOLOv7 export: the package predicts from a compatible ONNX or TensorRT model, never from the native checkpoint                                                       |
+| **[YOLOv6](yolov6.md)**         | Detect                                                | Train, Val, Predict, Export | Training [Meituan](https://www.meituan.com/)'s architecture from its YAML; Ultralytics hosts no YOLOv6 `.pt` checkpoints                                                                         |
+| **[YOLOv5](yolov5.md)**         | Detect                                                | Train, Val, Predict, Export | Legacy Ultralytics projects; current releases load the updated YOLOv5u checkpoints                                                                                                               |
+| **[YOLOv4](yolov4.md)**         | None                                                  | None                        | Architecture reference only: Alexey Bochkovskiy's Darknet-native model is not supported by the package                                                                                           |
+| **[YOLOv3](yolov3.md)**         | Detect                                                | Train, Val, Predict, Export | Legacy projects on Joseph Redmon's original architecture; current releases load the updated YOLOv3u checkpoints                                                                                  |
+| **[SAM 3](sam-3.md) 🚀 NEW**    | Segment                                               | Predict                     | Meta's promptable concept segmentation in images and video, from text or image exemplars; `sam3.pt` requires access approval on Hugging Face                                                     |
+| **[SAM 2](sam-2.md)**           | Segment                                               | Predict                     | Meta's promptable segmentation, tracking objects across video frames                                                                                                                             |
+| **[SAM](sam.md)**               | Segment                                               | Predict                     | Meta's original promptable segmentation, including auto-annotation                                                                                                                               |
+| **[MobileSAM](mobile-sam.md)**  | Segment                                               | Predict                     | Promptable segmentation on mobile and other resource-constrained devices (Kyung Hee University)                                                                                                  |
+| **[FastSAM](fast-sam.md)**      | Segment                                               | Val, Predict, Export        | CNN-based promptable segmentation when SAM latency is the bottleneck (Chinese Academy of Sciences)                                                                                               |
+| **[YOLO-NAS](yolo-nas.md)**     | Detect                                                | Val, Predict, Export        | Deci's [NAS](https://www.ultralytics.com/glossary/neural-architecture-search-nas)-optimized detectors, kept for inference and export; Deci no longer maintains them after the NVIDIA acquisition |
+| **[RT-DETR](rtdetr.md)**        | Detect                                                | Train, Val, Predict, Export | Baidu's real-time DETR detector: a convolutional backbone with a hybrid [transformer](https://www.ultralytics.com/glossary/transformer) encoder                                                  |
+| **[YOLO-World](yolo-world.md)** | Detect                                                | Train, Val, Predict, Export | Open-vocabulary detection from text prompts (Tencent AI Lab); export requires the `-worldv2` checkpoints                                                                                         |
+| **[YOLOE](yoloe.md)**           | Detect, Segment                                       | Train, Val, Predict, Export | Open-vocabulary detection and segmentation with text, visual, or prompt-free inference                                                                                                           |
+
+!!! tip "Large Language Models"
+
+    Ultralytics also ships [LLM](llm.md), an OpenAI-compatible interface to large language and vision models for text and image understanding. It has no tasks or modes of its own, so it is not in the table above, but it pairs with any YOLO pipeline and runs against OpenAI and other cloud providers or a fully local on-prem server.
 
 <p align="center">
   <br>
@@ -49,7 +58,7 @@ Here are some of the key models supported:
 
 This example provides simple YOLO training and inference examples. For full documentation on these and other [modes](../modes/index.md) see the [Predict](../modes/predict.md), [Train](../modes/train.md), [Val](../modes/val.md) and [Export](../modes/export.md) docs pages.
 
-Note the below example spotlights YOLO11 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Classify](../tasks/classify.md) and [Pose](../tasks/pose.md) docs.
+Note the below example spotlights YOLO26 [Detect](../tasks/detect.md) models for [object detection](https://www.ultralytics.com/glossary/object-detection). For additional supported tasks see the [Segment](../tasks/segment.md), [Semantic](../tasks/semantic.md), [Depth](../tasks/depth.md), [Classify](../tasks/classify.md), [Pose](../tasks/pose.md) and [OBB](../tasks/obb.md) docs.
 
 !!! example
 
@@ -137,7 +146,7 @@ For more detailed instructions, visit the [Train](../modes/train.md) documentati
 
 ### Which YOLO versions are supported by Ultralytics?
 
-Ultralytics supports a comprehensive range of YOLO (You Only Look Once) versions from YOLOv3 to YOLO26, along with models like YOLO-NAS, SAM, and RT-DETR. Each version is optimized for various tasks such as detection, segmentation, semantic segmentation, depth estimation, and classification. For detailed information on each model, refer to the [Models Supported by Ultralytics](../models/index.md) documentation.
+Ultralytics natively supports YOLOv3, YOLOv5, YOLOv6, YOLOv8, YOLOv9, YOLOv10, YOLO11, YOLO12, and YOLO26, along with the SAM family (SAM 3, SAM 2, SAM, MobileSAM and FastSAM), YOLO-NAS, RT-DETR, YOLO-World, and YOLOE. The package publishes no weights or YAMLs for YOLOv4 or YOLOv7: YOLOv4 is documented as an architecture reference only, while YOLOv7 runs as an exported ONNX or TensorRT model. See [Featured Models](#featured-models) for the tasks and modes available for each.
 
 ### Why should I use Ultralytics Platform for [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) projects?
 

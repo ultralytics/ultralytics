@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: MIT
+    url: https://github.com/diode-dataset/diode-devkit/blob/master/LICENSE
 description: Explore the DIODE depth dataset for monocular depth estimation. Learn about its dense indoor/outdoor structure, usage, pretrained models, and role in YOLO26-Depth training.
 keywords: Ultralytics, YOLO, depth estimation, DIODE, dense depth, indoor outdoor, FARO laser scanner, monocular depth, depth dataset
 ---
@@ -23,7 +26,7 @@ The DIODE depth dataset is split into two subsets:
 1. **Train**: 25,458 images with paired depth maps for training.
 2. **Val**: 771 images with paired depth maps for validation during model training.
 
-Each sample consists of one RGB image and one paired `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each sample consists of one RGB image and one paired uint16 depth PNG with 256 units per meter (`depth_scale: 256`), following the [Ultralytics depth dataset format](index.md). This provides 3.90625 mm resolution while representing the full 80 m outdoor range.
 
 ## Role in YOLO26-Depth
 

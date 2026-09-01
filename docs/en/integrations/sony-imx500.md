@@ -13,7 +13,7 @@ Deploying computer vision models on devices with limited computational power, su
 The IMX500 model format is designed to use minimal power while delivering fast performance for neural networks. It allows you to optimize your [Ultralytics YOLO11](https://github.com/ultralytics/ultralytics) models for high-speed and low-power inferencing. In this guide, we'll walk you through exporting and deploying your models to the IMX500 format while making it easier for your models to perform well on the [Raspberry Pi AI Camera](https://www.raspberrypi.com/products/ai-camera/).
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imx500-ai-camera.avif" alt="Raspberry Pi AI Camera with Sony IMX500 sensor">
+  <img width="100%" src="https://cdn.ul.run/i/206ebf34f868bfca400757f6d3caff71.avif" alt="Raspberry Pi AI Camera with Sony IMX500 sensor">
 </p>
 
 ## Why Should You Export to IMX500?
@@ -199,15 +199,15 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 
 ## Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                                                                                                      |
-| ---------- | ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'imx'`        | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8/PTQ) is auto-enabled for IMX500; `"w8a16"` exports INT8 weights with FP16 activations. FP32 and FP16-only export are not supported. Replaces the deprecated `half`/`int8` flags.                                               |
-| `data`     | `str`            | `'coco8.yaml'` | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
-| `fraction` | `float`          | `1.0`          | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
-| `nms`      | `bool`           | `False`        | Adds Non-Maximum Suppression (NMS) to the exported model. When `True`, `conf`, `iou`, and `agnostic_nms` are also accepted.                                                                                                                                      |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                        |
+| Argument   | Type                      | Default  | Description                                                                                                                                                                                                                                                                   |
+| ---------- | ------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'imx'`  | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                            |
+| `imgsz`    | `int` or `tuple`          | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                             |
+| `quantize` | `int` or `str`            | `8`/auto | Quantization precision. `8` (INT8/PTQ) is auto-enabled for IMX500; `"w8a16"` exports INT8 weights with FP16 activations. FP32 and FP16-only export are not supported. Replaces the deprecated `half`/`int8` flags.                                                            |
+| `data`     | `str`                     | `None`   | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8` or `'w8a16'`, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction` | `float`, `int`, or `list` | `1.0`    | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                                      |
+| `nms`      | `bool`                    | `False`  | Adds Non-Maximum Suppression (NMS) to the exported model. When `True`, `conf`, `iou`, and `agnostic_nms` are also accepted.                                                                                                                                                   |
+| `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                                                     |
 
 !!! tip
 
@@ -524,7 +524,7 @@ YOLOv8n, YOLO11n, YOLOv8n-pose, YOLO11n-pose, YOLOv8n-cls and YOLO11n-cls benchm
 ## What's Under the Hood?
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imx500-deploy.avif" alt="Sony IMX500 YOLO model deployment workflow">
+  <img width="640" src="https://cdn.ul.run/i/932006d7bb653f4878ab378a9f877735.avif" alt="Sony IMX500 YOLO model deployment workflow">
 </p>
 
 ### Sony Model Compression Toolkit (MCT)

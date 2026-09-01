@@ -31,21 +31,9 @@ class ExecuTorchBackend(BaseBackend):
         from executorch.runtime import Runtime
 
         w = Path(weight)
-        if w.is_dir():
-            model_file = next(w.rglob("*.pte"))
-            metadata_file = w / "metadata.yaml"
-        else:
-            model_file = w
-            metadata_file = w.parent / "metadata.yaml"
-
-        program = Runtime.get().load_program(str(model_file))
+        program = Runtime.get().load_program(str(next(w.rglob("*.pte")) if w.is_dir() else w))
         self.model = program.load_method("forward")
-
-        # Load metadata
-        if metadata_file.exists():
-            from ultralytics.utils import YAML
-
-            self.apply_metadata(YAML.load(metadata_file))
+        self.apply_metadata(self.read_metadata(w))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference using the ExecuTorch runtime.

@@ -60,10 +60,7 @@ class QNNBackend(BaseBackend):
         self.output_names = [x.name for x in self.session.get_outputs()]
         shape = self.session.get_inputs()[0].shape  # channel-last exports take [N, H, W, C] input
         self.nhwc = len(shape) == 4 and shape[3] in {1, 3} and shape[1] not in {1, 3}
-
-        metadata_map = self.session.get_modelmeta().custom_metadata_map
-        if metadata_map:
-            self.apply_metadata(dict(metadata_map))
+        self.apply_metadata(self.read_metadata(onnx_file))
 
     def forward(self, im: torch.Tensor) -> list:
         """Run inference on the Qualcomm QNN runtime.

@@ -19,7 +19,7 @@ A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN mo
 | Dependency                                        | Version  | Description                                                 |
 | :------------------------------------------------ | :------- | :---------------------------------------------------------- |
 | [OpenCV](https://opencv.org/)                     | >=4.7.0  | DNN module for inference, plus image I/O, drawing, and NMS. |
-| [C++](https://en.cppreference.com/w/)             | >=17     | Modern C++ compiler.                                        |
+| [C++](https://en.cppreference.com/)               | >=17     | Modern C++ compiler.                                        |
 | [CMake](https://cmake.org/documentation/)         | >=3.5    | Build system.                                               |
 | [CUDA](https://developer.nvidia.com/cuda/toolkit) | optional | Only for the OpenCV CUDA DNN backend (`--cuda`).            |
 

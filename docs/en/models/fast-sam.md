@@ -21,7 +21,7 @@ The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based soluti
 
 ## Model Architecture
 
-![Fast Segment Anything Model (FastSAM) architecture overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fastsam-architecture-overview.avif)
+![Fast Segment Anything Model (FastSAM) architecture overview](https://cdn.ul.run/i/d3f722adeedd75d45ebc977649321acd.avif)
 
 ## Overview
 
@@ -49,8 +49,8 @@ This table presents the available models with their specific pretrained weights,
 
 | Model Type | Pretrained Weights                                                                          | Tasks Supported                              | Training | Validation | Inference | Export |
 | ---------- | ------------------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
-| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ✅     |
-| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ✅     |
+| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ✅         | ✅        | ✅     |
+| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ✅         | ✅        | ✅     |
 
 ## FastSAM Comparison vs YOLO
 
@@ -172,6 +172,8 @@ This snippet demonstrates the simplicity of loading a pretrained model and runni
 
 ### Val Usage
 
+Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
+
 Validation of the model on a dataset can be done as follows:
 
 !!! example
@@ -194,8 +196,6 @@ Validation of the model on a dataset can be done as follows:
         # Load a FastSAM model and validate it on the COCO8 example dataset at image size 640
         yolo segment val model=FastSAM-s.pt data=coco8-seg.yaml imgsz=640
         ```
-
-Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
 
 ### Track Usage
 

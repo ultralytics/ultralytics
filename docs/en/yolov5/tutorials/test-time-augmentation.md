@@ -81,7 +81,7 @@ val: New cache created: ../datasets/coco/val2017.cache
                  all       5000      36335      0.718      0.656      0.695      0.503
 Speed: 0.2ms pre-process, 80.6ms inference, 2.7ms NMS per image at shape (32, 3, 832, 832)  # <--- TTA speed
 
-Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.516  # <--- TTA mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.701
@@ -121,7 +121,7 @@ Results saved to runs/detect/exp
 Done. (0.156s)
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-test-time-augmentations.avif" width="500" alt="YOLOv5 test time augmentations">
+<img src="https://cdn.ul.run/i/7081908c42703652cef41b7da3f6e2f3.avif" width="500" alt="YOLOv5 test time augmentations">
 
 ### PyTorch Hub TTA
 
@@ -160,7 +160,7 @@ The tradeoff is increased inference time, making TTA more suitable for applicati
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)

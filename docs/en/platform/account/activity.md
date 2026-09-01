@@ -28,9 +28,11 @@ The Activity Feed provides one place for:
 
 Navigate to the Activity Feed in any of the following ways:
 
-1. Click the activity indicator in the top navigation bar
+1. Click the activity indicator in the top navigation bar, then **View all**
 2. Open the profile menu at the bottom of the sidebar and select **Activity**
 3. Navigate directly to `/activity`
+
+The dropdown in the top bar shows the most recent events with the same archive and undo actions as the full page.
 
 ![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/25e9aec0b788985d37cc314093ebb1d8.avif)<!-- screenshot -->
 
@@ -94,6 +96,9 @@ Move events to Archive to keep your Inbox clean:
 - Access archived events via the `Archive` tab
 - Click **Restore** on archived events to move them back to Inbox
 
+Archiving and restoring require the Editor role or higher in a team workspace. Viewers can read the feed and export it,
+but the Archive controls are hidden for them.
+
 ## Search and Filtering
 
 Find specific events quickly:
@@ -127,31 +132,38 @@ Each row displays:
 
 ## Undo Support
 
-Recent settings changes support undo directly from the Activity feed:
+Settings changes support undo directly from the Activity feed:
 
 - Click **Undo** next to the matching settings event to restore the previous value.
-- Undo remains available for **one hour** in the browser session where the change was made. It does not persist after
-  reloading or opening another browser.
+- Undo remains available for **one hour** in the browser session where the change was made. It is held in memory only,
+  so it does not persist after reloading or opening another browser.
+- Only settings events are undoable. Trashed resources are recovered from [Trash](trash.md) instead.
 
 ## Pagination
 
 The Activity feed supports pagination:
 
-- Default page size: 20 events
-- Navigate between pages using the pagination controls
-- Page size is configurable via URL query parameter
+- Default page size: 20 events, up to 100 per page
+- Navigate between pages and change the page size using the pagination controls
+- The tab, page, page size, search, and date range are all reflected in the URL, so a filtered view can be bookmarked
+  or shared
 
 ## Export Activity
 
-Click **Export** to download the events in the current Inbox or Archive view as JSON. The export respects the active
-search and date filters.
+Use the export menu in the card header to download the events in the current Inbox or Archive view as **CSV** or
+**JSON**, or to copy them to the clipboard as JSON. The export respects the active search and date filters, and covers
+the whole filtered result rather than just the visible page.
+
+Each exported row carries the event time, action and resource type, resource name and ID, user name, email, and ID, the
+event metadata, and the archived and seen flags.
 
 ## FAQ
 
 ### Can I export my activity history?
 
-Yes. Click **Export** on the Activity page to download the current filtered view, or use the GDPR data export feature
-in [`Settings > Profile`](settings.md#gdpr-compliance) to download account metadata including activity history.
+Yes. Use the export menu on the Activity page to download the current filtered view as CSV or JSON, or use the GDPR
+data export in [`Settings > Profile`](settings.md#gdpr-compliance) to download account metadata including your full
+activity history.
 
 ### What happens to activity when I delete a resource?
 

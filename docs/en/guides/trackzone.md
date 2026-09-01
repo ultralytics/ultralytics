@@ -32,10 +32,10 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 
 ## Real World Applications
 
-|                                                                             Agriculture                                                                              |                                                                             Transportation                                                                             |
-| :------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Plants Tracking in Field Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/plants-tracking-in-zone-using-ultralytics-yolo11.avif) | ![Vehicles Tracking on Road using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vehicle-tracking-in-zone-using-ultralytics-yolo11.avif) |
-|                                                          Plants Tracking in Field Using Ultralytics YOLO26                                                           |                                                           Vehicles Tracking on Road using Ultralytics YOLO26                                                           |
+|                                                   Agriculture                                                    |                                                  Transportation                                                   |
+| :--------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
+| ![Plants Tracking in Field Using Ultralytics YOLO26](https://cdn.ul.run/i/cd4aa1a0582bdff05826b6dc6e833564.avif) | ![Vehicles Tracking on Road using Ultralytics YOLO26](https://cdn.ul.run/i/db8f83a66015233a8159ef2d024f6777.avif) |
+|                                Plants Tracking in Field Using Ultralytics YOLO26                                 |                                Vehicles Tracking on Road using Ultralytics YOLO26                                 |
 
 !!! example "TrackZone using Ultralytics YOLO"
 
@@ -109,17 +109,17 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
 Here's a table with the `TrackZone` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "region"]) }}
+{{ param_table(["model", "region", "line_width", "verbose"]) }}
 
 The TrackZone solution includes support for `track` parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization options are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## Count Objects Inside the Zone
 

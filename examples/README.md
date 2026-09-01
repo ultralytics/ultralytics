@@ -1,4 +1,4 @@
-<a href="https://www.ultralytics.com/" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
+<a href="https://www.ultralytics.com" target="_blank"><img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics_Logotype_Original.svg" width="320" alt="Ultralytics logo"></a>
 
 # Ultralytics YOLO Examples
 
@@ -20,7 +20,7 @@ All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and gen
 | Title                                      | Backend      | Contributor                                                                                                                                                                                       |
 | ------------------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [YOLO OpenCV DNN CPP](./cpp/OpenCV-DNN)    | OpenCV DNN   | [Justas Bartnykas](https://github.com/JustasBart)                                                                                                                                                 |
-| [YOLO ONNX Runtime CPP](./cpp/ONNXRuntime) | ONNX Runtime | [DennisJcy](https://github.com/DennisJcy), [Onuralp Sezer](https://github.com/onuralpszr)                                                                                                         |
+| [YOLO ONNX Runtime CPP](./cpp/ONNXRuntime) | ONNX Runtime | [Onuralp Sezer](https://github.com/onuralpszr)                                                                                                                                                    |
 | [YOLO LibTorch CPP](./cpp/LibTorch)        | LibTorch     | [Myyura](https://github.com/Myyura)                                                                                                                                                               |
 | [YOLO OpenVINO CPP](./cpp/OpenVINO)        | OpenVINO     | [Erlangga Yudi Pradana](https://github.com/rlggyp)                                                                                                                                                |
 | [YOLO MNN CPP](./cpp/MNN)                  | MNN          | [Khoi VN](https://github.com/vnk8071)                                                                                                                                                             |
@@ -55,7 +55,7 @@ All C++ examples live under [`./cpp`](./cpp) and support every YOLO task and gen
 
 ## 🤝 How to Contribute
 
-We actively encourage contributions from our vibrant community! Sharing your examples, applications, and guides helps others learn and build amazing things with [Ultralytics](https://www.ultralytics.com/). If you have a project you'd like to share, please follow these steps:
+We actively encourage contributions from our vibrant community! Sharing your examples, applications, and guides helps others learn and build amazing things with [Ultralytics](https://www.ultralytics.com). If you have a project you'd like to share, please follow these steps:
 
 1.  **Fork the Repository:** Start by forking the main [Ultralytics repository](https://github.com/ultralytics/ultralytics) on [GitHub](https://github.com/).
 2.  **Create Your Example:** Add your project folder within the `examples/` directory of your forked repository.

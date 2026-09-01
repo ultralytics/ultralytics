@@ -18,7 +18,7 @@ SAM 2, the successor to Meta's [Segment Anything Model (SAM)](sam.md), is a cutt
 
     SAM 2.1 models power the [smart annotation feature](https://www.ultralytics.com/annotate) on [Ultralytics Platform](https://platform.ultralytics.com), enabling click-based segmentation for fast dataset labeling. See the [annotation guide](../platform/data/annotation.md) for details.
 
-![SAM 2 Example Results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sa-v-dataset.avif)
+![SAM 2 Example Results](https://cdn.ul.run/i/28aed60b863ee7f03833312fcd2830e7.avif)
 
 ## Key Features
 
@@ -75,7 +75,7 @@ SAM 2 sets a new benchmark in the field, outperforming previous models on variou
 - **Memory Mechanism**: Includes a memory encoder, memory bank, and memory attention module. These components collectively store and utilize information from past frames, enabling the model to maintain consistent [object tracking](https://www.ultralytics.com/glossary/object-tracking) over time.
 - **Mask Decoder**: Generates the final segmentation masks based on the encoded image features and prompts. In video, it also uses memory context to ensure accurate tracking across frames.
 
-![SAM 2 Architecture Diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam2-architecture-diagram.avif)
+![SAM 2 Architecture Diagram](https://cdn.ul.run/i/fef83ae8fd67f9a4461ac0a8fab2582c.avif)
 
 ### Memory Mechanism and Occlusion Handling
 
@@ -234,7 +234,7 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
 
 SAM2DynamicInteractivePredictor is an advanced training-free extension of SAM2 that enables dynamic interaction with multiple frames and continual learning capabilities. This predictor supports real-time prompt updates and memory management for improved tracking performance across a sequence of images. Compared to the original SAM2, SAM2DynamicInteractivePredictor rebuilds the inference flow to make the best use of pretrained SAM2 models without requiring additional training.
 
-![SAM 2 Example Results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam2-interactive-sample.avif)
+![SAM 2 Example Results](https://cdn.ul.run/i/3673b03a20f4606445fbbbb6d358ac74.avif)
 
 ### Key Features
 

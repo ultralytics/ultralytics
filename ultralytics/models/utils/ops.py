@@ -402,7 +402,7 @@ def get_cdn_group(
     b_idx = batch["batch_idx"]
 
     # Denoise a random subset of any image carrying more than num_dn boxes. Uncapped, num_group collapses to 1
-    # and a 700-box image emits 1400 denoising queries against a budget of 200, growing decoder self-attention
+    # and a 700-box image emits 1400 denoising queries against the 2 * num_dn budget, growing decoder self-attention
     # quadratically. The subset is redrawn on every call, so all boxes are still denoised across training.
     gt_idx = torch.arange(sum(gt_groups), dtype=torch.long, device=gt_bbox.device)
     if max(gt_groups) > max_nums:

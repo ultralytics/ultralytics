@@ -17,7 +17,7 @@ def _check_atc() -> None:
         raise FileNotFoundError(
             "Ascend export requires the CANN toolkit 'atc' compiler, which was not found on PATH. Install CANN and "
             "source its environment, e.g. `source /usr/local/Ascend/ascend-toolkit/set_env.sh`. "
-            "See https://docs.ultralytics.com/integrations/ascend/"
+            "See https://docs.ultralytics.com/integrations/ascend"
         )
 
 

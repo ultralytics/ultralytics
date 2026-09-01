@@ -6,16 +6,9 @@ keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, expor
 
 # Model Benchmarking with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Benchmark Visualization
-
-!!! tip "Refresh Browser"
-
-    You may need to refresh the page to view the graphs correctly due to potential cookie issues.
-
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400"></canvas>
 
@@ -98,16 +91,16 @@ Run YOLO26n benchmarks across all supported export formats (ONNX, TensorRT, etc.
 
 Arguments such as `model`, `data`, `imgsz`, `quantize`, `device`, `verbose` and `format` provide users with the flexibility to fine-tune the benchmarks to their specific needs and compare the performance of different export formats with ease.
 
-| Key        | Default Value | Description                                                                                                                                                                                             |
-| ---------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`    | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                        |
-| `data`     | `None`        | Path to a YAML file defining the dataset for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. |
-| `imgsz`    | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                           |
-| `quantize` | `None`        | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                            |
-| `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                      |
-| `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                   |
-| `eps`      | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                            |
-| `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                         |
+| Key        | Default Value | Description                                                                                                                                                                                                                                                                               |
+| ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`    | `None`        | Specifies the path to the model file. Accepts both `.pt` and `.yaml` formats, e.g., `"yolo26n.pt"` for pretrained models or configuration files.                                                                                                                                          |
+| `data`     | `None`        | Path to the dataset YAML for benchmarking, typically including paths and settings for [validation data](https://www.ultralytics.com/glossary/validation-data). Example: `"coco8.yaml"`. Classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`). |
+| `imgsz`    | `640`         | The input image size for the model. Must be a single integer for square images (e.g., `640`); `benchmark()` only supports square image sizes.                                                                                                                                             |
+| `quantize` | `None`        | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                                              |
+| `device`   | `'cpu'`       | Defines the computation device(s) for benchmarking, such as `"cpu"` or `"cuda:0"`.                                                                                                                                                                                                        |
+| `verbose`  | `False`       | Controls the level of detail in logging output. Set `verbose=True` for detailed logs.                                                                                                                                                                                                     |
+| `eps`      | `0.001`       | Small epsilon (milliseconds) added to the per-image inference time before converting it to FPS, preventing division by zero. Rarely changed.                                                                                                                                              |
+| `format`   | `''`          | Benchmarks only the specified export format (e.g., `format=onnx`). Leave it blank to test every supported format automatically.                                                                                                                                                           |
 
 !!! note "Standalone `benchmark()` function defaults"
 
@@ -183,7 +176,7 @@ For a complete list of supported formats and their respective advantages, check 
 When running benchmarks, several arguments can be customized to suit specific needs:
 
 - **model:** Path to the model file (e.g., "yolo26n.pt").
-- **data:** Path to a YAML file defining the dataset (e.g., "coco8.yaml").
+- **data:** Path to the dataset YAML (e.g., `"coco8.yaml"`); classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).
 - **imgsz:** The square input image size as a single integer, such as `640`. Benchmark mode uses the same square image size across PyTorch and exported formats for fair comparison.
 - **quantize:** Quantization precision: `16` for FP16, `8` for INT8 (useful for edge devices); `32`/unset is FP32.
 - **device:** Specify the computation device (e.g., "cpu", "cuda:0").

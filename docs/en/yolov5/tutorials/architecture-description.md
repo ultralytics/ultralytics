@@ -18,7 +18,7 @@ YOLOv5's architecture consists of three main parts:
 
 The structure of the model is depicted in the image below. The model structure details can be found in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
 
-![YOLOv5 architecture showing backbone, neck, and head](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-structure.avif)
+![YOLOv5 architecture showing backbone, neck, and head](https://cdn.ul.run/i/8b17cf84c11c69c30cf24a89a910c141.avif)
 
 YOLOv5 introduces some notable improvements compared to its predecessors:
 
@@ -108,29 +108,29 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
 - **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
 
-    ![YOLOv5 mosaic data augmentation combining four images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaic-augmentation.avif)
+    ![YOLOv5 mosaic data augmentation combining four images](https://cdn.ul.run/i/8c209c17d47c92f9c3c1abbccf5fb743.avif)
 
 - **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-    ![YOLOv5 copy-paste augmentation for instance segmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/copy-paste.avif)
+    ![YOLOv5 copy-paste augmentation for instance segmentation](https://cdn.ul.run/i/330efc1cd07d545e759af37daef44e74.avif)
 
 - **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
 
-    ![YOLOv5 random affine transformations for training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-affine-transformations.avif)
+    ![YOLOv5 random affine transformations for training](https://cdn.ul.run/i/6e231815f391a61f8a82618095075812.avif)
 
 - **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
 
-    ![YOLOv5 MixUp data augmentation blending two images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mixup.avif)
+    ![YOLOv5 MixUp data augmentation blending two images](https://cdn.ul.run/i/afdbd5ce80e044c88f3cad1aa03178d1.avif)
 
 - **Albumentations**: A powerful image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
-    ![YOLOv5 HSV color space augmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hsv-augmentation.avif)
+    ![YOLOv5 HSV color space augmentation examples](https://cdn.ul.run/i/964efba8eae7436317d4b09d62cf1764.avif)
 
 - **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
 
-    ![YOLOv5 random horizontal flip augmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-horizontal-flip.avif)
+    ![YOLOv5 random horizontal flip augmentation](https://cdn.ul.run/i/aa20a5fd417d2576b31a417e0203430a.avif)
 
 ## 3. Training Strategies
 

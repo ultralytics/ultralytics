@@ -88,6 +88,7 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """Set keypoints shape attribute of PoseModel."""
         super().set_model_attributes()
         self.model.kpt_shape = self.data["kpt_shape"]
+        self.model.kpt_oks_sigmas = self.data.get("kpt_oks_sigmas")
         kpt_names = self.data.get("kpt_names")
         if not kpt_names:
             names = list(map(str, range(self.model.kpt_shape[0])))
@@ -111,5 +112,5 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """
         data = super().get_dataset()
         if "kpt_shape" not in data:
-            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose/")
+            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose")
         return data

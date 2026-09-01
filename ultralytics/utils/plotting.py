@@ -971,7 +971,7 @@ def plot_images(
                         kpts_[..., 0] *= w  # scale to pixels
                         kpts_[..., 1] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
-                        kpts_ *= scale
+                        kpts_[..., :2] *= scale
                 kpts_[..., 0] += x
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):
@@ -1291,20 +1291,40 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
             plt.yticks([])
     _save_one_file(results_file.with_name("tune_scatter_plots.png"))
 
-    # Fitness vs iteration
-    x = range(1, len(all_fitness) + 1)
-    plt.figure(figsize=(10, 6), tight_layout=True)
-    for dataset in sorted({k for r in records for k in r.get("datasets", {})}):
-        y = np.array([r.get("datasets", {}).get(dataset, {}).get("fitness", np.nan) for r in records], dtype=float)
-        if exclude_zero_fitness_points and not isinstance(zero_mask, slice):
-            y = y[zero_mask]
-        plt.plot(x, y, "o", markersize=5, alpha=0.8, label=dataset)
-    plt.plot(x, _gaussian_filter1d(all_fitness, sigma=3), ":", color="0.35", label="smoothed mean", linewidth=2)
-    plt.title("Fitness vs Iteration")
-    plt.xlabel("Iteration")
-    plt.ylabel("Fitness")
-    plt.grid(True)
-    plt.legend()
+    # Fitness progress and per-dataset change from the initial to best result
+    plot_records = records if isinstance(zero_mask, slice) else [r for r, keep in zip(records, zero_mask) if keep]
+    datasets = sorted({k for r in plot_records for k in r.get("datasets", {})})
+    _, (ax1, ax2) = plt.subplots(
+        1,
+        2,
+        figsize=(16, max(6, len(datasets) * 0.28)),
+        gridspec_kw={"width_ratios": (1, 1.35)},
+        constrained_layout=True,
+    )
+    iterations = np.array([r.get("iteration", i) for i, r in enumerate(plot_records, 1)])
+    best_idx = int(all_fitness.argmax())
+    ax1.scatter(iterations, all_fitness, s=28, color="0.45", alpha=0.75, label="Iteration")
+    ax1.plot(iterations, np.maximum.accumulate(all_fitness), color="#2563eb", linewidth=2.5, label="Best so far")
+    ax1.axhline(all_fitness[0], color="#dc2626", linestyle="--", label=f"Initial {all_fitness[0]:.4f}")
+    ax1.scatter(iterations[best_idx], all_fitness[best_idx], s=90, color="#16a34a", zorder=5, label="Best")
+    ax1.set(title="Fitness Progress", xlabel="Iteration", ylabel="Fitness")
+    ax1.grid(alpha=0.2)
+    ax1.legend()
+    if datasets:
+        initial = np.array([plot_records[0].get("datasets", {}).get(k, {}).get("fitness", 0.0) for k in datasets])
+        best = np.array([plot_records[best_idx].get("datasets", {}).get(k, {}).get("fitness", 0.0) for k in datasets])
+        order = np.argsort(best - initial)
+        y = np.arange(len(datasets))
+        ax2.hlines(y, initial[order], best[order], color="0.8")
+        ax2.scatter(initial[order], y, s=24, color="#dc2626", label="Initial")
+        ax2.scatter(best[order], y, s=24, color="#16a34a", label=f"Best aggregate iteration {iterations[best_idx]}")
+        ax2.set_yticks(y)
+        ax2.set_yticklabels(np.array(datasets)[order], fontsize=8)
+        ax2.set(title="Per-Dataset Fitness: Initial vs Best Aggregate Iteration", xlabel="Fitness")
+        ax2.grid(axis="x", alpha=0.2)
+        ax2.legend()
+    else:
+        ax2.set_axis_off()
     _save_one_file(results_file.with_name("tune_fitness.png"))
 
 

@@ -8,7 +8,7 @@
 # └── datasets
 #     └── depth-vkitti2  ← downloads here (15 GB archives, ~85 GB converted)
 #         ├── images/{train,val}  # RGB images
-#         └── depth/{train,val}   # paired *.npy, float32 meters (images/ -> depth/)
+#         └── depth/{train,val}   # paired 16-bit *.png depth maps (images/ -> depth/)
 # If an interrupted download leaves a partial dataset, delete the depth-vkitti2 dir and re-run to rebuild it.
 
 path: depth-vkitti2 # dataset root dir (relative to Ultralytics settings 'datasets_dir')
@@ -21,6 +21,7 @@ names:
   0: depth
 
 channels: 3
+depth_scale: 100 # source PNG value 100 = 1 meter (centimeters)
 
 # Download script/URL (optional)
 download: |
@@ -30,6 +31,7 @@ download: |
   import cv2
   import numpy as np
 
+  from ultralytics.data.utils import save_depth_png
   from ultralytics.utils import TQDM
   from ultralytics.utils.downloads import download
 
@@ -46,6 +48,6 @@ download: |
       split = "val" if scene == "Scene20" else "train"
       name = f"{scene}_{variation}_{camera}_{im.stem[4:]}"
       depth = cv2.imread(str(im.parents[2] / "depth" / camera / f"depth_{im.stem[4:]}.png"), cv2.IMREAD_ANYDEPTH)
-      np.save(dir / "depth" / split / f"{name}.npy", (depth.astype(np.float32) / 100.0).clip(max=80))  # cm -> m
+      save_depth_png(dir / "depth" / split / f"{name}.png", (depth.astype(np.float32) / 100.0).clip(max=80), scale=100)  # cm -> m -> cm PNG
       im.replace(dir / "images" / split / f"{name}.jpg")
   shutil.rmtree(dir / "source")

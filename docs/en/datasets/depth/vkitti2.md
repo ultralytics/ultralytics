@@ -1,12 +1,15 @@
 ---
 comments: true
+license:
+    name: CC-BY-NC-SA-3.0
+    url: https://creativecommons.org/licenses/by-nc-sa/3.0/
 description: Explore the Virtual KITTI 2 depth dataset for monocular depth estimation, a photorealistic synthetic recreation of KITTI driving scenes with dense per-pixel ground truth used to train Ultralytics YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, Virtual KITTI 2, vKITTI2, synthetic driving dataset, dense depth, monocular depth, autonomous driving
 ---
 
 # Virtual KITTI 2 Depth Dataset
 
-[Virtual KITTI 2](https://europe.naverlabs.com/research/computer-vision/proxy-virtual-worlds-vkitti-2/) (vKITTI2) is a photorealistic synthetic recreation of the KITTI driving scenes. It clones 5 sequences from the original KITTI dataset and re-renders them under varied weather and lighting conditions, providing dense per-pixel ground truth.
+[Virtual KITTI 2](https://europe.naverlabs.com/proxy-virtual-worlds-vkitti-2/) (vKITTI2) is a photorealistic synthetic recreation of the KITTI driving scenes. It clones 5 sequences from the original KITTI dataset and re-renders them under varied weather and lighting conditions, providing dense per-pixel ground truth.
 
 As a synthetic outdoor-driving dataset, vKITTI2 offers a dense counterpart to the sparse real KITTI LiDAR returns, making it a useful source of clean outdoor driving geometry for training monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation) models.
 
@@ -26,7 +29,7 @@ The Virtual KITTI 2 depth dataset is split into two subsets:
 1. **Train**: 25,780 images with paired dense depth maps for training.
 2. **Val**: 16,740 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a scaled uint16 depth PNG, following the [Ultralytics depth dataset format](index.md). The source and converted PNGs use centimeters (`depth_scale: 100`), which preserves the 80 m training range.
 
 ## Role in YOLO26-Depth
 

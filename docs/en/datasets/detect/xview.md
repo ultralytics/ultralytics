@@ -105,13 +105,13 @@ To train a model on the xView dataset for 100 [epochs](https://www.ultralytics.c
         yolo detect train data=xView.yaml model=yolo26n.pt epochs=100 imgsz=640
         ```
 
-To label additional satellite images and manage xView training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/).
+To label additional satellite images and manage xView training runs in your browser, use [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/xview).
 
 ## Sample Data and Annotations
 
 The sample below shows a typical xView scene: high-resolution overhead imagery in which small objects such as vehicles and buildings are annotated with bounding boxes, illustrating why [object detection](https://www.ultralytics.com/glossary/object-detection) in satellite imagery demands fine-grained localization.
 
-![xView dataset overhead satellite imagery with object detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/overhead-imagery-object-detection.avif)
+![xView dataset overhead satellite imagery with object detection](https://cdn.ul.run/i/cfc9d1f8dbc62cad5b69e2248717d9d9.avif)
 
 ## Citations and Acknowledgments
 

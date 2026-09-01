@@ -30,7 +30,7 @@ pip install -r requirements.txt # install
 
 Select a pretrained model to start training from. Here we select [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml), a small and fast model. See our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a full comparison of all models. We will train this model with Multi-GPU on the [COCO](https://github.com/ultralytics/yolov5/blob/master/data/scripts/get_coco.sh) dataset.
 
-<p align="center"><img width="700" alt="YOLOv5 Models" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-comparison.avif"></p>
+<p align="center"><img width="700" alt="YOLOv5 Models" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 
 ### Single GPU
 
@@ -157,27 +157,9 @@ python -m torch.distributed.run --nproc_per_node 8 train.py --batch-size 128 --d
 
 As shown in the results, using [DistributedDataParallel](https://docs.pytorch.org/docs/stable/nn.html#torch.nn.parallel.DistributedDataParallel) with multiple GPUs provides nearly linear scaling in training speed. With 8 GPUs, training completes approximately 6.5 times faster than with a single GPU, while maintaining the same memory usage per device.
 
-## FAQ
-
-Read the checklist below before opening an issue — it often saves time.
-
-<details>
-  <summary>Checklist (click to expand)</summary>
-
-- Have you read this guide end-to-end?
-- Have you re-cloned the codebase? The code changes **daily**.
-- Have you searched for the error message? Someone may have already hit the same issue and shared a fix.
-- Have you installed all the requirements (including the correct Python and PyTorch versions)?
-- Have you tried one of the supported environments listed below?
-- Have you tried a smaller dataset such as `coco128` or `coco2017` to isolate the root cause?
-
-If all of the above check out, open an Issue with as much detail as possible, following the template.
-
-</details>
-
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
@@ -200,3 +182,21 @@ We would like to thank @MagicFrogSJTU, who did all the heavy lifting, and @glenn
 - [Train Mode](../../modes/train.md) - Learn about training YOLO models with Ultralytics
 - [Hyperparameter Tuning](../../guides/hyperparameter-tuning.md) - Optimize your model's performance
 - [Docker Quickstart Guide](../../guides/docker-quickstart.md) - Set up your Docker environment for training
+
+## FAQ
+
+Read the checklist below before opening an issue — it often saves time.
+
+<details>
+  <summary>Checklist (click to expand)</summary>
+
+- Have you read this guide end-to-end?
+- Have you re-cloned the codebase? The code changes **daily**.
+- Have you searched for the error message? Someone may have already hit the same issue and shared a fix.
+- Have you installed all the requirements (including the correct Python and PyTorch versions)?
+- Have you tried one of the supported environments listed above?
+- Have you tried a smaller dataset such as `coco128` or `coco2017` to isolate the root cause?
+
+If all of the above check out, open an Issue with as much detail as possible, following the template.
+
+</details>

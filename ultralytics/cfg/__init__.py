@@ -195,7 +195,7 @@ QUANTIZE_ALIASES = {
     "w8a16": "w8a16",
     "w8a32": "w8a32",
 }
-QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export/#quantization-options"
+QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export#quantization-options"
 QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w8a16', or 'w8a32'"
 
 # Define keys for arg type checks
@@ -220,7 +220,7 @@ CFG_FLOAT_KEYS = frozenset(
     }
 )
 CFG_FRACTION_KEYS = frozenset(
-    {  # fractional floats use [0.0, 1.0], except dataset fraction uses (0.0, 1.0]
+    {  # fractional floats use [0.0, 1.0]; dataset fraction also accepts positive counts and split pairs
         "dropout",
         "lr0",
         "lrf",
@@ -382,7 +382,7 @@ def get_cfg(
         if k in cfg and isinstance(cfg[k], FLOAT_OR_INT):
             cfg[k] = str(cfg[k])
     if cfg.get("name") == "model":  # assign model to 'name' arg
-        cfg["name"] = str(cfg.get("model", "")).partition(".")[0]
+        cfg["name"] = Path(str(cfg.get("model") or "")).stem
         LOGGER.warning(f"'name=model' automatically updated to 'name={cfg['name']}'.")
 
     # Type and Value checks
@@ -417,11 +417,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
     Notes:
         - The function modifies the input dictionary in-place.
         - None values are ignored as they may be from optional arguments.
-        - Fraction keys use [0.0, 1.0], except dataset fraction, which uses (0.0, 1.0].
+        - Fraction keys use [0.0, 1.0]; dataset fraction also accepts counts and [train, val, test] lists.
     """
     typed_keys = CFG_FLOAT_KEYS | CFG_FRACTION_KEYS | CFG_INT_KEYS | CFG_BOOL_KEYS | CFG_STR_KEYS | {"scale", "compile"}
     for k, v in cfg.items():
-        if v is None and DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment":
+        if v is None and (
+            k == "amp" or (DEFAULT_CFG_DICT.get(k) is not None and k in typed_keys and k != "auto_augment")
+        ):
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
@@ -451,6 +453,17 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 if not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_FRACTION_KEYS:
+                if k == "fraction" and isinstance(v, list):
+                    if (
+                        len(v) not in {2, 3}
+                        or not all(v[:2])
+                        or not all((type(x) is int and x >= 0) or (type(x) is float and 0.0 <= x <= 1.0) for x in v)
+                    ):
+                        raise ValueError(f"'{k}={v}' is invalid. Use [train, val] or [train, val, test] counts/ratios.")
+                    cfg[k] = [float(x) if x in {0, 1} else x for x in v]
+                    continue
+                if k == "fraction" and isinstance(v, bool):
+                    raise TypeError(f"'{k}={v}' is of invalid type bool. Valid '{k}' types are int, float, or list")
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
                         raise TypeError(
@@ -458,8 +471,11 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                if not (0.0 <= v <= 1.0) or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' is invalid. Use (0.0, 1.0] for fraction; [0.0, 1.0] otherwise.")
+                valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 1)
+                if not valid or (k == "fraction" and v == 0.0):
+                    raise ValueError(f"'{k}={v}' invalid. Use integer count >1 or ratio (0, 1] for fraction.")
+                if k == "fraction" and v == 1:
+                    cfg[k] = 1.0
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:
@@ -487,6 +503,12 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         f"'{k}' must be a bool or str (i.e. '{k}=True' or '{k}=max-autotune')"
                     )
                 cfg[k] = bool(v)
+            elif k == "amp":
+                if not isinstance(v, bool) and str(v).lower() not in {"fp16", "bf16", "fp32"}:
+                    raise ValueError(
+                        f"'{k}={v}' is invalid. Valid '{k}' values are True, False, 'fp16', 'bf16', or 'fp32'."
+                    )
+                cfg[k] = v.lower() if isinstance(v, str) else v
             elif k == "quantize":  # canonicalize 8/16/32 or w-notation to a scheme (unset stays None for FP32)
                 scheme = QUANTIZE_ALIASES.get(str(v).lower())
                 if scheme is None:
@@ -513,10 +535,9 @@ def get_save_dir(args: SimpleNamespace, name: str | None = None) -> Path:
 
     Examples:
         >>> from types import SimpleNamespace
-        >>> args = SimpleNamespace(project="my_project", task="detect", mode="train", exist_ok=True)
-        >>> save_dir = get_save_dir(args)
-        >>> print(save_dir)
-        runs/detect/my_project/train
+        >>> args = SimpleNamespace(project="my_project", name="exp", task="detect", mode="train", exist_ok=True)
+        >>> get_save_dir(args).parts[-3:]
+        ('detect', 'my_project', 'exp')
     """
     if getattr(args, "save_dir", None):
         save_dir = args.save_dir
@@ -611,6 +632,7 @@ def check_dict_alignment(
         ...     check_dict_alignment(base_cfg, custom_cfg)
         ... except SyntaxError:
         ...     print("Mismatched keys found")
+        Mismatched keys found
 
     Notes:
         - Suggests corrections for mismatched keys based on similarity to valid keys.
@@ -744,9 +766,9 @@ def handle_yolo_settings(args: list[str]) -> None:
         - The function will check for alignment between the provided settings and the existing ones.
         - After processing, the updated settings will be displayed.
         - For more information on handling YOLO settings, visit:
-          https://docs.ultralytics.com/quickstart/#ultralytics-settings
+          https://docs.ultralytics.com/quickstart#ultralytics-settings
     """
-    url = "https://docs.ultralytics.com/quickstart/#ultralytics-settings"  # help URL
+    url = "https://docs.ultralytics.com/quickstart#ultralytics-settings"  # help URL
     try:
         if any(args):
             if args[0] == "reset":
@@ -1092,9 +1114,9 @@ def entrypoint(debug: str = "") -> None:
 
         model = YOLO(model, task=task)
         if "yoloe" in stem or "world" in stem:
-            cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
-            if cls_list is not None and isinstance(cls_list, str):
-                model.set_classes([c.strip() for c in cls_list.split(",")])  # "person, bus" -> ['person', 'bus']
+            cls_list = overrides.get("classes", DEFAULT_CFG.classes)
+            if isinstance(cls_list, str):  # text prompts, i.e. "person, bus" -> ['person', 'bus']
+                model.set_classes([c.strip() for c in overrides.pop("classes", cls_list).split(",")])
     # Task Update
     if task != model.task:
         if task:

@@ -14,7 +14,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
 ## Paperspace
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/paperspace-overview.avif" alt="Paperspace GPU cloud computing for ML training">
+  <img width="100%" src="https://cdn.ul.run/i/d5ad272005637ac242a628cd9b66a159.avif" alt="Paperspace GPU cloud computing for ML training">
 </p>
 
 [Paperspace](https://www.paperspace.com/), launched in 2014 by University of Michigan graduates and acquired by DigitalOcean in 2023, is a cloud platform specifically designed for machine learning. It provides users with powerful GPUs, collaborative Jupyter notebooks, a container service for deployments, automated workflows for machine learning tasks, and high-performance virtual machines. These features aim to streamline the entire machine learning development process, from coding to deployment.
@@ -22,7 +22,7 @@ This is where a platform like Paperspace Gradient can make things simpler. Paper
 ## Paperspace Gradient
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/paperspace-gradient-overview.avif" alt="Paperspace Gradient cloud ML platform">
+  <img width="100%" src="https://cdn.ul.run/i/7925d94051f43cf04675242bba6750a7.avif" alt="Paperspace Gradient cloud ML platform">
 </p>
 
 Paperspace Gradient is a suite of tools designed to make working with AI and machine learning in the cloud much faster and easier. Gradient addresses the entire [machine learning lifecycle](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations), from building and training models to deploying them.
@@ -35,7 +35,7 @@ Paperspace Gradient makes training a YOLO26 model possible with a few clicks. Th
 
 Sign in and then click on the "Start Machine" button shown in the image below. In a few seconds, a managed GPU environment will start up, and then you can run the notebook's cells.
 
-![Training YOLO26 Using Paperspace Gradient](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/start-machine-button.avif)
+![Training YOLO26 Using Paperspace Gradient](https://cdn.ul.run/i/4eada3e27f5e3ad8c84e8abf3a1494d3.avif)
 
 Explore more capabilities of YOLO26 and Paperspace Gradient in a discussion with Glenn Jocher, Ultralytics founder, and James Skelton from Paperspace. Watch the discussion below.
 

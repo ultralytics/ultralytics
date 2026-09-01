@@ -33,10 +33,10 @@ Queue management using [Ultralytics YOLO26](https://github.com/ultralytics/ultra
 
 ## Real World Applications
 
-|                                                                                            Logistics                                                                                             |                                                                             Retail                                                                             |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Queue management at airport ticket counter using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-management-airport-ticket-counter-ultralytics-yolov8.avif) | ![Queue monitoring in crowd using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/queue-monitoring-crowd-ultralytics-yolov8.avif) |
-|                                                               Queue management at airport ticket counter Using Ultralytics YOLO26                                                                |                                                          Queue monitoring in crowd Ultralytics YOLO26                                                          |
+|                                                             Logistics                                                              |                                                      Retail                                                       |
+| :--------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------: |
+| ![Queue management at airport ticket counter using Ultralytics YOLO26](https://cdn.ul.run/i/eab33d5de0ba3789d5da8f0c007511e9.avif) | ![Queue monitoring in crowd using Ultralytics YOLO26](https://cdn.ul.run/i/1b5e30d89e0b2606189c909207cf43cd.avif) |
+|                                Queue management at airport ticket counter Using Ultralytics YOLO26                                 |                                   Queue monitoring in crowd Ultralytics YOLO26                                    |
 
 ## Manage Queues with YOLO26
 
@@ -104,17 +104,17 @@ The `QueueManager` solution counts the objects that remain inside a defined regi
 Here's a table with the `QueueManager` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "region"]) }}
+{{ param_table(["model", "region", "line_width", "verbose"]) }}
 
 The `QueueManagement` solution also support some `track` arguments:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the following visualization parameters are available:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## Implementation Strategies
 

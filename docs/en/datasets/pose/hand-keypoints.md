@@ -15,7 +15,7 @@ keywords: Hand KeyPoints, pose estimation, dataset, keypoints, MediaPipe, YOLO, 
 
 ## Introduction
 
-The [Ultralytics](https://www.ultralytics.com/) Hand Keypoints dataset contains 26,768 images of hands annotated with 21 keypoints each, generated using the [Google MediaPipe](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker) library for high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency. It's compatible with [Ultralytics YOLO26](../../models/yolo26.md) formats for training pose estimation models.
+The [Ultralytics](https://www.ultralytics.com) Hand Keypoints dataset contains 26,768 images of hands annotated with 21 keypoints each, generated using the [Google MediaPipe](https://developers.google.com/edge/mediapipe/solutions/vision/hand_landmarker) library for high [accuracy](https://www.ultralytics.com/glossary/accuracy) and consistency. It's compatible with [Ultralytics YOLO26](../../models/yolo26.md) formats for training pose estimation models.
 
 <p align="center">
   <br>
@@ -30,7 +30,7 @@ The [Ultralytics](https://www.ultralytics.com/) Hand Keypoints dataset contains 
 
 ## Keypoints
 
-![Hand keypoints landmark diagram with 21 points](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hand_landmarks.jpg)
+![Hand keypoints landmark diagram with 21 points](https://cdn.ul.run/i/eb8293b734579790e4f0fea35465d3bf.avif)
 
 Each hand is annotated with 21 keypoints as follows:
 
@@ -48,7 +48,7 @@ Each hand is annotated with 21 keypoints as follows:
 - **Keypoints**: 21 per hand with `(x, y, visibility)` triplets.
 - **Download size**: ~369 MB.
 
-For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Platform](https://platform.ultralytics.com/) handles labeling and training your own dataset from the browser.
+For a custom gesture vocabulary beyond generic hand landmarks, [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/hand-keypoints) handles labeling and training your own dataset from the browser.
 
 ## Applications
 
@@ -100,7 +100,7 @@ To train a YOLO26n-pose model on the Hand Keypoints dataset for 100 [epochs](htt
 
 The Hand Keypoints dataset contains a diverse set of images with human hands annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![Hand keypoints pose estimation dataset sample](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/human-hand-pose.avif)
+![Hand keypoints pose estimation dataset sample](https://cdn.ul.run/i/e84497d108da26e49eeded6154cbdbd6.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

@@ -144,7 +144,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
     [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so install PyTorch first by following the instructions at [PyTorch](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pytorch-installation-instructions.avif">
+        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.ul.run/i/afbbb2da0266468e5371291bbfed0ab3.avif">
     </a>
 
 ## Headless Server Installation
@@ -455,7 +455,6 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
-| `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
 | `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
 | `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
@@ -549,10 +548,9 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 [Ultralytics Platform]: https://platform.ultralytics.com
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
-[Comet ML]: https://bit.ly/yolov8-readme-comet
+[Comet ML]: ./integrations/comet.md
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
-[Neptune]: https://neptune.ai/
 [Tensorboard]: ./integrations/tensorboard.md
 [Ray Tune]: ./integrations/ray-tune.md
 [Weights & Biases]: ./integrations/weights-biases.md

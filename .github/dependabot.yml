@@ -17,7 +17,7 @@ updates:
   - package-ecosystem: github-actions
     directory: "/.github/workflows"
     schedule:
-      interval: daily
+      interval: weekly
       time: "04:00"
     open-pull-requests-limit: 5
     labels:

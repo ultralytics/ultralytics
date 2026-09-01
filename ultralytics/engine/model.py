@@ -13,7 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.tasks import guess_model_task, load_checkpoint, yaml_model_load
+from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
     ASSETS,
@@ -26,6 +26,7 @@ from ultralytics.utils import (
     callbacks,
     checks,
 )
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 class Model(torch.nn.Module):
@@ -360,7 +361,10 @@ class Model(torch.nn.Module):
         from ultralytics import __version__
 
         updates = {
-            "model": deepcopy(self.model).half() if isinstance(self.model, torch.nn.Module) else self.model,
+            "ema": None,
+            "model": deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
+            if isinstance(self.model, torch.nn.Module)
+            else self.model,
             "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
@@ -437,6 +441,10 @@ class Model(torch.nn.Module):
         Returns:
             (Iterator[torch.Tensor] | list[torch.Tensor]): Image embeddings, streamed when `stream=True`.
 
+        Raises:
+            TypeError: If the model is not an Ultralytics PyTorch model. Exported formats and third-party modules expose
+                no intermediate layers to embed.
+
         Examples:
             >>> model = YOLO("yolo26n.pt")
             >>> image = "https://ultralytics.com/images/bus.jpg"
@@ -445,8 +453,12 @@ class Model(torch.nn.Module):
             >>> print(embeddings[0].shape)
             >>> print(results[0].boxes.shape)
         """
+        self._check_is_pytorch_model()
+        model = unwrap_model(self.model)
+        if not isinstance(model, BaseModel):  # e.g. a super-gradients YOLO-NAS module, which has no layer list
+            raise TypeError(f"model='{type(model).__name__}' is not an Ultralytics model and cannot be embedded.")
         if not kwargs.get("embed"):
-            kwargs["embed"] = [len(self.model.model) - 2]  # embed second-to-last layer if no indices passed
+            kwargs["embed"] = [len(model.model) - 2]  # embed second-to-last layer if no indices passed
         return self.predict(source, stream, **kwargs)
 
     def predict(
@@ -496,16 +508,36 @@ class Model(torch.nn.Module):
         )
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True, "embed": None}
+        prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
-        prompts = args.pop("prompts", None)  # for SAM-type models
 
-        if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
+        if (
+            not self.predictor
+            or self.predictor.args.device != args.get("device", self.predictor.args.device)
+            or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
+        ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
-            self.predictor.args = get_cfg(self.predictor.args, args)
-            if "project" in args or "name" in args:
+            save_keys = ("project", "name", "save_dir", "exist_ok")
+            prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)
+            setup_keys = ("device", "dnn", "data", "end2end", "compile", "channels_last", "quantize")
+            base_args = {
+                **DEFAULT_CFG_DICT,
+                **self.overrides,
+                **{k: getattr(self.predictor.args, k) for k in setup_keys},
+            }
+            if hasattr(self.predictor.model, "imgsz") and not self.predictor.model.dynamic:
+                base_args["imgsz"] = self.predictor.args.imgsz
+            self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
+            if self.predictor.args.show:
+                self.predictor.args.show = checks.check_imshow(warn=True)
+            if prev_save_args != tuple(getattr(self.predictor.args, k, None) for k in save_keys):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+            if getattr(self.model, "end2end", False):
+                self.model.set_head_attr(
+                    max_det=max(self.predictor.args.max_det, 300), agnostic_nms=self.predictor.args.agnostic_nms
+                )
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
@@ -521,7 +553,7 @@ class Model(torch.nn.Module):
 
         This method performs object tracking using the model's predictors and optionally registered trackers. It handles
         various input sources such as file paths or video streams, and supports customization through keyword arguments.
-        The method registers trackers if not already present and can persist them between calls.
+        The method registers or refreshes the tracking callbacks on each call, so a later `persist` takes effect.
 
         Args:
             source (str | Path | int | list | tuple | np.ndarray | torch.Tensor, optional): Input source for object
@@ -540,15 +572,14 @@ class Model(torch.nn.Module):
             ...     print(r.boxes.id)  # print tracking IDs
 
         Notes:
-            - This method sets a default confidence threshold of 0.1 for ByteTrack-based tracking.
+            - This method sets a default confidence threshold of 0.1 so trackers receive low-confidence detections.
             - The tracking mode is explicitly set in the keyword arguments.
             - Batch size is set to 1 for tracking in videos.
         """
-        if not hasattr(self.predictor, "trackers"):
-            from ultralytics.trackers import register_tracker
+        from ultralytics.trackers import register_tracker
 
-            register_tracker(self, persist)
-        kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
+        register_tracker(self, persist)
+        kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
@@ -619,7 +650,7 @@ class Model(torch.nn.Module):
 
         if _depth_head(self.model) is None:
             raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
-        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth", "rect": False}
+        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth"}
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
@@ -823,6 +854,7 @@ class Model(torch.nn.Module):
                 weights, _ = load_checkpoint(pretrained)
             self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)
             self.model = self.trainer.model
+            self.predictor = None  # this module replaced the one the cached predictor wrapped
 
         self.trainer.train()
         # Update model and cfg after training
@@ -833,7 +865,9 @@ class Model(torch.nn.Module):
                     f"Training completed but no checkpoint was saved. Expected {self.trainer.best} or {self.trainer.last}."
                 )
             self.model, self.ckpt = load_checkpoint(ckpt)
+            self.predictor = None  # the checkpoint replaced the module again; covers resume and YAML runs too
             self.overrides = self._reset_ckpt_args(self.model.args)
+            self.overrides["model"] = str(ckpt)  # the reset drops it, train() and tune() read it back
             self.metrics = getattr(self.trainer.validator, "metrics", None)
             if self.metrics is None and self.ckpt:  # recover from checkpoint under DDP (validator runs in subprocess)
                 self.metrics = self.ckpt.get("train_metrics")
@@ -842,7 +876,7 @@ class Model(torch.nn.Module):
     def tune(
         self,
         use_ray=False,
-        iterations=10,
+        iterations=300,
         *args: Any,
         **kwargs: Any,
     ):
@@ -876,6 +910,8 @@ class Model(torch.nn.Module):
             >>> results = model.tune(use_ray=True, iterations=20, data="coco8.yaml")
         """
         self._check_is_pytorch_model()
+        if "optimizer" not in (kwargs.get("space") or {}):
+            kwargs.setdefault("optimizer", "AdamW")
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 

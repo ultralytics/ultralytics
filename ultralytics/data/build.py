@@ -6,6 +6,7 @@ import math
 import os
 import random
 from collections.abc import Iterator
+from copy import copy
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -35,7 +36,7 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS
+from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, get_split_fraction
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
@@ -79,7 +80,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         return len(self.batch_sampler.sampler)
 
     def __iter__(self) -> Iterator:
-        """Create an iterator that yields indefinitely from the underlying iterator."""
+        """Yield one epoch of batches from the persistent iterator."""
         for _ in range(len(self)):
             yield next(self.iterator)
 
@@ -246,9 +247,10 @@ def build_yolo_dataset(
 ) -> Dataset:
     """Build and return a YOLO dataset based on configuration parameters."""
     pad = 0.0 if mode == "train" else 0.5
+    rect = cfg.rect or rect
     if cfg.task == "depth":
         dataset = DepthDataset
-        pad = 0.0  # depth val letterbox stretches, so pad is ignored
+        pad, rect = 0.0, rect and mode == "train"  # depth val letterbox stretches, so pad and rect_shape are ignored
     elif cfg.task == "semantic":
         data_path = Path(data.get("path", ""))
         if "masks_dir" in data or (data_path / "masks").exists():
@@ -261,15 +263,17 @@ def build_yolo_dataset(
     else:
         dataset = YOLODataset
 
-    if fraction is None:
-        fraction = cfg.fraction if mode == "train" else 1.0
+    if data.get("complete"):
+        fraction = 1.0  # already limited during dataset download
+    elif fraction is None:
+        fraction = get_split_fraction(cfg.fraction, mode)
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",
-        hyp=cfg,
-        rect=cfg.rect or rect,
+        hyp=copy(cfg),
+        rect=rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
         stride=stride,
@@ -300,7 +304,7 @@ def build_grounding(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=cfg,  # TODO: probably add a get_hyps_from_cfg function
+        hyp=copy(cfg),
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -309,7 +313,7 @@ def build_grounding(
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
-        fraction=cfg.fraction if mode == "train" else 1.0,
+        fraction=get_split_fraction(cfg.fraction, mode),
     )
 
 
@@ -345,10 +349,11 @@ def build_dataloader(
     """
     dataset_len = len(dataset)
     batch = min(batch, dataset_len)
+    seed = torch.initial_seed() - RANK - 1
     sampler = (
         None
         if rank == -1
-        else distributed.DistributedSampler(dataset, shuffle=shuffle)
+        else distributed.DistributedSampler(dataset, shuffle=shuffle, seed=seed)
         if shuffle
         else ContiguousDistributedSampler(dataset)
     )
@@ -361,7 +366,7 @@ def build_dataloader(
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     generator = torch.Generator()
-    generator.manual_seed(6148914691236517205 + RANK)
+    generator.manual_seed((6148914691236517205 + RANK + seed) % (1 << 64))
     pin_memory = nd > 0 and pin_memory
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None

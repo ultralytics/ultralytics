@@ -72,7 +72,7 @@ class GMC:
             self.feature_params = {
                 "maxCorners": 1000,
                 "qualityLevel": 0.01,
-                "minDistance": 1,
+                "minDistance": 0,  # integer-pixel corners: 1 rejects nothing but forces a per-pixel grid
                 "blockSize": 3,
                 "useHarrisDetector": False,
                 "k": 0.04,
@@ -205,23 +205,23 @@ class GMC:
             return H
 
         # Match descriptors between previous and current frame
-        knnMatches = self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
+        knnMatches = (
+            self.matcher.knnMatch(self.prevDescriptors, descriptors, 2)
+            if self.prevDescriptors is not None and descriptors is not None
+            else []
+        )
 
         # Filter matches based on spatial distance constraints
         spatialDistances = []
         maxSpatialDistance = 0.25 * np.array([width, height])
 
-        # Handle empty matches case
-        if len(knnMatches) == 0:
-            self.prevFrame = frame.copy()
-            self.prevKeyPoints = copy.copy(keypoints)
-            self.prevDescriptors = copy.copy(descriptors)
-            return H
-
         # Apply Lowe's ratio test and spatial distance filtering
         prevPoints = []
         currPoints = []
-        for m, n in knnMatches:
+        for matches in knnMatches:
+            if len(matches) < 2:
+                continue
+            m, n = matches
             if m.distance < 0.9 * n.distance:
                 prevKeyPointLocation = self.prevKeyPoints[m.queryIdx].pt
                 currKeyPointLocation = keypoints[m.trainIdx].pt
@@ -237,6 +237,12 @@ class GMC:
                     spatialDistances.append(spatialDistance)
                     prevPoints.append(prevKeyPointLocation)
                     currPoints.append(currKeyPointLocation)
+
+        if not spatialDistances:
+            self.prevFrame = frame.copy()
+            self.prevKeyPoints = copy.copy(keypoints)
+            self.prevDescriptors = copy.copy(descriptors)
+            return H
 
         # Filter outliers using statistical analysis
         spatialDistances = np.asarray(spatialDistances).reshape(-1, 2)

@@ -3,7 +3,7 @@ title: DOTA128 OBB Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: Research-Only
     url: https://captain-whu.github.io/DOTA/dataset.html
@@ -15,7 +15,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set, 128 for training and validation. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set, 128 for training and validation. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 
@@ -24,7 +24,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 - **Labels**: YOLO-format oriented bounding boxes saved as `.txt` files beside each image.
 - **Download**: 34 MB, fetched automatically from Ultralytics GitHub assets the first time you train.
 
-This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/) and [YOLO26](https://github.com/ultralytics/ultralytics).
+This dataset is intended for use with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/dota128) and [YOLO26](https://github.com/ultralytics/ultralytics).
 
 ## Dataset YAML
 
@@ -65,7 +65,7 @@ To train a YOLO26n-obb model on the DOTA128 dataset for 100 [epochs](https://www
 
 Here are some examples of images from the DOTA128 dataset, along with their corresponding annotations:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch.avif" alt="DOTA128 oriented bounding box dataset training mosaic" width="800">
+<img src="https://cdn.ul.run/i/abcdbb24150fbc2a192327b59185ddbb.avif" alt="DOTA128 oriented bounding box dataset training mosaic" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

@@ -15,7 +15,7 @@ keywords: COCO-Pose, pose estimation, dataset, keypoints, COCO Keypoints 2017, Y
 
 The [COCO-Pose](https://cocodataset.org/#keypoints-2017) dataset adapts COCO (Common Objects in Context) for [pose estimation](../../tasks/pose.md): 58,945 images from COCO Keypoints 2017, annotated with 156,165 people using a 17-keypoint schema. It is the standard set for training and benchmarking keypoint models such as [Ultralytics YOLO26](../../models/yolo26.md), and the 8-image [COCO8-Pose](coco8-pose.md) subset mirrors its format for quick sanity checks.
 
-![COCO pose estimation with human keypoints](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pose-sample-image.avif)
+![COCO pose estimation with human keypoints](https://cdn.ul.run/i/95627d4a51cd7ee85d8aee0655b92621.avif)
 
 ## COCO-Pose Pretrained Models
 
@@ -36,7 +36,7 @@ For training and validation, COCO-Pose includes only COCO 2017 images with keypo
 2. **Val2017**: This subset has 2,346 images used for validation purposes during model training.
 3. **Test-dev2017**: A 20,288-image subset of the full 40,670-image test2017 set with withheld ground truth. The dataset YAML links this split to the [COCO test-dev keypoints evaluation server](https://codalab.lisn.upsaclay.fr/competitions/7403).
 
-Training at this scale is where [Ultralytics Platform](https://platform.ultralytics.com/) helps most — it manages the compute so you can launch and monitor runs without provisioning your own GPUs.
+Training at this scale is where [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/coco2017-pose) helps most — it manages the compute so you can launch and monitor runs without provisioning your own GPUs.
 
 ## Applications
 
@@ -81,7 +81,7 @@ To train a YOLO26n-pose model on the COCO-Pose dataset for 100 [epochs](https://
 
 The COCO-Pose dataset contains a diverse set of images with human figures annotated with keypoints. Here are some examples of images from the dataset, along with their corresponding annotations:
 
-![COCO pose estimation dataset mosaic training batch](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-6.avif)
+![COCO pose estimation dataset mosaic training batch](https://cdn.ul.run/i/3f75a1133895eb6192751135f58001be.avif)
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 

@@ -3,7 +3,7 @@ title: Signature Detection Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: AGPL-3.0
     url: https://www.ultralytics.com/license
@@ -105,7 +105,7 @@ Once trained, you can run [inference](../../modes/predict.md) on documents or vi
 
 The dataset covers a variety of document formats, helping trained models generalize across contracts, forms, and letters. Below is a training batch from the dataset:
 
-![Signature detection dataset sample image](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/signature-detection-mosaiced-sample.avif)
+![Signature detection dataset sample image](https://cdn.ul.run/i/371b8e9022c575e19d92d66bbe261941.avif)
 
 - **Mosaiced Image**: Here, we present a training batch consisting of mosaiced dataset images. Mosaicing, a training technique, combines multiple images into one, enriching batch diversity. This method helps enhance the model's ability to generalize across different signature sizes, aspect ratios, and contexts.
 
@@ -125,7 +125,7 @@ If you use the Signature Detection Dataset in your research or development work,
             title = {Signature Detection Dataset},
             year = {2024},
             publisher = {Ultralytics},
-            url = {https://docs.ultralytics.com/datasets/detect/signature/}
+            url = {https://docs.ultralytics.com/datasets/detect/signature}
         }
         ```
 

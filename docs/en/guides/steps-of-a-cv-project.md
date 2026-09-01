@@ -35,7 +35,7 @@ Before discussing the details of each step involved in a computer vision project
 - Finally, you [deploy](#step-7-model-deployment) your model into the real world and [monitor and maintain](#step-8-monitoring-maintenance-and-documentation) it based on new insights and feedback.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/five-stages-of-ml-development-lifecycle.avif" alt="Computer Vision Project Steps Overview">
+  <img width="100%" src="https://cdn.ul.run/i/18837ae5b526a4c39c50722c5f0e2411.avif" alt="Computer Vision Project Steps Overview">
 </p>
 
 Now that we know what to expect, let's dive right into the steps and get your project moving forward.
@@ -64,7 +64,7 @@ Depending on the objective, you might choose to select the model first or after 
 Choosing between training from scratch or using [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) affects how you prepare your data. Training from scratch requires a diverse dataset to build the model's understanding from the ground up. Transfer learning, on the other hand, allows you to use a pretrained model and adapt it with a smaller, more specific dataset. Also, choosing a specific model to train will determine how you need to prepare your data, such as resizing images or adding annotations, according to the model's specific requirements.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-from-scratch-vs-transfer-learning.avif" alt="Training From Scratch Vs. Using Transfer Learning">
+  <img width="100%" src="https://cdn.ul.run/i/81fd8e026865f1c7b9e0d43faaf3df4f.avif" alt="Training From Scratch Vs. Using Transfer Learning">
 </p>
 
 !!! note "Consider deployment when choosing a model"
@@ -94,7 +94,7 @@ However, if you choose to collect images or take your own pictures, you'll need 
 - **[Image Segmentation](https://www.ultralytics.com/glossary/image-segmentation):** You'll label each pixel in the image according to the object it belongs to, creating detailed object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/different-types-of-image-annotation.avif" alt="Bounding box, polygon, and keypoint annotations">
+  <img width="100%" src="https://cdn.ul.run/i/965f90688c9319c6cfa797be65b1d03a.avif" alt="Bounding box, polygon, and keypoint annotations">
 </p>
 
 [Data collection and annotation](./data-collection-and-annotation.md) can be a time-consuming manual effort. A dedicated annotation tool makes it faster: [Ultralytics Platform](https://platform.ultralytics.com) provides a built-in [annotation editor](../platform/data/annotation.md) with [SAM-powered smart annotation](https://www.ultralytics.com/annotate) for detection, segmentation, and OBB data, saving labels directly in YOLO format.
@@ -112,12 +112,12 @@ Here's how to split your data:
 After splitting your data, you can perform data augmentation by applying transformations like rotating, scaling, and flipping images to artificially increase the size of your dataset. Data augmentation makes your model more robust to variations and improves its performance on unseen images.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/examples-of-data-augmentations.avif" alt="Data augmentation examples">
+  <img width="100%" src="https://cdn.ul.run/i/fa3501e5c19f9ce9a2684cba0be24649.avif" alt="Data augmentation examples">
 </p>
 
 Libraries like [OpenCV](https://www.ultralytics.com/glossary/opencv), [Albumentations](../integrations/albumentations.md), and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) offer flexible augmentation functions that you can use. Additionally, some libraries, such as Ultralytics, have [built-in augmentation settings](../modes/train.md) directly within its model training function, simplifying the process.
 
-To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The [Ultralytics Platform](https://platform.ultralytics.com/) `Charts` tab can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
+To understand your data better, you can use tools like [Matplotlib](https://matplotlib.org/) or [Seaborn](https://seaborn.pydata.org/) to visualize the images and analyze their distribution and characteristics. Visualizing your data helps identify patterns, anomalies, and the effectiveness of your augmentation techniques. The [Ultralytics Platform](https://platform.ultralytics.com) `Charts` tab can surface many of these insights without any code by automatically generating split distribution, class counts, image-dimension histograms, and annotation-position heatmaps for every uploaded dataset.
 
 By properly [understanding, splitting, and augmenting your data](./preprocessing-annotated-data.md), you can develop a well-trained, validated, and tested model that performs well in real-world applications.
 
@@ -172,7 +172,7 @@ Once your model is deployed, it's important to continuously monitor its performa
 Monitoring tools can help you track key performance indicators (KPIs) and detect anomalies or drops in accuracy. By monitoring the model, you can be aware of model drift, where the model's performance declines over time due to changes in the input data. Periodically retrain the model with updated data to maintain accuracy and relevance.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/model-monitoring-maintenance-loop.avif" alt="Model monitoring and maintenance lifecycle">
+  <img width="100%" src="https://cdn.ul.run/i/1eb070b8f975068d5805d971f3487c11.avif" alt="Model monitoring and maintenance lifecycle">
 </p>
 
 In addition to monitoring and maintenance, documentation is also key. Thoroughly document the entire process, including model architecture, training procedures, hyperparameters, data preprocessing steps, and any changes made during deployment and maintenance. Good documentation ensures reproducibility and makes future updates or troubleshooting easier. By effectively [monitoring, maintaining, and documenting your model](./model-monitoring-and-maintenance.md), you can ensure it remains accurate, reliable, and easy to manage over its lifecycle.

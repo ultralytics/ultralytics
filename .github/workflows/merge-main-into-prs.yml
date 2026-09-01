@@ -27,13 +27,16 @@ jobs:
           pip install pygithub
       - name: Merge default branch into PRs
         shell: python
+        env:
+          GITHUB_TOKEN: ${{ secrets._GITHUB_TOKEN }}
         run: |
+          import os
           import time
 
           from github import Github
           from github.Auth import Token
 
-          g = Github(auth=Token("${{ secrets._GITHUB_TOKEN }}"))
+          g = Github(auth=Token(os.environ["GITHUB_TOKEN"]))
           repo = g.get_repo("${{ github.repository }}")
 
           # Fetch the default branch name

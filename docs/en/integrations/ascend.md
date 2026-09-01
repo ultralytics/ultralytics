@@ -179,7 +179,7 @@ YOLO models running on Ascend hardware suit a wide range of embedded and industr
 
 In this guide, you have learned how to train Ultralytics YOLO on Huawei Ascend NPUs and export models to the Ascend `.om` format using the CANN ATC compiler. Export runs entirely on the host, produces a self-contained model directory, and targets any supported Ascend SoC through a single `name` argument.
 
-For more details on usage, visit the [official CANN documentation](https://www.hiascend.com/software/cann).
+For more details on usage, visit the [official CANN documentation](https://www.hiascend.com/cann).
 
 Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](index.md) to find plenty of helpful resources.
 

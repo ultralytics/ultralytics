@@ -136,7 +136,7 @@ def scale_boxes(
         img1_shape (tuple[int, int]): Shape of the source image (height, width).
         boxes (torch.Tensor | np.ndarray): Bounding boxes to rescale in format (N, 4).
         img0_shape (tuple[int, int]): Shape of the target image (height, width).
-        ratio_pad (tuple, optional): Tuple of (ratio, pad) for scaling. If None, calculated from image shapes.
+        ratio_pad (tuple, optional): Ratio and padding as ((ratio_h, ratio_w), (pad_w, pad_h)).
         padding (bool): Whether boxes are based on YOLO-style augmented images with padding.
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
 
@@ -145,10 +145,11 @@ def scale_boxes(
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
+        gain_y = gain_x = gain
         pad_x = round((img1_shape[1] - round(img0_shape[1] * gain)) / 2 - 0.1)
         pad_y = round((img1_shape[0] - round(img0_shape[0] * gain)) / 2 - 0.1)
     else:
-        gain = ratio_pad[0][0]
+        gain_y, gain_x = ratio_pad[0]
         pad_x, pad_y = ratio_pad[1]
 
     if padding:
@@ -157,7 +158,10 @@ def scale_boxes(
         if not xywh:
             boxes[..., 2] -= pad_x  # x padding
             boxes[..., 3] -= pad_y  # y padding
-    boxes[..., :4] /= gain
+    boxes[..., 0] /= gain_x
+    boxes[..., 1] /= gain_y
+    boxes[..., 2] /= gain_x
+    boxes[..., 3] /= gain_y
     return boxes if xywh else clip_boxes(boxes, img0_shape)
 
 
@@ -368,20 +372,23 @@ def xyxyxyxy2xywhr(x):
     """Convert batched Oriented Bounding Boxes (OBB) from [xy1, xy2, xy3, xy4] to [xywh, rotation] format.
 
     Args:
-        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) in [xy1, xy2, xy3, xy4] format.
+        x (np.ndarray | torch.Tensor): Input box corners with shape (N, 8) or (N, 4, 2) in [xy1, xy2, xy3, xy4] format.
+            Polygons with more than four points are accepted in the same two layouts, (N, 2P) or (N, P, 2), and are
+            reduced to their minimum-area rectangle.
 
     Returns:
-        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). Rotation
-            values are in radians from [-pi/4, 3pi/4).
+        (np.ndarray | torch.Tensor): Converted data in [cx, cy, w, h, rotation] format with shape (N, 5). The
+            parameterization is canonical rather than the caller's: w is the longer side and rotation is in radians
+            from [-pi/4, 3pi/4), so a box given with w < h comes back with w and h swapped and its angle shifted by
+            pi/2 modulo pi.
     """
     is_torch = isinstance(x, torch.Tensor)
     points = x.cpu().numpy() if is_torch else x
-    points = points.reshape(len(x), -1, 2)
     rboxes = []
     for pts in points:
         # NOTE: Use cv2.minAreaRect to get accurate xywhr,
         # especially some objects are cut off by augmentations in dataloader.
-        (cx, cy), (w, h), angle = cv2.minAreaRect(pts)
+        (cx, cy), (w, h), angle = cv2.minAreaRect(pts.reshape(-1, 2))
         # convert angle to radian and normalize to [-pi/4, 3pi/4)
         theta = angle / 180 * np.pi
         if w < h:
@@ -392,7 +399,8 @@ def xyxyxyxy2xywhr(x):
         while theta < -np.pi / 4:
             theta += np.pi
         rboxes.append([cx, cy, w, h, theta])
-    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else np.asarray(rboxes)
+    rboxes = np.asarray(rboxes).reshape(-1, 5)  # reshape keeps the (0, 5) shape on an empty input
+    return torch.tensor(rboxes, device=x.device, dtype=x.dtype) if is_torch else rboxes
 
 
 def xywhr2xyxyxyxy(x):
@@ -400,7 +408,9 @@ def xywhr2xyxyxyxy(x):
 
     Args:
         x (np.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format with shape (N, 5) or (B, N, 5). Rotation
-            values should be in radians from [-pi/4, 3pi/4).
+            is in radians and is neither range-checked nor normalized; the box is not canonicalized, so converting the
+            (N, 4, 2) corners back with xyxyxyxy2xywhr returns the canonical form of the same rectangle rather than
+            these values.
 
     Returns:
         (np.ndarray | torch.Tensor): Converted corner points with shape (N, 4, 2) or (B, N, 4, 2).
@@ -453,7 +463,7 @@ def segments2boxes(segments):
     for s in segments:
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
-    return xyxy2xywh(np.array(boxes))  # cls, xywh
+    return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh
 
 
 def resample_segments(segments, n: int = 1000):
@@ -619,16 +629,17 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
+        gain_y = gain_x = gain
         pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
     else:
-        gain = ratio_pad[0][0]
+        gain_y, gain_x = ratio_pad[0]
         pad = ratio_pad[1]
 
     if padding:
         coords[..., 0] -= pad[0]  # x padding
         coords[..., 1] -= pad[1]  # y padding
-    coords[..., 0] /= gain
-    coords[..., 1] /= gain
+    coords[..., 0] /= gain_x
+    coords[..., 1] /= gain_y
     coords = clip_coords(coords, img0_shape)
     if normalize:
         coords[..., 0] /= img0_w  # width

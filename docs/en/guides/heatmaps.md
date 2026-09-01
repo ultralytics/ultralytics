@@ -30,10 +30,10 @@ The [Heatmap solution](../reference/solutions/heatmap.md) in [Ultralytics YOLO26
 
 ## Real World Applications
 
-|                                                                                Transportation                                                                                |                                                                                Retail                                                                                 |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-transportation-heatmap.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-retail-heatmap.avif) |
-|                                                                   Ultralytics YOLO Transportation Heatmap                                                                    |                                                                    Ultralytics YOLO Retail Heatmap                                                                    |
+|                                                         Transportation                                                          |                                                              Retail                                                              |
+| :-----------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------: |
+| ![Ultralytics YOLO heatmap overlay showing vehicle traffic density](https://cdn.ul.run/i/704450c331ec65eddec9abe69f1d12fc.avif) | ![Ultralytics YOLO heatmap overlay showing retail customer movement](https://cdn.ul.run/i/17a2a0f51ed28061f9991f3d85c106ae.avif) |
+|                                             Ultralytics YOLO Transportation Heatmap                                             |                                                 Ultralytics YOLO Retail Heatmap                                                  |
 
 ## How to Generate Heatmaps with Ultralytics YOLO
 
@@ -109,17 +109,17 @@ Run the Heatmap solution on a video source from the CLI or Python. The Python ex
 Here's a table with the `Heatmap` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "colormap", "show_in", "show_out", "region"]) }}
+{{ param_table(["model", "colormap", "show_in", "show_out", "region", "line_width", "verbose"]) }}
 
 You can also apply different `track` arguments in the `Heatmap` solution.
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the supported visualization arguments are listed below:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ### Heatmap Colormaps
 

@@ -50,6 +50,7 @@ def merge_track_pools(
     tracker.tracked_stracks, tracker.lost_stracks = remove_duplicate_stracks(
         tracker.tracked_stracks, tracker.lost_stracks
     )
+    tracker.removed_stracks_frame = removed
     tracker.removed_stracks.extend(removed)
     if len(tracker.removed_stracks) > removed_buffer:
         tracker.removed_stracks = tracker.removed_stracks[-removed_buffer:]

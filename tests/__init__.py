@@ -15,6 +15,7 @@ TASK_MODEL_DATA = sorted(
 )  # (task, model, data) tuples
 MODELS = sorted([*list(TASK2MODEL.values()), "yolo11n-grayscale.pt"])  # task models plus grayscale variant
 SOLUTION_ASSETS = {
+    "boats": "boats.jpg",
     "demo_video": "solutions_ci_demo.mp4",
     "crop_video": "decelera_landscape_min.mov",
     "pose_video": "solution_ci_pose_demo.mp4",
@@ -23,6 +24,7 @@ SOLUTION_ASSETS = {
     "track_video": "decelera_portrait_min.mov",
     "parking_areas": "solution_ci_parking_areas.json",
     "parking_model": "solutions_ci_parking_model.pt",
+    "similarity_images": "4-imgs-similaritysearch.zip",
 }
 
 __all__ = (

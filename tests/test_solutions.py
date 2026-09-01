@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions/,
+# Tests Ultralytics Solutions: https://docs.ultralytics.com/solutions,
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
@@ -13,7 +13,7 @@ import torch
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import ASSETS_URL, IS_RASPBERRYPI, TORCH_VERSION, checks
+from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -396,9 +396,9 @@ def test_streamlit_handle_video_upload_creates_file(tmp_path):
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-def test_similarity_search(tmp_path):
+def test_similarity_search(tmp_path, solution_assets):
     """Test similarity search solution with sample images and text query."""
-    safe_download(f"{ASSETS_URL}/4-imgs-similaritysearch.zip", dir=tmp_path)  # 4 dog images for testing in a zip file
+    safe_download(solution_assets("similarity_images"), dir=tmp_path)  # 4 dog images for testing in a zip file
     searcher = solutions.VisualAISearch(data=str(tmp_path / "4-imgs-similaritysearch"))
     _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
 

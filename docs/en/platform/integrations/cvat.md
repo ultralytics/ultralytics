@@ -48,11 +48,16 @@ archive.zip/
 
 CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/formats/). Three matter here:
 
-| CVAT Format          | Works  | Notes                                                                                        |
-| -------------------- | ------ | -------------------------------------------------------------------------------------------- |
-| **Ultralytics YOLO** | Best   | Ships `data.yaml`, so your label names come across intact                                    |
-| **COCO 1.0**         | Yes    | Read too; a mix of polygons and boxes imports as segment, and the box-only ones are dropped  |
-| **YOLO 1.1**         | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
+| CVAT Format            | Works  | Notes                                                                                        |
+| ---------------------- | ------ | -------------------------------------------------------------------------------------------- |
+| **Ultralytics YOLO**   | Best   | Ships `data.yaml`, so your label names come across intact                                    |
+| **COCO 1.0**           | Yes    | Read too; a mix of polygons and boxes imports as segment, and the box-only ones are dropped  |
+| **COCO Keypoints 1.0** | Yes    | Imports as a pose dataset, with the keypoint count taken from the most common shape          |
+| **YOLO 1.1**           | Partly | Boxes import, but its `obj.names` file is not read — classes arrive as `class0`, `class1`, … |
+
+Every COCO annotation must carry a `bbox` to be read, and crowd regions (`"iscrowd": 1`) are skipped. Category names
+become the class names, and category IDs are unified across all the JSON files in the archive, so per-split exports keep
+consistent class IDs.
 
 !!! warning "Pascal VOC imports without annotations"
 

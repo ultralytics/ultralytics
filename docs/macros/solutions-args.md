@@ -8,6 +8,8 @@
     "show_out": ["bool", "True", "Flag to control whether to display the out counts on the video stream."],
     "analytics_type": ["str", "'line'", "Type of graph, i.e., `line`, `bar`, `area`, or `pie`."],
     "colormap": ["int", "cv2.COLORMAP_DEEPGREEN", "Colormap to use for the heatmap."],
+    "line_width": ["int", "2", "Line thickness for the boxes, keypoints and counts the solution draws."],
+    "verbose": ["bool", "True", "Enables the solution's per-frame log of input shape, class counts and processing speed. The tracking call itself is always silent."],
     "json_file": ["str", "None", "Path to the JSON file that contains all parking coordinates data."],
     "up_angle": ["float", "145.0", "Angle threshold for the 'up' pose."],
     "kpts": ["list[int]", "'[6, 8, 10]'", "List of three keypoint indices used for monitoring workouts. These keypoints correspond to body joints or parts, such as shoulders, elbows, and wrists, for exercises like push-ups, pull-ups, squats, and ab-workouts."],

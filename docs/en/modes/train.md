@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 # Model Training with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 
@@ -113,6 +113,16 @@ Multi-GPU training allows for more efficient utilization of available hardware r
         # Use the two most idle GPUs
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=-1,-1
         ```
+
+!!! warning "Windows Multi-GPU Support"
+
+    Multi-GPU training does not work on Windows with the official PyTorch wheels for `torch>=2.4`. Ultralytics launches DDP through `torch.distributed.run`, whose rendezvous step builds a `TCPStore` that has defaulted to the libuv backend since PyTorch 2.4, and the official Windows wheels are built without libuv. Training exits immediately with:
+
+    ```
+    RuntimeError: use_libuv was requested but PyTorch was built without libuv support
+    ```
+
+    Setting `USE_LIBUV=0` does not resolve this, because the rendezvous constructs the `TCPStore` directly and that code path never reads the variable. Train on Linux or [WSL2](https://learn.microsoft.com/windows/wsl/install) to use multiple GPUs, or train on a single GPU with `device=0` on Windows.
 
 !!! note "Multi-GPU Training with Custom Code"
 
@@ -308,6 +318,7 @@ See the implementation in `ultralytics/optim/muon.py` and the optimizer auto-sel
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` to automatically adjust batch size for approximately 60% CUDA memory utilization.
     - **Auto Mode with Utilization Fraction**: Set a fraction value (e.g., `batch=0.70`) to adjust batch size based on the specified fraction of GPU memory usage.
     - **OOM Auto-Retry**: If a CUDA out-of-memory error occurs during the first epoch, the trainer automatically halves the batch size and retries (up to 3 times). This only applies to single-GPU training; multi-GPU (DDP) training will raise the error immediately.
+    - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
 ## Augmentation Settings and Hyperparameters
 
@@ -540,14 +551,14 @@ For more details, refer to the [Apple Silicon MPS Training](#apple-silicon-mps-t
 
 Ultralytics YOLO26 allows you to configure a variety of training settings such as batch size, learning rate, epochs, and more through arguments. Here's a brief overview:
 
-| Argument | Default | Description                                                            |
-| -------- | ------- | ---------------------------------------------------------------------- |
-| `model`  | `None`  | Path to the model file for training.                                   |
-| `data`   | `None`  | Path to the dataset configuration file (e.g., `coco8.yaml`).           |
-| `epochs` | `100`   | Total number of training epochs.                                       |
-| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                        |
-| `imgsz`  | `640`   | Target image size for training.                                        |
-| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`. |
-| `save`   | `True`  | Enables saving of training checkpoints and final model weights.        |
+| Argument | Default | Description                                                                                                            |
+| -------- | ------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `model`  | `None`  | Path to the model file for training.                                                                                   |
+| `data`   | `None`  | Path to the dataset YAML (e.g., `coco8.yaml`), or a dataset directory or name (e.g., `imagenet10`) for classification. |
+| `epochs` | `100`   | Total number of training epochs.                                                                                       |
+| `batch`  | `16`    | Batch size, adjustable as integer or auto mode.                                                                        |
+| `imgsz`  | `640`   | Target image size for training.                                                                                        |
+| `device` | `None`  | Computational device(s) for training like `cpu`, `0`, `0,1`, or `mps`.                                                 |
+| `save`   | `True`  | Enables saving of training checkpoints and final model weights.                                                        |
 
 For an in-depth guide on training settings, check the [Train Settings](#train-settings) section.

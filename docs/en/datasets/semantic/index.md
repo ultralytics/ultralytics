@@ -144,7 +144,7 @@ names:
     1: car
 ```
 
-[Ultralytics Platform](https://platform.ultralytics.com/) provides a polygon annotation tool for the semantic task, plus SAM-assisted Smart annotation — annotate directly in the browser and export or train on the resulting polygon-labeled dataset without setting up this layout by hand.
+[Ultralytics Platform](https://platform.ultralytics.com) provides a polygon annotation tool for the semantic task, plus SAM-assisted Smart annotation — annotate directly in the browser and export or train on the resulting polygon-labeled dataset without setting up this layout by hand.
 
 ## FAQ
 

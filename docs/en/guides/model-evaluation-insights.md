@@ -7,7 +7,7 @@ keywords: model evaluation, fine-tuning YOLO, mAP, IoU, confidence score, model 
 
 # Insights on Model Evaluation and Fine-Tuning
 
-After [training](./model-training-tips.md) a YOLO model, the next step is to measure how well it performs and fine-tune it to close the gaps. Evaluation uses metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) to quantify accuracy, while fine-tuning adjusts training parameters to strengthen weak spots so the model meets your [project's objective](./defining-project-goals.md). This guide explains the key evaluation metrics, how to read them, and the fine-tuning techniques that elevate your model's capabilities.
+After [training](./model-training-tips.md) a YOLO model, the next step is to measure how well it performs and fine-tune it to close the gaps. Evaluation uses metrics like [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) and [IoU](https://www.ultralytics.com/glossary/intersection-over-union-iou) to quantify accuracy, while fine-tuning adjusts training parameters to strengthen weak spots so the model meets your [project's objective](./defining-project-goals.md). This guide explains the key evaluation metrics, how to read them, and how to act on what they show.
 
 <p align="center">
   <br>
@@ -39,7 +39,7 @@ The confidence score represents the model's certainty that a detected object bel
 [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) is a metric in [object detection](https://www.ultralytics.com/glossary/object-detection) that measures how well the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) overlaps with the ground truth bounding box. IoU values range from 0 to 1, where one stands for a perfect match. IoU is essential because it measures how closely the predicted boundaries match the actual object boundaries.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/intersection-over-union-overview.avif" alt="Intersection over Union Overview">
+  <img width="100%" src="https://cdn.ul.run/i/178fd224a437a4d2acd73be593ffed6a.avif" alt="Intersection over Union Overview">
 </p>
 
 ### Mean Average Precision
@@ -54,7 +54,7 @@ Two mAP metrics are most commonly reported:
 Other mAP metrics include mAP@0.75, which uses a stricter IoU threshold of 0.75, and mAP@small, medium, and large, which evaluate precision across objects of different sizes.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mean-average-precision-overview.avif" alt="Mean average precision mAP metric">
+  <img width="100%" src="https://cdn.ul.run/i/d05182a0bc6cf4f2f45a598e9f414496.avif" alt="Mean average precision mAP metric">
 </p>
 
 ## Evaluating a YOLO26 Model
@@ -109,33 +109,7 @@ The `results.box.image_metrics` attribute is a per-image dictionary keyed by ima
 
 ## Fine-Tuning Your Model
 
-Fine-tuning takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model to achieve optimal results by paying close attention to a few key parameters and techniques.
-
-### Starting With a Higher Learning Rate
-
-During normal training, the [learning rate](https://www.ultralytics.com/glossary/learning-rate) starts low and gradually increases over the first few epochs to stabilize early updates. When fine-tuning, the model already carries useful features from pretraining, so you can skip this warmup and start adapting to your new data right away.
-
-Set the `warmup_epochs` training argument to `0` in `model.train()` to disable the warmup phase. Training then continues from the pretrained weights at the configured base learning rate (`lr0`) instead of ramping up to it, adjusting to the nuances of your new data.
-
-!!! example "Fine-tune without learning-rate warmup"
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a pretrained model
-        model = YOLO("yolo26n.pt")
-
-        # Fine-tune with the warmup phase disabled
-        model.train(data="coco8.yaml", epochs=10, warmup_epochs=0)
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo detect train model=yolo26n.pt data=coco8.yaml epochs=10 warmup_epochs=0
-        ```
+Fine-tuning takes a pretrained model and adjusts its parameters to improve performance on a specific task or dataset. Also known as model retraining, it lets the model better understand and predict outcomes for the data it will encounter in real-world applications. Based on your evaluation results, you retrain the model on your own data, adjusting the training arguments covered in the [fine-tuning guide](./finetuning-guide.md).
 
 ### Image Tiling for Small Objects
 
@@ -143,7 +117,7 @@ Image tiling can improve detection accuracy for small objects. By dividing large
 
 ## Conclusion
 
-Evaluating and fine-tuning are what turn a trained model into a dependable, deployable one: metrics like mAP and IoU expose weaknesses, and targeted parameter changes address them. Start with the [validation mode](../modes/val.md) to benchmark your model, then apply the fine-tuning techniques above and keep iterating with new parameters, techniques, and datasets. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
+Evaluating and fine-tuning are what turn a trained model into a dependable, deployable one: metrics like mAP and IoU expose weaknesses, and targeted parameter changes address them. Start with the [validation mode](../modes/val.md) to benchmark your model, then retrain with the arguments covered in the [fine-tuning guide](./finetuning-guide.md) and keep iterating with new parameters, techniques, and datasets. If questions come up along the way, ask the community on the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Discord server](https://discord.com/invite/ultralytics).
 
 ## FAQ
 
@@ -153,7 +127,7 @@ To evaluate YOLO26 model performance, important metrics include Confidence Score
 
 ### How can I fine-tune a pretrained YOLO26 model for my specific dataset?
 
-Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then set the `warmup_epochs` training argument to `0` in `model.train()` so the learning rate starts at the configured base value immediately instead of ramping up. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For more detailed guidance, refer to our section on [fine-tuning your model](#fine-tuning-your-model).
+Fine-tuning a pretrained YOLO26 model involves adjusting its parameters to improve performance on a specific task or dataset. Start by evaluating your model with metrics, then retrain from the pretrained weights on your own dataset. During evaluation, parameters like `rect=true` help handle varied image sizes effectively. For the training arguments to adjust, see the [fine-tuning guide](./finetuning-guide.md).
 
 ### How can I handle variable image sizes when evaluating my YOLO26 model?
 
@@ -167,7 +141,7 @@ Improving mean average precision (mAP) for a YOLO26 model involves several steps
 2. **[Data Augmentation](https://www.ultralytics.com/glossary/data-augmentation)**: Use techniques like Mosaic and MixUp to create diverse training samples.
 3. **Image Tiling**: Split larger images into smaller tiles to improve detection accuracy for small objects.
 
-Refer to our detailed section on [fine-tuning your model](#fine-tuning-your-model) for specific strategies.
+For the training arguments behind steps 1 and 2, see the [fine-tuning guide](./finetuning-guide.md); step 3 is covered in [image tiling](#image-tiling-for-small-objects).
 
 ### How do I access YOLO26 model evaluation metrics in Python?
 

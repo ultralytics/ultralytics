@@ -17,7 +17,7 @@ def torch2openvino(
     dynamic: bool = False,
     quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
-    ignored_scope: dict | None = None,
+    int8_detect: bool = False,
     prefix: str = "",
 ) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
@@ -29,7 +29,7 @@ def torch2openvino(
         dynamic (bool): Whether to use dynamic input shapes.
         quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
-        ignored_scope (dict | None): Kwargs passed to ``nncf.IgnoredScope`` for head patterns.
+        int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -49,6 +49,19 @@ def torch2openvino(
     if quantize == 8:
         import nncf
 
+        ignored_scope = None
+        if int8_detect:
+            operations = ov_model.get_ordered_ops()
+            sigmoid_names = [op.get_friendly_name() for op in operations if op.get_type_name() == "Sigmoid"]
+            head_scope = sigmoid_names[-1].split("/", 1)[0]
+            ignored_scope = nncf.IgnoredScope(
+                names=[
+                    op.get_friendly_name()
+                    for op in operations
+                    if op.get_type_name() == "Sigmoid"
+                    or op.get_friendly_name().startswith((f"{head_scope}/", f"{head_scope}.dfl"))
+                ]
+            )
         ov_model = nncf.quantize(
             model=ov_model,
             calibration_dataset=calibration_dataset,

@@ -29,8 +29,10 @@ jobs:
           git config --global user.name "UltralyticsAssistant"
           git config --global user.email "web@ultralytics.com"
       - name: Push to DagsHub
+        env:
+          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
-          git remote add dagshub https://glenn-jocher:${{ secrets.DAGSHUB_TOKEN }}@dagshub.com/Ultralytics/ultralytics.git
+          git remote add dagshub "https://glenn-jocher:${DAGSHUB_TOKEN}@dagshub.com/Ultralytics/ultralytics.git"
           git push dagshub main --force
       # - name: Push to Gitee
       #   run: |

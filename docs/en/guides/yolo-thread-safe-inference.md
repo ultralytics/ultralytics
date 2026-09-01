@@ -6,7 +6,7 @@ keywords: YOLO models, thread-safe, Python threading, model inference, concurren
 
 # Thread-Safe Inference with YOLO Models
 
-To run [Ultralytics YOLO](https://www.ultralytics.com/) [inference](../modes/predict.md) safely across Python threads, instantiate a separate `YOLO` model inside each thread instead of sharing one instance across them. Sharing a single model causes race conditions that corrupt its internal state and produce unpredictable results, because Python's `threading` module runs the threads concurrently against the same object. This guide explains why sharing fails, shows the safe per-thread pattern, and covers the `ThreadingLocked` decorator for cases where you must share an instance.
+To run [Ultralytics YOLO](https://www.ultralytics.com) [inference](../modes/predict.md) safely across Python threads, instantiate a separate `YOLO` model inside each thread instead of sharing one instance across them. Sharing a single model causes race conditions that corrupt its internal state and produce unpredictable results, because Python's `threading` module runs the threads concurrently against the same object. This guide explains why sharing fails, shows the safe per-thread pattern, and covers the `ThreadingLocked` decorator for cases where you must share an instance.
 
 Jump to [why sharing a model fails](#the-danger-of-shared-model-instances), the [thread-safe pattern](#thread-safe-inference), or the [`ThreadingLocked` decorator](#using-the-threadinglocked-decorator).
 
@@ -26,7 +26,7 @@ Jump to [why sharing a model fails](#the-danger-of-shared-model-instances), the 
 Python threads are a form of parallelism that allow your program to run multiple operations at once. However, Python's Global Interpreter Lock (GIL) means that only one thread can execute Python bytecode at a time.
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/single-vs-multi-thread-examples.avif" alt="Single-thread vs multi-thread inference">
+  <img width="800" src="https://cdn.ul.run/i/fd24ee459ed2a20840da1ed5d8d8c4f4.avif" alt="Single-thread vs multi-thread inference">
 </p>
 
 While this sounds like a limitation, threads can still provide concurrency, especially for I/O-bound operations or when using operations that release the GIL, like those performed by YOLO's underlying C libraries.

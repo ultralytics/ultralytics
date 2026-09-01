@@ -10,7 +10,7 @@ keywords: Ultralytics, YOLO26, NVIDIA DGX Spark, AI deployment, performance benc
 This comprehensive guide provides a detailed walkthrough for deploying Ultralytics YOLO26 on [NVIDIA DGX Spark](https://www.nvidia.com/en-us/products/workstations/dgx-spark/), NVIDIA's compact desktop AI supercomputer. Additionally, it showcases performance benchmarks to demonstrate the capabilities of YOLO26 on this powerful system.
 
 <p align="center">
-  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-dgx-spark.avif" alt="NVIDIA DGX Spark AI workstation overview">
+  <img width="1024" src="https://cdn.ul.run/i/9d933b901c065efa24a018b74f4194f8.avif" alt="NVIDIA DGX Spark AI workstation overview">
 </p>
 
 !!! note
@@ -66,7 +66,7 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 - **Integrated JupyterLab**: Access local Jupyter Notebooks for development
 
 <p align="center">
-  <img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/nvidia-dgx-dashboard.avif" alt="NVIDIA DGX management dashboard interface">
+  <img width="1024" src="https://cdn.ul.run/i/e01bd76ad1c4044ec866f4fad213795b.avif" alt="NVIDIA DGX management dashboard interface">
 </p>
 
 #### Accessing the Dashboard
@@ -112,7 +112,7 @@ For a native installation without Docker, follow these steps.
 
 ### Install Ultralytics Package
 
-Here we will install Ultralytics package on DGX Spark with optional dependencies so that we can export the [PyTorch](https://www.ultralytics.com/glossary/pytorch) models to other different formats. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the DGX Spark.
+Here we will install the Ultralytics package on DGX Spark. Export dependencies are installed automatically the first time you export a model, so only the base package is needed here. We will mainly focus on [NVIDIA TensorRT exports](../integrations/tensorrt.md) because TensorRT will make sure we can get the maximum performance out of the DGX Spark.
 
 1. Update packages list, install pip and upgrade to latest
 
@@ -122,10 +122,10 @@ Here we will install Ultralytics package on DGX Spark with optional dependencies
     pip install -U pip
     ```
 
-2. Install `ultralytics` pip package with optional dependencies
+2. Install `ultralytics` pip package
 
     ```bash
-    pip install ultralytics[export]
+    pip install ultralytics
     ```
 
 3. Reboot the device

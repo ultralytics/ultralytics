@@ -11,7 +11,7 @@ This guide walks you through building a **semantic image search** engine using [
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/zplKRlX3sLg"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/eotJNQwboWA"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -20,7 +20,7 @@ This guide walks you through building a **semantic image search** engine using [
   <strong>Watch:</strong> How Similarity Search Works | Visual Search Using OpenAI CLIP and the Ultralytics Package 🎉
 </p>
 
-![Flask webpage with semantic search results overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/flask-ui.avif)
+![Flask webpage with semantic search results overview](https://cdn.ul.run/i/7d8a865264e506cc0aa075e4bf0cf896.avif)
 
 The Ultralytics Python package wraps this entire pipeline behind two classes, so you can launch a working search app or run queries programmatically in a few lines. This guide covers [why semantic search is useful](#why-use-semantic-image-search), [how it works](#how-semantic-image-search-works), [running the web app](#run-the-semantic-search-web-app), [searching programmatically](#search-images-programmatically), and [configuring parameters](#configure-visualaisearch-parameters).
 
@@ -42,7 +42,7 @@ The pipeline combines three components, each handling one stage of turning image
 - **NumPy** stores the image embeddings as a single array and ranks them against a query embedding with one matrix multiplication, returning the closest vectors by cosine similarity with no extra indexing dependency.
 - **Flask** provides a simple web interface to submit natural language queries and display semantically matched images from the index.
 
-![OpenAI Clip image retrieval workflow](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clip-image-retrieval.avif)
+![OpenAI Clip image retrieval workflow](https://cdn.ul.run/i/875b3fa7610c254e28e14e293593d26b.avif)
 
 Because both images and text land in the same vector space, retrieval is zero-shot: you don't need labels or categories, just image data and a good prompt.
 
@@ -101,10 +101,10 @@ Call the searcher with a natural language query to get back a list of matching i
 
 The table below outlines the available parameters for `VisualAISearch`:
 
-{% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["data"]) }}
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["device"]) }}
+| Argument | Type  | Default    | Description                                               |
+| -------- | ----- | ---------- | --------------------------------------------------------- |
+| `data`   | `str` | `'images'` | Path to the image directory to index and search.          |
+| `device` | `str` | `'cpu'`    | Device used for CLIP inference (e.g. `cpu`, `cuda`, `0`). |
 
 !!! tip "Manage your data in the cloud"
 
@@ -128,7 +128,7 @@ What makes CLIP stand out is its ability to generalize. Instead of being trained
 
 Once CLIP turns your images into embeddings, the Ultralytics package L2-normalizes them and stores them in a single [NumPy](https://numpy.org/) array. A query is ranked with one matrix multiplication that computes the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity) between the query embedding and every image embedding, then sorts the scores. This brute-force search is exact and fast for typical image collections, with no extra vector-database dependency to install or manage.
 
-### Why use the [Ultralytics](https://www.ultralytics.com/) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP is from OpenAI?
+### Why use the [Ultralytics](https://www.ultralytics.com) [Python package](https://github.com/ultralytics/ultralytics/) if CLIP is from OpenAI?
 
 While CLIP is developed by OpenAI, the [Ultralytics Python package](https://pypi.org/project/ultralytics/) wraps embedding generation, indexing, and cosine-similarity search into a complete semantic image search pipeline behind a few lines of code that just work:
 

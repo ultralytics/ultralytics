@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import platform
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -9,12 +11,15 @@ import numpy as np
 import torch
 from torch import nn
 
+from ultralytics.utils import LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_suffix
 from ultralytics.utils.downloads import is_url
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_13, smart_inference_mode
 
 from .backends import (
     AscendBackend,
     AxeleraBackend,
+    CoreAIBackend,
     CoreMLBackend,
     DeepXBackend,
     ExecuTorchBackend,
@@ -54,6 +59,8 @@ def check_class_names(names: list | dict) -> dict[int, str]:
         # Convert 1) string keys to int, i.e. '0' to 0, and non-string values to strings, i.e. True to 'True'
         names = {int(k): str(v) for k, v in names.items()}
         n = len(names)
+        if not n:
+            raise KeyError("0-class dataset, at least one class name is required in your dataset YAML.")
         if max(names.keys()) >= n:
             raise KeyError(
                 f"{n}-class dataset requires class indices 0-{n - 1}, but you have invalid class indices "
@@ -166,9 +173,10 @@ class AutoBackend(nn.Module):
         "litert": LiteRTBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "coreai": CoreAIBackend,
     }
 
-    @torch.no_grad()
+    @smart_inference_mode(False)
     def __init__(
         self,
         model: str | torch.nn.Module = "yolo26n.pt",
@@ -178,6 +186,7 @@ class AutoBackend(nn.Module):
         fp16: bool = False,
         fuse: bool = True,
         verbose: bool = True,
+        channels_last: bool | None = None,
     ):
         """Initialize the AutoBackend for inference.
 
@@ -189,11 +198,18 @@ class AutoBackend(nn.Module):
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
+            channels_last (bool, optional): Use channels-last memory format, or auto-enable it on supported x86 CPUs.
         """
         super().__init__()
         device = device or torch.device("cpu")
         # Determine model format from path/URL
         format = "pt" if isinstance(model, nn.Module) else self._model_type(model, dnn)
+        if (
+            isinstance(model, nn.Module)
+            and TORCH_1_10
+            and any(x.is_inference() for x in (*model.parameters(), *model.buffers()))
+        ):
+            model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
         # Check if format supports FP16
         fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
@@ -224,6 +240,25 @@ class AutoBackend(nn.Module):
         elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
+
+        if format == "pt":
+            device_type = torch.device(self.backend.device).type
+            supported = device_type == "cuda" or (
+                TORCH_1_13
+                and device_type == "cpu"
+                and platform.machine() in {"AMD64", "x86_64"}
+                and torch.backends.mkldnn.is_available()
+                and torch.backends.mkldnn.enabled
+            )
+            if channels_last is None:
+                channels_last = device_type == "cpu" and supported and (LINUX or WINDOWS)
+            if channels_last and not supported:
+                LOGGER.warning(f"'channels_last=True' is not supported on '{device_type}', ignoring.")
+            self.backend.model.to(
+                memory_format=torch.channels_last if channels_last and supported else torch.contiguous_format
+            )
+        elif channels_last:
+            LOGGER.warning(f"'channels_last=True' applies only to native PyTorch models, ignoring format='{format}'.")
 
         self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}
         self.format = format

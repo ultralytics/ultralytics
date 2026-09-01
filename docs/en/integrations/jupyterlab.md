@@ -82,13 +82,13 @@ Navigate to the directory where you saved the notebook file using your terminal.
 
 Once you've run this command, it will open JupyterLab in your default web browser, as shown below.
 
-![Image Showing How JupyterLab Opens On the Browser](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jupyterlab-browser-launch.avif)
+![Image Showing How JupyterLab Opens On the Browser](https://cdn.ul.run/i/bc28af7bd2f339462f3c526c5882a5cc.avif)
 
 ### Step 4: Start Experimenting
 
 In JupyterLab, open the tutorial.ipynb notebook. You can now start running the cells to explore and experiment with YOLO26.
 
-![Image Showing Opened YOLO26 Notebook in JupyterLab](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/opened-yolov8-notebook-jupyterlab.avif)
+![Image Showing Opened YOLO26 Notebook in JupyterLab](https://cdn.ul.run/i/a67ca8a43c4988537d071b40ec70fd3f.avif)
 
 JupyterLab's interactive environment allows you to modify code, visualize outputs, and document your findings all in one place. You can try out different configurations and understand how YOLO26 works.
 

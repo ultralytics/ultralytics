@@ -23,7 +23,7 @@ Deploying computer vision models on Qualcomm Snapdragon devices requires a model
 ## What is Qualcomm QNN?
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/qnn_cover.avif" alt="Qualcomm QNN on-device inference">
+  <img width="640" src="https://cdn.ul.run/i/5c35f602ba85ec719d394a1231415225.avif" alt="Qualcomm QNN on-device inference">
 </p>
 
 [Qualcomm AI Engine Direct](https://www.qualcomm.com/developer/software/qualcomm-ai-engine-direct-sdk) — commonly referred to as **QNN** and distributed as part of the Qualcomm AI Runtime (QAIRT) SDK — is Qualcomm's low-level inference stack for [Snapdragon](https://www.qualcomm.com/products) processors. It provides a unified API with backend-specific libraries that target the Snapdragon CPU, the Adreno GPU, and the Hexagon Tensor Processor (HTP), the dedicated [neural network](https://www.ultralytics.com/glossary/neural-network-nn) processing unit (NPU) inside modern Snapdragon SoCs. QNN gives developers full-stack access to these Snapdragon AI accelerators and is the modern successor to the older [Snapdragon Neural Processing Engine (SNPE)](https://www.qualcomm.com/developer/software/neural-processing-sdk-for-ai) SDK. It powers on-device AI across the Snapdragon 8 Gen 2, 8 Gen 3, and 8 Elite mobile platforms, Snapdragon X laptops, and automotive and XR products.
@@ -88,7 +88,7 @@ Adreno GPU, and Hexagon NPU (HTP v81).
 
 This historical sweep used pre-standard v73 QNN binaries; semantic and OBB used 1024px inputs. It ran on a Lenovo
 laptop with 32 GB memory and Windows 11. Its
-[Snapdragon X Elite](https://www.qualcomm.com/products/mobile/snapdragon/pcs-and-tablets/snapdragon-x-elite)
+[Snapdragon X Elite](https://www.qualcomm.com/laptops/products/snapdragon-x-elite)
 (X1E78100) has a 12-core Qualcomm Oryon CPU, Adreno GPU, and Hexagon NPU (HTP v73); the exact Lenovo model was not
 recorded. This Windows-on-Snapdragon comparison runs the native PyTorch FP32 CPU baseline that most desktop
 developers start from against the ONNX Runtime QNN Hexagon HTP path. Each cell shows the **full
@@ -244,18 +244,18 @@ The QNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                                                                |
-| :--------- | :--------------- | :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'qnn'`        | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                                                                                |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                  |
-| `batch`    | `int`            | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                               |
-| `name`     | `str`            | `'73'`         | Target Hexagon HTP architecture (`68`, `69`, `73`, `75`, `79`, or `81`) or supported SoC (`iq-8275` or `qcs8275`). The context binary is finalized for this target.                        |
-| `quantize` | `int` or `str`   | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags. |
-| `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                    |
-| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                           |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                                                              |
-| `fraction` | `float`          | `1.0`          | Fraction of the calibration dataset to use for INT8 quantization.                                                                                                                          |
-| `device`   | `str`            | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                     |
+| Argument   | Type                      | Default        | Description                                                                                                                                                                                              |
+| :--------- | :------------------------ | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'qnn'`        | Target format for the exported model, defining compatibility with the Qualcomm QNN runtime.                                                                                                              |
+| `imgsz`    | `int` or `tuple`          | `640`          | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                |
+| `batch`    | `int`                     | `1`            | Specifies the export model batch size, which is baked into the generated QNN context binary.                                                                                                             |
+| `name`     | `str`                     | `'73'`         | Target Hexagon HTP architecture (`68`, `69`, `73`, `75`, `79`, or `81`) or supported SoC (`iq-8275` or `qcs8275`). The context binary is finalized for this target.                                      |
+| `quantize` | `int` or `str`            | `'w8a16'`/auto | Quantization precision. QNN HTP export is quantized to INT8 weights with 16-bit activations (`'w8a16'`) and is auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.               |
+| `simplify` | `bool`                    | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                  |
+| `opset`    | `int`                     | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                         |
+| `data`     | `str`                     | `None`         | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction` | `float`, `int`, or `list` | `1.0`          | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                 |
+| `device`   | `str`                     | `None`         | Specifies the device for the ONNX export step: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                   |
 
 !!! note "Precision"
 

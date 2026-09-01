@@ -234,7 +234,6 @@ class Predictor(BasePredictor):
             >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
-
         prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
         return self._inference_features(features, *prompts, multimask_output)
 
@@ -386,11 +385,12 @@ class Predictor(BasePredictor):
             points_scale = np.array([[w, h]])  # w, h
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
-            # (num_points, 2)
+            crop_features = self.get_im_features(crop_im)
             points_for_image = point_grids[layer_idx] * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):
-                pred_mask, pred_score = self.prompt_inference(crop_im, points=points, multimask_output=True)
+                prompts = self._prepare_prompts(crop_im.shape[2:], self.batch[1][0].shape[:2], points=points)
+                pred_mask, pred_score = self._inference_features(crop_features, *prompts, multimask_output=True)
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask[None], (h, w), mode="bilinear", align_corners=False)[0]
                 idx = pred_score > conf_thres
@@ -440,6 +440,7 @@ class Predictor(BasePredictor):
 
         return pred_masks, pred_scores, pred_bboxes
 
+    @smart_inference_mode(False)  # the model outlives this call, so its weights must not be inference tensors
     def setup_model(self, model=None, verbose=True):
         """Initialize the Segment Anything Model (SAM) for inference.
 
@@ -470,6 +471,7 @@ class Predictor(BasePredictor):
 
         # Ultralytics compatibility settings
         self.model.format = "sam"
+        self.model.base_model = False  # SAMModel is no Ultralytics BaseModel and honors neither `augment` nor `embed`
         self.model.stride = 32
         self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
@@ -533,6 +535,7 @@ class Predictor(BasePredictor):
         self.segment_all = False
         return results
 
+    @smart_inference_mode()
     def set_image(self, image):
         """Preprocess and set a single image for inference.
 
@@ -835,8 +838,8 @@ class SAM2VideoPredictor(SAM2Predictor):
     """SAM2VideoPredictor to handle user interactions with videos and manage inference states.
 
     This class extends the functionality of SAM2Predictor to support video processing and maintains the state of
-    inference operations. It includes configurations for managing non-overlapping masks, clearing memory for
-    non-conditional inputs, and setting up callbacks for prediction events.
+    inference operations. It includes configurations for managing non-overlapping masks and clearing memory for
+    non-conditional inputs.
 
     Attributes:
         inference_state (dict): A dictionary to store the current state of inference operations.
@@ -844,7 +847,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         clear_non_cond_mem_around_input (bool): A flag to control clearing non-conditional memory around inputs.
         clear_non_cond_mem_for_multi_obj (bool): A flag to control clearing non-conditional memory for multi-object
             scenarios.
-        callbacks (dict): A dictionary of callbacks for various prediction lifecycle events.
 
     Methods:
         get_model: Retrieve and configure the model with binarization enabled.
@@ -883,8 +885,13 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.non_overlap_masks = True
         self.clear_non_cond_mem_around_input = False
         self.clear_non_cond_mem_for_multi_obj = False
-        self.callbacks["on_predict_start"].append(self.init_state)
         self.clear_non_cond_mem = True  # Whether to clear non-conditioning memory periodically
+
+    def setup_source(self, source):
+        """Set up the source and build the video inference state before any prediction callback runs."""
+        super().setup_source(source)
+        if self.dataset is not None and self.dataset.mode == "video":
+            self.init_state(self)
 
     def get_model(self):
         """Retrieve and configure the model with binarization enabled.
@@ -2587,8 +2594,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.tracker = SAM3VideoPredictor(overrides=overrides)
 
         self.inference_state = {}
-        self.callbacks["on_predict_start"].append(self.init_state)
 
+    @smart_inference_mode(False)  # the tracker model is built after super() returns, outside its decorator
     def setup_model(self, model=None, verbose=True):
         """Setup the SAM3VideoSemanticPredictor model."""
         super().setup_model(model, verbose)
@@ -2605,6 +2612,8 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.tracker.model.set_imgsz(self.imgsz)
         self.tracker._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
         self.interpol_size = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
+        if self.dataset is not None and self.dataset.mode == "video":
+            self.init_state(self)
 
     @staticmethod
     def init_state(predictor):
@@ -2651,7 +2660,10 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
             pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
-            pred_masks = F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0] > 0.5
+            pred_masks = (
+                F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0]
+                > self.model.mask_threshold
+            )
             pred_ids = torch.tensor(curr_obj_ids, dtype=torch.int32, device=pred_masks.device)
             pred_scores = torch.tensor(
                 [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device
@@ -3368,9 +3380,9 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         # Part 1: masks from previous SAM2 propagation
         existing_masklet_obj_ids = tracker_metadata_prev["obj_ids"]
-        existing_masklet_binary = tracker_low_res_masks_global.unsqueeze(1)
-        assert len(existing_masklet_obj_ids) == len(existing_masklet_binary)
-        for obj_id, mask in zip(existing_masklet_obj_ids, existing_masklet_binary):
+        existing_masklet_logits = tracker_low_res_masks_global.unsqueeze(1)
+        assert len(existing_masklet_obj_ids) == len(existing_masklet_logits)
+        for obj_id, mask in zip(existing_masklet_obj_ids, existing_masklet_logits):
             obj_id_to_mask[obj_id] = mask  # (1, H_video, W_video)
 
         # Part 2: masks from new detections

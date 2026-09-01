@@ -5,9 +5,9 @@ keywords: YOLO26, image classification, AI, machine learning, pretrained models,
 model_name: yolo26n-cls
 ---
 
-# Image Classification
+# Image Classification with Ultralytics YOLO {#image-classification}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-classification-examples.avif" alt="YOLO image classification of objects and scenes">
+<img width="1024" src="https://cdn.ul.run/i/f61d24ccd6fd778924222927dacaf105.avif" alt="Ultralytics YOLO image classification of objects and scenes">
 
 [Image classification](https://www.ultralytics.com/glossary/image-classification) is the simplest of the supported tasks and involves classifying an entire image into one of a set of predefined classes.
 

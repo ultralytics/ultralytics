@@ -9,13 +9,13 @@ keywords: Ultralytics, YOLO26, Intel, Intel Core Ultra, DL Streamer, OpenVINO, d
 
 This comprehensive guide provides a detailed walkthrough for deploying [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26) on Intel Core Ultra Series 3 platforms using [DL Streamer Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) and [OpenVINO™ toolkit](https://docs.openvino.ai/). Here we use OpenVINO™ to maximize inference performance on Intel CPUs, integrated and discrete GPUs, and NPUs.
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel.avif" alt="Intel DL Streamer">
+<img src="https://cdn.ul.run/i/442cc1f69a8581156d521e16cc671e9e.avif" alt="Intel DL Streamer">
 
 **Contents:** [What is Intel DL Streamer?](#what-is-intel-dl-streamer) • [Prerequisites](#prerequisites) • [YOLO26 Model Preparation](#yolo26-model-preparation) • [Running Inference with YOLO26](#running-inference-with-yolo26) • [Multi-Stream Setup](#multi-stream-setup) • [FAQ](#faq)
 
 ## What is Intel DL Streamer?
 
-[Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://gstreamer.freedesktop.org/) multimedia framework, designed for creating complex media analytics pipelines for the Cloud or at the Edge.
+[Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://github.com/GStreamer/gstreamer) multimedia framework, designed for creating complex media analytics pipelines for the Cloud or at the Edge.
 
 DL Streamer enables analysis of audio and video streams to detect, classify, track, identify, and count objects, events, and people. It is
 optimized for Intel hardware and provides interoperability between GStreamer plugins built on various backend libraries:
@@ -116,7 +116,7 @@ INT8 quantization delivers the highest throughput by reducing model weights to 8
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! autovideosink sync=false
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-gpu.avif" alt="Intel DL Streamer GPU">
+<img src="https://cdn.ul.run/i/5bbfdc15b1ea8aa2ee9879db25573123.avif" alt="Intel DL Streamer GPU">
 
 ### Run YOLO26s with INT8 on GPU, save output to video file (~/intel/dlstreamer_demo/yolo_video1_yolo26s_INT8_GPU.mp4)
 
@@ -130,7 +130,7 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=NPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! autovideosink sync=false
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-npu.avif" alt="Intel DL Streamer NPU">
+<img src="https://cdn.ul.run/i/79c5839b6ff903dce0feb2aeb257a423.avif" alt="Intel DL Streamer NPU">
 
 ## Multi-Stream Setup
 
@@ -146,7 +146,17 @@ gst-launch-1.0 vacompositor name=comp sink_0::xpos=0 sink_0::ypos=0 sink_1::xpos
   filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU model-instance-id=inf0 scheduling-policy="latency" ! queue ! gvawatermark ! gvafpscounter ! comp.sink_3
 ```
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dlstreamer-intel-yolo26-detect-multistream-gpu.avif" alt="Intel DL Streamer Multistream GPU">
+<img src="https://cdn.ul.run/i/0caade37bce29c78fda38d4730dde046.avif" alt="Intel DL Streamer Multistream GPU">
+
+## Additional Resources
+
+- [DL Streamer GitHub Repository](https://github.com/open-edge-platform/dlstreamer)
+- [DL Streamer Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/)
+- [DL Streamer Elements](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/elements/elements.html)
+- [OpenVINO™ Toolkit](https://docs.openvino.ai/)
+- [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26)
+- [GStreamer Framework](https://github.com/GStreamer/gstreamer)
+- [Supported Models Table](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/supported_models.html)
 
 ## FAQ
 
@@ -180,13 +190,3 @@ Use the `json` output option to write detection results as JSON-lines to a file:
 ```
 
 Alternatively, use the `gvametapublish` element in custom pipelines to publish metadata to files, MQTT, or Kafka.
-
-## Additional Resources
-
-- [DL Streamer GitHub Repository](https://github.com/open-edge-platform/dlstreamer)
-- [DL Streamer Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/)
-- [DL Streamer Elements](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/elements/elements.html)
-- [OpenVINO™ Toolkit](https://docs.openvino.ai/)
-- [Ultralytics YOLO26](https://www.ultralytics.com/yolo/yolo26)
-- [GStreamer Framework](https://gstreamer.freedesktop.org/)
-- [Supported Models Table](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/supported_models.html)

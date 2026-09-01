@@ -30,10 +30,10 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 
 ## Real World Applications
 
-|                                                                      Parking Management System                                                                      |                                                                       Parking Management System                                                                       |
-| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| ![Parking lots Analytics Using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/parking-management-aerial-view-ultralytics-yolov8.avif) | ![Parking management top view using Ultralytics YOLO26](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/parking-management-top-view-ultralytics-yolov8.avif) |
-|                                                       Parking management Aerial View using Ultralytics YOLO26                                                       |                                                         Parking management Top View using Ultralytics YOLO26                                                          |
+|                                           Parking Management System                                            |                                              Parking Management System                                              |
+| :------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------: |
+| ![Parking lots Analytics Using Ultralytics YOLO26](https://cdn.ul.run/i/8a724644289b80d7197f06d4e83a8918.avif) | ![Parking management top view using Ultralytics YOLO26](https://cdn.ul.run/i/5e72aba63b6a111b8767d38a9be0e5e8.avif) |
+|                            Parking management Aerial View using Ultralytics YOLO26                             |                                Parking management Top View using Ultralytics YOLO26                                 |
 
 ## Parking Management System Code Workflow
 
@@ -67,7 +67,7 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 
 **Step-3:** After defining the parking areas with polygons, click `save` to store the data as `bounding_boxes.json` in your working directory — the same filename the management script loads below.
 
-![Ultralytics YOLO26 Points Selection Demo](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-points-selection-demo.avif)
+![Ultralytics YOLO26 Points Selection Demo](https://cdn.ul.run/i/e245182b32f92b0fdd8483be86a53542.avif)
 
 **Step-4:** You can now run the parking management [solution](../solutions/index.md) with the code below.
 
@@ -124,17 +124,17 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
 Here's a table with the `ParkingManagement` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "json_file"]) }}
+{{ param_table(["model", "json_file", "line_width", "verbose"]) }}
 
 The `ParkingManagement` solution allows the use of several [`track`](../modes/track.md) parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Moreover, the following visualization options are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show"]) }}
 
 ## FAQ
 

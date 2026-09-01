@@ -77,9 +77,10 @@ def benchmark(
         model (str | Path): Path to the model file or directory.
         data (str | None): Dataset to evaluate on, inherited from TASK2DATA if not passed.
         imgsz (int): Image size for the benchmark.
-        quantize (int | str | None): Requested export precision: 16 (FP16), 8 (INT8), or None/32 (FP32). A format that
-            cannot export the requested precision rejects an explicit 32 or falls back to the one it requires. Each
-            format then runs inference at its own runtime precision.
+        quantize (int | str | None): Requested precision: 16 (FP16), 8 (INT8), or None/32 (FP32). Exported rows apply
+            it at export, where a format may reject an explicit 32 or fall back to the precision it requires; the
+            native PyTorch row is not exported and applies it at inference. Each format then runs inference at its own
+            runtime precision.
         device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.

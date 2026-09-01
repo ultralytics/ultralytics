@@ -48,7 +48,8 @@ class SolutionConfig:
         conf (float): Confidence threshold for keeping predictions.
         device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
-        quantize (int | str | None): Inference precision, e.g. 16 (FP16); replaces the deprecated half flag.
+        quantize (int | str | None): Inference precision for PyTorch and TorchScript models, e.g. 16 (FP16);
+            other formats run at their own runtime precision. Replaces the deprecated half flag.
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.

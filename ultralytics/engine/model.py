@@ -677,7 +677,7 @@ class Model(torch.nn.Module):
             verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
-                - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
+                - quantize (int | str): Export precision where supported, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:

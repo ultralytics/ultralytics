@@ -445,69 +445,69 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
 === "Core"
 
-    | Parameter       | Type   | Default   | Range               | Description                                                |
-    | --------------- | ------ | --------- | ------------------- | ---------------------------------------------------------- |
-    | `epochs`        | int    | 100       | 1-10000             | Number of training epochs                                  |
-    | `batch`         | int    | -1 (auto) | -1 to 512           | Batch size (`-1` = auto-fit to available VRAM)             |
-    | `imgsz`         | int    | 640       | 32-4096             | Input image size                                           |
-    | `pretrained`    | bool   | True      | -                   | Start from pretrained weights instead of random init       |
-    | `patience`      | int    | 100       | 1-1000              | Early stopping patience                                    |
-    | `time`          | float  | null      | 0.1-720             | Wall-clock training limit in hours, overrides epochs       |
-    | `seed`          | int    | 0         | 0-2147483647        | Random seed for reproducibility                            |
-    | `deterministic` | bool   | True      | -                   | Deterministic training mode                                |
-    | `amp`           | bool/str | True      | true/false/fp16/bf16/fp32 | Training precision                                         |
-    | `compile`       | bool   | False     | -                   | Compile with `torch.compile` (slower first epoch)          |
-    | `close_mosaic`  | int    | 10        | 0-50                | Disable mosaic in final N epochs                           |
-    | `save_period`   | int    | -1        | -1-100              | Save checkpoint every N epochs                             |
-    | `device`        | select | auto      | auto/0/cpu/mps      | Training device                                            |
-    | `workers`       | int    | 8         | 0-64                | Dataloader workers                                         |
-    | `cache`         | select | false     | ram/disk/false      | Cache images                                               |
-    | `dropout`       | float  | 0.0       | 0.0-1.0             | Classification head dropout (classify only)                |
-    | `iou`           | float  | 0.7       | 0.1-0.9             | IoU threshold for NMS during validation                    |
-    | `max_det`       | int    | 300       | 1-10000             | Maximum detections per image                               |
+    | Parameter       | Type     | Default   | Range                     | Description                                          |
+    | --------------- | -------- | --------- | ------------------------- | ---------------------------------------------------- |
+    | `epochs`        | int      | 100       | 1-10000                   | Number of training epochs                            |
+    | `batch`         | int      | -1 (auto) | -1 to 512                 | Batch size (`-1` = auto-fit to available VRAM)       |
+    | `imgsz`         | int      | 640       | 32-4096                   | Input image size                                     |
+    | `pretrained`    | bool     | True      | -                         | Start from pretrained weights instead of random init |
+    | `patience`      | int      | 100       | 1-1000                    | Early stopping patience                              |
+    | `time`          | float    | null      | 0.1-720                   | Wall-clock training limit in hours, overrides epochs |
+    | `seed`          | int      | 0         | 0-2147483647              | Random seed for reproducibility                      |
+    | `deterministic` | bool     | True      | -                         | Deterministic training mode                          |
+    | `amp`           | bool/str | True      | true/false/fp16/bf16/fp32 | Training precision                                   |
+    | `compile`       | bool     | False     | -                         | Compile with `torch.compile` (slower first epoch)    |
+    | `close_mosaic`  | int      | 10        | 0-50                      | Disable mosaic in final N epochs                     |
+    | `save_period`   | int      | -1        | -1-100                    | Save checkpoint every N epochs                       |
+    | `device`        | select   | auto      | auto/0/cpu/mps            | Training device                                      |
+    | `workers`       | int      | 8         | 0-64                      | Dataloader workers                                   |
+    | `cache`         | select   | false     | ram/disk/false            | Cache images                                         |
+    | `dropout`       | float    | 0.0       | 0.0-1.0                   | Classification head dropout (classify only)          |
+    | `iou`           | float    | 0.7       | 0.1-0.9                   | IoU threshold for NMS during validation              |
+    | `max_det`       | int      | 300       | 1-10000                   | Maximum detections per image                         |
 
 === "Learning Rate"
 
-    | Parameter       | Type  | Default | Range     | Description           |
-    | --------------- | ----- | ------- | --------- | --------------------- |
-    | `lr0`           | float | 0.01    | 0.0001-0.1 | Initial learning rate |
-    | `lrf`           | float | 0.01    | 0.01-1.0  | Final LR factor       |
-    | `momentum`      | float | 0.937   | 0.6-0.98  | SGD momentum          |
-    | `weight_decay`  | float | 0.0005  | 0.0-0.001 | L2 regularization     |
-    | `warmup_epochs` | float | 3.0     | 0-5       | Warmup epochs         |
-    | `warmup_momentum` | float | 0.8   | 0.5-0.95  | Warmup momentum       |
-    | `warmup_bias_lr` | float | 0.1    | 0.0-0.2   | Warmup bias LR        |
-    | `cos_lr`        | bool  | False   | -         | Cosine LR scheduler   |
+    | Parameter         | Type  | Default | Range      | Description           |
+    | ----------------- | ----- | ------- | ---------- | --------------------- |
+    | `lr0`             | float | 0.01    | 0.0001-0.1 | Initial learning rate |
+    | `lrf`             | float | 0.01    | 0.01-1.0   | Final LR factor       |
+    | `momentum`        | float | 0.937   | 0.6-0.98   | SGD momentum          |
+    | `weight_decay`    | float | 0.0005  | 0.0-0.001  | L2 regularization     |
+    | `warmup_epochs`   | float | 3.0     | 0-5        | Warmup epochs         |
+    | `warmup_momentum` | float | 0.8     | 0.5-0.95   | Warmup momentum       |
+    | `warmup_bias_lr`  | float | 0.1     | 0.0-0.2    | Warmup bias LR        |
+    | `cos_lr`          | bool  | False   | -          | Cosine LR scheduler   |
 
 === "Augmentation"
 
-    | Parameter    | Type  | Default | Range   | Description          |
-    | ------------ | ----- | ------- | ------- | -------------------- |
-    | `hsv_h`      | float | 0.015   | 0.0-0.1 | HSV hue augmentation |
-    | `hsv_s`      | float | 0.7     | 0.0-1.0 | HSV saturation       |
-    | `hsv_v`      | float | 0.4     | 0.0-1.0 | HSV value            |
-    | `degrees`    | float | 0.0     | -45-45    | Rotation degrees     |
-    | `translate`  | float | 0.1     | 0.0-1.0   | Translation fraction |
-    | `scale`      | float | 0.5     | 0.0-1.0   | Scale factor         |
-    | `shear`      | float | 0.0     | -10-10    | Shear degrees        |
-    | `perspective`| float | 0.0     | 0.0-0.001 | Perspective transform|
-    | `fliplr`     | float | 0.5     | 0.0-1.0   | Horizontal flip prob |
-    | `flipud`     | float | 0.0     | 0.0-1.0 | Vertical flip prob   |
-    | `mosaic`     | float | 1.0     | 0.0-1.0 | Mosaic augmentation  |
-    | `mixup`      | float | 0.0     | 0.0-1.0 | Mixup augmentation   |
-    | `copy_paste` | float | 0.0     | 0.0-1.0 | Copy-paste (segment) |
+    | Parameter     | Type  | Default | Range     | Description           |
+    | ------------- | ----- | ------- | --------- | --------------------- |
+    | `hsv_h`       | float | 0.015   | 0.0-0.1   | HSV hue augmentation  |
+    | `hsv_s`       | float | 0.7     | 0.0-1.0   | HSV saturation        |
+    | `hsv_v`       | float | 0.4     | 0.0-1.0   | HSV value             |
+    | `degrees`     | float | 0.0     | -45-45    | Rotation degrees      |
+    | `translate`   | float | 0.1     | 0.0-1.0   | Translation fraction  |
+    | `scale`       | float | 0.5     | 0.0-1.0   | Scale factor          |
+    | `shear`       | float | 0.0     | -10-10    | Shear degrees         |
+    | `perspective` | float | 0.0     | 0.0-0.001 | Perspective transform |
+    | `fliplr`      | float | 0.5     | 0.0-1.0   | Horizontal flip prob  |
+    | `flipud`      | float | 0.0     | 0.0-1.0   | Vertical flip prob    |
+    | `mosaic`      | float | 1.0     | 0.0-1.0   | Mosaic augmentation   |
+    | `mixup`       | float | 0.0     | 0.0-1.0   | Mixup augmentation    |
+    | `copy_paste`  | float | 0.0     | 0.0-1.0   | Copy-paste (segment)  |
 
 === "Dataset"
 
-    | Parameter     | Type  | Default | Range   | Description                          |
-    | ------------- | ----- | ------- | ------- | ------------------------------------ |
-    | `fraction`    | float, int, or list | 1.0 | >0, test >=0 | Training ratio/count or split values; `1` is all, integers >1 are counts, and test `0`/`0.0` is none |
-    | `freeze`      | int   | null    | 0-100   | Number of layers to freeze           |
-    | `single_cls`  | bool  | False   | -       | Treat all classes as one class       |
-    | `rect`        | bool  | False   | -       | Rectangular training                 |
-    | `multi_scale` | float | 0.0     | 0.0-0.9 | Multi-scale training range           |
-    | `val`         | bool  | True    | -       | Run validation during training       |
-    | `resume`      | bool  | False   | -       | Resume training from checkpoint      |
+    | Parameter     | Type                | Default | Range        | Description                                                                                          |
+    | ------------- | ------------------- | ------- | ------------ | ---------------------------------------------------------------------------------------------------- |
+    | `fraction`    | float, int, or list | 1.0     | >0, test >=0 | Training ratio/count or split values; `1` is all, integers >1 are counts, and test `0`/`0.0` is none |
+    | `freeze`      | int                 | null    | 0-100        | Number of layers to freeze                                                                           |
+    | `single_cls`  | bool                | False   | -            | Treat all classes as one class                                                                       |
+    | `rect`        | bool                | False   | -            | Rectangular training                                                                                 |
+    | `multi_scale` | float               | 0.0     | 0.0-0.9      | Multi-scale training range                                                                           |
+    | `val`         | bool                | True    | -            | Run validation during training                                                                       |
+    | `resume`      | bool                | False   | -            | Resume training from checkpoint                                                                      |
 
 === "Optimizer"
 
@@ -525,14 +525,14 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
 === "Loss Weights"
 
-    | Parameter        | Type  | Default | Range     | Description                 |
-    | ---------------- | ----- | ------- | --------- | --------------------------- |
-    | `box`            | float | 7.5     | 1-50      | Box loss weight             |
-    | `cls`            | float | 0.5     | 0.2-4     | Classification loss weight  |
-    | `dfl`            | float | 1.5     | 0.4-6     | Box-distance loss weight    |
-    | `pose`           | float | 12.0    | 1-50      | Pose loss weight (pose only)|
-    | `kobj`           | float | 1.0     | 0.5-10    | Keypoint objectness (pose)  |
-    | `label_smoothing`| float | 0.0     | 0.0-0.1   | Label smoothing factor      |
+    | Parameter         | Type  | Default | Range   | Description                  |
+    | ----------------- | ----- | ------- | ------- | ---------------------------- |
+    | `box`             | float | 7.5     | 1-50    | Box loss weight              |
+    | `cls`             | float | 0.5     | 0.2-4   | Classification loss weight   |
+    | `dfl`             | float | 1.5     | 0.4-6   | Box-distance loss weight     |
+    | `pose`            | float | 12.0    | 1-50    | Pose loss weight (pose only) |
+    | `kobj`            | float | 1.0     | 0.5-10  | Keypoint objectness (pose)   |
+    | `label_smoothing` | float | 0.0     | 0.0-0.1 | Label smoothing factor       |
 
 !!! tip "Task-Specific Parameters"
 

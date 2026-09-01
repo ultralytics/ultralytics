@@ -447,10 +447,13 @@ def test_classify_preprocess_split_guard_rejects(case):
     ims = [split([0, 127, 255], [255, 127, 0]), split([255, 0, 127], [0, 255, 127])]
     model(ims[0], imgsz=224, verbose=False)  # build predictor through the public path
     torch.manual_seed(0)
-    expected = torch.stack([tf(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in ims])
+    # preprocess() always ends in a device dtype cast (fp16/fp32), same as main; match it so the
+    # comparison reflects what a caller actually receives, not an intermediate un-cast dtype.
+    expected = torch.stack([tf(Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))) for im in ims]).float()
     torch.manual_seed(0)
     assert model.predictor.device_transforms is None  # rejected, so the per-image host path is kept
-    assert torch.equal(model.predictor.preprocess(ims).cpu(), expected)
+    out = model.predictor.preprocess(ims).cpu()
+    assert out.dtype == expected.dtype and torch.equal(out, expected)
 
 
 @pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models

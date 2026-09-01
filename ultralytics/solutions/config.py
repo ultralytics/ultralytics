@@ -48,9 +48,9 @@ class SolutionConfig:
         conf (float): Confidence threshold for keeping predictions.
         device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
-        quantize (int | str | None): Inference precision, e.g. 16 (FP16). Only PyTorch and TorchScript models compute in
-            it; other formats use their artifact's and runtime's precision, though at 16 the input is FP16-rounded on
-            the client and Triton also returns its outputs as FP16. Replaces the deprecated half flag.
+        quantize (int | str | None): Inference precision, e.g. 16 (FP16). Only PyTorch and TorchScript models compute
+            in it; elsewhere the artifact and runtime decide, though 16 rounds OpenVINO and Triton inputs and returns
+            Triton outputs as FP16. Replaces the deprecated half flag.
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.

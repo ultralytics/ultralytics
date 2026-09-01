@@ -7,6 +7,7 @@ from copy import copy
 
 from torch import nn, optim
 
+from ultralytics.cfg import DEFAULT_CFG
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel, YOLODETRDetectionModel
@@ -98,10 +99,14 @@ class RTDETRTrainer(DetectionTrainer):
 class DEIMTrainer(RTDETRTrainer):
     """RT-DETR trainer for DeimDecoder models with augmentation decay + flat-cosine LR.
 
-    ``backbone_lr_ratio`` (a default.yaml arg) discounts the backbone param groups' LR in ``build_optimizer``.
+    ``backbone_lr_ratio`` defaults to 0.1 and discounts the backbone param groups' LR in ``build_optimizer``.
     """
 
     _epoch_callback_registered = False
+
+    def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
+        """Initialize the DEIM trainer with a 0.1 default backbone learning-rate ratio."""
+        super().__init__(cfg, {"backbone_lr_ratio": 0.1, **(overrides or {})}, _callbacks)
 
     def get_model(self, cfg=None, weights=None, verbose=True):
         """Build YOLODETRDetectionModel and load weights; cls-head rows remap by class name inside model.load().

@@ -23,7 +23,7 @@ from datetime import datetime
 
 import numpy as np
 
-from ultralytics.cfg import CFG_INT_KEYS, get_cfg, get_save_dir
+from ultralytics.cfg import CFG_INT_KEYS, TASK2METRIC, get_cfg, get_save_dir
 from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import plot_tune_results
@@ -491,7 +491,10 @@ class Tuner:
                 data = [data]
             model = YOLO(train_args["model"])
             trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
-            dataset_metrics = {dataset: metrics or {} for dataset, metrics in trainer.train().items()}
+            metric = TASK2METRIC[train_args["task"]]
+            dataset_metrics = {
+                dataset: metrics or {metric: 0.0, "fitness": 0.0} for dataset, metrics in trainer.train().items()
+            }
             save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]
             metrics = trainer.mean_metrics

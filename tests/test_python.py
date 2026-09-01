@@ -2192,3 +2192,13 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_muon_update_non_contiguous():
+    """muon_update handles non-contiguous grads, e.g. conv weights in channels_last memory format."""
+    from ultralytics.optim.muon import muon_update
+
+    grad = torch.randn(8, 4, 3, 3).to(memory_format=torch.channels_last)
+    assert not grad.is_contiguous()
+    update = muon_update(grad, torch.zeros_like(grad))
+    assert update.shape == grad.shape

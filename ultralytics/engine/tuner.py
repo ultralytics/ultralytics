@@ -261,7 +261,7 @@ class Tuner:
         resume, mutation, and plotting on the same local source of truth when using distributed tuning.
         """
         try:
-            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("_id", 1))
+            all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("iteration", 1))
             if not all_results:
                 return
             last_iteration = max(r["iteration"] for r in all_results)

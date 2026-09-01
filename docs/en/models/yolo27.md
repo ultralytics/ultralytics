@@ -90,20 +90,26 @@ surpass 60 mAP on COCO**, while the compact YOLO27n/s improve on YOLO26n/s accur
 
 ## Supported Tasks and Modes
 
-YOLO27 supports the following tasks across its five model scales, with training, validation, inference, and export
-support:
+YOLO27 supports the following tasks across its five model scales. Detection, instance segmentation, and
+classification are available today with training, validation, inference, and export support; the remaining tasks are
+training now and will be released as they finalize:
 
-| Model      | Filenames                                                                            | Task                                         | Training | Validation | Inference | Export |
-| ---------- | ------------------------------------------------------------------------------------ | -------------------------------------------- | -------- | ---------- | --------- | ------ |
-| YOLO27     | `yolo27n.pt` `yolo27s.pt` `yolo27m.pt` `yolo27l.pt` `yolo27x.pt`                     | [Detection](../tasks/detect.md)              | ✅       | ✅         | ✅        | ✅     |
-| YOLO27-seg | `yolo27n-seg.pt` `yolo27s-seg.pt` `yolo27m-seg.pt` `yolo27l-seg.pt` `yolo27x-seg.pt` | [Instance Segmentation](../tasks/segment.md) | ✅       | ✅         | ✅        | ✅     |
-| YOLO27-cls | `yolo27n-cls.pt` `yolo27s-cls.pt` `yolo27m-cls.pt` `yolo27l-cls.pt` `yolo27x-cls.pt` | [Classification](../tasks/classify.md)       | ✅       | ✅         | ✅        | ✅     |
+| Model        | Filenames                                                                                      | Task                                          | Training | Validation | Inference | Export |
+| ------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLO27       | `yolo27n.pt` `yolo27s.pt` `yolo27m.pt` `yolo27l.pt` `yolo27x.pt`                               | [Detection](../tasks/detect.md)               | ✅       | ✅         | ✅        | ✅     |
+| YOLO27-seg   | `yolo27n-seg.pt` `yolo27s-seg.pt` `yolo27m-seg.pt` `yolo27l-seg.pt` `yolo27x-seg.pt`           | [Instance Segmentation](../tasks/segment.md)  | ✅       | ✅         | ✅        | ✅     |
+| YOLO27-sem   | `yolo27n-sem.pt` `yolo27s-sem.pt` `yolo27m-sem.pt` `yolo27l-sem.pt` `yolo27x-sem.pt`           | [Semantic Segmentation](../tasks/semantic.md) | 🚧       | 🚧         | 🚧        | 🚧     |
+| YOLO27-depth | `yolo27n-depth.pt` `yolo27s-depth.pt` `yolo27m-depth.pt` `yolo27l-depth.pt` `yolo27x-depth.pt` | [Depth Estimation](../tasks/depth.md)         | 🚧       | 🚧         | 🚧        | 🚧     |
+| YOLO27-cls   | `yolo27n-cls.pt` `yolo27s-cls.pt` `yolo27m-cls.pt` `yolo27l-cls.pt` `yolo27x-cls.pt`           | [Classification](../tasks/classify.md)        | ✅       | ✅         | ✅        | ✅     |
+| YOLO27-pose  | `yolo27n-pose.pt` `yolo27s-pose.pt` `yolo27m-pose.pt` `yolo27l-pose.pt` `yolo27x-pose.pt`      | [Pose/Keypoints](../tasks/pose.md)            | 🚧       | 🚧         | 🚧        | 🚧     |
+| YOLO27-obb   | `yolo27n-obb.pt` `yolo27s-obb.pt` `yolo27m-obb.pt` `yolo27l-obb.pt` `yolo27x-obb.pt`           | [Oriented Detection](../tasks/obb.md)         | 🚧       | 🚧         | 🚧        | 🚧     |
+
+🚧 Models are currently training and will be released as they finalize.
 
 !!! note "Two architecture paths"
 
     YOLO27 detection uses two designs under one interface: the N and S scales use the streamlined CNN architecture,
-    while the M, L, and X scales use the query-based NMS-free architecture. Segmentation and classification models
-    all use the CNN architecture. Support for additional tasks is under development.
+    while the M, L, and X scales use the query-based NMS-free architecture. All other tasks use the CNN architecture.
 
 ---
 
@@ -139,6 +145,14 @@ be reproduced with `yolo val model=yolo27n.pt data=coco.yaml`.
     | YOLO27l-seg | 640                         | 343.0 ± 7.7                 | **9.198 ± 0.194**           | 30.0                     | 161.0                   |
     | YOLO27x-seg | 640                         | 672.7 ± 54.8                | **18.123 ± 0.545**          | 67.5                     | 361.3                   |
 
+=== "Semantic Segmentation (Cityscapes)"
+
+    YOLO27 semantic segmentation models are currently training — results will be added once the models are finalized.
+
+=== "Depth Estimation (NYU Depth V2)"
+
+    YOLO27 depth estimation models are currently training — results will be added once the models are finalized.
+
 === "Classification (ImageNet)"
 
     Measured at a 224-pixel input.
@@ -150,6 +164,14 @@ be reproduced with `yolo val model=yolo27n.pt data=coco.yaml`.
     | YOLO27m-cls | 224                         | 16.8 ± 1.1                  | **1.905 ± 0.053**           | 12.4                     | 6.2                     |
     | YOLO27l-cls | 224                         | 24.8 ± 1.6                  | **1.935 ± 0.075**           | 15.5                     | 8.4                     |
     | YOLO27x-cls | 224                         | 44.1 ± 3.4                  | **1.951 ± 0.038**           | 32.8                     | 18.6                    |
+
+=== "Pose (COCO)"
+
+    YOLO27 pose estimation models are currently training — results will be added once the models are finalized.
+
+=== "OBB (DOTAv1)"
+
+    YOLO27 oriented detection models are currently training — results will be added once the models are finalized.
 
 ---
 

@@ -96,20 +96,25 @@ def muon_update(
         updates = list(momentums)
     buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
     for i, u in enumerate(updates):
-        m = u.view(len(u), -1) if u.ndim > 2 else u
+        # flatten NHWC updates in memory order so they stay views: permuting columns permutes the orthogonalized
+        # columns identically, and the write-back below restores NCHW
+        nhwc = u.ndim == 4 and not u.is_contiguous()
+        m = u.permute(0, 2, 3, 1).flatten(1) if nhwc else (u.flatten(1) if u.ndim > 2 else u)
         transpose = m.size(0) > m.size(1)
         if transpose:
             m = m.transpose(0, 1)
         scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
-        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
+        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose, nhwc))
     for (_, scale, _, _), items in buckets.items():
-        n = max(m.size(1) for _, m, _ in items)
+        n = max(m.size(1) for _, m, _, _ in items)
         # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
-        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items])
+        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _, _ in items])
         X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype).mul_(scale)
-        for j, (i, m, transpose) in enumerate(items):
+        for j, (i, m, transpose, nhwc) in enumerate(items):
             x = X[j, :, : m.size(1)]
-            updates[i] = (x.T if transpose else x).reshape(grads[i].shape)
+            x = x.T if transpose else x
+            s = grads[i].shape
+            updates[i] = x.reshape(s[0], *s[2:], s[1]).permute(0, 3, 1, 2) if nhwc else x.reshape(s)
     return updates[0] if single else updates
 
 

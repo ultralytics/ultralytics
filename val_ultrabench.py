@@ -31,7 +31,7 @@ MIN_BUCKET_OBJECTS = 10
 SIZE_RANGES = {"tiny": [0, 10**2], "small": [0, 32**2], "medium": [32**2, 96**2], "large": [96**2, 1e5**2]}
 SIZE_LABELS = {"tiny": "T", "small": "S", "medium": "M", "large": "L"}
 IOU_THRESHOLDS = np.linspace(0.5, 0.95, 10)
-FRACTION = [1000, 1.0, 0]
+FRACTION = [1000, 1.0, 0.0]
 
 
 def build_ground_truth(

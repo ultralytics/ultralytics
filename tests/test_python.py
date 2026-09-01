@@ -1868,6 +1868,80 @@ def test_nn_depth_head_no_dead_parameters():
     assert not unused, f"parameters with no gradient: {unused}"
 
 
+@pytest.mark.parametrize(
+    ("task", "cfg", "extra_kw", "extra_batch", "head_attrs"),
+    [
+        ("detect", "yolo11n.yaml", {}, {}, ("cv2",)),
+        ("pose", "yolo11n-pose.yaml", {"data_kpt_shape": (17, 3)}, {"keypoints": torch.zeros(0, 17, 3)}, ("cv4",)),
+        (
+            "pose",
+            "yolo26n-pose.yaml",
+            {"data_kpt_shape": (17, 3)},
+            {"keypoints": torch.zeros(0, 17, 3)},
+            ("cv4", "cv4_sigma", "flow_model"),
+        ),
+        ("obb", "yolo11n-obb.yaml", {}, {"bboxes": torch.zeros(0, 5)}, ("cv2",)),
+    ],
+)
+def test_detection_loss_empty_targets_keeps_box_head_in_graph(task, cfg, extra_kw, extra_batch, head_attrs):
+    """Box/kpt/flow heads must receive gradient on an empty-target batch — DDP then needs no find_unused_parameters."""
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import DetectionModel, OBBModel, PoseModel
+    from ultralytics.utils import DEFAULT_CFG
+
+    model_cls = {"detect": DetectionModel, "pose": PoseModel, "obb": OBBModel}[task]
+    model = model_cls(cfg, **extra_kw).train()
+    model.args = get_cfg(DEFAULT_CFG)
+    batch = {
+        "img": torch.rand(2, 3, 64, 64),
+        "batch_idx": torch.zeros(0),
+        "cls": torch.zeros(0, 1),
+        "bboxes": torch.zeros(0, 4),
+        **extra_batch,
+    }
+    model.loss(batch)[0].sum().backward()
+    head = model.model[-1]
+    unused = [f"{attr}.{n}" for attr in head_attrs for n, p in getattr(head, attr).named_parameters() if p.grad is None]
+    assert not unused, f"parameters with no gradient: {unused}"
+
+
+def test_pose26_rle_zero_keeps_flow_model_in_graph_with_visible_target():
+    """A batch with a real target box but no visible keypoints must still route gradient through the RLE flow model —
+    the same DDP requirement, triggered by keypoint visibility rather than by an empty batch.
+    """
+    from ultralytics.cfg import get_cfg
+    from ultralytics.nn.tasks import PoseModel
+    from ultralytics.utils import DEFAULT_CFG
+
+    model = PoseModel("yolo26n-pose.yaml", data_kpt_shape=(17, 3)).train()
+    model.args = get_cfg(DEFAULT_CFG)
+    batch = {
+        "img": torch.rand(1, 3, 64, 64),
+        "batch_idx": torch.zeros(1),
+        "cls": torch.zeros(1, 1),
+        "bboxes": torch.tensor([[0.5, 0.5, 0.2, 0.2]]),
+        "keypoints": torch.zeros(1, 17, 3),  # v=0 for every keypoint -> kpt_mask.any() is False
+    }
+    model.loss(batch)[0].sum().backward()
+    unused = [n for n, p in model.model[-1].flow_model.named_parameters() if p.grad is None]
+    assert not unused, f"flow_model parameters with no gradient despite a real target box: {unused}"
+
+
+def test_detr_loss_empty_targets_keeps_box_head_in_graph():
+    """DETR box head must receive gradient on an empty-target batch — same DDP requirement."""
+    from ultralytics.models.utils.loss import DETRLoss
+
+    box_head = torch.nn.Linear(4, 4)
+    pred_bboxes = box_head(torch.rand(1, 1, 5, 4))  # (layers, bs, nq, 4)
+    pred_scores = torch.rand(1, 1, 5, 3, requires_grad=True)
+    batch = {"cls": torch.zeros(0, dtype=torch.long), "bboxes": torch.zeros(0, 4), "gt_groups": [0]}
+
+    loss = DETRLoss(nc=3, aux_loss=False)(pred_bboxes, pred_scores, batch)
+    sum(loss.values()).backward()
+
+    assert box_head.weight.grad is not None, "box head left disconnected from autograd on an empty-target batch"
+
+
 def test_classification_fraction_samples_across_classes(tmp_path):
     """Sample classification fractions across the class-major ImageFolder ordering."""
     from ultralytics.data.dataset import ClassificationDataset

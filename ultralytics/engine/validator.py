@@ -30,6 +30,7 @@ Usage - formats:
 
 from __future__ import annotations
 
+import functools
 import json
 import time
 from pathlib import Path
@@ -53,6 +54,27 @@ from ultralytics.utils.torch_utils import (
     torch_distributed_zero_first,
     unwrap_model,
 )
+
+
+def _head_config(fn):
+    """Configure a caller-supplied model head for the run and hand back its previous values afterwards."""
+
+    @functools.wraps(fn)
+    def wrapper(self, trainer=None, model=None):
+        prev = {}
+        if trainer is None and hasattr(model, "set_head_attr"):
+            if self.args.end2end is not None:
+                prev = model.set_head_attr(end2end=self.args.end2end)
+            if model.end2end:
+                prev.update(model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms))
+                prev.pop("end2end", None)  # fusion discards the one2many branch, so that mode stays
+        try:
+            return fn(self, trainer, model)
+        finally:
+            if prev:
+                model.set_head_attr(**prev)
+
+    return wrapper
 
 
 class BaseValidator:
@@ -143,6 +165,7 @@ class BaseValidator:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
+    @_head_config
     def __call__(self, trainer=None, model=None):
         """Execute validation process, running inference on dataloader and computing performance metrics.
 
@@ -171,11 +194,6 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            if hasattr(model, "end2end"):
-                if self.args.end2end is not None:
-                    model.end2end = self.args.end2end
-                if model.end2end:
-                    model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
             device_type = str(self.args.device).split(":", 1)[0]

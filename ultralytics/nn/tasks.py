@@ -515,18 +515,23 @@ class DetectionModel(BaseModel):
         """Override the end-to-end detection mode."""
         self.set_head_attr(end2end=value)
 
-    def set_head_attr(self, **kwargs):
-        """Set attributes of the model head (last layer).
+    def set_head_attr(self, **kwargs) -> dict:
+        """Set attributes of the model head (last layer) and return the values they replaced.
 
         Args:
             **kwargs (Any): Arbitrary keyword arguments representing attributes to set.
+
+        Returns:
+            (dict): Previous value of every attribute the head carries.
         """
-        head = self.model[-1]
+        head, prev = self.model[-1], {}
         for k, v in kwargs.items():
             if not hasattr(head, k):
                 LOGGER.warning(f"Head has no attribute '{k}'.")
                 continue
+            prev[k] = getattr(head, k)
             setattr(head, k, v)
+        return prev
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.

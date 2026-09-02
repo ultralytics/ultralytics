@@ -29,6 +29,7 @@ class BaseDataset(Dataset):
     Attributes:
         img_path (str | list[str]): Path to the folder containing images.
         imgsz (int): Target image size for resizing.
+        resize_short (bool): Whether `imgsz` sizes the short image side instead of the long one.
         augment (bool): Whether to apply data augmentation.
         single_cls (bool): Whether to treat all objects as a single class.
         prefix (str): Prefix to print in log messages.
@@ -68,6 +69,8 @@ class BaseDataset(Dataset):
         build_transforms: Build transformation pipeline to be implemented by subclasses.
         get_labels: Get labels method to be implemented by subclasses.
     """
+
+    resize_short = False  # `imgsz` sizes the long image side; subclasses may size the short side instead
 
     def __init__(
         self,
@@ -207,16 +210,13 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:, 0] = 0
 
-    def load_image(
-        self, i: int, rect_mode: bool = True, resize_short: bool = False
-    ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
+    def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """Load an image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
-            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
-                rect_mode when True.
+            rect_mode (bool): Whether to use rectangular resizing (long side to imgsz, short side when
+                `resize_short` is set).
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
@@ -249,7 +249,7 @@ class BaseDataset(Dataset):
 
             h0, w0 = im.shape[:2]  # orig hw
             if rect_mode:  # resize long side to imgsz while maintaining aspect ratio
-                if resize_short:  # resize short side to imgsz while maintaining aspect ratio
+                if self.resize_short:  # resize short side to imgsz while maintaining aspect ratio
                     r = self.imgsz / min(h0, w0)  # ratio
                     if r != 1:  # if sizes are not equal
                         w, h = (math.ceil(w0 * r), self.imgsz) if h0 < w0 else (self.imgsz, math.ceil(h0 * r))
@@ -384,10 +384,10 @@ class BaseDataset(Dataset):
         for i in range(nb):
             ari = ar[bi == i]
             mini, maxi = ari.min(), ari.max()
-            if maxi < 1:
-                shapes[i] = [maxi, 1]
-            elif mini > 1:
-                shapes[i] = [1, 1 / mini]
+            if maxi < 1:  # all images wider than tall, short side is h
+                shapes[i] = [1, 1 / mini] if self.resize_short else [maxi, 1]
+            elif mini > 1:  # all images taller than wide, short side is w
+                shapes[i] = [maxi, 1] if self.resize_short else [1, 1 / mini]
 
         self.batch_shapes = np.ceil(np.array(shapes) * self.imgsz / self.stride + self.pad).astype(int) * self.stride
         self.batch = bi  # batch index of image

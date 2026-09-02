@@ -753,6 +753,8 @@ class SemanticDataset(YOLODataset):
         include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
     """
 
+    resize_short = True  # `imgsz` sizes the short side, so 2048x1024 images train and validate at full resolution
+
     def __init__(self, *args, data: dict | None = None, **kwargs):
         """Initialize SemanticDataset.
 
@@ -890,10 +892,6 @@ class SemanticDataset(YOLODataset):
         self.im_files = [lb["im_file"] for lb in labels]
         self.mask_files = [lb["mask_file"] for lb in labels]
         return labels
-
-    def load_image(self, i, rect_mode=True):
-        """Load an image for semantic segmentation, scaling the short side to imgsz when rect_mode=True."""
-        return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Load a semantic mask and apply optional dataset label mapping."""

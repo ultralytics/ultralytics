@@ -1791,17 +1791,17 @@ class RTDETRDecoder(nn.Module):
         # NOTE: the simplified `nn.ModuleList(Conv(x, hd, act=False) for x in ch)` is not consistent with .pt weights.
         return nn.ModuleList(nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch)
 
-    def _build_query_pos_head(self, hd: int) -> "MLP":
+    def _build_query_pos_head(self, hd: int, act: nn.Module = nn.ReLU) -> "MLP":
         """Build the reference-box position MLP; override to change depth, width, or activation."""
-        return MLP(4, 2 * hd, hd, num_layers=2)
+        return MLP(4, 2 * hd, hd, num_layers=2, act=act)
 
     def _build_enc_output(self, hd: int) -> nn.Module:
         """Build the encoder-memory projection applied before query selection; override to skip (nn.Identity)."""
         return nn.Sequential(nn.Linear(hd, hd), nn.LayerNorm(hd))
 
-    def _build_bbox_head(self, hd: int) -> "MLP":
+    def _build_bbox_head(self, hd: int, act: nn.Module = nn.ReLU) -> "MLP":
         """Build one 3-layer bbox-regression MLP (reused for enc head and each decoder layer); override for act."""
-        return MLP(hd, hd, 4, num_layers=3)
+        return MLP(hd, hd, 4, num_layers=3, act=act)
 
     def _reset_parameters(self):
         """Initialize or reset the parameters of the model's various components with predefined weights and biases."""
@@ -1962,6 +1962,16 @@ class DEIMDecoder(RTDETRDecoder):
             return nn.SiLU()
         raise ValueError(f"Unsupported activation function: {act}")
 
+    def _build_input_proj(self, ch: tuple, hd: int) -> nn.ModuleList:
+        """Build per-level projections, skipping levels that already have hidden_dim channels."""
+        return nn.ModuleList(
+            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
+        )
+
+    def _build_query_pos_head(self, hd: int, act: nn.Module = nn.ReLU) -> "MLP":
+        """Build the reference-box position MLP; DEIM uses a 3-layer hidden_dim-wide variant."""
+        return MLP(4, hd, hd, num_layers=3, act=act)
+
     def __init__(
         self,
         nc: int = 80,
@@ -2008,9 +2018,7 @@ class DEIMDecoder(RTDETRDecoder):
         act_mlp = self._select_activation(mlp_act)
         scaled_dim = round(layer_scale * hd)
 
-        self.input_proj = nn.ModuleList(
-            nn.Identity() if x == hd else nn.Sequential(nn.Conv2d(x, hd, 1, bias=False), nn.BatchNorm2d(hd)) for x in ch
-        )
+        self.input_proj = self._build_input_proj(ch, hd)
 
         self.up = nn.Parameter(torch.tensor([0.5]), requires_grad=False)
         self.reg_scale = nn.Parameter(torch.tensor([reg_scale]), requires_grad=False)
@@ -2055,10 +2063,10 @@ class DEIMDecoder(RTDETRDecoder):
         self.box_noise_scale = box_noise_scale
 
         self.enc_score_head = nn.Linear(hd, nc)
-        self.enc_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
-        self.query_pos_head = MLP(4, hd, hd, num_layers=3, act=act_mlp)
+        self.enc_bbox_head = self._build_bbox_head(hd, act_mlp)
+        self.query_pos_head = self._build_query_pos_head(hd, act_mlp)
 
-        self.pre_bbox_head = MLP(hd, hd, 4, num_layers=3, act=act_mlp)
+        self.pre_bbox_head = self._build_bbox_head(hd, act_mlp)
         self.integral = Integral(reg_max)
 
         self.eval_idx = eval_idx if eval_idx >= 0 else ndl + eval_idx

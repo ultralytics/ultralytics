@@ -510,7 +510,7 @@ def _dist_mean_count(count: int, device: torch.device) -> float:
 
 
 class DEIMLoss(DETRLoss):
-    """DEIM detection loss for DeimDecoder heads, extending DETRLoss with distribution-based local terms.
+    """DEIM detection loss for DEIMDecoder heads, extending DETRLoss with distribution-based local terms.
 
     Adds the DEIM matching recipe (matchability-aware classification loss and optional union-set box regression over
     main, auxiliary, and pre-head matches) and the fine-grained localization (FGL) and decoupled distillation focal

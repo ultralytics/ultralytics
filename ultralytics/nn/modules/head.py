@@ -16,14 +16,14 @@ from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_in
 
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
-from .dfine_transformer import DeimTransformerDecoder, DeimTransformerDecoderLayer, Integral
+from .deim_transformer import DEIMTransformerDecoder, DEIMTransformerDecoderLayer, Integral
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
 from .utils import bias_init_with_prob, linear_init
 
 __all__ = (
     "OBB",
     "Classify",
-    "DeimDecoder",
+    "DEIMDecoder",
     "Depth",
     "Detect",
     "Pose",
@@ -1948,7 +1948,7 @@ class SemanticSegment(nn.Module):
         return logits
 
 
-class DeimDecoder(RTDETRDecoder):
+class DEIMDecoder(RTDETRDecoder):
     """DEIMv2 decoder head with DEIM transformer layers and integral-based bbox refinement."""
 
     @staticmethod
@@ -2002,7 +2002,7 @@ class DeimDecoder(RTDETRDecoder):
         self.o2m_topk_mode = o2m_topk_mode
         self.learnt_init_query = learnt_init_query
         if self.learnt_init_query:
-            raise ValueError("DeimDecoder does not support learnt_init_query=True.")
+            raise ValueError("DEIMDecoder does not support learnt_init_query=True.")
 
         act_layer = self._select_activation(act)
         act_mlp = self._select_activation(mlp_act)
@@ -2014,30 +2014,28 @@ class DeimDecoder(RTDETRDecoder):
 
         self.up = nn.Parameter(torch.tensor([0.5]), requires_grad=False)
         self.reg_scale = nn.Parameter(torch.tensor([reg_scale]), requires_grad=False)
-        decoder_layer = DeimTransformerDecoderLayer(
+        decoder_layer = DEIMTransformerDecoderLayer(
             hd,
             nh,
             d_ffn,
             dropout,
-            act_layer,
             self.nl,
             ndp,
             use_gateway=use_gateway,
             use_rmsnorm=use_rmsnorm,
         )
-        decoder_layer_wide = DeimTransformerDecoderLayer(
+        decoder_layer_wide = DEIMTransformerDecoderLayer(
             hd,
             nh,
             d_ffn,
             dropout,
-            act_layer,
             self.nl,
             ndp,
             layer_scale=layer_scale if layer_scale > 1 else None,
             use_gateway=use_gateway,
             use_rmsnorm=use_rmsnorm,
         )
-        self.decoder = DeimTransformerDecoder(
+        self.decoder = DEIMTransformerDecoder(
             hd,
             decoder_layer,
             decoder_layer_wide,
@@ -2112,8 +2110,6 @@ class DeimDecoder(RTDETRDecoder):
             self.up,
             self.reg_scale,
             attn_mask=attn_mask,
-            memory_mask=None,
-            dn_meta=dn_meta,
         )
         deim_meta = {
             "pred_corners": dec_pred_corners,

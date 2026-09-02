@@ -80,6 +80,6 @@ keywords: Ultralytics, YOLO, Detection, Pose, RTDETRDecoder, nn modules, guides
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.modules.head.DeimDecoder
+## ::: ultralytics.nn.modules.head.DEIMDecoder
 
 <br><br>

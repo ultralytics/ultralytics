@@ -1,11 +1,24 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+"""DEIM decoder modules: D-FINE-style fine-grained distribution refinement with DEIMv2 layer upgrades.
+
+The ``DEIMTransformerDecoder`` here is distinct from ``transformer.DeformableTransformerDecoder`` used by the RT-DETR
+head: it refines boxes by iteratively integrating a learned distribution over bin edges (FDR) instead of regressing
+deltas directly, and its cross-attention (``MSDeformableAttention``) carries no value/output projections, unlike
+``transformer.MSDeformAttn``.
+"""
+
+from __future__ import annotations
+
+import copy
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List
-from .transformer import MLP
 import torch.nn.init as init
-import math
-import copy
+
+from .transformer import MLP
 from .utils import (
     bias_init_with_prob,
     distance2bbox,
@@ -38,7 +51,7 @@ class MSDeformableAttention(nn.Module):
         num_heads=8,
         num_levels=4,
         num_points=4,
-        method='default',
+        method="default",
         offset_scale=0.5,
     ):
         """Initialize the deformable attention module.
@@ -51,22 +64,22 @@ class MSDeformableAttention(nn.Module):
             method (str): Sampling mode; discrete freezes the sampling offsets so only the weights are learned.
             offset_scale (float): Multiplier applied to the predicted sampling offsets.
         """
-        super(MSDeformableAttention, self).__init__()
+        super().__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.num_levels = num_levels
         self.offset_scale = offset_scale
 
         if isinstance(num_points, list):
-            assert len(num_points) == num_levels, ''
+            assert len(num_points) == num_levels, ""
             num_points_list = num_points
         else:
             num_points_list = [num_points for _ in range(num_levels)]
 
         self.num_points_list = num_points_list
 
-        num_points_scale = [1/n for n in num_points_list for _ in range(n)]
-        self.register_buffer('num_points_scale', torch.tensor(num_points_scale, dtype=torch.float32))
+        num_points_scale = [1 / n for n in num_points_list for _ in range(n)]
+        self.register_buffer("num_points_scale", torch.tensor(num_points_scale, dtype=torch.float32))
 
         self.total_points = num_heads * sum(num_points_list)
         self.method = method
@@ -79,7 +92,7 @@ class MSDeformableAttention(nn.Module):
 
         self._reset_parameters()
 
-        if method == 'discrete':
+        if method == "discrete":
             for p in self.sampling_offsets.parameters():
                 p.requires_grad = False
 
@@ -99,11 +112,9 @@ class MSDeformableAttention(nn.Module):
         init.constant_(self.attention_weights.weight, 0)
         init.constant_(self.attention_weights.bias, 0)
 
-    def forward(self,
-                query: torch.Tensor,
-                reference_points: torch.Tensor,
-                value: torch.Tensor,
-                value_spatial_shapes: List[int]):
+    def forward(
+        self, query: torch.Tensor, reference_points: torch.Tensor, value: torch.Tensor, value_spatial_shapes: list
+    ):
         """Sample the value tensor at the predicted offsets and combine the samples with the attention weights.
 
         Args:
@@ -127,7 +138,9 @@ class MSDeformableAttention(nn.Module):
         if reference_points.shape[-1] == 2:
             offset_normalizer = torch.tensor(value_spatial_shapes)
             offset_normalizer = offset_normalizer.flip([1]).reshape(1, 1, 1, self.num_levels, 1, 2)
-            sampling_locations = reference_points.reshape(bs, Len_q, 1, self.num_levels, 1, 2) + sampling_offsets / offset_normalizer
+            sampling_locations = (
+                reference_points.reshape(bs, Len_q, 1, self.num_levels, 1, 2) + sampling_offsets / offset_normalizer
+            )
         elif reference_points.shape[-1] == 4:
             # reference_points [8, 480, None, 1,  4]
             # sampling_offsets [8, 480, 8,    12, 2]
@@ -136,8 +149,8 @@ class MSDeformableAttention(nn.Module):
             sampling_locations = reference_points[:, :, None, :, :2] + offset
         else:
             raise ValueError(
-                "Last dim of reference_points must be 2 or 4, but get {} instead.".
-                format(reference_points.shape[-1]))
+                "Last dim of reference_points must be 2 or 4, but get {} instead.".format(reference_points.shape[-1])
+            )
 
         value = value.reshape(value.shape[0], value.shape[1], self.num_heads, self.head_dim)
         output = multi_scale_deformable_attn_pytorch(
@@ -163,7 +176,7 @@ class Integral(nn.Module):
         Args:
             reg_max (int): Max number of the discrete bins.
         """
-        super(Integral, self).__init__()
+        super().__init__()
         self.reg_max = reg_max
 
     def forward(self, x, project):
@@ -204,7 +217,7 @@ class LQE(nn.Module):
             reg_max (int): Max number of the discrete bins.
             act (nn.Module): Activation used by the quality head.
         """
-        super(LQE, self).__init__()
+        super().__init__()
         self.k = k
         self.reg_max = reg_max
         self.reg_conf = MLP(4 * (k + 1), hidden_dim, 1, num_layers, act=act)
@@ -230,27 +243,29 @@ class LQE(nn.Module):
         return scores + quality_score
 
 
-class DFineTransformerDecoder(nn.Module):
-    """Transformer Decoder implementing Fine-grained Distribution Refinement (FDR).
+class DEIMTransformerDecoder(nn.Module):
+    """DEIM transformer decoder implementing Fine-grained Distribution Refinement (FDR).
 
     This decoder refines object detection predictions through iterative updates across multiple layers, utilizing
     attention mechanisms, location quality estimators, and distribution refinement techniques to improve bounding box
-    accuracy and robustness.
+    accuracy and robustness. Query-position embeddings are computed once from the initial reference boxes and held
+    fixed across layers (DEIMv2 behavior).
     """
 
     def __init__(
-            self,
-            hidden_dim,
-            decoder_layer,
-            decoder_layer_wide,
-            num_layers,
-            num_head,
-            reg_max,
-            reg_scale,
-            up,
-            eval_idx=-1,
-            layer_scale=2,
-            act=nn.ReLU()):
+        self,
+        hidden_dim,
+        decoder_layer,
+        decoder_layer_wide,
+        num_layers,
+        num_head,
+        reg_max,
+        reg_scale,
+        up,
+        eval_idx=-1,
+        layer_scale=2,
+        act=nn.ReLU(),
+    ):
         """Initialize the decoder.
 
         Args:
@@ -266,18 +281,18 @@ class DFineTransformerDecoder(nn.Module):
             layer_scale (int): Width multiplier applied to the layers after eval_idx.
             act (nn.Module): Activation used by the location quality estimators.
         """
-        super(DFineTransformerDecoder, self).__init__()
+        super().__init__()
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
         self.layer_scale = layer_scale
         self.num_head = num_head
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
         self.up, self.reg_scale, self.reg_max = up, reg_scale, reg_max
-        self.layers = nn.ModuleList([
-            copy.deepcopy(decoder_layer) for _ in range(self.eval_idx + 1)] +
-            [copy.deepcopy(decoder_layer_wide) for _ in range(num_layers - self.eval_idx - 1)])
+        self.layers = nn.ModuleList(
+            [copy.deepcopy(decoder_layer) for _ in range(self.eval_idx + 1)]
+            + [copy.deepcopy(decoder_layer_wide) for _ in range(num_layers - self.eval_idx - 1)]
+        )
         self.lqe_layers = nn.ModuleList([copy.deepcopy(LQE(4, 64, 2, reg_max, act=act)) for _ in range(num_layers)])
-        self.fixed_query_pos = False
 
     def value_op(self, memory, value_proj, value_scale, memory_mask, memory_spatial_shapes):
         """Project, resize, and mask the encoder memory for MSDeformableAttention.
@@ -301,24 +316,25 @@ class DFineTransformerDecoder(nn.Module):
     def convert_to_deploy(self):
         """Precompute the bin centers and drop the layers past eval_idx for inference-only use."""
         self.project = weighting_function(self.reg_max, self.up, self.reg_scale, deploy=True)
-        self.layers = self.layers[:self.eval_idx + 1]
+        self.layers = self.layers[: self.eval_idx + 1]
         self.lqe_layers = nn.ModuleList([nn.Identity()] * (self.eval_idx) + [self.lqe_layers[self.eval_idx]])
 
-    def forward(self,
-                target,
-                ref_points_unact,
-                memory,
-                spatial_shapes,
-                bbox_head,
-                score_head,
-                query_pos_head,
-                pre_bbox_head,
-                integral,
-                up,
-                reg_scale,
-                attn_mask=None,
-                memory_mask=None,
-                dn_meta=None):
+    def forward(
+        self,
+        target,
+        ref_points_unact,
+        memory,
+        spatial_shapes,
+        bbox_head,
+        score_head,
+        query_pos_head,
+        pre_bbox_head,
+        integral,
+        up,
+        reg_scale,
+        attn_mask=None,
+        memory_mask=None,
+    ):
         """Refine the queries layer by layer, accumulating corner corrections through the decoder.
 
         Args:
@@ -335,7 +351,6 @@ class DFineTransformerDecoder(nn.Module):
             reg_scale (torch.Tensor): Scale controlling the non-uniform bin spacing.
             attn_mask (torch.Tensor, optional): Self-attention mask isolating the denoising groups.
             memory_mask (torch.Tensor, optional): Validity mask for the encoder memory.
-            dn_meta (dict, optional): Denoising metadata, accepted for signature compatibility and unused here.
 
         Returns:
             dec_out_bboxes (torch.Tensor): Boxes per layer in xywh format with shape (L, B, N, 4).
@@ -356,25 +371,22 @@ class DFineTransformerDecoder(nn.Module):
         dec_out_logits = []
         dec_out_pred_corners = []
         dec_out_refs = []
-        if not hasattr(self, 'project'):
+        if not hasattr(self, "project"):
             project = weighting_function(self.reg_max, up, reg_scale)
         else:
             project = self.project
 
         ref_points_detach = F.sigmoid(ref_points_unact)
-        query_pos_fixed = query_pos_head(ref_points_detach).clamp(min=-10, max=10) if self.fixed_query_pos else None
+        query_pos_fixed = query_pos_head(ref_points_detach).clamp(min=-10, max=10)
 
         for i, layer in enumerate(self.layers):
             ref_points_input = ref_points_detach.unsqueeze(2)
             query_pos_embed = query_pos_fixed
-            if query_pos_embed is None:
-                query_pos_embed = query_pos_head(ref_points_detach).clamp(min=-10, max=10)
 
             # TODO Adjust scale if needed for detachable wider layers
             if i >= self.eval_idx + 1 and self.layer_scale > 1:
                 query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
-                if self.fixed_query_pos:
-                    query_pos_fixed = query_pos_embed
+                query_pos_fixed = query_pos_embed
                 value = self.value_op(memory, None, query_pos_embed.shape[-1], memory_mask, spatial_shapes)
                 output = F.interpolate(output, size=query_pos_embed.shape[-1])
                 output_detach = output.detach()
@@ -407,8 +419,14 @@ class DFineTransformerDecoder(nn.Module):
             ref_points_detach = inter_ref_bbox.detach()
             output_detach = output.detach()
 
-        return torch.stack(dec_out_bboxes), torch.stack(dec_out_logits), \
-               torch.stack(dec_out_pred_corners), torch.stack(dec_out_refs), pre_bboxes, pre_scores
+        return (
+            torch.stack(dec_out_bboxes),
+            torch.stack(dec_out_logits),
+            torch.stack(dec_out_pred_corners),
+            torch.stack(dec_out_refs),
+            pre_bboxes,
+            pre_scores,
+        )
 
 
 class DEIMRMSNorm(nn.Module):
@@ -484,7 +502,7 @@ class DEIMSwiGLUFFN(nn.Module):
             return self.w3(F.silu(x1) * x2).to(x.dtype)
 
 
-class DeimGate(nn.Module):
+class DEIMGate(nn.Module):
     """DEIM gate with optional RMSNorm."""
 
     def __init__(self, d_model: int, use_rmsnorm: bool = False):
@@ -515,7 +533,7 @@ class DeimGate(nn.Module):
         return self.norm(gate1 * x1 + gate2 * x2)
 
 
-class DeimTransformerDecoderLayer(nn.Module):
+class DEIMTransformerDecoderLayer(nn.Module):
     """DEIMv2 decoder layer (RMSNorm + SwiGLU)."""
 
     def __init__(
@@ -524,7 +542,6 @@ class DeimTransformerDecoderLayer(nn.Module):
         n_heads: int = 8,
         d_ffn: int = 1024,
         dropout: float = 0.0,
-        act: nn.Module = nn.ReLU(),
         n_levels: int = 4,
         n_points: int = 4,
         cross_attn_method: str = "default",
@@ -539,7 +556,6 @@ class DeimTransformerDecoderLayer(nn.Module):
             n_heads (int): Number of attention heads.
             d_ffn (int): Hidden width of the feed-forward network before the SwiGLU halving.
             dropout (float): Dropout probability applied after each sublayer.
-            act (nn.Module): Accepted for signature compatibility and discarded; SwiGLU is always used.
             n_levels (int): Number of feature levels sampled by the cross-attention.
             n_points (int): Sampling points per head and level in the cross-attention.
             cross_attn_method (str): Sampling mode of the cross-attention.
@@ -548,7 +564,6 @@ class DeimTransformerDecoderLayer(nn.Module):
             use_rmsnorm (bool): Use RMSNorm instead of LayerNorm.
         """
         super().__init__()
-        del act
         if layer_scale is not None:
             d_ffn = round(layer_scale * d_ffn)
             d_model = round(layer_scale * d_model)
@@ -562,7 +577,7 @@ class DeimTransformerDecoderLayer(nn.Module):
         self.dropout2 = nn.Dropout(dropout)
         self.use_gateway = use_gateway
         if use_gateway:
-            self.gateway = DeimGate(d_model, use_rmsnorm=use_rmsnorm)
+            self.gateway = DEIMGate(d_model, use_rmsnorm=use_rmsnorm)
         else:
             self.norm2 = norm_layer(d_model)
 
@@ -615,17 +630,3 @@ class DeimTransformerDecoderLayer(nn.Module):
 
         target2 = self.swish_ffn(target)
         return self.norm3((target + self.dropout4(target2)).clamp(min=-65504, max=65504))
-
-
-class DeimTransformerDecoder(DFineTransformerDecoder):
-    """DEIMv2 decoder wrapper using DFine forward path with fixed query-position embeddings."""
-
-    def __init__(self, *args, **kwargs):
-        """Initialize the decoder.
-
-        Args:
-            *args (Any): Positional arguments forwarded to DFineTransformerDecoder.
-            **kwargs (Any): Keyword arguments forwarded to DFineTransformerDecoder.
-        """
-        super().__init__(*args, **kwargs)
-        self.fixed_query_pos = True

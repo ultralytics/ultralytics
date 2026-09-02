@@ -16,30 +16,6 @@ keywords: Ultralytics, models, utils, operations, HungarianMatcher, get_cdn_grou
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.utils.ops.pairwise_box_iou
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.utils.ops.pairwise_giou
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.utils.ops._upcast_boxes
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.utils.ops._aligned_inter_union
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.utils.ops.aligned_box_iou
-
-<br><br><hr><br>
-
-## ::: ultralytics.models.utils.ops.aligned_giou
-
-<br><br><hr><br>
-
 ## ::: ultralytics.models.utils.ops.get_cdn_group
 
 <br><br>

@@ -52,7 +52,7 @@ from ultralytics.nn.modules import (
     DWConv,
     DWConvTranspose2d,
     Add,
-    DeimDecoder,
+    DEIMDecoder,
     Focus,
     GhostBottleneck,
     GhostConv,
@@ -1087,7 +1087,7 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class YOLODETRDetectionModel(RTDETRDetectionModel):
-    """YOLO-DETR detection model with DEIMLoss dispatch for DeimDecoder heads.
+    """YOLO-DETR detection model with DEIMLoss dispatch for DEIMDecoder heads.
 
     Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route the DEIM head through
     ``DEIMLoss`` with the full FGL + DDF terms. The parent ``RTDETRDecoder`` head still falls through to
@@ -1108,8 +1108,8 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
     }
 
     def init_criterion(self):
-        """Initialize the loss criterion, dispatching to DEIMLoss for DeimDecoder heads."""
-        if isinstance(self.model[-1], DeimDecoder):
+        """Initialize the loss criterion, dispatching to DEIMLoss for DEIMDecoder heads."""
+        if isinstance(self.model[-1], DEIMDecoder):
             from ultralytics.models.utils.loss import DEIMLoss
 
             return DEIMLoss(nc=self.nc, **self._DEIM_LOSS_CONSTANTS)
@@ -2280,7 +2280,7 @@ def parse_model(d, ch, verbose=True):
             args.append([ch[x] for x in f])
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m in {RTDETRDecoder, DeimDecoder}:  # channels arg at index 1
+        elif m in {RTDETRDecoder, DEIMDecoder}:  # channels arg at index 1
             args.insert(1, [ch[x] for x in f])
         elif m is CBLinear:
             c2 = args[0]
@@ -2469,8 +2469,8 @@ def guess_model_family(model):
         stem = re.sub(r"[^a-z0-9]+", "", path.stem.lower())
         # Route any YOLO-DETR checkpoint/export to the YOLO-DETR family by name, across all scales and formats
         # (incl. .engine), e.g. yolo27n-detr / yolo27x-detr / yolo27xxl-detr -> yolo27<scale>detr. The bare yolo27x
-        # name is matched too since the shipped YOLO27 x-scale is a DeimDecoder model. This takes priority over
-        # embedded metadata so engines route here too (the exporter stamps head="DeimDecoder", whose family is
+        # name is matched too since the shipped YOLO27 x-scale is a DEIMDecoder model. This takes priority over
+        # embedded metadata so engines route here too (the exporter stamps head="DEIMDecoder", whose family is
         # resolved via head2family when the name does not match).
         if "yolodetr" in stem or re.search(r"yolo\d+[a-z]*detr|yolo27x", stem):
             return "yolodetr"

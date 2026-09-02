@@ -97,7 +97,7 @@ class RTDETRTrainer(DetectionTrainer):
 
 
 class DEIMTrainer(RTDETRTrainer):
-    """RT-DETR trainer for DeimDecoder models with augmentation decay + flat-cosine LR.
+    """RT-DETR trainer for DEIMDecoder models with augmentation decay + flat-cosine LR.
 
     ``backbone_lr_ratio`` defaults to 0.1 and discounts the backbone param groups' LR in ``build_optimizer``.
     """
@@ -212,7 +212,7 @@ class DEIMTrainer(RTDETRTrainer):
         """
         loss_names = ["giou_loss", "cls_loss", "l1_loss"]
         head_name = type(unwrap_model(self.model).model[-1]).__name__
-        if head_name == "DeimDecoder":
+        if head_name == "DEIMDecoder":
             loss_names += ["fgl_loss", "ddf_loss"]
         self.loss_names = tuple(loss_names)
         return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))

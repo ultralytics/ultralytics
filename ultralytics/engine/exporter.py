@@ -90,7 +90,7 @@ from ultralytics.nn.modules import (
     Attention,
     C2f,
     Classify,
-    DeimDecoder,
+    DEIMDecoder,
     Depth,
     Detect,
     Pose,
@@ -910,7 +910,7 @@ class Exporter:
         # DEIM decoders need TensorRT accuracy workarounds. Precision is NOT part of this condition: the >=10.13
         # deformable-attention miscompilation hits FP32 engines too, so the fusion barrier must apply at every
         # precision. onnx2engine gates the FP16-only layer pinning on its own FP16 build branch.
-        self.has_deim = fmt == "engine" and any(isinstance(m, DeimDecoder) for m in model.modules())
+        self.has_deim = fmt == "engine" and any(isinstance(m, DEIMDecoder) for m in model.modules())
 
         if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits

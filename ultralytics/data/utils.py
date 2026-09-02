@@ -626,6 +626,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
 
     # Set paths
     data["path"] = path  # download scripts
+    if data.get("masks_dir") is None and (path / "masks").is_dir():
+        data["masks_dir"] = "masks"  # PNG semantic masks in the default folder select SemanticDataset
     for k in "train", "val", "test", "minival":
         if data.get(k):  # prepend path
             if isinstance(data[k], str):

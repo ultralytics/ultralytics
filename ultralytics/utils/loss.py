@@ -1213,7 +1213,17 @@ class E2ELoss:
         # at 1 the o2o obj branch sees a tenth of o2m's positive signal and its scores never
         # calibrate, which is the measured o2o obj collapse. Exposed to sweep that.
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=getattr(model.args, "o2o_topk2", 1) or 1)
-        if getattr(model.args, "obj_target", "soft") == "split":
+        tgt = getattr(model.args, "obj_target", "soft")
+        if tgt == "rsplit":
+            # Deliberately WRONG pairing, as a falsification control for `split`. The claim is
+            # that each branch wants the target matching its assignment density; if so, giving
+            # o2m the hard target (it has ~10 positives per GT and can afford soft ranking) and
+            # o2o the soft one (it has 1 and needs full strength) must be worse than BOTH pure
+            # modes. If it is not, the density explanation is wrong and split works for some
+            # other reason.
+            self.one2many.obj_target = "hard"
+            self.one2one.obj_target = "soft"
+        elif tgt == "split":
             # Per-branch objectness targets, because the two branches have opposite needs.
             # o2m gets ~10 positives per GT, so a CIoU soft label is affordable and carries the
             # ranking that AP rewards (soft beats hard by 0.03 mAP10_50 there). o2o gets exactly

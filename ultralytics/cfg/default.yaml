@@ -106,7 +106,7 @@ cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disa
 dfl: 1.5 # (float) distribution focal loss gain
 obj: 1.0 # (float) objectness loss gain (only used when objectness != none)
 objectness: none # (str) YOLOv5-style objectness branch: none, aux, mul, v5, cv3
-obj_target: soft # (str) objectness target for positives: soft (CIoU soft label), hard (1.0), or split (soft on o2m, hard on o2o)
+obj_target: soft # (str) objectness target for positives: soft (CIoU), hard (1.0), split (soft o2m + hard o2o), rsplit (the swapped control)
 o2o_topk2: 1 # (int) anchors kept per GT by the one2one assigner's second narrowing pass; 1 = NMS-free default
 ood_scoring: cls # (str) OOD-eval confidence source: cls (default) or obj (class-agnostic objectness)
 ood_end2end: False # (bool) also evaluate the other head branch: adds ood/e2e_* (o2o) and metrics/o2m_* (in-domain), ~2x OOD eval time

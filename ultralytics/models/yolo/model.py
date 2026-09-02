@@ -100,12 +100,6 @@ class YOLO(Model):
                 head = BaseBackend.read_metadata(self.model).get("head", "")
             if head:  # the loaded head is authoritative and overrides the name-based guess made before load
                 self._deim = head == "DeimDecoder"
-            if "RTDETR" in head:  # RT-DETR head
-                from ultralytics import RTDETR
-
-                new_instance = RTDETR(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
 
     def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
         """Run prediction, defaulting conf to 0.5 for DEIM-routed models since the decoder applies no NMS.

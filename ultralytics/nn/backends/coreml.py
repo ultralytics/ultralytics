@@ -34,9 +34,11 @@ class CoreMLBackend(BaseBackend):
         # Run on the Neural Engine (CPU_AND_NE): ~3x faster than CPU, and the default ComputeUnit.ALL / CPU_AND_GPU
         # abort the process via an MPSGraph compiler bug on macOS hosts (coremltools 9.x). CPU_AND_NE needs macOS >= 13,
         # so fall back to CPU_ONLY below that. CoreML inference is macOS-only, so this applies wherever the backend runs.
-        # Exception: RT-DETR loses FP16 accuracy and runs slower on the Neural Engine alone, so route it through ALL.
+        # Exception: RT-DETR-family decoders lose FP16 accuracy and run slower on the Neural Engine alone.
         meta = self.read_metadata(weight)
-        default_unit = ct.ComputeUnit.ALL if meta.get("head") == "RTDETRDecoder" else ct.ComputeUnit.CPU_AND_NE
+        default_unit = (
+            ct.ComputeUnit.ALL if meta.get("head") in {"RTDETRDecoder", "DeimDecoder"} else ct.ComputeUnit.CPU_AND_NE
+        )
         try:
             self.model = ct.models.MLModel(weight, compute_units=default_unit)
         except Exception:
@@ -68,7 +70,7 @@ class CoreMLBackend(BaseBackend):
             cls = y["confidence"].argmax(1, keepdims=True)
             y = np.concatenate((box, np.take_along_axis(y["confidence"], cls, axis=1), cls), 1)[None]
         else:
-            y = list(y.values())
+            y = [v for v in y.values() if isinstance(v, np.ndarray)]
         if len(y) == 2 and len(y[1].shape) != 4:  # segmentation model
             y = list(reversed(y))
         return y

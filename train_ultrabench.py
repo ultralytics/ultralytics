@@ -83,6 +83,7 @@ def main() -> None:
     parser.add_argument("name")
     parser.add_argument("--project", type=Path, default=Path("runs/detect"))
     parser.add_argument("--imgsz", type=int, default=640)
+    parser.add_argument("--batch", type=int, default=128)
     args = parser.parse_args()
     datasets = [line for raw in DATASETS.read_text().splitlines() if (line := raw.strip()) and not line.startswith("#")]
     names = [Path(uri).name for uri in datasets]
@@ -107,24 +108,52 @@ def main() -> None:
     with source_file.open("rb") as file:
         for chunk in iter(lambda: file.read(1 << 20), b""):
             source_hash.update(chunk)
+    run_args = {
+        "epochs": 100,
+        "imgsz": args.imgsz,
+        "batch": args.batch,
+        "deterministic": True,
+        "fraction": FRACTION,
+        "save_json": True,
+        "lr0": 0.00158,
+        "lrf": 0.01,
+        "momentum": 0.73949,
+        "weight_decay": 0.00049,
+        "warmup_epochs": 3.42331,
+        "box": 9.59968,
+        "cls": 1.33364,
+        "cls_pw": 0.95413,
+        "dfl": 1.81131,
+        "hsv_h": 0.01794,
+        "hsv_s": 0.70847,
+        "hsv_v": 0.88812,
+        "degrees": 0.0,
+        "translate": 0.00205,
+        "scale": 0.44842,
+        "shear": 0.54036,
+        "perspective": 0.0,
+        "flipud": 0.06441,
+        "fliplr": 0.31331,
+        "bgr": 0.01841,
+        "mosaic": 0.60098,
+        "mixup": 0.21993,
+        "cutmix": 1.0,
+        "close_mosaic": 0,
+    }
     common = {
         "device": args.device,
         "project": str(run_dir.parent),
         "exist_ok": True,
-        "epochs": 100,
-        "imgsz": args.imgsz,
         "workers": 4,
-        "deterministic": True,
         "channels_last": True,
-        "fraction": FRACTION,
-        "save_json": True,
         "plots": False,
+        **run_args,
     }
     source_sha256 = source_hash.hexdigest()
     provenance = {
         "source_name": source_model.name,
         "source_sha256": source_sha256,
-        **{key: common[key] for key in ("epochs", "imgsz", "fraction", "save_json", "deterministic")},
+        **run_args,
         "cls_remap": True,
         "seed": 0,
     }

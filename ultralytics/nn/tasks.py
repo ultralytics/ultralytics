@@ -51,7 +51,6 @@ from ultralytics.nn.modules import (
     Detect,
     DWConv,
     DWConvTranspose2d,
-    Add,
     DEIMDecoder,
     Focus,
     GhostBottleneck,
@@ -67,7 +66,6 @@ from ultralytics.nn.modules import (
     RepC3,
     RepConv,
     RepNCSPELAN4,
-    RepNCSPELAN5,
     RepUltraViTBlock,
     RepVGGDW,
     ResNetLayer,
@@ -2151,7 +2149,6 @@ def parse_model(d, ch, verbose=True):
             C2f,
             C3k2,
             RepNCSPELAN4,
-            RepNCSPELAN5,
             ELAN1,
             ADown,
             AConv,
@@ -2250,8 +2247,6 @@ def parse_model(d, ch, verbose=True):
             args = [ch[f]]
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
-        elif m is Add:
-            c2 = ch[f[0]]
         elif m in frozenset(
             {
                 Detect,

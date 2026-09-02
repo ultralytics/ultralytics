@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import uniform_
 
+from ultralytics.utils.ops import xyxy2xywh
+
 __all__ = "inverse_sigmoid", "multi_scale_deformable_attn_pytorch"
 
 
@@ -160,23 +162,6 @@ def multi_scale_deformable_attn_pytorch(
 
 
 # D-FINE distribution-based box regression helpers, used by the DEIMDecoder head and DEIMLoss.
-def box_xyxy_to_cxcywh(x: torch.Tensor) -> torch.Tensor:
-    """Convert boxes from (x1, y1, x2, y2) to (cx, cy, w, h).
-
-    Args:
-        x (torch.Tensor): Boxes in xyxy format with shape (..., 4).
-
-    Returns:
-        (torch.Tensor): Boxes in xywh format with shape (..., 4).
-
-    Notes:
-        Kept separate from ultralytics.utils.ops.xyxy2xywh, which allocates with empty_like and assigns by index.
-        This builds the result with unbind and stack instead, which stays traceable for CoreML export.
-    """
-    x0, y0, x1, y1 = x.unbind(-1)
-    return torch.stack([(x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0], dim=-1)
-
-
 def weighting_function(reg_max, up, reg_scale, deploy=False):
     """Generate the non-uniform Weighting Function W(n) for bounding box regression.
 
@@ -295,7 +280,7 @@ def distance2bbox(points, distance, reg_scale):
 
     bboxes = torch.stack([x1, y1, x2, y2], -1)
 
-    return box_xyxy_to_cxcywh(bboxes)
+    return xyxy2xywh(bboxes)
 
 
 def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):

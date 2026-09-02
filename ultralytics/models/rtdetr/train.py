@@ -47,6 +47,8 @@ class RTDETRTrainer(DetectionTrainer):
         - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
     """
 
+    dataset_cls = RTDETRDataset
+
     def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):
         """Initialize and return an RT-DETR model for object detection tasks.
 
@@ -66,7 +68,7 @@ class RTDETRTrainer(DetectionTrainer):
         return model
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):
-        """Build and return an RT-DETR dataset for training or validation.
+        """Build and return the dataset for training or validation.
 
         Args:
             img_path (str): Path to the folder containing images.
@@ -74,9 +76,9 @@ class RTDETRTrainer(DetectionTrainer):
             batch (int, optional): Batch size for rectangle training.
 
         Returns:
-            (RTDETRDataset): Dataset object for the specific mode.
+            (RTDETRDataset): Dataset object for the specific mode, `self.dataset_cls` in practice.
         """
-        return RTDETRDataset(
+        return self.dataset_cls(
             img_path=img_path,
             imgsz=self.args.imgsz,
             batch_size=batch,
@@ -103,6 +105,7 @@ class DEIMTrainer(RTDETRTrainer):
     """
 
     _epoch_callback_registered = False
+    dataset_cls = DEIMDataset
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks=None):
         """Initialize the DEIM trainer with a 0.1 default backbone learning-rate ratio."""
@@ -125,32 +128,6 @@ class DEIMTrainer(RTDETRTrainer):
         if weights:
             model.load(weights)
         return model
-
-    def build_dataset(self, img_path, mode="val", batch=None):
-        """Build DEIMDataset for train (with decay schedule); use it for val as well (no augmentation applied).
-
-        Args:
-            img_path (str): Path to the image directory.
-            mode (str): Dataset mode, either train or val; only train applies the augmentation decay schedule.
-            batch (int, optional): Batch size, used for rect mode.
-
-        Returns:
-            (DEIMDataset): Dataset for the requested mode.
-        """
-        return DEIMDataset(
-            img_path=img_path,
-            imgsz=self.args.imgsz,
-            batch_size=batch,
-            augment=mode == "train",
-            hyp=self.args,
-            rect=False,
-            cache=self.args.cache or None,
-            single_cls=self.args.single_cls or False,
-            prefix=colorstr(f"{mode}: "),
-            classes=self.args.classes,
-            data=self.data,
-            fraction=1.0 if self.data.get("complete") else get_split_fraction(self.args.fraction, mode),
-        )
 
     def _setup_scheduler(self):
         """Set up the flat-cosine LR schedule used by DEIM training."""

@@ -294,21 +294,18 @@ class DEIMTransformerDecoder(nn.Module):
         )
         self.lqe_layers = nn.ModuleList([copy.deepcopy(LQE(4, 64, 2, reg_max, act=act)) for _ in range(num_layers)])
 
-    def value_op(self, memory, value_proj, value_scale, memory_mask, memory_spatial_shapes):
-        """Project, resize, and mask the encoder memory for MSDeformableAttention.
+    def value_op(self, memory, value_scale, memory_mask):
+        """Resize and mask the encoder memory for MSDeformableAttention.
 
         Args:
             memory (torch.Tensor): Encoder memory with shape (B, L, C).
-            value_proj (nn.Module, optional): Projection applied to the memory.
             value_scale (int, optional): Target width for interpolation of the memory.
             memory_mask (torch.Tensor, optional): Validity mask with shape (B, L).
-            memory_spatial_shapes (list[list[int]]): Height and width of each feature level.
 
         Returns:
             (torch.Tensor): Masked value tensor with shape (B, L, C).
         """
-        value = value_proj(memory) if value_proj is not None else memory
-        value = F.interpolate(memory, size=value_scale) if value_scale is not None else value
+        value = F.interpolate(memory, size=value_scale) if value_scale is not None else memory
         if memory_mask is not None:
             value = value * memory_mask.to(value.dtype).unsqueeze(-1)
         return value
@@ -365,7 +362,7 @@ class DEIMTransformerDecoder(nn.Module):
         """
         output = target
         output_detach = pred_corners_undetach = 0
-        value = self.value_op(memory, None, None, memory_mask, spatial_shapes)
+        value = self.value_op(memory, None, memory_mask)
 
         dec_out_bboxes = []
         dec_out_logits = []
@@ -387,7 +384,7 @@ class DEIMTransformerDecoder(nn.Module):
             if i >= self.eval_idx + 1 and self.layer_scale > 1:
                 query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
                 query_pos_fixed = query_pos_embed
-                value = self.value_op(memory, None, query_pos_embed.shape[-1], memory_mask, spatial_shapes)
+                value = self.value_op(memory, query_pos_embed.shape[-1], memory_mask)
                 output = F.interpolate(output, size=query_pos_embed.shape[-1])
                 output_detach = output.detach()
 

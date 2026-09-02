@@ -93,65 +93,6 @@ class TransformerEncoderLayer(nn.Module):
         """Add position embeddings to the tensor if provided."""
         return tensor if pos is None else tensor + pos
 
-    def _forward_attention(
-        self,
-        q: torch.Tensor,
-        k: torch.Tensor,
-        value: torch.Tensor,
-        attn_mask: torch.Tensor | None = None,
-        key_padding_mask: torch.Tensor | None = None,
-    ) -> torch.Tensor:
-        """Run multi-head attention in FP32 and restore the activation dtype.
-
-        The Q·Kᵀ scores overflow the FP16 range (65504) once encoder activations grow, and softmax(inf) is NaN,
-        which poisons every loss term and the gradients. Running attention outside autocast in FP32 keeps the
-        scores in range and matches amp=False numerics without adding parameters. The weights are upcast here
-        instead of being pinned to FP32 on the module because a pinned dtype is a Python-side attribute that
-        tracing cannot capture: exported graphs are converted to FP16 wholesale by the inference backends, which
-        would leave FP32 activations feeding FP16 projections. Upcasting inside forward is recorded as part of
-        the graph, so exported models keep running attention in FP32 no matter how the weights are stored.
-
-        Args:
-            q (torch.Tensor): Query tensor.
-            k (torch.Tensor): Key tensor.
-            value (torch.Tensor): Value tensor.
-            attn_mask (torch.Tensor, optional): Attention mask.
-            key_padding_mask (torch.Tensor, optional): Mask for the keys per batch.
-
-        Returns:
-            (torch.Tensor): Attention output in the dtype of `value`.
-        """
-        ma = self.ma
-        output_dtype = value.dtype
-        # nn.MultiheadAttention projects in its own parameter dtype, so drop to the functional form to upcast both
-        # the activations and the weights. Inputs are batch-first, the functional form is sequence-first.
-        q, k, value = (x.float().transpose(0, 1) for x in (q, k, value))
-        if attn_mask is not None and torch.is_floating_point(attn_mask):
-            attn_mask = attn_mask.float()
-        if key_padding_mask is not None and torch.is_floating_point(key_padding_mask):
-            key_padding_mask = key_padding_mask.float()
-        with torch.autocast(device_type=value.device.type, enabled=False):
-            output = F.multi_head_attention_forward(
-                q,
-                k,
-                value,
-                ma.embed_dim,
-                ma.num_heads,
-                ma.in_proj_weight.float(),
-                ma.in_proj_bias.float(),
-                ma.bias_k,
-                ma.bias_v,
-                ma.add_zero_attn,
-                ma.dropout,
-                ma.out_proj.weight.float(),
-                ma.out_proj.bias.float(),
-                training=self.training,
-                key_padding_mask=key_padding_mask,
-                need_weights=False,
-                attn_mask=attn_mask,
-            )[0]
-        return output.transpose(0, 1).to(output_dtype)
-
     def forward_post(
         self,
         src: torch.Tensor,
@@ -171,7 +112,7 @@ class TransformerEncoderLayer(nn.Module):
             (torch.Tensor): Output tensor after attention and feedforward.
         """
         q = k = self.with_pos_embed(src, pos)
-        src2 = self._forward_attention(q, k, src, src_mask, src_key_padding_mask)
+        src2 = self.ma(q, k, value=src, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
         src = src + self.dropout1(src2)
         src = self.norm1(src)
         src2 = self.fc2(self.dropout(self.act(self.fc1(src))))
@@ -198,7 +139,7 @@ class TransformerEncoderLayer(nn.Module):
         """
         src2 = self.norm1(src)
         q = k = self.with_pos_embed(src2, pos)
-        src2 = self._forward_attention(q, k, src2, src_mask, src_key_padding_mask)
+        src2 = self.ma(q, k, value=src2, attn_mask=src_mask, key_padding_mask=src_key_padding_mask)[0]
         src = src + self.dropout1(src2)
         src2 = self.norm2(src)
         src2 = self.fc2(self.dropout(self.act(self.fc1(src2))))

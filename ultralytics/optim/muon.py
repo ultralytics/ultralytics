@@ -97,19 +97,24 @@ def muon_update(
     buckets = {}  # group matrices by (columns, scale) for batched orthogonalization
     for i, u in enumerate(updates):
         # flatten in the update's own memory order, a view for NCHW and NHWC alike: permuting columns permutes
-        # the orthogonalized columns identically, and the write-back below restores the update's layout
-        nhwc = u.ndim == 4 and not u.is_contiguous()
-        m = u.permute(0, 2, 3, 1).flatten(1) if nhwc else (u.flatten(1) if u.ndim > 2 else u)
+        # the orthogonalized columns identically, and the write-back below restores the update's layout. Any
+        # other layout is materialized row-major and written back row-major.
+        dense = u.is_contiguous()
+        nhwc = not dense and u.ndim == 4 and u.is_contiguous(memory_format=torch.channels_last)
+        m = u.permute(0, 2, 3, 1).flatten(1) if nhwc else (u.flatten(1) if u.ndim > 2 else u.contiguous())
         scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
-        buckets.setdefault((m.size(1), scale, m.device, m.dtype), []).append((i, m, u.stride()))
+        buckets.setdefault((m.size(1), scale, m.device, m.dtype), []).append(
+            (i, m, u.stride() if dense or nhwc else None)
+        )
     for (cols, scale, device, dtype), items in buckets.items():
         # zero-pad rows, not columns, so that different shapes share one batched call (zeros stay zero through
         # Newton-Schulz) while the fill below and every write-back below stay contiguous
         X = torch.zeros(len(items), max(m.size(0) for _, m, _ in items), cols, device=device, dtype=dtype)
-        torch._foreach_copy_([X[j, : m.size(0)] for j, (_, m, _) in enumerate(items)], [m for _, m, _ in items])
+        torch._foreach_add_([X[j, : m.size(0)] for j, (_, m, _) in enumerate(items)], [m for _, m, _ in items])
         X = zeropower_via_newtonschulz5(X).contiguous().to(grads[items[0][0]].dtype).mul_(scale)
         for j, (i, m, stride) in enumerate(items):
-            updates[i] = X[j, : m.size(0)].as_strided(grads[i].shape, stride)
+            x = X[j, : m.size(0)]
+            updates[i] = x.as_strided(grads[i].shape, stride) if stride else x.reshape(grads[i].shape)
     return updates[0] if single else updates
 
 

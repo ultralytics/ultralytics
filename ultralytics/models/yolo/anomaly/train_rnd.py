@@ -154,7 +154,25 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                 # Fitness keeps its historical definition -- mAP50 measured at conf>=0.25 -- so
                 # best.pt selection stays comparable with every earlier yoloa run. The bare
                 # ``mAP50`` key is now the threshold-free value and is reported, not selected on.
-                fitness = float(avg.get("mAP50@0.25", avg["mAP50"]))
+                #
+                # ``fitness_branch`` picks WHICH branch that number comes from. It defaults to
+                # o2m, which is what every run on record used -- but o2m is the NMS path, and a
+                # NMS-free deployment ships o2o. The two do not peak together: on 26s the recipe's
+                # o2o OOD tops out at ep5 and then decays 0.2127 -> 0.1925 while o2m stays flat
+                # through ep10, so an o2m-selected best.pt is past o2o's optimum. Set
+                # ``fitness_branch=o2o`` (needs ood_end2end=True for the e2e_* keys to exist) when
+                # the run is meant to produce a NMS-free checkpoint.
+                branch = getattr(self.args, "fitness_branch", "o2m") or "o2m"
+                if branch not in {"o2m", "o2o"}:
+                    LOGGER.warning(f"fitness_branch={branch!r} invalid; falling back to 'o2m'")
+                    branch = "o2m"
+                pre = "e2e_" if branch == "o2o" else ""
+                if pre and f"{pre}mAP50@0.25" not in avg:
+                    LOGGER.warning(
+                        "fitness_branch='o2o' needs ood_end2end=True (no e2e_* metrics found); using o2m"
+                    )
+                    pre = ""
+                fitness = float(avg.get(f"{pre}mAP50@0.25", avg[f"{pre}mAP50"]))
                 metrics["fitness"] = fitness
                 metrics.update(avg_metrics)
                 self.best_fitness = max(self.best_fitness or -math.inf, fitness)
@@ -163,7 +181,8 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     f"(@.25={fitness:.4f}) mAP10={avg['mAP10']:.4f} "
                     f"| [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
                     f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
-                    f"(fitness=heatmap mAP50@0.25; bare keys are threshold-free; n={len(rows)} categories)"
+                    f"(fitness={'o2o' if pre else 'o2m'} heatmap mAP50@0.25; "
+                    f"bare keys are threshold-free; n={len(rows)} categories)"
                 )
         finally:
             del ema_eval

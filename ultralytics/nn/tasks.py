@@ -1087,15 +1087,15 @@ class RTDETRDetectionModel(DetectionModel):
 
 
 class YOLODETRDetectionModel(RTDETRDetectionModel):
-    """YOLO-DETR detection model with DfineLoss dispatch for DeimDecoder heads.
+    """YOLO-DETR detection model with DEIMLoss dispatch for DeimDecoder heads.
 
     Inherits from RTDETRDetectionModel and overrides ``init_criterion`` and ``loss`` to route the DEIM head through
-    ``DfineLoss`` with the full FGL + DDF terms. The parent ``RTDETRDecoder`` head still falls through to
+    ``DEIMLoss`` with the full FGL + DDF terms. The parent ``RTDETRDecoder`` head still falls through to
     ``RTDETRDetectionLoss`` via super.
     """
 
-    # Hardcoded DfineLoss constants.
-    _DFINE_LOSS_CONSTANTS = {
+    # Hardcoded DEIMLoss constants.
+    _DEIM_LOSS_CONSTANTS = {
         "reg_max": 32,
         "gamma": 1.5,
         "alpha": 0.75,
@@ -1108,18 +1108,18 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
     }
 
     def init_criterion(self):
-        """Initialize the loss criterion, dispatching to DfineLoss for DeimDecoder heads."""
-        if type(self.model[-1]).__name__ == "DeimDecoder":
-            from ultralytics.models.utils.loss_dfine import DfineLoss
+        """Initialize the loss criterion, dispatching to DEIMLoss for DeimDecoder heads."""
+        if isinstance(self.model[-1], DeimDecoder):
+            from ultralytics.models.utils.loss import DEIMLoss
 
-            return DfineLoss(nc=self.nc, **self._DFINE_LOSS_CONSTANTS)
+            return DEIMLoss(nc=self.nc, **self._DEIM_LOSS_CONSTANTS)
         return super().init_criterion()
 
     @staticmethod
-    def _split_dfine_meta(dfine_meta, dn_meta):
-        """Split dfine_meta tensors along the query dim into dn and o2o portions for DfineLoss."""
+    def _split_deim_meta(deim_meta, dn_meta):
+        """Split deim_meta tensors along the query dim into dn and o2o portions for DEIMLoss."""
         if dn_meta is None:
-            return dfine_meta
+            return deim_meta
         dn_num = dn_meta["dn_num_split"][0]
 
         def split_layered(t):
@@ -1128,14 +1128,14 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
         def split_flat(t):
             return (t[:, :dn_num], t[:, dn_num:]) if t is not None else (None, None)
 
-        dn_corners, o2o_corners = split_layered(dfine_meta.get("pred_corners"))
-        dn_refs, o2o_refs = split_layered(dfine_meta.get("ref_points"))
-        dn_pre_bboxes, o2o_pre_bboxes = split_flat(dfine_meta.get("pre_bboxes"))
-        dn_pre_logits, o2o_pre_logits = split_flat(dfine_meta.get("pre_logits"))
+        dn_corners, o2o_corners = split_layered(deim_meta.get("pred_corners"))
+        dn_refs, o2o_refs = split_layered(deim_meta.get("ref_points"))
+        dn_pre_bboxes, o2o_pre_bboxes = split_flat(deim_meta.get("pre_bboxes"))
+        dn_pre_logits, o2o_pre_logits = split_flat(deim_meta.get("pre_logits"))
 
         out = {
-            "up": dfine_meta.get("up"),
-            "reg_scale": dfine_meta.get("reg_scale"),
+            "up": deim_meta.get("up"),
+            "reg_scale": deim_meta.get("reg_scale"),
             "pred_corners": o2o_corners,
             "ref_points": o2o_refs,
             "pre_bboxes": o2o_pre_bboxes,
@@ -1149,7 +1149,7 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
         return out
 
     def loss(self, batch, preds=None):
-        """Compute loss with DfineLoss dispatch and dynamic loss-name return tuple for FGL/DDF logging.
+        """Compute loss with DEIMLoss dispatch and dynamic loss-name return tuple for FGL/DDF logging.
 
         Args:
             batch (dict): Dictionary containing image and label data.
@@ -1157,7 +1157,7 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
 
         Returns:
             (torch.Tensor): Total loss value.
-            (dict): Name-keyed loss components (giou/cls/l1, plus fgl/ddf when DfineLoss is active).
+            (dict): Name-keyed loss components (giou/cls/l1, plus fgl/ddf when DEIMLoss is active).
         """
         if not hasattr(self, "criterion"):
             self.criterion = self.init_criterion()
@@ -1176,9 +1176,9 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
         if preds is None:
             preds = self.predict(img, batch=targets)
         pred_tuple = preds if self.training else preds[1]
-        dfine_meta = None
+        deim_meta = None
         if len(pred_tuple) == 6:
-            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta = pred_tuple
+            dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, deim_meta = pred_tuple
         else:
             dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta = pred_tuple
 
@@ -1188,25 +1188,27 @@ class YOLODETRDetectionModel(RTDETRDetectionModel):
             dn_bboxes, dec_bboxes = torch.split(dec_bboxes, dn_meta["dn_num_split"], dim=2)
             dn_scores, dec_scores = torch.split(dec_scores, dn_meta["dn_num_split"], dim=2)
 
-        supports_dfine = getattr(self.criterion, "supports_dfine", False)
-        if supports_dfine and dfine_meta is not None:
-            dfine_meta = self._split_dfine_meta(dfine_meta, dn_meta)
+        from ultralytics.models.utils.loss import DEIMLoss
+
+        is_deim = isinstance(self.criterion, DEIMLoss)
+        if is_deim and deim_meta is not None:
+            deim_meta = self._split_deim_meta(deim_meta, dn_meta)
 
         dec_bboxes = torch.cat([enc_bboxes.unsqueeze(0), dec_bboxes])
         dec_scores = torch.cat([enc_scores.unsqueeze(0), dec_scores])
 
         loss_kwargs = {"dn_bboxes": dn_bboxes, "dn_scores": dn_scores, "dn_meta": dn_meta}
-        if supports_dfine:
-            loss_kwargs["dfine_meta"] = dfine_meta
+        if is_deim:
+            loss_kwargs["deim_meta"] = deim_meta
         loss = self.criterion((dec_bboxes, dec_scores), targets, **loss_kwargs)
 
-        # NOTE: backward with all losses but only log the main three (+ FGL/DDF when DfineLoss is active).
+        # NOTE: backward with all losses but only log the main three (+ FGL/DDF when DEIMLoss is active).
         loss_items = {
             "giou_loss": loss["loss_giou"].detach(),
             "cls_loss": loss["loss_class"].detach(),
             "l1_loss": loss["loss_bbox"].detach(),
         }
-        if supports_dfine and dfine_meta is not None:
+        if is_deim and deim_meta is not None:
             loss_items["fgl_loss"] = loss["loss_fgl"].detach()
             loss_items["ddf_loss"] = loss["loss_ddf"].detach()
         return sum(loss.values()), loss_items

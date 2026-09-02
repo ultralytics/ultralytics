@@ -2115,7 +2115,7 @@ class DeimDecoder(RTDETRDecoder):
             memory_mask=None,
             dn_meta=dn_meta,
         )
-        dfine_meta = {
+        deim_meta = {
             "pred_corners": dec_pred_corners,
             "ref_points": dec_refs,
             "pre_bboxes": pre_bboxes,
@@ -2123,7 +2123,7 @@ class DeimDecoder(RTDETRDecoder):
             "up": self.up,
             "reg_scale": self.reg_scale,
         }
-        x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, dfine_meta
+        x = dec_bboxes, dec_scores, enc_bboxes, enc_scores, dn_meta, deim_meta
         if self.training:
             return x
         y = self.postprocess(dec_bboxes.squeeze(0), dec_scores.squeeze(0).sigmoid())

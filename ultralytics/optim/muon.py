@@ -106,10 +106,18 @@ def muon_update(
         buckets.setdefault((m.size(1), scale, m.device, m.dtype), []).append(
             (i, m, u.stride() if dense or nhwc else None)
         )
-    for (cols, scale, device, dtype), items in buckets.items():
+    groups = []  # split each bucket until its row counts span at most 16x, bounding the padding below
+    for key, items in buckets.items():
+        items.sort(key=lambda t: -t[1].size(0))
+        start = 0
+        for j in range(1, len(items) + 1):
+            if j == len(items) or items[start][1].size(0) > 16 * items[j][1].size(0):
+                groups.append((key, items[start:j]))
+                start = j
+    for (cols, scale, device, dtype), items in groups:
         # zero-pad rows, not columns, so that different shapes share one batched call (zeros stay zero through
         # Newton-Schulz) while the fill below and every write-back below stay contiguous
-        X = torch.zeros(len(items), max(m.size(0) for _, m, _ in items), cols, device=device, dtype=dtype)
+        X = torch.zeros(len(items), items[0][1].size(0), cols, device=device, dtype=dtype)
         torch._foreach_add_([X[j, : m.size(0)] for j, (_, m, _) in enumerate(items)], [m for _, m, _ in items])
         X = zeropower_via_newtonschulz5(X).contiguous().to(grads[items[0][0]].dtype).mul_(scale)
         for j, (i, m, stride) in enumerate(items):

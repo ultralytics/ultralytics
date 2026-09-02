@@ -98,8 +98,14 @@ class YOLO(Model):
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
             if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
                 head = BaseBackend.read_metadata(self.model).get("head", "")
-            if head == "DEIMDecoder":  # DEIM head confirmed post-load (covers .pt weights and renamed exports)
-                self._deim = True
+            if head:  # the loaded head is authoritative and overrides the name-based guess made before load
+                self._deim = head == "DeimDecoder"
+            if "RTDETR" in head:  # RT-DETR head
+                from ultralytics import RTDETR
+
+                new_instance = RTDETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
 
     def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
         """Run prediction, defaulting conf to 0.5 for DEIM-routed models since the decoder applies no NMS.

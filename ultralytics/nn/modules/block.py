@@ -2008,9 +2008,12 @@ class Proto26(Proto):
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
-            # Integer stride ratio (P4/P5 -> P3, or P5 -> P3 on two-level heads) evaluates to a constant at trace
-            # time, keeping the upsample static for dynamic-shape CoreML export
-            up_feat = F.interpolate(up_feat, scale_factor=feat.shape[-2] // up_feat.shape[-2], mode="nearest")
+            # Integer stride ratio (P4/P5 -> P3, or P5 -> P3 on two-level heads), read through int() because
+            # torch.jit.trace makes `.shape` yield tensors: a tensor ratio becomes a list of tensors inside
+            # F.interpolate and aborts ONNX export. Python ints keep the upsample a constant in the traced
+            # graph, which is also what dynamic-shape CoreML export needs.
+            ratio = int(feat.shape[-2]) // int(up_feat.shape[-2])
+            up_feat = F.interpolate(up_feat, scale_factor=ratio, mode="nearest")
             feat = feat + up_feat
         p = super().forward(self.feat_fuse(feat))
         if self.training and return_semantic:

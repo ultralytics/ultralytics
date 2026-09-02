@@ -286,7 +286,7 @@ class DEIMDataset(RTDETRDataset):
             ):
                 setattr(hyp, key, 0.0)
             hyp.augmentations = []
-        else:
+        elif hyp.decay_aug:
             hyp.mosaic = compute_deim_scheduled_prob(self.base_hyp.mosaic, epoch, stop)
             hyp.mixup = compute_deim_scheduled_prob(self.base_hyp.mixup, epoch, stop)
             hyp.copy_paste = compute_deim_scheduled_prob(self.base_hyp.copy_paste, epoch, stop)

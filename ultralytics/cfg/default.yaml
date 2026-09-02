@@ -94,6 +94,7 @@ nms: False # (bool) fuse NMS into exported model when backend supports; if True,
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)
+decay_aug: True
 backbone_lr_ratio: 1.0 # (float) backbone learning-rate ratio: backbone params train at lr0*backbone_lr_ratio; 1.0 = same LR for all layers
 cls_lr_mult: 3.0 # (float) cls-head (cv3/one2one_cv3) and semantic auxiliary head learning-rate multiplier for MuSGD; 1.0 disables the boost
 lrf: 0.01 # (float) final LR fraction; final LR = lr0 * lrf

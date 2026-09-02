@@ -76,8 +76,8 @@ class ONNXBackend(BaseBackend):
             rocm = cuda and rocm_is_available()  # MIGraphX wheel is for GPU runs; CPU on ROCm uses stock onnxruntime
             ort = "onnxruntime-migraphx" if rocm else "onnxruntime-gpu" if cuda else "onnxruntime"
             check_requirements("onnx")
-            check_requirements(  # interchangeable candidates so an installed variant is never reinstalled over
-                [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")],
+            check_requirements(  # ROCm needs the MIGraphX build; elsewhere an installed variant is never replaced
+                ort if rocm else [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")],
                 cmds=ROCM_EXTRA_INDEX if rocm else "",
             )
             import onnxruntime

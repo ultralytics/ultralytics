@@ -269,7 +269,7 @@ No code changes are needed. On ROCm systems, the ONNX backend detects HIP and se
 
 !!! note
 
-    If `onnx` and/or `onnxruntime-migraphx` are missing, Ultralytics installs them automatically the first time you run ONNX export or ONNX inference.
+    If `onnx` and/or `onnxruntime-migraphx` are missing, Ultralytics installs them automatically the first time you run ONNX export or ONNX inference on a ROCm system.
 
 !!! example "AMD GPU Inference"
 

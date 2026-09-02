@@ -626,8 +626,6 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
 
     # Set paths
     data["path"] = path  # download scripts
-    if data.get("masks_dir") is None and (path / "masks").is_dir():
-        data["masks_dir"] = "masks"  # PNG semantic masks in the default folder select SemanticDataset
     for k in "train", "val", "test", "minival":
         if data.get(k):  # prepend path
             if isinstance(data[k], str):
@@ -663,6 +661,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}\n")
+    if data.get("masks_dir") is None and (path / "masks").is_dir():  # after download so scripts can create it
+        data["masks_dir"] = "masks"  # PNG semantic masks in the default folder select SemanticDataset
     check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
 
     return data  # dictionary

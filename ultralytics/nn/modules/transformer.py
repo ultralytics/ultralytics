@@ -787,13 +787,7 @@ class DeformableTransformerDecoder(nn.Module):
         https://github.com/PaddlePaddle/PaddleDetection/blob/develop/ppdet/modeling/transformers/deformable_transformer.py
     """
 
-    def __init__(
-        self,
-        hidden_dim: int,
-        decoder_layer: nn.Module,
-        num_layers: int,
-        eval_idx: int = -1,
-    ):
+    def __init__(self, hidden_dim: int, decoder_layer: nn.Module, num_layers: int, eval_idx: int = -1):
         """Initialize the DeformableTransformerDecoder with the given parameters.
 
         Args:

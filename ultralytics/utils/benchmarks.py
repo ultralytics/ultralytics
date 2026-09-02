@@ -205,10 +205,7 @@ def benchmark(
                     verbose=False,
                     **kwargs,
                 )
-                if isinstance(model, RTDETR) or (isinstance(model, YOLO) and model._deim):
-                    exported_model = type(model)(filename)
-                else:
-                    exported_model = YOLO(filename, task=model.task)
+                exported_model = RTDETR(filename) if isinstance(model, RTDETR) else YOLO(filename, task=model.task)
                 assert suffix in str(filename), "export failed"
             emoji = "❎"  # indicates export succeeded
 

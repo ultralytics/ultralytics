@@ -63,10 +63,7 @@ from .block import (
     TorchVision,
     Scale,
 )
-from .vit_blocks import (
-    MHSABlock,
-    RepUltraViTBlock,
-)
+from .vit_blocks import MHSABlock, RepUltraViTBlock
 from .conv import (
     CBAM,
     ChannelAttention,

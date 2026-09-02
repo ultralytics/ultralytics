@@ -1332,11 +1332,8 @@ class Attention(nn.Module):
             x = F.scaled_dot_product_attention(q.transpose(-2, -1), k.transpose(-2, -1), v.transpose(-2, -1))
             x = x.transpose(-2, -1).reshape(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         else:
-            # Attention scores in fp32: under autocast the bf16/fp16 matmul + softmax is numerically unstable
-            with autocast(enabled=False, device=x.device.type):
-                attn = (q.float().transpose(-2, -1) @ k.float()) * self.scale
-                attn = attn.softmax(dim=-1)
-            x = (v @ attn.transpose(-2, -1).to(v.dtype)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
+            attn = ((q * self.scale).transpose(-2, -1) @ k).softmax(dim=-1)
+            x = (v @ attn.transpose(-2, -1)).view(B, C, H, W) + self.pe(v.reshape(B, C, H, W))
         x = self.proj(x)
         return x
 

@@ -100,12 +100,6 @@ class YOLO(Model):
                 head = BaseBackend.read_metadata(self.model).get("head", "")
             if head == "DEIMDecoder":  # DEIM head confirmed post-load (covers .pt weights and renamed exports)
                 self._deim = True
-            elif "RTDETR" in head:  # RT-DETR head
-                from ultralytics import RTDETR
-
-                new_instance = RTDETR(self)
-                self.__class__ = type(new_instance)
-                self.__dict__ = new_instance.__dict__
 
     def predict(self, source=None, stream: bool = False, predictor=None, **kwargs):
         """Run prediction, defaulting conf to 0.5 for DEIM-routed models since the decoder applies no NMS.

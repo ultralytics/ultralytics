@@ -110,7 +110,7 @@ Compared to other state-of-the-art detectors:
 
     === "Detection (COCO)"
 
-        Here is a detailed comparison of YOLOv10 variants with other state-of-the-art models:
+        Figures below are as reported in the YOLOv10 [paper](https://arxiv.org/pdf/2405.14458), measured under its own protocol, so they are not directly comparable with the values on Ultralytics model pages:
 
         | Model             | Params<br><sup>(M)</sup> | FLOPs<br><sup>(G)</sup> | mAP<sup>val<br>50-95</sup> | Latency<br><sup>(ms)</sup> | Latency-forward<br><sup>(ms)</sup> |
         | ----------------- | ------------------------ | ----------------------- | -------------------------- | -------------------------- | ---------------------------------- |

@@ -126,11 +126,11 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### Composite Blocks
 
-| Module   | Purpose                            | Source                                                                                           | Arguments                               |
-| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
-| `C2f`    | CSP bottleneck with 2 convolutions | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]` |
-| `SPPF`   | Spatial Pyramid Pooling (fast)     | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`                 |
-| `Concat` | Channel-wise concatenation         | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                           |
+| Module   | Purpose                            | Source                                                                                           | Arguments                                 |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------- |
+| `C2f`    | CSP bottleneck with 2 convolutions | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]`   |
+| `SPPF`   | Spatial Pyramid Pooling (fast)     | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size, n, shortcut, act]` |
+| `Concat` | Channel-wise concatenation         | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                             |
 
 ### Specialized Modules
 

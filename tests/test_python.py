@@ -287,12 +287,12 @@ def test_model_methods():
 def test_sppf_activation_matches_model_family():
     """Test SPPF activates cv1 for pre-YOLO26 configs and leaves it unactivated for YOLO26 ones.
 
-    YOLO26 rebuilt SPPF with an unactivated cv1. Models are rebuilt from the YAML they embed, so an activation that
-    does not follow that row silently diverges from the released weights: no shape changes, so the state_dict copies
-    across with no missing or unexpected keys and nothing warns.
+    YOLO26 rebuilt SPPF with an unactivated cv1. Models are rebuilt from the YAML they embed, so an activation that does
+    not follow that row silently diverges from the released weights: no shape changes, so the state_dict copies across
+    with no missing or unexpected keys and nothing warns.
 
-    Asserted against each model's own first Conv rather than nn.SiLU, because a config declaring `activation:`
-    (YOLOv6) rebinds the shared Conv.default_act for the rest of the process.
+    Asserted against each model's own first Conv rather than nn.SiLU, because a config declaring `activation:` (YOLOv6)
+    rebinds the shared Conv.default_act for the rest of the process.
     """
     from torch import nn
 

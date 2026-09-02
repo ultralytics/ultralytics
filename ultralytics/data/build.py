@@ -67,20 +67,27 @@ class InfiniteDataLoader(dataloader.DataLoader):
         >>>     train_step(batch)
     """
 
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, *args: Any, infinite: bool = True, **kwargs: Any):
         """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
         if not TORCH_2_0:
             kwargs.pop("prefetch_factor", None)  # not supported by earlier versions
         super().__init__(*args, **kwargs)
-        object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
-        self.iterator = super().__iter__()
+        self.infinite = infinite
+        if infinite:
+            object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
+            self.iterator = super().__iter__()
+        else:
+            self.iterator = None
 
     def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
-        return len(self.batch_sampler.sampler)
+        return len(self.batch_sampler.sampler) if self.infinite else super().__len__()
 
     def __iter__(self) -> Iterator:
         """Yield one epoch of batches from the persistent iterator."""
+        if not self.infinite:
+            yield from super().__iter__()
+            return
         if self.iterator is None:
             self.iterator = self._get_iterator()
         for _ in range(len(self)):
@@ -99,6 +106,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def close(self):
         """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
         iterator = getattr(self, "iterator", None)
+        if iterator is None:
+            iterator = getattr(self, "_iterator", None)
         if iterator is not None and hasattr(iterator, "_workers"):
             iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
         self.iterator = None
@@ -330,6 +339,7 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
+    infinite: bool = True,
 ) -> InfiniteDataLoader:
     """Create and return an InfiniteDataLoader for training or validation.
 
@@ -342,6 +352,7 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
+        infinite (bool, optional): Whether to reuse an infinite worker iterator across epochs.
 
     Returns:
         (InfiniteDataLoader): A dataloader that can be used for training or validation.
@@ -387,6 +398,8 @@ def build_dataloader(
         worker_init_fn=seed_worker,
         generator=generator,
         drop_last=drop_last,
+        persistent_workers=nw > 0,
+        infinite=infinite,
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
 

@@ -74,6 +74,18 @@ def test_dataloader_close_releases_workers_and_restarts():
         loader.close()
 
 
+def test_finite_dataloader_exhausts_persistent_workers():
+    """Test finite validation loaders reuse workers without repeating batches."""
+    loader = build_dataloader(range(16), batch=4, workers=2, shuffle=False, device="cpu", infinite=False)
+    try:
+        assert len(list(loader)) == 4
+        assert len(list(loader)) == 4
+        assert loader.iterator is None
+        assert loader._iterator is not None
+    finally:
+        loader.close()
+
+
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
     sampler_cls = data_build.distributed.DistributedSampler

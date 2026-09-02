@@ -17,9 +17,10 @@ import torch.nn.functional as F
 
 from ultralytics.nn.modules.utils import bbox2distance
 from ultralytics.utils.loss import FocalLoss, MALoss, VarifocalLoss
+from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.ops import xywh2xyxy
 
-from .ops import HungarianMatcher, aligned_box_iou, aligned_giou
+from .ops import HungarianMatcher
 
 # HungarianMatcher kwargs supported by the clean-branch matcher. Other keys in the YAML matcher dict
 # (change_matcher, iou_order_alpha, matcher_change_epoch) are silently dropped in the first-draft port.
@@ -119,18 +120,6 @@ class DfineLoss(nn.Module):
         self.fgl_targets_dn = None
         self.num_pos = None
         self.num_neg = None
-
-    def _aligned_giou_loss(self, pred_bboxes: torch.Tensor, gt_bboxes: torch.Tensor) -> torch.Tensor:
-        """Compute the aligned GIoU loss vector for matched xywh boxes.
-
-        Args:
-            pred_bboxes (torch.Tensor): Predicted boxes in xywh format with shape (M, 4).
-            gt_bboxes (torch.Tensor): Ground truth boxes in xywh format with shape (M, 4).
-
-        Returns:
-            (torch.Tensor): Per-pair GIoU loss with shape (M,).
-        """
-        return 1.0 - aligned_giou(pred_bboxes, gt_bboxes, xywh=True)
 
     def _match(
         self,
@@ -321,7 +310,7 @@ class DfineLoss(nn.Module):
             return {name_bbox: zero, name_giou: zero}
 
         loss_bbox = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / norm_boxes
-        loss_giou = self._aligned_giou_loss(pred_bboxes, gt_bboxes)
+        loss_giou = 1.0 - bbox_iou(pred_bboxes, gt_bboxes, xywh=True, GIoU=True).squeeze(-1)
         loss_giou = self.loss_gain["giou"] * (loss_giou.sum() / norm_boxes)
         return {name_bbox: loss_bbox.squeeze(), name_giou: loss_giou.squeeze()}
 
@@ -366,9 +355,9 @@ class DfineLoss(nn.Module):
         if cls_gt_idx.numel():
             pred_assigned_cls = pred_bboxes[(cls_batch_idx, cls_src_idx)]
             gt_assigned_cls = gt_bboxes[cls_gt_idx]
-            gt_scores[(cls_batch_idx, cls_src_idx)] = aligned_box_iou(
+            gt_scores[(cls_batch_idx, cls_src_idx)] = bbox_iou(
                 pred_assigned_cls.detach(), gt_assigned_cls, xywh=True
-            )
+            ).squeeze(-1)
 
         (box_batch_idx, box_src_idx), box_gt_idx = self._get_index(box_indices, pred_scores.device)
         pred_assigned_box = pred_bboxes[(box_batch_idx, box_src_idx)]
@@ -583,7 +572,7 @@ class DfineLoss(nn.Module):
         target_corners, weight_right, weight_left = target_cache
         pred_corners_sel = pred_corners[idx].reshape(-1, self.reg_max + 1)
 
-        ious = aligned_box_iou(pred_bboxes[idx], target_boxes, xywh=True)
+        ious = bbox_iou(pred_bboxes[idx], target_boxes, xywh=True).squeeze(-1)
         weight_targets = ious.unsqueeze(-1).repeat(1, 4).reshape(-1).detach()
         loss_fgl = self._unimodal_distribution_focal_loss(
             pred_corners_sel,

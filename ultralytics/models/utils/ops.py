@@ -1,13 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""Hungarian matching, contrastive denoising, and box IoU for DETR-family detection models.
-
-The IoU helpers here are deliberately separate from ultralytics.utils.metrics.bbox_iou. That one adds eps to the union
-so it never divides by zero; these clamp the union instead. DETR losses operate on normalized boxes whose areas reach
-1e-5, where a 1e-7 offset shifts a small object's IoU by up to 0.8%, while clamping leaves every non-degenerate box
-exact. Keep them distinct.
-"""
-
 from __future__ import annotations
 
 from typing import Any
@@ -15,157 +7,9 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torchvision.ops.boxes import box_area
 
+from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.ops import linear_sum_assignment, xywh2xyxy, xyxy2xywh
-
-
-def pairwise_box_iou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-    """Compute pairwise IoU between every pair of boxes.
-
-    Args:
-        boxes1 (torch.Tensor): Boxes with shape (N, 4) in (x1, y1, x2, y2) format.
-        boxes2 (torch.Tensor): Boxes with shape (M, 4) in (x1, y1, x2, y2) format.
-
-    Returns:
-        iou (torch.Tensor): Pairwise IoU with shape (N, M).
-        union (torch.Tensor): Pairwise union area with shape (N, M), reused by the GIoU enclosing term.
-
-    Notes:
-        DETR-specific. Do not swap in metrics.bbox_iou: it adds eps to the union, which biases IoU for the small
-        normalized boxes this path sees. See the module docstring.
-    """
-    area1 = box_area(boxes1)
-    area2 = box_area(boxes2)
-
-    lt = torch.max(boxes1[:, None, :2], boxes2[:, :2])
-    rb = torch.min(boxes1[:, None, 2:], boxes2[:, 2:])
-
-    wh = (rb - lt).clamp(min=0)
-    inter = wh[..., 0] * wh[..., 1]
-    union = area1[:, None] + area2 - inter
-    return inter / union, union
-
-
-def pairwise_giou(boxes1: torch.Tensor, boxes2: torch.Tensor) -> torch.Tensor:
-    """Compute pairwise Generalized IoU between every pair of boxes.
-
-    Args:
-        boxes1 (torch.Tensor): Boxes with shape (N, 4) in (x1, y1, x2, y2) format.
-        boxes2 (torch.Tensor): Boxes with shape (M, 4) in (x1, y1, x2, y2) format.
-
-    Returns:
-        (torch.Tensor): Pairwise GIoU with shape (N, M), in the range [-1, 1].
-
-    Notes:
-        DETR-specific. Do not swap in metrics.bbox_iou: it adds eps to the union, which biases IoU for the small
-        normalized boxes this path sees. See the module docstring.
-    """
-    iou, union = pairwise_box_iou(boxes1, boxes2)
-
-    lt = torch.min(boxes1[:, None, :2], boxes2[:, :2])
-    rb = torch.max(boxes1[:, None, 2:], boxes2[:, 2:])
-
-    wh = (rb - lt).clamp(min=0)
-    area = wh[..., 0] * wh[..., 1]
-    return iou - (area - union) / area
-
-
-def _upcast_boxes(boxes: torch.Tensor) -> torch.Tensor:
-    """Promote half-precision boxes to float32 so area products cannot overflow.
-
-    Args:
-        boxes (torch.Tensor): Boxes with shape (N, 4).
-
-    Returns:
-        (torch.Tensor): The input unchanged when already float32/float64, otherwise a float32 copy.
-    """
-    return boxes.float() if boxes.is_floating_point() and boxes.dtype not in (torch.float32, torch.float64) else boxes
-
-
-def _aligned_inter_union(
-    boxes1: torch.Tensor, boxes2: torch.Tensor, xywh: bool = False
-) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Compute element-wise intersection and union for matched box pairs.
-
-    Args:
-        boxes1 (torch.Tensor): Boxes with shape (N, 4).
-        boxes2 (torch.Tensor): Boxes with shape (N, 4).
-        xywh (bool, optional): Whether the inputs are in (cx, cy, w, h) format instead of (x1, y1, x2, y2).
-
-    Returns:
-        inter (torch.Tensor): Intersection area with shape (N,).
-        union (torch.Tensor): Union area with shape (N,).
-        boxes1 (torch.Tensor): First input upcast and converted to xyxy, for follow-up geometry.
-        boxes2 (torch.Tensor): Second input upcast and converted to xyxy, for follow-up geometry.
-    """
-    boxes1 = _upcast_boxes(boxes1)
-    boxes2 = _upcast_boxes(boxes2)
-    if xywh:
-        boxes1 = xywh2xyxy(boxes1, clamp_neg=True)
-        boxes2 = xywh2xyxy(boxes2, clamp_neg=True)
-
-    inter_lt = torch.max(boxes1[:, :2], boxes2[:, :2])
-    inter_rb = torch.min(boxes1[:, 2:], boxes2[:, 2:])
-    inter_wh = (inter_rb - inter_lt).clamp(min=0)
-    inter = inter_wh[:, 0] * inter_wh[:, 1]
-    union = box_area(boxes1) + box_area(boxes2) - inter
-    return inter, union, boxes1, boxes2
-
-
-def aligned_box_iou(
-    boxes1: torch.Tensor, boxes2: torch.Tensor, eps: float = 1e-7, xywh: bool = False
-) -> torch.Tensor:
-    """Compute element-wise IoU for matched box pairs.
-
-    Args:
-        boxes1 (torch.Tensor): Boxes with shape (N, 4).
-        boxes2 (torch.Tensor): Boxes with shape (N, 4), matched one-to-one with boxes1.
-        eps (float, optional): Lower bound clamped onto the union to avoid division by zero.
-        xywh (bool, optional): Whether the inputs are in (cx, cy, w, h) format instead of (x1, y1, x2, y2).
-
-    Returns:
-        (torch.Tensor): Element-wise IoU with shape (N,).
-
-    Notes:
-        DETR-specific. Do not swap in metrics.bbox_iou: it adds eps to the union, which biases IoU for the small
-        normalized boxes this path sees. See the module docstring.
-    """
-    inter, union, _, _ = _aligned_inter_union(boxes1, boxes2, xywh=xywh)
-    return inter / union.clamp(min=eps)
-
-
-def aligned_giou(boxes1: torch.Tensor, boxes2: torch.Tensor, xywh: bool = False) -> torch.Tensor:
-    """Compute element-wise Generalized IoU for matched box pairs.
-
-    Args:
-        boxes1 (torch.Tensor): Boxes with shape (N, 4).
-        boxes2 (torch.Tensor): Boxes with shape (N, 4), matched one-to-one with boxes1.
-        xywh (bool, optional): Whether the inputs are in (cx, cy, w, h) format instead of (x1, y1, x2, y2).
-
-    Returns:
-        (torch.Tensor): Element-wise GIoU with shape (N,), in the range [-1, 1].
-
-    Notes:
-        DETR-specific. Do not swap in metrics.bbox_iou: it adds eps to the union, which biases IoU for the small
-        normalized boxes this path sees. See the module docstring.
-    """
-    if xywh:
-        boxes1 = xywh2xyxy(boxes1, clamp_neg=True)
-        boxes2 = xywh2xyxy(boxes2, clamp_neg=True)
-
-    inter_lt = torch.max(boxes1[:, :2], boxes2[:, :2])
-    inter_rb = torch.min(boxes1[:, 2:], boxes2[:, 2:])
-    inter_wh = (inter_rb - inter_lt).clamp(min=0)
-    inter = inter_wh[:, 0] * inter_wh[:, 1]
-    union = box_area(boxes1) + box_area(boxes2) - inter
-    iou = inter / union
-
-    cover_lt = torch.min(boxes1[:, :2], boxes2[:, :2])
-    cover_rb = torch.max(boxes1[:, 2:], boxes2[:, 2:])
-    cover_wh = (cover_rb - cover_lt).clamp(min=0)
-    cover_area = cover_wh[:, 0] * cover_wh[:, 1]
-    return iou - (cover_area - union) / cover_area
 
 
 class HungarianMatcher(nn.Module):
@@ -281,15 +125,11 @@ class HungarianMatcher(nn.Module):
         else:
             cost_class = -pred_scores
 
-        # Compute L1 cost between boxes (keep in original cxcywh space)
+        # Compute L1 cost between boxes
         cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
 
-        # Convert boxes to xyxy for IoU/GIoU computation
-        pred_xyxy = xywh2xyxy(pred_bboxes, clamp_neg=True)
-        gt_xyxy = xywh2xyxy(gt_bboxes, clamp_neg=True)
-
         # Compute GIoU cost between boxes, (bs*num_queries, num_gt)
-        cost_giou = 1.0 - pairwise_giou(pred_xyxy, gt_xyxy)
+        cost_giou = 1.0 - bbox_iou(pred_bboxes.unsqueeze(1), gt_bboxes.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
 
         # Combine costs into final cost matrix
         C = (

@@ -46,6 +46,7 @@ After opening a PR:
 
 ```bash
 # Dev install (editable); tests also need export/solutions extras
+# Formats outside the base export env (openvino, coreml, tensorflow, ...) skip unless their extra is installed too
 uv pip install -e ".[dev,export-base,solutions]"
 
 # All tests with coverage, matching ci.yml's Tests job (CI also sets YOLO_AUTOINSTALL=false and drops -n auto on ARM)

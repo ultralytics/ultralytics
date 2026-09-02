@@ -29,6 +29,21 @@ OpenVINO export supports all seven Ultralytics tasks. Semantic segmentation and 
 
 {% include "macros/supported-tasks.md" %}
 
+## Installation
+
+To pre-install the required packages, run:
+
+!!! tip "Installation"
+
+    === "CLI"
+
+        ```bash
+        # Install the required packages for OpenVINO export
+        pip install "ultralytics[export-openvino]"
+        ```
+
+`openvino`, and `nncf` for INT8 quantization, are installed automatically on first export or inference, so a plain `pip install ultralytics` works as well. For detailed instructions and best practices, check our [installation guide](../quickstart.md) and the [Common Issues guide](../guides/yolo-common-issues.md).
+
 ## Usage Examples
 
 The OpenVINO format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy on Intel CPU, integrated/discrete GPU, or NPU.

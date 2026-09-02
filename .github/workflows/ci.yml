@@ -498,6 +498,10 @@ jobs:
         run: python tests/cache_test_assets.py --slow
       - name: Pytest tests
         run: pytest -n auto --dist=loadfile --slow tests/ --export-env base
+      # OpenVINO ships in the fat export extra installed above, so keep ARM64 coverage for its export tests here
+      # instead of rebuilding the isolated openvino env on this runner.
+      - name: Pytest OpenVINO export tests
+        run: pytest -n auto --dist=loadfile --slow tests/test_exports.py --export-env openvino
       - name: Activate Virtual Environment for Benchmarks
         run: |
           python3.11 -m venv env-benchmarks

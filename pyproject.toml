@@ -99,14 +99,18 @@ export-base = [
     # ONNX export validation and inference. Jetson jobs provide custom aarch64 onnxruntime-gpu wheels.
     "onnxruntime<1.20.0; python_version < '3.11' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "onnxruntime>=1.20.0; python_version >= '3.11'",
-    "nncf>=2.14.0,<4.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
+]
+export-openvino = [
     "openvino>=2024.0.0",  # OpenVINO export
+    "nncf>=2.14.0,<4.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
+]
+export-imx = [
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
 ]
 export-legacy-torch = [
     "numpy<2",
     "setuptools<81.0.0; python_version >= '3.9'",  # legacy torch's torch_version imports pkg_resources, removed in setuptools>=81
-    "nncf<3.0.0; python_version >= '3.9'",  # nncf>=3 reads torch.uint16, added in torch 2.3
+    "nncf<3.0.0; python_version >= '3.9'",  # nncf>=3 reads torch.uint16, added in torch 2.3 (applies alongside export-openvino)
 ]
 export-tensorflow = [
     "numpy<2.0.0; python_version < '3.13'", # TF 2.20 compatibility
@@ -141,6 +145,8 @@ export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai
 ]
 export = [
     "ultralytics[export-base]",
+    "ultralytics[export-openvino]",
+    "ultralytics[export-imx]",
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",

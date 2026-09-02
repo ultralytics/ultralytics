@@ -1213,6 +1213,16 @@ class E2ELoss:
         # at 1 the o2o obj branch sees a tenth of o2m's positive signal and its scores never
         # calibrate, which is the measured o2o obj collapse. Exposed to sweep that.
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=getattr(model.args, "o2o_topk2", 1) or 1)
+        if getattr(model.args, "obj_target", "soft") == "split":
+            # Per-branch objectness targets, because the two branches have opposite needs.
+            # o2m gets ~10 positives per GT, so a CIoU soft label is affordable and carries the
+            # ranking that AP rewards (soft beats hard by 0.03 mAP10_50 there). o2o gets exactly
+            # ONE, so a soft label trains its obj field from a single 0.6-0.9 sample — and on o2o
+            # obj is not merely the score but the *selector*, since the NMS-free path is a plain
+            # top-k with no IoU involved. Hard 1.0 gives that lone anchor full strength and is
+            # worth +0.14 mAP10_50 / +0.28 recall on o2o. 'split' takes both.
+            self.one2many.obj_target = "soft"
+            self.one2one.obj_target = "hard"
         self.updates = 0
         self.total = 1.0
         # init gain

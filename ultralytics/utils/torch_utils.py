@@ -87,7 +87,15 @@ def smart_inference_mode(mode=True):
     def decorate(fn):
         """Apply appropriate torch decorator for inference mode based on torch version."""
         if not mode:
-            return torch.inference_mode(False)(torch.no_grad()(fn)) if TORCH_1_9 else torch.no_grad()(fn)
+            if TORCH_1_9:
+
+                @functools.wraps(fn)
+                def disable(*args, **kwargs):
+                    with torch.inference_mode(False), torch.no_grad():
+                        return fn(*args, **kwargs)
+
+                return disable
+            return torch.no_grad()(fn)
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -96,14 +104,14 @@ def smart_inference_mode(mode=True):
     return decorate
 
 
-def autocast(enabled: bool, device: str = "cuda"):
+def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
     """Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
     This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
     older and newer versions of PyTorch. It handles the differences in the autocast API between PyTorch versions.
 
     Args:
-        enabled (bool): Whether to enable automatic mixed precision.
+        enabled (bool | torch.dtype): Whether to enable AMP, or the autocast dtype to enable.
         device (str, optional): Device type to use for autocast, e.g. "cuda" or "npu".
 
     Returns:
@@ -115,17 +123,30 @@ def autocast(enabled: bool, device: str = "cuda"):
         ...     pass
 
     Notes:
-        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
-        - For older versions, it uses the backend-specific AMP context.
+        Uses `torch.amp.autocast` on torch>=1.13 and the backend-specific AMP context on older releases.
     """
+    dtype = enabled if isinstance(enabled, torch.dtype) else None
+    enabled = bool(enabled)
+    if dtype is torch.bfloat16:
+        bf16_supported = device == "cuda" and TORCH_1_13
+        if bf16_supported:
+            bf16_supported = (
+                torch.cuda.is_bf16_supported(including_emulation=False)
+                if TORCH_2_4
+                else torch.cuda.is_bf16_supported()
+                and (bool(torch.version.hip) or torch.cuda.get_device_capability()[0] >= 8)
+            )
+        if not bf16_supported:
+            raise RuntimeError("bfloat16 autocast requires CUDA with native bfloat16 support and torch>=1.13")
+    kwargs = {"dtype": dtype} if dtype is not None else {}
     if device == "npu":
         import torch_npu
 
-        return torch_npu.npu.amp.autocast(enabled=enabled)
+        return torch_npu.npu.amp.autocast(enabled=enabled, **kwargs)
     if TORCH_1_13:
         if device == "mps" and not TORCH_2_5:  # MPS autocast added in torch 2.5.0, errors on older versions
             device, enabled = "cpu", False
-        return torch.amp.autocast(device, enabled=enabled)
+        return torch.amp.autocast(device, enabled=enabled, **kwargs)
     else:
         return torch.cuda.amp.autocast(enabled)
 
@@ -957,10 +978,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
                         with cuda_memory_usage(device) as cuda_info:
                             anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
-                            # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
-                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (overlaps, bbox_scores, gathered
-                            # pd_scores, two pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
-                            # fp32-equivalents (pred/target + two op temps of the unreduced BCE in v8DetectionLoss:
+                            # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
+                            # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:
                             # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                             sim = (
                                 torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),

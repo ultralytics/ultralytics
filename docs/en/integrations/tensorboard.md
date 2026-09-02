@@ -32,11 +32,11 @@ To install the required package, run:
     === "CLI"
 
         ```bash
-        # Install the required package for YOLO26 and Tensorboard
-        pip install ultralytics
+        # Install YOLO26 and TensorBoard
+        pip install ultralytics tensorboard
         ```
 
-TensorBoard is conveniently pre-installed with YOLO26, eliminating the need for additional setup for visualization purposes.
+TensorBoard is an optional dependency. After installation, enable the callback once with `yolo settings tensorboard=True`; the setting persists for future training runs.
 
 For detailed instructions and best practices related to the installation process, be sure to check our [YOLO26 Installation guide](../quickstart.md). While installing the required packages for YOLO26, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
 
@@ -182,8 +182,8 @@ These tools enable you to make informed adjustments to enhance your YOLO26 model
 
 To monitor training metrics while training a YOLO26 model with TensorBoard, follow these steps:
 
-1. **Install TensorBoard and YOLO26:** Run `pip install ultralytics` which includes TensorBoard.
-2. **Configure TensorBoard Logging:** During the training process, YOLO26 logs metrics to a specified log directory.
+1. **Install TensorBoard and YOLO26:** Run `pip install ultralytics tensorboard`.
+2. **Enable TensorBoard Logging:** Run `yolo settings tensorboard=True`. During training, YOLO26 writes metrics to the run directory.
 3. **Start TensorBoard:** Launch TensorBoard using the command `tensorboard --logdir path/to/your/tensorboard/logs`.
 
 The TensorBoard dashboard, accessible at `localhost:6006`, provides real-time insights into various training metrics. For a deeper dive into training configurations, visit our [YOLO26 Configuration guide](../usage/cfg.md).

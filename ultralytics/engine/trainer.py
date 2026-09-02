@@ -89,7 +89,7 @@ class BaseTrainer:
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
         device (torch.device): Device to use for training.
-        amp (bool): Flag to enable AMP (Automatic Mixed Precision).
+        amp (bool): Whether Automatic Mixed Precision is enabled.
         scaler (torch.amp.GradScaler): Gradient scaler for AMP.
         data (dict): Dataset dictionary containing paths and metadata.
         ema (ModelEMA): EMA (Exponential Moving Average) of the model.
@@ -318,7 +318,8 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU
-        if self.args.channels_last and self.device.type == "cuda":
+        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
@@ -362,8 +363,9 @@ class BaseTrainer:
             )
 
         # Check AMP
-        self.amp = torch.tensor(self.args.amp).to(self.device)  # True or False
-        if self.amp and RANK in {-1, 0}:  # Single-GPU and DDP
+        self.amp = self.args.amp not in {False, "fp32"}
+        self.amp = torch.tensor(self.amp).to(self.device)
+        if self.amp and self.args.amp != "bf16" and RANK in {-1, 0}:  # Single-GPU and DDP
             callbacks_backup = callbacks.default_callbacks.copy()  # backup callbacks as check_amp() resets them
             self.amp = torch.tensor(check_amp(self.model), device=self.device)
             callbacks.default_callbacks = callbacks_backup  # restore callbacks
@@ -374,12 +376,15 @@ class BaseTrainer:
         if self.device.type == "npu":
             import torch_npu
 
-            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp)
+            self.scaler = torch_npu.npu.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
         else:
             self.scaler = (
-                torch.amp.GradScaler(self.device.type if self.device.type == "xpu" else "cuda", enabled=self.amp)
+                torch.amp.GradScaler(
+                    self.device.type if self.device.type == "xpu" else "cuda",
+                    enabled=self.amp and self.args.amp != "bf16",
+                )
                 if TORCH_2_4
-                else torch.cuda.amp.GradScaler(enabled=self.amp)
+                else torch.cuda.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
             )
         # Check imgsz
         gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
@@ -433,7 +438,8 @@ class BaseTrainer:
         self.train_time_start = time.time()
         self.run_callbacks("on_train_start")
         LOGGER.info(
-            f"Image sizes {self.args.imgsz} train, {self.args.imgsz} val\n"
+            f"Using {len(self.train_loader.dataset)} train, {len(self.test_loader.dataset)} val images for "
+            f"fraction={self.args.fraction} at imgsz={self.args.imgsz}\n"
             f"Using {self.train_loader.num_workers * (self.world_size or 1)} dataloader workers\n"
             f"Logging results to {colorstr('bold', self.save_dir)}\n"
             f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
@@ -489,7 +495,7 @@ class BaseTrainer:
 
                 # Forward
                 try:
-                    with autocast(self.amp, device=self.device.type):
+                    with autocast(torch.bfloat16 if self.args.amp == "bf16" else self.amp, device=self.device.type):
                         batch = self.preprocess_batch(batch)
                         if self.args.compile:
                             # Decouple inference and loss calculations for improved compile performance
@@ -659,7 +665,7 @@ class BaseTrainer:
         return check_train_batch_size(
             model=self.model,
             imgsz=max_imgsz,
-            amp=self.amp,
+            amp=torch.bfloat16 if self.args.amp == "bf16" else self.amp,
             batch=self.batch_size,
             max_num_obj=max_num_obj,
             dataset_size=dataset_size,
@@ -779,7 +785,7 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
 
             # Task-specific dataset checking
             if self.args.task == "classify":
@@ -985,6 +991,7 @@ class BaseTrainer:
                     "freeze",
                     "val",
                     "plots",
+                    "channels_last",
                     "distill_model",
                     "save_dir",
                 ):  # allow arg updates to reduce memory or update device on resume
@@ -1184,6 +1191,7 @@ class MultiTrainer:
         callbacks (dict | None): Callbacks forwarded to each per-dataset trainer.
         trainers (list[SimpleNamespace]): Completed per-dataset run records.
         metrics (dict): Mapping of each run name (e.g. coco8, coco8-2) to its training-metrics dict from the checkpoint.
+        mean_metrics (dict): Mean training metrics across successful datasets.
         save_dir (Path | None): Sweep directory holding the per-dataset runs and the results JSON/plot.
 
     Examples:
@@ -1209,6 +1217,7 @@ class MultiTrainer:
         self.callbacks = _callbacks
         self.trainers = []
         self.metrics = {}
+        self.mean_metrics = {}
         self.save_dir = None
 
     def train(self):
@@ -1227,7 +1236,8 @@ class MultiTrainer:
         )
         self.save_dir = get_save_dir(sweep, name="multitrain")
         self.save_dir.mkdir(parents=True, exist_ok=True)
-        base_model = self.save_dir / "multitrain_base.pt" if self.trainer is None else None
+        model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
+        base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
             torch_save(
                 {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
@@ -1237,7 +1247,9 @@ class MultiTrainer:
                 LOGGER.info(
                     f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
                 )
-                name = Path(str(data)).stem
+                path = Path(str(data))
+                parent = path.parent.name
+                name = Path(os.path.abspath(path.parent)).name if path.stem == "data" and parent else path.stem
                 run_name = name
                 try:
                     overrides = {
@@ -1303,10 +1315,10 @@ class MultiTrainer:
         results = {run: ({k: float(v) for k, v in m.items()} if m else None) for run, m in self.metrics.items()}
         valid = [m for m in results.values() if m]
         keys = {k for m in valid for k in m}
-        mean = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
+        self.mean_metrics = {k: sum(m[k] for m in valid if k in m) / sum(k in m for m in valid) for k in keys}
         file = self.save_dir / "multitrain_results.json"
         with open(file, "w", encoding="utf-8") as f:
-            json.dump({"results": results, "mean": mean}, f, indent=2)
+            json.dump({"results": results, "mean": self.mean_metrics}, f, indent=2)
         LOGGER.info(f"MultiTrainer results saved to {colorstr('bold', file)}")
         return file
 

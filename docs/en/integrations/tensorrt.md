@@ -154,20 +154,20 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 
 ### Export Arguments
 
-| Argument    | Type              | Default    | Description                                                                                                                                                                                                                                                      |
-| ----------- | ----------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`    | `str`             | `'engine'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
-| `imgsz`     | `int` or `tuple`  | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `quantize`  | `int` or `str`    | `None`     | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
-| `dynamic`   | `bool`            | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
-| `simplify`  | `bool`            | `True`     | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                                                 |
-| `opset`     | `int`             | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
-| `workspace` | `float` or `None` | `None`     | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                                                                                      |
-| `nms`       | `bool`            | `False`    | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
-| `batch`     | `int`             | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`      | `str`             | `None`     | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
-| `fraction`  | `float`           | `1.0`      | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
-| `device`    | `str`             | `None`     | Specifies the device for exporting: GPU (`device=0`), DLA for NVIDIA Jetson (`device=dla:0` or `device=dla:1`).                                                                                                                                                  |
+| Argument    | Type                      | Default    | Description                                                                                                                                                                                                                                                      |
+| ----------- | ------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`    | `str`                     | `'engine'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`     | `int` or `tuple`          | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `quantize`  | `int` or `str`            | `None`     | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
+| `dynamic`   | `bool`                    | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
+| `simplify`  | `bool`                    | `True`     | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                                                 |
+| `opset`     | `int`                     | `None`     | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
+| `workspace` | `float` or `None`         | `None`     | Sets the maximum workspace size in GiB for TensorRT optimizations, balancing memory usage and performance; use `None` for auto-allocation by TensorRT up to device maximum.                                                                                      |
+| `nms`       | `bool`                    | `False`    | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
+| `batch`     | `int`                     | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
+| `data`      | `str`                     | `None`     | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction`  | `float`, `int`, or `list` | `1.0`      | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |
+| `device`    | `str`                     | `None`     | Specifies the device for exporting: GPU (`device=0`), DLA for NVIDIA Jetson (`device=dla:0` or `device=dla:1`).                                                                                                                                                  |
 
 !!! tip
 
@@ -296,14 +296,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 0.52         | 0.51 \| 0.56       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 0.52         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 0.34         | 0.34 \| 0.41       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 0.33         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 0.28         | 0.27 \| 0.31       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 0.29         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 0.52         | 0.51 \| 0.56       |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 0.52         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | FP16      | Predict            | 0.34         | 0.34 \| 0.41       |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.33         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | INT8      | Predict            | 0.28         | 0.27 \| 0.31       |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.29         |                    | 0.47                       | 0.33                          | 1       | 640                         |
 
     === "Segmentation (COCO)"
 
@@ -313,14 +313,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-seg.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | mAP<sup>val</sup><br>50(M) | mAP<sup>val</sup><br>50-95(M) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 0.62         | 0.61 \| 0.68       |                      |                         |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 0.63         |                    | 0.52                 | 0.36                    | 0.49                 | 0.31                    | 1       | 640                   |
-        | FP16      | Predict      | 0.40         | 0.39 \| 0.44       |                      |                         |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 0.43         |                    | 0.52                 | 0.36                    | 0.49                 | 0.30                    | 1       | 640                   |
-        | INT8      | Predict      | 0.34         | 0.33 \| 0.37       |                      |                         |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 0.36         |                    | 0.46                 | 0.32                    | 0.43                 | 0.27                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | mAP<sup>val</sup><br>50(M) | mAP<sup>val</sup><br>50-95(M) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 0.62         | 0.61 \| 0.68       |                            |                               |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 0.63         |                    | 0.52                       | 0.36                          | 0.49                       | 0.31                          | 1       | 640                         |
+        | FP16      | Predict            | 0.40         | 0.39 \| 0.44       |                            |                               |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.43         |                    | 0.52                       | 0.36                          | 0.49                       | 0.30                          | 1       | 640                         |
+        | INT8      | Predict            | 0.34         | 0.33 \| 0.37       |                            |                               |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.36         |                    | 0.46                       | 0.32                          | 0.43                       | 0.27                          | 1       | 640                         |
 
     === "Classification (ImageNet)"
 
@@ -330,14 +330,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-cls.engine`
 
-        | Precision | Eval test        | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|------------------|--------------|--------------------|-------|-------|---------|-----------------------|
-        | FP32      | Predict          | 0.26         | 0.25 \| 0.28       |       |       | 8       | 640                   |
-        | FP32      | ImageNet<sup>val</sup> | 0.26         |                    | 0.35  | 0.61  | 1       | 640                   |
-        | FP16      | Predict          | 0.18         | 0.17 \| 0.19       |       |       | 8       | 640                   |
-        | FP16      | ImageNet<sup>val</sup> | 0.18         |                    | 0.35  | 0.61  | 1       | 640                   |
-        | INT8      | Predict          | 0.16         | 0.15 \| 0.57       |       |       | 8       | 640                   |
-        | INT8      | ImageNet<sup>val</sup> | 0.15         |                    | 0.32  | 0.59  | 1       | 640                   |
+        | Precision | Eval test              | mean<br>(ms) | min \| max<br>(ms) | top-1 | top-5 | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ---------------------- | ------------ | ------------------ | ----- | ----- | ------- | --------------------------- |
+        | FP32      | Predict                | 0.26         | 0.25 \| 0.28       |       |       | 8       | 640                         |
+        | FP32      | ImageNet<sup>val</sup> | 0.26         |                    | 0.35  | 0.61  | 1       | 640                         |
+        | FP16      | Predict                | 0.18         | 0.17 \| 0.19       |       |       | 8       | 640                         |
+        | FP16      | ImageNet<sup>val</sup> | 0.18         |                    | 0.35  | 0.61  | 1       | 640                         |
+        | INT8      | Predict                | 0.16         | 0.15 \| 0.57       |       |       | 8       | 640                         |
+        | INT8      | ImageNet<sup>val</sup> | 0.15         |                    | 0.32  | 0.59  | 1       | 640                         |
 
     === "Pose (COCO)"
 
@@ -347,14 +347,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-pose.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | mAP<sup>val</sup><br>50(P) | mAP<sup>val</sup><br>50-95(P) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 0.54         | 0.53 \| 0.58       |                      |                         |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 0.55         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
-        | FP16      | Predict      | 0.37         | 0.35 \| 0.41       |                      |                         |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 0.36         |                    | 0.91                 | 0.69                    | 0.80                 | 0.51                    | 1       | 640                   |
-        | INT8      | Predict      | 0.29         | 0.28 \| 0.33       |                      |                         |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 0.30         |                    | 0.90                 | 0.68                    | 0.78                 | 0.47                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | mAP<sup>val</sup><br>50(P) | mAP<sup>val</sup><br>50-95(P) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 0.54         | 0.53 \| 0.58       |                            |                               |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 0.55         |                    | 0.91                       | 0.69                          | 0.80                       | 0.51                          | 1       | 640                         |
+        | FP16      | Predict            | 0.37         | 0.35 \| 0.41       |                            |                               |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.36         |                    | 0.91                       | 0.69                          | 0.80                       | 0.51                          | 1       | 640                         |
+        | INT8      | Predict            | 0.29         | 0.28 \| 0.33       |                            |                               |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.30         |                    | 0.90                       | 0.68                          | 0.78                       | 0.47                          | 1       | 640                         |
 
     === "OBB (DOTAv1)"
 
@@ -364,14 +364,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n-obb.engine`
 
-        | Precision | Eval test      | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|----------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict        | 0.52         | 0.51 \| 0.59       |                      |                         | 8       | 640                   |
-        | FP32      | DOTAv1<sup>val</sup> | 0.76         |                    | 0.50                 | 0.36                    | 1       | 640                   |
-        | FP16      | Predict        | 0.34         | 0.33 \| 0.42       |                      |                         | 8       | 640                   |
-        | FP16      | DOTAv1<sup>val</sup> | 0.59         |                    | 0.50                 | 0.36                    | 1       | 640                   |
-        | INT8      | Predict        | 0.29         | 0.28 \| 0.33       |                      |                         | 8       | 640                   |
-        | INT8      | DOTAv1<sup>val</sup> | 0.32         |                    | 0.45                 | 0.32                    | 1       | 640                   |
+        | Precision | Eval test            | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | -------------------- | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict              | 0.52         | 0.51 \| 0.59       |                            |                               | 8       | 640                         |
+        | FP32      | DOTAv1<sup>val</sup> | 0.76         |                    | 0.50                       | 0.36                          | 1       | 640                         |
+        | FP16      | Predict              | 0.34         | 0.33 \| 0.42       |                            |                               | 8       | 640                         |
+        | FP16      | DOTAv1<sup>val</sup> | 0.59         |                    | 0.50                       | 0.36                          | 1       | 640                         |
+        | INT8      | Predict              | 0.29         | 0.28 \| 0.33       |                            |                               | 8       | 640                         |
+        | INT8      | DOTAv1<sup>val</sup> | 0.32         |                    | 0.45                       | 0.32                          | 1       | 640                         |
 
 ### Consumer GPUs
 
@@ -385,14 +385,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 1.06         | 0.75 \| 1.88       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 1.37         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 0.62         | 0.75 \| 1.13       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 0.85         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 0.52         | 0.38 \| 1.00       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 0.74         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 1.06         | 0.75 \| 1.88       |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 1.37         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | FP16      | Predict            | 0.62         | 0.75 \| 1.13       |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 0.85         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | INT8      | Predict            | 0.52         | 0.38 \| 1.00       |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.74         |                    | 0.47                       | 0.33                          | 1       | 640                         |
 
     === "RTX 3060 12 GB"
 
@@ -403,14 +403,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 1.76         | 1.69 \| 1.87       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 1.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 0.86         | 0.75 \| 1.00       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 1.43         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 0.80         | 0.75 \| 1.00       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 1.35         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 1.76         | 1.69 \| 1.87       |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 1.94         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | FP16      | Predict            | 0.86         | 0.75 \| 1.00       |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 1.43         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | INT8      | Predict            | 0.80         | 0.75 \| 1.00       |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 1.35         |                    | 0.47                       | 0.33                          | 1       | 640                         |
 
     === "RTX 2060 6 GB"
 
@@ -420,14 +420,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 2.84         | 2.84 \| 2.85       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 2.94         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 1.09         | 1.09 \| 1.10       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 1.20         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 0.75         | 0.74 \| 0.75       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 0.76         |                    | 0.47                 | 0.33                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 2.84         | 2.84 \| 2.85       |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 2.94         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | FP16      | Predict            | 1.09         | 1.09 \| 1.10       |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 1.20         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | INT8      | Predict            | 0.75         | 0.74 \| 0.75       |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 0.76         |                    | 0.47                       | 0.33                          | 1       | 640                         |
 
 ### Embedded Devices
 
@@ -441,14 +441,14 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-        | Precision | Eval test    | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
-        |-----------|--------------|--------------|--------------------|----------------------|-------------------------|---------|-----------------------|
-        | FP32      | Predict      | 6.11         | 6.10 \| 6.29       |                      |                         | 8       | 640                   |
-        | FP32      | COCO<sup>val</sup> | 6.17         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | FP16      | Predict      | 3.18         | 3.18 \| 3.20       |                      |                         | 8       | 640                   |
-        | FP16      | COCO<sup>val</sup> | 3.19         |                    | 0.52                 | 0.37                    | 1       | 640                   |
-        | INT8      | Predict      | 2.30         | 2.29 \| 2.35       |                      |                         | 8       | 640                   |
-        | INT8      | COCO<sup>val</sup> | 2.32         |                    | 0.46                 | 0.32                    | 1       | 640                   |
+        | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
+        | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
+        | FP32      | Predict            | 6.11         | 6.10 \| 6.29       |                            |                               | 8       | 640                         |
+        | FP32      | COCO<sup>val</sup> | 6.17         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | FP16      | Predict            | 3.18         | 3.18 \| 3.20       |                            |                               | 8       | 640                         |
+        | FP16      | COCO<sup>val</sup> | 3.19         |                    | 0.52                       | 0.37                          | 1       | 640                         |
+        | INT8      | Predict            | 2.30         | 2.29 \| 2.35       |                            |                               | 8       | 640                         |
+        | INT8      | COCO<sup>val</sup> | 2.32         |                    | 0.46                       | 0.32                          | 1       | 640                         |
 
 !!! info
 

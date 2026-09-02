@@ -82,10 +82,16 @@ class YOLO(Model):
             # Continue with default YOLO initialization
             super().__init__(model=model, task=task, verbose=verbose)
             head = self.model.model[-1]._get_name() if hasattr(self.model, "model") else ""
-            if "RTDETR" in (head or BaseBackend.read_metadata(self.model).get("head", "")):  # if RTDETR head
+            if not head and isinstance(self.model, (str, Path)):  # an exported model keeps its head name in metadata
+                head = BaseBackend.read_metadata(self.model).get("head", "")
+            if "RTDETR" in head:  # if RTDETR head
                 from ultralytics import RTDETR
 
                 new_instance = RTDETR(self)
+                self.__class__ = type(new_instance)
+                self.__dict__ = new_instance.__dict__
+            elif isinstance(self.model, WorldModel):  # e.g. `ul://…/yolov8l-worldv2`, no suffix for the filename test
+                new_instance = YOLOWorld(self)
                 self.__class__ = type(new_instance)
                 self.__dict__ = new_instance.__dict__
 
@@ -341,8 +347,8 @@ class YOLOE(Model):
         # Verify no background class is present
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
-        names = self.model.names.values() if isinstance(self.model.names, dict) else self.model.names
-        if embeddings is not None or sorted(names) != sorted(classes):
+        names = list(self.model.names.values()) if isinstance(self.model.names, dict) else list(self.model.names)
+        if embeddings is not None or names != classes:
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)

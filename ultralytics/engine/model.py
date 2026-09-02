@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
+from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
@@ -361,7 +361,10 @@ class Model(torch.nn.Module):
         from ultralytics import __version__
 
         updates = {
-            "model": deepcopy(self.model).half() if isinstance(self.model, torch.nn.Module) else self.model,
+            "ema": None,
+            "model": deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
+            if isinstance(self.model, torch.nn.Module)
+            else self.model,
             "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
@@ -508,7 +511,12 @@ class Model(torch.nn.Module):
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
 
-        if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
+        if (
+            not self.predictor
+            or self.predictor.args.device != args.get("device", self.predictor.args.device)
+            or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
+            or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+        ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
@@ -565,14 +573,14 @@ class Model(torch.nn.Module):
             ...     print(r.boxes.id)  # print tracking IDs
 
         Notes:
-            - This method sets a default confidence threshold of 0.1 for ByteTrack-based tracking.
+            - This method sets a default confidence threshold of 0.1 so trackers receive low-confidence detections.
             - The tracking mode is explicitly set in the keyword arguments.
             - Batch size is set to 1 for tracking in videos.
         """
         from ultralytics.trackers import register_tracker
 
         register_tracker(self, persist)
-        kwargs["conf"] = kwargs.get("conf") or 0.1  # ByteTrack-based method needs low confidence predictions as input
+        kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
@@ -670,7 +678,8 @@ class Model(torch.nn.Module):
             verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
-                - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
+                - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where
+                  supported; only 16 changes the native PyTorch row.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:
@@ -869,7 +878,7 @@ class Model(torch.nn.Module):
     def tune(
         self,
         use_ray=False,
-        iterations=10,
+        iterations=300,
         *args: Any,
         **kwargs: Any,
     ):
@@ -903,6 +912,8 @@ class Model(torch.nn.Module):
             >>> results = model.tune(use_ray=True, iterations=20, data="coco8.yaml")
         """
         self._check_is_pytorch_model()
+        if "optimizer" not in (kwargs.get("space") or {}):
+            kwargs.setdefault("optimizer", "AdamW")
         if use_ray:
             from ultralytics.utils.tuner import run_ray_tune
 

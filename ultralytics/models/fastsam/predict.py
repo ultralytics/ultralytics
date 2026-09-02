@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from multiprocessing.pool import ThreadPool
+
 import torch
 from PIL import Image
 
 from ultralytics.models.yolo.segment import SegmentationPredictor
-from ultralytics.utils import DEFAULT_CFG
+from ultralytics.utils import DEFAULT_CFG, NUM_THREADS
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import clip_boxes, clip_coords, scale_masks
 from ultralytics.utils.torch_utils import TORCH_1_10
@@ -164,7 +166,12 @@ class FastSAMPredictor(SegmentationPredictor):
 
         if not hasattr(self, "clip"):
             self.clip = CLIP("ViT-B/32", device=self.device)
-        images = torch.stack([self.clip.image_preprocess(image).to(self.device) for image in images])
+        if self.device.type == "cuda" and NUM_THREADS > 1 and len(images) >= 2 * NUM_THREADS:
+            with ThreadPool(NUM_THREADS) as pool:
+                images = pool.map(self.clip.image_preprocess, images)
+            images = torch.stack([image.to(self.device) for image in images])
+        else:
+            images = torch.stack([self.clip.image_preprocess(image).to(self.device) for image in images])
         image_features = self.clip.encode_image(images)
         text_features = self.clip.encode_text(self.clip.tokenize(texts))
         return text_features @ image_features.T  # (M, N)

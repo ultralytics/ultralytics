@@ -309,6 +309,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.overrides["pretrained"] = False  # a fresh init seeds nothing, here or in a DDP child
         return self
 
     def load(self, weights: str | Path = "yolo26n.pt") -> Model:
@@ -335,6 +336,9 @@ class Model(torch.nn.Module):
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = load_checkpoint(weights)
+        else:  # in-memory weights have no file to reload from
+            self.model.pt_path = None
+            self.overrides.pop("pretrained", None)
         self.model.load(weights)
         return self
 

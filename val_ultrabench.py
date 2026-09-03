@@ -175,9 +175,11 @@ def evaluate_dataset(
     """Evaluate one dataset from its prediction artifact."""
     with contextlib.redirect_stdout(io.StringIO()):
         ground_truth, file_ids, size_objects = build_ground_truth(data_yaml, reference_size)
-    detections = json.loads((run_dir / dataset / "predictions.json").read_text())
-    for detection in detections:
-        detection["image_id"] = file_ids[detection["file_name"]]
+    detections = []
+    for detection in json.loads((run_dir / dataset / "predictions.json").read_text()):
+        if (image_id := file_ids.get(detection["file_name"])) is not None:
+            detection["image_id"] = image_id
+            detections.append(detection)
     with contextlib.redirect_stdout(io.StringIO()):
         ap50, ap5095 = evaluate_predictions(ground_truth, detections, max_det, reference_size)
     metrics = {

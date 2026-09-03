@@ -811,6 +811,11 @@ class Exporter:
                 f"format='{fmt}' cannot export a QAT model: the learned Q/DQ ranges are only read by the 'onnx' and "
                 f"'engine' backends. Export a non-QAT checkpoint to this format instead."
             )
+            assert self.args.quantize in {None, 8}, (
+                f"a QAT model exports INT8, but got quantize={self.args.quantize}. Export a non-QAT checkpoint for "
+                f"other precisions."
+            )
+            self.args.quantize = 8  # the graph carries Q/DQ nodes whether or not INT8 was requested
         if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(

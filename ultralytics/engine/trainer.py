@@ -56,9 +56,11 @@ from ultralytics.utils.torch_utils import (
     autocast,
     convert_optimizer_state_dict_to_fp16,
     init_seeds,
+    is_qat,
     one_cycle,
     parse_device,
     prepare_qat,
+    qat_state,
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
@@ -312,7 +314,7 @@ class BaseTrainer:
 
         # Quantization-aware training: fake-quantize before the compile, DDP and EMA wraps below, and calibrate off a
         # rank-independent loader so every rank starts from identical activation ranges without a distributed sync
-        if self.args.quantize == 8:
+        if self.args.quantize == 8 and not is_qat(self.model):
             calibration_loader = self.get_dataloader(
                 self.data["train"], batch_size=max(self.batch_size, 1), rank=-1, mode="val"
             )
@@ -721,6 +723,7 @@ class BaseTrainer:
                 torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
+        modelopt = qat_state(ema) if is_qat(ema) else None  # QAT layer classes are built at runtime and cannot pickle
         buffer = io.BytesIO()
         torch.save(
             {
@@ -729,6 +732,7 @@ class BaseTrainer:
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
+                "modelopt": modelopt,  # quantization state of a QAT model, restored by load_checkpoint()
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict

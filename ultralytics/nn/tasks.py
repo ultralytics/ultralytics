@@ -109,6 +109,7 @@ from ultralytics.utils.torch_utils import (
     initialize_weights,
     intersect_dicts,
     model_info,
+    restore_qat,
     scale_img,
     smart_inference_mode,
     time_sync,
@@ -1909,6 +1910,8 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
             )
         )
     model = candidate.float()  # FP32 model
+    if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the learned fake-quantization, which fusing would discard
+        model, fuse = restore_qat(model, ckpt["modelopt"]), False
 
     # Model compatibility updates
     model.args = args  # attach args to model

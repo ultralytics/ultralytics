@@ -407,7 +407,7 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     Returns:
         (nn.Module): The prepared model, carrying fake-quantization modules.
     """
-    check_requirements("nvidia-modelopt[torch]>=0.44")  # matches the ONNX-side INT8 path in utils/export/engine.py
+    check_requirements("nvidia-modelopt>=0.44")  # same package as the ONNX-side INT8 path in utils/export/engine.py
     import modelopt.torch.quantization as mtq
 
     def forward_loop(m):
@@ -424,8 +424,49 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
 
 
 def is_qat(model: nn.Module) -> bool:
-    """Return True if the model carries fake-quantization modules inserted by `prepare_qat`."""
+    """Return True if the model carries fake-quantization modules inserted by `prepare_qat`.
+
+    Matched by class name so that non-QAT models, i.e. every ordinary export, never import ModelOpt.
+    """
     return any(type(m).__name__ == "TensorQuantizer" for m in model.modules())
+
+
+def qat_state(model: nn.Module) -> dict[str, Any]:
+    """Strip fake-quantization from a model in place and return the state that restores it.
+
+    Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at
+    runtime, which pickle cannot look up on load. The serialization copy is therefore reverted to the plain layers it
+    wraps and the quantization travels beside it as data, which `restore_qat` re-applies.
+
+    Args:
+        model (nn.Module): QAT model copy to strip, modified in place.
+
+    Returns:
+        (dict): ModelOpt conversion state and the learned quantizer ranges.
+    """
+    import modelopt.torch.opt as mto
+    from modelopt.torch.opt.conversion import ModeloptStateManager
+    from modelopt.torch.opt.dynamic import DynamicModule
+
+    state = {
+        "modelopt": mto.modelopt_state(model),
+        "ranges": {k: v for k, v in model.state_dict().items() if "quantizer" in k},
+    }
+    for m in model.modules():
+        if isinstance(m, DynamicModule):
+            m.export()  # revert the runtime class to the plain layer it wraps
+    ModeloptStateManager.remove_state(model)  # a reverted copy must not claim to be converted
+    return state
+
+
+def restore_qat(model: nn.Module, state: dict[str, Any]) -> nn.Module:
+    """Re-apply the fake-quantization captured by `qat_state` to a model, in place."""
+    check_requirements("nvidia-modelopt>=0.44")
+    import modelopt.torch.opt as mto
+
+    mto.restore_from_modelopt_state(model, state["modelopt"])
+    model.load_state_dict(state["ranges"], strict=False)
+    return model
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):

@@ -125,6 +125,31 @@ Not every export format supports every precision. Explicit `quantize` requests e
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
 
+### Quantization-Aware Training
+
+The INT8 exports above are post-training quantization: ranges are observed in a single calibration pass over `data`. Quantization-aware training (QAT) instead learns weights that tolerate INT8 by fine-tuning with fake-quantization in the loop, which recovers accuracy that calibration alone loses. Pass `quantize=8` to `train` to fine-tune a pretrained checkpoint, then export it as usual:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        model.train(data="coco8.yaml", epochs=5, lr0=0.0001, quantize=8)  # QAT fine-tune
+        model.export(format="engine", quantize=8)  # ranges are already learned, no calibration data needed
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26n.pt data=coco8.yaml epochs=5 lr0=0.0001 quantize=8
+        yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
+        ```
+
+QAT fine-tunes an already-trained checkpoint, so use a small learning rate and few epochs. The resulting checkpoint carries the learned ranges, which `onnx` and `engine` exports emit as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+
 ## What's Next
 
 Find your deployment target's integration guide — [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [CoreML](../integrations/coreml.md), and more are on the [full integrations list](../integrations/index.md) — for how to run the exported model.

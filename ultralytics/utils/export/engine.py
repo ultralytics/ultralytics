@@ -183,6 +183,7 @@ def onnx2engine(
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dla: int | None = None,
     dataset=None,
+    qdq: bool = False,
     metadata: dict | None = None,
     verbose: bool = False,
     prefix: str = "",
@@ -197,7 +198,10 @@ def onnx2engine(
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when
+            `qdq=True`.
+        qdq (bool): Whether the ONNX already carries Q/DQ nodes from quantization-aware training, in which case
+            the graph holds the INT8 ranges and no calibration runs.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
@@ -256,7 +260,7 @@ def onnx2engine(
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
     use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
-    if use_int8 and dataset is None:
+    if use_int8 and dataset is None and not qdq:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 
     # Optionally switch to DLA if enabled
@@ -278,7 +282,7 @@ def onnx2engine(
 
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
-    if is_trt11 and (use_fp16 or use_int8):
+    if is_trt11 and (use_fp16 or use_int8) and not qdq:
         onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
@@ -301,7 +305,7 @@ def onnx2engine(
         for inp in inputs:
             profile.set_shape(inp.name, min=min_shape, opt=shape, max=max_shape)
         config.add_optimization_profile(profile)
-        if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
+        if use_int8 and not is_trt10 and not qdq:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
     LOGGER.info(
@@ -310,6 +314,12 @@ def onnx2engine(
     if use_int8 and not is_trt11:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
+    elif use_fp16 and not is_trt11:
+        config.set_flag(trt.BuilderFlag.FP16)
+
+    # Explicit quantization (QAT Q/DQ in the graph) needs the INT8 flag above but neither a calibrator nor the
+    # per-layer Sigmoid constraints below: Q/DQ placement already keeps everything but conv/matmul inputs in float
+    if use_int8 and not is_trt11 and not qdq:
 
         class EngineCalibrator(trt.IInt8Calibrator):
             """Custom INT8 calibrator for TensorRT engine optimization.
@@ -402,9 +412,6 @@ def onnx2engine(
             )
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
             LOGGER.info(f"{prefix} keeping {count} Sigmoid layers in FP32 for INT8 accuracy")
-
-    elif use_fp16 and not is_trt11:
-        config.set_flag(trt.BuilderFlag.FP16)
 
     # Write file
     if hasattr(builder, "build_serialized_network"):

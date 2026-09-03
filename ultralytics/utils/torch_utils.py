@@ -32,7 +32,7 @@ from ultralytics.utils import (
     WINDOWS,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_requirements, check_version
 from ultralytics.utils.cpu import CPUInfo
 from ultralytics.utils.patches import torch_load
 
@@ -386,6 +386,46 @@ def fuse_deconv_and_bn(deconv, bn):
         deconv.bias.data = fused_bias
 
     return deconv.requires_grad_(False)
+
+
+def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
+    """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
+
+    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training
+    learns weights that survive INT8 export and `torch.onnx.export` emits the learned ranges as Q/DQ nodes.
+    Activation ranges are initialized from `batches` calibration batches and refined by training thereafter.
+
+    BatchNorm is deliberately left unfused: the learned weight ranges describe unfused weights, so export skips
+    `fuse()` and leaves BN folding to the deployment backend.
+
+    Args:
+        model (nn.Module): Model to prepare, modified in place.
+        dataloader (Iterable): Loader yielding Ultralytics batches for the initial range calibration.
+        preprocess (callable): Batch preprocessing, i.e. `BaseTrainer.preprocess_batch`.
+        batches (int): Number of calibration batches.
+
+    Returns:
+        (nn.Module): The prepared model, carrying fake-quantization modules.
+    """
+    check_requirements("nvidia-modelopt[torch]>=0.44")  # matches the ONNX-side INT8 path in utils/export/engine.py
+    import modelopt.torch.quantization as mtq
+
+    def forward_loop(m):
+        """Run calibration batches with BatchNorm statistics frozen, as at deployment."""
+        training = m.training
+        m.eval()
+        with torch.no_grad():
+            for batch, _ in zip(dataloader, range(batches)):
+                m(preprocess(batch)["img"])
+        m.train(training)
+
+    LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
+    return mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
+
+
+def is_qat(model: nn.Module) -> bool:
+    """Return True if the model carries fake-quantization modules inserted by `prepare_qat`."""
+    return any(type(m).__name__ == "TensorQuantizer" for m in model.modules())
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):

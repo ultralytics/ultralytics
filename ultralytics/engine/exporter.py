@@ -136,6 +136,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_3,
     TORCH_2_8,
     TORCH_2_9,
+    is_qat,
     select_device,
 )
 
@@ -804,7 +805,13 @@ class Exporter:
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
             model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
-        if self.args.quantize in {8, "w8a16"} and not self.args.data:
+        self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
+        if self.qat:
+            assert fmt in {"onnx", "engine"}, (
+                f"format='{fmt}' cannot export a QAT model: the learned Q/DQ ranges are only read by the 'onnx' and "
+                f"'engine' backends. Export a non-QAT checkpoint to this format instead."
+            )
+        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
@@ -832,7 +839,8 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse()
+        if not self.qat:  # fusing rewrites conv weights, invalidating the ranges QAT learned for the unfused weights
+            model = model.fuse()
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel
@@ -1118,7 +1126,7 @@ class Exporter:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
         onnx.save(model_onnx, f)
-        if self.args.quantize == 8 and self.args.format == "onnx":
+        if self.args.quantize == 8 and self.args.format == "onnx" and not self.qat:  # QAT exports Q/DQ directly
             from ultralytics.utils.export.onnx import onnx_int8_quantize
 
             source = Path(f)
@@ -1350,7 +1358,8 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=self.dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 and not self.qat else None,
+            qdq=self.qat,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,

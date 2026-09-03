@@ -58,6 +58,7 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     parse_device,
+    prepare_qat,
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
@@ -308,6 +309,14 @@ class BaseTrainer:
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
+
+        # Quantization-aware training: fake-quantize before the compile, DDP and EMA wraps below, and calibrate off a
+        # rank-independent loader so every rank starts from identical activation ranges without a distributed sync
+        if self.args.quantize == 8:
+            calibration_loader = self.get_dataloader(
+                self.data["train"], batch_size=max(self.batch_size, 1), rank=-1, mode="val"
+            )
+            self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)

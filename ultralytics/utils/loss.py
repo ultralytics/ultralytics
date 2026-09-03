@@ -330,6 +330,38 @@ class KeypointLoss(nn.Module):
         return (kpt_loss_factor.view(-1, 1) * ((1 - torch.exp(-e)) * kpt_mask)).mean()
 
 
+def parse_obj_target(v: Any) -> tuple[float, float]:
+    """Parse ``obj_target`` into per-branch objectness floors ``(o2m, o2o)``, each in [0, 1].
+
+    The floor lifts a positive's target off its CIoU value: ``t = floor + (1 - floor) * iou``.
+    Floor 0.0 is v5's soft label, 1.0 is a flat 1.0, and the named modes are just points on that
+    line -- soft=(0, 0), hard=(1, 1), split=(0, 1), and rsplit=(1, 0), the deliberately swapped
+    falsification control that confirmed the two effects are branch-local. The branches get separate
+    floors because they measurably want different ones: on o2m soft dominates hard outright
+    (OOD P 0.5848 vs 0.3852, mAP10_50 0.4548 vs 0.4096), while on o2o hard buys +0.26 recall at
+    a third of the precision -- the sign of a trade with an interior optimum, which is what a
+    continuous floor exists to find.
+
+    Accepts a named mode, a scalar (applied to both branches), or an ``o2m,o2o`` pair as a
+    string, list or tuple.
+    """
+    named = {"soft": (0.0, 0.0), "hard": (1.0, 1.0), "split": (0.0, 1.0), "rsplit": (1.0, 0.0)}
+    if v is None:
+        return named["soft"]
+    if isinstance(v, str):
+        if v in named:
+            return named[v]
+        v = v.split(",")
+    f = [v] if not isinstance(v, (list, tuple)) else list(v)
+    try:
+        f = [float(x) for x in f] * (2 if len(f) == 1 else 1)
+    except (TypeError, ValueError):
+        raise ValueError(f"obj_target={v!r} invalid; use {sorted(named)}, a float in [0, 1], or 'o2m,o2o'") from None
+    if len(f) != 2 or not all(0.0 <= x <= 1.0 for x in f):
+        raise ValueError(f"obj_target={v!r} invalid; expected 1 or 2 floats in [0, 1], got {f}")
+    return f[0], f[1]
+
+
 class v8DetectionLoss:
     """Criterion class for computing training losses for YOLOv8 object detection."""
 
@@ -351,7 +383,9 @@ class v8DetectionLoss:
 
         # YOLOv5-style objectness (see Detect.set_objectness). 'none' keeps the 3-term loss vector.
         self.objectness = getattr(m, "objectness", "none")
-        self.obj_target = getattr(h, "obj_target", "soft")  # 'hard' = positives get 1.0 (TAL did the filtering)
+        # Objectness floor for positives; see parse_obj_target. A plain (non-E2E) criterion is the
+        # one2many one, so it takes the o2m element; E2ELoss overwrites both after construction.
+        self.obj_floor = parse_obj_target(getattr(h, "obj_target", "soft"))[0]
         nl = len(m.stride)
         # v5 weights the objectness loss per level because P3 holds most of the negatives.
         self.obj_balance = {3: [4.0, 1.0, 0.4], 5: [4.0, 1.0, 0.25, 0.06, 0.02]}.get(nl, [1.0] * nl)
@@ -466,11 +500,12 @@ class v8DetectionLoss:
             pred_obj = preds["obj"].squeeze(1)  # (bs, num_anchors)
             tobj = torch.zeros_like(pred_obj)
             if fg_mask.sum():
-                if self.obj_target == "hard":
+                if self.obj_floor >= 1.0:
                     tobj[fg_mask] = 1.0  # TAL already filtered for quality; IoU supervision is box+cls's job
                 else:
                     iou = bbox_iou(pred_bboxes[fg_mask], (target_bboxes / stride_tensor)[fg_mask], xywh=False, CIoU=True)
-                    tobj[fg_mask] = iou.detach().squeeze(-1).clamp_(0).to(tobj.dtype)
+                    iou = iou.detach().squeeze(-1).clamp_(0)
+                    tobj[fg_mask] = (self.obj_floor + (1.0 - self.obj_floor) * iou).to(tobj.dtype)
             obj_loss = self.bce(pred_obj, tobj)  # (bs, num_anchors), reduction='none'
             splits = [f.shape[2] * f.shape[3] for f in preds["feats"]]
             bg = ~fg_mask
@@ -1213,26 +1248,14 @@ class E2ELoss:
         # at 1 the o2o obj branch sees a tenth of o2m's positive signal and its scores never
         # calibrate, which is the measured o2o obj collapse. Exposed to sweep that.
         self.one2one = loss_fn(model, tal_topk=7, tal_topk2=getattr(model.args, "o2o_topk2", 1) or 1)
-        tgt = getattr(model.args, "obj_target", "soft")
-        if tgt == "rsplit":
-            # Deliberately WRONG pairing, as a falsification control for `split`. The claim is
-            # that each branch wants the target matching its assignment density; if so, giving
-            # o2m the hard target (it has ~10 positives per GT and can afford soft ranking) and
-            # o2o the soft one (it has 1 and needs full strength) must be worse than BOTH pure
-            # modes. If it is not, the density explanation is wrong and split works for some
-            # other reason.
-            self.one2many.obj_target = "hard"
-            self.one2one.obj_target = "soft"
-        elif tgt == "split":
-            # Per-branch objectness targets, because the two branches have opposite needs.
-            # o2m gets ~10 positives per GT, so a CIoU soft label is affordable and carries the
-            # ranking that AP rewards (soft beats hard by 0.03 mAP10_50 there). o2o gets exactly
-            # ONE, so a soft label trains its obj field from a single 0.6-0.9 sample — and on o2o
-            # obj is not merely the score but the *selector*, since the NMS-free path is a plain
-            # top-k with no IoU involved. Hard 1.0 gives that lone anchor full strength and is
-            # worth +0.14 mAP10_50 / +0.28 recall on o2o. 'split' takes both.
-            self.one2many.obj_target = "soft"
-            self.one2one.obj_target = "hard"
+        # Per-branch objectness floors, because the two branches have opposite needs. o2m gets ~10
+        # positives per GT, so a CIoU soft label is affordable and carries the ranking that AP
+        # rewards (soft beats hard by 0.03 mAP10_50 AND 0.20 precision there). o2o gets exactly
+        # ONE, so a soft label trains its obj field from a single 0.6-0.9 sample -- and on o2o obj
+        # is not merely the score but the *selector*, since the NMS-free path is a plain top-k with
+        # no IoU involved. Hard 1.0 gives that lone anchor full strength, worth +0.14 mAP10_50 /
+        # +0.28 recall on o2o. 'split' is (0, 1); intermediate floors sweep between them.
+        self.one2many.obj_floor, self.one2one.obj_floor = parse_obj_target(getattr(model.args, "obj_target", "soft"))
         self.updates = 0
         self.total = 1.0
         # init gain

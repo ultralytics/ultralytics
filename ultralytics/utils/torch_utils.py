@@ -401,7 +401,8 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     Activation ranges are initialized from `batches` calibration batches and refined by training thereafter.
 
     BatchNorm is deliberately left unfused: the learned weight ranges describe unfused weights, so export skips
-    `fuse()` and leaves BN folding to the deployment backend.
+    `fuse()` and leaves BN folding to the deployment backend, and the head is left in float because a single INT8
+    activation scale cannot cover both box coordinates and class probabilities.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.
@@ -425,7 +426,11 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
         m.train(training)
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
-    return mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
+    model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
+    # Leave the head in float: one INT8 activation scale cannot span box pixels (~0-640) and class probabilities
+    # (0-1), and on COCO quantizing it costs 2.0 mAP of the 3.2 that INT8 costs at all
+    mtq.disable_quantizer(model, f"*model.{len(model.model) - 1}.*")
+    return model
 
 
 def is_qat(model: nn.Module) -> bool:

@@ -13,7 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.modules import Conv
+from ultralytics.nn.modules import Conv, ConvTranspose
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -337,6 +337,8 @@ class Model(torch.nn.Module):
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = load_checkpoint(weights)
+        else:
+            self.model.pt_path = None  # in-memory weights have no file to reload from
         self.model.load(weights)
         return self
 
@@ -826,13 +828,19 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
+        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         donor = self.model  # pretrained weights, kept in memory so class renames before train() carry over
         loaded = self.overrides.get("pretrained")
-        if loaded is not False and any(isinstance(m, Conv) and not hasattr(m, "bn") for m in donor.modules()):
+        if (
+            pretrained is True
+            and loaded is not False
+            and any(isinstance(m, (Conv, ConvTranspose)) and not hasattr(m, "bn") for m in donor.modules())
+        ):
             # predict() and val() fuse the loaded module in place, so its tensors can no longer seed training
             src = loaded if isinstance(loaded, (str, Path)) else getattr(donor, "pt_path", None)
             if src:
                 donor, _ = load_checkpoint(src)
+                donor.yaml = self.model.yaml  # weights only, the architecture stays the facade's
                 if len(donor.names) == len(self.model.names):
                     donor.names = self.model.names
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
@@ -847,7 +855,6 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
-        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"] = self.ckpt_path

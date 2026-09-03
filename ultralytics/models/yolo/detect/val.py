@@ -426,6 +426,7 @@ class DetectionValidator(BaseValidator):
             drop_last=self.args.compile,
             pin_memory=self.training,
             device=self.device,
+            infinite=False,
         )
 
     def plot_val_samples(self, batch: dict[str, Any], ni: int) -> None:

@@ -1,0 +1,57 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Ultralytics YOLO27-seg instance segmentation model with P3/8 - P5/32 outputs
+# P4 detection head is removed; Segment26 runs on two levels, P3 (stride 8) and P5 (stride 32).
+# The neck dams upsampled features with SNI x0.5 (Scale) before fusion, and the backbone P3
+# stage C3k2 expansion is per-scale via the `bbp3e` scales arg: the 4th element of a scales
+# entry is a dict of named values referenced by name in layer args (see backbone layer 4).
+# Task docs: https://docs.ultralytics.com/tasks/segment
+
+# Parameters
+nc: 80 # number of classes
+end2end: True # whether to use end-to-end mode
+reg_max: 1 # DFL bins
+scales: # model compound scaling constants
+  # [depth, width, max_channels, {named per-scale args}]
+  n: [0.50, 0.25, 1024, {bbp3e: 0.5}]
+  s: [0.50, 0.50, 1024, {bbp3e: 0.5}]
+  m: [0.50, 1.00, 512, {bbp3e: 0.25}]
+  l: [1.00, 1.00, 512, {bbp3e: 0.25}]
+  x: [1.00, 1.50, 512, {bbp3e: 0.25}]
+
+# YOLO27n-seg backbone
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, Conv, [64, 3, 2]] # 0-P1/2
+  - [-1, 1, Conv, [128, 3, 2]] # 1-P2/4
+  - [-1, 2, C3k2, [256, False, 0.25]]
+  - [-1, 1, Conv, [256, 3, 2]] # 3-P3/8
+  - [-1, 2, C3k2, [512, False, bbp3e]] # 4 backbone P3 stage: e=0.5 at n/s, 0.25 at m/l/x
+  - [-1, 1, Conv, [512, 3, 2]] # 5-P4/16
+  - [-1, 2, C3k2, [512, True]]
+  - [-1, 1, Conv, [1024, 3, 2]] # 7-P5/32
+  - [-1, 2, C3k2, [1024, True]]
+  - [-1, 1, SPPF, [1024, 5, 3, True]] # 9
+  - [-1, 2, C2PSA, [1024]] # 10
+
+# YOLO27n-seg head
+head:
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [-1, 1, Scale, [0.5]] # 12 SNI damping
+  - [[-1, 6], 1, Concat, [1]] # cat backbone P4
+  - [-1, 2, C3k2, [768, True]] # 14 intermediate P4/16 (top-down)
+
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]]
+  - [-1, 1, Scale, [0.5]] # 16 SNI damping
+  - [[-1, 4], 1, Concat, [1]] # cat backbone P3
+  - [-1, 2, C3k2, [384, True]] # 18 P3/8-small
+
+  - [-1, 1, Conv, [384, 3, 2]]
+  - [[-1, 14], 1, Concat, [1]] # cat intermediate P4
+  - [-1, 2, C3k2, [512, True]] # 21 intermediate P4/16 (bottom-up)
+
+  - [-1, 1, Conv, [512, 3, 2]]
+  - [[-1, 10], 1, Concat, [1]] # cat backbone P5
+  - [-1, 1, C3k2, [1024, True, 0.5, True]] # 24 (P5/32-large)
+
+  - [[18, 24], 1, OBB26, [nc, 1]] # Segment(P3, P5)

@@ -281,7 +281,7 @@ class DEIMTransformerDecoder(nn.Module):
         score_head,
         query_pos_head,
         pre_bbox_head,
-        integral,
+        dfl,
         reg_scale,
         attn_mask=None,
         memory_mask=None,
@@ -297,7 +297,7 @@ class DEIMTransformerDecoder(nn.Module):
             score_head (nn.ModuleList): Per-layer heads producing the class scores.
             query_pos_head (nn.Module): Head embedding the reference boxes into query positions.
             pre_bbox_head (nn.Module): Head producing the initial box prediction of the first layer.
-            integral (Integral): Layer integrating a corner distribution into distance offsets.
+            dfl (Integral): Layer integrating a corner distribution into distance offsets.
             reg_scale (torch.Tensor): Scale controlling the non-uniform bin spacing.
             attn_mask (torch.Tensor, optional): Self-attention mask isolating the denoising groups.
             memory_mask (torch.Tensor, optional): Validity mask for the encoder memory.
@@ -347,7 +347,7 @@ class DEIMTransformerDecoder(nn.Module):
 
             # Refine bounding box corners using FDR, integrating previous layer's corrections
             pred_corners = bbox_head[i](output + output_detach) + pred_corners_undetach
-            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners), reg_scale)
+            inter_ref_bbox = distance2bbox(ref_points_initial, dfl(pred_corners), reg_scale)
 
             if self.training or i == self.eval_idx:
                 scores = score_head[i](output)

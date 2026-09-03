@@ -2081,7 +2081,7 @@ class DEIMDecoder(RTDETRDecoder):
         self.query_pos_head = self._build_query_pos_head(hd, act_mlp)
 
         self.pre_bbox_head = self._build_bbox_head(hd, act_mlp)
-        self.integral = Integral(reg_max, self.up, self.reg_scale)
+        self.dfl = Integral(reg_max, self.up, self.reg_scale)
 
         self.eval_idx = eval_idx if eval_idx >= 0 else ndl + eval_idx
         score_head = nn.Linear(hd, nc)
@@ -2128,7 +2128,7 @@ class DEIMDecoder(RTDETRDecoder):
             self.dec_score_head,
             self.query_pos_head,
             self.pre_bbox_head,
-            self.integral,
+            self.dfl,
             self.reg_scale,
             attn_mask=attn_mask,
         )

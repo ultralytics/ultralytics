@@ -268,10 +268,11 @@ class BaseModel(torch.nn.Module):
         return self
 
     def is_fused(self):
-        """Return True once fuse() has folded the model's layers for inference."""
-        return any(
-            (isinstance(m, (Conv, ConvTranspose)) and not hasattr(m, "bn"))
-            or (isinstance(m, (RepConv, RepVGGDW)) and not hasattr(m, "conv1"))
+        """Return True once fuse() has nothing left to do."""
+        return not any(
+            (isinstance(m, (Conv, ConvTranspose)) and hasattr(m, "bn"))
+            or (isinstance(m, (RepConv, RepVGGDW)) and hasattr(m, "conv1"))
+            or (isinstance(m, Detect) and getattr(m, "end2end", False) and m.cv2 is not None)
             for m in self.modules()
         )
 

@@ -315,7 +315,7 @@ class BaseModel(torch.nn.Module):
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress.
         """
-        model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
+        model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
 
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)

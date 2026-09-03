@@ -1,5 +1,5 @@
 ---
-title: YOLO26 on Raspberry Pi: Setup & Benchmarks
+title: YOLO26 on Raspberry Pi Setup & Benchmarks
 comments: true
 description: Deploy Ultralytics YOLO26 on Raspberry Pi 4 and 5 with install steps, NCNN export for fastest inference, camera setup, and benchmarks across eight formats.
 keywords: Ultralytics, YOLO26, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules

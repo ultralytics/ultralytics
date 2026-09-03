@@ -1978,12 +1978,12 @@ class DEIMDecoder(RTDETRDecoder):
         ch: tuple = (512, 1024, 2048),
         hd: int = 256,
         nq: int = 300,
-        ndp: int = 4,
+        ndp: int | list[int] | None = None,
         nh: int = 8,
         ndl: int = 6,
-        d_ffn: int = 1024,
+        d_ffn: int = 2048,
         dropout: float = 0.0,
-        act: str = "relu",
+        act: str = "silu",
         eval_idx: int = -1,
         nd: int = 100,
         label_noise_ratio: float = 0.5,
@@ -1992,14 +1992,45 @@ class DEIMDecoder(RTDETRDecoder):
         reg_max: int = 32,
         reg_scale: float = 4.0,
         layer_scale: float = 1.0,
-        mlp_act: str = "relu",
+        mlp_act: str = "silu",
         o2m_topk_mode: str = "unshared",
         use_gateway: bool = True,
         share_bbox_head: bool = False,
         share_score_head: bool = False,
         use_rmsnorm: bool = True,
     ):
+        """Initialize the DEIMDecoder head.
+
+        Args:
+            nc (int): Number of classes.
+            ch (tuple): Input channel counts of the neck feature levels.
+            hd (int): Hidden dimension of the decoder.
+            nq (int): Number of object queries.
+            ndp (int | list[int], optional): Deformable sampling points per head, shared across levels or one entry
+                per level. Defaults to [3, 6, 3].
+            nh (int): Number of attention heads.
+            ndl (int): Number of decoder layers; the only setting that varies across the yolo27 m/l/x scales.
+            d_ffn (int): Hidden width of the feed-forward networks before the SwiGLU halving.
+            dropout (float): Dropout probability applied after each decoder sublayer.
+            act (str): Activation of the decoder layers and LQE heads, one of relu, gelu, silu.
+            eval_idx (int): Decoder layer index used at inference; negative values count back from the last layer.
+            nd (int): Number of denoising queries during training.
+            label_noise_ratio (float): Denoising class-label noise ratio.
+            box_noise_scale (float): Denoising box noise scale.
+            learnt_init_query (bool): Learn query embeddings instead of content-based selection; unsupported.
+            reg_max (int): Number of discrete bins in the distribution head.
+            reg_scale (float): Scale controlling the non-uniform bin spacing.
+            layer_scale (float): Width multiplier applied to the decoder layers after eval_idx.
+            mlp_act (str): Activation of the bbox/score/position MLPs, one of relu, gelu, silu.
+            o2m_topk_mode (str): One-to-many top-k selection mode used by the matching supervision.
+            use_gateway (bool): Merge the cross-attention output with a learned gate instead of a residual add.
+            share_bbox_head (bool): Share one bbox head across the decoder layers up to eval_idx.
+            share_score_head (bool): Share one score head across the decoder layers up to eval_idx.
+            use_rmsnorm (bool): Use RMSNorm instead of LayerNorm in the decoder layers.
+        """
         nn.Module.__init__(self)
+        if ndp is None:
+            ndp = [3, 6, 3] if len(ch) == 3 else 4  # per-level sampling points for the yolo27 3-level neck
         self.hidden_dim = hd
         self.nhead = nh
         self.nl = len(ch)

@@ -42,8 +42,5 @@ head:
   - [[-1, 10], 1, Concat, [1]] # cat head P5
   - [-1, 1, C3k2, [1024, True, 0.5, True]] # 22 (P5/32-large)
 
-  # DEIMDecoder. Args (ch is auto-filled from `from` refs). Positional order:
-  # [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
-  #  learnt_init_query, reg_max, reg_scale, layer_scale, mlp_act,
-  #  o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
-  - [[16, 19, 22], 1, DEIMDecoder, [nc, 256, 300, [3, 6, 3], 8, 4, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+  # DEIMDecoder head; positional args [nc, hd, nq, ndp, nh, ndl], rest stay at the defaults
+  - [[16, 19, 22], 1, DEIMDecoder, [nc, 256, 300, [3, 6, 3], 8, 4]]

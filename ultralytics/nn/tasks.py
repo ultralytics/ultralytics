@@ -1543,6 +1543,9 @@ class Ensemble(torch.nn.ModuleList):
 # Functions ------------------------------------------------------------------------------------------------------------
 
 
+_temporary_modules_lock = threading.RLock()
+
+
 @contextlib.contextmanager
 def temporary_modules(modules=None, attributes=None):
     """Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
@@ -1574,30 +1577,31 @@ def temporary_modules(modules=None, attributes=None):
 
     missing = object()
     previous = []  # (module, attribute, prior value) so exiting restores e.g. pathlib.WindowsPath
-    try:
-        # Set attributes in sys.modules under their old name
-        for old, new in attributes.items():
-            old_module, old_attr = old.rsplit(".", 1)
-            new_module, new_attr = new.rsplit(".", 1)
-            module = import_module(old_module)
-            previous.append((module, old_attr, module.__dict__.get(old_attr, missing)))
-            setattr(module, old_attr, getattr(import_module(new_module), new_attr))
+    with _temporary_modules_lock:
+        try:
+            # Set attributes in sys.modules under their old name
+            for old, new in attributes.items():
+                old_module, old_attr = old.rsplit(".", 1)
+                new_module, new_attr = new.rsplit(".", 1)
+                module = import_module(old_module)
+                previous.append((module, old_attr, module.__dict__.get(old_attr, missing)))
+                setattr(module, old_attr, getattr(import_module(new_module), new_attr))
 
-        # Set modules in sys.modules under their old name
-        for old, new in modules.items():
-            sys.modules[old] = import_module(new)
+            # Set modules in sys.modules under their old name
+            for old, new in modules.items():
+                sys.modules[old] = import_module(new)
 
-        yield
-    finally:
-        # Remove the temporary module paths and attributes
-        for old in modules:
-            if old in sys.modules:
-                del sys.modules[old]
-        for module, attr, value in previous:
-            if value is missing:
-                delattr(module, attr)
-            else:
-                setattr(module, attr, value)
+            yield
+        finally:
+            # Remove the temporary module paths and attributes
+            for old in modules:
+                if old in sys.modules:
+                    del sys.modules[old]
+            for module, attr, value in previous:
+                if value is missing:
+                    delattr(module, attr)
+                else:
+                    setattr(module, attr, value)
 
 
 class _SafeLoad:

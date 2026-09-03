@@ -246,6 +246,34 @@ def test_restricted_load_threaded():
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
 
 
+def test_temporary_modules_threaded():
+    """Overlapping module aliases must be serialized so the final context restores the original attribute."""
+    import pathlib
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from ultralytics.nn.tasks import temporary_modules
+
+    first_entered, second_attempted, second_entered = Event(), Event(), Event()
+
+    def first():
+        with temporary_modules(attributes={"pathlib.WindowsPath": "pathlib.PosixPath"}):
+            first_entered.set()
+            assert second_attempted.wait(5)
+            assert not second_entered.wait(0.1)
+
+    def second():
+        assert first_entered.wait(5)
+        second_attempted.set()
+        with temporary_modules(attributes={"pathlib.WindowsPath": "pathlib.PosixPath"}):
+            second_entered.set()
+
+    original = pathlib.WindowsPath
+    with ThreadPoolExecutor(2) as pool:
+        list(pool.map(lambda f: f(), (first, second)))
+    assert second_entered.is_set() and pathlib.WindowsPath is original
+
+
 def test_restricted_load_criterion(tmp_path):
     """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
     from ultralytics.nn.tasks import DetectionModel, torch_safe_load

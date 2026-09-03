@@ -14,11 +14,7 @@ import torch.nn.functional as F
 from ultralytics.nn.modules.conv import RepConv
 from ultralytics.utils.torch_utils import fuse_conv_and_bn
 
-__all__ = (
-    "MHSABlock",
-    "RepUltraViTBlock",
-    "UltraViTBlock",
-)
+__all__ = ("MHSABlock", "RepUltraViTBlock", "UltraViTBlock")
 
 
 # Length-aware SDPA temperature. A P5 token grid trained at ~224px (49 tokens for the /16 stem) but run at 640px
@@ -115,6 +111,7 @@ class UltraViTBlock(nn.Module):
         f = self._ffn(x)
         ls2 = getattr(self, "ls2", None)
         return x + (f if ls2 is None else ls2 * f)
+
 
 class RepUltraViTBlock(UltraViTBlock):
     """Use a FastViT-style reparameterized token mixer with the UltraViT ConvFFN."""

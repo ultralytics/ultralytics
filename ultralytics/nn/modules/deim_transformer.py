@@ -231,45 +231,20 @@ class DEIMTransformerDecoder(nn.Module):
     fixed across layers (DEIMv2 behavior).
     """
 
-    def __init__(
-        self, decoder_layer, decoder_layer_wide, num_layers, reg_max, eval_idx=-1, layer_scale=2, act=nn.ReLU()
-    ):
+    def __init__(self, decoder_layer, num_layers, reg_max, eval_idx=-1, act=nn.ReLU()):
         """Initialize the decoder.
 
         Args:
-            decoder_layer (nn.Module): Layer prototype deep-copied for every layer up to eval_idx.
-            decoder_layer_wide (nn.Module): Layer prototype deep-copied for the layers after eval_idx.
+            decoder_layer (nn.Module): Layer prototype deep-copied for every decoder layer.
             num_layers (int): Total number of decoder layers.
             reg_max (int): Max number of the discrete bins.
             eval_idx (int): Layer index used at inference; negative values count back from the last layer.
-            layer_scale (int): Width multiplier applied to the layers after eval_idx.
             act (nn.Module): Activation used by the location quality estimators.
         """
         super().__init__()
-        self.layer_scale = layer_scale
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
-        self.layers = nn.ModuleList(
-            [copy.deepcopy(decoder_layer) for _ in range(self.eval_idx + 1)]
-            + [copy.deepcopy(decoder_layer_wide) for _ in range(num_layers - self.eval_idx - 1)]
-        )
+        self.layers = nn.ModuleList([copy.deepcopy(decoder_layer) for _ in range(num_layers)])
         self.lqe_layers = nn.ModuleList([copy.deepcopy(LQE(4, 64, 2, reg_max, act=act)) for _ in range(num_layers)])
-
-    @staticmethod
-    def value_op(memory, value_scale, memory_mask):
-        """Resize and mask the encoder memory for MSDeformableAttention.
-
-        Args:
-            memory (torch.Tensor): Encoder memory with shape (B, L, C).
-            value_scale (int, optional): Target width for interpolation of the memory.
-            memory_mask (torch.Tensor, optional): Validity mask with shape (B, L).
-
-        Returns:
-            (torch.Tensor): Masked value tensor with shape (B, L, C).
-        """
-        value = F.interpolate(memory, size=value_scale) if value_scale is not None else memory
-        if memory_mask is not None:
-            value = value * memory_mask.to(value.dtype).unsqueeze(-1)
-        return value
 
     def forward(
         self,
@@ -315,7 +290,7 @@ class DEIMTransformerDecoder(nn.Module):
         """
         output = target
         output_detach = pred_corners_undetach = 0
-        value = self.value_op(memory, None, memory_mask)
+        value = memory if memory_mask is None else memory * memory_mask.to(memory.dtype).unsqueeze(-1)
 
         dec_out_bboxes = []
         dec_out_logits = []
@@ -327,17 +302,8 @@ class DEIMTransformerDecoder(nn.Module):
 
         for i, layer in enumerate(self.layers):
             ref_points_input = ref_points_detach.unsqueeze(2)
-            query_pos_embed = query_pos_fixed
 
-            # TODO Adjust scale if needed for detachable wider layers
-            if i >= self.eval_idx + 1 and self.layer_scale > 1:
-                query_pos_embed = F.interpolate(query_pos_embed, scale_factor=self.layer_scale)
-                query_pos_fixed = query_pos_embed
-                value = self.value_op(memory, query_pos_embed.shape[-1], memory_mask)
-                output = F.interpolate(output, size=query_pos_embed.shape[-1])
-                output_detach = output.detach()
-
-            output = layer(output, ref_points_input, value, spatial_shapes, attn_mask, query_pos_embed)
+            output = layer(output, ref_points_input, value, spatial_shapes, attn_mask, query_pos_fixed)
 
             if i == 0:
                 # Initial bounding box predictions with inverse sigmoid refinement
@@ -490,7 +456,6 @@ class DEIMTransformerDecoderLayer(nn.Module):
         dropout: float = 0.0,
         n_levels: int = 4,
         n_points: int = 4,
-        layer_scale=None,
         use_gateway: bool = False,
         use_rmsnorm: bool = True,
     ):
@@ -503,15 +468,10 @@ class DEIMTransformerDecoderLayer(nn.Module):
             dropout (float): Dropout probability applied after each sublayer.
             n_levels (int): Number of feature levels sampled by the cross-attention.
             n_points (int): Sampling points per head and level in the cross-attention.
-            layer_scale (float, optional): Width multiplier applied to both d_model and d_ffn.
             use_gateway (bool): Merge the cross-attention output with a learned gate instead of a residual add.
             use_rmsnorm (bool): Use RMSNorm instead of LayerNorm.
         """
         super().__init__()
-        if layer_scale is not None:
-            d_ffn = round(layer_scale * d_ffn)
-            d_model = round(layer_scale * d_model)
-
         self.self_attn = nn.MultiheadAttention(d_model, n_heads, dropout=dropout, batch_first=True)
         self.dropout1 = nn.Dropout(dropout)
         norm_layer = DEIMRMSNorm if use_rmsnorm else nn.LayerNorm

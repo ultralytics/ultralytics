@@ -1990,7 +1990,6 @@ class DEIMDecoder(RTDETRDecoder):
         box_noise_scale: float = 1.0,
         reg_max: int = 32,
         reg_scale: float = 4.0,
-        layer_scale: float = 1.0,
         mlp_act: str = "silu",
         use_gateway: bool = True,
         share_bbox_head: bool = False,
@@ -2017,11 +2016,10 @@ class DEIMDecoder(RTDETRDecoder):
             box_noise_scale (float): Denoising box noise scale.
             reg_max (int): Number of discrete bins in the distribution head.
             reg_scale (float): Scale controlling the non-uniform bin spacing.
-            layer_scale (float): Width multiplier applied to the decoder layers after eval_idx.
             mlp_act (str): Activation of the bbox/score/position MLPs, one of relu, gelu, silu.
             use_gateway (bool): Merge the cross-attention output with a learned gate instead of a residual add.
-            share_bbox_head (bool): Share one bbox head across the decoder layers up to eval_idx.
-            share_score_head (bool): Share one score head across the decoder layers up to eval_idx.
+            share_bbox_head (bool): Share one bbox head across the decoder layers.
+            share_score_head (bool): Share one score head across the decoder layers.
             use_rmsnorm (bool): Use RMSNorm instead of LayerNorm in the decoder layers.
         """
         nn.Module.__init__(self)
@@ -2034,7 +2032,6 @@ class DEIMDecoder(RTDETRDecoder):
 
         act_layer = self._select_activation(act)
         act_mlp = self._select_activation(mlp_act)
-        scaled_dim = round(layer_scale * hd)
 
         self.input_proj = self._build_input_proj(ch, hd)
 
@@ -2050,26 +2047,7 @@ class DEIMDecoder(RTDETRDecoder):
             use_gateway=use_gateway,
             use_rmsnorm=use_rmsnorm,
         )
-        decoder_layer_wide = DEIMTransformerDecoderLayer(
-            hd,
-            nh,
-            d_ffn,
-            dropout,
-            self.nl,
-            ndp,
-            layer_scale=layer_scale if layer_scale > 1 else None,
-            use_gateway=use_gateway,
-            use_rmsnorm=use_rmsnorm,
-        )
-        self.decoder = DEIMTransformerDecoder(
-            decoder_layer,
-            decoder_layer_wide,
-            ndl,
-            reg_max,
-            eval_idx,
-            layer_scale,
-            act=act_layer,
-        )
+        self.decoder = DEIMTransformerDecoder(decoder_layer, ndl, reg_max, eval_idx, act=act_layer)
 
         self.denoising_class_embed = nn.Embedding(nc, hd)
         self.num_denoising = nd
@@ -2083,19 +2061,13 @@ class DEIMDecoder(RTDETRDecoder):
         self.pre_bbox_head = self._build_bbox_head(hd, act_mlp)
         self.dfl = Integral(reg_max, self.up, self.reg_scale)
 
-        self.eval_idx = eval_idx if eval_idx >= 0 else ndl + eval_idx
         score_head = nn.Linear(hd, nc)
         self.dec_score_head = nn.ModuleList(
-            [score_head if share_score_head else copy.deepcopy(score_head) for _ in range(self.eval_idx + 1)]
-            + [copy.deepcopy(score_head) for _ in range(ndl - self.eval_idx - 1)]
+            score_head if share_score_head else copy.deepcopy(score_head) for _ in range(ndl)
         )
         bbox_head = MLP(hd, hd, 4 * (reg_max + 1), num_layers=3, act=act_mlp)
         self.dec_bbox_head = nn.ModuleList(
-            [bbox_head if share_bbox_head else copy.deepcopy(bbox_head) for _ in range(self.eval_idx + 1)]
-            + [
-                MLP(scaled_dim, scaled_dim, 4 * (reg_max + 1), num_layers=3, act=act_mlp)
-                for _ in range(ndl - self.eval_idx - 1)
-            ]
+            bbox_head if share_bbox_head else copy.deepcopy(bbox_head) for _ in range(ndl)
         )
 
         self._reset_parameters()

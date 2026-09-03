@@ -461,9 +461,10 @@ class BaseTrainer:
             self._model_train()
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
+            pbar = enumerate(self.train_loader)
+            # Update dataloader attributes (optional)
             if epoch == (self.epochs - self.args.close_mosaic):
                 self._close_dataloader_mosaic()
-            pbar = enumerate(self.train_loader)
 
             if RANK in {-1, 0}:
                 if self.loss_names:

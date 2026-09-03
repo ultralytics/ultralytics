@@ -313,7 +313,8 @@ import torch
 
 from ultralytics import RTDETR
 from ultralytics.models.rtdetr.train import RTDETRTrainer
-from ultralytics.utils.torch_utils import TORCH_2_0
+from ultralytics.nn.distill_model import DistillationModel
+from ultralytics.utils.torch_utils import unwrap_model
 
 
 class CustomClipTrainer(RTDETRTrainer):
@@ -325,13 +326,16 @@ class CustomClipTrainer(RTDETRTrainer):
         """Run an optimizer step with a configurable gradient-norm clip."""
         self.scaler.unscale_(self.optimizer)
         if self.clip_grad_norm > 0:
-            kwargs = {"foreach": False} if self.device.type == "npu" and TORCH_2_0 else {}
+            kwargs = {"foreach": False} if self.device.type == "npu" else {}
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.clip_grad_norm, **kwargs)
         self.scaler.step(self.optimizer)
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
-            self.ema.update(self.model)
+            model = unwrap_model(self.model)
+            if isinstance(model, DistillationModel):
+                model = torch.nn.Sequential(model.student_model, model.projector)
+            self.ema.update_parameters(model)
 
 
 model = RTDETR("rtdetr-l.pt")

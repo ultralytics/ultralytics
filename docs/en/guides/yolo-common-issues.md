@@ -30,7 +30,7 @@ This guide covers the most common problems you'll hit when working with Ultralyt
 Installation errors can arise due to various reasons, such as incompatible versions, missing dependencies, or incorrect environment setups. First, check to make sure you are doing the following:
 
 - You're using Python 3.8 or later as recommended.
-- Ensure that you have the correct version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later) installed.
+- Ensure that you have the correct version of [PyTorch](https://www.ultralytics.com/glossary/pytorch) (1.8 or later, 2.1 or later for training) installed.
 - Consider using virtual environments to avoid conflicts.
 - Follow the [official installation guide](../quickstart.md) step by step.
 

@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1, build_ema
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -100,6 +100,19 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
+
+
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
+def test_build_ema_decay_uses_next_update():
+    """Test EMA decay uses the update being applied rather than the previous update count."""
+    model = torch.nn.Linear(1, 1, bias=False)
+    model.weight.data.fill_(1)
+    ema = build_ema(model, decay=0.9, tau=1)
+    ema.update_parameters(model)
+    model.weight.data.zero_()
+    ema.update_parameters(model)
+    assert ema.n_averaged == 2
+    assert ema.module.weight.item() == pytest.approx(0.9 * (1 - np.exp(-2)))
 
 
 def test_build_yolo_dataset_hyp_isolated():

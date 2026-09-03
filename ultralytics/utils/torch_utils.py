@@ -727,8 +727,8 @@ def unset_deterministic():
 def build_ema(model: nn.Module, decay: float = 0.9999, tau: int = 2000) -> AveragedModel:
     """Build an Exponential Moving Average (EMA) of a model's parameters and buffers.
 
-    The decay ramps as `decay * (1 - exp(-updates / tau))` so the average tracks the model closely in early training
-    and settles at `decay`, as in https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage.
+    The decay ramps as `decay * (1 - exp(-updates / tau))` so the average tracks the model closely in early training and
+    settles at `decay`, as in https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage.
 
     Args:
         model (nn.Module): Model to average; compile and parallel wrappers are unwrapped first.

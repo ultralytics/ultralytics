@@ -42,7 +42,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
-from contextlib import contextmanager
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any, Callable
 
@@ -316,7 +316,16 @@ class BasePredictor:
             LOGGER.warning(f"{unsupported} not supported by this model (format='{self.model.format}'), ignoring.")
             self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
-        with self._lock, self._head_config():  # thread-safe inference on a head configured for this call only
+        native = getattr(self.model, "model", None)
+        # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
+        head = (
+            native.head_config(
+                self.model.end2end, max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms
+            )
+            if hasattr(native, "head_config")
+            else nullcontext()
+        )
+        with self._lock, head:  # thread-safe inference on a head configured for this call only
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
@@ -419,12 +428,7 @@ class BasePredictor:
             model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
-        prev = (
-            model.set_head_attr(end2end=self.args.end2end)
-            if self.args.end2end is not None and hasattr(model, "set_head_attr")
-            else {}
-        )
-        try:
+        with model.head_config(self.args.end2end) if hasattr(model, "head_config") else nullcontext():
             self.model = AutoBackend(
                 model=model or self.args.model,
                 device=select_device(self.args.device, verbose=verbose),
@@ -435,31 +439,12 @@ class BasePredictor:
                 fuse=True,
                 verbose=verbose,
             )
-        finally:
-            if prev and not model.end2end:  # fusing an end2end head discards its one2many branch, so that mode stays
-                model.set_head_attr(**prev)
 
         self.device = self.model.device  # update device
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
-
-    @contextmanager
-    def _head_config(self):
-        """Configure a native model head for one call, in the mode the backend was built for, then hand it back."""
-        native, prev = getattr(self.model, "model", None), {}
-        if hasattr(native, "set_head_attr"):
-            attrs = {"end2end": self.model.end2end} if native.end2end != self.model.end2end else {}
-            if self.model.end2end:
-                # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
-                attrs.update(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
-            prev = native.set_head_attr(**attrs)
-        try:
-            yield
-        finally:
-            if prev:
-                native.set_head_attr(**prev)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:
         """Write inference results to a file or directory.

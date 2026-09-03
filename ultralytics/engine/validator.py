@@ -61,18 +61,10 @@ def _head_config(fn):
 
     @functools.wraps(fn)
     def wrapper(self, trainer=None, model=None):
-        prev = {}
-        if trainer is None and hasattr(model, "set_head_attr"):
-            if self.args.end2end is not None:
-                prev = model.set_head_attr(end2end=self.args.end2end)
-            if model.end2end:
-                prev.update(model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms))
-                prev.pop("end2end", None)  # fusion discards the one2many branch, so that mode stays
-        try:
+        if trainer is not None or not hasattr(model, "head_config"):
             return fn(self, trainer, model)
-        finally:
-            if prev:
-                model.set_head_attr(**prev)
+        with model.head_config(self.args.end2end, max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms):
+            return fn(self, trainer, model)
 
     return wrapper
 

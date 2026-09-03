@@ -533,6 +533,19 @@ class DetectionModel(BaseModel):
             setattr(head, k, v)
         return prev
 
+    @contextlib.contextmanager
+    def head_config(self, end2end: bool | None = None, **kwargs):
+        """Apply head attributes for the block, then hand back the values they replaced."""
+        prev = self.set_head_attr(end2end=end2end) if end2end is not None and end2end != self.end2end else {}
+        if self.end2end:
+            prev.update(self.set_head_attr(**kwargs))
+        try:
+            yield
+        finally:
+            if prev.get("end2end") is False and getattr(self.model[-1], "cv2", None) is None:
+                prev.pop("end2end")  # fusion removed the one2many branch, so that mode cannot come back
+            self.set_head_attr(**prev)
+
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.
 

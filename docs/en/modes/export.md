@@ -137,18 +137,18 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")
-        model.train(data="coco.yaml", epochs=2, lr0=0.00005, warmup_epochs=0.0, mosaic=0.0, quantize=8)
+        model.train(data="coco.yaml", epochs=4, lr0=0.00005, warmup_epochs=0.0, mosaic=0.0, quantize=8)
         model.export(format="engine", quantize=8)  # ranges are already learned, no calibration data needed
         ```
 
     === "CLI"
 
         ```bash
-        yolo train model=yolo26n.pt data=coco.yaml epochs=2 lr0=0.00005 warmup_epochs=0 mosaic=0 quantize=8
+        yolo train model=yolo26n.pt data=coco.yaml epochs=4 lr0=0.00005 warmup_epochs=0 mosaic=0 quantize=8
         yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
         ```
 
-QAT fine-tunes an already-trained checkpoint, so it needs a small learning rate and few epochs: the training defaults are built for long runs from scratch, and both the warmup learning-rate spike and mosaic augmentation cost accuracy over two epochs. On COCO, `yolo26n` at `lr0=0.00005` recovers part of the INT8 gap while `lr0=0.0002` ends up below post-training quantization. It runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+QAT fine-tunes an already-trained checkpoint, so it needs a small learning rate and few epochs: the training defaults are built for long runs from scratch, and both the warmup learning-rate spike and mosaic augmentation cost accuracy over two epochs. On COCO, `yolo26n` at `lr0=0.00005` recovers part of the INT8 gap and was still improving at four epochs, while `lr0=0.0002` ends up below post-training quantization. It runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

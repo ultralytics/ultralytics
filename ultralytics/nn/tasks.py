@@ -269,7 +269,11 @@ class BaseModel(torch.nn.Module):
 
     def is_fused(self):
         """Return True once fuse() has folded the model's layers for inference."""
-        return any(isinstance(m, (Conv, ConvTranspose)) and not hasattr(m, "bn") for m in self.modules())
+        return any(
+            (isinstance(m, (Conv, ConvTranspose)) and not hasattr(m, "bn"))
+            or (isinstance(m, (RepConv, RepVGGDW)) and not hasattr(m, "conv1"))
+            for m in self.modules()
+        )
 
     def info(self, detailed=False, verbose=True, imgsz=640):
         """Print model information.

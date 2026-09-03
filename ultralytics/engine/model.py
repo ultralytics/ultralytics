@@ -824,19 +824,6 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
-        if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
-            from ultralytics.engine.trainer import MultiTrainer
-
-            use_python_trainer = trainer is not None or self.callbacks != callbacks.get_default_callbacks()
-            self.trainer = MultiTrainer(
-                (trainer or self._smart_load("trainer")) if use_python_trainer else None,
-                args,
-                self.model,
-                _callbacks=self.callbacks,
-            )
-            self.metrics = self.trainer.train()
-            return self.metrics
-        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"] = self.ckpt_path
@@ -848,10 +835,38 @@ class Model(torch.nn.Module):
                 )
                 args["resume"] = False
 
+        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
+        donor = self.model  # pretrained weights, kept in memory so class renames before train() carry over
+        loaded = self.overrides.get("pretrained")
+        if (
+            pretrained is True
+            and not args.get("resume")
+            and loaded is not False
+            and any(m.forward == getattr(m, "forward_fuse", None) for m in donor.modules())
+        ):
+            # predict() and val() fuse the loaded module in place, so its tensors can no longer seed training
+            src = loaded if isinstance(loaded, (str, Path)) else getattr(donor, "pt_path", None)
+            if src:
+                donor, _ = load_checkpoint(src)
+                donor.yaml = self.model.yaml  # trainers build the model from .yaml and take the module as weights
+                if len(donor.names) == len(self.model.names):
+                    donor.names = self.model.names
+        if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
+            from ultralytics.engine.trainer import MultiTrainer
+
+            use_python_trainer = trainer is not None or self.callbacks != callbacks.get_default_callbacks()
+            self.trainer = MultiTrainer(
+                (trainer or self._smart_load("trainer")) if use_python_trainer else None,
+                args,
+                donor,
+                _callbacks=self.callbacks,
+            )
+            self.metrics = self.trainer.train()
+            return self.metrics
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
             # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.
-            weights = None if pretrained is False else self.model
+            weights = None if pretrained is False else donor
             if isinstance(pretrained, (str, Path)):
                 weights, _ = load_checkpoint(pretrained)
             self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)

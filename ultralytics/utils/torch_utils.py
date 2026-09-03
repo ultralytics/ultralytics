@@ -758,16 +758,16 @@ class ModelEMA:
                 for v, m in zip(ema_v, model_v):
                     v.mul_(d).add_(m, alpha=1 - d)
 
-    def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
+    def update_attr(self, model, include=(), exclude=()):
         """Copy attributes from model to EMA, with options to include/exclude certain attributes.
 
         Args:
-            model (nn.Module): Model to copy attributes from.
+            model (nn.Module): Model to copy attributes from; compile and parallel wrappers are unwrapped first.
             include (tuple, optional): Attributes to include.
             exclude (tuple, optional): Attributes to exclude.
         """
         if self.enabled:
-            copy_attr(self.ema, model, include, exclude)
+            copy_attr(self.ema, unwrap_model(model), include, exclude)
 
 
 def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, Any] | None = None) -> dict[str, Any]:

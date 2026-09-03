@@ -828,11 +828,23 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
+        if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
+            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+                args["resume"] = self.ckpt_path
+            else:
+                LOGGER.warning(
+                    f"model '{self.ckpt_path}' is not a resumable training checkpoint "
+                    f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
+                    f"Starting new training instead."
+                )
+                args["resume"] = False
+
         pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         donor = self.model  # pretrained weights, kept in memory so class renames before train() carry over
         loaded = self.overrides.get("pretrained")
         if (
             pretrained is True
+            and not args.get("resume")
             and loaded is not False
             and any(m.forward == getattr(m, "forward_fuse", None) for m in donor.modules())
         ):
@@ -855,17 +867,6 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
-        if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
-            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                args["resume"] = self.ckpt_path
-            else:
-                LOGGER.warning(
-                    f"model '{self.ckpt_path}' is not a resumable training checkpoint "
-                    f"(missing epoch/optimizer state). Use 'resume' only to continue incomplete training. "
-                    f"Starting new training instead."
-                )
-                args["resume"] = False
-
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
             # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.

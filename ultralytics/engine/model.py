@@ -13,7 +13,6 @@ from PIL import Image
 
 from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.modules import Conv, ConvTranspose
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -835,7 +834,7 @@ class Model(torch.nn.Module):
         if (
             pretrained is True
             and loaded is not False
-            and any(isinstance(m, (Conv, ConvTranspose)) and not hasattr(m, "bn") for m in donor.modules())
+            and any(m.forward == getattr(m, "forward_fuse", None) for m in donor.modules())
         ):
             # predict() and val() fuse the loaded module in place, so its tensors can no longer seed training
             src = loaded if isinstance(loaded, (str, Path)) else getattr(donor, "pt_path", None)

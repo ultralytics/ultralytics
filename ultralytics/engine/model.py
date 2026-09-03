@@ -13,6 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
+from ultralytics.nn.modules import Conv
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -309,6 +310,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.overrides["pretrained"] = False  # a fresh init seeds nothing, here or in a DDP child
         return self
 
     def load(self, weights: str | Path = "yolo26n.pt") -> Model:
@@ -824,6 +826,15 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
+        donor = self.model  # pretrained weights, kept in memory so class renames before train() carry over
+        loaded = self.overrides.get("pretrained")
+        if loaded is not False and any(isinstance(m, Conv) and not hasattr(m, "bn") for m in donor.modules()):
+            # predict() and val() fuse the loaded module in place, so its tensors can no longer seed training
+            src = loaded if isinstance(loaded, (str, Path)) else getattr(donor, "pt_path", None)
+            if src:
+                donor, _ = load_checkpoint(src)
+                if len(donor.names) == len(self.model.names):
+                    donor.names = self.model.names
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
             from ultralytics.engine.trainer import MultiTrainer
 
@@ -831,7 +842,7 @@ class Model(torch.nn.Module):
             self.trainer = MultiTrainer(
                 (trainer or self._smart_load("trainer")) if use_python_trainer else None,
                 args,
-                self.model,
+                donor,
                 _callbacks=self.callbacks,
             )
             self.metrics = self.trainer.train()
@@ -851,7 +862,7 @@ class Model(torch.nn.Module):
         self.trainer = (trainer or self._smart_load("trainer"))(overrides=args, _callbacks=self.callbacks)
         if not args.get("resume") and self.ckpt:
             # Reuse the already-loaded checkpoint model to avoid re-resolving remote weight sources during trainer setup.
-            weights = None if pretrained is False else self.model
+            weights = None if pretrained is False else donor
             if isinstance(pretrained, (str, Path)):
                 weights, _ = load_checkpoint(pretrained)
             self.trainer.model = self.trainer.get_model(weights=weights, cfg=self.model.yaml)

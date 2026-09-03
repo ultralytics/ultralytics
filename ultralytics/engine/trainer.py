@@ -411,8 +411,8 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
-        self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
+        self.ema = ModelEMA(self.model)  # after set_class_weights, so the copy carries them at any nesting depth
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))

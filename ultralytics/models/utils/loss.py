@@ -892,7 +892,7 @@ class DEIMLoss(DETRLoss):
         cache_name = "fgl_targets_dn" if is_dn else "fgl_targets"
         target_cache = getattr(self, cache_name)
         if target_cache is None:
-            target_boxes_xyxy = xywh2xyxy(target_boxes, clamp_neg=True)
+            target_boxes_xyxy = xywh2xyxy(target_boxes)
             target_cache = bbox2distance(ref_points[idx].detach(), target_boxes_xyxy, self.reg_max, reg_scale, up)
             setattr(self, cache_name, target_cache)
         target_corners, weight_right, weight_left = target_cache

@@ -6,6 +6,7 @@ import contextlib
 import pickle
 import re
 import threading
+import types
 from copy import deepcopy
 from pathlib import Path
 
@@ -1543,52 +1544,38 @@ class Ensemble(torch.nn.ModuleList):
 # Functions ------------------------------------------------------------------------------------------------------------
 
 
-@contextlib.contextmanager
-def temporary_modules(modules=None, attributes=None):
-    """Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
+class _LegacyUnpickler(pickle.Unpickler):
+    """Unpickler that resolves paths pickled by older Ultralytics releases and other platforms to their current owners.
 
-    This function can be used to change the module paths during runtime. It's useful when refactoring code, where you've
-    moved a module from one location to another, but you still want to support the old import paths for backwards
-    compatibility.
-
-    Args:
-        modules (dict, optional): A dictionary mapping old module paths to new module paths.
-        attributes (dict, optional): A dictionary mapping old module attributes to new module attributes.
-
-    Examples:
-        >>> with temporary_modules({"old.module": "new.module"}, {"old.module.attribute": "new.module.attribute"}):
-        >>> import old.module  # this will now import new.module
-        >>> from old.module import attribute  # this will now import new.module.attribute
-
-    Notes:
-        The changes are only in effect inside the context manager and are undone once the context manager exits.
-        Be aware that directly manipulating `sys.modules` can lead to unpredictable results, especially in larger
-        applications or libraries. Use this function with caution.
+    Served to `torch.load` through the `_LEGACY_PICKLE` module, so the aliases only apply while that checkpoint
+    unpickles instead of being written into `sys.modules` or onto the live modules for the rest of the process.
     """
-    if modules is None:
-        modules = {}
-    if attributes is None:
-        attributes = {}
-    import sys
-    from importlib import import_module
 
-    try:
-        # Set attributes in sys.modules under their old name
-        for old, new in attributes.items():
-            old_module, old_attr = old.rsplit(".", 1)
-            new_module, new_attr = new.rsplit(".", 1)
-            setattr(import_module(old_module), old_attr, getattr(import_module(new_module), new_attr))
+    modules = {  # old package prefix -> current package
+        "ultralytics.yolo.utils": "ultralytics.utils",
+        "ultralytics.yolo.v8": "ultralytics.models.yolo",
+        "ultralytics.yolo.data": "ultralytics.data",
+    }
+    attributes = {  # old "module.Name" -> current "module.Name"
+        "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
+        "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
+        "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
+        # resolve cross-platform pathlib pickle incompatibility
+        **({"pathlib.PosixPath": "pathlib.WindowsPath"} if WINDOWS else {"pathlib.WindowsPath": "pathlib.PosixPath"}),
+    }
 
-        # Set modules in sys.modules under their old name
-        for old, new in modules.items():
-            sys.modules[old] = import_module(new)
+    def find_class(self, module, name):
+        """Map a pickled `module.Name` path to its current owner before resolving it."""
+        module, _, name = self.attributes.get(f"{module}.{name}", f"{module}.{name}").rpartition(".")
+        for old, new in self.modules.items():
+            if module == old or module.startswith(f"{old}."):
+                module = new + module[len(old) :]
+        return super().find_class(module, name)
 
-        yield
-    finally:
-        # Remove the temporary module paths
-        for old in modules:
-            if old in sys.modules:
-                del sys.modules[old]
+
+_LEGACY_PICKLE = types.ModuleType("legacy_pickle")  # `pickle_module` for torch.load that unpickles via _LegacyUnpickler
+_LEGACY_PICKLE.Unpickler = _LegacyUnpickler
+_LEGACY_PICKLE.load = lambda f, **kwargs: _LegacyUnpickler(f, **kwargs).load()
 
 
 class _SafeLoad:
@@ -1734,7 +1721,7 @@ class _SafeLoad:
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
-        # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
+        # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring _LegacyUnpickler.
         def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
@@ -1792,28 +1779,10 @@ def torch_safe_load(weight, safe_only=None):
     file = attempt_download_asset(weight)  # search online if missing locally
 
     def _load():
-        with temporary_modules(
-            modules={
-                "ultralytics.yolo.utils": "ultralytics.utils",
-                "ultralytics.yolo.v8": "ultralytics.models.yolo",
-                "ultralytics.yolo.data": "ultralytics.data",
-            },
-            attributes={
-                "ultralytics.nn.modules.block.Silence": "torch.nn.Identity",  # YOLOv9e
-                "ultralytics.nn.tasks.YOLOv10DetectionModel": "ultralytics.nn.tasks.DetectionModel",  # YOLOv10
-                "ultralytics.utils.loss.v10DetectLoss": "ultralytics.utils.loss.E2EDetectLoss",  # YOLOv10
-                # resolve cross-platform pathlib pickle incompatibility
-                **(
-                    {"pathlib.PosixPath": "pathlib.WindowsPath"}
-                    if WINDOWS
-                    else {"pathlib.WindowsPath": "pathlib.PosixPath"}
-                ),
-            },
-        ):
-            if safe_only:
-                with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
-                    return torch_load(file, map_location="cpu", weights_only=True)
-            return torch_load(file, map_location="cpu")
+        if safe_only:
+            with _SafeLoad.loading(file):  # weights_only load against the known-class allow-list
+                return torch_load(file, map_location="cpu", weights_only=True)
+        return torch_load(file, map_location="cpu", pickle_module=_LEGACY_PICKLE)
 
     # weights_only=True raises on a TorchScript archive; the default path returns a ScriptModule instead.
     torchscript_error = emojis(

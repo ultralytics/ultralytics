@@ -1176,7 +1176,7 @@ class ClassificationDataset:
 
         # Initialize attributes
         fraction = 1.0 if is_ndjson else get_split_fraction(args.fraction, prefix or ("train" if augment else "val"))
-        count = fraction if isinstance(fraction, int) else round(len(self.samples) * fraction)
+        count = fraction if isinstance(fraction, int) else max(1, round(len(self.samples) * fraction))
         self.samples = (
             [self.samples[i] for i in np.linspace(0, len(self.samples) - 1, count, dtype=int)]
             if count < len(self.samples)

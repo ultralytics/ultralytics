@@ -110,6 +110,13 @@ def test_build_yolo_dataset_hyp_isolated():
     assert cfg.mosaic == DEFAULT_CFG.mosaic
 
 
+def test_dataset_fraction_selects_at_least_one_image():
+    """Test a fraction that rounds down to zero images still selects one, as get_split_fraction() promises."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "fraction": 0.05})  # 4 images, rounds to 0
+    assert len(data_build.build_yolo_dataset(cfg, data["train"], batch=1, data=data, mode="train").im_files) == 1
+
+
 def test_cfg_rejects_fuzzed_values():
     """Test invalid overrides fail in config validation."""
     with pytest.raises(TypeError, match="degrees"):
@@ -1897,6 +1904,9 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     samples = ClassificationDataset(tmp_path, args, augment=True).samples
 
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+
+    args.fraction = 0.01  # rounds down to zero images
+    assert len(ClassificationDataset(tmp_path, args, augment=True).samples) == 1
 
 
 @pytest.fixture

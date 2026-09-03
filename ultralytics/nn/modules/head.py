@@ -1988,12 +1988,10 @@ class DEIMDecoder(RTDETRDecoder):
         nd: int = 100,
         label_noise_ratio: float = 0.5,
         box_noise_scale: float = 1.0,
-        learnt_init_query: bool = False,
         reg_max: int = 32,
         reg_scale: float = 4.0,
         layer_scale: float = 1.0,
         mlp_act: str = "silu",
-        o2m_topk_mode: str = "unshared",
         use_gateway: bool = True,
         share_bbox_head: bool = False,
         share_score_head: bool = False,
@@ -2017,12 +2015,10 @@ class DEIMDecoder(RTDETRDecoder):
             nd (int): Number of denoising queries during training.
             label_noise_ratio (float): Denoising class-label noise ratio.
             box_noise_scale (float): Denoising box noise scale.
-            learnt_init_query (bool): Learn query embeddings instead of content-based selection; unsupported.
             reg_max (int): Number of discrete bins in the distribution head.
             reg_scale (float): Scale controlling the non-uniform bin spacing.
             layer_scale (float): Width multiplier applied to the decoder layers after eval_idx.
             mlp_act (str): Activation of the bbox/score/position MLPs, one of relu, gelu, silu.
-            o2m_topk_mode (str): One-to-many top-k selection mode used by the matching supervision.
             use_gateway (bool): Merge the cross-attention output with a learned gate instead of a residual add.
             share_bbox_head (bool): Share one bbox head across the decoder layers up to eval_idx.
             share_score_head (bool): Share one score head across the decoder layers up to eval_idx.
@@ -2031,19 +2027,10 @@ class DEIMDecoder(RTDETRDecoder):
         nn.Module.__init__(self)
         if ndp is None:
             ndp = [3, 6, 3] if len(ch) == 3 else 4  # per-level sampling points for the yolo27 3-level neck
-        self.hidden_dim = hd
-        self.nhead = nh
         self.nl = len(ch)
         self.nc = nc
         self.num_queries = nq
-        self.num_decoder_layers = ndl
         self.reg_max = reg_max
-        self.layer_scale = layer_scale
-        self.query_noise_scale = 0.0
-        self.o2m_topk_mode = o2m_topk_mode
-        self.learnt_init_query = learnt_init_query
-        if self.learnt_init_query:
-            raise ValueError("DEIMDecoder does not support learnt_init_query=True.")
 
         act_layer = self._select_activation(act)
         act_mlp = self._select_activation(mlp_act)
@@ -2191,11 +2178,10 @@ class DEIMDecoder(RTDETRDecoder):
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
         enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
 
-        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        embeddings = top_k_features
         if self.training:
             refer_bbox = refer_bbox.detach()
-            if not self.learnt_init_query:
-                embeddings = embeddings.detach()
+            embeddings = embeddings.detach()
         if dn_embed is not None:
             embeddings = torch.cat([dn_embed, embeddings], 1)
 

@@ -40,7 +40,6 @@ class MSDeformableAttention(nn.Module):
         num_points_list (list[int]): Number of sampling points for each feature level.
         num_points_scale (torch.Tensor): Per-point normalizer used when reference points carry width and height.
         total_points (int): Total number of sampling points across all heads and levels.
-        method (str): Sampling mode, either default or discrete.
         head_dim (int): Feature dimension of a single attention head.
         sampling_offsets (nn.Linear): Projection producing the per-point sampling offsets.
         attention_weights (nn.Linear): Projection producing the per-point attention weights.
@@ -52,7 +51,6 @@ class MSDeformableAttention(nn.Module):
         num_heads=8,
         num_levels=4,
         num_points=4,
-        method="default",
         offset_scale=0.5,
     ):
         """Initialize the deformable attention module.
@@ -62,7 +60,6 @@ class MSDeformableAttention(nn.Module):
             num_heads (int): Number of attention heads.
             num_levels (int): Number of feature levels sampled from.
             num_points (int | list[int]): Sampling points per head, shared across levels or one entry per level.
-            method (str): Sampling mode; discrete freezes the sampling offsets so only the weights are learned.
             offset_scale (float): Multiplier applied to the predicted sampling offsets.
         """
         super().__init__()
@@ -83,7 +80,6 @@ class MSDeformableAttention(nn.Module):
         self.register_buffer("num_points_scale", torch.tensor(num_points_scale, dtype=torch.float32))
 
         self.total_points = num_heads * sum(num_points_list)
-        self.method = method
 
         self.head_dim = embed_dim // num_heads
         assert self.head_dim * num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
@@ -92,10 +88,6 @@ class MSDeformableAttention(nn.Module):
         self.attention_weights = nn.Linear(embed_dim, self.total_points)
 
         self._reset_parameters()
-
-        if method == "discrete":
-            for p in self.sampling_offsets.parameters():
-                p.requires_grad = False
 
     def _reset_parameters(self):
         """Initialize sampling offsets on a ring of head-specific directions and zero the attention weights."""
@@ -262,7 +254,8 @@ class DEIMTransformerDecoder(nn.Module):
         )
         self.lqe_layers = nn.ModuleList([copy.deepcopy(LQE(4, 64, 2, reg_max, act=act)) for _ in range(num_layers)])
 
-    def value_op(self, memory, value_scale, memory_mask):
+    @staticmethod
+    def value_op(memory, value_scale, memory_mask):
         """Resize and mask the encoder memory for MSDeformableAttention.
 
         Args:
@@ -497,7 +490,6 @@ class DEIMTransformerDecoderLayer(nn.Module):
         dropout: float = 0.0,
         n_levels: int = 4,
         n_points: int = 4,
-        cross_attn_method: str = "default",
         layer_scale=None,
         use_gateway: bool = False,
         use_rmsnorm: bool = True,
@@ -511,7 +503,6 @@ class DEIMTransformerDecoderLayer(nn.Module):
             dropout (float): Dropout probability applied after each sublayer.
             n_levels (int): Number of feature levels sampled by the cross-attention.
             n_points (int): Sampling points per head and level in the cross-attention.
-            cross_attn_method (str): Sampling mode of the cross-attention.
             layer_scale (float, optional): Width multiplier applied to both d_model and d_ffn.
             use_gateway (bool): Merge the cross-attention output with a learned gate instead of a residual add.
             use_rmsnorm (bool): Use RMSNorm instead of LayerNorm.
@@ -526,7 +517,7 @@ class DEIMTransformerDecoderLayer(nn.Module):
         norm_layer = DEIMRMSNorm if use_rmsnorm else nn.LayerNorm
         self.norm1 = norm_layer(d_model)
 
-        self.cross_attn = MSDeformableAttention(d_model, n_heads, n_levels, n_points, method=cross_attn_method)
+        self.cross_attn = MSDeformableAttention(d_model, n_heads, n_levels, n_points)
         self.dropout2 = nn.Dropout(dropout)
         self.use_gateway = use_gateway
         if use_gateway:

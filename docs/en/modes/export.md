@@ -148,7 +148,7 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
         yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
         ```
 
-QAT fine-tunes an already-trained checkpoint, so use a small learning rate and few epochs. The resulting checkpoint carries the learned ranges, which `onnx` and `engine` exports emit as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+QAT fine-tunes an already-trained checkpoint, so use a small learning rate and few epochs. It runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

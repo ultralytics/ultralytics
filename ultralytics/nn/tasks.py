@@ -1870,7 +1870,8 @@ def torch_safe_load(weight, safe_only=None):
             f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
         )
-        check_requirements(e.name)  # install missing module
+        # ModelOpt, required to unpickle a QAT checkpoint, ships under a pip name that differs from its module
+        check_requirements("nvidia-modelopt>=0.44" if e.name == "modelopt" else e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
 
     if not isinstance(ckpt, dict):

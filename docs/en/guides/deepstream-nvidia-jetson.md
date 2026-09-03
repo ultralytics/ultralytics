@@ -1,5 +1,5 @@
 ---
-title: YOLO26 on Jetson: DeepStream & TensorRT
+title: YOLO26 on Jetson DeepStream & TensorRT
 comments: true
 description: Learn how to deploy Ultralytics YOLO26 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
@@ -393,42 +393,42 @@ The following [benchmarks](../modes/benchmark.md) summarize how YOLO11 models pe
     === "YOLO11n"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 8.64                   |
-        | TensorRT (FP16) | ✅      | 5.27                   |
-        | TensorRT (INT8) | ✅      | 4.54                   |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 8.64                   |
+        | TensorRT (FP16) | ✅     | 5.27                   |
+        | TensorRT (INT8) | ✅     | 4.54                   |
 
     === "YOLO11s"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 14.53                  |
-        | TensorRT (FP16) | ✅      | 7.91                   |
-        | TensorRT (INT8) | ✅      | 6.05                   |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 14.53                  |
+        | TensorRT (FP16) | ✅     | 7.91                   |
+        | TensorRT (INT8) | ✅     | 6.05                   |
 
     === "YOLO11m"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 32.05                  |
-        | TensorRT (FP16) | ✅      | 15.55                  |
-        | TensorRT (INT8) | ✅      | 10.43                  |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 32.05                  |
+        | TensorRT (FP16) | ✅     | 15.55                  |
+        | TensorRT (INT8) | ✅     | 10.43                  |
 
     === "YOLO11l"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 39.68                  |
-        | TensorRT (FP16) | ✅      | 19.88                  |
-        | TensorRT (INT8) | ✅      | 13.64                  |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 39.68                  |
+        | TensorRT (FP16) | ✅     | 19.88                  |
+        | TensorRT (INT8) | ✅     | 13.64                  |
 
     === "YOLO11x"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 80.65                  |
-        | TensorRT (FP16) | ✅      | 39.06                  |
-        | TensorRT (INT8) | ✅      | 22.83                  |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 80.65                  |
+        | TensorRT (FP16) | ✅     | 39.06                  |
+        | TensorRT (INT8) | ✅     | 22.83                  |
 
 ## Acknowledgments
 

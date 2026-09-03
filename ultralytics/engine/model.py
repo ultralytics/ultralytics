@@ -337,8 +337,9 @@ class Model(torch.nn.Module):
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = load_checkpoint(weights)
-        else:
-            self.model.pt_path = None  # in-memory weights have no file to reload from
+        else:  # in-memory weights have no file to reload from
+            self.model.pt_path = None
+            self.overrides.pop("pretrained", None)
         self.model.load(weights)
         return self
 

@@ -1875,7 +1875,6 @@ def test_nn_depth_head_export_upsamples_to_input():
     assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
 
 
-@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_nn_depth_head_no_dead_parameters():
     """Every head parameter receives gradient — DDP then needs no find_unused_parameters."""
     from ultralytics.nn.modules.head import Depth

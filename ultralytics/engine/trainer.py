@@ -45,14 +45,18 @@ from ultralytics.utils import (
     emojis,
 )
 from ultralytics.utils.autobatch import check_train_batch_size
-from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
+from ultralytics.utils.checks import (
+    check_amp,
+    check_file,
+    check_imgsz,
+    check_model_file_from_stem,
+    check_version,
+    print_args,
+)
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
-    TORCH_1_11,
-    TORCH_2_0,
-    TORCH_2_1,
     TORCH_2_4,
     EarlyStopping,
     attempt_compile,
@@ -132,9 +136,9 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        assert TORCH_2_1, (
-            f"Training requires torch>=2.1 (found torch=={TORCH_VERSION}); inference and export run on torch>=1.8"
-        )
+        check_version(
+            TORCH_VERSION, "2.1.0", name="torch", hard=True
+        )  # AveragedModel multi_avg_fn; inference runs on 1.8
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
@@ -324,7 +328,7 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU
-        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        channels_last = self.args.channels_last is not False
         if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
@@ -403,13 +407,12 @@ class BaseTrainer:
         if self.world_size > 1:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
-            ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
                 broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
-                **ddp_kwargs,
+                static_graph=bool(self.args.compile),
             )
 
         # Batch size
@@ -858,7 +861,7 @@ class BaseTrainer:
     def optimizer_step(self):
         """Perform a single step of the training optimizer with gradient clipping and EMA update."""
         self.scaler.unscale_(self.optimizer)  # unscale gradients
-        if self.device.type == "npu" and TORCH_2_0:
+        if self.device.type == "npu":
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0, foreach=False)
         else:
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
@@ -867,7 +870,7 @@ class BaseTrainer:
         self.optimizer.zero_grad()
         if self.ema:
             model = unwrap_model(self.model)
-            if hasattr(model, "teacher_model"):  # the EMA carries no teacher, so average the student stream only
+            if isinstance(model, DistillationModel):  # the EMA carries no teacher, so average the student stream only
                 model = nn.Sequential(model.student_model, model.projector)
             self.ema.update_parameters(model)
 

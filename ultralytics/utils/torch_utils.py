@@ -748,7 +748,7 @@ def build_ema(model: nn.Module, decay: float = 0.9999, tau: int = 2000) -> Avera
     def update(ema_v: list[torch.Tensor], model_v: list[torch.Tensor], _):
         """Lerp one device/dtype group of EMA tensors toward the model; integer buffers keep their initial values."""
         if ema_v[0].is_floating_point():
-            w = 1 - decay * (1 - math.exp(-int(ema.n_averaged) / tau))  # `n_averaged` lives on CPU, so no device sync
+            w = 1 - decay * (1 - math.exp(-(int(ema.n_averaged) + 1) / tau))  # CPU `n_averaged` counts prior updates
             if ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps"):
                 torch._foreach_lerp_(ema_v, model_v, w)  # one kernel launch per group
             else:  # _foreach_lerp_ needs MPS torch>=2.4 and is unavailable on NPU

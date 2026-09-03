@@ -288,7 +288,7 @@ Most YOLO26 issues trace back to a handful of causes: version mismatches, datase
 
 ### How do I resolve installation errors with YOLO26?
 
-Installation errors can often be due to compatibility issues or missing dependencies. Ensure you use Python 3.8 or later and have PyTorch 1.8 or later installed. It's beneficial to use virtual environments to avoid conflicts. For a step-by-step installation guide, follow our [official installation guide](../quickstart.md). If you encounter import errors, try a fresh installation or update the library to the latest version.
+Installation errors can often be due to compatibility issues or missing dependencies. Ensure you use Python 3.8 or later and have PyTorch 1.8 or later installed (2.1 or later to train). It's beneficial to use virtual environments to avoid conflicts. For a step-by-step installation guide, follow our [official installation guide](../quickstart.md). If you encounter import errors, try a fresh installation or update the library to the latest version.
 
 ### Why is my YOLO26 model training slow on a single GPU?
 

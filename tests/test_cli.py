@@ -11,7 +11,7 @@ from PIL import Image
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_VERSION
+from ultralytics.utils.torch_utils import TORCH_2_1, TORCH_VERSION
 
 
 def run(cmd: str) -> None:
@@ -88,6 +88,7 @@ def test_cli_imports_defer_torchvision() -> None:
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train(task: str, model: str, data: str) -> None:
     """Test YOLO training for different tasks, models, and datasets."""
     run(f"yolo train {task} model={model} data={data} imgsz=32 epochs=1 cache=disk")
@@ -127,16 +128,17 @@ def test_export(model: str, tmp_path: Path) -> None:
         ("obb", "dota8.yaml", "yolo26n-obb.yaml", WEIGHTS_DIR / "yolo26s-obb.pt"),
     ],
 )
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_distill(task: str, data: str, student: str, teacher: Path) -> None:
     """Test YOLO knowledge distillation training via CLI for supported tasks."""
     run(f"yolo train {task} model={student} distill_model={teacher} data={data} imgsz=32 epochs=1")
 
 
-@pytest.mark.skipif(not TORCH_1_11, reason="RTDETR requires torch>=1.11")
 @pytest.mark.skipif(
     LINUX and ARM64 and checks.IS_PYTHON_3_8 and "2.1.0a0" in TORCH_VERSION,
     reason="RTDETR CPU training produces NaN losses with JetPack 5 torch 2.1.0a0",
 )
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_rtdetr(task: str = "detect", model: Path = WEIGHTS_DIR / "rtdetr-l.pt", data: str = "coco8.yaml") -> None:
     """Test the RTDETR functionality within Ultralytics for detection tasks using specified model and data."""
     # Add comma and spaces to test CLI arg cleanup.

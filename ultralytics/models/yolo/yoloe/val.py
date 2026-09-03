@@ -155,7 +155,7 @@ class YOLOEDetectValidator(DetectionValidator):
         """
         if trainer is not None:
             self.device = trainer.device
-            model = trainer.ema.ema
+            model = trainer.ema.module
             names = [name.split("/", 1)[0] for name in list(self.dataloader.dataset.data["names"].values())]
 
             if load_vp:

@@ -18,7 +18,7 @@ from ultralytics.models.yolo import classify, depth, detect, obb, pose, segment,
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import DetectionModel, load_checkpoint
 from ultralytics.utils import ASSETS, DEFAULT_CFG, IS_RASPBERRYPI, WEIGHTS_DIR
-from ultralytics.utils.torch_utils import unwrap_model
+from ultralytics.utils.torch_utils import TORCH_2_1, unwrap_model
 
 
 def test_func(*args, **kwargs):
@@ -77,6 +77,7 @@ def test_export(monkeypatch, tmp_path):
     ],
 )
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
     """Test YOLO training, validation, and prediction for various tasks."""
     overrides = {
@@ -126,6 +127,7 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
 
 
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_resume_incomplete(task, weight, data, tmp_path):
     """Test training resumes from an incomplete checkpoint."""
     train_args = {
@@ -161,6 +163,7 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {
@@ -232,6 +235,7 @@ def test_load_checkpoint_state_dict_rejected(ckpt, tmp_path):
         load_checkpoint(weight)
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_nan_recovery():
     """Test NaN loss detection and recovery during training."""
     nan_injected = [False]
@@ -249,13 +253,14 @@ def test_nan_recovery():
     assert nan_injected[0], "NaN injection failed"
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_checkpoint_fp16_overflow():
     """Test a finite model whose weights overflow fp16 is still checkpointed (clamped) instead of skipped."""
 
     def inflate_ema(trainer):
         """Push an EMA weight above the fp16 max (65504) so its fp16 snapshot would otherwise become Inf."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = 1.0e5
+            next(iter(trainer.ema.module.parameters())).data.flatten()[0] = 1.0e5
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -267,19 +272,20 @@ def test_checkpoint_fp16_overflow():
         "saved checkpoint contains NaN/Inf"
     )
     # Validation must leave the live EMA fp32 and unchanged; checkpoint serialization may clamp its fp16 copy.
-    ema_param = next(iter(trainer.ema.ema.parameters()))
+    ema_param = next(iter(trainer.ema.module.parameters()))
     assert ema_param.dtype == torch.float32 and torch.isfinite(ema_param).all() and ema_param.flatten()[0] == 1.0e5, (
         "validation corrupted the live EMA"
     )
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_checkpoint_nonfinite_ema_resync():
     """Test a non-finite EMA on a finite model is resynced (not skipped) so the run still produces a checkpoint."""
 
     def poison_ema(trainer):
         """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run)."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+            next(iter(trainer.ema.module.parameters())).data.flatten()[0] = float("inf")
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -292,13 +298,14 @@ def test_checkpoint_nonfinite_ema_resync():
     )
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_checkpoint_nonfinite_ema_and_model_sanitized():
     """Test a tensor non-finite in both EMA and model is sanitized (not skipped) so the run still produces a checkpoint."""
 
     def poison_ema_and_model(trainer):
         """Force the first parameter non-finite in both the live EMA and the model (finite-loss sticky-NaN)."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+            next(iter(trainer.ema.module.parameters())).data.flatten()[0] = float("inf")
             next(iter(unwrap_model(trainer.model).parameters())).data.flatten()[0] = float("nan")
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 1}
@@ -317,6 +324,7 @@ def test_checkpoint_nonfinite_ema_and_model_sanitized():
     [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
 )
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
     """Test training reuses loaded checkpoint config while respecting the pretrained argument."""
     model = YOLO("yolo26n.yaml")
@@ -359,6 +367,7 @@ def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights)
     assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_path):
     """Test custom multi-dataset runs keep memory metrics and unique failure keys."""
     model = YOLO(MODEL)

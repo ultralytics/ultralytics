@@ -36,6 +36,7 @@ from ultralytics.utils import (
     LOCAL_RANK,
     LOGGER,
     RANK,
+    TORCH_VERSION,
     TQDM,
     YAML,
     callbacks,
@@ -51,12 +52,14 @@ from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
+    TORCH_2_1,
     TORCH_2_4,
     EarlyStopping,
-    ModelEMA,
     attempt_compile,
     autocast,
+    build_ema,
     convert_optimizer_state_dict_to_fp16,
+    copy_attr,
     get_torch_device_backend,
     init_seeds,
     one_cycle,
@@ -92,7 +95,7 @@ class BaseTrainer:
         amp (bool): Whether Automatic Mixed Precision is enabled.
         scaler (torch.amp.GradScaler): Gradient scaler for AMP.
         data (dict): Dataset dictionary containing paths and metadata.
-        ema (ModelEMA): EMA (Exponential Moving Average) of the model.
+        ema (AveragedModel): EMA (Exponential Moving Average) of the model.
         resume (bool): Resume training from a checkpoint.
         lf (callable): Learning rate scheduling function.
         scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
@@ -129,6 +132,9 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        assert TORCH_2_1, (
+            f"Training requires torch>=2.1 (found torch=={TORCH_VERSION}); inference and export run on torch>=1.8"
+        )
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
@@ -411,7 +417,7 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
-        self.ema = ModelEMA(self.model)
+        self.ema = build_ema(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
@@ -598,7 +604,11 @@ class BaseTrainer:
 
             self.run_callbacks("on_train_epoch_end")
             if RANK in {-1, 0}:
-                self.ema.update_attr(self.model, include=["yaml", "nc", "args", "names", "stride", "class_weights"])
+                copy_attr(
+                    self.ema.module,
+                    unwrap_model(self.model),
+                    include=["yaml", "nc", "args", "names", "stride", "class_weights"],
+                )
 
             # Validation
             final_epoch = epoch + 1 >= self.epochs
@@ -723,7 +733,7 @@ class BaseTrainer:
         # save_model would otherwise skip every epoch and the run would finish with no checkpoint on valid input.
         # Resync each poisoned EMA tensor from the live model where finite; any tensor that is non-finite in both is
         # left for the nan_to_num_ pass below, so a usable checkpoint is always written.
-        ema = unwrap_model(self.ema.ema)
+        ema = self.ema.module
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             model_sd = unwrap_model(self.model).state_dict()
             for k, v in ema.state_dict().items():
@@ -747,7 +757,7 @@ class BaseTrainer:
                 "best_fitness": self.best_fitness,
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
-                "updates": self.ema.updates,
+                "updates": int(self.ema.n_averaged),
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
@@ -856,7 +866,10 @@ class BaseTrainer:
         self.scaler.update()
         self.optimizer.zero_grad()
         if self.ema:
-            self.ema.update(self.model)
+            model = unwrap_model(self.model)
+            if hasattr(model, "teacher_model"):  # the EMA carries no teacher, so average the student stream only
+                model = nn.Sequential(model.student_model, model.projector)
+            self.ema.update_parameters(model)
 
     def preprocess_batch(self, batch):
         """Allow custom preprocessing of model inputs and ground truths depending on task type."""
@@ -872,7 +885,7 @@ class BaseTrainer:
         """
         if self.ema and self.world_size > 1:
             # Sync EMA buffers from rank 0 to all ranks
-            for buffer in self.ema.ema.buffers():
+            for buffer in self.ema.module.buffers():
                 dist.broadcast(buffer, src=0)
         metrics = self.validator(self)
         if metrics is None:
@@ -1012,9 +1025,9 @@ class BaseTrainer:
         if ckpt.get("scaler") is not None:
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
-            self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
-            self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
-            self.ema.updates = ckpt["updates"]
+            self.ema = build_ema(self.model)  # validation with EMA creates inference tensors that can't be updated
+            self.ema.module.load_state_dict(ckpt["ema"].float().state_dict())
+            self.ema.n_averaged.fill_(ckpt["updates"])
         self.best_fitness = ckpt.get("best_fitness")
 
     def _handle_nan_recovery(self, epoch):

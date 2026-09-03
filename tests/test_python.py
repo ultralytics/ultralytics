@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_1
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -762,6 +762,7 @@ def test_pose_metrics_curves():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train_multi():
     """Test fine-tuning a base model across a dataset collection, which triggers MultiTrainer for list/tuple data."""
     model = YOLO(MODEL)
@@ -974,6 +975,7 @@ def test_platform_job_transport(monkeypatch, tmp_path):
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
@@ -983,6 +985,7 @@ def test_train_scratch():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train_ndjson():
     """Test training the YOLO model using NDJSON format dataset."""
     model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
@@ -991,6 +994,7 @@ def test_train_ndjson():
 
 @pytest.mark.parametrize("scls", [False, True])
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_train_pretrained(scls):
     """Test training of the YOLO model starting from a pre-trained checkpoint."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-seg.pt")
@@ -1011,6 +1015,7 @@ def test_all_model_yamls():
 
 
 @pytest.mark.skipif(WINDOWS, reason="Windows slow CI export bug https://github.com/ultralytics/ultralytics/pull/16003")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_workflow(isolated_model):
     """Test the complete workflow including training, validation, prediction, and exporting."""
     model = YOLO(isolated_model)
@@ -1870,6 +1875,7 @@ def test_nn_depth_head_export_upsamples_to_input():
     assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_nn_depth_head_no_dead_parameters():
     """Every head parameter receives gradient — DDP then needs no find_unused_parameters."""
     from ultralytics.nn.modules.head import Depth
@@ -1941,6 +1947,7 @@ def test_classify_transforms_train(image, auto_augment, erasing, force_color_jit
 @pytest.mark.slow
 @pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_model_tune():
     """Tune YOLO model for performance improvement."""
     YOLO("yolo26n.pt").tune(
@@ -1954,6 +1961,7 @@ def test_model_tune():
 @pytest.mark.skipif(IS_RASPBERRYPI or IS_JETSON, reason="Edge devices not intended for tuning")
 @pytest.mark.skipif(not ONLINE or not checks.IS_PYTHON_MINIMUM_3_10, reason="environment is offline")
 @pytest.mark.skipif(not checks.check_requirements("ray", install=False), reason="ray[tune] not installed")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_model_tune_ray():
     """Tune YOLO model for performance improvement."""
     YOLO("yolo26n-cls.pt").tune(
@@ -2004,6 +2012,7 @@ def test_process_mask_native_chunked():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_yolo_world():
     """Test YOLO world models with CLIP support."""
     model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
@@ -2041,6 +2050,7 @@ def test_yolo_world():
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
 )
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_yoloe(tmp_path):
     """Test YOLOE models with MobileCLIP support."""
     # Predict
@@ -2151,6 +2161,7 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     assert "Ultralytics" not in output
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_yolov10():
     """Test YOLOv10 model training, validation, and prediction functionality."""
     model = YOLO("yolov10n.yaml")
@@ -2161,6 +2172,7 @@ def test_yolov10():
     model(SOURCE)
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_multichannel():
     """Test YOLO model multi-channel training, validation, and prediction functionality."""
     model = YOLO("yolo26n.pt")
@@ -2172,6 +2184,7 @@ def test_multichannel():
 
 
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     """Test YOLO model grayscale training, validation, and prediction functionality."""
     if IS_RASPBERRYPI and task == "semantic":
@@ -2198,6 +2211,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     model.predict(source=im, imgsz=32)
 
 
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_semantic_polygon_data():
     """Test YOLO semantic segmentation model with polygon data."""
     skip_rpi_semantic()

@@ -11,9 +11,11 @@ from tests import SOURCE
 from ultralytics import YOLO, download
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.torch_utils import TORCH_2_1
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_tensorboard():
     """Test training with TensorBoard logging enabled."""
     SETTINGS["tensorboard"] = True
@@ -22,6 +24,7 @@ def test_tensorboard():
 
 
 @pytest.mark.skipif(not check_requirements("ray", install=False), reason="ray[tune] not installed")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_model_ray_tune():
     """Tune YOLO model using Ray for hyperparameter optimization."""
     YOLO("yolo26n-cls.yaml").tune(
@@ -30,6 +33,7 @@ def test_model_ray_tune():
 
 
 @pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_mlflow(tmp_path, monkeypatch):
     """Test training with MLflow tracking enabled."""
     import mlflow
@@ -45,6 +49,7 @@ def test_mlflow(tmp_path, monkeypatch):
 
 
 @pytest.mark.skipif(not check_requirements("mlflow", install=False), reason="mlflow not installed")
+@pytest.mark.skipif(not TORCH_2_1, reason="training requires torch>=2.1")
 def test_mlflow_keep_run_active(tmp_path, monkeypatch):
     """Ensure MLFLOW_KEEP_RUN_ACTIVE controls whether new MLflow runs remain active."""
     import mlflow

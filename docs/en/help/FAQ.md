@@ -42,7 +42,7 @@ Detailed installation instructions can be found in the [quickstart guide](../qui
 Minimum requirements:
 
 - Python 3.8+
-- [PyTorch](https://www.ultralytics.com/glossary/pytorch) 1.8+
+- [PyTorch](https://www.ultralytics.com/glossary/pytorch) 1.8+ (2.1+ for training)
 - CUDA-compatible GPU (for GPU acceleration)
 
 Recommended setup:

@@ -12,10 +12,6 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br>
 
-## ::: ultralytics.utils.torch_utils.ModelEMA
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.torch_utils.EarlyStopping
 
 <br><br><hr><br>
@@ -121,6 +117,10 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.torch_utils.unset_deterministic
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils.build_ema
 
 <br><br><hr><br>
 

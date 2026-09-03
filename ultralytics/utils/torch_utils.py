@@ -9,7 +9,6 @@ import os
 import random
 import time
 from contextlib import contextmanager
-from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -19,6 +18,7 @@ import torch
 import torch.distributed as dist
 import torch.nn.functional as F
 from torch import nn
+from torch.optim.swa_utils import AveragedModel
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -724,78 +724,39 @@ def unset_deterministic():
     os.environ.pop("PYTHONHASHSEED", None)
 
 
-class ModelEMA:
-    """Updated Exponential Moving Average (EMA) implementation.
+def build_ema(model: nn.Module, decay: float = 0.9999, tau: int = 2000) -> AveragedModel:
+    """Build an Exponential Moving Average (EMA) of a model's parameters and buffers.
 
-    Keeps a moving average of everything in the model state_dict (parameters and buffers). For EMA details see
-    References.
+    The decay ramps as `decay * (1 - exp(-updates / tau))` so the average tracks the model closely in early training
+    and settles at `decay`, as in https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage.
 
-    To disable EMA set the `enabled` attribute to `False`.
+    Args:
+        model (nn.Module): Model to average; compile and parallel wrappers are unwrapped first.
+        decay (float, optional): Maximum EMA decay rate.
+        tau (int, optional): EMA decay time constant in updates.
 
-    Attributes:
-        ema (nn.Module): Copy of the model in evaluation mode.
-        updates (int): Number of EMA updates.
-        decay (function): Decay function that determines the EMA weight.
-        enabled (bool): Whether EMA is enabled.
-
-    References:
-        - https://github.com/rwightman/pytorch-image-models
-        - https://www.tensorflow.org/api_docs/python/tf/train/ExponentialMovingAverage
+    Returns:
+        (AveragedModel): EMA whose `module` holds the averaged FP32 copy in eval mode and whose `n_averaged` buffer
+            counts the updates applied.
     """
+    ema = AveragedModel(unwrap_model(model), use_buffers=True)
+    if hasattr(ema.module, "teacher_model"):
+        ema.module.teacher_model = None  # DistillationModel: the EMA does not carry a duplicate frozen teacher
+    ema.module.eval().requires_grad_(False)
 
-    def __init__(self, model, decay=0.9999, tau=2000, updates=0):
-        """Initialize EMA for 'model' with given arguments.
-
-        Args:
-            model (nn.Module): Model to create EMA for.
-            decay (float, optional): Maximum EMA decay rate.
-            tau (int, optional): EMA decay time constant.
-            updates (int, optional): Initial number of updates.
-        """
-        self.ema = deepcopy(unwrap_model(model)).eval()  # FP32 EMA
-        if hasattr(self.ema, "teacher_model"):
-            # DistillationModel: strip the teacher so the EMA does not carry a full duplicate copy.
-            self.ema.teacher_model = None
-        self.updates = updates  # number of EMA updates
-        self.decay = lambda x: decay * (1 - math.exp(-x / tau))  # decay exponential ramp (to help early epochs)
-        for p in self.ema.parameters():
-            p.requires_grad_(False)
-        self.enabled = True
-
-    def update(self, model):
-        """Update EMA parameters.
-
-        Args:
-            model (nn.Module): Model to update EMA from.
-        """
-        if self.enabled:
-            self.updates += 1
-            d = self.decay(self.updates)
-
-            msd = unwrap_model(model).state_dict()  # model state_dict
-            ema_v, model_v = [], []
-            for k, v in self.ema.state_dict().items():
-                if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    ema_v.append(v)
-                    model_v.append(msd[k])
-            if (
-                ema_v and TORCH_2_0 and ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps")
-            ):  # one kernel launch per op
-                torch._foreach_lerp_(ema_v, model_v, 1 - d)
-            else:  # _foreach_lerp_ needs torch>=2.0, MPS torch>=2.4, and is unavailable on NPU
+    @torch.no_grad()
+    def update(ema_v: list[torch.Tensor], model_v: list[torch.Tensor], _):
+        """Lerp one device/dtype group of EMA tensors toward the model; integer buffers keep their initial values."""
+        if ema_v[0].is_floating_point():
+            w = 1 - decay * (1 - math.exp(-int(ema.n_averaged) / tau))  # `n_averaged` lives on CPU, so no device sync
+            if ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps"):
+                torch._foreach_lerp_(ema_v, model_v, w)  # one kernel launch per group
+            else:  # _foreach_lerp_ needs MPS torch>=2.4 and is unavailable on NPU
                 for v, m in zip(ema_v, model_v):
-                    v.mul_(d).add_(m, alpha=1 - d)
+                    v.lerp_(m, w)
 
-    def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
-        """Copy attributes from model to EMA, with options to include/exclude certain attributes.
-
-        Args:
-            model (nn.Module): Model to copy attributes from.
-            include (tuple, optional): Attributes to include.
-            exclude (tuple, optional): Attributes to exclude.
-        """
-        if self.enabled:
-            copy_attr(self.ema, model, include, exclude)
+    ema.multi_avg_fn = update
+    return ema
 
 
 def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, Any] | None = None) -> dict[str, Any]:

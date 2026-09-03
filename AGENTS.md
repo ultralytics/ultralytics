@@ -2,7 +2,7 @@
 
 This file provides guidance to AI coding agents (Claude Code, etc.) when working with code in this repository. CLAUDE.md is a symlink to this file.
 
-Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for YOLO-family vision models — detection, instance and semantic segmentation, classification, pose, oriented boxes, and tracking — plus training, validation, benchmarking, export to 20 deployment formats, and the `yolo` CLI. Supported floors are Python>=3.8 with PyTorch>=1.8.
+Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for YOLO-family vision models — detection, instance and semantic segmentation, classification, pose, oriented boxes, and tracking — plus training, validation, benchmarking, export to 20 deployment formats, and the `yolo` CLI. Supported floors are Python>=3.8 with PyTorch>=1.8; training requires PyTorch>=2.1.
 
 ## Core Principles (CRITICAL)
 
@@ -71,7 +71,7 @@ python docs/build_docs.py
 yolo predict model=yolo26n.pt
 ```
 
-- CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0.
+- CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0 where training tests skip.
 - `pyproject.toml` pytest `addopts` includes `--doctest-modules`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
 - `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); omitting the flag runs ALL export formats. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
 

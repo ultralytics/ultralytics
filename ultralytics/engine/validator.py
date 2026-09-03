@@ -160,7 +160,7 @@ class BaseValidator:
             self.data = trainer.data
             # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.quantize = 16 if (self.device.type != "cpu" and trainer.amp) else None
-            model = trainer.ema.ema or trainer.model
+            model = trainer.ema.module or trainer.model
             if trainer.args.compile and hasattr(model, "_orig_mod"):
                 model = model._orig_mod  # validate non-compiled original model to avoid issues
             model = model.float()

@@ -18,6 +18,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.init as init
 
+from .block import DFL
 from .transformer import MLP
 from .utils import (
     bias_init_with_prob,
@@ -160,42 +161,28 @@ class MSDeformableAttention(nn.Module):
         return output
 
 
-class Integral(nn.Module):
-    """A static layer that calculates integral results from a distribution.
+class Integral(DFL):
+    """DFL over the non-uniform D-FINE bin centers W(n) instead of uniform integer bins.
 
-    This layer computes the target location using the formula: `sum{Pr(n) * W(n)}`, where Pr(n) is the softmax
-    probability vector representing the discrete distribution, and W(n) is the non-uniform Weighting Function.
-
-    Attributes:
-        reg_max (int): Max number of the discrete bins, adjustable to the dataset or task requirements.
+    Same softmax-then-integrate operation as `DFL`, but takes the channel-last corner logits used by the DEIM decoder.
     """
 
-    def __init__(self, reg_max=32):
-        """Initialize the integral layer.
+    def __init__(self, reg_max: int = 32, up: torch.Tensor | None = None, reg_scale: torch.Tensor | float = 4.0):
+        """Initialize the integral layer with bin centers from the Weighting Function W(n).
 
         Args:
             reg_max (int): Max number of the discrete bins.
+            up (torch.Tensor, optional): Upper bound controlling the non-uniform bin spacing.
+            reg_scale (torch.Tensor | float): Scale controlling the non-uniform bin spacing.
         """
-        super().__init__()
-        self.reg_max = reg_max
+        up = torch.tensor([0.5]) if up is None else up
+        bins = weighting_function(reg_max, up, torch.atleast_1d(torch.as_tensor(reg_scale, dtype=torch.float32)))
+        super().__init__(reg_max + 1, bins=bins)
 
-    def forward(self, x, project):
-        """Integrate a corner distribution into continuous distance offsets.
-
-        Args:
-            x (torch.Tensor): Corner logits with shape (..., 4 * (reg_max + 1)).
-            project (torch.Tensor): Non-uniform bin centers with shape (reg_max + 1,).
-
-        Returns:
-            (torch.Tensor): Distance offsets with shape (..., 4).
-        """
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Integrate corner logits with shape (..., 4 * (reg_max + 1)) into distance offsets with shape (..., 4)."""
         shape = x.shape
-        x = F.softmax(x.reshape(-1, self.reg_max + 1), dim=1)
-        # Match both device AND dtype of activations: `project` is a precomputed (deploy-mode) fp32 plain attribute
-        # that model.half() does not convert, so under FP16 export a `.to(x.device)`-only cast leaves it fp32 and
-        # F.linear hits "mat1 and mat2 must have the same dtype" (Half != float).
-        x = F.linear(x, project.to(device=x.device, dtype=x.dtype).reshape(1, -1)).reshape(-1, 4)
-        return x.reshape(list(shape[:-1]) + [-1])
+        return super().forward(x.reshape(-1, 4 * self.c1, 1)).reshape(*shape[:-1], 4)
 
 
 class LQE(nn.Module):
@@ -253,41 +240,22 @@ class DEIMTransformerDecoder(nn.Module):
     """
 
     def __init__(
-        self,
-        hidden_dim,
-        decoder_layer,
-        decoder_layer_wide,
-        num_layers,
-        num_head,
-        reg_max,
-        reg_scale,
-        up,
-        eval_idx=-1,
-        layer_scale=2,
-        act=nn.ReLU(),
+        self, decoder_layer, decoder_layer_wide, num_layers, reg_max, eval_idx=-1, layer_scale=2, act=nn.ReLU()
     ):
         """Initialize the decoder.
 
         Args:
-            hidden_dim (int): Feature dimension of the decoder queries.
             decoder_layer (nn.Module): Layer prototype deep-copied for every layer up to eval_idx.
             decoder_layer_wide (nn.Module): Layer prototype deep-copied for the layers after eval_idx.
             num_layers (int): Total number of decoder layers.
-            num_head (int): Number of attention heads per layer.
             reg_max (int): Max number of the discrete bins.
-            reg_scale (torch.Tensor): Scale controlling the non-uniform bin spacing.
-            up (torch.Tensor): Upper bound controlling the non-uniform bin spacing.
             eval_idx (int): Layer index used at inference; negative values count back from the last layer.
             layer_scale (int): Width multiplier applied to the layers after eval_idx.
             act (nn.Module): Activation used by the location quality estimators.
         """
         super().__init__()
-        self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
         self.layer_scale = layer_scale
-        self.num_head = num_head
         self.eval_idx = eval_idx if eval_idx >= 0 else num_layers + eval_idx
-        self.up, self.reg_scale, self.reg_max = up, reg_scale, reg_max
         self.layers = nn.ModuleList(
             [copy.deepcopy(decoder_layer) for _ in range(self.eval_idx + 1)]
             + [copy.deepcopy(decoder_layer_wide) for _ in range(num_layers - self.eval_idx - 1)]
@@ -310,12 +278,6 @@ class DEIMTransformerDecoder(nn.Module):
             value = value * memory_mask.to(value.dtype).unsqueeze(-1)
         return value
 
-    def convert_to_deploy(self):
-        """Precompute the bin centers and drop the layers past eval_idx for inference-only use."""
-        self.project = weighting_function(self.reg_max, self.up, self.reg_scale, deploy=True)
-        self.layers = self.layers[: self.eval_idx + 1]
-        self.lqe_layers = nn.ModuleList([nn.Identity()] * (self.eval_idx) + [self.lqe_layers[self.eval_idx]])
-
     def forward(
         self,
         target,
@@ -327,7 +289,6 @@ class DEIMTransformerDecoder(nn.Module):
         query_pos_head,
         pre_bbox_head,
         integral,
-        up,
         reg_scale,
         attn_mask=None,
         memory_mask=None,
@@ -343,8 +304,7 @@ class DEIMTransformerDecoder(nn.Module):
             score_head (nn.ModuleList): Per-layer heads producing the class scores.
             query_pos_head (nn.Module): Head embedding the reference boxes into query positions.
             pre_bbox_head (nn.Module): Head producing the initial box prediction of the first layer.
-            integral (nn.Module): Layer integrating a corner distribution into distance offsets.
-            up (torch.Tensor): Upper bound controlling the non-uniform bin spacing.
+            integral (Integral): Layer integrating a corner distribution into distance offsets.
             reg_scale (torch.Tensor): Scale controlling the non-uniform bin spacing.
             attn_mask (torch.Tensor, optional): Self-attention mask isolating the denoising groups.
             memory_mask (torch.Tensor, optional): Validity mask for the encoder memory.
@@ -368,10 +328,6 @@ class DEIMTransformerDecoder(nn.Module):
         dec_out_logits = []
         dec_out_pred_corners = []
         dec_out_refs = []
-        if not hasattr(self, "project"):
-            project = weighting_function(self.reg_max, up, reg_scale)
-        else:
-            project = self.project
 
         ref_points_detach = F.sigmoid(ref_points_unact)
         query_pos_fixed = query_pos_head(ref_points_detach).clamp(min=-10, max=10)
@@ -398,7 +354,7 @@ class DEIMTransformerDecoder(nn.Module):
 
             # Refine bounding box corners using FDR, integrating previous layer's corrections
             pred_corners = bbox_head[i](output + output_detach) + pred_corners_undetach
-            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners, project), reg_scale)
+            inter_ref_bbox = distance2bbox(ref_points_initial, integral(pred_corners), reg_scale)
 
             if self.training or i == self.eval_idx:
                 scores = score_head[i](output)

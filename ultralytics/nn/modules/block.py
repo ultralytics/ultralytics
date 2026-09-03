@@ -63,15 +63,16 @@ class DFL(nn.Module):
     Proposed in Generalized Focal Loss https://arxiv.org/abs/2006.04388
     """
 
-    def __init__(self, c1: int = 16):
+    def __init__(self, c1: int = 16, bins: torch.Tensor | None = None):
         """Initialize a convolutional layer with a given number of input channels.
 
         Args:
             c1 (int): Number of input channels.
+            bins (torch.Tensor, optional): Non-uniform bin centers with shape (c1,); defaults to uniform integer bins.
         """
         super().__init__()
         self.conv = nn.Conv2d(c1, 1, 1, bias=False).requires_grad_(False)
-        x = torch.arange(c1, dtype=torch.float)
+        x = torch.arange(c1, dtype=torch.float) if bins is None else bins
         self.conv.weight.data[:] = nn.Parameter(x.view(1, c1, 1, 1))
         self.c1 = c1
 

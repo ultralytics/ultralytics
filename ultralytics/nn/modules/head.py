@@ -2075,14 +2075,10 @@ class DEIMDecoder(RTDETRDecoder):
             use_rmsnorm=use_rmsnorm,
         )
         self.decoder = DEIMTransformerDecoder(
-            hd,
             decoder_layer,
             decoder_layer_wide,
             ndl,
-            nh,
             reg_max,
-            self.reg_scale,
-            self.up,
             eval_idx,
             layer_scale,
             act=act_layer,
@@ -2098,7 +2094,7 @@ class DEIMDecoder(RTDETRDecoder):
         self.query_pos_head = self._build_query_pos_head(hd, act_mlp)
 
         self.pre_bbox_head = self._build_bbox_head(hd, act_mlp)
-        self.integral = Integral(reg_max)
+        self.integral = Integral(reg_max, self.up, self.reg_scale)
 
         self.eval_idx = eval_idx if eval_idx >= 0 else ndl + eval_idx
         score_head = nn.Linear(hd, nc)
@@ -2146,7 +2142,6 @@ class DEIMDecoder(RTDETRDecoder):
             self.query_pos_head,
             self.pre_bbox_head,
             self.integral,
-            self.up,
             self.reg_scale,
             attn_mask=attn_mask,
         )

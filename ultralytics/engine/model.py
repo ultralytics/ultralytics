@@ -336,8 +336,8 @@ class Model(torch.nn.Module):
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, self.ckpt = load_checkpoint(weights)
-        else:  # in-memory weights have no file to reload from
-            self.model.pt_path = None
+        else:  # in-memory weights have no file to reload from, nor a run to resume
+            self.model.pt_path = self.ckpt_path = None
             self.overrides.pop("pretrained", None)
         self.model.load(weights)
         return self
@@ -829,7 +829,12 @@ class Model(torch.nn.Module):
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
-            if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
+            if (
+                self.ckpt_path
+                and self.ckpt
+                and self.ckpt.get("epoch", -1) >= 0
+                and self.ckpt.get("optimizer") is not None
+            ):
                 args["resume"] = self.ckpt_path
             else:
                 LOGGER.warning(

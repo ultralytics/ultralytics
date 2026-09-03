@@ -43,10 +43,12 @@ from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_7, get_torch_devic
 
 
 class InfiniteDataLoader(dataloader.DataLoader):
-    """DataLoader that repeats its sampler forever and reuses one worker iterator across epochs.
+    """DataLoader that reuses workers for infinite iteration.
 
-    Prefetching runs straight through epoch boundaries, which keeps small-dataset training fast. `close_dataloader`
-    shuts the workers down; the next iteration then spawns fresh ones that see any dataset changes.
+    This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
+    for training loops that need to iterate through the dataset multiple times without recreating workers. Prefetching
+    runs straight through epoch boundaries; `close_dataloader` shuts the workers down and the next iteration spawns
+    fresh ones that see any dataset changes.
 
     Attributes:
         batch_sampler (_RepeatSampler): A sampler that repeats indefinitely.
@@ -55,7 +57,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         Create an infinite DataLoader for training
         >>> dataset = YOLODataset(...)
         >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
-        >>> for batch in dataloader:  # one epoch per loop, workers kept between loops
+        >>> for batch in dataloader:  # Infinite iteration
         >>>     train_step(batch)
     """
 
@@ -104,9 +106,8 @@ class _RepeatSampler:
         """Iterate over the sampler indefinitely, yielding its contents."""
         while True:
             yield from iter(self.sampler)
-            sampler = getattr(self.sampler, "sampler", None)  # BatchSampler wraps the index sampler
-            if hasattr(sampler, "set_epoch"):
-                # The next pass starts prefetching before the trainer's set_epoch, so reshuffle it here
+            sampler = self.sampler.sampler  # BatchSampler wraps the index sampler
+            if hasattr(sampler, "set_epoch"):  # the next pass prefetches before the trainer's set_epoch
                 sampler.set_epoch(sampler.epoch + 1)
 
 
@@ -307,7 +308,6 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
-    infinite: bool = True,
 ) -> dataloader.DataLoader:
     """Create and return a DataLoader for training or validation.
 
@@ -315,13 +315,12 @@ def build_dataloader(
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
         workers (int): Number of worker processes for data loading.
-        shuffle (bool, optional): Whether to shuffle the dataset.
+        shuffle (bool, optional): Whether to shuffle the dataset. Shuffled training loaders also prefetch across epoch
+            boundaries; unshuffled validation loaders drain between passes so no batches stay queued during training.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
-        infinite (bool, optional): Prefetch across epoch boundaries with `InfiniteDataLoader`; a finite loader instead
-            drains between passes so validation holds no queued batches while training resumes.
 
     Returns:
         (torch.utils.data.DataLoader): A dataloader with persistent workers for training or validation.
@@ -355,7 +354,7 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
-    return (InfiniteDataLoader if infinite else dataloader.DataLoader)(
+    return (InfiniteDataLoader if shuffle else dataloader.DataLoader)(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,

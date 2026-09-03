@@ -165,10 +165,10 @@ class ClassificationTrainer(BaseTrainer):
             dataset,
             batch_size,
             self.args.workers,
+            shuffle=mode == "train",
             rank=rank,
             drop_last=drop_last,
             device=self.device,
-            infinite=mode == "train",
         )
         # Attach inference transforms
         if mode != "train":

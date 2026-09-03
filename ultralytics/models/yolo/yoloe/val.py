@@ -129,7 +129,6 @@ class YOLOEDetectValidator(DetectionValidator):
             shuffle=False,
             rank=-1,
             device=self.device,
-            infinite=False,
         )
 
     def __call__(

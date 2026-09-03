@@ -761,10 +761,11 @@ class DEIMLoss(DETRLoss):
         dis_left = label.long()
         dis_right = dis_left + 1
         pred_f = pred.float()
-        loss = F.cross_entropy(pred_f, dis_left, reduction="none").to(pred.dtype) * weight_left.reshape(-1)
-        loss = loss + F.cross_entropy(pred_f, dis_right, reduction="none").to(pred.dtype) * weight_right.reshape(-1)
+        loss = F.cross_entropy(pred_f, dis_left, reduction="none").to(pred.dtype) * weight_left.reshape(
+            -1
+        ) + F.cross_entropy(pred_f, dis_right, reduction="none").to(pred.dtype) * weight_right.reshape(-1)
         if weight is not None:
-            loss = loss * weight.float()
+            loss *= weight.float()
         return loss.sum() / avg_factor if avg_factor is not None else loss.sum()
 
     def _ddf_loss(
@@ -909,10 +910,7 @@ class DEIMLoss(DETRLoss):
         )
         loss_ddf = self._ddf_loss(pred_corners, teacher_corners, teacher_logits, ious, idx, is_dn, pred_bboxes)
 
-        return {
-            name_fgl: loss_fgl * self.fgl_gain,
-            name_ddf: loss_ddf * self.ddf_gain,
-        }
+        return {name_fgl: loss_fgl * self.fgl_gain, name_ddf: loss_ddf * self.ddf_gain}
 
     def _get_local_bundle(
         self,

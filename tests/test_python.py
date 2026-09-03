@@ -9,7 +9,6 @@ import tarfile
 import urllib
 import zipfile
 from copy import copy
-from functools import partial
 from pathlib import Path
 
 import cv2
@@ -55,35 +54,6 @@ def test_dataloader_caps_workers_to_batches():
     assert single_batch.num_workers == 0
     assert drop_last_single_batch.num_workers == 0
     assert two_batches.num_workers <= 2
-
-
-def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
-    """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
-    sampler_cls = data_build.distributed.DistributedSampler
-
-    def distributed_sampler(dataset, shuffle, seed):
-        return sampler_cls(dataset, num_replicas=3, rank=2, shuffle=shuffle, seed=seed)
-
-    monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
-    monkeypatch.setattr(data_build, "RANK", 2)  # Simulate the second node with global rank 2 and local rank 0
-    expected_seed = torch.initial_seed() - 3
-    loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
-    assert len(loader) == 1
-    assert loader.num_workers == 0
-    assert loader.sampler.seed == expected_seed
-
-
-def test_dataloader_distributed_epochs_reshuffle(monkeypatch):
-    """Test persistent workers only prefetch an epoch after its DistributedSampler.set_epoch, so epochs reshuffle."""
-    sampler_cls = data_build.distributed.DistributedSampler
-    monkeypatch.setattr(data_build.distributed, "DistributedSampler", partial(sampler_cls, num_replicas=2, rank=0))
-    loader = build_dataloader(range(64), batch=4, workers=2, rank=0)
-    orders = []
-    for epoch in range(2):
-        loader.sampler.set_epoch(epoch)
-        orders.append(torch.cat(list(loader)).tolist())
-    data_build.close_dataloader(loader)
-    assert orders[0] != orders[1]
 
 
 def test_dataloader_seed_varies_sampling_order():

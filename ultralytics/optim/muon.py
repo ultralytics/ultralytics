@@ -58,7 +58,7 @@ def muon_update(
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
     This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
-    updates using Newton-Schulz iterations. Matrices with the same row count are zero-padded and orthogonalized in a
+    updates using Newton-Schulz iterations. Matrices with the same column count are zero-padded and orthogonalized in a
     single batched call, and momentum math uses fused foreach ops, avoiding per-parameter kernel launch overhead.
     Higher-rank tensors are reshaped before orthogonalization, and each update is scaled based on parameter dimensions.
 
@@ -94,22 +94,35 @@ def muon_update(
         torch._foreach_add_(updates, grads, alpha=1 - beta)
     else:
         updates = list(momentums)
-    buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
+    buckets = {}  # group matrices by (columns, scale) for batched orthogonalization
     for i, u in enumerate(updates):
-        m = u.view(len(u), -1) if u.ndim > 2 else u
-        transpose = m.size(0) > m.size(1)
-        if transpose:
-            m = m.transpose(0, 1)
+        # flatten in the update's own memory order, a view for NCHW and NHWC alike: permuting columns permutes
+        # the orthogonalized columns identically, and the write-back below restores the update's layout. Any
+        # other layout is materialized row-major and written back row-major.
+        dense = u.is_contiguous()
+        nhwc = not dense and u.ndim == 4 and u.is_contiguous(memory_format=torch.channels_last)
+        m = u.permute(0, 2, 3, 1).flatten(1) if nhwc else (u.flatten(1) if u.ndim > 2 else u.contiguous())
         scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
-        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
-    for (_, scale, _, _), items in buckets.items():
-        n = max(m.size(1) for _, m, _ in items)
-        # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
-        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items])
-        X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype).mul_(scale)
-        for j, (i, m, transpose) in enumerate(items):
-            x = X[j, :, : m.size(1)]
-            updates[i] = (x.T if transpose else x).reshape(grads[i].shape)
+        buckets.setdefault((m.size(1), scale, m.device, m.dtype), []).append(
+            (i, m, u.stride() if dense or nhwc else None)
+        )
+    groups = []  # split each bucket until its row counts span at most 16x, bounding the padding below
+    for key, items in buckets.items():
+        items.sort(key=lambda t: -t[1].size(0))
+        start = 0
+        for j in range(1, len(items) + 1):
+            if j == len(items) or items[start][1].size(0) > 16 * items[j][1].size(0):
+                groups.append((key, items[start:j]))
+                start = j
+    for (cols, scale, device, dtype), items in groups:
+        # zero-pad rows, not columns, so that different shapes share one batched call (zeros stay zero through
+        # Newton-Schulz) while the fill below and every write-back below stay contiguous
+        X = torch.zeros(len(items), items[0][1].size(0), cols, device=device, dtype=dtype)
+        torch._foreach_add_([X[j, : m.size(0)] for j, (_, m, _) in enumerate(items)], [m for _, m, _ in items])
+        X = zeropower_via_newtonschulz5(X).contiguous().to(grads[items[0][0]].dtype).mul_(scale)
+        for j, (i, m, stride) in enumerate(items):
+            x = X[j, : m.size(0)]
+            updates[i] = x.as_strided(grads[i].shape, stride) if stride else x.reshape(grads[i].shape)
     return updates[0] if single else updates
 
 

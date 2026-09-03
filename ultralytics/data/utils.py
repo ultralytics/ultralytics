@@ -51,6 +51,15 @@ IMG_FORMATS = {
 }
 VID_FORMATS = {"asf", "avi", "gif", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "ts", "wmv", "webm"}  # videos
 FORMATS_HELP_MSG = f"Supported formats are:\nimages: {IMG_FORMATS}\nvideos: {VID_FORMATS}"
+DATASET_KEY_TYPES = {  # dataset YAML keys and their permitted types
+    "path": (str,),
+    "train": (str, list),
+    "val": (str, list),
+    "test": (str, list),
+    "names": (list, dict),
+    "kpt_shape": (list,),
+    "flip_idx": (list,),
+}
 
 DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
@@ -616,6 +625,11 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     data = YAML.load(file, append_filename=True)  # dictionary
 
     # Checks
+    for key, valid_types in DATASET_KEY_TYPES.items():
+        if data.get(key) is not None and not isinstance(data[key], valid_types):
+            expected = " or ".join(t.__name__ for t in valid_types)
+            raise TypeError(f"{dataset} '{key}' must be {expected}, not {type(data[key]).__name__}")
+
     for k in "train", "val":
         if k not in data:
             if k != "val" or "validation" not in data:
@@ -690,6 +704,8 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
             dt = f"({round(time.time() - t, 1)}s)"
             s = f"success ✅ {dt}, saved to {colorstr('bold', DATASETS_DIR)}" if r in {0, None} else f"failure {dt} ❌"
             LOGGER.info(f"Dataset download {s}\n")
+    if data.get("masks_dir") is None and (path / "masks").is_dir():  # after download so scripts can create it
+        data["masks_dir"] = "masks"  # PNG semantic masks in the default folder select SemanticDataset
     check_font("Arial.ttf" if is_ascii(data["names"]) else "Arial.Unicode.ttf")  # download fonts
 
     return data  # dictionary

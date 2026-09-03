@@ -1699,6 +1699,8 @@ class _SafeLoad:
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
+        import ultralytics.utils.loss as ul_loss
+        import ultralytics.utils.tal as ul_tal
         from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
@@ -1721,13 +1723,18 @@ class _SafeLoad:
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
 
+        # Criteria pickled inside pre-8.4.95 checkpoints (`ema.criterion` is stripped at save since then): the plain
+        # loss classes plus the nn.Module box losses and assigners they hold.
+        for mod in (ul_loss, ul_tal):
+            allow += [
+                klass for _, klass in inspect.getmembers(mod, inspect.isclass) if klass.__module__ == mod.__name__
+            ]
+
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
-        from ultralytics.utils.loss import E2EDetectLoss
-
         def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
@@ -1736,7 +1743,7 @@ class _SafeLoad:
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
             (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
-            (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+            (ul_loss.E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:

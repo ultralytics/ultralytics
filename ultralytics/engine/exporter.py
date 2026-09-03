@@ -679,9 +679,9 @@ class Exporter:
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
-                # Disable end2end branch for certain export formats as they does not support topk
+                # Disable the end2end branch for formats without top-k support
                 model.end2end = False
-                LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+                LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False

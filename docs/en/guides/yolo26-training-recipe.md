@@ -70,8 +70,8 @@ These tables cover the settings that shape pretraining, not the full configurati
 
     Pretraining also varied the same kind of experimental-branch parameters described in [Internal Training Parameters](#internal-training-parameters). `cls_w` was 1.0 for every size:
 
-    | Setting | N    | S   | M    | L    | X   |
-    | ------- | ---- | --- | ---- | ---- | --- |
+    | Setting  | N    | S   | M    | L    | X   |
+    | -------- | ---- | --- | ---- | ---- | --- |
     | `muon_w` | 0.45 | 0.5 | 0.45 | 0.45 | 0.5 |
     | `sgd_w`  | 0.55 | 0.5 | 0.55 | 0.55 | 0.6 |
     | `o2m`    | 0.1  | 0.1 | 0.1  | 1.0  | 1.0 |
@@ -236,13 +236,13 @@ Larger models use more aggressive augmentation overall (higher mixup and scale),
 
     The checkpoints also contain parameters that were used on the experimental training branch but are **not** exposed as user-configurable settings in `default.yaml`:
 
-    | Setting | Description | N | S | M | L | X |
-    |---|---|---|---|---|---|---|
-    | `muon_w` | Muon update weight in MuSGD | 0.528 | 0.436 | 0.436 | 0.436 | 0.436 |
-    | `sgd_w` | SGD update weight in MuSGD | 0.674 | 0.479 | 0.479 | 0.479 | 0.479 |
-    | `cls_w` | Internal classification weight | 2.74 | 3.48 | 3.48 | 3.48 | 3.48 |
-    | `o2m` | One-to-many head loss weight | 1.0 | 0.705 | 0.705 | 0.705 | 0.705 |
-    | `topk` | Top-k label assignment | 8 | 5 | 5 | 5 | 5 |
+    | Setting  | Description                    | N     | S     | M     | L     | X     |
+    | -------- | ------------------------------ | ----- | ----- | ----- | ----- | ----- |
+    | `muon_w` | Muon update weight in MuSGD    | 0.528 | 0.436 | 0.436 | 0.436 | 0.436 |
+    | `sgd_w`  | SGD update weight in MuSGD     | 0.674 | 0.479 | 0.479 | 0.479 | 0.479 |
+    | `cls_w`  | Internal classification weight | 2.74  | 3.48  | 3.48  | 3.48  | 3.48  |
+    | `o2m`    | One-to-many head loss weight   | 1.0   | 0.705 | 0.705 | 0.705 | 0.705 |
+    | `topk`   | Top-k label assignment         | 8     | 5     | 5     | 5     | 5     |
 
     See the [FAQ entry on these parameters](#what-are-muon_w-sgd_w-cls_w-o2m-and-topk-in-the-checkpoint) for what they mean when fine-tuning.
 

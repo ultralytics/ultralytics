@@ -9,6 +9,7 @@ import tarfile
 import urllib
 import zipfile
 from copy import copy
+from functools import partial
 from pathlib import Path
 
 import cv2
@@ -51,39 +52,9 @@ def test_dataloader_caps_workers_to_batches():
     single_batch = build_dataloader(range(4), batch=4, workers=8)
     drop_last_single_batch = build_dataloader(range(5), batch=4, workers=8, drop_last=True)
     two_batches = build_dataloader(range(8), batch=4, workers=8)
-    try:
-        assert single_batch.num_workers == 0
-        assert drop_last_single_batch.num_workers == 0
-        assert two_batches.num_workers <= 2
-    finally:
-        single_batch.close()
-        drop_last_single_batch.close()
-        two_batches.close()
-
-
-def test_dataloader_close_releases_workers_and_restarts():
-    """Test closed dataloaders release workers and can be iterated again."""
-    loader = build_dataloader(range(16), batch=4, workers=2, shuffle=False, device="cpu")
-    workers = list(loader.iterator._workers)
-    try:
-        list(loader)
-        loader.close()
-        assert all(not worker.is_alive() for worker in workers)
-        assert len(list(loader)) == 4
-    finally:
-        loader.close()
-
-
-def test_finite_dataloader_exhausts_persistent_workers():
-    """Test finite validation loaders reuse workers without repeating batches."""
-    loader = build_dataloader(range(16), batch=4, workers=2, shuffle=False, device="cpu", infinite=False)
-    try:
-        assert len(list(loader)) == 4
-        assert len(list(loader)) == 4
-        assert loader.iterator is None
-        assert loader._iterator is not None
-    finally:
-        loader.close()
+    assert single_batch.num_workers == 0
+    assert drop_last_single_batch.num_workers == 0
+    assert two_batches.num_workers <= 2
 
 
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
@@ -97,12 +68,22 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
     monkeypatch.setattr(data_build, "RANK", 2)  # Simulate the second node with global rank 2 and local rank 0
     expected_seed = torch.initial_seed() - 3
     loader = build_dataloader(range(8), batch=4, workers=8, rank=0, drop_last=True)
-    try:
-        assert len(loader) == 1
-        assert loader.num_workers == 0
-        assert loader.sampler.seed == expected_seed
-    finally:
-        loader.close()
+    assert len(loader) == 1
+    assert loader.num_workers == 0
+    assert loader.sampler.seed == expected_seed
+
+
+def test_dataloader_distributed_epochs_reshuffle(monkeypatch):
+    """Test persistent workers only prefetch an epoch after its DistributedSampler.set_epoch, so epochs reshuffle."""
+    sampler_cls = data_build.distributed.DistributedSampler
+    monkeypatch.setattr(data_build.distributed, "DistributedSampler", partial(sampler_cls, num_replicas=2, rank=0))
+    loader = build_dataloader(range(64), batch=4, workers=2, rank=0)
+    orders = []
+    for epoch in range(2):
+        loader.sampler.set_epoch(epoch)
+        orders.append(torch.cat(list(loader)).tolist())
+    data_build.close_dataloader(loader)
+    assert orders[0] != orders[1]
 
 
 def test_dataloader_seed_varies_sampling_order():
@@ -112,13 +93,9 @@ def test_dataloader_seed_varies_sampling_order():
         for seed in (0, 0, 1):
             torch.manual_seed(seed)
             loaders.append(build_dataloader(range(64), batch=4, workers=0))
-    try:
-        first, repeat, other = (torch.cat(list(loader)).tolist() for loader in loaders)
-        assert first == repeat  # same seed stays reproducible
-        assert first != other  # different seeds must not share one order
-    finally:
-        for loader in loaders:
-            loader.close()
+    first, repeat, other = (torch.cat(list(loader)).tolist() for loader in loaders)
+    assert first == repeat  # same seed stays reproducible
+    assert first != other  # different seeds must not share one order
 
 
 def test_dataloader_empty_dataset_uses_dataloader_validation():

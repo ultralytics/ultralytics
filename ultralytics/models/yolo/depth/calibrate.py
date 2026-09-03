@@ -35,20 +35,6 @@ def _depth_head(model: torch.nn.Module) -> torch.nn.Module | None:
     return head if hasattr(head, "cal_a") else None
 
 
-def _rewind(dataloader) -> None:
-    """Rewind a stateful loader to the epoch start before a partial pass.
-
-    The trainer's InfiniteDataLoader keeps one persistent iterator across ``for`` loops, so a previous pass that broke
-    out early (e.g. a fit stopping at ``max_images``) leaves it mid-epoch and the next loop silently resumes there.
-    Every pass here that wants "the first N" must rewind first — the plot pass in particular must see the same leading
-    batches BaseValidator plotted as ``val_batch{ni}.jpg``. Plain DataLoaders and list fixtures restart on every
-    ``__iter__``.
-    """
-    reset = getattr(dataloader, "reset", None)
-    if callable(reset):
-        reset()
-
-
 def _delta1_none(log_pred: np.ndarray, log_gt: np.ndarray, a: float, b: float) -> float:
     """δ1 under no per-image alignment after applying ``d' = exp(a·log_pred + b)``.
 
@@ -153,7 +139,6 @@ def _collect_logpairs(
     head.cal_a.fill_(1.0)
     head.cal_b.fill_(0.0)
     model = model.to(device).eval()
-    _rewind(dataloader)
     rng = np.random.default_rng(0)
     pairs = []
     seen = 0
@@ -254,9 +239,7 @@ def _plot_calibrated_batches(
     model = model.to(device).eval()
     titles = ["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"]
     plot_dir = Path(plot_dir)
-    _rewind(dataloader)
     with torch.no_grad():
-        # zip stops on range exhaustion without pulling an extra batch from the stateful iterator
         for ni, batch in zip(range(max_batches), dataloader):
             img = batch["img"].to(device).float() / 255
             gt = batch["depth"].to(device).float()

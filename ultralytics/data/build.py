@@ -39,103 +39,7 @@ from ultralytics.data.loaders import (
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, get_split_fraction
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
-from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
-
-
-class InfiniteDataLoader(dataloader.DataLoader):
-    """DataLoader that reuses workers for infinite iteration.
-
-    This dataloader extends the PyTorch DataLoader to provide infinite recycling of workers, which improves efficiency
-    for training loops that need to iterate through the dataset multiple times without recreating workers.
-
-    Attributes:
-        batch_sampler (_RepeatSampler): A sampler that repeats indefinitely.
-        iterator (Iterator): The iterator from the parent DataLoader.
-
-    Methods:
-        __len__: Return the length of the batch sampler's sampler.
-        __iter__: Yield batches from the underlying iterator.
-        __del__: Ensure workers are properly terminated.
-        close: Gracefully shut down persistent workers when the DataLoader is no longer needed.
-        reset: Reset the iterator, useful when modifying dataset settings during training.
-
-    Examples:
-        Create an infinite DataLoader for training
-        >>> dataset = YOLODataset(...)
-        >>> dataloader = InfiniteDataLoader(dataset, batch_size=16, shuffle=True)
-        >>> for batch in dataloader:  # Infinite iteration
-        >>>     train_step(batch)
-    """
-
-    def __init__(self, *args: Any, infinite: bool = True, **kwargs: Any):
-        """Initialize the InfiniteDataLoader with the same arguments as DataLoader."""
-        if not TORCH_2_0:
-            kwargs.pop("prefetch_factor", None)  # not supported by earlier versions
-        super().__init__(*args, **kwargs)
-        self.infinite = infinite
-        if infinite:
-            object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
-            self.iterator = super().__iter__()
-        else:
-            self.iterator = None
-
-    def __len__(self) -> int:
-        """Return the length of the batch sampler's sampler."""
-        return len(self.batch_sampler.sampler) if self.infinite else super().__len__()
-
-    def __iter__(self) -> Iterator:
-        """Yield one epoch of batches from the persistent iterator."""
-        if not self.infinite:
-            yield from super().__iter__()
-            return
-        if self.iterator is None:
-            self.iterator = self._get_iterator()
-        for _ in range(len(self)):
-            yield next(self.iterator)
-
-    def __del__(self):
-        """Ensure that workers are properly terminated when the DataLoader is deleted."""
-        try:
-            for w in getattr(self.iterator, "_workers", ()):  # force terminate
-                if w.is_alive():
-                    w.terminate()
-            self.close()
-        except Exception:
-            pass
-
-    def close(self):
-        """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
-        iterator = getattr(self, "iterator", None)
-        if iterator is None:
-            iterator = getattr(self, "_iterator", None)
-        if iterator is not None and hasattr(iterator, "_workers"):
-            iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
-        self.iterator = None
-
-    def reset(self):
-        """Reset the iterator to allow modifications to the dataset during training."""
-        self.close()  # free old worker pipes before creating new iterator
-        self.iterator = self._get_iterator()
-
-
-class _RepeatSampler:
-    """Sampler that repeats forever for infinite iteration.
-
-    This sampler wraps another sampler and yields its contents indefinitely, allowing for infinite iteration over a
-    dataset without recreating the sampler.
-
-    Attributes:
-        sampler (torch.utils.data.Sampler): The sampler to repeat.
-    """
-
-    def __init__(self, sampler: Any):
-        """Initialize the _RepeatSampler with a sampler to repeat indefinitely."""
-        self.sampler = sampler
-
-    def __iter__(self) -> Iterator:
-        """Iterate over the sampler indefinitely, yielding its contents."""
-        while True:
-            yield from iter(self.sampler)
+from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_7, get_torch_device_backend
 
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):
@@ -335,9 +239,8 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
-    infinite: bool = True,
-) -> InfiniteDataLoader:
-    """Create and return an InfiniteDataLoader for training or validation.
+) -> dataloader.DataLoader:
+    """Create and return a DataLoader for training or validation.
 
     Args:
         dataset (Dataset): Dataset to load data from.
@@ -348,10 +251,9 @@ def build_dataloader(
         drop_last (bool, optional): Whether to drop the last incomplete batch.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
-        infinite (bool, optional): Whether to reuse an infinite worker iterator across epochs.
 
     Returns:
-        (InfiniteDataLoader): A dataloader that can be used for training or validation.
+        (torch.utils.data.DataLoader): A dataloader with persistent workers for training or validation.
 
     Examples:
         Create a dataloader for training
@@ -382,22 +284,29 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
-    return InfiniteDataLoader(
+    return dataloader.DataLoader(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,
         generator=generator,
         drop_last=drop_last,
-        persistent_workers=nw > 0,
-        infinite=infinite,
+        persistent_workers=nw > 0,  # reuse workers across epochs
+        **({"prefetch_factor": 4} if nw > 0 else {}),  # increase over default 2; only accepted with workers
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
+
+
+def close_dataloader(loader) -> None:
+    """Shut down a DataLoader's persistent workers so they do not outlive their use or serve a stale dataset state."""
+    iterator = getattr(loader, "_iterator", None)  # only set for persistent workers
+    if iterator is not None:
+        iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+        loader._iterator = None  # the next iteration spawns fresh workers that see dataset changes
 
 
 def check_source(

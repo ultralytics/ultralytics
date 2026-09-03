@@ -39,6 +39,7 @@ import torch
 import torch.distributed as dist
 
 from ultralytics.cfg import get_cfg, get_save_dir
+from ultralytics.data.build import close_dataloader
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import LOCAL_RANK, LOGGER, RANK, TQDM, callbacks, colorstr, emojis
@@ -152,23 +153,15 @@ class BaseValidator:
         Returns:
             (dict): Dictionary containing validation statistics.
         """
-        completed = False
         try:
-            results = self._validate(trainer, model)
-            completed = True
-            return results
+            return self._validate(trainer, model)
         finally:
-            if trainer is None or not completed:
-                close = getattr(self.dataloader, "close", None)
-                if callable(close):
-                    try:
-                        close()
-                    except Exception:
-                        if completed:
-                            raise
+            if trainer is None:  # standalone validation owns its loader; training reuses it every epoch
+                close_dataloader(self.dataloader)
 
     @smart_inference_mode()
     def _validate(self, trainer=None, model=None):
+        """Run one validation pass, see `__call__`."""
         self.training = trainer is not None
         augment = self.args.augment and (not self.training)
         if self.training:

@@ -12,14 +12,6 @@ keywords: Ultralytics, Data Builders, InfiniteDataLoader, YOLO dataset, build.py
 
 <br>
 
-## ::: ultralytics.data.build.InfiniteDataLoader
-
-<br><br><hr><br>
-
-## ::: ultralytics.data.build._RepeatSampler
-
-<br><br><hr><br>
-
 ## ::: ultralytics.data.build.ContiguousDistributedSampler
 
 <br><br><hr><br>
@@ -37,6 +29,10 @@ keywords: Ultralytics, Data Builders, InfiniteDataLoader, YOLO dataset, build.py
 <br><br><hr><br>
 
 ## ::: ultralytics.data.build.build_dataloader
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.build.close_dataloader
 
 <br><br><hr><br>
 

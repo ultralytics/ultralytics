@@ -26,6 +26,7 @@ from torch import nn, optim
 
 from ultralytics import __version__
 from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
+from ultralytics.data.build import close_dataloader
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
@@ -460,11 +461,9 @@ class BaseTrainer:
             self._model_train()
             if RANK != -1:
                 self.train_loader.sampler.set_epoch(epoch)
-            pbar = enumerate(self.train_loader)
-            # Update dataloader attributes (optional)
             if epoch == (self.epochs - self.args.close_mosaic):
                 self._close_dataloader_mosaic()
-                self.train_loader.reset()
+            pbar = enumerate(self.train_loader)
 
             if RANK in {-1, 0}:
                 if self.loss_names:
@@ -655,8 +654,7 @@ class BaseTrainer:
             self.run_callbacks("on_train_end")
         self._clear_memory()
         for loader in (self.train_loader, self.test_loader):
-            if hasattr(loader, "close"):
-                loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
+            close_dataloader(loader)  # shut down persistent dataloader workers so none survive to interpreter exit
 
     def auto_batch(self, max_num_obj=0, dataset_size=0):
         """Calculate optimal batch size based on model and device memory constraints."""
@@ -1076,7 +1074,6 @@ class BaseTrainer:
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()
-            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""
@@ -1085,6 +1082,7 @@ class BaseTrainer:
         if hasattr(self.train_loader.dataset, "close_mosaic"):
             LOGGER.info("Closing dataloader mosaic")
             self.train_loader.dataset.close_mosaic(hyp=copy(self.args))
+        close_dataloader(self.train_loader)  # restart persistent workers so they pick up the new transforms
 
     def build_optimizer(self, model, name="auto", lr=0.001, momentum=0.9, decay=1e-5, iterations=1e5):
         """Construct an optimizer for the given model.

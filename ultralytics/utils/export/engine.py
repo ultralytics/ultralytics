@@ -140,7 +140,7 @@ def modelopt_quantize_onnx(
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
         quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
-        dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
+        dataset (torch.utils.data.DataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``quantize=8``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
@@ -225,7 +225,7 @@ def onnx2engine(
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        dataset (torch.utils.data.DataLoader, optional): Dataset for INT8 calibration.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
@@ -364,7 +364,7 @@ def onnx2engine(
 
             def __init__(
                 self,
-                dataset,  # ultralytics.data.build.InfiniteDataLoader
+                dataset,  # torch.utils.data.DataLoader
                 cache: str = "",
             ) -> None:
                 """Initialize the INT8 calibrator with dataset and cache path."""

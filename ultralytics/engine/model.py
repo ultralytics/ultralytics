@@ -857,7 +857,7 @@ class Model(torch.nn.Module):
             src = loaded if isinstance(loaded, (str, Path)) else getattr(donor, "pt_path", None)
             if src:
                 donor, _ = load_checkpoint(src)
-                donor.yaml = self.model.yaml  # weights only, the architecture stays the facade's
+                donor.yaml = self.model.yaml  # trainers build the model from .yaml and take the module as weights
                 if len(donor.names) == len(self.model.names):
                     donor.names = self.model.names
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets

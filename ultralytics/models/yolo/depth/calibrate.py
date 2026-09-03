@@ -152,7 +152,6 @@ def _collect_logpairs(
     a0, b0 = float(head.cal_a), float(head.cal_b)
     head.cal_a.fill_(1.0)
     head.cal_b.fill_(0.0)
-    model = model.to(device).eval()
     _rewind(dataloader)
     rng = np.random.default_rng(0)
     pairs = []
@@ -209,16 +208,14 @@ def fit_calibration_selective(
     if head is None:
         LOGGER.warning("calibrate: no Depth head with cal buffers found; skipping.")
         return None
-    pairs = _collect_logpairs(model, dataloader, device, max_images, max_depth)
+    pairs = _collect_logpairs(model.to(device).float().eval(), dataloader, device, max_images, max_depth)
     if len(pairs) < 2:
         LOGGER.warning("calibrate: fewer than 2 valid images for fit/score split; calibration skipped.")
         return None
     res = select_calibration_cv(pairs, margin=margin)
     res["images"] = len(pairs)
-    # On CUDA the buffers are inference tensors (the device move ran under inference_mode); reassign instead
-    # of an in-place fill_ so the write is legal and the buffers stay normal/saveable for model.save().
-    head.cal_a = torch.full_like(head.cal_a, res["a"])
-    head.cal_b = torch.full_like(head.cal_b, res["b"])
+    head.cal_a.fill_(res["a"])
+    head.cal_b.fill_(res["b"])
     scores = " ".join(f"{n}={v:.4f}" for n, v in res["cv_scores"].items())
     LOGGER.info(
         f"Depth calibration selected '{res['name']}' (a={res['a']:.4f} b={res['b']:.4f}); CV held-out δ1 {scores}"

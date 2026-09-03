@@ -342,7 +342,8 @@ class Model(torch.nn.Module):
         """Save the current model state to a file.
 
         This method exports the model's checkpoint (ckpt) to the specified filename. It includes metadata such as the
-        date, Ultralytics version, license information, and a link to the documentation.
+        date, Ultralytics version, license information, and a link to the documentation. The module is written as held
+        in memory: layers folded by ``predict()``, ``val()`` or ``fuse()`` stay folded, so training from the file transfers less.
 
         Args:
             filename (str | Path): The name of the file to save the model to.
@@ -647,6 +648,8 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if self.task != "depth":
             raise ValueError(f"calibrate() is only supported for depth models (task='depth'), got task={self.task!r}.")
+        from copy import deepcopy
+
         from ultralytics.models.yolo.depth.calibrate import _depth_head, fit_calibration_selective
 
         if _depth_head(self.model) is None:
@@ -655,7 +658,7 @@ class Model(torch.nn.Module):
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
-        validator(model=self.model)  # builds the dataloader and reports metrics with the current calibration
+        validator(model=deepcopy(self.model))  # the validator fuses what it runs, so it gets a copy
         res = fit_calibration_selective(
             self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
         )

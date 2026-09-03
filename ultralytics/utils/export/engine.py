@@ -140,8 +140,8 @@ def modelopt_quantize_onnx(
     Args:
         onnx_file (str): Path to the FP32 ONNX file to convert.
         quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
-        dataset (torch.utils.data.DataLoader | None): Dataloader providing INT8 calibration images.
-            Required when ``quantize=8``.
+        dataset (torch.utils.data.DataLoader | None): Dataloader providing INT8 calibration images. Required when
+            ``quantize=8``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.

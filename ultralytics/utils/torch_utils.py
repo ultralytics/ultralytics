@@ -19,6 +19,7 @@ import torch
 import torch.distributed as dist
 import torch.nn.functional as F
 from torch import nn
+from torch.nn.utils.fusion import fuse_conv_bn_weights
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -376,24 +377,9 @@ def fuse_conv_and_bn(conv, bn):
         >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
-    # Compute fused weights: Conv2d weight is [out_channels, in_channels // groups, kH, kW], scale along axis 0
-    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
-    conv.weight.data = conv.weight * bn_scale.view(-1, 1, 1, 1)
-
-    # Compute fused bias
-    b_conv = (
-        torch.zeros(conv.out_channels, device=conv.weight.device, dtype=conv.weight.dtype)
-        if conv.bias is None
-        else conv.bias
+    conv.weight, conv.bias = fuse_conv_bn_weights(
+        conv.weight, conv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = bn_scale * b_conv + b_bn
-
-    if conv.bias is None:
-        conv.register_parameter("bias", nn.Parameter(fused_bias))
-    else:
-        conv.bias.data = fused_bias
-
     return conv.requires_grad_(False)
 
 
@@ -414,26 +400,14 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # Compute fused weights: ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW], so the
-    # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
-    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
-    w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
-    deconv.weight.data = deconv.weight * w_scale[:, :, None, None]
-
-    # Compute fused bias
-    b_conv = (
-        torch.zeros(deconv.out_channels, device=deconv.weight.device, dtype=deconv.weight.dtype)
-        if deconv.bias is None
-        else deconv.bias
+    # ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW]; view it in the Conv2d layout
+    # [out_channels, in_channels // groups, kH, kW] so the per-output-channel BN scale folds along axis 0
+    g, (ci, co, *k) = deconv.groups, deconv.weight.shape
+    weight = deconv.weight.view(g, ci // g, co, *k).transpose(1, 2).reshape(g * co, ci // g, *k)
+    weight, deconv.bias = fuse_conv_bn_weights(
+        weight, deconv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = bn_scale * b_conv + b_bn
-
-    if deconv.bias is None:
-        deconv.register_parameter("bias", nn.Parameter(fused_bias))
-    else:
-        deconv.bias.data = fused_bias
-
+    deconv.weight = nn.Parameter(weight.view(g, co, ci // g, *k).transpose(1, 2).reshape(ci, co, *k))
     return deconv.requires_grad_(False)
 
 
@@ -700,9 +674,7 @@ def init_seeds(seed=0, deterministic=False):
     """
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
+    torch.manual_seed(seed)  # also seeds every CUDA, MPS and XPU device
     # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
     if deterministic:
         if TORCH_2_0:

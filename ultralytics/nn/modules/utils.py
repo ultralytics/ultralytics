@@ -208,42 +208,20 @@ def translate_gt(gt, reg_max, reg_scale, up):
     gt = gt.reshape(-1)
     function_values = weighting_function(reg_max, up, reg_scale)
 
-    # Find the closest left-side indices for each value
-    diffs = function_values.unsqueeze(0) - gt.unsqueeze(1)
-    mask = diffs <= 0
-    closest_left_indices = torch.sum(mask, dim=1) - 1
+    # Left bin index of each GT value; out-of-range values land below 0 or above reg_max - 1
+    indices = torch.searchsorted(function_values, gt, right=True) - 1
+    valid = (indices >= 0) & (indices < reg_max)
 
-    # Calculate the weights for the interpolation
-    indices = closest_left_indices.float()
-
-    weight_right = torch.zeros_like(indices)
-    weight_left = torch.zeros_like(indices)
-
-    valid_idx_mask = (indices >= 0) & (indices < reg_max)
-    valid_indices = indices[valid_idx_mask].long()
-
-    # Obtain distances
+    # Interpolation weights between the two closest bins
+    valid_indices = indices[valid]
     left_values = function_values[valid_indices]
     right_values = function_values[valid_indices + 1]
+    weight_right = torch.zeros_like(gt)
+    weight_right[valid] = (gt[valid] - left_values) / (right_values - left_values)
+    weight_right[indices >= reg_max] = 1.0
+    weight_left = 1.0 - weight_right
 
-    left_diffs = torch.abs(gt[valid_idx_mask] - left_values)
-    right_diffs = torch.abs(right_values - gt[valid_idx_mask])
-
-    # Valid weights
-    weight_right[valid_idx_mask] = left_diffs / (left_diffs + right_diffs)
-    weight_left[valid_idx_mask] = 1.0 - weight_right[valid_idx_mask]
-
-    # Invalid weights (out of range)
-    invalid_idx_mask_neg = indices < 0
-    weight_right[invalid_idx_mask_neg] = 0.0
-    weight_left[invalid_idx_mask_neg] = 1.0
-    indices[invalid_idx_mask_neg] = 0.0
-
-    invalid_idx_mask_pos = indices >= reg_max
-    weight_right[invalid_idx_mask_pos] = 1.0
-    weight_left[invalid_idx_mask_pos] = 0.0
-    indices[invalid_idx_mask_pos] = reg_max - 0.1
-
+    indices = indices.float().clamp(min=0, max=reg_max - 0.1)
     return indices, weight_right, weight_left
 
 
@@ -279,9 +257,9 @@ def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):
     Args:
         points (torch.Tensor): (n, 4) [x, y, w, h], where (x, y) is the center.
         bbox (torch.Tensor): (n, 4) bounding boxes in "xyxy" format.
-        reg_max (float): Maximum bin value.
-        reg_scale (float): Controling curvarture of W(n).
-        up (torch.Tensor): Controling upper bounds of W(n).
+        reg_max (int): Maximum bin value.
+        reg_scale (float): Controls the curvature of W(n).
+        up (torch.Tensor): Controls the upper bounds of W(n).
         eps (float): Small value to ensure target < reg_max.
 
     Returns:
@@ -298,6 +276,5 @@ def bbox2distance(points, bbox, reg_max, reg_scale, up, eps=0.1):
     bottom = (bbox[:, 3] - points[:, 1]) / (points[..., 3] / reg_scale + 1e-16) - 0.5 * reg_scale
     four_lens = torch.stack([left, top, right, bottom], -1)
     four_lens, weight_right, weight_left = translate_gt(four_lens, reg_max, reg_scale, up)
-    if reg_max is not None:
-        four_lens = four_lens.clamp(min=0, max=reg_max - eps)
+    four_lens = four_lens.clamp(min=0, max=reg_max - eps)
     return four_lens.reshape(-1).detach(), weight_right.detach(), weight_left.detach()

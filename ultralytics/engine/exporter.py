@@ -844,8 +844,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        if not self.qat:  # fusing rewrites conv weights, invalidating the ranges QAT learned for the unfused weights
-            model = model.fuse()
+        model = model.fuse()  # a QAT model is left unfused by BaseModel.fuse(), which would drop its ranges
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel

@@ -104,10 +104,12 @@ from ultralytics.utils.ops import make_divisible
 from ultralytics.utils.patches import torch_load
 from ultralytics.utils.plotting import feature_visualization
 from ultralytics.utils.torch_utils import (
+    MODELOPT_REQUIREMENTS,
     fuse_conv_and_bn,
     fuse_deconv_and_bn,
     initialize_weights,
     intersect_dicts,
+    is_qat,
     model_info,
     restore_qat,
     scale_img,
@@ -247,6 +249,8 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
+        if is_qat(self):  # fusing rewrites conv weights, invalidating the ranges QAT learned for the unfused ones
+            return self
         if not self.is_fused():
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
@@ -1871,7 +1875,7 @@ def torch_safe_load(weight, safe_only=None):
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
         )
         # ModelOpt, required to unpickle a QAT checkpoint, ships under a pip name that differs from its module
-        check_requirements("nvidia-modelopt>=0.44" if e.name == "modelopt" else e.name)  # install missing module
+        check_requirements(MODELOPT_REQUIREMENTS if e.name == "modelopt" else e.name)  # install missing module
         ckpt = torch_load(file, map_location="cpu")
 
     if not isinstance(ckpt, dict):
@@ -1911,8 +1915,8 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
             )
         )
     model = candidate.float()  # FP32 model
-    if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the learned fake-quantization, which fusing would discard
-        model, fuse = restore_qat(model, ckpt["modelopt"]), False
+    if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the fake-quantization it learned
+        restore_qat(model, ckpt["modelopt"])
 
     # Model compatibility updates
     model.args = args  # attach args to model

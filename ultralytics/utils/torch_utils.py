@@ -388,6 +388,11 @@ def fuse_deconv_and_bn(deconv, bn):
     return deconv.requires_grad_(False)
 
 
+# ModelOpt's torch plugins import huggingface_hub unconditionally but declare it only under its heavy [hf] extra,
+# so a bare install cannot import modelopt.torch at all
+MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
+
+
 def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
     """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
 
@@ -407,7 +412,7 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     Returns:
         (nn.Module): The prepared model, carrying fake-quantization modules.
     """
-    check_requirements("nvidia-modelopt>=0.44")  # same package as the ONNX-side INT8 path in utils/export/engine.py
+    check_requirements(MODELOPT_REQUIREMENTS)  # same package as the ONNX-side INT8 path in utils/export/engine.py
     import modelopt.torch.quantization as mtq
 
     def forward_loop(m):
@@ -461,7 +466,7 @@ def qat_state(model: nn.Module) -> dict[str, Any]:
 
 def restore_qat(model: nn.Module, state: dict[str, Any]) -> nn.Module:
     """Re-apply the fake-quantization captured by `qat_state` to a model, in place."""
-    check_requirements("nvidia-modelopt>=0.44")
+    check_requirements(MODELOPT_REQUIREMENTS)
     import modelopt.torch.opt as mto
 
     mto.restore_from_modelopt_state(model, state["modelopt"])

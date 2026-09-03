@@ -1,16 +1,70 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Extract per-image properties from object detection datasets."""
+"""Extract image properties and correlate them with per-image F1."""
 
 from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import torch
 from PIL import Image
 
+from ultralytics.utils import DataExportMixin, plt_settings
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
 COCO_AREA_SMALL = 32**2  # COCO small-object area threshold (px^2), Lin et al. 2014
+
+
+@dataclass
+class AnalysisReport(DataExportMixin):
+    """Store per-image metrics and property correlations.
+
+    Attributes:
+        per_image (dict[str, dict]): Per-image metrics and properties keyed by image path.
+        correlations (dict[str, dict]): Per-property Spearman correlation and sample count against F1.
+    """
+
+    per_image: dict[str, dict]
+    correlations: dict[str, dict]
+
+    def summary(self, normalize: bool = False, decimals: int = 5) -> list[dict]:
+        """Return one numeric row per image property."""
+        return [
+            {
+                "property": prop,
+                "spearman_r": None if row["spearman_r"] is None else round(row["spearman_r"], decimals),
+                "n": row["n"],
+            }
+            for prop, row in self.correlations.items()
+        ]
+
+    @plt_settings()
+    def plot(self) -> np.ndarray:
+        """Return an RGB plot of the three strongest correlations."""
+        import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
+
+        properties = sorted(
+            self.correlations, key=lambda prop: abs(self.correlations[prop]["spearman_r"] or 0), reverse=True
+        )[:3]
+        values = list(self.per_image.values())
+        f1 = np.array([row.get("f1", np.nan) for row in values], dtype=float)
+        fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.0))
+        for ax, prop in zip(axes, properties):
+            x = np.array([row.get(prop, np.nan) for row in values], dtype=float)
+            mask = np.isfinite(x) & np.isfinite(f1)
+            ax.scatter(x[mask], f1[mask], s=4, alpha=0.5)
+            r = self.correlations[prop]["spearman_r"]
+            ax.set_title(f"{prop}\nSpearman r={r:.2f}" if r is not None else prop, fontsize=8)
+            ax.set_xlabel(prop, fontsize=7)
+            ax.set_ylabel("f1", fontsize=7)
+            ax.tick_params(axis="both", labelsize=6)
+        fig.tight_layout()
+        fig.canvas.draw()
+        image = np.asarray(fig.canvas.buffer_rgba())[..., :3].copy()
+        plt.close(fig)
+        return image
 
 
 class ImagePropertyExtractor:
@@ -58,3 +112,37 @@ class ImagePropertyExtractor:
                     iou.triu_(diagonal=1)
                 maximum = max(maximum, float(iou.max()))
         return maximum
+
+
+def analyze_correlations(labels: list[dict], metrics) -> AnalysisReport:
+    """Correlate image properties with per-image F1."""
+    per_image = {}
+    for label in labels:
+        im_file = str(Path(label["im_file"]).absolute())
+        per_image[im_file] = {
+            **metrics.box.image_metrics.get(im_file, {}),
+            **label["im_properties"],
+        }
+
+    f1 = np.array([row.get("f1", np.nan) for row in per_image.values()], dtype=float)
+    correlations = {}
+    for prop in labels[0]["im_properties"]:
+        values = np.array([row[prop] for row in per_image.values()], dtype=float)
+        mask = np.isfinite(values) & np.isfinite(f1)
+        r = None
+        if mask.sum() > 1 and np.ptp(values[mask]) and np.ptp(f1[mask]):
+            r = float(np.corrcoef(_rankdata(values[mask]), _rankdata(f1[mask]))[0, 1])
+        correlations[prop] = {"spearman_r": r, "n": int(mask.sum())}
+    return AnalysisReport(per_image, correlations)
+
+
+def _rankdata(values: np.ndarray) -> np.ndarray:
+    """Return average ranks, assigning tied values their mean rank."""
+    sorter = np.argsort(values, kind="stable")
+    inverse = np.empty(values.size, dtype=int)
+    inverse[sorter] = np.arange(values.size)
+    sorted_values = values[sorter]
+    observed = np.r_[True, sorted_values[1:] != sorted_values[:-1]]
+    dense = observed.cumsum()[inverse]
+    count = np.r_[np.nonzero(observed)[0], values.size]
+    return 0.5 * (count[dense] + count[dense - 1] + 1)

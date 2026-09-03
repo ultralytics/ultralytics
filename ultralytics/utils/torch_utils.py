@@ -387,7 +387,7 @@ def fuse_deconv_and_bn(deconv, bn):
     """Fuse ConvTranspose2d and BatchNorm2d layers for inference optimization.
 
     Args:
-        deconv (nn.ConvTranspose2d): Transposed convolutional layer to fuse, with `groups=1`.
+        deconv (nn.ConvTranspose2d): Transposed convolutional layer to fuse.
         bn (nn.BatchNorm2d): Batch normalization layer to fuse.
 
     Returns:
@@ -400,11 +400,14 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # ConvTranspose2d weight is [in_channels, out_channels, kH, kW], so fold BN along the transposed output axis
+    # ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW]; view it in the Conv2d layout
+    # [out_channels, in_channels // groups, kH, kW] so the per-output-channel BN scale folds along axis 0
+    g, (ci, co, *k) = deconv.groups, deconv.weight.shape
+    weight = deconv.weight.view(g, ci // g, co, *k).transpose(1, 2).reshape(g * co, ci // g, *k)
     weight, deconv.bias = fuse_conv_bn_weights(
-        deconv.weight.transpose(0, 1), deconv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
+        weight, deconv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
-    deconv.weight = nn.Parameter(weight.transpose(0, 1))
+    deconv.weight = nn.Parameter(weight.view(g, co, ci // g, *k).transpose(1, 2).reshape(ci, co, *k))
     return deconv.requires_grad_(False)
 
 

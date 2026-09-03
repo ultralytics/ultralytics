@@ -29,7 +29,7 @@ Usage - formats:
                               yolo26n_ncnn_model         # NCNN
                               yolo26n_imx_model          # Sony IMX
                               yolo26n_rknn_model         # Rockchip RKNN
-                              yolo26n_executorch_model   # PyTorch Executorch
+                              yolo26n_executorch_model   # PyTorch ExecuTorch
                               yolo26n_axelera_model      # Axelera AI
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
@@ -430,16 +430,15 @@ class BasePredictor:
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.quantize == 16,
+            channels_last=self.args.channels_last,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
-        self.model.set_memory_format(self.args.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:

@@ -318,7 +318,8 @@ class BaseTrainer:
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU
-        if self.args.channels_last and self.device.type == "cuda":
+        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
@@ -990,6 +991,7 @@ class BaseTrainer:
                     "freeze",
                     "val",
                     "plots",
+                    "channels_last",
                     "distill_model",
                     "save_dir",
                 ):  # allow arg updates to reduce memory or update device on resume
@@ -1245,7 +1247,9 @@ class MultiTrainer:
                 LOGGER.info(
                     f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
                 )
-                name = Path(str(data)).stem
+                path = Path(str(data))
+                parent = path.parent.name
+                name = Path(os.path.abspath(path.parent)).name if path.stem == "data" and parent else path.stem
                 run_name = name
                 try:
                     overrides = {

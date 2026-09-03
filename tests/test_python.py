@@ -1908,6 +1908,9 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     args.fraction = 0.01  # rounds down to zero images
     assert len(ClassificationDataset(tmp_path, args, augment=True).samples) == 1
 
+    args.fraction = [1, 1, 0]  # a zero test fraction still selects nothing
+    assert ClassificationDataset(tmp_path, args, augment=False, prefix="test").samples == []
+
 
 @pytest.fixture
 def image():

@@ -33,6 +33,7 @@ Flags:
                 yolo26-published-{det,objv1} for MuSGD.
     --model <yaml>: det modes. Detector yaml to build, replacing the one derived from the checkpoint.
                 Needed when the run swaps the checkpoint's trunk into a different neck/head.
+    --data <yaml>: coco_det_finetune{,_frozen}. Override coco.yaml with an explicit dataset YAML.
     --lr <val>: override the profile lr0 (det modes) or the final lr0 (other modes).
     --batch <int>: override the profile batch (det modes), applied as-is for other modes.
     --nbs <int>: override the profile nbs. A bare --batch already carries the profile's
@@ -567,6 +568,7 @@ def main(argv: list[str]) -> None:
     argv, backbone_lr_ratio_override = _pop_flag(argv, "--backbone_lr_ratio")
     argv, recipe_name = _pop_flag(argv, "--recipe")
     argv, model_override = _pop_flag(argv, "--model")
+    argv, data_override = _pop_flag(argv, "--data")
     argv, cls_map_vocab = _pop_flag(argv, "--cls_map")
     argv, scratch = _pop_flag(argv, "--scratch", is_bool=True)
     argv, datasets_arg = _pop_flag(argv, "--datasets")
@@ -638,6 +640,9 @@ def main(argv: list[str]) -> None:
     phase1_wandb_id = argv[4] if len(argv) > 4 else ""
     epochs = int(argv[5]) if len(argv) > 5 else resume_args.get("epochs")
     patience = int(argv[6]) if len(argv) > 6 else resume_args.get("patience")
+
+    if data_override and mode not in _COCO_DET_MODES:
+        raise SystemExit(f"ERROR: --data is not supported for mode={mode!r}.")
 
     # The alias trainer is detection-only. Pose and OBB retain automatic same-name remapping.
     if cls_map_vocab and mode not in (*_COCO_DET_MODES, "obj365v1_det_pretrain"):
@@ -743,7 +748,7 @@ def main(argv: list[str]) -> None:
             nbs=nbs_override,
             backbone_lr_ratio=backbone_lr_ratio_override,
         )
-        train_args.update(data="coco.yaml", **det_args)
+        train_args.update(data=data_override or "coco.yaml", **det_args)
         if mode == "coco_det_finetune_frozen":
             train_args["freeze"] = 9
     elif mode == "obj365v1_det_pretrain":

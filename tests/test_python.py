@@ -271,6 +271,18 @@ def test_restricted_load_threaded():
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
 
 
+def test_restricted_load_criterion(tmp_path):
+    """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
+    from ultralytics.nn.tasks import DetectionModel, torch_safe_load
+    from ultralytics.utils import DEFAULT_CFG
+
+    model = DetectionModel(CFG, verbose=False)
+    model.args = DEFAULT_CFG
+    model.criterion = model.init_criterion()
+    torch.save({"model": model}, tmp_path / "legacy.pt")
+    assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None
+
+
 def test_model_forward():
     """Test the forward pass of the YOLO model."""
     model = YOLO(CFG)

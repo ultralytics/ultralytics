@@ -121,17 +121,17 @@ The MNN format supports the [Export](../modes/export.md), [Predict](../modes/pre
 
 ### Export Arguments
 
-| Argument   | Type             | Default | Description                                                                                                                             |
-| ---------- | ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                      |
-| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
-| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16), `8` (INT8 weight quantization), or `32`/unset (FP32). Replaces the deprecated `half`/`int8` flags. |
-| `simplify` | `bool`           | `True`  | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                 |
-| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                        |
-| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
-| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                             |
-| `nms`      | `bool`           | `False` | Adds NMS for detect and pose models. Cannot be combined with `dynamic=True`.                                                            |
-| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
+| Argument   | Type             | Default | Description                                                                                                                                                                                                                                          |
+| ---------- | ---------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'mnn'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                   |
+| `imgsz`    | `int` or `tuple` | `640`   | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                    |
+| `quantize` | `int` or `str`   | `None`  | Quantization precision: `16` (FP16) or `8` (INT8) reduce the exported weights; `32`/unset exports FP32 weights, which MNN's CPU runtime still computes at its default `low` precision rather than FP32. Replaces the deprecated `half`/`int8` flags. |
+| `simplify` | `bool`           | `True`  | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                                              |
+| `opset`    | `int`            | `None`  | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                     |
+| `batch`    | `int`            | `1`     | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                              |
+| `dynamic`  | `bool`           | `False` | Enables dynamic input image dimensions. Cannot be combined with `nms=True`.                                                                                                                                                                          |
+| `nms`      | `bool`           | `False` | Adds NMS for detect and pose models. Cannot be combined with `dynamic=True`.                                                                                                                                                                         |
+| `device`   | `str`            | `None`  | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                      |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -390,8 +390,7 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
         model = YOLO("yolo26n.mnn")
 
         # Run inference
-        results = model("https://ultralytics.com/images/bus.jpg")  # predict with `fp32`
-        results = model("https://ultralytics.com/images/bus.jpg", quantize=16)  # predict with `fp16` if device support
+        results = model("https://ultralytics.com/images/bus.jpg")
 
         for result in results:
             result.show()  # display to screen
@@ -401,8 +400,7 @@ To predict with an exported YOLO26 MNN model, use the `predict` function from th
     === "CLI"
 
         ```bash
-        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg'             # predict with `fp32`
-        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg' quantize=16 # predict with `fp16` if device support
+        yolo predict model='yolo26n.mnn' source='https://ultralytics.com/images/bus.jpg'
         ```
 
 ### What platforms are supported for MNN?

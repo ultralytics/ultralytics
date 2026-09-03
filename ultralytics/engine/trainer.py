@@ -1247,7 +1247,9 @@ class MultiTrainer:
                 LOGGER.info(
                     f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
                 )
-                name = Path(str(data)).stem
+                path = Path(str(data))
+                parent = path.parent.name
+                name = Path(os.path.abspath(path.parent)).name if path.stem == "data" and parent else path.stem
                 run_name = name
                 try:
                     overrides = {

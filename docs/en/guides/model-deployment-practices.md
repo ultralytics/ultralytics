@@ -1,7 +1,7 @@
 ---
 title: YOLO26 Model Deployment Best Practices
 comments: true
-description: Best practices for deploying YOLO26: choose cloud, edge, or local environments, optimize with pruning and quantization, and secure your deployed models.
+description: "Best practices for deploying YOLO26: choose cloud, edge, or local environments, optimize with pruning and quantization, and secure your deployed models."
 keywords: YOLO26, model deployment, best practices, edge deployment, cloud deployment, quantization, pruning, Docker, model security
 ---
 

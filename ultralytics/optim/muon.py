@@ -58,7 +58,7 @@ def muon_update(
     """Compute Muon optimizer updates with momentum and orthogonalization.
 
     This function applies momentum to the gradients, optionally uses Nesterov acceleration, and then orthogonalizes the
-    updates using Newton-Schulz iterations. Matrices with the same row count are zero-padded and orthogonalized in a
+    updates using Newton-Schulz iterations. Matrices with the same column count are zero-padded and orthogonalized in a
     single batched call, and momentum math uses fused foreach ops, avoiding per-parameter kernel launch overhead.
     Higher-rank tensors are reshaped before orthogonalization, and each update is scaled based on parameter dimensions.
 
@@ -94,22 +94,35 @@ def muon_update(
         torch._foreach_add_(updates, grads, alpha=1 - beta)
     else:
         updates = list(momentums)
-    buckets = {}  # group matrices transposed to rows <= cols by (rows, scale) for batched orthogonalization
+    buckets = {}  # group matrices by (columns, scale) for batched orthogonalization
     for i, u in enumerate(updates):
-        m = u.reshape(len(u), -1) if u.ndim > 2 else u
-        transpose = m.size(0) > m.size(1)
-        if transpose:
-            m = m.transpose(0, 1)
+        # flatten in the update's own memory order, a view for NCHW and NHWC alike: permuting columns permutes
+        # the orthogonalized columns identically, and the write-back below restores the update's layout. Any
+        # other layout is materialized row-major and written back row-major.
+        dense = u.is_contiguous()
+        nhwc = not dense and u.ndim == 4 and u.is_contiguous(memory_format=torch.channels_last)
+        m = u.permute(0, 2, 3, 1).flatten(1) if nhwc else (u.flatten(1) if u.ndim > 2 else u.contiguous())
         scale = max(1, grads[i].size(-2) / grads[i].size(-1)) ** 0.5
-        buckets.setdefault((m.size(0), scale, m.device, m.dtype), []).append((i, m, transpose))
-    for (_, scale, _, _), items in buckets.items():
-        n = max(m.size(1) for _, m, _ in items)
-        # zero-pad columns so different shapes share one batched call (zeros stay zero through Newton-Schulz)
-        X = torch.stack([torch.nn.functional.pad(m, (0, n - m.size(1))) for _, m, _ in items])
-        X = zeropower_via_newtonschulz5(X).to(grads[items[0][0]].dtype).mul_(scale)
-        for j, (i, m, transpose) in enumerate(items):
-            x = X[j, :, : m.size(1)]
-            updates[i] = (x.T if transpose else x).reshape(grads[i].shape)
+        buckets.setdefault((m.size(1), scale, m.device, m.dtype), []).append(
+            (i, m, u.stride() if dense or nhwc else None)
+        )
+    groups = []  # split each bucket until its row counts span at most 16x, bounding the padding below
+    for key, items in buckets.items():
+        items.sort(key=lambda t: -t[1].size(0))
+        start = 0
+        for j in range(1, len(items) + 1):
+            if j == len(items) or items[start][1].size(0) > 16 * items[j][1].size(0):
+                groups.append((key, items[start:j]))
+                start = j
+    for (cols, scale, device, dtype), items in groups:
+        # zero-pad rows, not columns, so that different shapes share one batched call (zeros stay zero through
+        # Newton-Schulz) while the fill below and every write-back below stay contiguous
+        X = torch.zeros(len(items), items[0][1].size(0), cols, device=device, dtype=dtype)
+        torch._foreach_add_([X[j, : m.size(0)] for j, (_, m, _) in enumerate(items)], [m for _, m, _ in items])
+        X = zeropower_via_newtonschulz5(X).contiguous().to(grads[items[0][0]].dtype).mul_(scale)
+        for j, (i, m, stride) in enumerate(items):
+            x = X[j, : m.size(0)]
+            updates[i] = x.as_strided(grads[i].shape, stride) if stride else x.reshape(grads[i].shape)
     return updates[0] if single else updates
 
 
@@ -248,94 +261,4 @@ class MuSGD(optim.Optimizer):
             torch._foreach_add_(buffers, grads)
             updates = torch._foreach_add(grads, buffers, alpha=momentum) if nesterov else buffers
             torch._foreach_add_(params, updates, alpha=-lr)
-        return loss
-
-
-class Muon(optim.Optimizer):
-    """Muon optimizer for usage in non-distributed settings.
-
-    This optimizer implements the Muon algorithm, which combines momentum-based updates with orthogonalization via
-    Newton-Schulz iterations. It applies weight decay and learning rate scaling to parameter updates.
-
-    Args:
-        params (iterable): Iterable of parameters to optimize or dicts defining parameter groups.
-        lr (float, optional): Learning rate. Default: 0.02.
-        weight_decay (float, optional): Weight decay (L2 penalty) coefficient. Default: 0.
-        momentum (float, optional): Momentum coefficient for exponential moving average. Default: 0.95.
-
-    Attributes:
-        param_groups (list): List of parameter groups with their optimization settings.
-        state (dict): Dictionary containing optimizer state for each parameter.
-
-    Examples:
-        >>> model = YourModel()
-        >>> optimizer = Muon(model.parameters(), lr=0.02, weight_decay=0.01, momentum=0.95)
-        >>> loss = model(data)
-        >>> loss.backward()
-        >>> optimizer.step()
-
-    Notes:
-        - Designed for non-distributed training environments.
-        - Uses Muon updates with orthogonalization for all parameters.
-        - Weight decay is applied multiplicatively before parameter update.
-        - Parameters with None gradients are assigned zero gradients for synchronization.
-    """
-
-    def __init__(self, params, lr: float = 0.02, weight_decay: float = 0, momentum: float = 0.95):
-        """Initialize Muon optimizer with orthogonalization-based updates.
-
-        Args:
-            params (Iterable): Iterable of parameters to optimize or dicts defining parameter groups.
-            lr (float): Learning rate.
-            weight_decay (float): Weight decay factor applied multiplicatively.
-            momentum (float): Momentum factor for gradient accumulation.
-        """
-        defaults = {"lr": lr, "weight_decay": weight_decay, "momentum": momentum}
-        super().__init__(params, defaults)
-
-    @torch.no_grad()
-    def step(self, closure=None):
-        """Perform a single optimization step.
-
-        Applies Muon updates to all parameters, incorporating momentum and orthogonalization.
-        Weight decay is applied multiplicatively before the parameter update.
-
-        Args:
-            closure (Callable[[], torch.Tensor] | None, optional): A closure that reevaluates the model
-                and returns the loss. Default: None.
-
-        Returns:
-            (torch.Tensor | None): The loss value if closure is provided, otherwise None.
-
-        Examples:
-            >>> optimizer = Muon(model.parameters())
-            >>> loss = model(inputs)
-            >>> loss.backward()
-            >>> optimizer.step()
-
-        Notes:
-            - Parameters with None gradients are assigned zero gradients for synchronization.
-            - Weight decay is applied as: p *= (1 - lr * weight_decay).
-            - Muon update uses Newton-Schulz orthogonalization and works best on 2D+ tensors.
-        """
-        loss = None
-        if closure is not None:
-            with torch.enable_grad():
-                loss = closure()
-
-        for group in self.param_groups:
-            params = group["params"]
-            if not params:
-                continue
-            for p in params:
-                if p.grad is None:
-                    p.grad = torch.zeros_like(p)  # Force synchronization
-                if len(self.state[p]) == 0:
-                    self.state[p]["momentum_buffer"] = torch.zeros_like(p)
-            updates = muon_update(
-                [p.grad for p in params], [self.state[p]["momentum_buffer"] for p in params], beta=group["momentum"]
-            )
-            torch._foreach_mul_(params, 1 - group["lr"] * group["weight_decay"])
-            torch._foreach_add_(params, updates, alpha=-group["lr"])
-
         return loss

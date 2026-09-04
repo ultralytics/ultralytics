@@ -78,12 +78,12 @@ class Tuner:
         >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
     """
 
-    def __init__(self, args, model, _callbacks: dict | None = None):
+    def __init__(self, args, model=None, _callbacks: dict | None = None):
         """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            model (torch.nn.Module): Base model whose weights seed each iteration.
+            model (torch.nn.Module, optional): Base model whose weights seed each iteration, built from args if None.
             _callbacks (dict | None, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
@@ -120,6 +120,10 @@ class Tuner:
         mongodb_collection = args.pop("mongodb_collection", "tuner_results")
 
         self.args = get_cfg(overrides=args)
+        if model is None:
+            from ultralytics import YOLO
+
+            model = YOLO(self.args.model).model
         self.model = model
         self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")

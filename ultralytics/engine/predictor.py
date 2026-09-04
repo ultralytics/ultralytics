@@ -170,7 +170,7 @@ class BasePredictor:
         """
         if not isinstance(im, torch.Tensor):
             im = self.pre_transform(im)
-            # np.stack() copies. unsqueeze() fast path for single frame case
+            # For a single image, add a batch dimension without the copy required by np.stack().
             im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
             im = im.to(self.device)  # transfer as uint8, then reorder on device
             im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)

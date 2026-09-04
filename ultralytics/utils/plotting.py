@@ -21,7 +21,8 @@ from ultralytics.utils.torch_utils import TORCH_1_10
 
 
 def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
-    """Smooth a 1D array with a Gaussian kernel (NumPy replacement for scipy.ndimage.gaussian_filter1d).
+    """
+    Smooth a 1D array with a Gaussian kernel (NumPy replacement for scipy.ndimage.gaussian_filter1d).
 
     Args:
         y (np.ndarray): Input 1D array to smooth.
@@ -40,7 +41,8 @@ def _gaussian_filter1d(y, sigma: int = 3, truncate: float = 4.0) -> np.ndarray:
 
 
 class Colors:
-    """Ultralytics color palette for visualization and plotting.
+    """
+    Ultralytics color palette for visualization and plotting.
 
     This class provides methods to work with the Ultralytics color palette, including converting hex color codes to RGB
     values and accessing predefined color schemes for object detection and pose estimation.
@@ -165,7 +167,8 @@ class Colors:
         )
 
     def __call__(self, i: int | torch.Tensor, bgr: bool = False) -> tuple:
-        """Return a color from the palette by index.
+        """
+        Return a color from the palette by index.
 
         Args:
             i (int | torch.Tensor): Color index.
@@ -225,7 +228,8 @@ def colorize_depth(
     cmap: str = "jet",
     mode: str = "disparity",
 ) -> np.ndarray:
-    """Map a (H, W) metric-depth array to a BGR uint8 colorized image, invalid (<= 0) pixels black.
+    """
+    Map a (H, W) metric-depth array to a BGR uint8 colorized image, invalid (<= 0) pixels black.
 
     Args:
         depth (np.ndarray): (H, W) depth in meters.
@@ -262,7 +266,8 @@ def colorize_depth(
 
 
 class Annotator:
-    """Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
+    """
+    Ultralytics Annotator for train/val mosaics and JPGs and predictions annotations.
 
     Tensor images must be contiguous HWC BGR uint8.
 
@@ -384,7 +389,8 @@ class Annotator:
         }
 
     def get_txt_color(self, color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)) -> tuple:
-        """Assign text color based on background color.
+        """
+        Assign text color based on background color.
 
         Args:
             color (tuple, optional): The background color of the rectangle for text.
@@ -407,7 +413,8 @@ class Annotator:
             return txt_color
 
     def box_label(self, box, label: str = "", color: tuple = (128, 128, 128), txt_color: tuple = (255, 255, 255)):
-        """Draw a bounding box on an image with a given label.
+        """
+        Draw a bounding box on an image with a given label.
 
         Args:
             box (tuple): The bounding box coordinates (x1, y1, x2, y2).
@@ -469,7 +476,8 @@ class Annotator:
                 )
 
     def masks(self, masks, colors, alpha: float = 0.5):
-        """Plot masks on image.
+        """
+        Plot masks on image.
 
         Args:
             masks (torch.Tensor | np.ndarray): Predicted masks with shape [n, h, w].
@@ -508,7 +516,8 @@ class Annotator:
             self.fromarray(self.im)
 
     def semantic_mask(self, mask, alpha: float = 0.5, ignore_index: int = 255):
-        """Plot a semantic segmentation mask on the image.
+        """
+        Plot a semantic segmentation mask on the image.
 
         Args:
             mask (np.ndarray): Semantic mask with shape [h, w] containing integer class indices.
@@ -534,7 +543,8 @@ class Annotator:
         cmap: str = "jet",
         mode: str = "disparity",
     ) -> None:
-        """Render a colorized depth map blended over the image.
+        """
+        Render a colorized depth map blended over the image.
 
         Args:
             depth (np.ndarray): (H, W) depth in meters.
@@ -561,7 +571,8 @@ class Annotator:
         conf_thres: float = 0.25,
         kpt_color: tuple | None = None,
     ):
-        """Plot keypoints on the image.
+        """
+        Plot keypoints on the image.
 
         Args:
             kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
@@ -625,7 +636,8 @@ class Annotator:
         self.draw.rectangle(xy, fill, outline, width)
 
     def text(self, xy, text: str, txt_color: tuple = (255, 255, 255), anchor: str = "top", box_color: tuple = ()):
-        """Add text to an image using PIL or cv2.
+        """
+        Add text to an image using PIL or cv2.
 
         Args:
             xy (list[int]): Top-left coordinates for text placement.
@@ -688,7 +700,8 @@ class Annotator:
 
     @staticmethod
     def get_bbox_dimension(bbox: tuple | list):
-        """Calculate the dimensions and area of a bounding box.
+        """
+        Calculate the dimensions and area of a bounding box.
 
         Args:
             bbox (tuple | list): Bounding box coordinates in the format (x_min, y_min, x_max, y_max).
@@ -713,7 +726,8 @@ class Annotator:
 @TryExcept()
 @plt_settings()
 def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
-    """Plot training labels including class histograms and box statistics.
+    """
+    Plot training labels including class histograms and box statistics.
 
     Args:
         boxes (np.ndarray): Bounding box coordinates in format [x, y, width, height].
@@ -779,7 +793,8 @@ def save_one_box(
     BGR: bool = False,
     save: bool = True,
 ):
-    """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
+    """
+    Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
     bounding box. Optionally, the crop can be squared, and the function allows for gain and padding adjustments to the
@@ -840,7 +855,8 @@ def plot_images(
     show_labels: bool = True,
     show_conf: bool = True,
 ) -> np.ndarray | None:
-    """Plot image grid with labels, bounding boxes, masks, and keypoints.
+    """
+    Plot image grid with labels, bounding boxes, masks, and keypoints.
 
     Args:
         labels (dict[str, Any]): Dictionary containing detection data with keys like 'cls', 'bboxes', 'conf', 'masks',
@@ -1045,9 +1061,10 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including instance
-    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
-    the directory where the CSV is located.
+    """
+    Plot training results from a results CSV file. The function supports various types of data including detection,
+    instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation. Plots are saved
+    as 'results.png' in the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.
@@ -1101,7 +1118,8 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
 
 @plt_settings()
 def plot_multitrain_results(scores: dict, key: str = "fitness", save_dir=Path()):
-    """Plot per-dataset metrics from a multi-dataset training run as a bar chart with the cross-dataset mean.
+    """
+    Plot per-dataset metrics from a multi-dataset training run as a bar chart with the cross-dataset mean.
 
     Args:
         scores (dict): Mapping of dataset name to its scalar metric value.
@@ -1133,7 +1151,8 @@ def plot_multitrain_results(scores: dict, key: str = "fitness", save_dir=Path())
 
 
 def plt_color_scatter(v, f, bins: int = 20, cmap: str = "viridis", alpha: float = 0.8, edgecolors: str = "none"):
-    """Plot a scatter plot with points colored based on a 2D histogram.
+    """
+    Plot a scatter plot with points colored based on a 2D histogram.
 
     Args:
         v (array-like): Values for the x-axis.
@@ -1228,7 +1247,8 @@ def plot_depth_panels(
 
 @plt_settings()
 def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fitness_points: bool = True):
-    """Plot the evolution results stored in a tuning NDJSON file.
+    """
+    Plot the evolution results stored in a tuning NDJSON file.
 
     Args:
         results_file (str, optional): Path to the NDJSON file containing the tuning results.
@@ -1339,7 +1359,8 @@ def class_activation_map(
     topk: int = 16,
     **kwargs,
 ) -> Any:
-    """Run inference and save a class activation heatmap for each image of the batch.
+    """
+    Run inference and save a class activation heatmap for each image of the batch.
 
     LayerCAM weights each head-input position by its positive gradient toward the predicted class score. Each prediction
     and head level is normalized independently before taking their element-wise maximum, preventing stronger predictions

@@ -42,6 +42,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
 
@@ -316,6 +317,9 @@ class BasePredictor:
             self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
         with self._lock:  # for thread-safe inference
+            if self.model.format == "pt" and self.model.end2end:
+                # Class filtering needs candidates before max_det truncation.
+                self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
@@ -411,6 +415,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
 
+    @smart_inference_mode(False)
     def setup_model(self, model, verbose: bool = True):
         """Initialize YOLO model with given parameters and set it to evaluation mode.
 
@@ -418,12 +423,9 @@ class BasePredictor:
             model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
-        if hasattr(model, "end2end"):
-            if self.args.end2end is not None:
-                model.end2end = self.args.end2end
-            if model.end2end:
-                # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
-                model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
+        model = deepcopy(model)
+        if hasattr(model, "end2end") and self.args.end2end is not None:
+            model.end2end = self.args.end2end
         self.model = AutoBackend(
             model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),

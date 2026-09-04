@@ -62,6 +62,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "cloudpickle>=2.0.0",
     "filelock>=3.16.1",
     "numpy>=1.23.0; platform_system != 'Darwin'",
     "numpy>=1.23.0,!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,!=2.3.1,!=2.3.2,!=2.3.3,!=2.3.4; platform_system == 'Darwin'",  # Accelerate matmul bug fixed in 2.3.5

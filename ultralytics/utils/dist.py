@@ -63,11 +63,12 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
     Notes:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
-        - Trainer class import
+        - Trainer class and callback reconstruction
         - Configuration overrides from the trainer arguments
         - Training initialization code
     """
-    module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
+    import cloudpickle
+
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(
         prefix="_temp_",
@@ -77,25 +78,31 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         dir=USER_CONFIG_DIR / "DDP",
         delete=False,
     ) as file:
-        model = ""
-        if hasattr(trainer.model, "yaml"):  # workers rebuild from args, so hand them the module the caller prepared
-            path = Path(file.name).with_suffix(".pt")
-            torch_save({"model": trainer.model, "train_args": vars(trainer.args)}, path)
-            model = f"trainer.model, trainer.args.pretrained = {str(path)!r}, True\n    "
+        path = Path(file.name).with_suffix(".pt")
+        torch_save(
+            {
+                "trainer": type(trainer),
+                "args": vars(trainer.args),
+                "model": trainer.model,
+                "callbacks": trainer.callbacks,
+            },
+            path,
+            pickle_module=cloudpickle,
+        )
         file.write(
             f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
-from pathlib import Path, PosixPath, WindowsPath  # For model arguments stored as Path instead of str
-overrides = {vars(trainer.args)}
-
 if __name__ == "__main__":
-    from {module} import {name}
     from ultralytics.utils import DEFAULT_CFG_DICT
+    from ultralytics.utils.patches import torch_load
+
+    state = torch_load({str(path)!r}, map_location="cpu")
 
     cfg = DEFAULT_CFG_DICT.copy()
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
-    trainer = {name}(cfg=cfg, overrides=overrides)
-    {model}results = trainer.train()
+    trainer = state["trainer"](cfg=cfg, overrides=state["args"], _callbacks=state["callbacks"])
+    trainer.model = state["model"]
+    results = trainer.train()
 """
         )
     return file.name
@@ -148,4 +155,4 @@ def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
-        Path(file).with_suffix(".pt").unlink(missing_ok=True)  # the module written for the workers, if any
+        Path(file).with_suffix(".pt").unlink(missing_ok=True)  # the state written for the workers

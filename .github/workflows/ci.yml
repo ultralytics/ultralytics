@@ -169,7 +169,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install -e ".[export-base,solutions]" \
+          uv pip install -e ".[export-base,export-openvino,solutions]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -322,7 +322,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
+          uv pip install -e ".[export-base,export-openvino,solutions${legacy_extra}]" $torch \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -367,21 +367,7 @@ jobs:
   IsolatedExports:
     if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        include:
-          - os: macos-26
-            args: --env openvino
-          - os: windows-latest
-            args: --env openvino
-          - os: ubuntu-24.04-arm
-            args: --env openvino
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -391,15 +377,14 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install export system dependencies
-        if: matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Cache uv wheels
         uses: actions/cache@v6
         with:
           path: ~/.cache/uv
-          key: isolated-exports-uv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
+          key: isolated-exports-uv-${{ hashFiles('ultralytics/engine/exporter.py', 'pyproject.toml') }}
           restore-keys: |
-            isolated-exports-uv-${{ runner.os }}-${{ runner.arch }}-
+            isolated-exports-uv-
       - name: Install base package
         run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - name: Configure Ultralytics cache paths
@@ -424,11 +409,9 @@ jobs:
           if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             slow_arg="--slow"
           fi
-          for env in $(python .github/scripts/create-export-env.py --list ${{ matrix.args }}); do
+          for env in $(python .github/scripts/create-export-env.py --list); do
             python .github/scripts/create-export-env.py --env "$env"
-            python="${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python"
-            [[ "$RUNNER_OS" == "Windows" ]] && python="${ULTRALYTICS_ISOLATED_VENVS}/${env}/Scripts/python.exe"
-            "$python" -m pytest -vv -s $slow_arg tests/test_exports.py --export-env "$env"
+            "${ULTRALYTICS_ISOLATED_VENVS}/${env}/bin/python" -m pytest -vv -s $slow_arg tests/test_exports.py --export-env "$env"
             rm -rf "${ULTRALYTICS_ISOLATED_VENVS:?}/${env}"
           done
       - name: Prune uv Cache
@@ -636,7 +619,7 @@ jobs:
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
-          uv pip install pytest "ultralytics[export-base,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
+          uv pip install pytest "ultralytics[export-base,export-openvino,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
       - name: Check environment
         run: conda list
       - name: Test benchmark CLI

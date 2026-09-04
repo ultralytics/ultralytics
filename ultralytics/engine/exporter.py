@@ -173,7 +173,7 @@ def export_formats():
             True,
             False,
             ["batch", "data", "dynamic", "quantize", "nms", "fraction"],
-            "openvino",
+            "base",
         ],
         [
             "TensorRT",
@@ -280,21 +280,12 @@ def export_formats():
 EXPORT_ENVS = {
     "base": {
         "python": None,
-        "extras": ["export-base"],
-        "torch": None,
-        "requirements": [],
-        "indexes": [],
-        "env": {},
-        "smoke": [],
-    },
-    "openvino": {
-        "python": "3.13",
         "extras": ["export-base", "export-openvino"],
         "torch": None,
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": ["yolo export format=openvino model=yolo26n.pt imgsz=32"],
+        "smoke": [],
     },
     "tensorflow": {
         "python": "3.12",

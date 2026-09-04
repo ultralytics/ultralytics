@@ -73,7 +73,7 @@ Run `prepare_model.py` for your chosen variant. The script handles the full prep
 ```bash
 # Compile for TI TDA4VH (run from edgeai-tidlrunner path)
 cd /path/to/edgeai-tidlrunner
-tidlrunner-cli compile --target_device TDA4VH --config_path /path/to/model/<model>_model_config.yaml
+tidlrunner-cli compile --target_device TDA4VH --config_path /path/to/model/ < model > _model_config.yaml
 ```
 
 ### Step 4 — Infer with TIDL Runner (on device)
@@ -83,7 +83,7 @@ Each model ships with a `<model>_model_config.yaml`; pass it to `tidlrunner-cli`
 ```bash
 # Run infernce (run from edgeai-tidlrunner path)
 cd /path/to/edgeai-tidlrunner
-tidlrunner-cli infer --target_device TDA4VH --config_path /path/to/model/<model>_model_config.yaml
+tidlrunner-cli infer --target_device TDA4VH --config_path /path/to/model/ < model > _model_config.yaml
 ```
 
 Note: For fine-grained control over the compilation and inferene script, use [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) directly.

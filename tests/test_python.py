@@ -261,9 +261,15 @@ def test_restricted_load_criterion(tmp_path):
     assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None
 
 
-def test_model_forward():
+@pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])
+def test_model_forward(cfg):
     """Test the forward pass of the YOLO model."""
-    model = YOLO(CFG)
+    from ultralytics.nn.modules import SPPF
+
+    model = YOLO(cfg)
+    sppf = next(m for m in model.model.modules() if isinstance(m, SPPF))
+    assert isinstance(sppf.cv1.act, torch.nn.Identity) == ("26" in str(cfg))
+    assert isinstance(SPPF(64, 64).cv1.act, torch.nn.Identity)
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
@@ -285,19 +291,6 @@ def test_model_methods():
     _ = model.device
     _ = model.transforms
     _ = model.task_map
-
-
-@pytest.mark.parametrize("cfg", ["yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n.yaml", "yolo26n-p6.yaml"])
-def test_sppf_activation_matches_model_family(cfg):
-    """Rebuilt model families preserve their released SPPF activation without changing direct construction."""
-    from ultralytics.nn.modules import SPPF
-    from ultralytics.nn.tasks import DetectionModel
-
-    model = DetectionModel(cfg, verbose=False).model
-    sppf = next(m for m in model if isinstance(m, SPPF))
-    expected = torch.nn.Identity if "26" in cfg else type(model[0].act)
-    assert type(sppf.cv1.act) is expected
-    assert isinstance(SPPF(64, 64).cv1.act, torch.nn.Identity)
 
 
 def test_model_load_remaps_cls_head_by_names():

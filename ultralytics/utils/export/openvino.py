@@ -17,7 +17,6 @@ def torch2openvino(
     dynamic: bool = False,
     quantize: int | str | None = None,
     calibration_dataset: Any | None = None,
-    int8_detect: bool = False,
     prefix: str = "",
 ) -> Any:
     """Export a PyTorch model to OpenVINO format with optional INT8 quantization.
@@ -29,7 +28,6 @@ def torch2openvino(
         dynamic (bool): Whether to use dynamic input shapes.
         quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8 for INT8.
         calibration_dataset (nncf.Dataset | None): Dataset for INT8 calibration (required when ``quantize=8``).
-        int8_detect (bool): Whether to keep the detection head in floating-point precision during INT8 quantization.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -49,19 +47,31 @@ def torch2openvino(
     if quantize == 8:
         import nncf
 
+        from ultralytics.nn.modules.head import Detect, RTDETRDecoder
+
+        head = model
+        while hasattr(head, "model"):  # unwrap the NMS wrapper and the task model to reach the module list
+            head = head.model
+        head = head[-1] if isinstance(head, torch.nn.Sequential) else head  # non-YOLO models have no module list
+
         ignored_scope = None
-        if int8_detect:
-            operations = ov_model.get_ordered_ops()
-            sigmoid_names = [op.get_friendly_name() for op in operations if op.get_type_name() == "Sigmoid"]
-            head_scope = sigmoid_names[-1].split("/", 1)[0]
-            ignored_scope = nncf.IgnoredScope(
-                names=[
-                    op.get_friendly_name()
-                    for op in operations
-                    if op.get_type_name() == "Sigmoid"
-                    or op.get_friendly_name().startswith((f"{head_scope}/", f"{head_scope}.dfl"))
+        if isinstance(head, (Detect, RTDETRDecoder)):
+            ops = ov_model.get_ordered_ops()
+            names = [op.get_friendly_name() for op in ops]
+            scope = [n for n, op in zip(names, ops) if op.get_type_name() == "Sigmoid"][-1].split("/", 1)[0]
+            if isinstance(head, RTDETRDecoder):
+                # A DETR head reads its queries straight off the neck, so quantizing those feature maps alone
+                # collapses it. Keep the head and the blocks feeding it in floating point.
+                modules = [scope, *(f"{scope.rsplit('.', 1)[0]}.{i}" for i in head.f)]
+                prefixes = tuple(f"{m}{sep}" for m in modules for sep in "/.")
+                keep = [n for n in names if n in modules or n.startswith(prefixes)]
+            else:
+                keep = [
+                    n
+                    for n, op in zip(names, ops)
+                    if op.get_type_name() == "Sigmoid" or n.startswith((f"{scope}/", f"{scope}.dfl"))
                 ]
-            )
+            ignored_scope = nncf.IgnoredScope(names=keep)
         ov_model = nncf.quantize(
             model=ov_model,
             calibration_dataset=calibration_dataset,

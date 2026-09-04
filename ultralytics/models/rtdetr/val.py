@@ -270,23 +270,13 @@ class DEIMDataset(RTDETRDataset):
         hyp = copy(self.base_hyp)
         _, _, stop = self.policy_epochs
         if epoch >= stop:
-            for key in (
-                "mosaic",
-                "mixup",
-                "copy_paste",
-                "cutmix",
-                "degrees",
-                "translate",
-                "scale",
-                "shear",
-                "perspective",
-                "hsv_h",
-                "hsv_s",
-                "hsv_v",
-            ):
+            keys = ["mosaic", "mixup", "copy_paste", "cutmix"]
+            if not hyp.disable_noaug:
+                keys += ["degrees", "translate", "scale", "shear", "perspective", "hsv_h", "hsv_s", "hsv_v"]
+            for key in keys:
                 setattr(hyp, key, 0.0)
             hyp.augmentations = []
-        else:
+        elif hyp.decay_aug:
             hyp.mosaic = compute_deim_scheduled_prob(self.base_hyp.mosaic, epoch, stop)
             hyp.mixup = compute_deim_scheduled_prob(self.base_hyp.mixup, epoch, stop)
             hyp.copy_paste = compute_deim_scheduled_prob(self.base_hyp.copy_paste, epoch, stop)

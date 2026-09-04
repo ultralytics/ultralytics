@@ -1683,6 +1683,9 @@ class Ensemble(torch.nn.ModuleList):
 # Functions ------------------------------------------------------------------------------------------------------------
 
 
+_temporary_modules_lock = threading.RLock()
+
+
 @contextlib.contextmanager
 def temporary_modules(modules=None, attributes=None):
     """Context manager for temporarily adding or modifying modules in Python's module cache (`sys.modules`).
@@ -1712,23 +1715,33 @@ def temporary_modules(modules=None, attributes=None):
     import sys
     from importlib import import_module
 
-    try:
-        # Set attributes in sys.modules under their old name
-        for old, new in attributes.items():
-            old_module, old_attr = old.rsplit(".", 1)
-            new_module, new_attr = new.rsplit(".", 1)
-            setattr(import_module(old_module), old_attr, getattr(import_module(new_module), new_attr))
+    missing = object()
+    previous = []  # (module, attribute, prior value) so exiting restores e.g. pathlib.WindowsPath
+    with _temporary_modules_lock:
+        try:
+            # Set attributes in sys.modules under their old name
+            for old, new in attributes.items():
+                old_module, old_attr = old.rsplit(".", 1)
+                new_module, new_attr = new.rsplit(".", 1)
+                module = import_module(old_module)
+                previous.append((module, old_attr, module.__dict__.get(old_attr, missing)))
+                setattr(module, old_attr, getattr(import_module(new_module), new_attr))
 
-        # Set modules in sys.modules under their old name
-        for old, new in modules.items():
-            sys.modules[old] = import_module(new)
+            # Set modules in sys.modules under their old name
+            for old, new in modules.items():
+                sys.modules[old] = import_module(new)
 
-        yield
-    finally:
-        # Remove the temporary module paths
-        for old in modules:
-            if old in sys.modules:
-                del sys.modules[old]
+            yield
+        finally:
+            # Remove the temporary module paths and attributes
+            for old in modules:
+                if old in sys.modules:
+                    del sys.modules[old]
+            for module, attr, value in previous:
+                if value is missing:
+                    delattr(module, attr)
+                else:
+                    setattr(module, attr, value)
 
 
 class _SafeLoad:
@@ -1839,6 +1852,8 @@ class _SafeLoad:
         import torch.nn.modules as torch_nn
 
         import ultralytics.nn.modules as ul_nn
+        import ultralytics.utils.loss as ul_loss
+        import ultralytics.utils.tal as ul_tal
         from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
@@ -1861,13 +1876,18 @@ class _SafeLoad:
         _scan(ul_nn)  # ultralytics block/conv/head/transformer
         _scan(ul_tasks)  # ultralytics task models
 
+        # Criteria pickled inside pre-8.4.95 checkpoints (`ema.criterion` is stripped at save since then): the plain
+        # loss classes plus the nn.Module box losses and assigners they hold.
+        for mod in (ul_loss, ul_tal):
+            allow += [
+                klass for _, klass in inspect.getmembers(mod, inspect.isclass) if klass.__module__ == mod.__name__
+            ]
+
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
         # Legacy/cross-platform aliases (pickled paths with no current class namespace), mirroring temporary_modules().
-        from ultralytics.utils.loss import E2EDetectLoss
-
         def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
@@ -1876,7 +1896,7 @@ class _SafeLoad:
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
             (DetectionModel, "ultralytics.nn.tasks.YOLOv10DetectionModel"),  # YOLOv10
-            (E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
+            (ul_loss.E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
         if WINDOWS:

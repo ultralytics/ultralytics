@@ -498,6 +498,9 @@ class v8DetectionLoss:
                 imgsz,
                 stride_tensor,
             )
+        # WARNING: line below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+        else:
+            loss[0] += pred_distri[..., :0].sum()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain
@@ -750,6 +753,9 @@ class v8PoseLoss(v8DetectionLoss):
                 target_bboxes,
                 pred_kpts,
             )
+        # WARNING: line below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+        else:
+            loss[1] += pred_kpts[..., :0].sum()
 
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
@@ -926,6 +932,11 @@ class PoseLoss26(v8PoseLoss):
             loss[2] = keypoints_loss[1]
             if self.rle_loss is not None:
                 loss[5] = keypoints_loss[2]
+        # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+        else:
+            loss[1] += pred_kpts[..., :0].sum()
+            if self.rle_loss is not None:
+                loss[5] += self._rle_zero(pred_kpts)
 
         loss[1] *= self.hyp.pose  # pose gain
         loss[2] *= self.hyp.kobj  # kobj gain
@@ -943,6 +954,10 @@ class PoseLoss26(v8PoseLoss):
         y[..., 1] += anchor_points[:, [1]]
         return y
 
+    def _rle_zero(self, pred_kpt: torch.Tensor) -> torch.Tensor:
+        """Return a zero RLE loss keeping `pred_kpt` and the flow model in the graph, for Multi-GPU DDP."""
+        return pred_kpt[..., :0].sum() + sum(p[..., :0].sum() for p in self.flow_model.parameters())
+
     def calculate_rle_loss(self, pred_kpt: torch.Tensor, gt_kpt: torch.Tensor, kpt_mask: torch.Tensor) -> torch.Tensor:
         """Calculate the RLE (Residual Log-likelihood Estimation) loss for keypoints.
 
@@ -955,7 +970,7 @@ class PoseLoss26(v8PoseLoss):
             (torch.Tensor): The RLE loss.
         """
         if not kpt_mask.any():
-            return pred_kpt[..., :0].sum()
+            return self._rle_zero(pred_kpt)
 
         pred_kpt_visible = pred_kpt[kpt_mask]
         gt_kpt_visible = gt_kpt[kpt_mask]
@@ -969,12 +984,12 @@ class PoseLoss26(v8PoseLoss):
         pred_sigma = pred_sigma.sigmoid()
         error = (pred_coords - gt_coords) / (pred_sigma + 1e-9)
         if not error.numel():
-            return pred_kpt[..., :0].sum()
+            return self._rle_zero(pred_kpt)
 
         # Filter out NaN and Inf values that would propagate into the loss
         valid_mask = ~(torch.isnan(error) | torch.isinf(error)).any(dim=-1)
         if not valid_mask.any():
-            return pred_kpt[..., :0].sum()
+            return self._rle_zero(pred_kpt)
 
         error = error[valid_mask]
         error = error.clamp(-100, 100)  # Prevent numerical instability
@@ -1162,7 +1177,7 @@ class v8OBBLoss(v8DetectionLoss):
                 pred_bboxes, target_bboxes, fg_mask, weight, target_scores_sum
             )  # angle loss
         else:
-            loss[0] += (pred_angle * 0).sum()
+            loss[0] += (pred_angle * 0).sum() + pred_distri[..., :0].sum()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

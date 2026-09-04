@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 import copy
-import math
 
 import numpy as np
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch.nn.init import uniform_
 
 from ultralytics.utils.ops import xyxy2xywh
 
@@ -56,26 +54,6 @@ def bias_init_with_prob(prior_prob=0.01):
         Bias initialization value: -4.5951
     """
     return float(-np.log((1 - prior_prob) / prior_prob))  # return bias_init
-
-
-def linear_init(module):
-    """Initialize the weights and biases of a linear module.
-
-    This function initializes the weights of a linear module using a uniform distribution within bounds calculated from
-    the output dimension. If the module has a bias, it is also initialized.
-
-    Args:
-        module (nn.Module): Linear module to initialize.
-
-    Examples:
-        >>> import torch.nn as nn
-        >>> linear = nn.Linear(10, 5)
-        >>> linear_init(linear)
-    """
-    bound = 1 / math.sqrt(module.weight.shape[0])
-    uniform_(module.weight, -bound, bound)
-    if hasattr(module, "bias") and module.bias is not None:
-        uniform_(module.bias, -bound, bound)
 
 
 def inverse_sigmoid(x, eps=1e-5):

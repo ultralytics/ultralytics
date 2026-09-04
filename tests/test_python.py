@@ -238,12 +238,27 @@ def test_autobackend_memory_format(tmp_path):
 
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
+    import pathlib
     from concurrent.futures import ThreadPoolExecutor
 
     from ultralytics.nn.tasks import torch_safe_load
 
+    windows_path = pathlib.WindowsPath
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
+    assert pathlib.WindowsPath is windows_path
+
+
+def test_restricted_load_criterion(tmp_path):
+    """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
+    from ultralytics.nn.tasks import DetectionModel, torch_safe_load
+    from ultralytics.utils import DEFAULT_CFG
+
+    model = DetectionModel(CFG, verbose=False)
+    model.args = DEFAULT_CFG
+    model.criterion = model.init_criterion()
+    torch.save({"model": model}, tmp_path / "legacy.pt")
+    assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None
 
 
 def test_model_forward():

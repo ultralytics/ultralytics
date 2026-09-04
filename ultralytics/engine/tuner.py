@@ -78,13 +78,13 @@ class Tuner:
         >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
     """
 
-    def __init__(self, args, model=None, _callbacks: dict | None = None):
+    def __init__(self, args, _callbacks: dict | None = None, *, model=None):
         """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
-            model (torch.nn.Module, optional): Base model whose weights seed each iteration, built from args if None.
             _callbacks (dict | None, optional): Callback functions to be executed during tuning.
+            model (torch.nn.Module, optional): Base model whose weights seed each iteration, built from args if None.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),

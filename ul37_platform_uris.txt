@@ -30,7 +30,7 @@ ul://fatih/datasets/tn5000-thyroid-us
 ul://fatih/datasets/txl-pbc-blood-cells
 ul://fatih/datasets/uec-school-lunch-food-2
 ul://fatih/datasets/visdrone
-ul://fatih-enterprise/datasets/airbus-aircraft-detection
+ul://ultralytics/datasets/airbus-oil-storage-detection
 ul://fatih-enterprise/datasets/moda-multispectral-obb
 ul://fatih-enterprise/datasets/racketvision-tennis-ball-yolo
 ul://fatih/datasets/safe-human-17

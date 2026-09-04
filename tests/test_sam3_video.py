@@ -7,8 +7,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from ultralytics.models.sam.predict import _NumpyVideoLoader
-from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
+from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor, _NumpyVideoLoader
 
 
 def _tiny_frames(n=3):

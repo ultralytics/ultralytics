@@ -2224,7 +2224,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
+        (str): Task of the model ('detect', 'segment', 'semantic', 'depth', 'classify', 'pose', 'obb').
     """
 
     def cfg2task(cfg):
@@ -2299,6 +2299,7 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'semantic', 'depth', 'classify', 'pose' "
+        "or 'obb'."
     )
     return "detect"  # assume detect

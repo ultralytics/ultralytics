@@ -536,6 +536,8 @@ class DetectionModel(BaseModel):
     @contextlib.contextmanager
     def head_config(self, end2end: bool | None = None, **kwargs):
         """Apply head attributes for the block, then hand back the values they replaced."""
+        if end2end is False and getattr(self.model[-1], "cv2", 0) is None:
+            end2end = None  # fusion removed the one2many branch, so the head can only run end-to-end
         prev = self.set_head_attr(end2end=end2end) if end2end is not None and end2end != self.end2end else {}
         if self.end2end:
             prev.update(self.set_head_attr(**kwargs))

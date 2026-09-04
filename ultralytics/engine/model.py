@@ -520,6 +520,7 @@ class Model(torch.nn.Module):
             or self.predictor.args.device != args.get("device", self.predictor.args.device)
             or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
             or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+            or self.predictor.args.end2end != args.get("end2end", self.predictor.args.end2end)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)

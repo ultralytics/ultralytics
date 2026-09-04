@@ -299,7 +299,9 @@ CFG_BOOL_KEYS = frozenset(
         "nwd",
     }
 )
-CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment", "aux_fg_sched", "l1_scale"})
+CFG_STR_KEYS = frozenset(
+    {"optimizer", "split", "copy_paste_mode", "auto_augment", "aux_fg_sched", "l1_scale", "rle_scale"}
+)
 
 
 def cfg2dict(cfg: str | Path | dict | SimpleNamespace) -> dict:

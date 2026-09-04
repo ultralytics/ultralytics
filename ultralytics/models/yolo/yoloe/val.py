@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -168,7 +167,6 @@ class YOLOEDetectValidator(DetectionValidator):
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
-            stats = super().__call__(trainer, model)
         else:
             if refer_data is not None:
                 assert load_vp, "Refer data is only used for visual prompt validation."
@@ -197,15 +195,11 @@ class YOLOEDetectValidator(DetectionValidator):
                 dataloader = self.get_vpe_dataloader(data)
                 vpe = self.get_visual_pe(dataloader, model)
                 model.set_classes(names, vpe)
-                stats = super().__call__(model=deepcopy(model))
-            elif isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc"):  # prompt-free
-                return super().__call__(trainer, model)
-            else:
+            elif not (isinstance(model.model[-1], YOLOEDetect) and hasattr(model.model[-1], "lrpc")):  # text prompts
                 LOGGER.info("Validate using the text prompt.")
                 tpe = model.get_text_pe(names)
                 model.set_classes(names, tpe)
-                stats = super().__call__(model=deepcopy(model))
-        return stats
+        return super().__call__(trainer, model)
 
 
 class YOLOESegValidator(YOLOEDetectValidator, SegmentationValidator):

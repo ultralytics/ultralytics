@@ -170,7 +170,7 @@ class BaseValidator:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             if isinstance(model, torch.nn.Module):
-                model = deepcopy(model)  # standalone validation owns its inference model
+                model = smart_inference_mode(False)(deepcopy)(model)  # normal tensors avoid another copy in AutoBackend
             if hasattr(model, "end2end"):
                 if self.args.end2end is not None:
                     model.end2end = self.args.end2end

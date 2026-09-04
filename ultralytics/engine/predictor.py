@@ -423,7 +423,7 @@ class BasePredictor:
             verbose (bool): Whether to print verbose output.
         """
         if isinstance(model, torch.nn.Module):
-            model = deepcopy(model)  # the cached predictor owns its inference model
+            model = smart_inference_mode(False)(deepcopy)(model)  # retain normal tensors for later setup changes
         if hasattr(model, "end2end") and self.args.end2end is not None:
             model.end2end = self.args.end2end
         self.model = AutoBackend(

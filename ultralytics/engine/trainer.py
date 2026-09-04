@@ -416,8 +416,8 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
-        self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
+        self.ema = ModelEMA(self.model)  # after set_class_weights, so the copy carries them at any nesting depth
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -728,7 +728,7 @@ class BaseTrainer:
         # save_model would otherwise skip every epoch and the run would finish with no checkpoint on valid input.
         # Resync each poisoned EMA tensor from the live model where finite; any tensor that is non-finite in both is
         # left for the nan_to_num_ pass below, so a usable checkpoint is always written.
-        ema = unwrap_model(self.ema.ema)
+        ema = self.ema.ema
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             model_sd = unwrap_model(self.model).state_dict()
             for k, v in ema.state_dict().items():

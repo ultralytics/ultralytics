@@ -238,12 +238,15 @@ def test_autobackend_memory_format(tmp_path):
 
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
+    import pathlib
     from concurrent.futures import ThreadPoolExecutor
 
     from ultralytics.nn.tasks import torch_safe_load
 
+    windows_path = pathlib.WindowsPath
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
+    assert pathlib.WindowsPath is windows_path
 
 
 def test_restricted_load_criterion(tmp_path):

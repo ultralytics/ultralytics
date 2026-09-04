@@ -267,17 +267,14 @@ class BaseModel(torch.nn.Module):
 
         return self
 
-    def is_fused(self, thresh=10):
-        """Check if the model has less than a certain threshold of normalization layers.
-
-        Args:
-            thresh (int, optional): The threshold number of normalization layers.
-
-        Returns:
-            (bool): True if the number of normalization layers in the model is less than the threshold, False otherwise.
-        """
-        bn = tuple(v for k, v in torch.nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
-        return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
+    def is_fused(self):
+        """Return True once fuse() has nothing left to do."""
+        return not any(
+            (isinstance(m, (Conv, ConvTranspose)) and hasattr(m, "bn"))
+            or (isinstance(m, (RepConv, RepVGGDW)) and hasattr(m, "conv1"))
+            or (isinstance(m, Detect) and getattr(m, "end2end", False) and m.cv2 is not None)
+            for m in self.modules()
+        )
 
     def info(self, detailed=False, verbose=True, imgsz=640):
         """Print model information.
@@ -336,6 +333,8 @@ class BaseModel(torch.nn.Module):
                 len_updated_csd += 1
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+            if getattr(model, "is_fused", lambda: False)() and not self.is_fused():
+                LOGGER.warning("Pretrained weights are fused for inference; train from the unfused checkpoint instead.")
 
     def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.

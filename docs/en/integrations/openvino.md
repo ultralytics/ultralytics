@@ -31,18 +31,13 @@ OpenVINO export supports all seven Ultralytics tasks. Semantic segmentation and 
 
 ## Installation
 
-To pre-install the required packages, run:
+Install the OpenVINO export dependencies with:
 
-!!! tip "Installation"
+```bash
+pip install "ultralytics[export-openvino]"
+```
 
-    === "CLI"
-
-        ```bash
-        # Install the required packages for OpenVINO export
-        pip install "ultralytics[export-openvino]"
-        ```
-
-`openvino`, and `nncf` for INT8 quantization, are installed automatically on first export or inference, so a plain `pip install ultralytics` works as well. For detailed instructions and best practices, check our [installation guide](../quickstart.md) and the [Common Issues guide](../guides/yolo-common-issues.md).
+These dependencies are also included in `ultralytics[export]` and installed automatically when required by an export.
 
 ## Usage Examples
 

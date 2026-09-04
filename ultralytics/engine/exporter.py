@@ -351,7 +351,7 @@ EXPORT_ENVS = {
     },
     "isolated-imx": {
         "python": "3.11",
-        "extras": ["export-base", "export-imx"],
+        "extras": ["export-base"],
         "torch": ">=2.9,<2.12",
         "requirements": [
             "model-compression-toolkit>=2.4.1",

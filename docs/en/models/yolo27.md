@@ -92,16 +92,16 @@ YOLO26 is compared using its end-to-end (one-to-one head) numbers, matching YOLO
 
 ## Supported Tasks and Modes
 
-YOLO27 supports the following tasks across its five model scales. Detection, instance segmentation, and
-classification are available today with training, validation, inference, and export support; the remaining tasks are
-training now and will be released as they finalize:
+YOLO27 supports the following tasks across its five model scales. Detection, instance segmentation, depth
+estimation, and classification are available today with training, validation, inference, and export support; the
+remaining tasks are training now and will be released as they finalize:
 
 | Model        | Filenames                                                                                      | Task                                          | Training | Validation | Inference | Export |
 | ------------ | ---------------------------------------------------------------------------------------------- | --------------------------------------------- | -------- | ---------- | --------- | ------ |
 | YOLO27       | `yolo27n.pt` `yolo27s.pt` `yolo27m.pt` `yolo27l.pt` `yolo27x.pt`                               | [Detection](../tasks/detect.md)               | ✅       | ✅         | ✅        | ✅     |
 | YOLO27-seg   | `yolo27n-seg.pt` `yolo27s-seg.pt` `yolo27m-seg.pt` `yolo27l-seg.pt` `yolo27x-seg.pt`           | [Instance Segmentation](../tasks/segment.md)  | ✅       | ✅         | ✅        | ✅     |
 | YOLO27-sem   | `yolo27n-sem.pt` `yolo27s-sem.pt` `yolo27m-sem.pt` `yolo27l-sem.pt` `yolo27x-sem.pt`           | [Semantic Segmentation](../tasks/semantic.md) | 🚧       | 🚧         | 🚧        | 🚧     |
-| YOLO27-depth | `yolo27n-depth.pt` `yolo27s-depth.pt` `yolo27m-depth.pt` `yolo27l-depth.pt` `yolo27x-depth.pt` | [Depth Estimation](../tasks/depth.md)         | 🚧       | 🚧         | 🚧        | 🚧     |
+| YOLO27-depth | `yolo27n-depth.pt` `yolo27s-depth.pt` `yolo27m-depth.pt` `yolo27l-depth.pt` `yolo27x-depth.pt` | [Depth Estimation](../tasks/depth.md)         | ✅       | ✅         | ✅        | ✅     |
 | YOLO27-cls   | `yolo27n-cls.pt` `yolo27s-cls.pt` `yolo27m-cls.pt` `yolo27l-cls.pt` `yolo27x-cls.pt`           | [Classification](../tasks/classify.md)        | ✅       | ✅         | ✅        | ✅     |
 | YOLO27-pose  | `yolo27n-pose.pt` `yolo27s-pose.pt` `yolo27m-pose.pt` `yolo27l-pose.pt` `yolo27x-pose.pt`      | [Pose/Keypoints](../tasks/pose.md)            | 🚧       | 🚧         | 🚧        | 🚧     |
 | YOLO27-obb   | `yolo27n-obb.pt` `yolo27s-obb.pt` `yolo27m-obb.pt` `yolo27l-obb.pt` `yolo27x-obb.pt`           | [Oriented Detection](../tasks/obb.md)         | 🚧       | 🚧         | 🚧        | 🚧     |
@@ -153,7 +153,15 @@ be reproduced with `yolo val model=yolo27n.pt data=coco.yaml`.
 
 === "Depth Estimation (NYU Depth V2)"
 
-    YOLO27 depth estimation models are currently training — results will be added once the models are finalized.
+    with latency on an NVIDIA T4 (TensorRT) and CPU (ONNX).
+
+    | Model           | Params  | GFLOPs | CPU ONNX  | T4 TensorRT   | NYU* δ1 | KITTI-580* δ1 | bench mean |
+    | --------------- | ------- | ------ | --------- | ------------  | ------- | ------------- | ---------- |
+    | YOLO27n-depth   | 5.42 M  | 49.1   | 126.7 ms  | **2.976 ms**  | 0.8314  | 0.8256        | 0.7238     |
+    | YOLO27s-depth   | 13.04 M | 76.8   | 198.1 ms  | **4.534 ms**  | 0.8682  | 0.7835        | 0.7454     |
+    | YOLO27m-depth   | 23.39 M | 143.1  | 292.4 ms  | **7.170 ms**  | 0.8652  | 0.7746        | 0.7476     |
+    | YOLO27l-depth   | 28.06 M | 174.3  | 380.2 ms  | **9.243 ms**  | 0.8742  | 0.7862        | 0.7616     |
+    | YOLO27x-depth   | 59.33 M | 340.7  | 627.9 ms  | **17.001 ms** | 0.8711  | 0.8041        | 0.7527     |
 
 === "Classification (ImageNet)"
 

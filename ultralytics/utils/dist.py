@@ -6,9 +6,11 @@ import os
 import shutil
 import sys
 import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from . import USER_CONFIG_DIR
+from .patches import torch_save
 from .torch_utils import TORCH_1_9
 
 if TYPE_CHECKING:
@@ -66,21 +68,6 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         - Training initialization code
     """
     module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
-
-    content = f"""
-# Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
-from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
-overrides = {vars(trainer.args)}
-
-if __name__ == "__main__":
-    from {module} import {name}
-    from ultralytics.utils import DEFAULT_CFG_DICT
-
-    cfg = DEFAULT_CFG_DICT.copy()
-    cfg.update(save_dir='')   # handle the extra key 'save_dir'
-    trainer = {name}(cfg=cfg, overrides=overrides)
-    results = trainer.train()
-"""
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(
         prefix="_temp_",
@@ -90,7 +77,27 @@ if __name__ == "__main__":
         dir=USER_CONFIG_DIR / "DDP",
         delete=False,
     ) as file:
-        file.write(content)
+        model = ""
+        if hasattr(trainer.model, "yaml"):  # workers rebuild from args, so hand them the module the caller prepared
+            path = Path(file.name).with_suffix(".pt")
+            torch_save({"model": trainer.model, "train_args": vars(trainer.args)}, path)
+            model = f"trainer.model, trainer.args.pretrained = {str(path)!r}, True\n    "
+        file.write(
+            f"""
+# Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
+from pathlib import Path, PosixPath, WindowsPath  # For model arguments stored as Path instead of str
+overrides = {vars(trainer.args)}
+
+if __name__ == "__main__":
+    from {module} import {name}
+    from ultralytics.utils import DEFAULT_CFG_DICT
+
+    cfg = DEFAULT_CFG_DICT.copy()
+    cfg.update(save_dir='')   # handle the extra key 'save_dir'
+    trainer = {name}(cfg=cfg, overrides=overrides)
+    {model}results = trainer.train()
+"""
+        )
     return file.name
 
 
@@ -141,3 +148,4 @@ def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
+        Path(file).with_suffix(".pt").unlink(missing_ok=True)  # the module written for the workers, if any

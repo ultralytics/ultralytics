@@ -2490,6 +2490,46 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
         return obj_ids, pred_masks, obj_scores
 
 
+class _NumpyVideoLoader:
+    """Minimal video-like loader wrapping in-memory NumPy frames.
+
+    Exposes the subset of the `LoadImagesAndVideos` interface required by `SAM3VideoSemanticPredictor`: `mode`
+    `"video"`, a 1-based `frame` counter, total `frames`, `fps`, and one-frame-at-a-time `(paths, [frame], info)`
+    batches so the existing `inference()` / `postprocess()` work unchanged.
+    """
+
+    def __init__(self, frames: list[np.ndarray], fps: int = 30):
+        """Initialize the loader with a list of BGR uint8 frames."""
+        self.im0 = list(frames)
+        self.paths = [f"frame{i}.jpg" for i in range(len(self.im0))]
+        self.mode = "video"
+        self.frame = 0  # 1-based counter, incremented on each yielded frame
+        self.frames = len(self.im0)
+        self.fps = fps
+        self.bs = 1
+        self.count = 0
+
+    def __iter__(self):
+        """Reset the iterator and return it."""
+        self.count = 0
+        return self
+
+    def __len__(self) -> int:
+        """Return the number of frames."""
+        return len(self.im0)
+
+    def __next__(self) -> tuple[list[str], list[np.ndarray], list[str]]:
+        """Yield the next single-frame `(paths, [frame], info)` batch."""
+        if self.count >= len(self.im0):
+            raise StopIteration
+        self.frame = self.count + 1
+        path = self.paths[self.count]
+        im0 = self.im0[self.count]
+        info = f"video 1/1 (frame {self.frame}/{self.frames}) {path}: "
+        self.count += 1
+        return [path], [im0], [info]
+
+
 class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
     """Segment Anything Model 3 (SAM3) Video Semantic Predictor."""
 
@@ -2639,6 +2679,54 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "per_frame_geometric_prompt": [None] * num_frames,
         }
         predictor.inference_state = inference_state
+
+    def predict_frames(self, frames: list[np.ndarray], text: list[str] | None = None, **kwargs):
+        """Run video inference with temporal memory over in-memory NumPy frames.
+
+        Wraps `frames` in a minimal video-like loader (no temp video file) and drives the existing per-frame
+        `inference()` / `postprocess()` machinery so tracker memory accumulates across the sequence.
+
+        Args:
+            frames (list[np.ndarray]): Non-empty list of BGR uint8 frames with shape [(H, W, 3) x N].
+            text (list[str] | None): Text prompts applied to the sequence.
+            **kwargs: Additional keyword arguments forwarded to `inference()`.
+
+        Returns:
+            (list[ultralytics.engine.results.Results]): One `Results` object per input frame.
+
+        Raises:
+            ValueError: If `frames` is not a non-empty list of NumPy arrays.
+        """
+        if not isinstance(frames, list) or not frames or any(not isinstance(f, np.ndarray) for f in frames):
+            raise ValueError("`frames` must be a non-empty list of NumPy arrays.")
+        self.inference_state = {}  # reset first: init_state early-returns when non-empty
+        if self.model is None:
+            self.setup_model(None)
+        if self.imgsz is None:
+            from ultralytics.utils.checks import check_imgsz
+
+            self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)
+        self.dataset = _NumpyVideoLoader(frames)
+        self.tracker.imgsz = self.imgsz
+        self.tracker.model.set_imgsz(self.imgsz)
+        self.tracker._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
+        self.interpol_size = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
+        self.init_state(self)
+        results = []
+        with self._lock:  # for thread-safe inference
+            self.run_callbacks("on_predict_start")
+            for batch in self.dataset:
+                self.batch = batch
+                _, im0s, _ = batch
+                im = self.preprocess(im0s)
+                if not self.done_warmup:
+                    self.model.warmup(im=im)
+                    self.done_warmup = True
+                preds = self.inference(im, text=text, **kwargs)
+                self.results = self.postprocess(preds, im, im0s)
+                results.extend(self.results)
+            self.run_callbacks("on_predict_end")
+        return results
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""

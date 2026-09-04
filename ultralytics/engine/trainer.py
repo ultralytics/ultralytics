@@ -164,7 +164,9 @@ class BaseTrainer:
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
-        self.callbacks = _callbacks or callbacks.get_default_callbacks()
+        self.callbacks = copy(_callbacks) if _callbacks else callbacks.get_default_callbacks()
+        for k, v in self.callbacks.items():
+            self.callbacks[k] = v.copy()
 
         # Device count in the launching process; distinct from utils.WORLD_SIZE set in spawned DDP workers
         if self.device.type in {"cpu", "mps"}:

@@ -377,7 +377,7 @@ def build_dataloader(
         # Fork workers on Linux so they inherit the dataset copy-on-write; Python 3.14 defaults to forkserver, which
         # pickles the (potentially multi-GB) label cache to every worker at startup and gives each a full private copy
         multiprocessing_context="fork" if nw > 0 and sys.platform.startswith("linux") else None,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
+        prefetch_factor=(4 if shuffle else 2) if nw > 0 else None,  # validation holds fewer batches between passes
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,

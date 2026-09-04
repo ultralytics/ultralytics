@@ -199,7 +199,7 @@ def benchmark(
                 exported_model = deepcopy(model)  # PyTorch format
             else:
                 export_data = data if "data" in valid_args else None
-                filename = deepcopy(model).export(
+                filename = model.export(
                     imgsz=imgsz,
                     format=export_format,
                     quantize=quantize,

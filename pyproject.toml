@@ -106,7 +106,11 @@ export-openvino = [
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'",
 ]
 export-imx = [
-    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
+    "model-compression-toolkit>=2.4.1",
+    "edge-mdt-cl<1.1.0",
+    "edge-mdt-tpc>=1.2.0",
+    "pydantic<2.12",
+    "imx500-converter[pt]>=3.17.3"
 ]
 export-legacy-torch = [
     "numpy<2",

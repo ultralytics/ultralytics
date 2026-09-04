@@ -298,10 +298,6 @@ class DistillationModel(nn.Module):
         """Forward head-attribute updates (e.g. max_det, agnostic_nms, end2end) to the student model."""
         self.student_model.set_head_attr(**kwargs)
 
-    def head_config(self, *args, **kwargs):
-        """Forward a per-call head configuration to the student model."""
-        return self.student_model.head_config(*args, **kwargs)
-
     def decouple_outputs(self, preds, branch: str = "one2one"):
         """Decouple outputs for teacher/student models.
 

@@ -14,8 +14,4 @@ keywords: Ultralytics, BaseValidator, model validation, PyTorch, TensorFlow, ONN
 
 ## ::: ultralytics.engine.validator.BaseValidator
 
-<br><br><hr><br>
-
-## ::: ultralytics.engine.validator._head_config
-
 <br><br>

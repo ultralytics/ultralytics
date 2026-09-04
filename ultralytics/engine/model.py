@@ -309,6 +309,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.predictor = None
         return self
 
     def load(self, weights: str | Path | dict | torch.nn.Module = "yolo26n.pt") -> Model:
@@ -340,6 +341,7 @@ class Model(torch.nn.Module):
             ckpt, ckpt_path = {"model": self.model}, None  # an object load has no file to resume from
         self.model.load(weights)
         self.ckpt, self.ckpt_path = ckpt, ckpt_path  # train() seeds from self.model while ckpt is set
+        self.predictor = None
         return self
 
     def save(self, filename: str | Path = "saved_model.pt") -> None:
@@ -347,7 +349,7 @@ class Model(torch.nn.Module):
 
         This method exports the model's checkpoint (ckpt) to the specified filename. It includes metadata such as the
         date, Ultralytics version, license information, and a link to the documentation. The module is written as held
-        in memory: layers folded by ``predict()``, ``val()`` or ``fuse()`` stay folded, so training from the file transfers less.
+        in memory: layers folded by ``fuse()`` stay folded, so training from the file transfers less.
 
         Args:
             filename (str | Path): The name of the file to save the model to.
@@ -649,8 +651,6 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if self.task != "depth":
             raise ValueError(f"calibrate() is only supported for depth models (task='depth'), got task={self.task!r}.")
-        from copy import deepcopy
-
         from ultralytics.models.yolo.depth.calibrate import _depth_head, fit_calibration_selective
 
         if _depth_head(self.model) is None:
@@ -659,7 +659,7 @@ class Model(torch.nn.Module):
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
-        validator(model=deepcopy(self.model))  # the validator fuses what it runs, so it gets a copy
+        validator(model=self.model)  # the validator owns the inference copy
         res = fit_calibration_selective(
             self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
         )

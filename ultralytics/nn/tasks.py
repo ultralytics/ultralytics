@@ -514,38 +514,18 @@ class DetectionModel(BaseModel):
         """Override the end-to-end detection mode."""
         self.set_head_attr(end2end=value)
 
-    def set_head_attr(self, **kwargs) -> dict:
-        """Set attributes of the model head (last layer) and return the values they replaced.
+    def set_head_attr(self, **kwargs):
+        """Set attributes of the model head (last layer).
 
         Args:
             **kwargs (Any): Arbitrary keyword arguments representing attributes to set.
-
-        Returns:
-            (dict): Previous value of every attribute the head carries.
         """
-        head, prev = self.model[-1], {}
+        head = self.model[-1]
         for k, v in kwargs.items():
             if not hasattr(head, k):
                 LOGGER.warning(f"Head has no attribute '{k}'.")
                 continue
-            prev[k] = getattr(head, k)
             setattr(head, k, v)
-        return prev
-
-    @contextlib.contextmanager
-    def head_config(self, end2end: bool | None = None, **kwargs):
-        """Apply head attributes for the block, then hand back the values they replaced."""
-        if end2end is False and getattr(self.model[-1], "cv2", 0) is None:
-            end2end = None  # fusion removed the one2many branch, so the head can only run end-to-end
-        prev = self.set_head_attr(end2end=end2end) if end2end is not None and end2end != self.end2end else {}
-        if self.end2end:
-            prev.update(self.set_head_attr(**kwargs))
-        try:
-            yield
-        finally:
-            if prev.get("end2end") is False and getattr(self.model[-1], "cv2", None) is None:
-                prev.pop("end2end")  # fusion removed the one2many branch, so that mode cannot come back
-            self.set_head_attr(**prev)
 
     def _predict_augment(self, x):
         """Perform augmentations on input image x and return augmented inference and train outputs.

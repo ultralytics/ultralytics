@@ -105,7 +105,7 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
         cmd (list[str]): The command to execute for distributed training.
         file (str): Path to the Python script used for DDP training.
     """
-    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
+    import __main__
 
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir

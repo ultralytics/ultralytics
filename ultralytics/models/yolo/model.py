@@ -65,8 +65,8 @@ class YOLO(Model):
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
-            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
-                to auto-detection based on model.
+            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'semantic', 'depth', 'classify',
+                'pose', 'obb'. Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")

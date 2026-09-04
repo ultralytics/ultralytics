@@ -93,6 +93,9 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
             f"""
 # Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
 if __name__ == "__main__":
+    import sys
+    sys.path = {sys.path!r}
+
     from ultralytics.utils import DEFAULT_CFG_DICT
     from ultralytics.utils.patches import torch_load
 
@@ -102,7 +105,7 @@ if __name__ == "__main__":
     cfg.update(save_dir='')   # handle the extra key 'save_dir'
     trainer = state["trainer"](cfg=cfg, overrides=state["args"], _callbacks=state["callbacks"])
     trainer.model = state["model"]
-    results = trainer.train()
+    trainer.train()
 """
         )
     return file.name
@@ -118,8 +121,6 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
         cmd (list[str]): The command to execute for distributed training.
         file (str): Path to the temporary file created for DDP training.
     """
-    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
-
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
     file = generate_ddp_file(trainer)

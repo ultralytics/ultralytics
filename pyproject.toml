@@ -130,10 +130,6 @@ export-executorch = [
     "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64'",
     "numpy<=2.3.5",
 ]
-export-deepx = [
-    "dx_com",
-    "numpy<2",
-]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)
     "litert-torch>=0.9.0; (platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin'",
     "ai-edge-litert>=2.1.4; (platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin'",

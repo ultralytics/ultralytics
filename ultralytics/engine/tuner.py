@@ -24,7 +24,7 @@ from datetime import datetime
 import numpy as np
 
 from ultralytics.cfg import CFG_INT_KEYS, TASK2METRIC, get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
+from ultralytics.utils import LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import plot_tune_results
 
@@ -41,6 +41,7 @@ class Tuner:
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_file (Path): Path to the NDJSON file where evolution logs are saved.
         args (SimpleNamespace): Configuration arguments for the tuning process.
+        model (torch.nn.Module): Base model whose weights seed each iteration.
         callbacks (dict): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
         mongodb (MongoClient): Optional MongoDB client for distributed tuning.
@@ -77,11 +78,12 @@ class Tuner:
         >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks: dict | None = None):
+    def __init__(self, args, model, _callbacks: dict | None = None):
         """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
+            model (torch.nn.Module): Base model whose weights seed each iteration.
             _callbacks (dict | None, optional): Callback functions to be executed during tuning.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
@@ -118,6 +120,7 @@ class Tuner:
         mongodb_collection = args.pop("mongodb_collection", "tuner_results")
 
         self.args = get_cfg(overrides=args)
+        self.model = model
         self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
         self.args.name, self.args.exist_ok, self.args.resume = (None, False, False)  # reset to not affect training
@@ -472,7 +475,6 @@ class Tuner:
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """
-        from ultralytics import YOLO
         from ultralytics.engine.trainer import MultiTrainer
 
         t0 = time.time()
@@ -498,8 +500,7 @@ class Tuner:
             data = train_args.pop("data")
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            model = YOLO(train_args["model"])
-            trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
+            trainer = MultiTrainer(None, {**train_args, "data": data}, self.model)
             raw_metrics = trainer.train()
             failed_datasets = [dataset for dataset, metrics in raw_metrics.items() if not metrics]
             metric = TASK2METRIC[train_args["task"]]

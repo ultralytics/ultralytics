@@ -672,6 +672,7 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
+        memo = {}
         if isinstance(model, WorldModel):
             LOGGER.warning(
                 "YOLOWorld (original version) export is not supported to any format. "
@@ -679,8 +680,9 @@ class Exporter:
                 "(torchscript, onnx, openvino, engine, coreml) formats. "
                 "See https://docs.ultralytics.com/models/yolo-world for details."
             )
-            model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
-        model = deepcopy(model).to(self.device)  # copy before the head and names writes below; the caller keeps its own
+            # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
+            memo[id(getattr(model, "clip_model", None))] = None
+        model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below; the caller keeps its own
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)

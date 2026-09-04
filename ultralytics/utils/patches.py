@@ -42,8 +42,8 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if not success:
             return None
-        if len(frames) > 1:
-            return np.stack(frames, axis=2)  # Preserve multispectral channels
+        if len(frames) > 1 or frames[0].ndim == 3:
+            return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
     im = cv2.imdecode(file_bytes, flags)
     # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
     if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):

@@ -461,7 +461,7 @@ def test_predict_gray_and_4ch(tmp_path):
 @pytest.mark.parametrize("channels", (1, 3, 4, 10))
 @pytest.mark.parametrize("flags", (cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE, cv2.IMREAD_UNCHANGED))
 def test_imread_tiff(tmp_path, channels, flags):
-    """Honor single-frame TIFF read flags while preserving multipage multispectral channels."""
+    """Honor grayscale TIFF read flags while preserving color and multispectral channels."""
     from ultralytics.utils.patches import imread
 
     path = tmp_path / "image.tiff"
@@ -470,7 +470,7 @@ def test_imread_tiff(tmp_path, channels, flags):
         assert cv2.imwritemulti(str(path), list(image.transpose(2, 0, 1)))
     else:
         assert cv2.imwrite(str(path), image)
-    expected = image if channels == 10 and flags != cv2.IMREAD_GRAYSCALE else cv2.imread(str(path), flags)
+    expected = image if channels > 1 and flags != cv2.IMREAD_GRAYSCALE else cv2.imread(str(path), flags)
     if expected.ndim == 2:
         expected = expected[..., None]
     np.testing.assert_array_equal(imread(path, flags), expected)

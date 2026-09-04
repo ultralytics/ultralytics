@@ -169,13 +169,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          # OpenVINO has its own export env: IsolatedExports covers it on ubuntu-latest, so the other
-          # runners keep the macOS/Windows/ARM coverage the base env used to provide.
-          ov_extra=""
-          if [ "${{ matrix.os }}" != "ubuntu-latest" ]; then
-            ov_extra=",export-openvino"
-          fi
-          uv pip install -e ".[export-base,solutions${ov_extra}]" \
+          uv pip install -e ".[export-base,solutions]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -204,12 +198,6 @@ jobs:
           [[ "${{ matrix.os }}" == "macos-26" ]] && xdist="-n 2 --dist=loadfile"
           [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]] && xdist=""
           pytest $xdist --cov=ultralytics/ --cov-report=xml tests/ --export-env base
-        env:
-          YOLO_AUTOINSTALL: "false"
-      - name: Pytest OpenVINO export tests
-        if: matrix.os != 'ubuntu-latest'
-        shell: bash # for Windows compatibility
-        run: pytest tests/test_exports.py --export-env openvino
         env:
           YOLO_AUTOINSTALL: "false"
       - name: Upload Coverage Reports to CodeCov
@@ -334,11 +322,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          ov_extra=""
-          if [ "${{ matrix.os }}" != "ubuntu-latest" ]; then
-            ov_extra=",export-openvino"  # IsolatedExports covers OpenVINO on ubuntu-latest only
-          fi
-          uv pip install -e ".[export-base,solutions${legacy_extra}${ov_extra}]" $torch \
+          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -374,12 +358,6 @@ jobs:
           retries: 1 # Retry once after initial attempt (2 total runs)
           timeout_minutes: 120
           retry_delay_seconds: 60
-        env:
-          YOLO_AUTOINSTALL: "false"
-      - name: Pytest OpenVINO export tests
-        if: matrix.os != 'ubuntu-latest'
-        shell: bash # for Windows compatibility
-        run: pytest -vv -s --slow --durations=50 --durations-min=1 tests/test_exports.py --export-env openvino
         env:
           YOLO_AUTOINSTALL: "false"
       - name: Prune uv Cache

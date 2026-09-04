@@ -2680,6 +2680,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         }
         predictor.inference_state = inference_state
 
+    @smart_inference_mode()
     def predict_frames(self, frames: list[np.ndarray], text: list[str] | None = None, **kwargs):
         """Run video inference with temporal memory over in-memory NumPy frames.
 
@@ -2699,22 +2700,23 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         """
         if not isinstance(frames, list) or not frames or any(not isinstance(f, np.ndarray) for f in frames):
             raise ValueError("`frames` must be a non-empty list of NumPy arrays.")
-        self.inference_state = {}  # reset first: init_state early-returns when non-empty
-        if self.model is None:
-            self.setup_model(None)
-        if self.imgsz is None:
-            from ultralytics.utils.checks import check_imgsz
+        with self._lock:
+            self.inference_state = {}  # reset first: init_state early-returns when non-empty
+            if self.model is None:
+                self.setup_model(None)
+            if self.imgsz is None:
+                from ultralytics.utils.checks import check_imgsz
 
-            self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)
-        self.dataset = _NumpyVideoLoader(frames)
-        # NOTE: keep in sync with SAM3VideoSemanticPredictor.setup_source tracker sync below.
-        self.tracker.imgsz = self.imgsz
-        self.tracker.model.set_imgsz(self.imgsz)
-        self.tracker._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
-        self.interpol_size = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
-        self.init_state(self)
-        results = []
-        with self._lock:  # for thread-safe inference
+                self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)
+            self.dataset = _NumpyVideoLoader(frames)
+            # NOTE: keep in sync with SAM3VideoSemanticPredictor.setup_source tracker sync below.
+            self.tracker.imgsz = self.imgsz
+            self.tracker.model.set_imgsz(self.imgsz)
+            self.tracker._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]
+            self.interpol_size = self.tracker.model.memory_encoder.mask_downsampler.interpol_size
+            self.model.set_imgsz(self.imgsz)
+            self.init_state(self)
+            results = []
             self.run_callbacks("on_predict_start")
             for batch in self.dataset:
                 self.batch = batch

@@ -197,7 +197,7 @@ class BaseDataset(Dataset):
             assert im_files, f"{self.prefix}No images found in {img_path}. {FORMATS_HELP_MSG}"
         except Exception as e:
             raise FileNotFoundError(f"{self.prefix}Error loading data from {img_path}\n{HELP_URL}") from e
-        count = self.fraction if isinstance(self.fraction, int) else round(len(im_files) * self.fraction)
+        count = self.fraction if isinstance(self.fraction, int) else max(1, round(len(im_files) * self.fraction))
         im_files = im_files[:count] if count < len(im_files) else im_files
         check_file_speeds(im_files, prefix=self.prefix)  # check image read speeds
         return im_files

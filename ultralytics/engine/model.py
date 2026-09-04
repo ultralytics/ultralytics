@@ -41,7 +41,7 @@ class Model(torch.nn.Module):
         predictor (BasePredictor): The predictor object used for making predictions.
         model (torch.nn.Module): The underlying PyTorch model.
         trainer (BaseTrainer): The trainer object used for training the model.
-        ckpt (dict): The checkpoint data if the model is loaded from a *.pt file.
+        ckpt (dict): The checkpoint data of the loaded weights, if any.
         cfg (str): The configuration of the model if loaded from a *.yaml file.
         ckpt_path (str): The path to the checkpoint file.
         overrides (dict): A dictionary of overrides for model configuration.
@@ -311,14 +311,14 @@ class Model(torch.nn.Module):
             p.requires_grad = True
         return self
 
-    def load(self, weights: str | Path = "yolo26n.pt") -> Model:
+    def load(self, weights: str | Path | dict | torch.nn.Module = "yolo26n.pt") -> Model:
         """Load parameters from the specified weights file into the model.
 
         This method supports loading weights from a file or directly from a weights object. It matches parameters by
         name and shape and transfers them to the model.
 
         Args:
-            weights (str | Path): Path to the weights file or a weights object.
+            weights (str | Path | dict | torch.nn.Module): Path to the weights file, a checkpoint dict or a module.
 
         Returns:
             (Model): The instance of the class with loaded weights.
@@ -334,8 +334,14 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
-            weights, self.ckpt = load_checkpoint(weights)
+            weights, ckpt = load_checkpoint(weights)
+            ckpt_path = weights.pt_path
+        else:
+            self.overrides.pop("pretrained", None)
+            ckpt, ckpt_path = {"model": self.model}, None  # an object load has no file to resume from
         self.model.load(weights)
+        self.ckpt, self.ckpt_path = ckpt, ckpt_path  # train() seeds from self.model while ckpt is set
+        self.predictor = None
         return self
 
     def save(self, filename: str | Path = "saved_model.pt") -> None:

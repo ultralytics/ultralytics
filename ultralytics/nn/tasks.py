@@ -312,7 +312,7 @@ class BaseModel(torch.nn.Module):
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress.
         """
-        model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
+        model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
 
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
@@ -331,6 +331,7 @@ class BaseModel(torch.nn.Module):
                 c1, c2 = min(c1, cc1), min(c2, cc2)
                 state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
                 len_updated_csd += 1
+        self.pt_path = getattr(model, "pt_path", None)  # provenance follows the weights selected above
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
             if getattr(model, "is_fused", lambda: False)() and not self.is_fused():

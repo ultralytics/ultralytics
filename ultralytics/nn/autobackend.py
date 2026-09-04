@@ -334,7 +334,8 @@ class AutoBackend(nn.Module):
         Returns:
             (Any): Tensor on `self.device`, or the unchanged non-tensor output.
         """
-        x = torch.tensor(x) if isinstance(x, np.ndarray) else x
+        if isinstance(x, np.ndarray):
+            return torch.as_tensor(x, device=self.device)  # shares memory on CPU, one fused copy to accelerators
         return x.to(self.device) if isinstance(x, torch.Tensor) else x
 
     def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640), im: torch.Tensor | None = None) -> None:

@@ -366,7 +366,7 @@ def build_dataloader(
         generator=generator,
         drop_last=drop_last,
         persistent_workers=nw > 0,  # reuse workers across epochs
-        **({"prefetch_factor": 4} if nw > 0 else {}),  # increase over default 2; only accepted with workers
+        **({"prefetch_factor": 4 if shuffle else 2} if nw > 0 else {}),  # validation queues less; needs workers
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
 

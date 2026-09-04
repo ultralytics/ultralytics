@@ -26,6 +26,26 @@ def test_func(*args, **kwargs):
     print("callback test passed")
 
 
+def test_generate_ddp_command_reuses_python_entrypoint(tmp_path, monkeypatch):
+    """DDP should rerun a Python entrypoint with its original arguments."""
+    from ultralytics.utils import dist
+
+    script = tmp_path / "train.py"
+    script.touch()
+    trainer = SimpleNamespace(resume=True, save_dir=tmp_path / "run", world_size=2)
+    monkeypatch.setattr(sys.modules["__main__"], "__file__", str(script), raising=False)
+    monkeypatch.setattr(sys, "argv", [str(script), "--data", "data.yaml"])
+    monkeypatch.setattr(dist, "find_free_network_port", lambda: 12345)
+    generate = mock.Mock()
+    monkeypatch.setattr(dist, "generate_ddp_file", generate)
+
+    cmd, file = dist.generate_ddp_command(trainer)
+
+    assert file == str(script.resolve())
+    assert cmd[-3:] == [str(script.resolve()), "--data", "data.yaml"]
+    generate.assert_not_called()
+
+
 def test_export(monkeypatch, tmp_path):
     """Test model exporting functionality by adding a callback and verifying its execution."""
     monkeypatch.chdir(tmp_path)

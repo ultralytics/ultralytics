@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from . import USER_CONFIG_DIR
@@ -102,13 +103,27 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
 
     Returns:
         cmd (list[str]): The command to execute for distributed training.
-        file (str): Path to the temporary file created for DDP training.
+        file (str): Path to the Python script used for DDP training.
     """
     import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
 
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
-    file = generate_ddp_file(trainer)
+    main_file = getattr(__main__, "__file__", None)
+    if main_file:
+        main_file = Path(main_file).resolve()
+        argv_file = Path(sys.argv[0]).resolve() if sys.argv and Path(sys.argv[0]).is_file() else None
+        package_root = Path(__file__).resolve().parents[1]
+        try:
+            main_file.relative_to(package_root)
+        except ValueError:
+            use_main_file = main_file == argv_file and main_file.suffix == ".py"
+        else:
+            use_main_file = False
+    else:
+        use_main_file = False
+
+    file = str(main_file) if use_main_file else generate_ddp_file(trainer)
     dist_cmd = "torch.distributed.run" if TORCH_1_9 else "torch.distributed.launch"
     port = find_free_network_port()
     cmd = [
@@ -121,6 +136,8 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
         f"{port}",
         file,
     ]
+    if use_main_file:
+        cmd.extend(sys.argv[1:])
     return cmd, file
 
 

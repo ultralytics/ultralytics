@@ -438,42 +438,22 @@ def test_predict_gray_and_4ch(tmp_path):
     im = Image.open(SOURCE)
 
     source_grayscale = tmp_path / "grayscale.jpg"
-    source_tiff = tmp_path / "grayscale.tiff"
     source_rgba = tmp_path / "4ch.png"
     source_non_utf = tmp_path / "non_UTF_测试文件_tést_image.jpg"
     source_spaces = tmp_path / "image with spaces.jpg"
 
     im.convert("L").save(source_grayscale)  # grayscale
-    im.convert("L").save(source_tiff)
     im.convert("RGBA").save(source_rgba)  # 4-ch PNG with alpha
     im.save(source_non_utf)  # non-UTF characters in filename
     im.save(source_spaces)  # spaces in filename
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_grayscale, source_tiff, source_non_utf, source_spaces:
+    for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
             assert len(results) == 1, f"Expected 1 result for {f.name}, got {len(results)}"
         f.unlink()  # cleanup
-
-
-@pytest.mark.parametrize("channels", (1, 3, 4, 10))
-@pytest.mark.parametrize("flags", (cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE, cv2.IMREAD_UNCHANGED))
-def test_imread_tiff(tmp_path, channels, flags):
-    """Honor grayscale TIFF read flags while preserving color and multispectral channels."""
-    from ultralytics.utils.patches import imread
-
-    path = tmp_path / "image.tiff"
-    image = np.full((8, 8, channels), 42, dtype=np.uint8)
-    if channels == 10:
-        assert cv2.imwritemulti(str(path), list(image.transpose(2, 0, 1)))
-    else:
-        assert cv2.imwrite(str(path), image)
-    expected = image if channels > 1 and flags != cv2.IMREAD_GRAYSCALE else cv2.imread(str(path), flags)
-    if expected.ndim == 2:
-        expected = expected[..., None]
-    np.testing.assert_array_equal(imread(path, flags), expected)
 
 
 def test_predict_ndarray_channels():
@@ -2184,12 +2164,24 @@ def test_yolov10():
     model(SOURCE)
 
 
-def test_multichannel():
-    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+@pytest.mark.parametrize("grayscale_tiff", (False, True))
+def test_multichannel(tmp_path, grayscale_tiff):
+    """Test training, validation, prediction, and export with multispectral and grayscale TIFF datasets."""
+    data = "coco8-multispectral.yaml"
+    if grayscale_tiff:
+        dataset = check_det_dataset(data)
+        root = shutil.copytree(dataset["path"], tmp_path / "dataset", ignore=shutil.ignore_patterns("*.npy", "*.cache"))
+        for path in Path(root).rglob("*.tiff"):
+            with Image.open(path) as image:
+                frame = image.copy()  # Retain only the first grayscale page.
+            frame.save(path)
+        data = tmp_path / "data.yaml"
+        YAML.save(data, {"path": str(root), "train": "images/train", "val": "images/val", "names": dataset["names"]})
+
     model = YOLO("yolo26n.pt")
-    model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
-    model.val(data="coco8-multispectral.yaml")
-    im = np.zeros((32, 32, 10), dtype=np.uint8)
+    model.train(data=data, epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data=data)
+    im = np.zeros((32, 32, 3 if grayscale_tiff else 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
 

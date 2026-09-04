@@ -141,7 +141,7 @@ export-executorch = [
     "numpy<=2.3.5",
 ]
 export-deepx = [
-    "dx_com ;sys_platform != 'win32 '" ,
+    "dx_com" ,
     "numpy<2",
 ]
 export-litert = [# LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)

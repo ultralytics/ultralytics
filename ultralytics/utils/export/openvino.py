@@ -47,38 +47,21 @@ def torch2openvino(
     if quantize == 8:
         import nncf
 
-        from ultralytics.nn.modules.head import Detect, RTDETRDecoder
+        from ultralytics.nn.modules.head import RTDETRDecoder
 
         head = model
         while hasattr(head, "model"):  # unwrap the NMS wrapper and the task model to reach the module list
             head = head.model
         head = head[-1] if isinstance(head, torch.nn.Sequential) else head  # non-YOLO models have no module list
 
-        ignored_scope = None
-        if isinstance(head, (Detect, RTDETRDecoder)):
-            ops = ov_model.get_ordered_ops()
-            names = [op.get_friendly_name() for op in ops]
-            scope = [n for n, op in zip(names, ops) if op.get_type_name() == "Sigmoid"][-1].split("/", 1)[0]
-            if isinstance(head, RTDETRDecoder):
-                # A DETR head reads its queries straight off the neck, so quantizing those feature maps alone
-                # collapses it. Keep the head and the blocks feeding it in floating point.
-                modules = [scope, *(f"{scope.rsplit('.', 1)[0]}.{i}" for i in head.f)]
-                prefixes = tuple(f"{m}{sep}" for m in modules for sep in "/.")
-                keep = [n for n in names if n in modules or n.startswith(prefixes)]
-            else:
-                keep = [
-                    n
-                    for n, op in zip(names, ops)
-                    if op.get_type_name() == "Sigmoid" or n.startswith((f"{scope}/", f"{scope}.dfl"))
-                ]
-            ignored_scope = nncf.IgnoredScope(names=keep)
         ov_model = nncf.quantize(
             model=ov_model,
             calibration_dataset=calibration_dataset,
             preset=nncf.QuantizationPreset.MIXED,
             # Calibrate on the full dataset like other INT8 backends, not nncf's 300-batch default
             subset_size=calibration_dataset.get_length() or 300,
-            ignored_scope=ignored_scope,
+            model_type=nncf.ModelType.TRANSFORMER if isinstance(head, RTDETRDecoder) else None,
+            
         )
 
     if output_dir is not None:

@@ -682,7 +682,9 @@ class Exporter:
             )
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
-        model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below; the caller keeps its own
+        model = deepcopy(model, memo).to(
+            self.device
+        )  # copy before the head and names writes below; the caller keeps its own
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)

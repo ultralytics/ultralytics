@@ -438,22 +438,42 @@ def test_predict_gray_and_4ch(tmp_path):
     im = Image.open(SOURCE)
 
     source_grayscale = tmp_path / "grayscale.jpg"
+    source_tiff = tmp_path / "grayscale.tiff"
     source_rgba = tmp_path / "4ch.png"
     source_non_utf = tmp_path / "non_UTF_测试文件_tést_image.jpg"
     source_spaces = tmp_path / "image with spaces.jpg"
 
     im.convert("L").save(source_grayscale)  # grayscale
+    im.convert("L").save(source_tiff)
     im.convert("RGBA").save(source_rgba)  # 4-ch PNG with alpha
     im.save(source_non_utf)  # non-UTF characters in filename
     im.save(source_spaces)  # spaces in filename
 
     # Inference
     model = YOLO(MODEL)
-    for f in source_rgba, source_grayscale, source_non_utf, source_spaces:
+    for f in source_rgba, source_grayscale, source_tiff, source_non_utf, source_spaces:
         for source in Image.open(f), cv2.imread(str(f)), f:
             results = model(source, save=True, verbose=True, imgsz=32)
             assert len(results) == 1, f"Expected 1 result for {f.name}, got {len(results)}"
         f.unlink()  # cleanup
+
+
+@pytest.mark.parametrize("channels", (1, 3, 4, 10))
+@pytest.mark.parametrize("flags", (cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE, cv2.IMREAD_UNCHANGED))
+def test_imread_tiff(tmp_path, channels, flags):
+    """Honor single-frame TIFF read flags while preserving multipage multispectral channels."""
+    from ultralytics.utils.patches import imread
+
+    path = tmp_path / "image.tiff"
+    image = np.full((8, 8, channels), 42, dtype=np.uint8)
+    if channels == 10:
+        assert cv2.imwritemulti(str(path), list(image.transpose(2, 0, 1)))
+    else:
+        assert cv2.imwrite(str(path), image)
+    expected = image if channels == 10 and flags != cv2.IMREAD_GRAYSCALE else cv2.imread(str(path), flags)
+    if expected.ndim == 2:
+        expected = expected[..., None]
+    np.testing.assert_array_equal(imread(path, flags), expected)
 
 
 def test_predict_ndarray_channels():

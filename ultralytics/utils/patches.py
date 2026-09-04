@@ -40,16 +40,15 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         return None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if success:
-            # Handle multi-frame TIFFs and color images
-            return frames[0] if len(frames) == 1 and frames[0].ndim == 3 else np.stack(frames, axis=2)
-        return None
-    else:
-        im = cv2.imdecode(file_bytes, flags)
-        # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
-        if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
-            im = _imread_pil(filename, flags)
-        return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
+        if not success:
+            return None
+        if len(frames) > 1:
+            return np.stack(frames, axis=2)  # Preserve multispectral channels
+    im = cv2.imdecode(file_bytes, flags)
+    # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
+    if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
+        im = _imread_pil(filename, flags)
+    return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
 # PIL patches ---------------------------------------------------------------------------------------------------------

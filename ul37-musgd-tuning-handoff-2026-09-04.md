@@ -220,7 +220,7 @@ nohup env \
   PYTHONPATH="$EXP27_SOURCE" \
   MONGODB_URI="$MONGODB_URI" \
   "$PYTHON314" "$UL37_CAMPAIGN/run_ul37_musgd_tuner_worker.py" \
-  >>"$UL37_CAMPAIGN/logs-tune-musgd/$WORKER_NAME.log" 2>&1 </dev/null &
+  >> "$UL37_CAMPAIGN/logs-tune-musgd/$WORKER_NAME.log" 2>&1 < /dev/null &
 ```
 
 Unset the shell credential immediately after launch. Confirm exactly one outer worker per assigned GPU, no traceback, and active GPU compute. A worker runs repeated generations until the shared collection reaches 500; `iterations=500` is not a per-worker target.

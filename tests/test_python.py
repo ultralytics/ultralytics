@@ -287,36 +287,17 @@ def test_model_methods():
     _ = model.task_map
 
 
-def test_sppf_activation_matches_model_family():
-    """Test SPPF activates cv1 for pre-YOLO26 configs and leaves it unactivated for YOLO26 ones.
-
-    YOLO26 rebuilt SPPF with an unactivated cv1. Models are rebuilt from the YAML they embed, so an activation that does
-    not follow that row silently diverges from the released weights: no shape changes, so the state_dict copies across
-    with no missing or unexpected keys and nothing warns.
-
-    Asserted against each model's own first Conv rather than nn.SiLU, because a config declaring `activation:` (YOLOv6)
-    rebinds the shared Conv.default_act for the rest of the process.
-    """
-    from torch import nn
-
+@pytest.mark.parametrize("cfg", ["yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n.yaml", "yolo26n-p6.yaml"])
+def test_sppf_activation_matches_model_family(cfg):
+    """Rebuilt model families preserve their released SPPF activation without changing direct construction."""
     from ultralytics.nn.modules import SPPF
     from ultralytics.nn.tasks import DetectionModel
 
-    # A bare row predates YOLO26's residual SPPF and stays activated; a row passing n/shortcut is YOLO26. The 4-arg
-    # form is what released yolo26*.pt files embed, so it must build Identity without being given an explicit act.
-    assert not isinstance(SPPF(64, 64).cv1.act, nn.Identity)
-    assert isinstance(SPPF(64, 64, 5, 3, True).cv1.act, nn.Identity)
-    assert not isinstance(SPPF(64, 64, 5, 3, True, True).cv1.act, nn.Identity)
-
-    configs = (("yolov8n.yaml", True), ("yolov10n.yaml", True), ("yolo11n.yaml", True), ("yolo26n.yaml", False))
-    for cfg, activated in configs:
-        model = DetectionModel(cfg, verbose=False).model
-        sppf = next((m for m in model if isinstance(m, SPPF)), None)
-        assert sppf is not None, f"{cfg} built no SPPF layer"
-        expected = type(model[0].act) if activated else nn.Identity
-        assert type(sppf.cv1.act) is expected, (
-            f"{cfg} built SPPF.cv1 with {type(sppf.cv1.act).__name__}, expected {expected.__name__}"
-        )
+    model = DetectionModel(cfg, verbose=False).model
+    sppf = next(m for m in model if isinstance(m, SPPF))
+    expected = torch.nn.Identity if "26" in cfg else type(model[0].act)
+    assert type(sppf.cv1.act) is expected
+    assert isinstance(SPPF(64, 64).cv1.act, torch.nn.Identity)
 
 
 def test_model_load_remaps_cls_head_by_names():

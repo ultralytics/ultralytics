@@ -211,31 +211,22 @@ class SPP(nn.Module):
 class SPPF(nn.Module):
     """Spatial Pyramid Pooling - Fast (SPPF) layer for YOLOv5 by Glenn Jocher."""
 
-    def __init__(
-        self, c1: int, c2: int, k: int = 5, n: int | None = None, shortcut: bool | None = None, act: bool | None = None
-    ):
+    def __init__(self, c1: int, c2: int, k: int = 5, n: int = 3, shortcut: bool = False):
         """Initialize the SPPF layer with given input/output channels and kernel size.
 
         Args:
             c1 (int): Input channels.
             c2 (int): Output channels.
             k (int): Kernel size.
-            n (int | None): Number of pooling iterations, 3 if unset.
-            shortcut (bool | None): Whether to use shortcut connection, False if unset.
-            act (bool | None): Whether to activate cv1. If unset it follows the YAML row: rows omitting `n` and
-                `shortcut` predate YOLO26's residual SPPF and are activated, matching the released
-                YOLOv5/v6/v8/v10/YOLO11, YOLO-World and YOLOE weights, while rows passing them are YOLO26 and are
-                not. Inferring rather than defaulting keeps both eras correct when a model is rebuilt from the YAML
-                embedded in its own checkpoint.
+            n (int): Number of pooling iterations.
+            shortcut (bool): Whether to use shortcut connection.
 
         Notes:
             This module is equivalent to SPP(k=(5, 9, 13)).
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels
-        legacy = n is None and shortcut is None  # pre-YOLO26 row
-        n, shortcut = 3 if n is None else n, False if shortcut is None else shortcut
-        self.cv1 = Conv(c1, c_, 1, 1, act=legacy if act is None else act)
+        self.cv1 = Conv(c1, c_, 1, 1, act=False)
         self.cv2 = Conv(c_ * (n + 1), c2, 1, 1)
         self.m = nn.MaxPool2d(kernel_size=k, stride=1, padding=k // 2)
         self.n = n

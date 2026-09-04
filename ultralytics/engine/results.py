@@ -198,8 +198,9 @@ class Results(SimpleClass, DataExportMixin):
     """A class for storing and manipulating inference results.
 
     This class provides comprehensive functionality for handling inference results from various Ultralytics models,
-    including detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented
-    bounding box detection. It supports visualization, data export, and various coordinate transformations.
+    including detection, instance segmentation, semantic segmentation, depth estimation, classification, pose
+    estimation, and oriented bounding box detection. It supports visualization, data export, and various coordinate
+    transformations.
 
     Attributes:
         orig_img (np.ndarray): The original image as a numpy array.

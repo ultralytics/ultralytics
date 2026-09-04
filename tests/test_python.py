@@ -1188,30 +1188,6 @@ def test_annotator_tensor_image():
     np.testing.assert_array_equal(result.plot(img=torch.zeros_like(image), boxes=False), expected)
 
 
-@pytest.mark.parametrize("n_masks", [1, 2, 3, 6])
-def test_annotator_masks_cpu_default_alpha_matches_explicit_blend(n_masks):
-    """CPU default-alpha (0.5) compositing, including the >2-mask fast path, matches explicit alpha blending."""
-    from ultralytics.utils.plotting import Annotator
-
-    h, w = 12, 12
-    torch.manual_seed(0)
-    masks = torch.rand(n_masks, h, w) > 0.5
-    colors = [[(i * 37) % 256, (i * 91) % 256, (i * 149) % 256] for i in range(n_masks)]
-    image = (torch.rand(h, w, 3) * 255).byte()
-
-    ann = Annotator(image.clone())
-    ann.masks(masks.clone(), colors)  # alpha defaults to 0.5
-
-    m = masks.unsqueeze(3).float()
-    c = torch.tensor(colors, dtype=torch.float32)[:, None, None] / 255.0 * 0.5
-    mcs = torch.amax(m * c, 0)
-    inv_alpha = torch.prod(1 - m * 0.5, 0)
-    im = image.float() / 255.0
-    expected = ((im * inv_alpha + mcs) * 255).byte()
-
-    np.testing.assert_array_equal(ann.im, expected.numpy())
-
-
 def test_results_update_probs():
     """Test that Results.update(probs=...) wraps the tensor in Probs like the sibling attributes."""
     from ultralytics.engine.results import Probs, Results

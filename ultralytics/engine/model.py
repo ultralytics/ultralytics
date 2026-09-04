@@ -335,10 +335,11 @@ class Model(torch.nn.Module):
         if isinstance(weights, (str, Path)):
             self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, ckpt = load_checkpoint(weights)
+            ckpt_path = weights.pt_path
         else:
-            ckpt = {**weights, "model": self.model} if isinstance(weights, dict) else {"model": self.model}
+            ckpt, ckpt_path = {"model": self.model}, None  # an object load has no file to resume from
         self.model.load(weights)
-        self.ckpt = ckpt  # train() seeds from self.model only while this is set
+        self.ckpt, self.ckpt_path = ckpt, ckpt_path  # train() seeds from self.model while ckpt is set
         return self
 
     def save(self, filename: str | Path = "saved_model.pt") -> None:

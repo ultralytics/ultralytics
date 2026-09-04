@@ -350,8 +350,7 @@ class YOLOE(Model):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
-
-        self.predictor = None
+            self.predictor = None
 
     def _prompt_embedding_model(self) -> str:
         """Return the checkpoint identifier used to bind prompt embeddings to this model."""

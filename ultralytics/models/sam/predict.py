@@ -2707,6 +2707,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
             self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)
         self.dataset = _NumpyVideoLoader(frames)
+        # NOTE: keep in sync with SAM3VideoSemanticPredictor.setup_source tracker sync below.
         self.tracker.imgsz = self.imgsz
         self.tracker.model.set_imgsz(self.imgsz)
         self.tracker._bb_feat_sizes = [[int(x / (self.stride * i)) for x in self.imgsz] for i in [1 / 4, 1 / 2, 1]]

@@ -203,7 +203,8 @@ Do not rerun the launcher for an already-live GPU.
 3. Copy `yolo27n.pt` and verify its SHA-256.
 4. Materialize or copy all revised UL37 datasets locally. Build a 37-line manifest. If absolute paths differ from Vast, compute its SHA-256, pass that value as `UL37_MANIFEST_SHA256`, and record it in issue 3849 before launch. The worker independently requires the same 37 sorted dataset identities via the path-independent identity hash above.
 5. Select a globally unique worker name such as `g14` or `provider-host-gpu0`. Never reuse a live worker name.
-6. Securely load the same MongoDB URI into the process environment. Do not store or log it.
+6. Securely export the same MongoDB URI into the current shell environment so the child inherits it. Do not add the
+   value to the command arguments, store it, or log it.
 7. Launch one persistent process per GPU:
 
 ```bash
@@ -218,7 +219,6 @@ nohup env \
   UL37_MODEL="$UL37_MODEL" \
   ULTRALYTICS_SOURCE="$EXP27_SOURCE" \
   PYTHONPATH="$EXP27_SOURCE" \
-  MONGODB_URI="$MONGODB_URI" \
   "$PYTHON314" "$UL37_CAMPAIGN/run_ul37_musgd_tuner_worker.py" \
   >> "$UL37_CAMPAIGN/logs-tune-musgd/$WORKER_NAME.log" 2>&1 < /dev/null &
 ```
@@ -231,7 +231,7 @@ Before adding workers, read the collection without modifying it:
 
 - completed result iterations are unique and contiguous;
 - each completed document has aggregate fitness, 25 hyperparameters, exactly 37 dataset entries, and save directories;
-- there are no zero/NaN aggregate-fitness documents;
+- every aggregate fitness is finite; zero is valid when every dataset failed and must remain in the collection;
 - the best iteration and fitness are recorded;
 - the collection has not already reached 500.
 

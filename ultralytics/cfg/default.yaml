@@ -34,12 +34,12 @@ cos_lr: False # (bool) cosine learning rate scheduler
 close_mosaic: 10 # (int) disable mosaic augmentation for final N epochs (0 to keep enabled)
 resume: False # (bool) resume training from last checkpoint in the run dir
 amp: True # (bool | str) train precision: True/'fp16' (AMP check), 'bf16', or False/'fp32'; AMP uses FP16 train validation
-fraction: 1.0 # (float | int | list) train ratio/count or [train, val, test] ratios/counts, 1.0 = all, 1 = one
+fraction: 1.0 # (float | int | list) train ratio/count or split values; 1 = all, integer >1 = count, test 0 = none
 profile: False # (bool) profile ONNX/TensorRT speeds during training for loggers
 freeze: # (int | list, optional) freeze first N layers (int), or specific layer indices or module names like "23.cv2" (list)
 multi_scale: 0.0 # (float) multi-scale range as a fraction of imgsz; sizes are rounded to stride multiples
 compile: False # (bool | str) enable torch.compile() backend='inductor'; True="default", False=off, or "default|reduce-overhead|max-autotune-no-cudagraphs"
-channels_last: False # (bool) use channels_last (NHWC) memory format for conv train/inference; CUDA-only, speeds up Tensor-Core GPUs
+channels_last: # (bool, optional) auto-enable for CUDA training on PyTorch 1.11+ and supported x86 CPU inference
 
 # Segmentation
 overlap_mask: True # (bool) merge instance masks into one mask during training (segment only)
@@ -51,11 +51,11 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 # Val/Test settings ----------------------------------------------------------------------------------------------------
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
-save_json: False # (bool) save results to COCO JSON (detect/segment/pose) or PNG masks (semantic) for external evaluation
+save_json: False # (bool) save COCO JSON (detect/segment/pose), compute detect size metrics, or save semantic PNG masks
 conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image
-quantize: # (int|str, optional) precision: predict/val use 16/fp16 for FP16 or 32/fp32/None for FP32; export also supports 8/int8 and w8a8|w16a16|w8a16|w8a32; replaces deprecated half/int8 args
+quantize: # (int|str, optional) precision: predict/val 16/fp16 or 32/fp32/None sets pt/torchscript compute, and can cast the retained pt module in place so a later 32 run keeps fp16-rounded weights; elsewhere the artifact/runtime decides, though 16 rounds openvino/triton inputs and returns triton outputs as fp16; export also supports 8/int8 and w8a8|w16a16|w8a16|w8a32; replaces deprecated half/int8 args
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
 end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export

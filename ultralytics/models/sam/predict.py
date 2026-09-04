@@ -535,6 +535,7 @@ class Predictor(BasePredictor):
         self.segment_all = False
         return results
 
+    @smart_inference_mode()
     def set_image(self, image):
         """Preprocess and set a single image for inference.
 

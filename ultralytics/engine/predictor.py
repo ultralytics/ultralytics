@@ -29,7 +29,7 @@ Usage - formats:
                               yolo26n_ncnn_model         # NCNN
                               yolo26n_imx_model          # Sony IMX
                               yolo26n_rknn_model         # Rockchip RKNN
-                              yolo26n_executorch_model   # PyTorch Executorch
+                              yolo26n_executorch_model   # PyTorch ExecuTorch
                               yolo26n_axelera_model      # Axelera AI
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
@@ -161,24 +161,24 @@ class BasePredictor:
         """Prepare input image before inference.
 
         Args:
-            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, [(H, W, 3) x N] for list.
+            im (torch.Tensor | list[np.ndarray]): Images of shape (N, 3, H, W) for tensor, already RGB and normalized to
+                0.0-1.0, or [(H, W, 3) x N] for list of BGR uint8 arrays. See
+                ultralytics.data.loaders.LoadTensor._single_check for tensor input requirements.
 
         Returns:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
-        not_tensor = not isinstance(im, torch.Tensor)
-        if not_tensor:
-            im = np.stack(self.pre_transform(im))
-            if im.shape[-1] == 3:
-                im = im[..., ::-1]  # BGR to RGB
-            im = im.transpose((0, 3, 1, 2))  # BHWC to BCHW, (n, 3, h, w)
-            im = np.ascontiguousarray(im)  # contiguous
-            im = torch.from_numpy(im)
-
-        im = im.to(self.device)
-        im = im.half() if self.model.fp16 else im.float()  # uint8 to fp16/32
-        if not_tensor:
-            im /= 255  # 0 - 255 to 0.0 - 1.0
+        if not isinstance(im, torch.Tensor):
+            im = torch.from_numpy(np.stack(self.pre_transform(im)))
+            im = im.to(self.device)  # transfer as uint8, then reorder on device
+            im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
+            if im.shape[1] == 3:
+                im = im.flip(1)  # BGR to RGB
+            im = im.contiguous()
+            im = (im.half() if self.model.fp16 else im.float()).div_(255)  # uint8 to fp16/32, 0 - 255 to 0.0 - 1.0
+        else:
+            im = im.to(self.device)
+            im = im.half() if self.model.fp16 else im.float()  # already 0.0 - 1.0, no division
         return im
 
     def inference(self, im: torch.Tensor, *args, **kwargs):
@@ -430,25 +430,15 @@ class BasePredictor:
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.quantize == 16,
+            channels_last=self.args.channels_last,
             fuse=True,
             verbose=verbose,
         )
 
         self.device = self.model.device  # update device
-        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
-        # channels_last (NHWC) is CUDA-only and native-PyTorch-only: lossless and Tensor-Core friendly there, wrong
-        # on MPS, no CPU gain, and only a native nn.Module has weights to convert.
-        channels_last = self.args.channels_last and self.device.type == "cuda" and self.model.format == "pt"
-        if self.args.channels_last and not channels_last:
-            LOGGER.warning(
-                f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
-                f"format='{self.model.format}' on '{self.device.type}'."
-            )
-        if channels_last:
-            self.model.to(memory_format=torch.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:

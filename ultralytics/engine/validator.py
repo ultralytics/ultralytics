@@ -160,10 +160,7 @@ class BaseValidator:
             self.data = trainer.data
             # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.quantize = 16 if (self.device.type != "cpu" and trainer.amp) else None
-            model = trainer.ema.ema or trainer.model
-            if trainer.args.compile and hasattr(model, "_orig_mod"):
-                model = model._orig_mod  # validate non-compiled original model to avoid issues
-            model = model.float()
+            model = trainer.ema.ema.float()
             self.loss = {k: torch.zeros_like(v) for k, v in trainer.loss_items.items()}
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
             model.eval()
@@ -189,6 +186,7 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,
+                channels_last=self.args.channels_last,
             )
             self.device = model.device  # update device
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
@@ -197,15 +195,6 @@ class BaseValidator:
             if augment and not model.base_model:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
-            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
-            channels_last = self.args.channels_last and self.device.type == "cuda" and pt
-            if self.args.channels_last and not channels_last:
-                LOGGER.warning(
-                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
-                    f"format='{fmt}' on '{self.device.type}'."
-                )
-            if channels_last:
-                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 if hasattr(model, "imgsz"):

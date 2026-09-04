@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-from ultralytics.cfg import TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
+from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
 from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
@@ -342,7 +342,8 @@ class Model(torch.nn.Module):
         """Save the current model state to a file.
 
         This method exports the model's checkpoint (ckpt) to the specified filename. It includes metadata such as the
-        date, Ultralytics version, license information, and a link to the documentation.
+        date, Ultralytics version, license information, and a link to the documentation. The module is written as held
+        in memory: layers folded by ``predict()``, ``val()`` or ``fuse()`` stay folded, so training from the file transfers less.
 
         Args:
             filename (str | Path): The name of the file to save the model to.
@@ -361,7 +362,10 @@ class Model(torch.nn.Module):
         from ultralytics import __version__
 
         updates = {
-            "model": deepcopy(self.model).half() if isinstance(self.model, torch.nn.Module) else self.model,
+            "ema": None,
+            "model": deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
+            if isinstance(self.model, torch.nn.Module)
+            else self.model,
             "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
@@ -508,7 +512,12 @@ class Model(torch.nn.Module):
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
 
-        if not self.predictor or self.predictor.args.device != args.get("device", self.predictor.args.device):
+        if (
+            not self.predictor
+            or self.predictor.args.device != args.get("device", self.predictor.args.device)
+            or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
+            or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+        ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
         else:  # only update args if predictor is already setup
@@ -639,6 +648,8 @@ class Model(torch.nn.Module):
         self._check_is_pytorch_model()
         if self.task != "depth":
             raise ValueError(f"calibrate() is only supported for depth models (task='depth'), got task={self.task!r}.")
+        from copy import deepcopy
+
         from ultralytics.models.yolo.depth.calibrate import _depth_head, fit_calibration_selective
 
         if _depth_head(self.model) is None:
@@ -647,7 +658,7 @@ class Model(torch.nn.Module):
         if data is not None:
             args["data"] = data
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
-        validator(model=self.model)  # builds the dataloader and reports metrics with the current calibration
+        validator(model=deepcopy(self.model))  # the validator fuses what it runs, so it gets a copy
         res = fit_calibration_selective(
             self.model, validator.dataloader, validator.device, max_depth=validator.data.get("max_depth") or 100.0
         )
@@ -670,7 +681,8 @@ class Model(torch.nn.Module):
             verbose (bool): Whether to print detailed benchmark information.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
-                - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
+                - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where
+                  supported; only 16 changes the native PyTorch row.
                 - device (str): Device to run the benchmark on (e.g., 'cpu', 'cuda').
 
         Returns:
@@ -869,7 +881,7 @@ class Model(torch.nn.Module):
     def tune(
         self,
         use_ray=False,
-        iterations=10,
+        iterations=300,
         *args: Any,
         **kwargs: Any,
     ):
@@ -914,7 +926,7 @@ class Model(torch.nn.Module):
 
             custom = {}  # method defaults
             args = {**self.overrides, **custom, **kwargs, "mode": "train"}  # highest priority args on the right
-            return Tuner(args=args, _callbacks=self.callbacks)(iterations=iterations)
+            return Tuner(args=args, model=self.model, _callbacks=self.callbacks)(iterations=iterations)
 
     def _apply(self, fn) -> Model:
         """Apply a function to model parameters, buffers, and tensors.

@@ -805,10 +805,6 @@ class PositionEmbeddingRandom(nn.Module):
             scale = 1.0
         self.register_buffer("positional_encoding_gaussian_matrix", scale * torch.randn((2, num_pos_feats)))
 
-        # Set non-deterministic for forward() error 'cumsum_cuda_kernel does not have a deterministic implementation'
-        torch.use_deterministic_algorithms(False)
-        torch.backends.cudnn.deterministic = False
-
     def _pe_encoding(self, coords: torch.Tensor) -> torch.Tensor:
         """Encode normalized [0,1] coordinates using random spatial frequencies."""
         # Assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
@@ -821,17 +817,10 @@ class PositionEmbeddingRandom(nn.Module):
     def forward(self, size: tuple[int, int]) -> torch.Tensor:
         """Generate positional encoding for a grid using random spatial frequencies."""
         h, w = size
-        grid = torch.ones(
-            (h, w),
-            device=self.positional_encoding_gaussian_matrix.device,
-            dtype=self.positional_encoding_gaussian_matrix.dtype,
-        )
-        y_embed = grid.cumsum(dim=0) - 0.5
-        x_embed = grid.cumsum(dim=1) - 0.5
-        y_embed = y_embed / h
-        x_embed = x_embed / w
-
-        pe = self._pe_encoding(torch.stack([x_embed, y_embed], dim=-1))
+        m = self.positional_encoding_gaussian_matrix
+        y_embed = (torch.arange(h, device=m.device, dtype=m.dtype) + 0.5) / h  # pixel centers
+        x_embed = (torch.arange(w, device=m.device, dtype=m.dtype) + 0.5) / w
+        pe = self._pe_encoding(torch.stack([x_embed[None].expand(h, w), y_embed[:, None].expand(h, w)], dim=-1))
         return pe.permute(2, 0, 1)  # C x H x W
 
     def forward_with_coords(self, coords_input: torch.Tensor, image_size: tuple[int, int]) -> torch.Tensor:

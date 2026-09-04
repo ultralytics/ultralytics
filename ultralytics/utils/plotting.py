@@ -971,7 +971,7 @@ def plot_images(
                         kpts_[..., 0] *= w  # scale to pixels
                         kpts_[..., 1] *= h
                     elif scale < 1:  # absolute coords need scale if image scales
-                        kpts_ *= scale
+                        kpts_[..., :2] *= scale
                 kpts_[..., 0] += x
                 kpts_[..., 1] += y
                 for j in range(len(kpts_)):
@@ -1045,9 +1045,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including instance
-    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
-    the directory where the CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including detection,
+    instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation. Plots are
+    saved as 'results.png' in the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.

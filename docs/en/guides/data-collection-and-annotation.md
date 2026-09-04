@@ -1,7 +1,7 @@
 ---
 title: CV Data Collection and Annotation Guide
 comments: true
-description: Learn data collection and annotation for computer vision: set up classes, source unbiased data, choose annotation types and formats, and run quality control.
+description: "Learn data collection and annotation for computer vision: set up classes, source unbiased data, choose annotation types and formats, and run quality control."
 keywords: What is Data Annotation, Data Annotation Tools, Annotating Data, Avoiding Bias in Data Collection, Ethical Data Collection, Annotation Strategies
 ---
 

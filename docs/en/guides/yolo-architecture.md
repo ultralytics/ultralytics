@@ -250,7 +250,7 @@ Running the snippet across three generations shows the changes numerically. Thes
 | ------- | ------ | ---------- | ------ | --------- | --------- | ---------- |
 | YOLOv8n | 72     | 3,151,904  | 8.7    | 16        | `False`   | `DFL`      |
 | YOLO11n | 100    | 2,616,248  | 6.5    | 16        | `False`   | `DFL`      |
-| YOLO26n | 122    | 2,408,932  | 5.4    | 1         | `True`    | `Identity` |
+| YOLO26n | 122    | 2,408,932  | 5.5    | 1         | `True`    | `Identity` |
 
 YOLO26n reports `reg_max=1`, `end2end=True`, and an `Identity` DFL layer — the architectural signature of its NMS-free, DFL-free head.
 

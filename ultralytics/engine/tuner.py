@@ -17,15 +17,14 @@ Examples:
 from __future__ import annotations
 
 import json
-import random
 import shutil
 import time
 from datetime import datetime
 
 import numpy as np
 
-from ultralytics.cfg import CFG_INT_KEYS, get_cfg, get_save_dir
-from ultralytics.utils import DEFAULT_CFG, LOGGER, YAML, callbacks, colorstr, remove_colorstr
+from ultralytics.cfg import CFG_INT_KEYS, TASK2METRIC, get_cfg, get_save_dir
+from ultralytics.utils import LOGGER, YAML, callbacks, colorstr, remove_colorstr
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.plotting import plot_tune_results
 
@@ -42,6 +41,7 @@ class Tuner:
         tune_dir (Path): Directory where evolution logs and results will be saved.
         tune_file (Path): Path to the NDJSON file where evolution logs are saved.
         args (SimpleNamespace): Configuration arguments for the tuning process.
+        model (torch.nn.Module): Base model whose weights seed each iteration.
         callbacks (dict): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
         mongodb (MongoClient): Optional MongoDB client for distributed tuning.
@@ -78,12 +78,13 @@ class Tuner:
         >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
     """
 
-    def __init__(self, args=DEFAULT_CFG, _callbacks: dict | None = None):
+    def __init__(self, args, _callbacks: dict | None = None, *, model=None):
         """Initialize the Tuner with configurations.
 
         Args:
             args (dict): Configuration for hyperparameter evolution.
             _callbacks (dict | None, optional): Callback functions to be executed during tuning.
+            model (torch.nn.Module, optional): Base model whose weights seed each iteration, built from args if None.
         """
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
@@ -119,6 +120,11 @@ class Tuner:
         mongodb_collection = args.pop("mongodb_collection", "tuner_results")
 
         self.args = get_cfg(overrides=args)
+        if model is None:
+            from ultralytics import YOLO
+
+            model = YOLO(self.args.model).model
+        self.model = model
         self.args.exist_ok = self.args.resume  # resume w/ same tune_dir
         self.tune_dir = get_save_dir(self.args, name=self.args.name or "tune")
         self.args.name, self.args.exist_ok, self.args.resume = (None, False, False)  # reset to not affect training
@@ -197,20 +203,6 @@ class Tuner:
         self.collection = self.mongodb[mongodb_db][mongodb_collection]
         LOGGER.info(f"{self.prefix}Using MongoDB Atlas for distributed tuning")
 
-    def _get_mongodb_results(self, n: int = 5) -> list:
-        """Get top N results from MongoDB sorted by fitness.
-
-        Args:
-            n (int): Number of top results to retrieve.
-
-        Returns:
-            (list[dict]): List of result documents with fitness scores and hyperparameters.
-        """
-        try:
-            return list(self.collection.find({"fitness": {"$exists": True}}).sort("fitness", -1).limit(n))
-        except Exception:
-            return []
-
     @staticmethod
     def _json_default(x):
         """Convert tensor-like values for JSON serialization."""
@@ -223,6 +215,7 @@ class Tuner:
         hyperparameters: dict[str, float],
         datasets: dict[str, dict],
         save_dirs: dict[str, str] | None = None,
+        failed_datasets: list[str] | None = None,
     ) -> dict:
         """Build one local tuning result record."""
         result = {
@@ -233,6 +226,8 @@ class Tuner:
         }
         if save_dirs:
             result["save_dirs"] = save_dirs
+        if failed_datasets:
+            result["failed_datasets"] = failed_datasets
         return result
 
     def _save_to_mongodb(
@@ -242,7 +237,7 @@ class Tuner:
         metrics: dict,
         datasets: dict[str, dict],
         save_dirs: dict[str, str],
-        iteration: int,
+        failed_datasets: list[str],
     ):
         """Save results to MongoDB with proper type conversion.
 
@@ -252,7 +247,7 @@ class Tuner:
             metrics (dict): Complete training metrics dictionary (mAP, precision, recall, losses, etc.).
             datasets (dict[str, dict]): Per-dataset metrics for the iteration.
             save_dirs (dict[str, str]): Per-dataset training directories for cleanup.
-            iteration (int): Current iteration number.
+            failed_datasets (list[str]): Dataset runs that did not produce training metrics.
         """
         try:
             self.collection.insert_one(
@@ -262,8 +257,11 @@ class Tuner:
                     "metrics": metrics,
                     "datasets": datasets,
                     "save_dirs": save_dirs,
+                    "failed_datasets": failed_datasets,
                     "timestamp": datetime.now().astimezone(),
-                    "iteration": iteration,
+                    "iteration": self.collection.find_one_and_update(
+                        {"_id": "defaults"}, {"$inc": {"last_iteration": 1}}, return_document=True
+                    )["last_iteration"],
                 }
             )
         except Exception as e:
@@ -279,6 +277,8 @@ class Tuner:
             all_results = list(self.collection.find({"fitness": {"$exists": True}}).sort("iteration", 1))
             if not all_results:
                 return
+            last_iteration = max(r["iteration"] for r in all_results)
+            self.collection.update_one({"_id": "defaults"}, {"$max": {"last_iteration": last_iteration}}, upsert=True)
 
             with open(self.tune_file, "w", encoding="utf-8") as f:
                 f.writelines(
@@ -289,6 +289,7 @@ class Tuner:
                             result.get("hyperparameters", {}),
                             result.get("datasets", {}),
                             result.get("save_dirs"),
+                            result.get("failed_datasets"),
                         ),
                         default=self._json_default,
                     )
@@ -306,11 +307,11 @@ class Tuner:
         with open(self.tune_file, encoding="utf-8") as f:
             return [json.loads(line) for line in f if line.strip()]
 
-    def _local_results_to_array(self, results: list[dict], n: int | None = None) -> np.ndarray | None:
+    def _local_results_to_array(self, results: list[dict]) -> np.ndarray | None:
         """Convert local NDJSON records to a fitness-plus-hyperparameters numpy array."""
         if not results:
             return None
-        x = np.array(
+        return np.array(
             [
                 [r.get("fitness", 0.0)]
                 + [r.get("hyperparameters", {}).get(k, getattr(self.args, k)) for k in self.space]
@@ -318,10 +319,6 @@ class Tuner:
             ],
             dtype=float,
         )
-        if n is None:
-            return x
-        order = np.argsort(-x[:, 0])
-        return x[order][:n]
 
     def _save_local_result(self, result: dict):
         """Append one tuning result to the local NDJSON log."""
@@ -342,7 +339,9 @@ class Tuner:
     def _has_training_metrics(result: dict, require_all: bool = False) -> bool:
         """Return whether a tuning result contains training metrics."""
         datasets = result.get("datasets", {})
-        return bool(datasets) and (all(datasets.values()) if require_all else any(datasets.values()))
+        failed = set(result.get("failed_datasets", ()))
+        trained = [bool(metrics) and dataset not in failed for dataset, metrics in datasets.items()]
+        return bool(trained) and (all(trained) if require_all else any(trained))
 
     @classmethod
     def _best_result_index(cls, results: list[dict], fitness: np.ndarray) -> int:
@@ -350,45 +349,30 @@ class Tuner:
         valid = [i for i, result in enumerate(results) if cls._has_training_metrics(result)]
         return valid[int(fitness[valid].argmax())] if valid else int(fitness.argmax())
 
-    @staticmethod
-    def _crossover(x: np.ndarray, alpha: float = 0.2, k: int = 9) -> np.ndarray:
-        """BLX-α crossover from up to top-k parents (x[:,0]=fitness, rest=genes)."""
-        k = min(k, len(x))
-        # fitness weights (shifted to >0); fallback to uniform if degenerate
-        weights = x[:, 0] - x[:, 0].min() + 1e-6
-        if not np.isfinite(weights).all() or weights.sum() == 0:
-            weights = np.ones_like(weights)
-        idxs = random.choices(range(len(x)), weights=weights, k=k)
-        parents_mat = np.stack([x[i][1:] for i in idxs], 0)  # (k, ng) strip fitness
-        lo, hi = parents_mat.min(0), parents_mat.max(0)
-        span = hi - lo
-        # given a small value when span is zero to avoid no mutation
-        span = np.where(span == 0, np.random.uniform(0.01, 0.1, span.shape), span)
-        return np.random.uniform(lo - alpha * span, hi + alpha * span)
-
     def _mutate(
         self,
         n: int = 9,
-        mutation: float = 0.5,
         sigma: float = 0.2,
     ) -> dict[str, float]:
         """Mutate hyperparameters based on bounds and scaling factors specified in `self.space`.
 
         Args:
             n (int): Number of top parents to consider.
-            mutation (float): Probability of a parameter mutation in any given iteration.
-            sigma (float): Standard deviation for Gaussian random number generator.
+            sigma (float): Initial normalized mutation standard deviation.
 
         Returns:
             (dict[str, float]): A dictionary containing mutated hyperparameters.
         """
-        x = None
+        history = None
 
         # Try MongoDB first if available
         if self.mongodb:
-            if results := self._get_mongodb_results(n):
-                # MongoDB already sorted by fitness DESC, so results[0] is best
-                x = np.array(
+            if results := list(
+                self.collection.find({"fitness": {"$exists": True}}, {"fitness": 1, "hyperparameters": 1}).sort(
+                    "_id", 1
+                )
+            ):
+                history = np.array(
                     [
                         [r["fitness"]] + [r["hyperparameters"].get(k, self.args.get(k)) for k in self.space]
                         for r in results
@@ -397,50 +381,91 @@ class Tuner:
             else:
                 from pymongo.errors import DuplicateKeyError
 
+                default_hyp = self._constrain({k: getattr(self.args, k) for k in self.space})
                 try:
                     self.collection.insert_one({"_id": "defaults", "timestamp": datetime.now().astimezone()})
                 except DuplicateKeyError:  # Another worker already claimed the default generation
-                    x = np.array([[0.0] + [getattr(self.args, k) for k in self.space]])
+                    history = np.array([[0.0, *default_hyp.values()]])
                 self.collection.create_index([("fitness", -1)], background=True)
-                if x is None:
-                    return {k: getattr(self.args, k) for k in self.space}
+                if history is None:
+                    return default_hyp
 
         # Fall back to local NDJSON if MongoDB unavailable or empty
-        if x is None:
-            x = self._local_results_to_array(self._load_local_results(), n=n)
+        if history is None:
+            results = self._load_local_results()
+            history = self._local_results_to_array(results)
 
         # Mutate if we have data, otherwise use defaults
-        if x is not None:
+        if history is not None:
             rng = np.random.default_rng()
             ng = len(self.space)
-
-            # Crossover
-            genes = self._crossover(x)
-
-            # Mutation
-            gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
-            factors = np.ones(ng)
-            while np.all(factors == 1):  # mutate until a change occurs (prevent duplicates)
-                mask = rng.random(ng) < mutation
-                step = rng.standard_normal(ng) * (sigma * gains)
-                factors = np.where(mask, np.exp(step), 1.0).clip(0.25, 4.0)
-            hyp = {k: float(genes[i] * factors[i]) for i, k in enumerate(self.space.keys())}
+            fitness = np.round(history[:, 0], 5)
+            stale = len(history) - 1 - int(np.argmax(fitness))
+            order = np.argsort(-history[:, 0])
+            x = history[order][:n]
+            bounds = np.array([v[:2] for v in self.space.values()])
+            span = np.ptp(bounds, axis=1)
+            mutable = span > 0
+            if mutable.any():
+                population = np.divide(x[:, 1:] - bounds[:, 0], span, out=np.zeros_like(x[:, 1:]), where=mutable)
+                weights = x[:, 0] - x[:, 0].min() + 1e-6
+                weights = weights if np.isfinite(weights).all() and weights.sum() else np.ones_like(weights)
+                gains = np.array([v[2] if len(v) == 3 else 1.0 for v in self.space.values()])  # gains 0-1
+                resolution = np.array([1 if k in CFG_INT_KEYS else 1e-5 for k in self.space])
+                decay = 1 - 0.2 * min(stale / 25, 1)
+                scale = sigma * decay * gains
+                scale = np.maximum(scale, np.divide(resolution, span, out=np.zeros(ng), where=mutable))
+                existing = {tuple(row[1:]) for row in history}
+                covariance = confidence = None
+                if len(history) >= 30:
+                    n_elite = min(int(np.ceil(len(history) * 0.2)), 30)
+                    confidence = min(n_elite / mutable.sum(), 1)
+                    elite = np.divide(
+                        history[order[:n_elite], 1:] - bounds[:, 0],
+                        span,
+                        out=np.zeros((n_elite, ng)),
+                        where=mutable,
+                    )
+                    covariance = np.cov(elite, rowvar=False) * decay**2 * confidence + np.diag(
+                        np.square(scale) / mutable.sum()
+                    )
+                for attempt in range(200):
+                    if attempt < 100:
+                        genes = population[rng.choice(len(x), p=weights / weights.sum())]
+                        mask = (rng.random(ng) < 0.5) & mutable
+                        if covariance is not None and rng.random() < 0.4 * confidence:
+                            genes = np.where(mask, rng.multivariate_normal(genes, covariance), genes)
+                            genes = 1 - np.abs(genes % 2 - 1)
+                        else:
+                            genes = np.clip(genes + mask * rng.standard_normal(ng) * scale, 0, 1)
+                    else:
+                        genes = population[rng.choice(len(x), p=weights / weights.sum())].copy()
+                        genes[mutable] = rng.random(mutable.sum())
+                    hyp = {k: float(bounds[i, 0] + genes[i] * span[i]) for i, k in enumerate(self.space)}
+                    hyp = self._constrain(hyp)
+                    if tuple(hyp.values()) not in existing:
+                        return hyp
+                raise RuntimeError(f"{self.prefix}Unable to generate a unique hyperparameter mutation")
+            raise RuntimeError(f"{self.prefix}Hyperparameter search space is exhausted")
         else:
             hyp = {k: getattr(self.args, k) for k in self.space}
 
-        # Constrain to limits
-        for k, bounds in self.space.items():
-            hyp[k] = round(min(max(hyp[k], bounds[0]), bounds[1]), 5)
+        return self._constrain(hyp)
 
-        # Update types
-        if "close_mosaic" in hyp:
-            hyp["close_mosaic"] = round(hyp["close_mosaic"])
-        if "epochs" in hyp:
-            hyp["epochs"] = round(hyp["epochs"])
+    def _constrain(self, hyp: dict[str, float]) -> dict[str, float]:
+        """Constrain hyperparameters to their search bounds and configured types."""
+        for k, bounds in self.space.items():
+            if k in CFG_INT_KEYS:
+                lower, upper = int(np.ceil(bounds[0])), int(np.floor(bounds[1]))
+                if lower > upper:
+                    raise ValueError(f"{self.prefix}Search space for '{k}' contains no integer values")
+                hyp[k] = min(max(round(hyp[k]), lower), upper)
+            else:
+                hyp[k] = min(max(round(hyp[k], 5), bounds[0]), bounds[1])
 
         return hyp
 
-    def __call__(self, iterations: int = 10, cleanup: bool = True):
+    def __call__(self, iterations: int = 300, cleanup: bool = True):
         """Execute the hyperparameter evolution process when the Tuner instance is called.
 
         This method iterates through the specified number of iterations, performing the following steps:
@@ -454,7 +479,6 @@ class Tuner:
             iterations (int): The number of generations to run the evolution for.
             cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
         """
-        from ultralytics import YOLO
         from ultralytics.engine.trainer import MultiTrainer
 
         t0 = time.time()
@@ -472,21 +496,21 @@ class Tuner:
             start = len(self._load_local_results())
             LOGGER.info(f"{self.prefix}Resuming tuning run {self.tune_dir} from iteration {start + 1}...")
         for i in range(start, iterations):
-            # Linearly decay sigma from 0.2 → 0.1 over first 300 iterations
-            frac = min(i / 300.0, 1.0)
-            sigma_i = 0.2 - 0.1 * frac
-
             # Mutate hyperparameters
-            mutated_hyp = self._mutate(sigma=sigma_i)
+            mutated_hyp = self._mutate()
             LOGGER.info(f"{self.prefix}Starting iteration {i + 1}/{iterations} with hyperparameters: {mutated_hyp}")
 
             train_args = {**vars(self.args), **mutated_hyp}
             data = train_args.pop("data")
             if not isinstance(data, (list, tuple)):
                 data = [data]
-            model = YOLO(train_args["model"])
-            trainer = MultiTrainer(None, {**train_args, "data": data}, model.model)
-            dataset_metrics = {dataset: metrics or {} for dataset, metrics in trainer.train().items()}
+            trainer = MultiTrainer(None, {**train_args, "data": data}, self.model)
+            raw_metrics = trainer.train()
+            failed_datasets = [dataset for dataset, metrics in raw_metrics.items() if not metrics]
+            metric = TASK2METRIC[train_args["task"]]
+            dataset_metrics = {
+                dataset: metrics or {metric: 0.0, "fitness": 0.0} for dataset, metrics in raw_metrics.items()
+            }
             save_dir = [trainer.save_dir / dataset for dataset in dataset_metrics]
             weights_dir = [s / "weights" for s in save_dir]
             metrics = trainer.mean_metrics
@@ -498,12 +522,15 @@ class Tuner:
                 mutated_hyp,
                 dataset_metrics,
                 {dataset: str(s) for dataset, s in zip(dataset_metrics, save_dir)},
+                failed_datasets,
             )
             if self._has_training_metrics(result, require_all=True):
                 n_successful += 1
             stop_after_iteration = False
             if self.mongodb:
-                self._save_to_mongodb(fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], i + 1)
+                self._save_to_mongodb(
+                    fitness, mutated_hyp, metrics, dataset_metrics, result["save_dirs"], failed_datasets
+                )
                 self._sync_mongodb_to_file()
                 total_mongo_iterations = self.collection.count_documents({"fitness": {"$exists": True}})
                 if total_mongo_iterations >= iterations:

@@ -460,7 +460,10 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                         or not all((type(x) is int and x >= 0) or (type(x) is float and 0.0 <= x <= 1.0) for x in v)
                     ):
                         raise ValueError(f"'{k}={v}' is invalid. Use [train, val] or [train, val, test] counts/ratios.")
+                    cfg[k] = [float(x) if x in {0, 1} else x for x in v]
                     continue
+                if k == "fraction" and isinstance(v, bool):
+                    raise TypeError(f"'{k}={v}' is of invalid type bool. Valid '{k}' types are int, float, or list")
                 if not isinstance(v, FLOAT_OR_INT):
                     if hard:
                         raise TypeError(
@@ -468,9 +471,11 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 0)
+                valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 1)
                 if not valid or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' invalid. Use count >0 or ratio (0, 1] for fraction; [0, 1] otherwise.")
+                    raise ValueError(f"'{k}={v}' invalid. Use integer count >1 or ratio (0, 1] for fraction.")
+                if k == "fraction" and v == 1:
+                    cfg[k] = 1.0
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:
@@ -1109,9 +1114,9 @@ def entrypoint(debug: str = "") -> None:
 
         model = YOLO(model, task=task)
         if "yoloe" in stem or "world" in stem:
-            cls_list = overrides.pop("classes", DEFAULT_CFG.classes)
-            if cls_list is not None and isinstance(cls_list, str):
-                model.set_classes([c.strip() for c in cls_list.split(",")])  # "person, bus" -> ['person', 'bus']
+            cls_list = overrides.get("classes", DEFAULT_CFG.classes)
+            if isinstance(cls_list, str):  # text prompts, i.e. "person, bus" -> ['person', 'bus']
+                model.set_classes([c.strip() for c in overrides.pop("classes", cls_list).split(",")])
     # Task Update
     if task != model.task:
         if task:

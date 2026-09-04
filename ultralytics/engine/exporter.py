@@ -672,6 +672,17 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
+        memo = {}
+        if isinstance(model, WorldModel):
+            LOGGER.warning(
+                "YOLOWorld (original version) export is not supported to any format. "
+                "YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
+                "(torchscript, onnx, openvino, engine, coreml) formats. "
+                "See https://docs.ultralytics.com/models/yolo-world for details."
+            )
+            # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
+            memo[id(getattr(model, "clip_model", None))] = None
+        model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -679,9 +690,9 @@ class Exporter:
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
-                # Disable end2end branch for certain export formats as they does not support topk
+                # Disable the end2end branch for formats without top-k support
                 model.end2end = False
-                LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+                LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
@@ -820,14 +831,6 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
-        if isinstance(model, WorldModel):
-            LOGGER.warning(
-                "YOLOWorld (original version) export is not supported to any format. "
-                "YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
-                "(torchscript, onnx, openvino, engine, coreml) formats. "
-                "See https://docs.ultralytics.com/models/yolo-world for details."
-            )
-            model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.quantize in {8, "w8a16"} and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
@@ -851,7 +854,6 @@ class Exporter:
             file = Path(file.name)
 
         # Update model
-        model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         model.eval()
@@ -1003,20 +1005,22 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
+        split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
-            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
-            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
+            if not isinstance(cfg.fraction, list):
+                cfg.fraction = [cfg.fraction] * 3
+            dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=self.args.split)
-            cfg.fraction = get_split_fraction(cfg.fraction, self.args.split or "val")
+            cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
             dataset = build_yolo_dataset(
                 cfg,
-                data[self.args.split or "val"],
+                data[split],
                 self.args.batch,
                 data,
                 mode="val",

@@ -252,11 +252,7 @@ def build_yolo_dataset(
         dataset = DepthDataset
         pad, rect = 0.0, rect and mode == "train"  # depth val letterbox stretches, so pad and rect_shape are ignored
     elif cfg.task == "semantic":
-        data_path = Path(data.get("path", ""))
-        if "masks_dir" in data or (data_path / "masks").exists():
-            dataset = SemanticDataset
-        else:
-            dataset = PolygonSemanticDataset
+        dataset = SemanticDataset if data.get("masks_dir") else PolygonSemanticDataset
         pad = 0.0  # no pad for semantic
     elif multi_modal:
         dataset = YOLOMultiModalDataset
@@ -377,7 +373,7 @@ def build_dataloader(
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
+        prefetch_factor=(4 if shuffle else 2) if nw > 0 else None,  # validation holds fewer batches between passes
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,

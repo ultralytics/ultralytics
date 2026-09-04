@@ -345,7 +345,15 @@ class BaseValidator:
 
     @smart_inference_mode(False)
     def get_model(self, model, trainer=None):
-        """Return the training EMA or an independent model for standalone validation."""
+        """Return the training EMA or an independent model for standalone validation.
+
+        Args:
+            model (torch.nn.Module | str | Path | None): Model or checkpoint for standalone validation.
+            trainer (object, optional): Trainer whose EMA is used during training validation.
+
+        Returns:
+            (torch.nn.Module | str | Path | None): Model to prepare for inference.
+        """
         return trainer.ema.ema if trainer is not None else deepcopy(model)
 
     def add_callback(self, event: str, callback):

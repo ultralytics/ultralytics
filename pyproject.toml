@@ -236,15 +236,15 @@ docstring-code-format = true
 [tool.uv.sources]
 dx_com = [
     # retrieved from sdk.deepx.ai/release/dxcom/v2.3.0/index.html
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp38-cp38-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.8'" },
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp39-cp39-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.9'" },
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp310-cp310-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.10'" },
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp311-cp311-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.11'" },
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp312-cp312-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.12'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp38-cp38-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.8' and platform_machine == 'x86_64'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp39-cp39-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.9' and platform_machine == 'x86_64'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp310-cp310-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.10' and platform_machine == 'x86_64'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp311-cp311-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.11' and platform_machine == 'x86_64'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.3.0/dx_com-2.3.0-cp312-cp312-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.12' and platform_machine == 'x86_64'" },
     # python 3.13 + is only supported starting with dx_com 2.4.0
     # retrieved from sdk.deepx.ai/release/dxcom/v2.4.0/index.html
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.4.0/dx_com-2.4.0-cp313-cp313-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.13'" },
-    { url = "https://sdk.deepx.ai/release/dxcom/v2.4.0/dx_com-2.4.0-cp314-cp314-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.14'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.4.0/dx_com-2.4.0-cp313-cp313-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.13' and platform_machine == 'x86_64'" },
+    { url = "https://sdk.deepx.ai/release/dxcom/v2.4.0/dx_com-2.4.0-cp314-cp314-manylinux_2_31_x86_64.whl", marker = "platform_system == 'Linux' and python_version == '3.14' and platform_machine == 'x86_64'" },
 ]
 
 [tool.ruff.lint.pydocstyle]

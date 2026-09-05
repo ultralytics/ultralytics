@@ -41,14 +41,14 @@ pip install -U ultralytics
     LiteText weights are **not automatically downloaded**. Download them from the
     [HuggingFace `Simon7108528/EfficientSAM3` — `sam3_litetext/` folder](https://huggingface.co/Simon7108528/EfficientSAM3/tree/main/sam3_litetext).
 
-    | File name                                       | Variant | Context | Size   |
-    | ----------------------------------------------- | ------- | ------: | -----: |
-    | `sam3_litetext_mobileclip_s0_ctx16.pt`          | S0      |      16 | 2.2 GB |
-    | `sam3_litetext_mobileclip_s0_ctx32.pt`          | S0      |      32 | 2.2 GB |
-    | `sam3_litetext_mobileclip_s1_ctx16.pt`          | S1      |      16 | 2.3 GB |
-    | `sam3_litetext_mobileclip_s1_ctx32.pt`          | S1      |      32 | 2.3 GB |
-    | `sam3_litetext_mobileclip2_l_ctx16.pt`          | L       |      16 | 2.5 GB |
-    | `sam3_litetext_mobileclip2_l_ctx32.pt`          | L       |      32 | 2.5 GB |
+    | File name                              | Variant | Context |   Size |
+    | -------------------------------------- | ------- | ------: | -----: |
+    | `sam3_litetext_mobileclip_s0_ctx16.pt` | S0      |      16 | 2.2 GB |
+    | `sam3_litetext_mobileclip_s0_ctx32.pt` | S0      |      32 | 2.2 GB |
+    | `sam3_litetext_mobileclip_s1_ctx16.pt` | S1      |      16 | 2.3 GB |
+    | `sam3_litetext_mobileclip_s1_ctx32.pt` | S1      |      32 | 2.3 GB |
+    | `sam3_litetext_mobileclip2_l_ctx16.pt` | L       |      16 | 2.5 GB |
+    | `sam3_litetext_mobileclip2_l_ctx32.pt` | L       |      32 | 2.5 GB |
 
     Download a checkpoint with the `huggingface_hub` package:
 

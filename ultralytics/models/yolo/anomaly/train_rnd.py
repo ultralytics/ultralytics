@@ -271,7 +271,7 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         # next domain val reads cls again. ``obj`` is the class-agnostic objectness confidence —
         # its single channel is not diluted across nc sigmoids, so the conf=0.25 floor survives.
         scoring = getattr(self.args, "ood_scoring", "cls") or "cls"
-        if scoring not in {"cls", "obj"}:
+        if scoring not in {"cls", "obj", "geo"}:
             LOGGER.warning(f"ood_scoring={scoring!r} invalid; falling back to 'cls'")
             scoring = "cls"
         e2e = bool(getattr(self.args, "ood_end2end", False))

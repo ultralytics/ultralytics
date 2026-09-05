@@ -207,11 +207,21 @@ class Detect(nn.Module):
         and every export format stay unchanged.
         """
         if "obj" in x:
-            if getattr(self, "scoring", "cls") == "obj":
+            scoring = getattr(self, "scoring", "cls")
+            if scoring == "obj":
                 # Training-time OOD reference mode: conf = obj (broadcast to nc channels so the
                 # [4 + nc] output contract holds). Selected via the ``ood_scoring`` train arg,
                 # which AnomalyRNDTrainer._run_ood_eval applies to the head for OOD eval only.
                 return x["obj"].sigmoid().expand(-1, scores.shape[1], -1)
+            if scoring == "geo":
+                # Geometric mean of the two confidences. The plain product below scales every
+                # score down -- two 0.5s make 0.25 -- which pushed the whole distribution under
+                # the 0.25 deployment floor and is why obj*cls lost. sqrt is scale preserving
+                # (p * p -> p) and penalises only disagreement between the two heads. Unlike
+                # ``obj`` it also keeps the nc channels distinct, so the o2o two-stage topk in
+                # get_topk_index does not spend its 300 slots re-picking one anchor across nc
+                # identical broadcast channels.
+                return (scores * x["obj"].sigmoid()).sqrt()
             if getattr(self, "objectness", "none") in {"mul", "v5"}:
                 scores = scores * x["obj"].sigmoid()
         return scores

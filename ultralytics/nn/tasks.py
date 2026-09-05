@@ -337,6 +337,28 @@ class BaseModel(torch.nn.Module):
             if getattr(model, "is_fused", lambda: False)() and not self.is_fused():
                 LOGGER.warning("Pretrained weights are fused for inference; train from the unfused checkpoint instead.")
 
+    @staticmethod
+    def cls_index_map(src_names: dict | None, tgt_names: dict | None) -> torch.Tensor | None:
+        """Map each target class to the index of the source class with the same name.
+
+        Args:
+            src_names (dict, optional): Source class names, e.g. the names of a pretrained model.
+            tgt_names (dict, optional): Target class names, e.g. the names of the dataset.
+
+        Returns:
+            (torch.Tensor | None): Source index per target class, -1 where the name is new, or None when either set of
+                names is missing or holds the default placeholders that nothing can be matched on.
+        """
+        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+            return None
+        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts) — nothing to match on
+        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
+            return None
+        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
+        return torch.tensor(
+            [src_lookup.get(str(tgt_names.get(k)).strip().lower(), -1) for k in range(len(tgt_names))], dtype=torch.long
+        )
+
     def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.
 
@@ -356,19 +378,10 @@ class BaseModel(torch.nn.Module):
         """
         src_names = getattr(src_model, "names", None)
         tgt_names = getattr(self, "names", None)
-        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+        idx = BaseModel.cls_index_map(src_names, tgt_names)
+        if idx is None:
             return 0
         src_nc, tgt_nc = len(src_names), len(tgt_names)
-
-        def _norm(s):
-            return str(s).strip().lower()
-
-        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts) — nothing to match on
-        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
-            return 0
-
-        src_lookup = {_norm(v): k for k, v in src_names.items()}
-        idx = torch.tensor([src_lookup.get(_norm(tgt_names.get(k)), -1) for k in range(tgt_nc)], dtype=torch.long)
         n_match = int((idx >= 0).sum())
         # Skip if nothing matches, or class names already share order and count (intersect_dicts copies directly)
         if n_match == 0 or (src_nc == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):
@@ -940,17 +953,10 @@ class RTDETRDetectionModel(DetectionModel):
         """
         src_names = getattr(src_model, "names", None)
         tgt_names = getattr(self, "names", None)
-        if not (isinstance(src_names, dict) and isinstance(tgt_names, dict)):
+        idx = BaseModel.cls_index_map(src_names, tgt_names)
+        if idx is None:
             return 0
-        # Skip default placeholder names {0:"0", 1:"1", ...} (also catches empty dicts)
-        if any(all(str(k) == str(v) for k, v in n.items()) for n in (src_names, tgt_names)):
-            return 0
-
-        src_lookup = {str(v).strip().lower(): k for k, v in src_names.items()}
         tgt_nc = len(tgt_names)
-        idx = torch.tensor(
-            [src_lookup.get(str(tgt_names[k]).strip().lower(), -1) for k in range(tgt_nc)], dtype=torch.long
-        )
         n_match = int((idx >= 0).sum())
         # Skip if nothing matches, or class names already share order and count (intersect_dicts handles it directly)
         if n_match == 0 or (len(src_names) == tgt_nc and torch.equal(idx, torch.arange(tgt_nc))):

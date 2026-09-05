@@ -14,6 +14,7 @@ from torch import nn
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
+from ultralytics.nn.modules.head import RefineDetect
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
 from ultralytics.utils.patches import override_configs
@@ -261,3 +262,97 @@ class DetectionTrainer(BaseTrainer):
         n = len(train_dataset)
         del train_dataset  # free memory
         return super().auto_batch(max_num_obj, dataset_size=n)
+
+
+class RefineDetectionTrainer(DetectionTrainer):
+    """Tune a subset of classes of a trained detection model while every other class keeps its exact predictions.
+
+    The model is frozen apart from a zero-initialized RefineDetect branch and the classification output rows of the
+    tuned classes, which `classes` selects. `classes` also restricts the labels and validation to those classes, so the
+    dataset YAML must list every class of the pretrained model plus any new one. Training an already tuned model stacks
+    a further branch on it, and resuming needs this trainer passed again since `trainer` is not saved in checkpoints.
+
+    Examples:
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.models.yolo.detect import RefineDetectionTrainer
+        >>> model = YOLO("yolo26n.pt")
+        >>> model.train(data="coco8.yaml", epochs=10, classes=[0, 5], trainer=RefineDetectionTrainer)
+    """
+
+    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
+        """Return the pretrained model with its classification head extended in place to the dataset classes.
+
+        New classes get a zero weight and the standard Detect bias, so they predict nothing until trained, and shared
+        classes keep their pretrained rows by name even when the dataset reorders them.
+        """
+        assert isinstance(weights, nn.Module), f"{self.__class__.__name__} requires a trained detection model"
+        head, names, nc = weights.model[-1], self.data["names"], self.data["nc"]
+        index = weights.cls_index_map(weights.names, names)
+        assert index is not None, "the pretrained model and the dataset must both name their classes"
+        if head.nc != nc or not torch.equal(index, torch.arange(nc)):
+            matched = index >= 0
+            for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
+                for i, seq in enumerate(cv3 or ()):
+                    conv = nn.Conv2d(seq[-1].in_channels, nc, 1).to(seq[-1].weight)
+                    nn.init.zeros_(conv.weight)
+                    conv.bias.data[:] = math.log(5 / nc / (640 / head.stride[i]) ** 2)  # Detect.bias_init
+                    conv.weight.data[matched] = seq[-1].weight.data[index[matched]]
+                    conv.bias.data[matched] = seq[-1].bias.data[index[matched]]
+                    seq[-1] = conv
+            if isinstance(head, RefineDetect):  # branches of earlier sessions address classes by index
+                moved = torch.full((head.nc,), -1, dtype=torch.long)
+                moved[index[matched]] = torch.arange(nc)[matched]
+                head.refine_index = moved.to(head.refine_index)[head.refine_index]
+                assert (head.refine_index >= 0).all(), "the dataset must keep every class refined by an earlier session"
+            head.nc, head.no = nc, nc + 4 * head.reg_max
+            if getattr(weights, "pe", None) is not None:  # a fused YOLOE head reads its class count off these
+                pe = torch.zeros(weights.pe.shape[0], nc, weights.pe.shape[2]).to(weights.pe)
+                pe[:, matched] = weights.pe[:, index[matched]]
+                weights.pe = pe
+            LOGGER.info(f"Extended the cls head from {len(weights.names)} to {nc} classes, {int((~matched).sum())} new")
+        return weights
+
+    def setup_model(self):
+        """Attach the refinement branch to the detection head and freeze everything the tuned classes do not own."""
+        ckpt = super().setup_model()
+        assert self.args.classes is not None, f"{self.__class__.__name__} requires 'classes', e.g. classes=[0, 5]"
+        model = unwrap_model(self.model)
+        head, i = model.model[-1], len(model.model) - 1
+        if not self.resume:  # a resumed run already carries the branch of the interrupted session
+            RefineDetect.attach(head, [self.args.classes] if isinstance(self.args.classes, int) else self.args.classes)
+        freeze = [str(j) for j in range(i)]  # backbone and neck
+        for name, _ in head.named_children():
+            if name in {"refine", "one2one_refine"}:  # earlier sessions, the last branch is the only trainable module
+                freeze += [f"{i}.{name}.{b}" for b in range(len(getattr(head, name)) - 1)]
+            elif "cv3" in name:  # cls branches keep their last layer trainable, untuned rows are masked and restored
+                freeze += [f"{i}.{name}.{s}.{k}" for s in range(head.nl) for k in (0, 1)]
+            else:
+                freeze.append(f"{i}.{name}")
+        self.args.freeze = freeze
+        return ckpt
+
+    def _setup_train(self):
+        """Mask the gradients of the untuned classification rows and snapshot their weights."""
+        super()._setup_train()
+        head = unwrap_model(self.model).model[-1]
+        tuned = set(head.refine_classes[-1].tolist())
+        cls = [c for c in range(head.nc) if c not in tuned]
+        self.untuned_rows = rows = torch.tensor(cls, dtype=torch.long, device=self.device)
+        self.untuned_weights = []
+        # the EMA is restored too: it is what gets validated and saved, and it would otherwise average in the rows of
+        # the live model, which the optimizer moves for the length of a step
+        for model in (unwrap_model(self.model), self.ema.ema):
+            head = model.model[-1]
+            for cv3 in (head.cv3, getattr(head, "one2one_cv3", None)):
+                for seq in cv3 or ():
+                    for p in (seq[-1].weight, seq[-1].bias):
+                        if p.requires_grad:  # EMA parameters carry no gradient
+                            p.register_hook(lambda grad: grad.index_fill(0, rows, 0.0))
+                        self.untuned_weights.append((p, p.detach()[rows].clone()))
+
+    def optimizer_step(self):
+        """Step the optimizer, then undo its weight decay and momentum on the untuned classification rows."""
+        super().optimizer_step()  # also updates the EMA, restored below along with the model
+        with torch.no_grad():
+            for p, weights in self.untuned_weights:
+                p[self.untuned_rows] = weights

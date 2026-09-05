@@ -22,7 +22,7 @@ from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import build_dataloader, load_inference_source
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction, parse_image_cache
 from ultralytics.utils import (
     ARM64,
     ASSETS,
@@ -1992,6 +1992,31 @@ def test_model_embeddings():
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
     assert isinstance(model_classify.predict(SOURCE, imgsz=32, embed=[-2])[0], torch.Tensor)
     assert model_classify.predict(SOURCE, imgsz=32)[0].probs is not None
+
+
+def test_disk_cache_dir(tmp_path):
+    """Test disk caching writes *.npy beside source images, or under the directory passed as `cache`."""
+    from ultralytics.data import ClassificationDataset
+
+    cache_dir = tmp_path / "npy"
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "cache": str(cache_dir)})
+    dataset = data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
+    assert cache_dir in dataset.npy_files[0].parents and dataset.npy_files[0].exists()
+
+    image = tmp_path / "cls" / "class0" / "image.jpg"
+    image.parent.mkdir(parents=True)
+    assert cv2.imwrite(str(image), np.full((16, 16, 3), 255, dtype=np.uint8))
+    args = copy(DEFAULT_CFG)
+    args.imgsz, args.cache = 32, str(cache_dir)
+    dataset = ClassificationDataset(root=str(tmp_path / "cls"), args=args, augment=False)
+    assert dataset[0]["img"] is not None
+    assert cache_dir in Path(dataset.samples[0][2]).parents and not image.with_suffix(".npy").exists()
+
+    args.cache = "disk"  # default disk caching still writes beside the source image
+    assert ClassificationDataset(root=str(tmp_path / "cls"), args=args, augment=False)[0]["img"] is not None
+    assert image.with_suffix(".npy").exists()
+    assert parse_image_cache("none") == (None, None)  # unrecognized strings disable caching, never a cache directory
 
 
 def test_process_mask_native_chunked():

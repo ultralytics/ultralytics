@@ -26,10 +26,11 @@ class AxeleraBackend(BaseBackend):
         """
         from ultralytics.utils.export.axelera import AXELERA_SDK
 
-        check_requirements(
+        if not check_requirements(
             f"axelera-rt=={AXELERA_SDK}",
             cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-        )
+        ):
+            raise ModuleNotFoundError(f"Axelera inference requires axelera-rt=={AXELERA_SDK}.")
         from axelera.runtime import op
 
         w = Path(weight)

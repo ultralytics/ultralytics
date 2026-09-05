@@ -58,10 +58,11 @@ def torch2axelera(
             # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched
             # by absolute path instead of through an activated environment.
             os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), prev_env["PATH"])))
-            check_requirements(
+            if not check_requirements(
                 f"axelera-devkit=={AXELERA_SDK}",
                 cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-            )
+            ):
+                raise ModuleNotFoundError(f"Axelera export requires axelera-devkit=={AXELERA_SDK}.")
             check_requirements("omnimalloc==0.5.0")
             from axelera import compiler
             from axelera.compiler import CompilerConfig

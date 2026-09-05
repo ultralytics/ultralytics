@@ -162,16 +162,26 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                 # through ep10, so an o2m-selected best.pt is past o2o's optimum. Set
                 # ``fitness_branch=o2o`` (needs ood_end2end=True for the e2e_* keys to exist) when
                 # the run is meant to produce a NMS-free checkpoint.
+                #
+                # ``fitness_prior`` picks the OTHER axis: the memory-bank prior is ON in the
+                # ``heatmap`` pass and OFF in the ``none`` pass. For ``p_drop=1.0`` runs the prior
+                # is dropped on every training sample, so prior-OFF is that run's native regime and
+                # selecting on the prior-ON pass optimises a regime it never trained in.
                 branch = getattr(self.args, "fitness_branch", "o2m") or "o2m"
                 if branch not in {"o2m", "o2o"}:
                     LOGGER.warning(f"fitness_branch={branch!r} invalid; falling back to 'o2m'")
                     branch = "o2m"
-                pre = "e2e_" if branch == "o2o" else ""
+                prior = getattr(self.args, "fitness_prior", "heatmap") or "heatmap"
+                if prior not in {"heatmap", "none"}:
+                    LOGGER.warning(f"fitness_prior={prior!r} invalid; falling back to 'heatmap'")
+                    prior = "heatmap"
+                pre = ("e2e_" if branch == "o2o" else "") + ("none_" if prior == "none" else "")
                 if pre and f"{pre}mAP50@0.25" not in avg:
                     LOGGER.warning(
-                        "fitness_branch='o2o' needs ood_end2end=True (no e2e_* metrics found); using o2m"
+                        f"fitness_branch={branch!r} fitness_prior={prior!r} unavailable (no {pre}* metrics; "
+                        "o2o needs ood_end2end=True, none needs test_none_prior); using o2m heatmap"
                     )
-                    pre = ""
+                    pre, branch, prior = "", "o2m", "heatmap"
                 fitness = float(avg.get(f"{pre}mAP50@0.25", avg[f"{pre}mAP50"]))
                 metrics["fitness"] = fitness
                 metrics.update(avg_metrics)
@@ -181,7 +191,7 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     f"(@.25={fitness:.4f}) mAP10={avg['mAP10']:.4f} "
                     f"| [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
                     f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
-                    f"(fitness={'o2o' if pre else 'o2m'} heatmap mAP50@0.25; "
+                    f"(fitness={branch} {prior} mAP50@0.25; "
                     f"bare keys are threshold-free; n={len(rows)} categories)"
                 )
         finally:

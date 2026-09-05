@@ -1663,6 +1663,7 @@ class Exporter:
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
         task = self.model.task
+        raw_detect = task == "detect" and head.reg_max == 1
         if task == "classify":
             # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
             # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
@@ -1684,9 +1685,10 @@ class Exporter:
             end_nodes = [f"/model.{head_index}/head/head.3/Conv"]
         else:
             scales = range(len(head.one2one_cv2 if one2one else head.cv2))
-            if one2one:
+            if raw_detect:
+                branch_prefix = "one2one_" if one2one else ""
                 end_nodes = [
-                    f"/model.{head_index}/one2one_cv{branch}.{i}/one2one_cv{branch}.{i}.2/Conv"
+                    f"/model.{head_index}/{branch_prefix}cv{branch}.{i}/{branch_prefix}cv{branch}.{i}.2/Conv"
                     for branch in (2, 3)
                     for i in scales
                 ]
@@ -1715,8 +1717,8 @@ class Exporter:
                 "model_optimization_flavor(optimization_level=2)",
                 f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
             ]
-            if one2one or task == "depth":
-                # a16 on the output(s): the NMS-free detect logits and the single dense depth logit both need the
+            if raw_detect or task == "depth":
+                # a16 on the output(s): the DFL-free detect logits and the single dense depth logit both need the
                 # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
@@ -1780,7 +1782,7 @@ class Exporter:
                 {
                     **self.metadata,
                     "hailo_arch": self.args.name,
-                    "nms": task == "detect" and not one2one,
+                    "nms": task == "detect" and not raw_detect,
                     "semantic_baked": task == "semantic" and head.bake_argmax,
                     # Depth's learned log-affine calibration is applied on the host, so it must ride in metadata.
                     **({"cal_a": float(head.cal_a), "cal_b": float(head.cal_b)} if task == "depth" else {}),

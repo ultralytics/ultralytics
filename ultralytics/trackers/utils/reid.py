@@ -4,8 +4,8 @@
 * `.pt` YOLO checkpoints — loaded via `YOLO()`; embeddings are pulled from the second-to-last
 layer through the predictor's `embed=[...]` argument (works with classification and ReID
 backbones).
-* Any other extension (`.torchscript`, `.onnx`, `.engine`, `.openvino`, …) — loaded via
-`AutoBackend`; the model is expected to output the embedding tensor directly.
+* Compatible exported models (`.torchscript`, `.onnx`, `.engine`, OpenVINO model directories, …) —
+loaded via `AutoBackend`; the model is expected to output the embedding tensor directly.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import torch
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils.ops import xywh2xyxy
 from ultralytics.utils.plotting import save_one_box
+from ultralytics.utils.torch_utils import smart_inference_mode
 
 REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 
@@ -23,6 +24,7 @@ REID_ASSETS = frozenset(f"yolo26{k}-reid.onnx" for k in "nsmlx")
 class ReID:
     """ReID encoder. Routes `.pt` to the YOLO predictor path; everything else to `AutoBackend`."""
 
+    @smart_inference_mode(False)
     def __init__(self, model: str, imgsz: int = 224, device: str | torch.device | None = None, fp16: bool = False):
         """Initialize encoder for re-identification.
 

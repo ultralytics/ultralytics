@@ -20,10 +20,6 @@ keywords: Ultralytics, PyTorch, utils, initialization, inverse sigmoid, multisca
 
 <br><br><hr><br>
 
-## ::: ultralytics.nn.modules.utils.linear_init
-
-<br><br><hr><br>
-
 ## ::: ultralytics.nn.modules.utils.inverse_sigmoid
 
 <br><br><hr><br>

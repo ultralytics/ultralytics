@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import types
 from pathlib import Path
 from typing import Any
 
 import torch
 from torch import nn
 
+from ultralytics.nn.modules import Detect
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
@@ -165,6 +167,11 @@ def pipeline_coreml(
     return model
 
 
+def _coreml_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+    """Select index (batch, k) rows of x along dim 1, keeping the indices int32 through MIL."""
+    return x[torch.arange(x.shape[0])[..., None], index]
+
+
 def torch2coreml(
     model: nn.Module,
     inputs: list,
@@ -195,6 +202,9 @@ def torch2coreml(
     import coremltools as ct
 
     LOGGER.info(f"\n{prefix} starting export with coremltools {ct.__version__}...")
+    for m in model.modules():  # MIL types int64 gather indices as fp32 and then rejects them
+        if isinstance(m, Detect):
+            m._gather = types.MethodType(_coreml_gather, m)
     ts = torch.jit.trace(model.eval(), im, strict=False)  # TorchScript model
     fp16 = quantize == 16
     weight_int8 = quantize in {8, "w8a16"}

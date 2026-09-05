@@ -129,11 +129,11 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        self.check_resume(overrides)
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
             self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
-        self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
         self.accelerator = get_torch_device_backend(self.device) if self.device.type not in {"cpu", "mps"} else None

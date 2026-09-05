@@ -257,6 +257,7 @@ class Results(SimpleClass, DataExportMixin):
         speed: dict[str, float] | None = None,
         semantic_mask: torch.Tensor | None = None,
         depth: torch.Tensor | None = None,
+        multi_label: bool = False,
     ) -> None:
         """Initialize the Results class for storing and manipulating inference results.
 
@@ -272,6 +273,7 @@ class Results(SimpleClass, DataExportMixin):
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
             speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
+            multi_label (bool): Whether this is a multi-label classification result (sigmoid instead of softmax).
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -293,6 +295,7 @@ class Results(SimpleClass, DataExportMixin):
         self.names = names
         self.path = path
         self.save_dir = None
+        self.multi_label = multi_label
         self._keys = "boxes", "masks", "probs", "keypoints", "obb", "semantic_mask", "depth"
 
     def __getitem__(self, idx):
@@ -478,7 +481,9 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> new_result = results[0].new()
         """
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+        return Results(
+            orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed, multi_label=self.multi_label
+        )
 
     def plot(
         self,
@@ -588,7 +593,12 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Classify results
         if pred_probs is not None and show_probs:
-            text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
+            if self.multi_label:
+                indices = torch.as_tensor(pred_probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                show_indices = indices if indices else pred_probs.top5
+                text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in show_indices)
+            else:
+                text = "\n".join(f"{names[j] if names else j} {pred_probs.data[j]:.2f}" for j in pred_probs.top5)
             x = round(self.orig_shape[0] * 0.03)
             annotator.text([x, x], text, txt_color=txt_color, box_color=(64, 64, 64, 128))  # RGBA box
 
@@ -701,6 +711,12 @@ class Results(SimpleClass, DataExportMixin):
         if len(self) == 0:
             return "" if self.probs is not None else "(no detections), "
         if self.probs is not None:
+            if self.multi_label:
+                # Show all classes above threshold for multi-label
+                indices = torch.as_tensor(self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                if indices:
+                    return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in indices)}, "
+                return f"{self.names[self.probs.top1]} {self.probs.data[self.probs.top1]:.2f}, "
             return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
@@ -752,7 +768,11 @@ class Results(SimpleClass, DataExportMixin):
         texts = []
         if probs is not None:
             # Classify
-            [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
+            if self.multi_label:
+                indices = torch.as_tensor(probs.data > 0.5).nonzero(as_tuple=True)[0].tolist()
+                [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in (indices or probs.top5)]
+            else:
+                [texts.append(f"{probs.data[j]:.2f} {self.names[j]}") for j in probs.top5]
         elif boxes:
             # Detect/segment/pose
             boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
@@ -848,16 +868,28 @@ class Results(SimpleClass, DataExportMixin):
         # Create list of detection dictionaries
         results = []
         if self.probs is not None:
-            # Return top 5 classification results
-            for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
-                class_id = int(class_id)
-                results.append(
-                    {
-                        "name": self.names[class_id],
-                        "class": class_id,
-                        "confidence": round(conf, decimals),
-                    }
-                )
+            if self.multi_label:
+                # Return all classes above threshold, fall back to top5 if none
+                indices = torch.as_tensor(self.probs.data > 0.5).nonzero(as_tuple=True)[0].tolist() or self.probs.top5
+                for class_id in indices:
+                    results.append(
+                        {
+                            "name": self.names[class_id],
+                            "class": class_id,
+                            "confidence": round(float(self.probs.data[class_id]), decimals),
+                        }
+                    )
+            else:
+                # Return top 5 classification results
+                for class_id, conf in zip(self.probs.top5, self.probs.top5conf.tolist()):
+                    class_id = int(class_id)
+                    results.append(
+                        {
+                            "name": self.names[class_id],
+                            "class": class_id,
+                            "confidence": round(conf, decimals),
+                        }
+                    )
             return results
 
         if self.semantic_mask is not None:

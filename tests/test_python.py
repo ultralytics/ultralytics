@@ -3,6 +3,7 @@
 import contextlib
 import csv
 import os
+import platform
 import shutil
 import tarfile
 import urllib
@@ -42,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -135,6 +136,9 @@ def test_cfg_rejects_fuzzed_values():
     with pytest.raises(TypeError, match="fraction"):
         get_cfg(overrides={"fraction": True})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
+    assert get_cfg(overrides={"end2end": True, "nms": True}).nms is False
+    assert get_cfg(overrides={"end2end": False, "nms": False}).nms is None
+    assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
 
 
 def skip_rpi_semantic():
@@ -205,19 +209,28 @@ def test_select_device(monkeypatch):
     assert torch_utils.parse_device("-1") == "0"  # idle physical GPU 1 found via normalized visible ids
 
 
-def test_autobackend_set_memory_format(tmp_path):
-    """Check memory-format transitions on the real host platform without mocked platform state."""
+def test_autobackend_memory_format(tmp_path):
+    """Check backend memory formats on the real host platform without mocked platform state."""
     from ultralytics.nn.autobackend import AutoBackend
 
-    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-    backend = AutoBackend(model=model, device=torch.device("cpu"))
-    cpu_supported = not ARM64 and torch.backends.mkldnn.is_available() and torch.backends.mkldnn.enabled
-    for value in (None, False, True):
-        if value is True and not cpu_supported:
-            model.to(memory_format=torch.channels_last)  # unsupported requests must restore a reused model to NCHW
-        backend.set_memory_format(value)
-        expected = cpu_supported and (value is True or (value is None and (LINUX or WINDOWS)))
+    cpu_supported = (
+        TORCH_1_13
+        and platform.machine() in {"AMD64", "x86_64"}
+        and torch.backends.mkldnn.is_available()
+        and torch.backends.mkldnn.enabled
+    )
+    for channels_last in (None, False, True):
+        model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"), channels_last=channels_last)
+        expected = cpu_supported and (channels_last is True or (channels_last is None and (LINUX or WINDOWS)))
         assert model[0].weight.is_contiguous(memory_format=torch.channels_last) is expected
+        assert backend(torch.zeros(1, 3, 32, 32)).shape == (1, 4, 30, 30)
+    if hasattr(torch, "inference_mode"):
+        with torch.inference_mode():
+            model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
+        backend = AutoBackend(model=model, device=torch.device("cpu"))
+        if TORCH_1_10:
+            assert not backend.model[0].weight.is_inference()
 
     model = YOLO(MODEL)
     model.ckpt["ema"] = model.model  # raw training checkpoints prefer EMA when reloaded
@@ -228,17 +241,38 @@ def test_autobackend_set_memory_format(tmp_path):
 
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
+    import pathlib
     from concurrent.futures import ThreadPoolExecutor
 
     from ultralytics.nn.tasks import torch_safe_load
 
+    windows_path = pathlib.WindowsPath
     with ThreadPoolExecutor(8) as pool:
         list(pool.map(lambda _: torch_safe_load(MODEL, safe_only=True), range(32)))
+    assert pathlib.WindowsPath is windows_path
 
 
-def test_model_forward():
+def test_restricted_load_criterion(tmp_path):
+    """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
+    from ultralytics.nn.tasks import DetectionModel, torch_safe_load
+    from ultralytics.utils import DEFAULT_CFG
+
+    model = DetectionModel(CFG, verbose=False)
+    model.args = DEFAULT_CFG
+    model.criterion = model.init_criterion()
+    torch.save({"model": model}, tmp_path / "legacy.pt")
+    assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None
+
+
+@pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])
+def test_model_forward(cfg):
     """Test the forward pass of the YOLO model."""
-    model = YOLO(CFG)
+    from ultralytics.nn.modules import SPPF
+
+    model = YOLO(cfg)
+    sppf = next(m for m in model.model.modules() if isinstance(m, SPPF))
+    assert isinstance(sppf.cv1.act, torch.nn.Identity) == ("26" in str(cfg))
+    assert isinstance(SPPF(64, 64).cv1.act, torch.nn.Identity)
     model(source=None, imgsz=32, augment=True)  # also test no source and augment
 
 
@@ -375,13 +409,14 @@ def test_preprocess_values(model_name, bgr):
     assert torch.equal(out[:, :, 0, 0], expected)
 
 
-@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
-def test_predict_classes_with_max_det(model_name):
+@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])
+@pytest.mark.parametrize("nms", [None, False])
+def test_predict_classes_with_max_det(model_name, nms):
     """Test classes-before-max_det and reset reused-call filters for end2end and NMS-based models."""
-    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
+    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, nms=nms, verbose=False)[0].boxes
     assert len(boxes) > 1  # bus.jpg contains multiple persons
     top1_model = YOLO(WEIGHTS_DIR / model_name)
-    top1 = top1_model(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes
+    top1 = top1_model(SOURCE, classes=[0], max_det=1, nms=nms, verbose=False)[0].boxes
     assert len(top1) == 1 and int(top1.cls) == 0
     assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
 
@@ -440,9 +475,24 @@ def test_predict_ndarray_channels():
     assert gray.ndim == 2, "Expected a 2D grayscale array for this test"
     assert len(model(source=gray, imgsz=32, verbose=False)) == 1  # 2D ndarray auto-expanded to 3 channels
     assert len(model(source=gray.astype("float64"), imgsz=32, verbose=False)) == 1  # non-OpenCV dtype also works
+    bgra = np.zeros((8, 8, 4), dtype="float64")
+    assert LoadPilAndNumpy(bgra, channels=3).im0[0].shape == (8, 8, 3)  # non-OpenCV dtype also falls back for BGRA
     for source_channels, model_channels in ((1, 3), (2, 1), (2, 3), (3, 1), (4, 1), (4, 3)):
         im = np.zeros((8, 8, source_channels), dtype=np.uint8)
         assert LoadPilAndNumpy(im, channels=model_channels).im0[0].shape == (8, 8, model_channels)
+
+
+def test_single_check_channel_order_and_contiguity():
+    """Test LoadPilAndNumpy._single_check() keeps BGR order and C-contiguous output through cv2 conversions."""
+    from ultralytics.data.loaders import LoadPilAndNumpy
+
+    check = LoadPilAndNumpy._single_check
+    rgb = Image.fromarray(np.full((2, 2, 3), (10, 20, 30), dtype=np.uint8))  # PIL is R, G, B
+    bgra = np.full((2, 2, 4), (10, 20, 30, 255), dtype=np.uint8)  # ndarray is already B, G, R, A
+    gray = np.full((2, 2, 1), 42, dtype=np.uint8)
+    for im, expected in ((check(rgb, 3), (30, 20, 10)), (check(bgra, 3), (10, 20, 30)), (check(gray, 3), (42, 42, 42))):
+        assert tuple(im[0, 0].tolist()) == expected
+        assert im.flags["C_CONTIGUOUS"]
 
 
 @pytest.mark.slow
@@ -941,6 +991,10 @@ def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
     model.train(data="coco12-formats.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
+    head = model.trainer.model.model[-1]
+    assert head.cv2 is not None and head.one2one_cv2 is not None  # both heads remain trained
+    assert hasattr(model.trainer.model.criterion, "one2many") and hasattr(model.trainer.model.criterion, "one2one")
+    assert not model.trainer.ema.ema.end2end  # epoch validation selects one-to-many by default
     model(SOURCE)
 
 
@@ -2086,6 +2140,18 @@ def test_yoloe(tmp_path):
     assert Path(model.trainer.best).exists()  # end-of-training validation ran and weights were saved
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
+@pytest.mark.skipif(not TORCH_2_0, reason="MobileCLIP2 uses scaled_dot_product_attention (torch>=2.0)")
+def test_yoloe_vocab_head_switch():
+    """Keep prompt-free inference on the branch that its vocabulary reparameterized."""
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
+    model.model.args["imgsz"] = 32
+    names = ["person", "bus"]
+    model.set_vocab(model.get_vocab(names), names)
+    for nms in (None, False):
+        model(SOURCE, imgsz=32, nms=nms)
+
+
 def test_yoloe_visual_prompt_verbose_false(capfd):
     """Verify that YOLOE visual prompting respects verbose=False."""
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
@@ -2124,12 +2190,24 @@ def test_yolov10():
     model(SOURCE)
 
 
-def test_multichannel():
-    """Test YOLO model multi-channel training, validation, and prediction functionality."""
+@pytest.mark.parametrize("grayscale_tiff", (False, True))
+def test_multichannel(tmp_path, grayscale_tiff):
+    """Test training, validation, prediction, and export with multispectral and grayscale TIFF datasets."""
+    data = "coco8-multispectral.yaml"
+    if grayscale_tiff:
+        dataset = check_det_dataset(data)
+        root = shutil.copytree(dataset["path"], tmp_path / "dataset", ignore=shutil.ignore_patterns("*.npy", "*.cache"))
+        for path in Path(root).rglob("*.tiff"):
+            with Image.open(path) as image:
+                frame = image.copy()  # Retain only the first grayscale page.
+            frame.save(path)
+        data = tmp_path / "data.yaml"
+        YAML.save(data, {"path": str(root), "train": "images/train", "val": "images/val", "names": dataset["names"]})
+
     model = YOLO("yolo26n.pt")
-    model.train(data="coco8-multispectral.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="disk")
-    model.val(data="coco8-multispectral.yaml")
-    im = np.zeros((32, 32, 10), dtype=np.uint8)
+    model.train(data=data, epochs=1, imgsz=32, close_mosaic=1, cache="disk")
+    model.val(data=data)
+    im = np.zeros((32, 32, 3 if grayscale_tiff else 10), dtype=np.uint8)
     model.predict(source=im, imgsz=32, save_txt=True, save_crop=True, augment=True)
     model.export(format="onnx")
 

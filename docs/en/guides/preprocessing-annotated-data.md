@@ -1,7 +1,7 @@
 ---
 title: Preprocessing Annotated CV Data
 comments: true
-description: Preprocess annotated computer vision data with YOLO26: resize, normalize, augment, and split datasets to boost training accuracy and reduce overfitting.
+description: "Preprocess annotated computer vision data with YOLO26: resize, normalize, augment, and split datasets to boost training accuracy and reduce overfitting."
 keywords: data preprocessing, computer vision, image resizing, image normalization, data augmentation, train validation test split, data leakage, exploratory data analysis, YOLO26, Ultralytics
 ---
 

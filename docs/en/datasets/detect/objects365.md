@@ -32,21 +32,21 @@ Ultralytics publishes [YOLO26](../../models/yolo26.md) detection and [segmentati
 
 | Model                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | -------------------------------------------------------------- | --------------------------- | -------------------------- | ----------------------- | ------------------------ | ----------------------- |
-| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 16.3                       | 22.3                    | 2.5                      | 6.0                     |
-| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 24.3                       | 31.7                    | 9.6                      | 21.3                    |
-| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 30.3                       | 38.2                    | 20.6                     | 69.4                    |
-| [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 32.2                       | 40.1                    | 25.0                     | 87.7                    |
-| [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.8                       | 44.1                    | 56.1                     | 195.7                   |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 16.3                       | 22.3                    | 2.5                      | 6.1                     |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 24.3                       | 31.7                    | 9.6                      | 21.5                    |
+| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 30.3                       | 38.2                    | 20.6                     | 69.7                    |
+| [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 32.2                       | 40.1                    | 25.0                     | 88.0                    |
+| [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.8                       | 44.1                    | 56.1                     | 196.3                   |
 
 Segmentation models use masks generated for Objects365v1 and report both box and mask accuracy:
 
 | Model                                                              | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ------------------------------------------------------------------ | --------------------------- | -------------------------- | --------------------------- | ------------------------ | ----------------------- |
-| [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 15.7                       | 13.2                        | 2.8                      | 9.7                     |
-| [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 23.8                       | 19.5                        | 10.5                     | 34.8                    |
-| [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 29.5                       | 23.8                        | 23.8                     | 122.7                   |
-| [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 31.7                       | 25.3                        | 28.2                     | 141.0                   |
-| [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.4                       | 27.9                        | 63.1                     | 315.3                   |
+| [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 15.7                       | 13.2                        | 2.8                      | 9.8                     |
+| [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 23.8                       | 19.5                        | 10.5                     | 35.1                    |
+| [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 29.5                       | 23.8                        | 23.8                     | 123.0                   |
+| [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 31.7                       | 25.3                        | 28.2                     | 141.3                   |
+| [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.4                       | 27.9                        | 63.1                     | 315.9                   |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on the Objects365v1 validation split.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`.

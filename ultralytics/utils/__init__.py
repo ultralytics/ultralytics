@@ -424,6 +424,12 @@ def plt_settings(rcparams=None, backend="Agg"):
             original_backend = plt.get_backend()
             switch = backend.lower() != original_backend.lower()
             if switch:
+                # Resolve configured backends first, as get_backend() may return an unavailable backend name
+                if plt._backend_mod is None:
+                    try:
+                        plt.switch_backend(original_backend)
+                    except ImportError:
+                        original_backend = None
                 plt.close("all")  # auto-close()ing of figures upon backend switching is deprecated since 3.8
                 plt.switch_backend(backend)
 
@@ -434,7 +440,8 @@ def plt_settings(rcparams=None, backend="Agg"):
             finally:
                 if switch:
                     plt.close("all")
-                    plt.switch_backend(original_backend)
+                    if original_backend:
+                        plt.switch_backend(original_backend)
             return result
 
         wrapper._fonts_registered = False

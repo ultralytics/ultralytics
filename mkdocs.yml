@@ -187,6 +187,7 @@ nav:
       - YOLOv4: models/yolov4.md
       - YOLOv3: models/yolov3.md
       - SAM 3 (Segment Anything Model 3): models/sam-3.md
+      - SAM 3 LiteText (Lightweight Text Encoder): models/sam-3-litetext.md
       - SAM 2 (Segment Anything Model 2): models/sam-2.md
       - SAM (Segment Anything Model): models/sam.md
       - MobileSAM (Mobile Segment Anything Model): models/mobile-sam.md
@@ -700,9 +701,11 @@ nav:
                   - encoder: reference/models/sam/sam3/encoder.md
                   - geometry_encoders: reference/models/sam/sam3/geometry_encoders.md
                   - maskformer_segmentation: reference/models/sam/sam3/maskformer_segmentation.md
+                  - mobile_clip: reference/models/sam/sam3/mobile_clip.md
                   - model_misc: reference/models/sam/sam3/model_misc.md
                   - necks: reference/models/sam/sam3/necks.md
                   - sam3_image: reference/models/sam/sam3/sam3_image.md
+                  - text_encoder_student: reference/models/sam/sam3/text_encoder_student.md
                   - text_encoder_ve: reference/models/sam/sam3/text_encoder_ve.md
                   - vitdet: reference/models/sam/sam3/vitdet.md
                   - vl_combiner: reference/models/sam/sam3/vl_combiner.md

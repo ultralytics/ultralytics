@@ -38,7 +38,7 @@ Tools writes `yolo26n.tar.xz` inside a timestamped directory under `output/`. Re
 
 ```bash
 modelconverter convert rvc4 --path output/yolo26n_20260807_104858/yolo26n.tar.xz \
-    calibration.path calibration_images/
+  calibration.path calibration_images/
 ```
 
 For RVC2, use `rvc2` instead of `rvc4`; calibration images are not needed for its FP16 conversion. Use the resulting **compiled** NN Archive from ModelConverter's output directory for inference, rather than the intermediate ONNX archive. See [ModelConverter](https://github.com/luxonis/modelconverter) for output paths and platform-specific options.

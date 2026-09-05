@@ -12,10 +12,11 @@ from pathlib import Path
 from urllib import parse
 from uuid import uuid4
 
-from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
+from ultralytics.utils import ASSETS_BASE_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
 # Define Ultralytics GitHub assets maintained at https://github.com/ultralytics/assets
 GITHUB_ASSETS_REPO = "ultralytics/assets"
+GITHUB_ASSETS_URL = f"https://github.com/{GITHUB_ASSETS_REPO}/releases/download"  # canonical assets release root
 GITHUB_ASSETS_NAMES = frozenset(
     [f"yolov8{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb", "-oiv7")]
     + [f"yolo11{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-pose", "-obb")]
@@ -340,11 +341,12 @@ def safe_download(
         gdrive = url.startswith("https://drive.google.com/")  # check if the URL is a Google Drive link
         if gdrive:
             url, file = get_google_drive_file_info(url)
-        url = url.replace(" ", "%20")  # encode spaces for curl compatibility
+        url = url.replace(" ", "%20").replace(GITHUB_ASSETS_URL, ASSETS_BASE_URL)  # curl spaces, assets mirror
 
         f = Path(dir or ".") / (file or url2file(url))  # URL converted to filename
         if not f.is_file():  # URL and file do not exist
-            uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
+            uri = url if gdrive else clean_url(url)  # strip authentication query strings
+            uri = uri.replace(f"{GITHUB_ASSETS_URL}/v0.0.0", "https://ultralytics.com/assets")  # shorten for display
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
             target = f

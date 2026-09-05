@@ -63,7 +63,11 @@ ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLO
 ASSETS = ROOT / "assets"  # default images
-ASSETS_URL = "https://github.com/ultralytics/assets/releases/download/v0.0.0"  # assets GitHub URL
+# Configurable assets URL for mirrors (e.g. ULTRALYTICS_ASSETS_URL=https://mirror.example.com/assets/download)
+ASSETS_BASE_URL = os.getenv("ULTRALYTICS_ASSETS_URL", "https://github.com/ultralytics/assets/releases/download").rstrip(
+    "/"
+)
+ASSETS_URL = f"{ASSETS_BASE_URL}/v0.0.0"  # assets release URL
 # Configurable Platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")

@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -2140,6 +2140,8 @@ def test_yoloe(tmp_path):
     assert Path(model.trainer.best).exists()  # end-of-training validation ran and weights were saved
 
 
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
+@pytest.mark.skipif(not TORCH_2_0, reason="MobileCLIP2 uses scaled_dot_product_attention (torch>=2.0)")
 def test_yoloe_vocab_head_switch():
     """Keep prompt-free inference on the branch that its vocabulary reparameterized."""
     model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")

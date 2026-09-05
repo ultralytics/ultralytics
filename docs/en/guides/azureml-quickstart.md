@@ -78,7 +78,7 @@ yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
 yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
 ```
 
-You can find more [instructions to use the Ultralytics CLI here](../quickstart.md#use-ultralytics-with-cli).
+You can find more [instructions to use the Ultralytics CLI here](../usage/cli.md).
 
 ## Quickstart from a Notebook
 
@@ -114,7 +114,7 @@ pip install ultralytics onnx
 
     Run `source activate yolo26env` at the top of every `%%bash` cell so the cell uses the intended environment.
 
-Run some predictions using the [Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli):
+Run some predictions using the [Ultralytics CLI](../usage/cli.md):
 
 ```bash
 %%bash
@@ -122,7 +122,7 @@ source activate yolo26env
 yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-Or with the [Ultralytics Python interface](../quickstart.md#use-ultralytics-with-python), for example to train the model:
+Or with the [Ultralytics Python interface](../usage/python.md), for example to train the model:
 
 ```python
 from ultralytics import YOLO
@@ -172,7 +172,7 @@ To run YOLO26 on AzureML for training, create a compute instance, set up a Conda
     yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
     ```
 
-For more details, you can refer to the [instructions to use the Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli).
+For more details, you can refer to the [instructions to use the Ultralytics CLI](../usage/cli.md).
 
 ### What are the benefits of using AzureML for YOLO26 training?
 
@@ -213,7 +213,7 @@ Yes, AzureML allows you to use both the Ultralytics CLI and the Python interface
     model.train(data="coco8.yaml", epochs=3)
     ```
 
-For step-by-step instructions, refer to the [CLI quickstart guide](../quickstart.md#use-ultralytics-with-cli) and the [Python quickstart guide](../quickstart.md#use-ultralytics-with-python).
+For step-by-step instructions, refer to the [CLI Guide](../usage/cli.md) and the [Python Guide](../usage/python.md).
 
 ### What is the advantage of using Ultralytics YOLO26 over other [object detection](https://www.ultralytics.com/glossary/object-detection) models?
 

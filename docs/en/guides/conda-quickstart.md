@@ -156,7 +156,7 @@ sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralyti
 sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest-conda # specify GPUs
 ```
 
-This approach is ideal for deploying applications in production or running complex workflows without manual configuration. Learn more about [Ultralytics Conda Docker Image](../quickstart.md).
+This approach is ideal for deploying applications in production or running complex workflows without manual configuration.
 
 ### How can I speed up Conda package installation in my Ultralytics environment?
 

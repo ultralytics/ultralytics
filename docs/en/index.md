@@ -66,7 +66,7 @@ yolo predict model=yolo26n.pt source='https://github.com/ultralytics/assets/rele
 
 The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`.
 
-See the [Quickstart](quickstart.md) guide for the full installation and usage reference.
+See the [Quickstart](quickstart.md) guide for the full installation reference.
 
 ## What Do You Want to Do?
 

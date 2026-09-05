@@ -280,7 +280,7 @@ def export_formats():
 EXPORT_ENVS = {
     "base": {
         "python": None,
-        "extras": ["export-base"],
+        "extras": ["export-base", "export-openvino"],
         "torch": None,
         "requirements": [],
         "indexes": [],

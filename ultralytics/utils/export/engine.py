@@ -50,30 +50,22 @@ class _NormalizeCoords(torch.nn.Module):
 
 def best_onnx_opset(onnx: types.ModuleType) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
-        opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
-    else:
-        version = ".".join(TORCH_VERSION.split(".")[:2])
-        opset = {
-            "1.8": 12,
-            "1.9": 12,
-            "1.10": 13,
-            "1.11": 14,
-            "1.12": 15,
-            "1.13": 17,
-            "2.0": 17,  # reduced from 18 to fix ONNX errors
-            "2.1": 17,  # reduced from 19
-            "2.2": 17,  # reduced from 19
-            "2.3": 17,  # reduced from 19
-            "2.4": 20,
-            "2.5": 20,
-            "2.6": 20,
-            "2.7": 20,
-            "2.8": 23,
-        }.get(version, 12)
-    # ONNX Runtime CUDA has no Resize-19 or ReduceMax-20 kernel, so opset>=19 runs those nodes on the CPU and
-    # copies their tensors back and forth. Its static INT8 quantization also rejects opset>=21.
-    return min(opset, 18, onnx.defs.onnx_opset_version())
+    version = ".".join(TORCH_VERSION.split(".")[:2])
+    opset = {
+        "1.8": 12,
+        "1.9": 12,
+        "1.10": 13,
+        "1.11": 14,
+        "1.12": 15,
+        "1.13": 17,
+        "2.0": 17,  # reduced from 18 to fix ONNX errors
+        "2.1": 17,  # reduced from 19
+        "2.2": 17,  # reduced from 19
+        "2.3": 17,  # reduced from 19
+    }.get(version, 18)
+    # torch>=2.4 supports opset>=19, but ONNX Runtime CUDA has no Resize-19 or ReduceMax-20 kernel, so opset>=19 runs
+    # those nodes on the CPU and copies their tensors back and forth. Its static INT8 quantization also rejects opset>=21.
+    return min(opset, onnx.defs.onnx_opset_version())
 
 
 @ThreadingLocked()
@@ -99,9 +91,6 @@ def torch2onnx(
 
     Returns:
         (str): Path to the exported ONNX file.
-
-    Notes:
-        Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
     if input_names is None:
         input_names = ["images"]
@@ -112,9 +101,7 @@ def torch2onnx(
         model,
         im,
         output_file,
-        verbose=False,
         opset_version=opset,
-        do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic,

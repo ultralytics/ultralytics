@@ -159,7 +159,7 @@ Fine-tuning generally requires fewer hyperparameter adjustments than training fr
 
 - **`epochs`**: Fine-tuning converges faster than training from scratch. Start with a moderate value and use `patience` to stop early when validation metrics plateau.
 - **`patience`**: The default of 100 is designed for long training runs. Reducing this to 10-20 avoids wasting time on runs that have already converged.
-- **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning.
+- **`warmup_epochs`**: Warmup eases the learning rate into its scheduled value over the first epochs, so early batches are less likely to disturb pretrained features. Keep it non-zero when fine-tuning, but the full 3-epoch default is not required: the evolutionary search behind the [official YOLO26 COCO fine-tune](yolo26-training-recipe.md#optimizer-and-learning-rate) — a multi-epoch continuation from Objects365 weights — settled on about one epoch for every model size.
 
 For the full list of training parameters, see the [training configuration reference](../usage/cfg.md). For behavior the parameters do not expose — per-layer learning rates, gradient clipping, or custom validation metrics — [subclass the trainer](custom-trainer.md).
 

@@ -436,26 +436,26 @@ Efficient annotation with keyboard shortcuts:
 
 === "General"
 
-    | Shortcut                      | Action                       |
-    | ----------------------------- | ---------------------------- |
-    | `Cmd/Ctrl+S`                  | Save annotations             |
-    | `Cmd/Ctrl+Z`                  | Undo                         |
-    | `Cmd/Ctrl+Y`                  | Redo                         |
-    | `Escape`                      | Save / Deselect / Exit       |
-    | `Delete` / `Backspace`        | Delete selected annotation   |
-    | `Cmd/Ctrl+Delete`             | Delete image                 |
-    | `H`                           | Toggle all annotations       |
-    | `1-9`                         | Select class 1-9             |
-    | `Cmd/Ctrl+Scroll`             | Zoom in/out                  |
-    | `Cmd/Ctrl++` or `Cmd/Ctrl+=`  | Zoom in                      |
-    | `Cmd/Ctrl+-`                  | Zoom out                     |
-    | `Cmd/Ctrl+0`                  | Reset to fit                 |
-    | `Space+Drag`                  | Pan canvas when zoomed       |
-    | `Shift+Click`                 | Multi-select annotations     |
-    | `Cmd/Ctrl+A`                  | Select all annotations       |
-    | `Cmd/Ctrl+C`                  | Copy selected annotations    |
-    | `Cmd/Ctrl+X`                  | Cut selected annotations     |
-    | `Cmd/Ctrl+V`                  | Paste annotations            |
+    | Shortcut                     | Action                     |
+    | ---------------------------- | -------------------------- |
+    | `Cmd/Ctrl+S`                 | Save annotations           |
+    | `Cmd/Ctrl+Z`                 | Undo                       |
+    | `Cmd/Ctrl+Y`                 | Redo                       |
+    | `Escape`                     | Save / Deselect / Exit     |
+    | `Delete` / `Backspace`       | Delete selected annotation |
+    | `Cmd/Ctrl+Delete`            | Delete image               |
+    | `H`                          | Toggle all annotations     |
+    | `1-9`                        | Select class 1-9           |
+    | `Cmd/Ctrl+Scroll`            | Zoom in/out                |
+    | `Cmd/Ctrl++` or `Cmd/Ctrl+=` | Zoom in                    |
+    | `Cmd/Ctrl+-`                 | Zoom out                   |
+    | `Cmd/Ctrl+0`                 | Reset to fit               |
+    | `Space+Drag`                 | Pan canvas when zoomed     |
+    | `Shift+Click`                | Multi-select annotations   |
+    | `Cmd/Ctrl+A`                 | Select all annotations     |
+    | `Cmd/Ctrl+C`                 | Copy selected annotations  |
+    | `Cmd/Ctrl+X`                 | Cut selected annotations   |
+    | `Cmd/Ctrl+V`                 | Paste annotations          |
 
 === "Modes"
 
@@ -466,18 +466,18 @@ Efficient annotation with keyboard shortcuts:
 
 === "Drawing"
 
-    | Shortcut                | Action                                                                                 |
-    | ----------------------- | -------------------------------------------------------------------------------------- |
-    | `Click+Drag`            | Draw bounding box (detect/OBB)                                                         |
-    | `Click`                 | Add polygon point (segment) / Place skeleton (pose) / Place SAM point (smart)          |
-    | `Shift (hold) + Move`   | Freehand draw — continuously adds polygon vertices as the mouse moves                  |
-    | `Click inside mask`     | Subtract region from SAM mask (negative point)                                         |
-    | `Click outside mask`    | Add to SAM mask (positive point)                                                       |
-    | `Shift (hold) + Click`  | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on)        |
-    | `A`                     | Toggle auto-apply (Smart mode)                                                         |
-    | `P`                     | Run YOLO prediction (Smart mode)                                                       |
-    | `Enter`                 | Complete polygon / Save SAM annotation                                                 |
-    | `Escape`                | Complete polygon / Save SAM annotation / Deselect / Exit                               |
+    | Shortcut               | Action                                                                          |
+    | ---------------------- | ------------------------------------------------------------------------------- |
+    | `Click+Drag`           | Draw bounding box (detect/OBB)                                                  |
+    | `Click`                | Add polygon point (segment) / Place skeleton (pose) / Place SAM point (smart)   |
+    | `Shift (hold) + Move`  | Freehand draw — continuously adds polygon vertices as the mouse moves           |
+    | `Click inside mask`    | Subtract region from SAM mask (negative point)                                  |
+    | `Click outside mask`   | Add to SAM mask (positive point)                                                |
+    | `Shift (hold) + Click` | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on) |
+    | `A`                    | Toggle auto-apply (Smart mode)                                                  |
+    | `P`                    | Run YOLO prediction (Smart mode)                                                |
+    | `Enter`                | Complete polygon / Save SAM annotation                                          |
+    | `Escape`               | Complete polygon / Save SAM annotation / Deselect / Exit                        |
 
 === "Arrange (Z-Order)"
 

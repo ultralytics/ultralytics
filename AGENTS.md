@@ -19,8 +19,8 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 ## PR Review
 
 - Require a reproducible production bug or a broadly useful feature; close incorrect, niche, speculative, or AI-generated bloat.
-- Reject new default arguments and PRs with 30 or more net added code lines. Documentation changes do not count. Delete, deduplicate, or move behavior to its existing owner first.
-- Delete mock tests. Prefer focused validation of the real code path, adding only minimal regression coverage for a high-risk gap.
+- Treat new arguments and PRs with more than 50 net added non-documentation code lines, counting tests and offsetting additions with deletions, as high-barrier exceptions. The PR author must strongly justify why the complete change cannot be smaller or use an existing owner, and defend how it avoids duplication and improves maintainability or scalability.
+- Delete mock tests, including monkeypatched platform or device state. Prefer focused validation of the real code path on real CI targets, adding only minimal regression coverage for a high-risk gap.
 - Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
 - Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.
 - Preserve an existing implementation when a maintainer explicitly requests it remain temporarily disabled at its owner
@@ -46,7 +46,7 @@ After opening a PR:
 
 ```bash
 # Dev install (editable); tests also need export/solutions extras
-uv pip install -e ".[dev,export-base,solutions]"
+uv pip install -e ".[dev,export-base,export-openvino,solutions]"
 
 # All tests with coverage, matching ci.yml's Tests job (CI also sets YOLO_AUTOINSTALL=false and drops -n auto on ARM)
 pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base

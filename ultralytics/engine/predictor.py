@@ -29,7 +29,7 @@ Usage - formats:
                               yolo26n_ncnn_model         # NCNN
                               yolo26n_imx_model          # Sony IMX
                               yolo26n_rknn_model         # Rockchip RKNN
-                              yolo26n_executorch_model   # PyTorch Executorch
+                              yolo26n_executorch_model   # PyTorch ExecuTorch
                               yolo26n_axelera_model      # Axelera AI
                               yolo26n_deepx_model        # DEEPX
                               yolo26n_qnn.onnx           # Qualcomm QNN
@@ -42,6 +42,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
 
@@ -169,7 +170,9 @@ class BasePredictor:
             (torch.Tensor): Preprocessed image tensor of shape (N, 3, H, W).
         """
         if not isinstance(im, torch.Tensor):
-            im = torch.from_numpy(np.stack(self.pre_transform(im)))
+            im = self.pre_transform(im)
+            # For a single image, add a batch dimension without the copy required by np.stack().
+            im = torch.from_numpy(im[0]).unsqueeze(0) if len(im) == 1 else torch.from_numpy(np.stack(im))
             im = im.to(self.device)  # transfer as uint8, then reorder on device
             im = im.permute(0, 3, 1, 2)  # BHWC to BCHW, (n, 3, h, w)
             if im.shape[1] == 3:
@@ -316,6 +319,9 @@ class BasePredictor:
             self.args.augment, self.args.embed, self.args.visualize = False, None, False
 
         with self._lock:  # for thread-safe inference
+            if self.model.format == "pt" and self.model.end2end:
+                # Class filtering needs candidates before max_det truncation.
+                self.model.model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
             # Setup source every time predict is called
             self.setup_source(source if source is not None else self.args.source)
 
@@ -411,6 +417,7 @@ class BasePredictor:
             LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}{s}")
         self.run_callbacks("on_predict_end")
 
+    @smart_inference_mode(False)
     def setup_model(self, model, verbose: bool = True):
         """Initialize YOLO model with given parameters and set it to evaluation mode.
 
@@ -418,28 +425,23 @@ class BasePredictor:
             model (str | Path | torch.nn.Module): Model to load or use.
             verbose (bool): Whether to print verbose output.
         """
-        if hasattr(model, "end2end"):
-            if self.args.end2end is not None:
-                model.end2end = self.args.end2end
-            if model.end2end:
-                # Keep head top-k >= 300 so `classes` filtering in NMS sees all candidates before `max_det` truncation
-                model.set_head_attr(max_det=max(self.args.max_det, 300), agnostic_nms=self.args.agnostic_nms)
+        model = deepcopy(model)
         self.model = AutoBackend(
             model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),
             dnn=self.args.dnn,
             data=self.args.data,
             fp16=self.args.quantize == 16,
+            channels_last=self.args.channels_last,
             fuse=True,
             verbose=verbose,
+            end2end=self.args.nms is False,
         )
 
         self.device = self.model.device  # update device
-        self.args.quantize = 16 if self.model.fp16 else None  # record actual inference precision
         if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
             self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
-        self.model.set_memory_format(self.args.channels_last)
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 
     def write_results(self, i: int, p: Path, im: torch.Tensor, s: list[str]) -> str:

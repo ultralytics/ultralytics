@@ -1,5 +1,5 @@
 ---
-title: YOLO26 on Raspberry Pi: Setup & Benchmarks
+title: YOLO26 on Raspberry Pi Setup & Benchmarks
 comments: true
 description: Deploy Ultralytics YOLO26 on Raspberry Pi 4 and 5 with install steps, NCNN export for fastest inference, camera setup, and benchmarks across eight formats.
 keywords: Ultralytics, YOLO26, Raspberry Pi, setup, guide, benchmarks, computer vision, object detection, NCNN, Docker, camera modules
@@ -147,24 +147,24 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
     === "YOLO26 (ONNX)"
 
-        | Model   	| mAP50-95(B) 	| Inference time (ms/im) 	|
-        |---------	|-------------	|------------------------	|
-        | YOLO26n 	| 40.1        	| 128.42                 	|
-        | YOLO26s 	| 47.8        	| 352.84                 	|
-        | YOLO26m 	| 52.5        	| 993.78                 	|
-        | YOLO26l 	| 54.4        	| 1259.46                	|
-        | YOLO26x 	| 56.9        	| 2636.26                	|
+        | Model   | mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ----------- | ---------------------- |
+        | YOLO26n | 40.1        | 128.42                 |
+        | YOLO26s | 47.8        | 352.84                 |
+        | YOLO26m | 52.5        | 993.78                 |
+        | YOLO26l | 54.4        | 1259.46                |
+        | YOLO26x | 56.9        | 2636.26                |
 
 
     === "YOLO11 (ONNX)"
 
-        | Model   	| mAP50-95(B) 	| Inference time (ms/im) 	|
-        |---------	|-------------	|------------------------	|
-        | YOLO11n 	| 39.5        	| 147.20                 	|
-        | YOLO11s 	| 47.0        	| 366.83                 	|
-        | YOLO11m 	| 51.5        	| 997.46                 	|
-        | YOLO11l 	| 53.4        	| 1274.95                	|
-        | YOLO11x 	| 54.7        	| 2646.76                	|
+        | Model   | mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ----------- | ---------------------- |
+        | YOLO11n | 39.5        | 147.20                 |
+        | YOLO11s | 47.0        | 366.83                 |
+        | YOLO11m | 51.5        | 997.46                 |
+        | YOLO11l | 53.4        | 1274.95                |
+        | YOLO11x | 54.7        | 2646.76                |
 
     Benchmarked with Ultralytics 8.4.14.
 
@@ -189,29 +189,29 @@ The below table represents the benchmark results for two different models (YOLO2
 
     === "YOLO26n"
 
-        | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 5.3               | 0.4760       | 299.09                |
-        | TorchScript   | ✅      | 9.8              | 0.4734      | 353.20                |
-        | ONNX          | ✅      | 9.5              | 0.4734      | 125.99                |
-        | OpenVINO      | ✅      | 9.6              | 0.4734      | 104.55                 |
-        | MNN           | ✅      | 9.4              | 0.4749      | 91.87                |
-        | NCNN          | ✅      | 9.4              | 0.4784      | 67.03                 |
-        | ExecuTorch    | ✅      | 9.4              | 0.4772      | 144.83                 |
-        | LiteRT        | ✅      | 9.8              | 0.4730      | 123.30                 |
+        | Format      | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | ----------- | ------ | ----------------- | ----------- | ---------------------- |
+        | PyTorch     | ✅     | 5.3               | 0.4760      | 299.09                 |
+        | TorchScript | ✅     | 9.8               | 0.4734      | 353.20                 |
+        | ONNX        | ✅     | 9.5               | 0.4734      | 125.99                 |
+        | OpenVINO    | ✅     | 9.6               | 0.4734      | 104.55                 |
+        | MNN         | ✅     | 9.4               | 0.4749      | 91.87                  |
+        | NCNN        | ✅     | 9.4               | 0.4784      | 67.03                  |
+        | ExecuTorch  | ✅     | 9.4               | 0.4772      | 144.83                 |
+        | LiteRT      | ✅     | 9.8               | 0.4730      | 123.30                 |
 
     === "YOLO26s"
 
-        | Format        | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
-        |---------------|--------|-------------------|-------------|------------------------|
-        | PyTorch       | ✅      | 19.5              | 0.5703      | 848.65                 |
-        | TorchScript   | ✅      | 36.8              | 0.5632      | 1053.24               |
-        | ONNX          | ✅      | 36.5              | 0.5632      | 355.69                |
-        | OpenVINO      | ✅      | 36.7              | 0.5632      | 281.78                |
-        | MNN           | ✅      | 36.4              | 0.5614      | 237.24                |
-        | NCNN          | ✅      | 36.4              | 0.5684      | 172.88                |
-        | ExecuTorch    | ✅      | 36.5              | 0.5670      | 376.48                |
-        | LiteRT        | ✅      | 36.8              | 0.5630      | 360.00                |
+        | Format      | Status | Size on disk (MB) | mAP50-95(B) | Inference time (ms/im) |
+        | ----------- | ------ | ----------------- | ----------- | ---------------------- |
+        | PyTorch     | ✅     | 19.5              | 0.5703      | 848.65                 |
+        | TorchScript | ✅     | 36.8              | 0.5632      | 1053.24                |
+        | ONNX        | ✅     | 36.5              | 0.5632      | 355.69                 |
+        | OpenVINO    | ✅     | 36.7              | 0.5632      | 281.78                 |
+        | MNN         | ✅     | 36.4              | 0.5614      | 237.24                 |
+        | NCNN        | ✅     | 36.4              | 0.5684      | 172.88                 |
+        | ExecuTorch  | ✅     | 36.5              | 0.5670      | 376.48                 |
+        | LiteRT      | ✅     | 36.8              | 0.5630      | 360.00                 |
 
     Benchmarked with Ultralytics 8.4.108
 

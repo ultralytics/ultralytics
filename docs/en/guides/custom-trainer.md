@@ -89,16 +89,16 @@ This logs the mean F1 score across all classes represented in validation and a p
 
     The validator provides access to many metrics through `self.validator.metrics.box`:
 
-    | Attribute | Description |
-    |---|---|
-    | `f1` | F1 score per class |
+    | Attribute       | Description                                                             |
+    | --------------- | ----------------------------------------------------------------------- |
+    | `f1`            | F1 score per class                                                      |
     | `image_metrics` | Per-image metrics dictionary with precision, recall, F1, TP, FP, and FN |
-    | `p` | Precision per class |
-    | `r` | Recall per class |
-    | `ap50` | AP at IoU 0.5 per class |
-    | `ap` | AP at IoU 0.5:0.95 per class |
-    | `mp`, `mr` | Mean precision and recall |
-    | `map50`, `map` | Mean AP metrics |
+    | `p`             | Precision per class                                                     |
+    | `r`             | Recall per class                                                        |
+    | `ap50`          | AP at IoU 0.5 per class                                                 |
+    | `ap`            | AP at IoU 0.5:0.95 per class                                            |
+    | `mp`, `mr`      | Mean precision and recall                                               |
+    | `map50`, `map`  | Mean AP metrics                                                         |
 
 ## Adding Class Weights
 
@@ -161,12 +161,12 @@ model.train(data="coco8.yaml", epochs=20, trainer=CustomSaveTrainer)
 
     Common metrics available in `self.metrics` after validation include:
 
-    | Key | Description |
-    |---|---|
-    | `metrics/precision(B)` | Precision |
-    | `metrics/recall(B)` | Recall |
-    | `metrics/mAP50(B)` | mAP at IoU 0.5 |
-    | `metrics/mAP50-95(B)` | mAP at IoU 0.5:0.95 |
+    | Key                    | Description         |
+    | ---------------------- | ------------------- |
+    | `metrics/precision(B)` | Precision           |
+    | `metrics/recall(B)`    | Recall              |
+    | `metrics/mAP50(B)`     | mAP at IoU 0.5      |
+    | `metrics/mAP50-95(B)`  | mAP at IoU 0.5:0.95 |
 
 ## Freezing and Unfreezing the Backbone
 

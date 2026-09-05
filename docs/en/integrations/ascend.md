@@ -118,7 +118,7 @@ The Ascend format supports the [Export](../modes/export.md), [Predict](../modes/
 | `quantize` | `int`            | `16`            | Quantization precision. Ascend export is FP16-only and auto-enables `16` if not specified. Replaces the deprecated `half`/`int8` flags.                                                              |
 | `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                                                                               |
 | `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                              |
-| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression to supported detection, segmentation, pose, and OBB models.                                                                                                             |
+| `nms`      | `bool`, optional | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                          |
 
 !!! note "Why is FP32 unavailable?"
 

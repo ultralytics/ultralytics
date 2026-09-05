@@ -214,7 +214,7 @@ class BaseBackend(ABC):
                 metadata[k] = ast.literal_eval(v)
 
         # Handle models exported with end-to-end NMS
-        metadata["end2end"] = metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False)
+        metadata["end2end"] = bool(metadata.get("end2end", False) or metadata.get("args", {}).get("nms", False))
         metadata["dynamic"] = metadata.get("args", {}).get("dynamic", self.dynamic)
 
         # Apply all metadata fields as backend attributes

@@ -11,6 +11,7 @@ import torch.nn.functional as F
 from torch import nn
 from torch.nn.init import constant_, xavier_uniform_
 
+from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
 from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
 
@@ -152,12 +153,16 @@ class Detect(nn.Module):
 
     @property
     def end2end(self):
-        """Checks if the model has one2one for v3/v5/v8/v9/v11 backward compatibility."""
-        return getattr(self, "_end2end", True) and hasattr(self, "one2one")
+        """Select one-to-one inference when requested or when fusion has removed the one-to-many head."""
+        return getattr(self, "one2one_cv2", None) is not None and (getattr(self, "_end2end", False) or self.cv2 is None)
 
     @end2end.setter
     def end2end(self, value):
-        """Override the end-to-end detection mode."""
+        """Select the inference head without changing dual-head training."""
+        if value and getattr(self, "one2one_cv2", None) is None:
+            LOGGER.warning("This model has no one-to-one head; using one-to-many outputs.")
+        elif not value and self.cv2 is None:
+            LOGGER.warning("The one-to-many head was removed by fusion; using the remaining one-to-one head.")
         self._end2end = value
 
     def forward_head(
@@ -176,13 +181,13 @@ class Detect(nn.Module):
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         preds = self.forward_head(x, **self.one2many)
-        if self.end2end:
+        if getattr(self, "one2one_cv2", None) is not None:
             x_detach = [xi.detach() for xi in x] if self.training else x  # detach keeps one2one out of the backbone
             one2one = self.forward_head(x_detach, **self.one2one)
             preds = {"one2many": preds, "one2one": one2one}
         if self.training:
             return preds
-        y = self._inference(preds["one2one"] if self.end2end else preds)
+        y = self._inference(preds["one2one" if self.end2end else "one2many"] if "one2one" in preds else preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
@@ -217,7 +222,7 @@ class Detect(nn.Module):
             b[-1].bias.data[: self.nc] = math.log(
                 5 / self.nc / (640 / self.stride[i]) ** 2
             )  # cls (.01 objects, 80 classes, 640 img)
-        if self.end2end:
+        if getattr(self, "one2one_cv2", None) is not None:
             for i, (a, b) in enumerate(zip(self.one2one["box_head"], self.one2one["cls_head"])):  # from
                 a[-1].bias.data[:] = 2.0  # box
                 b[-1].bias.data[: self.nc] = math.log(
@@ -273,8 +278,11 @@ class Detect(nn.Module):
         return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
 
     def fuse(self) -> None:
-        """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = None
+        """Remove the unused detection branch for inference."""
+        end2end = self.end2end
+        for name in tuple(self._modules):
+            if name.startswith("one2one_"):
+                setattr(self, name[8:] if end2end else name, None)
 
 
 class Segment(Detect):
@@ -335,7 +343,7 @@ class Segment(Detect):
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
         proto = self.proto(x[0])  # mask protos
         if isinstance(preds, dict):  # training and validating during training
-            if self.end2end:
+            if "one2one" in preds:
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = proto.detach()
             else:
@@ -358,10 +366,6 @@ class Segment(Detect):
             bs = x[0].shape[0]  # batch size
             preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
-
-    def fuse(self) -> None:
-        """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = self.cv4 = None
 
 
 class Segment26(Segment):
@@ -405,7 +409,7 @@ class Segment26(Segment):
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
         proto = self.proto(x)  # mask protos
         if isinstance(preds, dict):  # training and validating during training
-            if self.end2end:
+            if "one2one" in preds:
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = (
                     tuple(p.detach() for p in proto) if isinstance(proto, tuple) else proto.detach()
@@ -417,7 +421,7 @@ class Segment26(Segment):
         return (outputs, proto) if self.export else ((outputs[0], proto), preds)
 
     def fuse(self) -> None:
-        """Remove the one2many head and extra part of proto module for inference optimization."""
+        """Remove the unused detection branch and training-only prototype layers for inference."""
         super().fuse()
         if hasattr(self.proto, "fuse"):
             self.proto.fuse()
@@ -496,10 +500,6 @@ class OBB(Detect):
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor) -> torch.Tensor:
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
-
-    def fuse(self) -> None:
-        """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = self.cv4 = None
 
 
 class OBB26(OBB):
@@ -600,10 +600,6 @@ class Pose(Detect):
             bs = x[0].shape[0]  # batch size
             preds["kpts"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
         return preds
-
-    def fuse(self) -> None:
-        """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = self.cv4 = None
 
     def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
         """Decode keypoints from predictions."""
@@ -714,9 +710,10 @@ class Pose26(Pose):
         return preds
 
     def fuse(self) -> None:
-        """Remove the one2many head for inference optimization."""
+        """Remove the unused detection branch and training-only layers for inference."""
         super().fuse()
-        self.cv4_kpts = self.cv4_sigma = self.flow_model = self.one2one_cv4_sigma = None
+        self.flow_model = None
+        setattr(self, "one2one_cv4_sigma" if self.end2end else "cv4_sigma", None)
 
     def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
         """Decode keypoints from predictions."""
@@ -1086,8 +1083,8 @@ class YOLOEDetect(Detect):
     @smart_inference_mode(False)  # fused layers stay in the model, so they must not be inference tensors
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
-        if txt_feats is None:  # means eliminate one2many branch
-            self.cv2 = self.cv3 = self.cv4 = None
+        if txt_feats is None:  # remove the unused detection branch
+            super().fuse()
             return
         if self.is_fused:
             return
@@ -1096,7 +1093,7 @@ class YOLOEDetect(Detect):
         txt_feats = txt_feats.to(next(self.parameters()).dtype).squeeze(0)
         if self.cv3 and self.cv4:
             self._fuse_tp(txt_feats, self.cv3, self.cv4)
-        if self.end2end:
+        if getattr(self, "one2one_cv2", None) is not None:
             self._fuse_tp(txt_feats, self.one2one_cv3, self.one2one_cv4)
         del self.reprta
         self.reprta = nn.Identity()
@@ -1162,9 +1159,8 @@ class YOLOEDetect(Detect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        # Prompt-free fusion removes the one-to-many heads.
-        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
-        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
+        cv2 = self.one2one_cv2 if self.end2end else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end else self.cv3
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
@@ -1224,7 +1220,7 @@ class YOLOEDetect(Detect):
             a[-1].bias.data[:] = 2.0  # box
             b[-1].bias.data[:] = 0.0
             c.bias.data[:] = math.log(5 / self.nc / (640 / self.stride[i]) ** 2)
-        if self.end2end:
+        if getattr(self, "one2one_cv2", None) is not None:
             for i, (a, b, c) in enumerate(
                 zip(self.one2one["box_head"], self.one2one["cls_head"], self.one2one["contrastive_head"])
             ):
@@ -1308,9 +1304,9 @@ class YOLOESegment(YOLOEDetect):
         """Process features with fused text embeddings to generate detections for prompt-free model."""
         boxes, scores, index = [], [], []
         bs = x[0].shape[0]
-        cv2 = self.one2one_cv2 if self.end2end or self.cv2 is None else self.cv2
-        cv3 = self.one2one_cv3 if self.end2end or self.cv3 is None else self.cv3
-        cv5 = self.one2one_cv5 if self.end2end or self.cv5 is None else self.cv5
+        cv2 = self.one2one_cv2 if self.end2end else self.cv2
+        cv3 = self.one2one_cv3 if self.end2end else self.cv3
+        cv5 = self.one2one_cv5 if self.end2end else self.cv5
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
@@ -1340,7 +1336,7 @@ class YOLOESegment(YOLOEDetect):
         preds = outputs[1] if isinstance(outputs, tuple) else outputs
         proto = self.proto(x[0])  # mask protos
         if isinstance(preds, dict):  # training and validating during training
-            if self.end2end:
+            if "one2one" in preds:
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = proto.detach()
             else:
@@ -1372,8 +1368,7 @@ class YOLOESegment(YOLOEDetect):
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         super().fuse(txt_feats)
-        if txt_feats is None:  # means eliminate one2many branch
-            self.cv5 = None
+        if txt_feats is None:  # remove training-only prototype layers
             if hasattr(self.proto, "fuse"):
                 self.proto.fuse()
             return
@@ -1432,7 +1427,7 @@ class YOLOESegment26(YOLOESegment):
         proto = self.proto([xi.detach() for xi in x], return_semantic=False)  # mask protos
 
         if isinstance(preds, dict):  # training and validating during training
-            if self.end2end and not hasattr(self, "lrpc"):  # not prompt-free
+            if "one2one" in preds:  # dual-head outputs, not prompt-free
                 preds["one2many"]["proto"] = proto
                 preds["one2one"]["proto"] = proto.detach()
             else:
@@ -1801,7 +1796,7 @@ class v10Detect(Detect):
         __init__: Initialize the v10Detect object with specified number of classes and input channels.
         forward: Perform forward pass of the v10Detect module.
         bias_init: Initialize biases of the Detect module.
-        fuse: Remove the one2many head for inference optimization.
+        fuse: Remove the unused detection branch for inference.
 
     Examples:
         Create a v10Detect head
@@ -1809,8 +1804,6 @@ class v10Detect(Detect):
         >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
         >>> outputs = v10_detect(x)
     """
-
-    end2end = True
 
     def __init__(self, nc: int = 80, ch: tuple = ()):
         """Initialize the v10Detect object with the specified number of classes and input channels.
@@ -1831,10 +1824,6 @@ class v10Detect(Detect):
             for x in ch
         )
         self.one2one_cv3 = copy.deepcopy(self.cv3)
-
-    def fuse(self):
-        """Remove the one2many head for inference optimization."""
-        self.cv2 = self.cv3 = None
 
 
 class SemanticSegment(nn.Module):

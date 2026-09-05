@@ -23,7 +23,7 @@ All YOLO26 base models were trained in two stages: **[Objects365v1](../datasets/
 Key design choices across all sizes:
 
 - **[Objects365](../datasets/detect/objects365.md) pretraining** for every size before the COCO stage
-- **[End-to-end training](end2end-detection.md)** (`end2end=True`) with NMS-free one-to-one head
+- **[Dual-head training](end2end-detection.md)** with both one-to-many and one-to-one supervision; inference uses NMS by default, with `nms=False` selecting the NMS-free head
 - **[MuSGD](../modes/train.md#musgd-optimizer) optimizer** combining SGD with Muon-style orthogonalized updates for weight matrices (2D linear weights and 4D conv filters, which are reshaped to 2D)
 - **Heavy mosaic augmentation** (~0.9-1.0 probability) disabled for the final epochs (`close_mosaic=8` in pretraining, `close_mosaic=10` on COCO)
 - **Aggressive scale augmentation** (0.5-0.95) to handle objects at different sizes

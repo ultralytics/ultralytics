@@ -1070,11 +1070,12 @@ class BaseTrainer:
         )
         LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
         self._load_checkpoint_state(ckpt)
-        if getattr(unwrap_model(self.model), "end2end", False):
-            # initialize loss and resume o2o and o2m args
-            unwrap_model(self.model).criterion = unwrap_model(self.model).init_criterion()
-            unwrap_model(self.model).criterion.updates = start_epoch - 1
-            unwrap_model(self.model).criterion.update()
+        model = unwrap_model(self.model)
+        if getattr(getattr(model, "student_model", model).model[-1], "one2one_cv2", None) is not None:
+            # Resume both head losses independently of the selected inference head.
+            model.criterion = model.init_criterion()
+            model.criterion.updates = start_epoch - 1
+            model.criterion.update()
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()

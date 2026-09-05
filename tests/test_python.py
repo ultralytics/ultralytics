@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -136,6 +136,9 @@ def test_cfg_rejects_fuzzed_values():
     with pytest.raises(TypeError, match="fraction"):
         get_cfg(overrides={"fraction": True})
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
+    assert get_cfg(overrides={"end2end": True, "nms": True}).nms is False
+    assert get_cfg(overrides={"end2end": False, "nms": False}).nms is None
+    assert get_cfg(overrides={"end2end": False, "nms": True}).nms is True
 
 
 def skip_rpi_semantic():
@@ -406,13 +409,14 @@ def test_preprocess_values(model_name, bgr):
     assert torch.equal(out[:, :, 0, 0], expected)
 
 
-@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])  # end2end and NMS-based models
-def test_predict_classes_with_max_det(model_name):
+@pytest.mark.parametrize("model_name", ["yolo26n.pt", "yolo11n.pt"])
+@pytest.mark.parametrize("nms", [None, False])
+def test_predict_classes_with_max_det(model_name, nms):
     """Test classes-before-max_det and reset reused-call filters for end2end and NMS-based models."""
-    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, verbose=False)[0].boxes
+    boxes = YOLO(WEIGHTS_DIR / model_name)(SOURCE, classes=[0], max_det=300, nms=nms, verbose=False)[0].boxes
     assert len(boxes) > 1  # bus.jpg contains multiple persons
     top1_model = YOLO(WEIGHTS_DIR / model_name)
-    top1 = top1_model(SOURCE, classes=[0], max_det=1, verbose=False)[0].boxes
+    top1 = top1_model(SOURCE, classes=[0], max_det=1, nms=nms, verbose=False)[0].boxes
     assert len(top1) == 1 and int(top1.cls) == 0
     assert float(top1.conf) == pytest.approx(float(boxes.conf.max()))  # best person kept, not an arbitrary one
 
@@ -987,6 +991,10 @@ def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
     model.train(data="coco12-formats.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
+    head = model.trainer.model.model[-1]
+    assert head.cv2 is not None and head.one2one_cv2 is not None  # both heads remain trained
+    assert hasattr(model.trainer.model.criterion, "one2many") and hasattr(model.trainer.model.criterion, "one2one")
+    assert not model.trainer.ema.ema.end2end  # epoch validation selects one-to-many by default
     model(SOURCE)
 
 
@@ -2130,6 +2138,18 @@ def test_yoloe(tmp_path):
     )
     assert "seg_loss" in model.trainer.loss_names  # segmentation criterion, not the detection one
     assert Path(model.trainer.best).exists()  # end-of-training validation ran and weights were saved
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
+@pytest.mark.skipif(not TORCH_2_0, reason="MobileCLIP2 uses scaled_dot_product_attention (torch>=2.0)")
+def test_yoloe_vocab_head_switch():
+    """Keep prompt-free inference on the branch that its vocabulary reparameterized."""
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
+    model.model.args["imgsz"] = 32
+    names = ["person", "bus"]
+    model.set_vocab(model.get_vocab(names), names)
+    for nms in (None, False):
+        model(SOURCE, imgsz=32, nms=nms)
 
 
 def test_yoloe_visual_prompt_verbose_false(capfd):

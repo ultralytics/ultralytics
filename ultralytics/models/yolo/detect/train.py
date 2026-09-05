@@ -145,8 +145,6 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
-        if getattr(self.model, "end2end", False):
-            self.model.set_head_attr(max_det=self.args.max_det)
 
     def set_model_names_for_load(self, model):
         """Set target dataset names before loading weights so cls heads can remap by name."""
@@ -215,9 +213,7 @@ class DetectionTrainer(BaseTrainer):
         if self.args.task in {"detect", "segment", "pose", "obb"}:
             datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
             yolo.detect.DetectionValidator._check_max_det(self.args, datasets)
-            model = unwrap_model(self.model)
-            if getattr(model, "end2end", False):
-                model.set_head_attr(max_det=self.args.max_det)
+            unwrap_model(self.model).set_head_attr(max_det=self.args.max_det)
 
     def progress_string(self):
         """Return a formatted string of training progress with epoch, GPU memory, loss, instances and size."""

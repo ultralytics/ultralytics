@@ -48,7 +48,7 @@ Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **
 
 The YOLO26 model family is built around four design areas:
 
-- **Native end-to-end inference:** The default one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
+- **Native end-to-end inference:** The optional one-to-one detection head produces predictions without non-maximum suppression (NMS), simplifying deployment and reducing post-processing.
 - **Lighter box regression:** YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity while preserving an unconstrained regression range.
 - **Training recipe updates:** The training pipeline combines **MuSGD** (a hybrid Muon + SGD optimizer), **Progressive Loss**, and **STAL** (Small-Target-Aware Label Assignment) to improve optimization, shift supervision toward the inference-time head, and maintain positive label coverage for small objects. The full hyperparameters behind the released checkpoints are documented in the [YOLO26 Training Recipe guide](../guides/yolo26-training-recipe.md).
 - **Task-specific heads and losses:** YOLO26 adds targeted designs for instance segmentation, semantic segmentation variants, pose estimation, and oriented detection while keeping a single model pipeline across tasks.
@@ -61,7 +61,7 @@ Together, these updates improve the accuracy-latency tradeoff across model scale
   YOLO26 removes Distribution Focal Loss (DFL), reducing detection-head complexity and simplifying export.
 
 - **End-to-End NMS-Free Inference**
-  Unlike traditional detectors that rely on NMS as a separate post-processing step, YOLO26 is **natively end-to-end** by default. Predictions are generated directly, reducing latency and making production integration simpler.
+  YOLO26 supports **native end-to-end** inference with `nms=False`, producing predictions without a separate NMS pass. The default one-to-many path uses NMS for accuracy.
 
 - **Progressive Loss + STAL**
   Progressive Loss shifts training emphasis toward the inference-time head, while STAL improves positive label coverage for small objects.
@@ -70,7 +70,7 @@ Together, these updates improve the accuracy-latency tradeoff across model scale
   A hybrid optimizer that combines [SGD](https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html) with [Muon](https://arxiv.org/abs/2502.16982), adapting optimization ideas from large language model training to computer vision.
 
 - **Efficient Deployment**
-  The simplified head and NMS-free default path reduce inference overhead across export targets and hardware profiles, including the paper's reported CPU ONNX speedup for YOLO26n versus YOLO11n.
+  The simplified head and optional NMS-free path reduce inference overhead across export targets and hardware profiles, including the paper's reported CPU ONNX speedup for YOLO26n versus YOLO11n.
 
 - **Instance Segmentation Enhancements**
   Introduces semantic segmentation loss to improve model convergence and an upgraded proto module that leverages multi-scale information for superior mask quality. The paper reports gains over YOLO11 of up to +2.5 box AP and +3.7 mask AP on COCO instance segmentation.
@@ -155,7 +155,7 @@ This unified framework covers real-time detection, instance segmentation, semant
 
         --8<-- "docs/macros/yolo-obb-perf.md"
 
-_Params and FLOPs values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
+_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ---
 
@@ -200,8 +200,8 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
     YOLO26 detection models use a **dual-head architecture** that provides flexibility for different deployment scenarios:
 
-    - **One-to-One Head (Default)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
-    - **One-to-Many Head**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
+    - **One-to-Many Head (Default)**: Generates traditional YOLO outputs requiring NMS post-processing, outputting `(N, nc + 4, 8400)` where `nc` is the number of classes. This head typically achieves slightly higher accuracy at the cost of additional processing.
+    - **One-to-One Head (`nms=False`)**: Produces end-to-end predictions without NMS, outputting `(N, 300, 6)` with a maximum of 300 detections per image. This head is optimized for fast inference and simplified deployment.
 
     You can switch between heads during export, prediction, or validation:
 
@@ -212,32 +212,32 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
 
         model = YOLO("yolo26n.pt")
 
-        # Use one-to-one head (default, no NMS required)
+        # Use one-to-many head (default, Ultralytics applies NMS)
         results = model.predict("image.jpg")  # inference
         metrics = model.val(data="coco.yaml")  # validation
         model.export(format="onnx")  # export
 
-        # Use one-to-many head (requires NMS)
-        results = model.predict("image.jpg", end2end=False)  # inference
-        metrics = model.val(data="coco.yaml", end2end=False)  # validation
-        model.export(format="onnx", end2end=False)  # export
+        # Opt into the NMS-free one-to-one head
+        results = model.predict("image.jpg", nms=False)  # inference
+        metrics = model.val(data="coco.yaml", nms=False)  # validation
+        model.export(format="onnx", nms=False)  # export
         ```
 
     === "CLI"
 
         ```bash
-        # Use one-to-one head (default, no NMS required)
+        # Use one-to-many head (default, Ultralytics applies NMS)
         yolo predict model=yolo26n.pt source=image.jpg
         yolo val model=yolo26n.pt data=coco.yaml
         yolo export model=yolo26n.pt format=onnx
 
-        # Use one-to-many head (requires NMS)
-        yolo predict model=yolo26n.pt source=image.jpg end2end=False
-        yolo val model=yolo26n.pt data=coco.yaml end2end=False
-        yolo export model=yolo26n.pt format=onnx end2end=False
+        # Opt into the NMS-free one-to-one head
+        yolo predict model=yolo26n.pt source=image.jpg nms=False
+        yolo val model=yolo26n.pt data=coco.yaml nms=False
+        yolo export model=yolo26n.pt format=onnx nms=False
         ```
 
-    The choice depends on your deployment requirements: use the one-to-one head for maximum speed and simplicity, or the one-to-many head when accuracy is the top priority. See the [End-to-End Detection guide](../guides/end2end-detection.md) for output formats, export compatibility, and migration steps.
+    Prediction and validation default to the one-to-many head for accuracy. Use `nms=False` for NMS-free inference, or `nms=True` to embed NMS in a supported export. Both heads are trained regardless of this choice. See the [End-to-End Detection guide](../guides/end2end-detection.md) for output formats and export compatibility.
 
 ## YOLOE-26: Open-Vocabulary Detection and Segmentation
 
@@ -275,7 +275,7 @@ YOLO26 code, models, and documentation are available in the [Ultralytics GitHub 
 ### What are the key improvements in YOLO26?
 
 - **DFL-free regression**: Simplifies the detection head and export path
-- **End-to-end NMS-free inference**: Removes NMS from the default inference path
+- **End-to-end NMS-free inference**: Supports NMS-free inference with `nms=False`
 - **Progressive Loss + STAL**: Improves training alignment and small-object label coverage
 - **MuSGD optimizer**: Combines SGD with Muon-inspired optimization for stable training
 - **Task-specific heads and losses**: Improves segmentation, pose, and oriented detection support
@@ -298,7 +298,7 @@ Each size variant (n, s, m, l, x) supports all tasks, plus open-vocabulary versi
 
 YOLO26 improves deployment efficiency with:
 
-- Native end-to-end inference without NMS by default
+- Optional native end-to-end inference without NMS (`nms=False`)
 - DFL-free regression and a lighter detection head
 - Fused-model export that removes training-only auxiliary components
 - Up to 43% faster CPU ONNX inference for YOLO26n versus YOLO11n on an Intel Xeon CPU @ 2.00 GHz

@@ -502,7 +502,7 @@ YOLOE trades accuracy for the ability to change classes at inference time. The c
 ## Deployment Notes
 
 - **Hardware.** Inference needs an NVIDIA GPU with 4-8 GB of VRAM; the `n` and `s` scales run on edge GPUs such as [Jetson](../guides/nvidia-jetson.md) or on CPU at reduced resolution. Fine-tuning needs a single GPU.
-- **NMS is class-agnostic by default.** YOLOE predicts with `agnostic_nms=True`. On YOLOE-11 and YOLOE-v8 this suppresses lower-scoring overlapping boxes across different classes rather than only within the same class, which prevents duplicates when one object matches several categories. End-to-end YOLOE-26 models apply no IoU suppression at all; there, agnostic mode only keeps the single best class per anchor instead of letting one anchor emit several class labels. Pass `agnostic_nms=False` to override.
+- **NMS is class-agnostic by default.** YOLOE predicts with `agnostic_nms=True`. By default this suppresses lower-scoring overlapping boxes across different classes rather than only within the same class, which prevents duplicates when one object matches several categories. With `nms=False`, YOLOE-26 applies no IoU suppression; agnostic mode only keeps the single best class per anchor instead of letting one anchor emit several class labels. Pass `agnostic_nms=False` to override.
 - **Batching.** [Batch inference](../modes/predict.md) works directly, and visual prompts can differ per image in the same call.
 
 ## Training the Official Models from Scratch

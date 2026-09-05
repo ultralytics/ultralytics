@@ -261,8 +261,8 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, Detect) and getattr(m, "end2end", False):
-                    m.fuse()  # remove one2many head
+                if isinstance(m, Detect):
+                    m.fuse()  # remove the unused detection branch
             self.info(verbose=verbose, imgsz=imgsz)
 
         return self
@@ -272,7 +272,7 @@ class BaseModel(torch.nn.Module):
         return not any(
             (isinstance(m, (Conv, ConvTranspose)) and hasattr(m, "bn"))
             or (isinstance(m, (RepConv, RepVGGDW)) and hasattr(m, "conv1"))
-            or (isinstance(m, Detect) and getattr(m, "end2end", False) and m.cv2 is not None)
+            or (isinstance(m, Detect) and m.cv2 is not None and getattr(m, "one2one_cv2", None) is not None)
             for m in self.modules()
         )
 
@@ -486,7 +486,7 @@ class DetectionModel(BaseModel):
             def _forward(x):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
                 output = self.forward(x)
-                if self.end2end:
+                if "one2many" in output:
                     output = output["one2many"]
                 return output["feats"]
 
@@ -512,8 +512,9 @@ class DetectionModel(BaseModel):
 
     @end2end.setter
     def end2end(self, value):
-        """Override the end-to-end detection mode."""
-        self.set_head_attr(end2end=value)
+        """Select the inference head while retaining both branches for training."""
+        if isinstance(self.model[-1], Detect):
+            self.model[-1].end2end = value
 
     def set_head_attr(self, **kwargs):
         """Set attributes of the model head (last layer).
@@ -594,7 +595,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+        return E2ELoss(self) if getattr(self.model[-1], "one2one_cv2", None) is not None else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -626,7 +627,7 @@ class OBBModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
-        return E2ELoss(self, v8OBBLoss) if getattr(self, "end2end", False) else v8OBBLoss(self)
+        return E2ELoss(self, v8OBBLoss) if getattr(self.model[-1], "one2one_cv2", None) is not None else v8OBBLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -658,7 +659,11 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
+        return (
+            E2ELoss(self, v8SegmentationLoss)
+            if getattr(self.model[-1], "one2one_cv2", None) is not None
+            else v8SegmentationLoss(self)
+        )
 
 
 class SemanticSegmentationModel(BaseModel):
@@ -772,7 +777,7 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
         loss = PoseLoss26 if isinstance(self.model[-1], Pose26) else v8PoseLoss
-        return E2ELoss(self, loss) if self.end2end else loss(self)
+        return E2ELoss(self, loss) if getattr(self.model[-1], "one2one_cv2", None) is not None else loss(self)
 
 
 class DepthModel(DetectionModel):
@@ -1306,8 +1311,8 @@ class YOLOEModel(DetectionModel):
         with torch.no_grad():  # a tracked warmup would build a graph through the backbone
             self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
-        cv3 = getattr(head, "one2one_cv3", head.cv3)
-        cv2 = getattr(head, "one2one_cv2", head.cv2)
+        cv3 = head.one2one_cv3 if head.end2end else head.cv3
+        cv2 = head.one2one_cv2 if head.end2end else head.cv2
 
         # re-parameterization for prompt-free model
         self.model[-1].lrpc = nn.ModuleList(
@@ -1318,6 +1323,7 @@ class YOLOEModel(DetectionModel):
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
+        head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
         self.model[-1].nc = len(names)
         self.names = names
 
@@ -1341,7 +1347,7 @@ class YOLOEModel(DetectionModel):
         device = next(self.model.parameters()).device
         head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
 
-        cv3 = getattr(head, "one2one_cv3", head.cv3)
+        cv3 = head.one2one_cv3 if head.end2end else head.cv3
         vocab = nn.ModuleList()
         for cls_head in cv3:
             assert isinstance(cls_head, nn.Sequential)
@@ -1439,7 +1445,11 @@ class YOLOEModel(DetectionModel):
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = (
-                (E2ELoss(self, TVPDetectLoss) if getattr(self, "end2end", False) else TVPDetectLoss(self))
+                (
+                    E2ELoss(self, TVPDetectLoss)
+                    if getattr(self.model[-1], "one2one_cv2", None) is not None
+                    else TVPDetectLoss(self)
+                )
                 if visual_prompt
                 else self.init_criterion()
             )
@@ -1491,7 +1501,11 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = (
-                (E2ELoss(self, TVPSegmentLoss) if getattr(self, "end2end", False) else TVPSegmentLoss(self))
+                (
+                    E2ELoss(self, TVPSegmentLoss)
+                    if getattr(self.model[-1], "one2one_cv2", None) is not None
+                    else TVPSegmentLoss(self)
+                )
                 if visual_prompt
                 else self.init_criterion()
             )

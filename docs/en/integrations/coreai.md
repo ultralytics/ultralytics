@@ -91,20 +91,20 @@ asset's own `metadata.json`, so class names, stride and task survive the round t
 
 ### Choosing the head
 
-YOLO26 exports its end-to-end head by default, which selects detections inside the graph. Core AI has
+With `nms=False`, YOLO26 exports its end-to-end head, which selects detections inside the graph. Core AI has
 no top-k primitive, so that selection lowers to a full sort and is charged a fixed cost at the Apple
 Neural Engine partition boundary — about 1.7 ms, regardless of `max_det`. Exporting with
-`end2end=False` emits the raw `(1, 84, 8400)` predictions instead and leaves non-maximum suppression
+`nms=None` emits the raw `(1, 84, 8400)` predictions instead and leaves non-maximum suppression
 to the predictor:
 
 ```bash
-yolo export model=yolo26n.pt format=coreai end2end=False quantize=16
+yolo export model=yolo26n.pt format=coreai nms=None quantize=16
 ```
 
 On an iPhone 17 Pro running iOS 27.0, YOLO26n at 640 measures 3.01 ms with the head in the graph and
 1.28 ms without it (FP16, ahead-of-time compiled, three interleaved blocks of 50 iterations). Both
-round-trip through `YOLO(...)` for inference. Use the default when a single graph call must return
-finished detections, and `end2end=False` when latency matters.
+round-trip through `YOLO(...)` for inference. Use `nms=False` when a single graph call must return
+finished detections, or keep the default `nms=None` for external NMS.
 
 On iOS 27 or macOS 27, an application would then load and run the exported asset through Apple's Core AI Swift API. Exported assets use the entrypoint `main`, take a single `images` input of shape `[batch, 3, imgsz, imgsz]`, and return `output0`:
 
@@ -147,7 +147,7 @@ Core AI is not currently a replacement for the production Core ML path:
 - **No Ultralytics application runtime yet:** The official [YOLO iOS app](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) currently load Core ML artifacts through `MLModel` and Vision.
 - **Application migration required:** A `.aimodel` cannot be substituted for an `.mlpackage`; model loading, preprocessing, inference calls, metadata handling, and output decoding need a Core AI implementation.
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
-- **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. The Core AI export covers NMS-free YOLO26 models; `nms=True` and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
+- **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. Core AI exports raw one-to-many predictions by default; use `nms=False` for YOLO26's NMS-free head. Embedded NMS (`nms=True`) and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
 - **Fixed input size:** The exported graph is traced at one `imgsz` and has no dynamic shapes, so predict at the size it was exported with.
 - **FP16 assets can abort on load:** Some FP16 `.aimodel` assets fail to load their Apple Neural Engine program and MPSGraph raises a failed assertion, which ends the process rather than falling back. This happens inside Apple's runtime, before any Ultralytics code runs, and the same asset loads with a CPU-only specialization. Prefer FP32 until it is fixed upstream.
 

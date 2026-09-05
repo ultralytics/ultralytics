@@ -34,12 +34,12 @@ class YOLO(Model):
 
     This class provides a unified interface for YOLO models, automatically switching to specialized model types
     (YOLOWorld or YOLOE) based on the model filename. It supports various computer vision tasks including object
-    detection, instance segmentation, semantic segmentation, classification, pose estimation, and oriented bounding box
-    detection.
+    detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and
+    oriented bounding box detection.
 
     Attributes:
         model: The loaded YOLO model instance.
-        task: The task type (detect, segment, semantic, classify, pose, obb).
+        task: The task type (detect, segment, semantic, depth, classify, pose, obb).
         overrides: Configuration overrides for the model.
 
     Methods:
@@ -65,8 +65,8 @@ class YOLO(Model):
 
         Args:
             model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
-            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'classify', 'pose', 'obb'. Defaults
-                to auto-detection based on model.
+            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'semantic', 'depth', 'classify',
+                'pose', 'obb'. Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
         """
         path = Path(model if isinstance(model, (str, Path)) else "")
@@ -210,9 +210,7 @@ class YOLOWorld(Model):
             classes.remove(background)
         self.model.names = classes
 
-        # Reset method class names
-        if self.predictor:
-            self.predictor.model.names = classes
+        self.predictor = None
 
 
 class YOLOE(Model):
@@ -352,10 +350,7 @@ class YOLOE(Model):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)
-
-        # Reset method class names
-        if self.predictor:
-            self.predictor.model.names = self.model.names
+            self.predictor = None
 
     def _prompt_embedding_model(self) -> str:
         """Return the checkpoint identifier used to bind prompt embeddings to this model."""

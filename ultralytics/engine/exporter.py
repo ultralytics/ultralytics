@@ -252,7 +252,7 @@ def export_formats():
             "_hailo_model",
             False,
             False,
-            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou"],
+            ["name", "quantize", "data", "fraction", "simplify", "conf", "iou", "model_script"],
             "base",
         ],
         [
@@ -442,6 +442,30 @@ QUANTIZE_PRECISIONS = (
     ("'w8a16' (INT8 weights + INT16 activations)", W8A16_FORMATS),
     ("'w8a32' (dynamic INT8)", W8A32_FORMATS),
 )
+
+
+def hailo_model_script(generated, model_script=None):
+    """Return the Hailo model script to compile with, preferring a user-supplied one.
+
+    A user script replaces the generated one entirely, so recipes that Hailo versions alongside the SDK (optimization
+    level, post-quantization algorithm, per-layer precision, per-device quirks) can be used without the exporter
+    tracking them.
+
+    Args:
+        generated (list[str]): Model script lines generated for the model and task.
+        model_script (str | None): Path to a Hailo model script (.alls), or the script text itself.
+
+    Returns:
+        (str): The model script to pass to the Hailo compiler.
+
+    Examples:
+        >>> hailo_model_script(["normalization1 = normalization([0, 0, 0], [255, 255, 255])"])
+        'normalization1 = normalization([0, 0, 0], [255, 255, 255])'
+    """
+    if not model_script:
+        return "\n".join(generated)
+    script = Path(model_script)
+    return script.read_text() if script.is_file() else model_script
 
 
 def validate_args(format, passed_args, valid_args):
@@ -1763,7 +1787,9 @@ class Exporter:
                     )
                     model_script.append(f'nms_postprocess("{nms_config}", meta_arch=yolov8, engine=cpu)')
                     model_script.append("allocator_param(width_splitter_defuse=disabled)")
-            runner.load_model_script("\n".join(model_script))
+            if self.args.model_script:
+                LOGGER.info(f"{prefix} using model script {self.args.model_script}")
+            runner.load_model_script(hailo_model_script(model_script, self.args.model_script))
 
             def calibration_dataset():
                 for batch in calibration_dataloader:

@@ -96,6 +96,22 @@ Hailo export is INT8-only. Ultralytics automatically downloads a task-specific c
 model.export(format="hailo", name="hailo8", data="path/to/dataset.yaml")
 ```
 
+### Use a Hailo Model Script
+
+Ultralytics generates a Hailo model script (`.alls`) for each supported task. To compile with a different
+recipe, pass one with `model_script`; it replaces the generated script entirely:
+
+```python
+model.export(format="hailo", name="hailo8l", data="coco.yaml", model_script="yolo26n.alls")
+```
+
+This is useful for recipes that Hailo publishes and versions alongside the Dataflow Compiler, such as
+those in the [Hailo Model Zoo](https://github.com/hailo-ai/hailo_model_zoo), which set the optimization
+level, post-quantization algorithm, and per-layer precision for a given model and accelerator. Because
+the script is passed through unchanged, per-device requirements stay with the Hailo SDK rather than the
+exporter. A model script needs at least 1,024 calibration images to be useful, and one that enables
+AdaRound must declare its calibration set size.
+
 Compilation uses a fixed input shape. Set `imgsz` to the resolution used on the device:
 
 ```python
@@ -336,16 +352,17 @@ Model and pipeline choices often matter more than compiler flags:
 
 ## Export Arguments
 
-| Argument   | Type                      | Default   | Description                                                                                                                                                                 |
-| :--------- | :------------------------ | :-------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | `str`                     | `hailo8l` | Target Hailo accelerator architecture                                                                                                                                       |
-| `imgsz`    | `int`, `list`             | `640`     | Fixed model input size                                                                                                                                                      |
-| `data`     | `str`                     | `None`    | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset. |
-| `fraction` | `float`, `int`, or `list` | `1.0`     | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                    |
-| `quantize` | `int`                     | `8`       | Hailo export uses INT8 quantization                                                                                                                                         |
-| `simplify` | `bool`                    | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
-| `conf`     | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
-| `iou`      | `float`                   | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
+| Argument       | Type                      | Default   | Description                                                                                                                                                                 |
+| :------------- | :------------------------ | :-------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`         | `str`                     | `hailo8l` | Target Hailo accelerator architecture                                                                                                                                       |
+| `imgsz`        | `int`, `list`             | `640`     | Fixed model input size                                                                                                                                                      |
+| `data`         | `str`                     | `None`    | Calibration dataset YAML; classification instead takes a dataset directory or a built-in dataset name. If omitted, Ultralytics selects a task-specific calibration dataset. |
+| `fraction`     | `float`, `int`, or `list` | `1.0`     | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                    |
+| `quantize`     | `int`                     | `8`       | Hailo export uses INT8 quantization                                                                                                                                         |
+| `simplify`     | `bool`                    | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
+| `conf`         | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
+| `iou`          | `float`                   | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
+| `model_script` | `str`                     |           | Path to a Hailo model script (`.alls`) used instead of the generated one                                                                                                    |
 
 For detection export, YOLOv8 and YOLO11 receive HailoRT NMS, while YOLO26 keeps its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Do not pass `end2end`; explicit overrides are rejected. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported.
 

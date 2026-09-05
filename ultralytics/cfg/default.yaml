@@ -91,6 +91,7 @@ simplify: True # (bool) supported ONNX-based exports (see export table); simplif
 opset: # (int, optional) supported ONNX-based exports (see export table); intermediate ONNX opset version
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
 nms: False # (bool) fuse NMS into exported model when backend supports; if True, conf/iou/agnostic_nms apply
+model_script: # (str, optional) Hailo only; path to a Hailo model script (.alls) used instead of the generated one
 
 # Hyperparameters ------------------------------------------------------------------------------------------------------
 lr0: 0.01 # (float) initial learning rate (SGD=1e-2, Adam/AdamW=1e-3)

@@ -654,6 +654,21 @@ def test_export_env_has_smoke(env):
     assert EXPORT_ENVS[env]["smoke"], f"export env '{env}' has no smoke command"
 
 
+def test_hailo_model_script_passthrough(tmp_path):
+    """A user-supplied Hailo model script replaces the generated one, from a file or inline."""
+    from ultralytics.engine.exporter import hailo_model_script
+
+    generated = ["normalization1 = normalization([0, 0, 0], [255, 255, 255])", "model_optimization_flavor(2)"]
+    assert hailo_model_script(generated) == "\n".join(generated)  # no override, generated script is used
+
+    inline = "model_optimization_flavor(optimization_level=4)\npost_quantization_optimization(adaround, policy=enabled)"
+    assert hailo_model_script(generated, inline) == inline  # inline script passes through unchanged
+
+    alls = tmp_path / "yolo26n.alls"
+    alls.write_text(inline)
+    assert hailo_model_script(generated, str(alls)) == inline  # .alls path is read and passed through
+
+
 def test_every_format_env_is_registered():
     """Ensure every export format points at a registered export environment."""
     for fmt, env in zip(export_formats()["Argument"], export_formats()["Env"]):

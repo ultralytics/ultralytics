@@ -22,18 +22,10 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
     + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb", "-depth")]
     + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
-    + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "reid", "reid-market", "s3d", "sem-ade20k")]
-    + [f"yolo26{k}-stereo3ddet-siamese.pt" for k in "nsml"]
-    + [
-        f"{model}{k}{suffix}.onnx"
-        for model in ("yolov8", "yolo11", "yolo26")
-        for k in "nsmlx"
-        for suffix in ("", "-cls", "-seg", "-pose", "-obb")
-    ]
-    + [f"yolo26{k}-{suffix}.onnx" for k in "nsmlx" for suffix in ("sem", "depth", "reid")]
+    + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "sem-ade20k")]
+    + [f"yolo26{k}-reid.onnx" for k in "nsmlx"]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
-    + [f"yolov8{k}-human.pt" for k in "nsml"]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
     + [f"yolov8{k}-worldv2.pt" for k in "smlx"]
     + [f"yoloe-v8{k}{suffix}.pt" for k in "sml" for suffix in ("-seg", "-seg-pf")]
@@ -47,15 +39,12 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"sam2_{k}.pt" for k in "blst"]
     + [f"sam2.1_{k}.pt" for k in "blst"]
     + [f"FastSAM-{k}.pt" for k in "sx"]
-    + [f"mobileclip2_{size}_{encoder}.ts" for size in ("s4", "l14") for encoder in ("image", "text")]
     + [f"rtdetr-{k}.pt" for k in "lx"]
     + [
         "mobile_sam.pt",
         "mobileclip_blt.ts",
         "mobileclip2_b.ts",
         "yolo11n-grayscale.pt",
-        "yolov8l-world-cc3m.pt",
-        "yolov8l-worldv2-cc3m.pt",
         "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
     ]

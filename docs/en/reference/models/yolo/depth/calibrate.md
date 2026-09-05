@@ -16,10 +16,6 @@ keywords: Ultralytics, ultralytics.models.yolo.depth.calibrate, API reference, Y
 
 <br><br><hr><br>
 
-## ::: ultralytics.models.yolo.depth.calibrate._rewind
-
-<br><br><hr><br>
-
 ## ::: ultralytics.models.yolo.depth.calibrate._delta1_none
 
 <br><br><hr><br>

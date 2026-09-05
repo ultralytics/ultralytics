@@ -39,6 +39,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 ### Prepare your data
 
 - [Data Collection and Annotation](data-collection-and-annotation.md): Explore the tools, techniques, and best practices for collecting and annotating data to create high-quality inputs for your computer vision models.
+- [Image Property Analysis](analysis.md): Add six annotation-based object count, scale, class, layout, and crowdedness properties to YOLO dataset labels without a model.
 - [Preprocessing Annotated Data](preprocessing-annotated-data.md): Learn data preprocessing for computer vision with YOLO26, including image resizing, normalization, dataset splitting, data augmentation, and exploratory data analysis (EDA).
 - [YOLO Data Augmentation](yolo-data-augmentation.md): Master the complete range of data augmentation techniques in YOLO, from basic transformations to advanced strategies for improving model robustness and performance.
 - [COCO to YOLO Conversion](coco-to-yolo.md): Complete guide to converting COCO JSON annotations to YOLO format for training. Covers detection, segmentation, and keypoints, including class ID mapping and common conversion pitfalls.

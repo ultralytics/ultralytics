@@ -485,6 +485,7 @@ nav:
           - YOLO Architecture Explained: guides/yolo-architecture.md
       - Prepare your data:
           - Data Collection and Annotation: guides/data-collection-and-annotation.md
+          - Image Property Analysis: guides/analysis.md
           - Preprocessing Annotated Data: guides/preprocessing-annotated-data.md
           - YOLO Data Augmentation: guides/yolo-data-augmentation.md
           - COCO to YOLO Conversion: guides/coco-to-yolo.md
@@ -821,6 +822,7 @@ nav:
               - stracks: reference/trackers/utils/stracks.md
       - utils:
           - __init__: reference/utils/__init__.md
+          - analysis: reference/utils/analysis.md
           - autobatch: reference/utils/autobatch.md
           - autodevice: reference/utils/autodevice.md
           - benchmarks: reference/utils/benchmarks.md

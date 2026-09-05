@@ -255,7 +255,7 @@ class DetectionValidator(BaseValidator):
                     "target_img": np.unique(cls),
                     "conf": np.zeros(0) if no_pred else predn["conf"].cpu().numpy(),
                     "pred_cls": np.zeros(0) if no_pred else predn["cls"].cpu().numpy(),
-                    "im_name": Path(pbatch["im_file"]).name,
+                    "im_name": str(pbatch["im_file"]),
                 }
             )
             if self.args.plots:

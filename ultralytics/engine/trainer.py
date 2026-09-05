@@ -317,6 +317,7 @@ class BaseTrainer:
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
         ckpt = self.setup_model()
+        self.ckpt = {"afss_state": ckpt.get("afss_state")} if ckpt else None
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
         # on MPS and no benefit on CPU
@@ -432,9 +433,9 @@ class BaseTrainer:
             self._setup_ddp()
         self._setup_train()
 
-        nb = len(self.train_loader)  # number of batches
-        nw = self._get_warmup_iterations(nb)
-        last_opt_step = -1
+        self.nb = len(self.train_loader)  # number of batches
+        nw = self._get_warmup_iterations(self.nb)
+        self.last_opt_step = -1
         self.epoch_time = None
         self.epoch_time_start = time.time()
         self.train_time_start = time.time()
@@ -447,14 +448,18 @@ class BaseTrainer:
             f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
         if self.args.close_mosaic:
-            base_idx = (self.epochs - self.args.close_mosaic) * nb
+            base_idx = (self.epochs - self.args.close_mosaic) * self.nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
         self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
             self.epoch = epoch
+            old_nb = self.nb
             self.run_callbacks("on_train_epoch_start")
+            if self.nb != old_nb:
+                self.last_opt_step -= epoch * (old_nb - self.nb)
+                nw = self._get_warmup_iterations(self.nb)
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")  # suppress 'Detected lr_scheduler.step() before optimizer.step()'
                 self.scheduler.step()
@@ -471,12 +476,12 @@ class BaseTrainer:
             if RANK in {-1, 0}:
                 if self.loss_names:
                     LOGGER.info(self.progress_string())
-                pbar = TQDM(enumerate(self.train_loader), total=nb)
+                pbar = TQDM(enumerate(self.train_loader), total=self.nb)
             self.tloss = None
             for i, batch in pbar:
                 self.run_callbacks("on_train_batch_start")
                 # Warmup
-                ni = i + nb * epoch
+                ni = i + self.nb * epoch
                 if ni < nw:
                     xi = [0, nw]  # x interp
                     self.accumulate = max(1, int(np.interp(ni, xi, [1, self.args.nbs / self.batch_size]).round()))
@@ -547,14 +552,14 @@ class BaseTrainer:
                     self._clear_memory()
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
                     self.scheduler.last_epoch = self.start_epoch - 1
-                    nb = len(self.train_loader)
-                    nw = self._get_warmup_iterations(nb)
-                    last_opt_step = -1
+                    self.nb = len(self.train_loader)
+                    nw = self._get_warmup_iterations(self.nb)
+                    self.last_opt_step = -1
                     self.optimizer.zero_grad()
                     break  # restart epoch loop with reduced batch size
-                if ni - last_opt_step >= self.accumulate:
+                if ni - self.last_opt_step >= self.accumulate:
                     self.optimizer_step()
-                    last_opt_step = ni
+                    self.last_opt_step = ni
 
                     # Timed stopping
                     if self.args.time:
@@ -630,7 +635,7 @@ class BaseTrainer:
             if self.args.time:
                 mean_epoch_time = (t - self.train_time_start) / (epoch - self.start_epoch + 1)
                 self.epochs = self.args.epochs = math.ceil(self.args.time * 3600 / mean_epoch_time)
-                nw = self._get_warmup_iterations(nb)
+                nw = self._get_warmup_iterations(self.nb)
                 self._setup_scheduler()
                 self.scheduler.last_epoch = self.epoch  # do not move
                 self.stop |= epoch >= self.epochs  # stop if exceeded epochs
@@ -743,32 +748,32 @@ class BaseTrainer:
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
         buffer = io.BytesIO()
-        torch.save(
-            {
-                "epoch": self.epoch,
-                "best_fitness": self.best_fitness,
-                "model": None,  # resume and final checkpoints derive from EMA
-                "ema": ema,
-                "updates": self.ema.updates,
-                "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
-                "scaler": self.scaler.state_dict(),
-                "train_args": vars(self.args),  # save as dict
-                "train_metrics": {**self.metrics, "fitness": self.fitness},
-                "train_results": self.read_results_csv(),
-                "date": datetime.now().astimezone().isoformat(),
-                "version": __version__,
-                "git": {
-                    "root": str(GIT.root),
-                    "branch": GIT.branch,
-                    "commit": GIT.commit,
-                    "message": GIT.message,
-                    "origin": GIT.origin,
-                },
-                "license": "AGPL-3.0 (https://ultralytics.com/license)",
-                "docs": "https://docs.ultralytics.com",
+        checkpoint = {
+            "epoch": self.epoch,
+            "best_fitness": self.best_fitness,
+            "model": None,  # resume and final checkpoints derive from EMA
+            "ema": ema,
+            "updates": self.ema.updates,
+            "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
+            "scaler": self.scaler.state_dict(),
+            "train_args": vars(self.args),  # save as dict
+            "train_metrics": {**self.metrics, "fitness": self.fitness},
+            "train_results": self.read_results_csv(),
+            "date": datetime.now().astimezone().isoformat(),
+            "version": __version__,
+            "git": {
+                "root": str(GIT.root),
+                "branch": GIT.branch,
+                "commit": GIT.commit,
+                "message": GIT.message,
+                "origin": GIT.origin,
             },
-            buffer,
-        )
+            "license": "AGPL-3.0 (https://ultralytics.com/license)",
+            "docs": "https://docs.ultralytics.com",
+        }
+        if hasattr(self, "afss_scheduler"):
+            checkpoint["afss_state"] = self.afss_scheduler.state_dict()
+        torch.save(checkpoint, buffer)
         serialized_ckpt = buffer.getvalue()  # get the serialized content to save
 
         # Save checkpoints

@@ -513,9 +513,10 @@ class DepthDataset(YOLODataset):
 
     def get_image_and_label(self, index):
         """Load image, label, and depth map for the given index."""
+        actual_index = self._active_index(index)
         label = super().get_image_and_label(index)
         h, w = label["resized_shape"]
-        depth = self._load_depth(index)
+        depth = self._load_depth(actual_index)
         if depth.shape[:2] != (h, w):
             depth = cv2.resize(depth, (w, h), interpolation=cv2.INTER_NEAREST)
         label["depth"] = depth
@@ -1062,9 +1063,10 @@ class SemanticDataset(YOLODataset):
         Returns:
             (dict): Label dict with 'img', 'semantic_mask', and metadata.
         """
+        actual_index = self._active_index(index)
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
-        mask = self.load_mask(index, image_shape=(h, w))
+        mask = self.load_mask(actual_index, image_shape=(h, w))
         if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
             mask[~np.isin(mask, self.include_class)] = 255
         # Resize mask to match the resized image dimensions

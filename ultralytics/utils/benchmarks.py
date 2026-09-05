@@ -224,6 +224,7 @@ def benchmark(
                 data=data,
                 batch=1,
                 imgsz=imgsz,
+                rect=False,
                 plots=False,
                 device=device,
                 quantize=quantize,

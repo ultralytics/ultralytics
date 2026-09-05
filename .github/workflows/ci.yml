@@ -613,10 +613,11 @@ jobs:
           python-version: ${{ matrix.python }}
           channels: conda-forge
           channel-priority: strict
+          conda-remove-defaults: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
         timeout-minutes: 20
-        run: conda install --yes --override-channels -c conda-forge pytorch-cpu torchvision ultralytics openvino
+        run: conda install --yes pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")

@@ -107,7 +107,6 @@ jobs:
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
         shell: bash
-        # One-to-many COCO8-pose baseline at imgsz=160 is 0.1795.
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel
         shell: bash

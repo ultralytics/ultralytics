@@ -456,7 +456,7 @@ def validate_args(format, passed_args, valid_args):
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
     # Format-specific args come from the export table; skip inference args and quantize (validated above)
-    export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize"})
+    export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize", "nms"})
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -652,10 +652,6 @@ class Exporter:
                 )
             if model.task in {"semantic", "depth"} and not family.startswith("yolo26"):
                 raise ValueError(f"Hailo export supports {model.task} models only for YOLO26.")
-            if self.args.end2end is not None:
-                raise ValueError(
-                    "Hailo export selects the model output path automatically; remove the end2end argument."
-                )
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
@@ -687,8 +683,8 @@ class Exporter:
             model.names = default_class_names()
         model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):
-            if self.args.end2end is not None:
-                model.end2end = self.args.end2end
+            model.end2end = self.args.nms is False
+        if getattr(model, "end2end", False):
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
@@ -781,21 +777,25 @@ class Exporter:
             assert self.args.name in QNN_HTP_TARGETS, (
                 f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {tuple(QNN_HTP_TARGETS)}."
             )
+        if self.args.nms and "nms" not in fmt_keys:
+            LOGGER.warning(f"format={fmt} does not support embedded NMS; exporting native outputs for external NMS.")
+            self.args.nms = None
         if self.args.nms and model.task in {"semantic", "depth"}:
-            LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
-            self.args.nms = False
+            LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=None'.")
+            self.args.nms = None
         if fmt == "coreml" and self.args.nms and model.task not in {"detect", "segment", "pose"}:
             LOGGER.warning(
-                "CoreML 'nms=True' is only supported for detect, segment and pose models. Forcing 'nms=False'."
+                "CoreML 'nms=True' is only supported for detect, segment and pose models. Forcing 'nms=None'."
             )
-            self.args.nms = False
+            self.args.nms = None
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
+            # A previously fused checkpoint may only have its one-to-one branch remaining.
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
-                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
-                self.args.nms = False
+                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=None'.")
+                self.args.nms = None
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if fmt == "mnn" and self.args.nms:
             if self.args.dynamic:
@@ -820,9 +820,7 @@ class Exporter:
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
-            LOGGER.warning(
-                f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
-            )
+            LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
         if fmt == "edgetpu":
             if not LINUX or ARM64:
                 raise SystemError(

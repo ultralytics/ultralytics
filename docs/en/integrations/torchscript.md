@@ -157,7 +157,7 @@ The TorchScript format supports the [Export](../modes/export.md), [Predict](../m
 | `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.       |
 | `dynamic`  | `bool`           | `False`         | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                 |
 | `quantize` | `int` or `str`   | `None`          | Quantization precision: `16` (FP16) requires GPU export with `device=0`; `32`/unset is FP32. Replaces the deprecated `half` flag.       |
-| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                     |
+| `nms`      | `bool`, optional | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                             |
 | `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. |
 | `device`   | `str`            | `None`          | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                         |
 

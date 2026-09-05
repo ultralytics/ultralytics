@@ -517,6 +517,7 @@ class Model(torch.nn.Module):
         )
 
         custom = {"conf": 0.25, "batch": 1, "save": is_cli, "mode": "predict", "rect": True, "embed": None}
+        kwargs = _handle_deprecation(kwargs)
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
 
@@ -524,7 +525,7 @@ class Model(torch.nn.Module):
             not self.predictor
             or self.predictor.args.device != args.get("device", self.predictor.args.device)
             or self.predictor.args.channels_last != args.get("channels_last", self.predictor.args.channels_last)
-            or self.predictor.args.end2end != args.get("end2end", self.predictor.args.end2end)
+            or self.predictor.args.nms != args.get("nms", self.predictor.args.nms)
             or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
@@ -532,7 +533,7 @@ class Model(torch.nn.Module):
         else:  # only update args if predictor is already setup
             save_keys = ("project", "name", "save_dir", "exist_ok")
             prev_save_args = tuple(getattr(self.predictor.args, k, None) for k in save_keys)
-            setup_keys = ("device", "dnn", "data", "end2end", "compile", "channels_last", "quantize")
+            setup_keys = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize")
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
@@ -706,7 +707,7 @@ class Model(torch.nn.Module):
 
         from .exporter import export_formats
 
-        custom = {"verbose": False}  # method defaults
+        custom = {"verbose": False, "nms": None}  # method defaults
         kwargs = _handle_deprecation(kwargs)  # forward legacy flags (e.g. half/int8 -> quantize) before merging
         args = {**DEFAULT_CFG_DICT, **self.model.args, **custom, **kwargs, "mode": "benchmark"}
         fmts = export_formats()
@@ -714,6 +715,7 @@ class Model(torch.nn.Module):
             "batch",
             "data",
             "quantize",
+            "nms",
         }
         export_kwargs = {k: v for k, v in args.items() if k in export_args}  # quantize is passed explicitly below
         return benchmark(
@@ -724,6 +726,7 @@ class Model(torch.nn.Module):
             verbose=verbose,
             format=format,
             quantize=args.get("quantize"),
+            nms=args.get("nms"),
             **export_kwargs,
         )
 
@@ -743,7 +746,7 @@ class Model(torch.nn.Module):
                 - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
                 - device (str): Device to run the export on.
                 - workspace (int): Maximum memory workspace size for TensorRT engines.
-                - nms (bool): Add Non-Maximum Suppression (NMS) module to model.
+                - nms (bool | None): None for raw output, True to embed NMS, or False for NMS-free inference.
                 - simplify (bool): Simplify ONNX model.
 
         Returns:

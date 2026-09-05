@@ -85,7 +85,7 @@ def benchmark(
         verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
         eps (float): Epsilon value for divide by zero prevention.
         format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
-        **kwargs (Any): Additional keyword arguments for exporter.
+        **kwargs (Any): Export options; nms selects the same head for native and exported benchmarks.
 
     Returns:
         (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric, and
@@ -96,6 +96,9 @@ def benchmark(
         >>> from ultralytics.utils.benchmarks import benchmark
         >>> benchmark(model="yolo26n.pt", imgsz=640)
     """
+    from ultralytics.cfg import _handle_deprecation
+
+    kwargs = _handle_deprecation(kwargs)
     imgsz = check_imgsz(imgsz)
     assert imgsz[0] == imgsz[1] if isinstance(imgsz, list) else True, "benchmark() only supports square imgsz."
 
@@ -217,7 +220,14 @@ def benchmark(
             assert export_format != "edgetpu", "inference not supported"
             assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
             assert export_format != "axelera", "inference only supported on Axelera hardware"
-            exported_model.predict(ASSETS / "bus.jpg", imgsz=imgsz, device=device, quantize=quantize, verbose=False)
+            exported_model.predict(
+                ASSETS / "bus.jpg",
+                imgsz=imgsz,
+                device=device,
+                quantize=quantize,
+                nms=kwargs.get("nms"),
+                verbose=False,
+            )
 
             # Validate
             results = exported_model.val(
@@ -227,6 +237,7 @@ def benchmark(
                 plots=False,
                 device=device,
                 quantize=quantize,
+                nms=kwargs.get("nms"),
                 verbose=False,
                 conf=0.001,  # all the pre-set benchmark mAP values are based on conf=0.001
             )

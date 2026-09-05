@@ -1008,7 +1008,7 @@ Use `procrank` to profile per-process RAM usage and `sudo cat /sys/kernel/debug/
 
 ### Why does my TensorRT INT8 export disable end2end on JetPack 6?
 
-TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents INT8 engine builds when `end2end=True` is enabled. When Ultralytics detects this combination, it automatically disables the end2end branch to ensure the export succeeds.
+TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents INT8 engine builds when `nms=False` is enabled. When Ultralytics detects this combination, it automatically disables the end2end branch to ensure the export succeeds.
 
 To restore end2end INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
 

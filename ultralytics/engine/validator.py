@@ -159,6 +159,8 @@ class BaseValidator:
         model = self.get_model(model, trainer, **kwargs)
         augment = self.args.augment and (not self.training)
         if self.training:
+            if hasattr(model, "end2end"):
+                model.end2end = self.args.nms is False
             self.device = trainer.device
             self.data = trainer.data
             # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
@@ -171,8 +173,6 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            if hasattr(model, "end2end") and self.args.end2end is not None:
-                model.end2end = self.args.end2end
             with torch_distributed_zero_first(LOCAL_RANK):
                 self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
             device_type = str(self.args.device).split(":", 1)[0]
@@ -187,6 +187,7 @@ class BaseValidator:
                 data=self.args.data,
                 fp16=self.args.quantize == 16,
                 channels_last=self.args.channels_last,
+                end2end=self.args.nms is False,
             )
             self.device = model.device  # update device
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision

@@ -426,8 +426,6 @@ class BasePredictor:
             verbose (bool): Whether to print verbose output.
         """
         model = deepcopy(model)
-        if hasattr(model, "end2end") and self.args.end2end is not None:
-            model.end2end = self.args.end2end
         self.model = AutoBackend(
             model=model or self.args.model,
             device=select_device(self.args.device, verbose=verbose),
@@ -437,6 +435,7 @@ class BasePredictor:
             channels_last=self.args.channels_last,
             fuse=True,
             verbose=verbose,
+            end2end=self.args.nms is False,
         )
 
         self.device = self.model.device  # update device

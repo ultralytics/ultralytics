@@ -77,7 +77,7 @@ YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in 
 
 ### Consistent Dual Assignments for NMS-Free Training
 
-YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during [inference](../modes/predict.md).
+YOLOv10 employs dual label assignments, combining one-to-many and one-to-one strategies during training to ensure rich supervision and efficient end-to-end deployment. Ultralytics prediction and validation default to the one-to-many head with NMS; set `nms=False` to select the NMS-free head. The consistent matching metric aligns the supervision between both strategies, enhancing the quality of predictions during [inference](../modes/predict.md).
 
 ### Holistic Efficiency-[Accuracy](https://www.ultralytics.com/glossary/accuracy) Driven Model Design
 

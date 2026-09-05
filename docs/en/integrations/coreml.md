@@ -45,7 +45,7 @@ CoreML integrates directly with Apple's [Vision framework](https://developer.app
 ## Why Export YOLO26 to CoreML?
 
 - **Neural Engine speed**: CoreML schedules supported operations on Apple's Neural Engine for low-latency on-device inference. See the physical-device table below, and benchmark your exact export on your target hardware.
-- **NMS-free by design**: YOLO26 is [end-to-end](https://www.ultralytics.com/glossary/non-maximum-suppression-nms), so the exported graph needs no NMS pipeline and decode is sub-millisecond. Older detection models like YOLO11 can embed a CoreML NMS pipeline with `nms=True`.
+- **Choose the output**: Default exports leave NMS to your app. Use `nms=True` to embed NMS, or `nms=False` for YOLO26's NMS-free head.
 - **Private and offline**: All computation stays on the device — no cloud round-trips, no API keys, full [data privacy](https://www.ultralytics.com/glossary/data-privacy).
 - **One export, the whole ecosystem**: The same `.mlpackage` runs on iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, and powers the official Ultralytics [iOS SDK](https://github.com/ultralytics/yolo-ios-app) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app).
 
@@ -169,7 +169,7 @@ The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/
 | `format`   | `str`            | `'coreml'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                                                                            |
 | `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                             |
 | `quantize` | `int` or `str`   | `None`     | Quantization precision (weight-only for CoreML): `16` (FP16), `8` (INT8), `"w8a16"` (INT8 weights with FP16 activations), or `32`/unset (FP32). NMS ML Programs use FP16 (for Xcode preview, and required by segment and pose); pass `32` to override on detect. Replaces the deprecated `half`/`int8` flags. |
-| `nms`      | `bool`           | `False`    | Embeds NMS into the exported model. Supported for detect, segment and pose (ignored with a warning for other tasks); not needed for NMS-free YOLO26, use for earlier models like YOLO11.                                                                                                                      |
+| `nms`      | `bool`, optional | `None`     | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). Embedded NMS supports detect, segment and pose with `dynamic=False`.                                                                                                                                              |
 | `dynamic`  | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                                                                       |
 | `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                       |
 | `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                               |
@@ -228,7 +228,7 @@ app models. The export produces a `yolo26n.mlpackage` ML Program ready for Xcode
 
 ### Do I need `nms=True` when exporting YOLO26?
 
-No. YOLO26 is NMS-free end-to-end, so the exported graph already emits final detections and decode costs well under a millisecond. The `nms=True` option exists for earlier models such as YOLO11, where it embeds NMS so your app does not have to implement suppression. It's supported for detect, segment and pose models; `nms=True` is ignored with a warning for other tasks.
+Use `nms=True` if your app needs detections with NMS included. The default `nms=None` exports raw one-to-many outputs for your app to process; `nms=False` selects YOLO26's NMS-free head. Embedded NMS supports detect, segment and pose with static shapes; other tasks keep their native outputs.
 
 ### Which precision should I use — FP16 or INT8?
 

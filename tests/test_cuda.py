@@ -52,9 +52,11 @@ def test_amp():
     [  # generate all combinations except for exclusion cases
         (task, dynamic, batch, simplify, nms)
         for task, dynamic, batch, simplify, nms in product(
-            sorted(TASKS), [True, False], [1, 2], [True, False], [True, False]
+            sorted(TASKS), [True, False], [1, 2], [True, False], [None, True, False]
         )
-        if not ((task == "classify" and nms) or (task == "obb" and nms and (not TORCH_1_13 or IS_JETSON)))
+        if not (
+            (task == "classify" and nms is True) or (task == "obb" and nms is True and (not TORCH_1_13 or IS_JETSON))
+        )
     ],
 )
 def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
@@ -67,7 +69,6 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
         simplify=simplify,
         nms=nms,
         device=DEVICES[0],
-        # opset=20 if nms else None,  # fix ONNX Runtime errors with NMS
     )
     YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
     Path(file).unlink()  # cleanup

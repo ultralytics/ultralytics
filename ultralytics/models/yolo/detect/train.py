@@ -145,7 +145,7 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
-        if getattr(self.model, "end2end", False):
+        if getattr(getattr(self.model, "student_model", self.model).model[-1], "one2one_cv2", None) is not None:
             self.model.set_head_attr(max_det=self.args.max_det)
 
     def set_model_names_for_load(self, model):
@@ -216,7 +216,7 @@ class DetectionTrainer(BaseTrainer):
             datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
             yolo.detect.DetectionValidator._check_max_det(self.args, datasets)
             model = unwrap_model(self.model)
-            if getattr(model, "end2end", False):
+            if getattr(getattr(model, "student_model", model).model[-1], "one2one_cv2", None) is not None:
                 model.set_head_attr(max_det=self.args.max_det)
 
     def progress_string(self):

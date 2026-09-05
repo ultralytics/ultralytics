@@ -46,7 +46,7 @@ After opening a PR:
 
 ```bash
 # Dev install (editable); tests also need export/solutions extras
-uv pip install -e ".[dev,export-base,solutions]"
+uv pip install -e ".[dev,export-base,export-openvino,solutions]"
 
 # All tests with coverage, matching ci.yml's Tests job (CI also sets YOLO_AUTOINSTALL=false and drops -n auto on ARM)
 pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base

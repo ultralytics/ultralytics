@@ -2074,6 +2074,41 @@ def test_yoloe(tmp_path):
         predictor=YOLOEVPSegPredictor,
     )
 
+    # memory-bank prompts (predict_memory)
+    vp = {"bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]), "cls": ["person"]}
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model.predict_memory(SOURCE, visual_prompts=vp, vp_weight={"person": 0.5}, predictor=YOLOEVPSegPredictor)
+    model.predict_memory(SOURCE, conf=0.1)  # reuse the bank without prompts
+
+    # retrieval mode, where the text and visual embeddings each take their own class slot
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model.predict_memory(SOURCE, visual_prompts=vp, class_mode="retrieval", predictor=YOLOEVPSegPredictor)
+    assert list(model.model.names.values()) == ["person", "person"]
+    model.predict_memory(SOURCE, conf=0.1)
+
+    # integer classes of any dtype are detected as visual-only "objectN" classes
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model.predict_memory(
+        SOURCE,
+        visual_prompts={"bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]), "cls": [np.int16(0)]},
+        predictor=YOLOEVPSegPredictor,
+    )
+    assert list(model.model.names.values()) == ["object0"]
+
+    # call-order independence: the same prompt yields the same embedding with interleaved bank-only calls
+    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model.predict_memory(SOURCE, visual_prompts=vp, predictor=YOLOEVPSegPredictor)
+    emb1 = model.memory_bank["person"][0]
+    model.predict_memory(SOURCE, conf=0.1)  # interleave a bank-only call
+    model.predict_memory(SOURCE, visual_prompts=vp, predictor=YOLOEVPSegPredictor)
+    assert torch.equal(emb1, model.memory_bank["person"][1])
+
+    # a visual prompt predictor left over from predict() must not shadow the memory bank
+    boxes = model.predict_memory(SOURCE, conf=0.1)[0].boxes.xyxy.clone()
+    stale_vp = {"bboxes": np.array([[10, 20, 100, 200]]), "cls": np.array([0])}
+    model.predict(SOURCE, visual_prompts=stale_vp, predictor=YOLOEVPSegPredictor)
+    assert torch.equal(model.predict_memory(SOURCE, conf=0.1)[0].boxes.xyxy, boxes)
+
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
     # text prompts

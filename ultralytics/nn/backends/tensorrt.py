@@ -44,7 +44,7 @@ class TensorRTBackend(BaseBackend):
         if self.device.type == "cpu":
             self.device = torch.device("cuda:0")
 
-        Binding = namedtuple("Binding", ("name", "dtype", "shape", "data", "ptr"))
+        Binding = namedtuple("Binding", ("name", "dtype", "shape", "data"))
         logger = trt.Logger(trt.Logger.INFO)
 
         # Read engine file
@@ -102,9 +102,8 @@ class TensorRTBackend(BaseBackend):
                 else tuple(self.context.get_binding_shape(i))
             )
             im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(self.device)
-            self.bindings[name] = Binding(name, dtype, shape, im, int(im.data_ptr()))
+            self.bindings[name] = Binding(name, dtype, shape, im)
 
-        self.binding_addrs = OrderedDict((n, d.ptr) for n, d in self.bindings.items())
         self.model = engine
 
     def forward(self, im: torch.Tensor) -> list[torch.Tensor]:
@@ -119,20 +118,20 @@ class TensorRTBackend(BaseBackend):
         if self.dynamic and im.shape != self.bindings["images"].shape:
             if self.is_trt10:
                 self.context.set_input_shape("images", im.shape)
-                self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
-                for name in self.output_names:
-                    self.bindings[name].data.resize_(tuple(self.context.get_tensor_shape(name)))
             else:
-                i = self.model.get_binding_index("images")
-                self.context.set_binding_shape(i, im.shape)
-                self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
-                for name in self.output_names:
-                    i = self.model.get_binding_index(name)
-                    self.bindings[name].data.resize_(tuple(self.context.get_binding_shape(i)))
+                self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+            self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
+            for name in self.output_names:
+                shape = (
+                    self.context.get_tensor_shape(name)
+                    if self.is_trt10
+                    else self.context.get_binding_shape(self.model.get_binding_index(name))
+                )
+                self.bindings[name].data.resize_(tuple(shape))
 
         s = self.bindings["images"].shape
         assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
 
-        self.binding_addrs["images"] = int(im.data_ptr())
-        self.context.execute_v2(list(self.binding_addrs.values()))
+        self.bindings["images"] = self.bindings["images"]._replace(data=im)
+        self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()])
         return [self.bindings[x].data for x in sorted(self.output_names)]

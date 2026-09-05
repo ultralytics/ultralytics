@@ -17,7 +17,7 @@ import torch
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_requirements
 
-AXELERA_SDK = "1.8.0"  # installed when the environment has none
+AXELERA_SDK = "1.8.0"
 
 # Axelera exports mutate process-global state (the PROTOCOL_BUFFERS env var below, plus any working-directory
 # files the compiler emits), so a module-level lock serializes concurrent in-process exports. Cross-process
@@ -52,25 +52,18 @@ def torch2axelera(
     # vars, plus any working-directory files the compiler writes), so concurrent in-process exports must
     # not overlap.
     with _AXELERA_EXPORT_LOCK:
-        prev_env = os.environ.copy()
+        prev_env = {key: os.environ.get(key) for key in ("PATH", "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")}
         try:
             os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
             # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched
             # by absolute path instead of through an activated environment.
-            scripts_dir = sysconfig.get_path("scripts")  # not sys.executable's parent: they differ system-wide
-            if scripts_dir not in (prev_env.get("PATH") or "").split(os.pathsep):
-                # Prepended: reached only when the interpreter's own directory is missing, so any
-                # axkernelcc already on PATH belongs to another environment and mismatches the devkit.
-                os.environ["PATH"] = os.pathsep.join(filter(None, (scripts_dir, prev_env.get("PATH"))))
-            try:
-                from axelera import compiler
-            except ImportError:
-                check_requirements(
-                    f"axelera-devkit=={AXELERA_SDK}",
-                    cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-                )
-                from axelera import compiler
+            os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), prev_env["PATH"])))
+            check_requirements(
+                f"axelera-devkit=={AXELERA_SDK}",
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
+            )
             check_requirements("omnimalloc==0.5.0")
+            from axelera import compiler
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 
@@ -121,11 +114,12 @@ def torch2axelera(
                         f.unlink()
 
                 if metadata is not None:
-                    # Recorded so a load failure can name the SDK that built the model. The compiler emits
-                    # the .axm, so its version is the one that matters, not the metapackage's.
-                    YAML.save(output_dir / "metadata.yaml", {**metadata, "axelera_sdk": AXELERA_SDK})
+                    YAML.save(output_dir / "metadata.yaml", metadata)
 
             return str(output_dir)
         finally:
-            os.environ.clear()
-            os.environ.update(prev_env)
+            for key, value in prev_env.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value

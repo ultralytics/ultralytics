@@ -86,8 +86,8 @@ Depth estimation is not supported: the depth head emits operators the Metis AIPU
     - **Operating System**: Linux only (Ubuntu 22.04/24.04 recommended)
     - **Hardware**: Axelera AI accelerator ([Metis devices](https://store.axelera.ai/))
     - **Python**: Versions 3.10, 3.11, 3.12, and 3.13
-    - **PyTorch**: `torch<2.13`; a newer version is downgraded when the SDK installs, and the export then asks you to rerun it
-    - **Voyager SDK**: 1.8.0, installed automatically when no SDK is present. An SDK you installed yourself is used as-is, and a warning names the version this release targets
+    - **PyTorch**: `torch>=2.8,<2.13`
+    - **Voyager SDK**: 1.8.0; export installs this devkit version and inference installs this runtime version
     - **Metis kernel driver**: `metis-dkms` 1.6.2 or newer, installed separately from `pip`
     - **System dependency**: `sudo apt install libgl1` (required by OpenCV, not included via `pip`)
 
@@ -246,7 +246,7 @@ The Axelera format supports the [Export](../modes/export.md), [Predict](../modes
 | `fraction` | `float`, `int`, or `list` | `1.0`       | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it (100-400 images recommended).                                                |
 | `device`   | `str`                     | `None`      | Export device: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                               |
 
-\* `batch` is supported only in Voyager SDK versions >= 1.8.0.
+\* Inference with `batch>1` requires Voyager SDK 1.8.0 or newer; models are compiled for a single image.
 
 For all export options, see the [Export Mode documentation](../modes/export.md).
 

@@ -14,11 +14,11 @@ The YOLO 3D Stereo format is a specialized dataset format for training stereo-ba
 
     Stereo 3D detection is evaluated on the **Chen et al.** split, which is what published stereo-3D work reports on. `kitti-stereo-chen.yaml` partitions it three ways with **zero shared raw drives** between any pair:
 
-    | Split | Frames | Drives | Purpose |
-    | ------- | ------ | ------ | ------------------------------------------------------------------- |
-    | `train` | 3172 | 82 | Fitting |
-    | `dev` | 540 | 14 | Early stopping and model selection (this is what `val:` points at) |
-    | `test` | 3769 | 45 | Final reporting only, equal to the Chen validation split |
+    | Split   | Frames | Drives | Purpose                                                            |
+    | ------- | ------ | ------ | ------------------------------------------------------------------ |
+    | `train` | 3172   | 82     | Fitting                                                            |
+    | `dev`   | 540    | 14     | Early stopping and model selection (this is what `val:` points at) |
+    | `test`  | 3769   | 45     | Final reporting only, equal to the Chen validation split           |
 
     `train` and `dev` together are exactly Chen's 3712-frame training split. Evaluate once at the end with `split=test` (`yolo val task=s3d data=kitti-stereo-chen.yaml split=test model=best.pt`) — using the test split during training selects on the reported set and invalidates the number.
 

@@ -192,11 +192,11 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                 self.best_fitness = max(self.best_fitness or -math.inf, fitness)
                 LOGGER.info(
                     f"OOD eval @ep{self.epoch + 1}: [heatmap] mAP50={avg['mAP50']:.4f} "
-                    f"(@.25={fitness:.4f}) mAP10={avg['mAP10']:.4f} "
+                    f"mAP10={avg['mAP10']:.4f} "
                     f"| [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
                     f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
-                    f"(fitness={branch} {prior} mAP50@0.25; "
-                    f"bare keys are threshold-free; n={len(rows)} categories)"
+                    f"| fitness={fitness:.4f} ({branch} {prior} mAP50@0.25); "
+                    f"bare keys are threshold-free; n={len(rows)} categories"
                 )
         finally:
             del ema_eval

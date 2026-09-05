@@ -2166,6 +2166,9 @@ def parse_model(d, ch, verbose=True):
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        if m is SPPF and len(args) <= 3:  # Legacy YAML rows predate the unactivated YOLO26 SPPF.
+            for block in m_ if n > 1 else [m_]:
+                block.cv1.act = Conv.default_act
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type

@@ -180,7 +180,7 @@ Objects in VisDrone are tiny relative to the frame — often only a few dozen pi
 
 ### What is the difference between VisDrone-DET and the full VisDrone benchmark?
 
-The full VisDrone benchmark spans five tasks — object detection in images, object detection in videos, single-object tracking, [multi-object tracking](../index.md#multi-object-tracking), and crowd counting — across 288 video clips and 10,209 static images. The Ultralytics `VisDrone.yaml` configuration covers only the image detection task (VisDrone2019-DET), downloading its 6,471 train, 548 validation, and 1,610 test-dev images.
+The full VisDrone benchmark spans five tasks — object detection in images, object detection in videos, single-object tracking, [multi-object tracking](../track/index.md), and crowd counting — across 288 video clips and 10,209 static images. The Ultralytics `VisDrone.yaml` configuration covers only the image detection task (VisDrone2019-DET), downloading its 6,471 train, 548 validation, and 1,610 test-dev images.
 
 ### How do I cite VisDrone in my research?
 

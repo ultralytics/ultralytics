@@ -66,7 +66,7 @@ is already installed — running `yolo predict` or `yolo val` with an Axelera
 model auto-installs the runtime dependencies. If you need to install manually:
 
 ```bash
-pip install axelera-rt==1.7.0 --no-cache-dir --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
+pip install axelera-rt==1.8.0 --no-cache-dir --extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple
 ```
 
 You will also need `opencv-python` and `numpy` (likely already present).
@@ -91,9 +91,15 @@ The compiled models are saved to `yolo26n-pose_axelera_model/` and
 `yolo11n-seg_axelera_model/` respectively. Pass the `.axm` file inside to
 `--model`.
 
-> [!NOTE] Each model directory also contains `metadata.yaml` with the model's
+> [!NOTE]
+> Each model directory also contains `metadata.yaml` with the model's
 > class names and configuration. You can load this info directly to avoid manual
 > label entry in your own application.
+
+> [!IMPORTANT]
+> Re-export any `.axm` you compiled with an earlier SDK. Voyager SDK
+> 1.8 raises the compiled model format, and older files are rejected at load time
+> with `Unsupported model version: 4.0, expected at least 5.0`.
 
 ### Run
 
@@ -121,7 +127,8 @@ python yolo11-seg.py --model yolo11n-seg.axm --source video.mp4 --output out.mp4
 python yolo11-seg.py --model yolo11n-seg.axm --source video.mp4 --no-display         # headless (no save)
 ```
 
-> [!NOTE] `yolo11-seg.py` uses the runtime's `display.App` renderer and
+> [!NOTE]
+> `yolo11-seg.py` uses the runtime's `display.App` renderer and
 > `pipeline.stream()` instead of OpenCV display; results are drawn by the
 > built-in renderer with no manual drawing code. Use `--no-display` for headless
 > runs.

@@ -26,7 +26,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ultralytics"
 dynamic = ["version"]
-description = "Ultralytics YOLO 🚀 for SOTA object detection, multi-object tracking, instance segmentation, pose estimation, classification, and oriented object detection."
+description = "Ultralytics YOLO 🚀 for SOTA object detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, and multi-object tracking."
 readme = "README.md"
 requires-python = ">=3.8"
 license = { "text" = "AGPL-3.0" }
@@ -62,6 +62,7 @@ classifiers = [
 
 # Required dependencies ------------------------------------------------------------------------------------------------
 dependencies = [
+    "cloudpickle>=3.1.1",
     "filelock>=3.16.1",
     "numpy>=1.23.0; platform_system != 'Darwin'",
     "numpy>=1.23.0,!=2.0.*,!=2.1.*,!=2.2.*,!=2.3.0,!=2.3.1,!=2.3.2,!=2.3.3,!=2.3.4; platform_system == 'Darwin'",  # Accelerate matmul bug fixed in 2.3.5
@@ -88,7 +89,7 @@ dev = [
     "pytest-cov",
     "pytest-xdist>=3.0.0",
     "coverage[toml]",
-    "zensical>=0.0.53; python_version >= '3.10'",
+    "zensical>=0.0.58; python_version >= '3.10'",
     "minijinja>=2.0.0", # render docs macros without mkdocs-macros-plugin
 ]
 export-base = [
@@ -99,9 +100,11 @@ export-base = [
     # ONNX export validation and inference. Jetson jobs provide custom aarch64 onnxruntime-gpu wheels.
     "onnxruntime<1.20.0; python_version < '3.11' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "onnxruntime>=1.20.0; python_version >= '3.11'",
+]
+export-openvino = [
     "nncf>=2.14.0,<4.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
     "openvino>=2024.0.0",  # OpenVINO export
-    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # IMX export bug
+    "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # NNCF on Linux ARM64
 ]
 export-legacy-torch = [
     "numpy<2",
@@ -116,6 +119,9 @@ export-tensorflow = [
     "googleapis-common-protos<1.74.0; python_version <= '3.12'", # >=1.74.0 uses protobuf gencode 7.34.1, incompatible with tensorflow<=2.19 (protobuf<6) and breaks ray[tune] import
     "tensorstore>=0.1.63; platform_machine == 'aarch64' and python_version >= '3.9'", # for TF Raspberry Pi exports
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
+]
+export-coreai = [
+    "coreai-torch>=0.4.2; platform_system == 'Darwin' and platform_machine == 'arm64' and python_version >= '3.11' and python_version < '3.14'",  # Core AI export
 ]
 export-coreml = [
     "numpy<=2.3.5; platform_system != 'Windows' and python_version <= '3.13'",  # pin until CoreML>9.0 fixes numpy>=2.4 int() cast crash
@@ -138,6 +144,7 @@ export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai
 ]
 export = [
     "ultralytics[export-base]",
+    "ultralytics[export-openvino]",
     "ultralytics[export-tensorflow]",
     "ultralytics[export-coreml]",
     "ultralytics[export-litert]",

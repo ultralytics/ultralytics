@@ -179,9 +179,9 @@ class DetectionTrainer(BaseTrainer):
             return
         weights = self.compute_class_weights(class_counts)
         weights = weights / weights.mean()  # normalize so mean equals 1.0
-        model = self.model
-        if hasattr(unwrap_model(model), "student_model"):
-            model = unwrap_model(model).student_model  # distillation: the student model builds the loss criterion
+        model = unwrap_model(self.model)
+        if hasattr(model, "student_model"):
+            model = model.student_model  # distillation: the student model builds the loss criterion
         model.class_weights = torch.from_numpy(weights).to(self.device)
         LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
@@ -208,6 +208,16 @@ class DetectionTrainer(BaseTrainer):
         return yolo.detect.DetectionValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )
+
+    def _build_train_pipeline(self):
+        """Build the training pipeline and align the default detection limit with observed dataset object counts."""
+        super()._build_train_pipeline()
+        if self.args.task in {"detect", "segment", "pose", "obb"}:
+            datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
+            yolo.detect.DetectionValidator._check_max_det(self.args, datasets)
+            model = unwrap_model(self.model)
+            if getattr(model, "end2end", False):
+                model.set_head_attr(max_det=self.args.max_det)
 
     def progress_string(self):
         """Return a formatted string of training progress with epoch, GPU memory, loss, instances and size."""

@@ -443,7 +443,7 @@ nav:
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
       - Oriented Bounding Boxes (OBB):
-          - OBB Datasets: datasets/obb/index.md
+          - datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md
           - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md
@@ -576,7 +576,6 @@ nav:
       - MLflow: integrations/mlflow.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md
-      - Neptune: integrations/neptune.md
       - Neural Magic: integrations/neural-magic.md
       - ONNX: integrations/onnx.md
       - OpenVINO: integrations/openvino.md
@@ -757,6 +756,7 @@ nav:
               - ascend: reference/nn/backends/ascend.md
               - axelera: reference/nn/backends/axelera.md
               - base: reference/nn/backends/base.md
+              - coreai: reference/nn/backends/coreai.md
               - coreml: reference/nn/backends/coreml.md
               - deepx: reference/nn/backends/deepx.md
               - executorch: reference/nn/backends/executorch.md
@@ -831,7 +831,6 @@ nav:
               - comet: reference/utils/callbacks/comet.md
               - dvc: reference/utils/callbacks/dvc.md
               - mlflow: reference/utils/callbacks/mlflow.md
-              - neptune: reference/utils/callbacks/neptune.md
               - platform: reference/utils/callbacks/platform.md
               - raytune: reference/utils/callbacks/raytune.md
               - tensorboard: reference/utils/callbacks/tensorboard.md
@@ -844,6 +843,7 @@ nav:
           - export:
               - ascend: reference/utils/export/ascend.md
               - axelera: reference/utils/export/axelera.md
+              - coreai: reference/utils/export/coreai.md
               - coreml: reference/utils/export/coreml.md
               - deepx: reference/utils/export/deepx.md
               - engine: reference/utils/export/engine.md

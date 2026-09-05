@@ -25,6 +25,7 @@ Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+Apple Core AI           | `coreai`                  | yolo26n.aimodel
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -60,6 +61,7 @@ Inference:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
 """
 
 from __future__ import annotations
@@ -80,7 +82,7 @@ from ultralytics import __version__
 from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, get_cfg
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
-from ultralytics.data.utils import check_cls_dataset, check_det_dataset
+from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
 from ultralytics.nn.modules import (
     OBB,
@@ -125,6 +127,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_intel,
 )
+from ultralytics.utils.export.axelera import AXELERA_SDK
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -262,6 +265,15 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
             "base",
         ],
+        [
+            "Core AI",
+            "coreai",
+            ".aimodel",
+            True,
+            False,
+            ["batch", "quantize"],
+            "base",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -269,7 +281,7 @@ def export_formats():
 EXPORT_ENVS = {
     "base": {
         "python": None,
-        "extras": ["export-base"],
+        "extras": ["export-base", "export-openvino"],
         "torch": None,
         "requirements": [],
         "indexes": [],
@@ -354,15 +366,14 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
     },
     "isolated-axelera": {
-        # Axelera devkit 1.7.0 does not provide Python 3.13 wheels.
-        "python": "3.12",
+        "python": "3.13",
         "extras": ["export-base"],
-        # Axelera export requires 2.8.0 <= torch < 2.12.0.
-        "torch": ">=2.8,<2.12",
+        # Axelera export requires 2.8.0 <= torch < 2.13.0.
+        "torch": ">=2.8,<2.13",
         "requirements": [
-            "axelera-devkit==1.7.0",
+            f"axelera-devkit=={AXELERA_SDK}",
+            f"axelera-rt=={AXELERA_SDK}",
             "omnimalloc==0.5.0",
-            "numpy<=2.3.5",
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.71",
         ],
@@ -399,7 +410,9 @@ EXPORT_ENVS = {
 
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
-FP16_FORMATS = frozenset({"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend"})
+FP16_FORMATS = frozenset(
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend", "coreai"}
+)
 INT8_FORMATS = frozenset(
     {
         "onnx",
@@ -528,6 +541,7 @@ class Exporter:
         export_rknn: Export model to RKNN format.
         export_imx: Export model to IMX format.
         export_executorch: Export model to ExecuTorch format.
+        export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
 
@@ -658,6 +672,17 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
+        memo = {}
+        if isinstance(model, WorldModel):
+            LOGGER.warning(
+                "YOLOWorld (original version) export is not supported to any format. "
+                "YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
+                "(torchscript, onnx, openvino, engine, coreml) formats. "
+                "See https://docs.ultralytics.com/models/yolo-world for details."
+            )
+            # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
+            memo[id(getattr(model, "clip_model", None))] = None
+        model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
@@ -665,9 +690,9 @@ class Exporter:
             if self.args.end2end is not None:
                 model.end2end = self.args.end2end
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
-                # Disable end2end branch for certain export formats as they does not support topk
+                # Disable the end2end branch for formats without top-k support
                 model.end2end = False
-                LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+                LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
@@ -704,6 +729,11 @@ class Exporter:
         if fmt == "axelera" and min(self.imgsz) < 64:
             raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if fmt == "rknn":
+            if self.args.quantize == 8 and model.task != "detect":
+                raise ValueError(
+                    "Rockchip RKNN INT8 export is only supported for detection models. "
+                    "Use FP16 (quantize=16) for other tasks."
+                )
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "
@@ -801,14 +831,6 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
-        if isinstance(model, WorldModel):
-            LOGGER.warning(
-                "YOLOWorld (original version) export is not supported to any format. "
-                "YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
-                "(torchscript, onnx, openvino, engine, coreml) formats. "
-                "See https://docs.ultralytics.com/models/yolo-world for details."
-            )
-            model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.quantize in {8, "w8a16"} and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
@@ -832,7 +854,6 @@ class Exporter:
             file = Path(file.name)
 
         # Update model
-        model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         model.eval()
@@ -984,24 +1005,26 @@ class Exporter:
         LOGGER.info(f"{prefix} collecting INT8 calibration images from 'data={self.args.data}'")
         cfg = deepcopy(self.args)
         cfg.imgsz = max(self.imgsz)
+        split = self.args.split or "val"
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
             data = check_cls_dataset(self.args.data, split=self.args.split)
-            dataset = ClassificationDataset(data[self.args.split or "val"], args=cfg, augment=False)
-            if self.args.fraction < 1.0:
-                dataset.samples = dataset.samples[: round(len(dataset.samples) * self.args.fraction)]
+            if not isinstance(cfg.fraction, list):
+                cfg.fraction = [cfg.fraction] * 3
+            dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
             data = check_det_dataset(self.args.data, split=self.args.split)
+            cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
             dataset = build_yolo_dataset(
                 cfg,
-                data[self.args.split or "val"],
+                data[split],
                 self.args.batch,
                 data,
                 mode="val",
-                fraction=self.args.fraction,
+                fraction=cfg.fraction,
             )
         if hasattr(dataset, "transforms") and hasattr(dataset.transforms.transforms[0], "new_shape"):
             dataset.transforms.transforms[0].new_shape = self.imgsz  # LetterBox with non-square imgsz
@@ -1048,7 +1071,7 @@ class Exporter:
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
-        opset = self.args.opset or best_onnx_opset(onnx, cuda="cuda" in self.device.type, quantize=self.args.quantize)
+        opset = self.args.opset or best_onnx_opset(onnx)
         assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
@@ -1477,6 +1500,24 @@ class Exporter:
         )
 
     @try_export
+    def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
+        """Export YOLO model to Apple Core AI *.aimodel format."""
+        assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
+            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
+        )
+        assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.coreai import torch2coreai
+
+        return torch2coreai(
+            model=self.model,
+            im=self.im,
+            output_file=self.file.with_suffix(".aimodel"),
+            quantize=self.args.quantize,
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
     def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):  # noqa: B008
         """Export YOLO model to Edge TPU format https://coral.ai/docs/edgetpu/models-intro/."""
         from ultralytics.utils.export.tensorflow import tflite2edgetpu
@@ -1551,8 +1592,6 @@ class Exporter:
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
 
-        if getattr(self.model, "end2end", False):
-            raise ValueError("IMX export is not supported for end2end models.")
         from ultralytics.utils.export.imx import torch2imx
 
         return torch2imx(

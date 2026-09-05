@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import json
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -143,26 +144,25 @@ class BaseValidator:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
 
     @smart_inference_mode()
-    def __call__(self, trainer=None, model=None):
+    def __call__(self, trainer=None, model=None, **kwargs):
         """Execute validation process, running inference on dataloader and computing performance metrics.
 
         Args:
             trainer (object, optional): Trainer object that contains the model to validate.
             model (nn.Module, optional): Model to validate if not using a trainer.
+            **kwargs (Any): Task-specific model preparation arguments.
 
         Returns:
             (dict): Dictionary containing validation statistics.
         """
         self.training = trainer is not None
+        model = self.get_model(model, trainer, **kwargs)
         augment = self.args.augment and (not self.training)
         if self.training:
             self.device = trainer.device
             self.data = trainer.data
             # Keep training validation read-only: inputs may be fp16, but EMA/model weights stay fp32 under autocast.
             self.args.quantize = 16 if (self.device.type != "cpu" and trainer.amp) else None
-            model = trainer.ema.ema or trainer.model
-            if trainer.args.compile and hasattr(model, "_orig_mod"):
-                model = model._orig_mod  # validate non-compiled original model to avoid issues
             model = model.float()
             self.loss = {k: torch.zeros_like(v) for k, v in trainer.loss_items.items()}
             self.args.plots &= trainer.stopper.possible_stop or (trainer.epoch == trainer.epochs - 1)
@@ -171,13 +171,10 @@ class BaseValidator:
             if str(self.args.model).endswith(".yaml") and model is None:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
-            if hasattr(model, "end2end"):
-                if self.args.end2end is not None:
-                    model.end2end = self.args.end2end
-                if model.end2end:
-                    model.set_head_attr(max_det=self.args.max_det, agnostic_nms=self.args.agnostic_nms)
+            if hasattr(model, "end2end") and self.args.end2end is not None:
+                model.end2end = self.args.end2end
             with torch_distributed_zero_first(LOCAL_RANK):
-                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data)
+                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
             device_type = str(self.args.device).split(":", 1)[0]
             device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
@@ -189,6 +186,7 @@ class BaseValidator:
                 dnn=self.args.dnn,
                 data=self.args.data,
                 fp16=self.args.quantize == 16,
+                channels_last=self.args.channels_last,
             )
             self.device = model.device  # update device
             self.args.quantize = 16 if model.fp16 else None  # record actual inference precision
@@ -197,15 +195,6 @@ class BaseValidator:
             if augment and not model.base_model:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
-            # Same gate as predictor.setup_model: NHWC is lossless only for native PyTorch models on CUDA.
-            channels_last = self.args.channels_last and self.device.type == "cuda" and pt
-            if self.args.channels_last and not channels_last:
-                LOGGER.warning(
-                    f"'channels_last=True' applies only to native PyTorch models on CUDA, ignoring for "
-                    f"format='{fmt}' on '{self.device.type}'."
-                )
-            if channels_last:
-                model.to(memory_format=torch.channels_last)
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
                 if hasattr(model, "imgsz"):
@@ -353,6 +342,19 @@ class BaseValidator:
                         matches = matches[np.unique(matches[:, 0], return_index=True)[1]]
                     correct[matches[:, 1].astype(int), i] = True
         return torch.from_numpy(correct)
+
+    @smart_inference_mode(False)
+    def get_model(self, model, trainer=None):
+        """Return the training EMA or an independent model for standalone validation.
+
+        Args:
+            model (torch.nn.Module | str | Path | None): Model or checkpoint for standalone validation.
+            trainer (object, optional): Trainer whose EMA is used during training validation.
+
+        Returns:
+            (torch.nn.Module | str | Path | None): Model to prepare for inference.
+        """
+        return trainer.ema.ema if trainer is not None else deepcopy(model)
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

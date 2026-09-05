@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import sysconfig
 import tempfile
 import threading
 from collections.abc import Callable
@@ -15,6 +16,8 @@ import torch
 
 from ultralytics.utils import LOGGER, YAML
 from ultralytics.utils.checks import check_requirements
+
+AXELERA_SDK = "1.8.0"
 
 # Axelera exports mutate process-global state (the PROTOCOL_BUFFERS env var below, plus any working-directory
 # files the compiler emits), so a module-level lock serializes concurrent in-process exports. Cross-process
@@ -45,22 +48,23 @@ def torch2axelera(
     Returns:
         (str): Path to exported Axelera model directory.
     """
-    # Serialize within the process: the steps below mutate process-global state (the protobuf env var and any
-    # working-directory files the compiler writes), so concurrent in-process exports must not overlap.
+    # Serialize within the process: the steps below mutate process-global state (the protobuf and PATH env
+    # vars, plus any working-directory files the compiler writes), so concurrent in-process exports must
+    # not overlap.
     with _AXELERA_EXPORT_LOCK:
-        prev_protobuf = os.environ.get("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")
-        os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+        prev_env = {key: os.environ.get(key) for key in ("PATH", "PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION")}
         try:
-            try:
-                from axelera import compiler
-            except ImportError:
-                check_requirements(
-                    ["axelera-devkit==1.7.0", "numpy<=2.3.5"],
-                    cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
-                )
-                from axelera import compiler
-
+            os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
+            # The compiler runs `axkernelcc` from PATH, which is missing when the interpreter is launched
+            # by absolute path instead of through an activated environment.
+            os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), prev_env["PATH"])))
+            if not check_requirements(
+                f"axelera-devkit=={AXELERA_SDK}",
+                cmds="--extra-index-url https://software.axelera.ai/artifactory/api/pypi/axelera-pypi/simple",
+            ):
+                raise ModuleNotFoundError(f"Axelera export requires axelera-devkit=={AXELERA_SDK}.")
             check_requirements("omnimalloc==0.5.0")
+            from axelera import compiler
             from axelera.compiler import CompilerConfig
             from axelera.compiler.config.model_specific import extract_ultralytics_metadata
 
@@ -115,8 +119,8 @@ def torch2axelera(
 
             return str(output_dir)
         finally:
-            # Restore original PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION value
-            if prev_protobuf is None:
-                os.environ.pop("PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION", None)
-            else:
-                os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = prev_protobuf
+            for key, value in prev_env.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value

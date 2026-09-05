@@ -152,7 +152,7 @@ Where `C3` passes 2 feature maps into its fusion conv, `C2f` passes `n + 2` — 
 - a `C3k` block (`c3k=True`) — a `C3` variant with a configurable kernel size, or
 - a `Bottleneck` + `PSABlock` pair (`attn=True`).
 
-The second YAML arg sets `c3k`; for example `[-1, 2, C3k2, [512, True]]` builds one `C3k2` module at 512 output channels whose internal blocks are `C3k` (since `c3k=True`). For CSP modules, the `repeats` field — here 2, before it is scaled by the variant's depth multiple — becomes the block's internal repeat count rather than stacking separate modules.
+The second YAML arg sets `c3k` unless the scale is `m`, `l` or `x`, which force it to `True` — this is how one `yolo11.yaml` serves all five variants. So `[-1, 2, C3k2, [512, False]]` builds `Bottleneck` internals at `n` and `s` but `C3k` internals at `m`, `l` and `x`; the 512 is the pre-scaling channel count, which the variant's width multiple turns into 128 at `n` and 768 at `x`. For CSP modules, the `repeats` field — here 2, before it is scaled by the variant's depth multiple — becomes the block's internal repeat count rather than stacking separate modules.
 
 ## Spatial Pooling: SPP → SPPF
 
@@ -250,7 +250,7 @@ Running the snippet across three generations shows the changes numerically. Thes
 | ------- | ------ | ---------- | ------ | --------- | --------- | ---------- |
 | YOLOv8n | 72     | 3,151,904  | 8.7    | 16        | `False`   | `DFL`      |
 | YOLO11n | 100    | 2,616,248  | 6.5    | 16        | `False`   | `DFL`      |
-| YOLO26n | 122    | 2,408,932  | 5.4    | 1         | `True`    | `Identity` |
+| YOLO26n | 122    | 2,408,932  | 5.5    | 1         | `True`    | `Identity` |
 
 YOLO26n reports `reg_max=1`, `end2end=True`, and an `Identity` DFL layer — the architectural signature of its NMS-free, DFL-free head.
 

@@ -17,7 +17,7 @@ from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_in
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
 from .transformer import MLP, DeformableTransformerDecoder, DeformableTransformerDecoderLayer
-from .utils import bias_init_with_prob, linear_init
+from .utils import bias_init_with_prob
 
 __all__ = (
     "OBB",
@@ -98,6 +98,10 @@ class Detect(nn.Module):
         values, index = x.reshape(x.shape[0], groups, size).topk(k, dim=-1)
         values, winners = values.flatten(1).topk(k, dim=1)
         return values, winners // k * size + index.flatten(1).gather(1, winners)
+
+    def _gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+        """Select index (batch, k) rows of x (batch, n, channels) along dim 1."""
+        return x.gather(1, index if x.ndim == 2 else index[..., None].expand(-1, -1, x.shape[-1]))
 
     def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
@@ -233,17 +237,18 @@ class Detect(nn.Module):
         """Post-processes YOLO model predictions.
 
         Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc) with last dimension
-                format [x1, y1, x2, y2, class_probs].
+            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + extra) with last
+                dimension format [x1, y1, x2, y2, class_probs, extra], where extra holds the mask coefficients,
+                keypoints or angle of the Segment, Pose and OBB heads and is empty for Detect.
 
         Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6) and last
-                dimension format [x1, y1, x2, y2, max_class_prob, class_index].
+            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + extra) and last
+                dimension format [x1, y1, x2, y2, max_class_prob, class_index, extra].
         """
-        boxes, scores = preds.split([4, self.nc], dim=-1)
+        # Segment, Pose and OBB carry task channels after the class scores, Detect has none
+        boxes, scores, *extra = preds.split([s for s in (4, self.nc, preds.shape[-1] - 4 - self.nc) if s], dim=-1)
         scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        return torch.cat([boxes, scores, conf], dim=-1)
+        return torch.cat([self._gather(boxes, idx), scores, conf, *(self._gather(e, idx) for e in extra)], dim=-1)
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.
@@ -255,23 +260,17 @@ class Detect(nn.Module):
         Returns:
             (torch.Tensor, torch.Tensor, torch.Tensor): Top scores, class indices, and filtered indices.
         """
-        batch_size, anchors, nc = scores.shape  # i.e. shape(16,8400,80)
+        anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
         k = min(max_det, anchors)
         if self.agnostic_nms:
-            scores, labels = scores.max(dim=-1, keepdim=True)
-            scores, indices = scores.topk(k, dim=1)
-            labels = labels.gather(1, indices)
-            return scores, labels.float(), indices
+            scores, labels = scores.max(dim=-1)
+            scores, index = self._grouped_topk(scores, k, 1)
+            return scores[..., None], self._gather(labels[..., None].float(), index), index
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1].unsqueeze(-1)
-        scores = scores.gather(dim=1, index=ori_index.expand(-1, -1, nc))
+        ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1]
+        scores = self._gather(scores, ori_index)
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)
-        idx = (
-            ori_index[torch.arange(batch_size)[..., None], index // nc]
-            if self.format == "coreml"
-            else ori_index.gather(dim=1, index=(index // nc).unsqueeze(-1))
-        )
-        return scores[..., None], (index % nc)[..., None].float(), idx
+        return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
@@ -359,23 +358,6 @@ class Segment(Detect):
             bs = x[0].shape[0]  # batch size
             preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
-
-    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """Post-process YOLO model predictions.
-
-        Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x1, y1, x2, y2, class_probs, mask_coefficient].
-
-        Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
-                dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
-        """
-        boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
-        return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
@@ -515,23 +497,6 @@ class OBB(Detect):
         """Decode rotated bounding boxes."""
         return dist2rbox(bboxes, self.angle, anchors, dim=1)
 
-    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """Post-process YOLO model predictions.
-
-        Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + ne) with last dimension
-                format [x, y, w, h, class_probs, angle].
-
-        Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 7) and last
-                dimension format [x, y, w, h, max_class_prob, class_index, angle].
-        """
-        boxes, scores, angle = preds.split([4, self.nc, self.ne], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        angle = angle.gather(dim=1, index=idx.expand(-1, -1, self.ne))
-        return torch.cat([boxes, scores, conf, angle], dim=-1)
-
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = self.cv4 = None
@@ -635,23 +600,6 @@ class Pose(Detect):
             bs = x[0].shape[0]  # batch size
             preds["kpts"] = torch.cat([pose_head[i](x[i]).view(bs, self.nk, -1) for i in range(self.nl)], 2)
         return preds
-
-    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """Post-process YOLO model predictions.
-
-        Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nk) with last dimension
-                format [x1, y1, x2, y2, class_probs, keypoints].
-
-        Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + self.nk) and
-                last dimension format [x1, y1, x2, y2, max_class_prob, class_index, keypoints].
-        """
-        boxes, scores, kpts = preds.split([4, self.nc, self.nk], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        kpts = kpts.gather(dim=1, index=idx.expand(-1, -1, self.nk))
-        return torch.cat([boxes, scores, conf, kpts], dim=-1)
 
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
@@ -1421,23 +1369,6 @@ class YOLOESegment(YOLOEDetect):
             preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
 
-    def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
-        """Post-process YOLO model predictions.
-
-        Args:
-            preds (torch.Tensor): Raw predictions with shape (batch_size, num_anchors, 4 + nc + nm) with last dimension
-                format [x1, y1, x2, y2, class_probs, mask_coefficient].
-
-        Returns:
-            (torch.Tensor): Processed predictions with shape (batch_size, min(max_det, num_anchors), 6 + nm) and last
-                dimension format [x1, y1, x2, y2, max_class_prob, class_index, mask_coefficient].
-        """
-        boxes, scores, mask_coefficient = preds.split([4, self.nc, self.nm], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        boxes = boxes.gather(dim=1, index=idx.expand(-1, -1, 4))
-        mask_coefficient = mask_coefficient.gather(dim=1, index=idx.expand(-1, -1, self.nm))
-        return torch.cat([boxes, scores, conf, mask_coefficient], dim=-1)
-
     def fuse(self, txt_feats: torch.Tensor = None):
         """Fuse text features with model weights for efficient inference."""
         super().fuse(txt_feats)
@@ -1837,18 +1768,14 @@ class RTDETRDecoder(nn.Module):
         """Initialize or reset the parameters of the model's various components with predefined weights and biases."""
         # Class and bbox head init
         bias_cls = bias_init_with_prob(0.01) / 80 * self.nc
-        # NOTE: the weight initialization in `linear_init` would cause NaN when training with custom datasets.
-        # linear_init(self.enc_score_head)
         constant_(self.enc_score_head.bias, bias_cls)
         constant_(self.enc_bbox_head.layers[-1].weight, 0.0)
         constant_(self.enc_bbox_head.layers[-1].bias, 0.0)
         for cls_, reg_ in zip(self.dec_score_head, self.dec_bbox_head):
-            # linear_init(cls_)
             constant_(cls_.bias, bias_cls)
             constant_(reg_.layers[-1].weight, 0.0)
             constant_(reg_.layers[-1].bias, 0.0)
 
-        linear_init(self.enc_output[0])
         xavier_uniform_(self.enc_output[0].weight)
         if self.learnt_init_query:
             xavier_uniform_(self.tgt_embed.weight)

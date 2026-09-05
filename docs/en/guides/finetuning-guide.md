@@ -13,7 +13,7 @@ This guide covers fine-tuning [YOLO26](../models/yolo26.md) on custom datasets, 
 
 ## Fine-Tuning vs Training from Scratch
 
-A pretrained model has already learned general visual features - edge detection, texture recognition, shape understanding - from millions of images. [Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) through fine-tuning reuses that knowledge and only teaches the model what the new classes look like, which is why it converges faster and requires less data. Training from scratch discards all of that and forces the model to learn everything from pixel-level patterns up, which demands significantly more resources.
+A pretrained model has already learned general visual features - edge detection, texture recognition, shape understanding - from millions of images. [Transfer learning](https://www.ultralytics.com/glossary/transfer-learning) through fine-tuning reuses that knowledge and only teaches the model what the new classes look like, which is why it converges faster and requires less data. Training from scratch discards all of that and forces the model to learn everything from pixel-level patterns up, which demands significantly more resources. See [Model YAML Configuration Guide](model-yaml-config.md) to learn how architecture-only `.yaml` files differ from checkpoints.
 
 |                       | Fine-Tuning                                          | Training from Scratch                                                 |
 | --------------------- | ---------------------------------------------------- | --------------------------------------------------------------------- |
@@ -32,8 +32,8 @@ A pretrained model has already learned general visual features - edge detection,
 When a pretrained model is fine-tuned on a dataset with a different number of classes (for example, COCO's 80 classes to 5 custom classes), Ultralytics performs shape-aware weight transfer:
 
 1. **Backbone and neck transfer fully** - these layers extract general visual features and their shapes are independent of the number of classes.
-2. **Detection head is partially reinitialized** - the classification output layers (`cv3`, `one2one_cv3`) have shapes tied to the class count (80 vs 5), so they cannot transfer and are randomly initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
-3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 606 of 708 weight tensors: only the class-count-dependent classification layers are reinitialized, while the backbone, neck, and box regression branches remain intact.
+2. **Detection head is partially reinitialized** - the classification output layers (`cv3`, `one2one_cv3`) have shapes tied to the class count (80 vs 5). Compatible rows whose class names match are remapped before unmatched rows are initialized. Box regression layers (`cv2`, `one2one_cv2`) in the head have fixed shapes regardless of class count, so they transfer normally.
+3. **The vast majority of weights transfer** when changing class count. For example, fine-tuning YOLO26n from COCO (80 classes) onto a 5-class dataset transfers 606 of 708 weight tensors, plus any compatible classification rows matched by name.
 
 For datasets with the same number of classes as the pretrained model (for example, fine-tuning COCO-pretrained weights on another 80-class dataset), 100% of weights transfer including the detection head.
 
@@ -46,7 +46,7 @@ This [Objects365](../datasets/detect/objects365.md) v2-to-COCO example renames t
 ```python
 from ultralytics import YOLO
 
-# Source Objects365 v2 name -> target COCO name
+# Source Objects365 v2 name (lowercased) -> target COCO name
 ALIASES = {
     "wild bird": "bird",
     "handbag/satchel": "handbag",
@@ -59,9 +59,12 @@ ALIASES = {
 }
 
 model = YOLO("path/to/yolo26s-objects365.pt")
-model.model.names = {i: ALIASES.get(name, name) for i, name in model.model.names.items()}
+# Objects365 class names are Title-Cased, so match on the lowercased name
+model.model.names = {i: ALIASES.get(name.lower(), name) for i, name in model.model.names.items()}
 model.train(data="coco.yaml", epochs=100, imgsz=640)
 ```
+
+The `cls_remap` setting enables this name-based transfer by default. Training prints `Remapped N/M cls head rows from pretrained weights by class name` when compatible rows are copied; set `cls_remap=False` to disable it.
 
 ## Basic Fine-Tuning Example
 
@@ -90,13 +93,13 @@ Larger models have more capacity but also more parameters to update, which can i
 
 The default `optimizer=auto` setting selects the optimizer and learning rate based on the total number of training iterations:
 
-- **< 10,000 iterations** (small datasets or few epochs): AdamW with a low, auto-calculated learning rate
-- **> 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a hybrid Muon+SGD optimizer) with lr=0.01
+- **10,000 iterations or fewer** (small datasets or few epochs): AdamW with a low, auto-calculated learning rate
+- **More than 10,000 iterations** (large datasets): [MuSGD](../reference/optim/muon.md) (a hybrid Muon+SGD optimizer) with lr=0.01
 
 For most fine-tuning tasks, the default setting works well without any manual tuning. Consider setting the optimizer explicitly when:
 
 - **Training is unstable** (loss spikes or diverges): try `optimizer=AdamW, lr0=0.001` for more stable convergence
-- **Fine-tuning a large model on a small dataset**: a lower learning rate like `lr0=0.001` helps preserve pretrained features
+- **Fine-tuning a large model on a small dataset**: an explicit optimizer with a lower learning rate, such as `optimizer=AdamW, lr0=0.001`, can help preserve pretrained features
 
 !!! warning "Auto optimizer overrides manual lr0"
 
@@ -113,18 +116,28 @@ The `freeze` parameter accepts either an integer or a list. An integer `freeze=1
     === "Freeze backbone"
 
         ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
         model.train(data="custom.yaml", epochs=50, freeze=10)
         ```
 
     === "Freeze specific layers"
 
         ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
         model.train(data="custom.yaml", epochs=50, freeze=[0, 1, 2, 3, 4])
         ```
 
     === "Freeze by module name"
 
         ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
         # Freeze both box regression branches (one-to-many and end-to-end) of the detection head
         model.train(data="custom.yaml", epochs=50, freeze=["23.cv2", "23.one2one_cv2"])
         ```
@@ -146,9 +159,9 @@ Fine-tuning generally requires fewer hyperparameter adjustments than training fr
 
 - **`epochs`**: Fine-tuning converges faster than training from scratch. Start with a moderate value and use `patience` to stop early when validation metrics plateau.
 - **`patience`**: The default of 100 is designed for long training runs. Reducing this to 10-20 avoids wasting time on runs that have already converged.
-- **`warmup_epochs`**: The default warmup (3 epochs) gradually increases the learning rate from zero, which prevents large gradient updates from damaging pretrained features in early iterations. Keeping the default is recommended even for fine-tuning.
+- **`warmup_epochs`**: Warmup eases the learning rate into its scheduled value over the first epochs, so early batches are less likely to disturb pretrained features. Keep it non-zero when fine-tuning, but the full 3-epoch default is not required: the evolutionary search behind the [official YOLO26 COCO fine-tune](yolo26-training-recipe.md#optimizer-and-learning-rate) — a multi-epoch continuation from Objects365 weights — settled on about one epoch for every model size.
 
-For the full list of training parameters, see the [training configuration reference](../usage/cfg.md).
+For the full list of training parameters, see the [training configuration reference](../usage/cfg.md). For behavior the parameters do not expose — per-layer learning rates, gradient clipping, or custom validation metrics — [subclass the trainer](custom-trainer.md).
 
 ## Two-Stage Fine-Tuning
 
@@ -167,7 +180,7 @@ This approach is particularly useful when the target domain differs significantl
 
     # Stage 2: unfreeze all, fine-tune with lower lr
     model = YOLO("runs/detect/stage1/weights/best.pt")
-    model.train(data="custom.yaml", epochs=30, lr0=0.001, name="stage2", exist_ok=True)
+    model.train(data="custom.yaml", epochs=30, optimizer="AdamW", lr0=0.001, name="stage2", exist_ok=True)
     ```
 
 ## Common Pitfalls
@@ -175,14 +188,19 @@ This approach is particularly useful when the target domain differs significantl
 ### Model produces no predictions
 
 - **Insufficient training data**: training with very few samples is the most common cause - the model cannot learn or generalize from too little data. Ensure enough diverse examples per class before investigating other causes.
-- **Check dataset paths**: incorrect paths in `data.yaml` silently produce zero labels. Run `yolo detect val model=yolo26n.pt data=custom.yaml` before training to confirm labels load correctly.
+- **Check dataset paths**: invalid image paths raise a dataset error. Individual missing or empty label files are treated as background images and reported during scanning; a training split with no labels raises an error. Validate the dataset before training:
+
+    ```bash
+    yolo detect val model=yolo26n.pt data=custom.yaml
+    ```
+
 - **Lower confidence threshold**: if predictions exist but are filtered out, try `conf=0.1` during inference.
 - **Verify class count**: ensure `nc` in `data.yaml` matches the actual number of classes in the label files.
 
 ### Validation mAP plateaus early
 
 - **Add more data**: fine-tuning benefits significantly from additional training data, especially diverse examples with varied angles, lighting, and backgrounds.
-- **Check class balance**: underrepresented classes will have low AP. Use `cls_pw` to apply inverse frequency class weighting (start with `cls_pw=0.25` for moderate imbalance, increase to `1.0` for severe imbalance).
+- **Check class balance**: underrepresented classes will have low AP. Add more examples or tune `cls_pw` on the validation set.
 - **Reduce augmentation**: for very small datasets, heavy augmentation can hurt more than it helps. Try `mosaic=0.5` or `mosaic=0.0`.
 - **Increase resolution**: for datasets with small objects, try `imgsz=1280` to preserve detail.
 
@@ -206,7 +224,7 @@ Load a pretrained `.pt` file and call `.train()` with the path to a custom `data
 
 ### Why is my fine-tuned YOLO model not detecting anything?
 
-The most common causes are incorrect paths in `data.yaml` (which silently produces zero labels), a mismatch between `nc` in the YAML and the actual label files, or a confidence threshold that is too high. See [Common Pitfalls](#model-produces-no-predictions) for a full troubleshooting checklist.
+The most common causes are invalid image paths, missing or empty label files, a mismatch between `nc` in the YAML and the actual label files, or a confidence threshold that is too high. See [Common Pitfalls](#model-produces-no-predictions) for a full troubleshooting checklist.
 
 ### Which YOLO layers should I freeze for fine-tuning?
 

@@ -41,16 +41,16 @@ jobs:
         include: # one OS per personality: exports are the most platform-sensitive, predict/val exercise macOS spawn multiprocessing
           - personality: train
             os: ubuntu-latest
-            extras: export-base,solutions
+            extras: export-base,export-openvino,solutions
           - personality: export
             os: windows-latest
-            extras: export-base,solutions
+            extras: export-base,export-openvino,solutions
           - personality: predict-val
             os: macos-26
-            extras: export-base,export-coreml,solutions
+            extras: export-base,export-openvino,export-coreml,solutions
           - personality: chaos
             os: ubuntu-latest
-            extras: export-base,solutions
+            extras: export-base,export-openvino,solutions
     defaults:
       run:
         shell: bash # multi-line run blocks and ${GITHUB_WORKSPACE} expansion on all three OSes

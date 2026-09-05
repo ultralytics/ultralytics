@@ -1,5 +1,5 @@
 ---
-title: RT-DETR: Real-Time Detection Transformer
+title: RT-DETR Real-Time Detection Transformer
 comments: true
 description: Explore Baidu's RT-DETR, a Vision Transformer-based real-time object detector offering high accuracy and adaptable inference speed. Learn more with Ultralytics.
 keywords: RT-DETR, Baidu, Vision Transformer, real-time object detection, PaddlePaddle, Ultralytics, pretrained models, decoder layer index, query count, AI, machine learning, computer vision
@@ -76,6 +76,10 @@ This example provides simple RT-DETR training and inference examples. For full d
         # Load a COCO-pretrained RT-DETR-l model and run inference on the 'bus.jpg' image
         yolo predict model=rtdetr-l.pt source=path/to/bus.jpg
         ```
+
+!!! tip "Deterministic Training"
+
+    Set `deterministic=False` when training RT-DETR on CUDA with PyTorch 2.0 or later. Its deformable attention uses `F.grid_sample`, which has no deterministic CUDA backward, so `deterministic=True` cannot make the run reproducible and can reduce training throughput. `seed` still controls weight initialization, data order, and augmentation sampling.
 
 !!! tip "Faster Inference Trade-Offs"
 

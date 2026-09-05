@@ -162,11 +162,11 @@ Compare model performance using the charts dashboard:
 
 Available chart groups:
 
-| Group             | Charts                                                                                |
-| ----------------- | ------------------------------------------------------------------------------------- |
-| **Metrics**       | Task metrics, such as mAP50, mAP50-95, precision, and recall for detection            |
-| **Loss**          | One chart per loss component (box, cls, dfl, …), training solid and validation dashed |
-| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                                |
+| Group             | Charts                                                                           |
+| ----------------- | -------------------------------------------------------------------------------- |
+| **Metrics**       | Task metrics, such as mAP50, mAP50-95, precision, and recall for detection       |
+| **Loss**          | One chart per loss component (box, cls, …), training solid and validation dashed |
+| **Learning Rate** | lr/pg0, lr/pg1, lr/pg2                                                           |
 
 Comparing models trained for different tasks works, but each model only draws on the charts for metrics it actually reported.
 

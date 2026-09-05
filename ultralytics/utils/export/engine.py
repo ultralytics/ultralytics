@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import types
 from pathlib import Path
 
@@ -10,7 +11,7 @@ import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
-from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_9
+from ultralytics.utils.torch_utils import TORCH_2_4
 
 
 class _NormalizeCoords(torch.nn.Module):
@@ -47,35 +48,23 @@ class _NormalizeCoords(torch.nn.Module):
         return (det, *y[1:]) if isinstance(y, (tuple, list)) else det
 
 
-def best_onnx_opset(onnx: types.ModuleType, cuda: bool = False, quantize: int | str | None = None) -> int:
+def best_onnx_opset(onnx: types.ModuleType) -> int:
     """Return max ONNX opset for this torch version with ONNX fallback."""
-    if TORCH_2_4:  # _constants.ONNX_MAX_OPSET first defined in torch 1.13
-        opset = torch.onnx.utils._constants.ONNX_MAX_OPSET - 1  # use second-latest version for safety
-        if TORCH_2_9:
-            opset = min(opset, 20)  # legacy TorchScript exporter caps at opset 20 in torch 2.9+
-        if cuda:
-            opset -= 2  # fix CUDA ONNXRuntime NMS squeeze op errors
-    else:
-        version = ".".join(TORCH_VERSION.split(".")[:2])
-        opset = {
-            "1.8": 12,
-            "1.9": 12,
-            "1.10": 13,
-            "1.11": 14,
-            "1.12": 15,
-            "1.13": 17,
-            "2.0": 17,  # reduced from 18 to fix ONNX errors
-            "2.1": 17,  # reduced from 19
-            "2.2": 17,  # reduced from 19
-            "2.3": 17,  # reduced from 19
-            "2.4": 20,
-            "2.5": 20,
-            "2.6": 20,
-            "2.7": 20,
-            "2.8": 23,
-        }.get(version, 12)
-    if quantize == 8:
-        opset = min(opset, 20)  # ONNX Runtime static INT8 quantization does not support opset>=21
+    version = ".".join(TORCH_VERSION.split(".")[:2])
+    opset = {
+        "1.8": 12,
+        "1.9": 12,
+        "1.10": 13,
+        "1.11": 14,
+        "1.12": 15,
+        "1.13": 17,
+        "2.0": 17,  # reduced from 18 to fix ONNX errors
+        "2.1": 17,  # reduced from 19
+        "2.2": 17,  # reduced from 19
+        "2.3": 17,  # reduced from 19
+    }.get(version, 18)
+    # torch>=2.4 supports opset>=19, but ONNX Runtime CUDA has no Resize-19 or ReduceMax-20 kernel, so opset>=19 runs
+    # those nodes on the CPU and copies their tensors back and forth. Its static INT8 quantization also rejects opset>=21.
     return min(opset, onnx.defs.onnx_opset_version())
 
 
@@ -102,9 +91,6 @@ def torch2onnx(
 
     Returns:
         (str): Path to the exported ONNX file.
-
-    Notes:
-        Setting `do_constant_folding=True` may cause issues with DNN inference for torch>=1.12.
     """
     if input_names is None:
         input_names = ["images"]
@@ -115,9 +101,7 @@ def torch2onnx(
         model,
         im,
         output_file,
-        verbose=False,
         opset_version=opset,
-        do_constant_folding=True,  # WARNING: DNN inference with torch>=1.12 may require do_constant_folding=False
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic,
@@ -185,9 +169,6 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             output_path=out_file,
-            # Keep Sigmoid unquantized (it runs in FP16) to preserve confidence-score calibration,
-            # mirroring the OpenVINO IgnoredScope https://github.com/ultralytics/ultralytics/issues/24668
-            op_types_to_exclude=["Sigmoid"],
             **kwargs,
         )
         return out_file
@@ -248,7 +229,7 @@ def onnx2engine(
         calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
         enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
         precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. Both INT8 paths keep Sigmoid at higher precision to preserve
+        `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the Sigmoid layers at higher precision to preserve
         confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
@@ -418,14 +399,22 @@ def onnx2engine(
             cache=str(Path(onnx_file).with_suffix(".cache")),
         )
 
-        # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep Sigmoid (an ACTIVATION
-        # layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve confidence-score
-        # calibration, mirroring the OpenVINO IgnoredScope
-        # https://github.com/ultralytics/ultralytics/issues/24668
+        # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
+        # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve
+        # confidence-score calibration, mirroring the OpenVINO IgnoredScope
+        # https://github.com/ultralytics/ultralytics/issues/24668. Scope this to the head: every SiLU activation is
+        # also a Sigmoid, and constraining all of them costs INT8 speed across backbone and neck.
+        names = [network.get_layer(i).name for i in range(network.num_layers)]
+        indices = [int(m.group(1)) for n in names if (m := re.match(r"/model\.(\d+)/", n))]
+        head = f"/model.{max(indices)}/" if indices else "/"
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)
-            if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
+            if (
+                layer.type == trt.LayerType.ACTIVATION
+                and "sigmoid" in layer.name.lower()
+                and layer.name.startswith(head)
+            ):
                 layer.precision = trt.float32
                 for j in range(layer.num_outputs):
                     layer.set_output_type(j, trt.float32)
@@ -437,7 +426,7 @@ def onnx2engine(
                 else trt.BuilderFlag.STRICT_TYPES
             )
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
-            LOGGER.info(f"{prefix} keeping {count} Sigmoid layers in FP32 for INT8 accuracy")
+            LOGGER.info(f"{prefix} keeping {count} head Sigmoid layers in FP32 for INT8 accuracy")
 
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)

@@ -47,6 +47,8 @@ kpt_shape: [17, 3] # pose models only
 The model architecture consists of backbone (feature extraction) and head (task-specific) sections:
 
 ```yaml
+nc: 80
+
 backbone:
     # [from, repeats, module, args]
     - [-1, 1, Conv, [64, 3, 2]] # 0: Initial convolution
@@ -54,11 +56,13 @@ backbone:
     - [-1, 3, C2f, [128, True]] # 2: Feature processing
 
 head:
-    - [-1, 1, nn.Upsample, [None, 2, nearest]] # 6: Upsample
-    - [[-1, 2], 1, Concat, [1]] # 7: Skip connection
-    - [-1, 3, C2f, [256]] # 8: Process features
-    - [[8], 1, Detect, [nc]] # 9: Detection layer
+    - [-1, 1, nn.Upsample, [None, 2, nearest]] # 3: Upsample
+    - [[-1, 0], 1, Concat, [1]] # 4: Spatially compatible skip connection
+    - [-1, 3, C2f, [256]] # 5: Process features
+    - [[5], 1, Detect, [nc]] # 6: Detection layer
 ```
+
+Layer indices continue across the backbone and head, and concatenated feature maps must have matching spatial dimensions.
 
 ## Layer Specification Format
 
@@ -122,18 +126,18 @@ Modules are organized by functionality and defined in the [Ultralytics modules d
 
 ### Composite Blocks
 
-| Module   | Purpose                            | Source                                                                                           | Arguments                       |
-| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------- |
-| `C2f`    | CSP bottleneck with 2 convolutions | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, expansion]` |
-| `SPPF`   | Spatial Pyramid Pooling (fast)     | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`         |
-| `Concat` | Channel-wise concatenation         | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                   |
+| Module   | Purpose                            | Source                                                                                           | Arguments                               |
+| -------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------------- |
+| `C2f`    | CSP bottleneck with 2 convolutions | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, shortcut, groups, expansion]` |
+| `SPPF`   | Spatial Pyramid Pooling (fast)     | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, kernel_size]`                 |
+| `Concat` | Channel-wise concatenation         | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[dimension]`                           |
 
 ### Specialized Modules
 
 | Module        | Purpose                           | Source                                                                                           | Arguments                                                |
 | ------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
 | `TorchVision` | Load any torchvision model        | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, model_name, weights, unwrap, truncate, split]` |
-| `Index`       | Extract specific tensor from list | [block.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/block.py) | `[out_ch, index]`                                        |
+| `Index`       | Extract specific tensor from list | [conv.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/conv.py)   | `[out_ch, index]`                                        |
 | `Detect`      | YOLO detection head               | [head.py](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/head.py)   | `[nc]`                                                   |
 
 !!! info "Complete Module List"
@@ -153,12 +157,14 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 
     # Model with ConvNeXt backbone
     model = YOLO("convnext_backbone.yaml")
-    results = model.train(data="coco8.yaml", epochs=100)
+    results = model.train(data="imagenet10", epochs=100)
     ```
 
 === "YAML Configuration"
 
     ```yaml
+    nc: 1000
+
     backbone:
       - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, False]]
     head:
@@ -170,7 +176,7 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     - `768`: Expected output channels
     - `convnext_tiny`: Model architecture ([available models](https://docs.pytorch.org/vision/stable/models.html))
     - `DEFAULT`: Use pretrained weights
-    - `True`: Remove classification head
+    - `True`: Unwrap child layers before truncating them; `False` keeps the model structure and sets `head` and `heads` to `nn.Identity`
     - `2`: Truncate last 2 layers
     - `False`: Return single tensor (not list)
 
@@ -183,6 +189,8 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
 When using models that output multiple feature maps, the Index module selects specific outputs:
 
 ```yaml
+nc: 80
+
 backbone:
     - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, True]] # Multi-output
 head:
@@ -204,11 +212,11 @@ Ultralytics uses a three-tier system in [`parse_model`](https://github.com/ultra
 # Core resolution logic
 m = (
     getattr(torch.nn, m[3:])
-    if "nn." in m
-    else getattr(torchvision.ops, m[16:])
-    if "torchvision.ops." in m
+    if m.startswith("nn.")
+    else getattr(__import__("torchvision").ops, m[16:])
+    if m.startswith("torchvision.ops.")
     else globals()[m]
-)
+)  # get module
 ```
 
 1. **PyTorch modules**: Names starting with `'nn.'` → `torch.nn` namespace
@@ -267,13 +275,15 @@ Modifying the source code is the most versatile way to integrate your custom mod
     from ultralytics.nn.modules import CustomBlock  # noqa
     ```
 
-5. **Handle special arguments** (if needed) inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py) in `ultralytics/nn/tasks.py`:
+5. **Add the module to `base_modules`** inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). Modules in this set automatically receive input and output channels:
 
     ```python
-    # Add this condition in the parse_model() function
-    if m is CustomBlock:
-        c1, c2 = ch[f], args[0]  # input channels, output channels
-        args = [c1, c2, *args[1:]]
+    base_modules = frozenset(
+        {
+            # Existing modules...
+            CustomBlock,
+        }
+    )
     ```
 
 6. **Use the module** in your model YAML:
@@ -347,11 +357,12 @@ backbone:
     - [-1, 4, C2f, [64, True]]
     - [-1, 1, Conv, [128, 3, 2]]
     - [-1, 8, C2f, [128, True]]
-    - [-1, 1, nn.AdaptiveAvgPool2d, [1]]
 
 head:
     - [-1, 1, Classify, [nc]]
 ```
+
+`Classify` already performs adaptive average pooling internally.
 
 ## Best Practices
 
@@ -411,7 +422,7 @@ import torch
 
 from ultralytics import YOLO
 
-model = YOLO("debug_model.yaml")
+model = YOLO("debug_model.yaml", task="detect")
 output = model.model(torch.randn(1, 3, 640, 640))
 print(f"Output shape: {output.shape}")  # Should match expected dimensions
 ```
@@ -424,7 +435,7 @@ Checking the FLOPs count and printing out each layer can also help debug issues 
 from ultralytics import YOLO
 
 # Build model with verbose output to see layer details
-model = YOLO("debug_model.yaml", verbose=True)
+model = YOLO("debug_model.yaml", task="detect", verbose=True)
 
 # Check model FLOPs. Failed forward pass causes 0 FLOPs.
 model.info()
@@ -453,7 +464,7 @@ nc: 5 # 5 classes
 
 ### Can I use a custom backbone in my model YAML?
 
-Yes. You can use any supported module, including TorchVision backbones, or define your own custom module and import it as described in [Custom Module Integration](#custom-module-integration).
+Yes. You can use any supported module, including [TorchVision backbones](#torchvision-integration), or define your own custom module and import it as described in [Custom Module Integration](#custom-module-integration).
 
 ### How do I scale my model for different sizes (nano, small, medium, etc.)?
 

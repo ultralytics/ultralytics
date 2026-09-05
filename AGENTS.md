@@ -16,6 +16,20 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 **Review gate:** for every addition, the reviewer decides whether deleting or changing existing code would have fixed the problem instead — if it would, that is a blocking finding. A missing or thin PR description is never itself a finding.
 
+## PR Review
+
+- Require a reproducible production bug or a broadly useful feature; close incorrect, niche, speculative, or AI-generated bloat.
+- Treat new arguments and PRs with more than 50 net added non-documentation code lines, counting tests and offsetting additions with deletions, as high-barrier exceptions. The PR author must strongly justify why the complete change cannot be smaller or use an existing owner, and defend how it avoids duplication and improves maintainability or scalability.
+- Delete mock tests, including monkeypatched platform or device state. Prefer focused validation of the real code path on real CI targets, adding only minimal regression coverage for a high-risk gap.
+- Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
+- Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.
+- Preserve an existing implementation when a maintainer explicitly requests it remain temporarily disabled at its owner
+  with a linked tracking issue; require the issue to document the evidence needed to re-enable it.
+- Require production-ready behavior across supported tasks, platforms, versions, and integrations affected by the owner change.
+- Remind unsigned contributors to complete the CLA. Do not close PRs opened by Ultralytics organization team members.
+- Merge only the exact cold-reviewed live head after terminal-green checks and zero unresolved review threads.
+- Fix accepted contributions on their existing PR branches; never create replacement or follow-up PRs for review repairs.
+
 NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Workflow
@@ -32,7 +46,7 @@ After opening a PR:
 
 ```bash
 # Dev install (editable); tests also need export/solutions extras
-uv pip install -e ".[dev,export-base,solutions]"
+uv pip install -e ".[dev,export-base,export-openvino,solutions]"
 
 # All tests with coverage, matching ci.yml's Tests job (CI also sets YOLO_AUTOINSTALL=false and drops -n auto on ARM)
 pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
@@ -70,6 +84,7 @@ The user-facing `Model` facade in `ultralytics/engine/model.py` (`.train()`, `.v
 - `ultralytics/nn/` — `tasks.py` builds models from YAMLs (`parse_model`), `modules/` is the layer zoo referenced by name in YAMLs, `autobackend.py` gives unified inference across all export formats.
 - `ultralytics/cfg/` — `default.yaml` defines ALL train/val/predict/export args (the `overrides` dict flows through `get_cfg` everywhere), plus model/dataset/tracker YAMLs, the `yolo` CLI `entrypoint`, and arg deprecation via `_handle_deprecation`.
 - `ultralytics/data/`, `ultralytics/utils/`, `ultralytics/solutions/`, `ultralytics/trackers/` — datasets/augmentation, shared utilities and lifecycle `callbacks/` (integration loggers, excluded from coverage), end-user apps, and BoT-SORT/ByteTrack.
+- Keep export-format behavior in its module under `ultralytics/utils/export/`. Bind format-specific code onto the head at export time, as `tf_wrapper` does for `kpts_decode` and `_get_decode_boxes`, or set an attribute the head reads; do not add new `self.format` branches to `ultralytics/nn/modules/head.py`.
 
 Adding a task or family means a Trainer/Validator/Predictor triplet wired into `task_map`, a model class in `nn/tasks.py`, and a YAML in `cfg/models/`.
 

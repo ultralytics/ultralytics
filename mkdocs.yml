@@ -588,6 +588,7 @@ nav:
       - SONY IMX500: integrations/sony-imx500.md
       - TensorBoard: integrations/tensorboard.md
       - TensorRT: integrations/tensorrt.md
+      - Texas Instruments Edge AI: integrations/ti-edge-ai.md
       - TF GraphDef: integrations/tf-graphdef.md
       - TF SavedModel: integrations/tf-savedmodel.md
       - TF.js (deprecated): integrations/tfjs.md

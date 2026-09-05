@@ -105,6 +105,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/ja-jp/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
+- [Texas Instruments Edge AI](ti-edge-ai.md): Compile Ultralytics YOLO ONNX exports with the TI Deep Learning (TIDL) toolchain for accelerated inference on the C7 NPU in TI TDA4x and other TI MPU devices used in automotive, industrial, and robotics applications.
+
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
 - [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.

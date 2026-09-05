@@ -216,7 +216,7 @@ def remove_small_regions(mask: np.ndarray, area_thresh: float, mode: str) -> tup
 
     assert mode in {"holes", "islands"}, f"Provided mode {mode} is invalid"
     correct_holes = mode == "holes"
-    working_mask = (correct_holes ^ mask).astype(np.uint8)
+    working_mask = mask.astype(np.uint8) ^ correct_holes  # copy first, NumPy may XOR in place into the caller's mask
     n_labels, regions, stats, _ = cv2.connectedComponentsWithStats(working_mask, 8)
     sizes = stats[:, -1][1:]  # Row 0 is background label
     small_regions = [i + 1 for i, s in enumerate(sizes) if s < area_thresh]

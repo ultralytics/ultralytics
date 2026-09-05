@@ -341,6 +341,7 @@ class Predictor(BasePredictor):
         stability_score_thresh=0.95,
         stability_score_offset=0.95,
         crop_nms_thresh=0.7,
+        min_mask_region_area=0,
     ):
         """Perform image segmentation using the Segment Anything Model (SAM).
 
@@ -359,6 +360,8 @@ class Predictor(BasePredictor):
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
+            min_mask_region_area (int): If > 0, remove disconnected mask regions and holes smaller than this area, in
+                original-image pixels, before returning, then re-run NMS. Mirrors upstream SAM's `min_mask_region_area`.
 
         Returns:
             pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
@@ -437,6 +440,16 @@ class Predictor(BasePredictor):
             scores = 1 / region_areas
             keep = torchvision.ops.nms(pred_bboxes, scores, crop_nms_thresh)
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
+
+        # Remove small disconnected regions and holes, then recompute boxes for the post-processed masks
+        if min_mask_region_area > 0 and len(pred_masks):
+            im0 = self.batch[1][0]
+            h0, w0 = im0.shape[-2:] if isinstance(im0, torch.Tensor) else im0.shape[:2]
+            gain = min(ih / h0, iw / w0)  # pre_transform letterbox scale, masks here are in the model input space
+            min_area = min_mask_region_area * gain * gain
+            pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
+            pred_scores = pred_scores[keep]
+            pred_bboxes = batched_mask_to_box(pred_masks).float()
 
         return pred_masks, pred_scores, pred_bboxes
 

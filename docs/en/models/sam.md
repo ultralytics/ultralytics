@@ -154,7 +154,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
         predictor = SAMPredictor(overrides=overrides)
 
         # Segment with additional args
-        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64)
+        results = predictor(source="ultralytics/assets/zidane.jpg", crop_n_layers=1, points_stride=64, min_mask_region_area=20)
         ```
 
 !!! note

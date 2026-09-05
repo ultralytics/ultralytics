@@ -1949,6 +1949,10 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
     model = candidate.float()  # FP32 model
 
     # Model compatibility updates
+    if not getattr(model, "names", None):  # legacy or foreign checkpoints may be missing class names
+        nc = model.yaml.get("nc") if isinstance(getattr(model, "yaml", None), dict) else None
+        model.names = {i: f"class{i}" for i in range(nc or 999)}
+        LOGGER.warning(f"{weight} is missing class names, assigning {len(model.names)} default names.")
     model.args = args  # attach args to model
     model.pt_path = str(weight)  # attach *.pt file path to model as string (avoids WindowsPath pickle issues)
     model.task = getattr(model, "task", guess_model_task(model))

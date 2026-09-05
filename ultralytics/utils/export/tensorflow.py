@@ -17,6 +17,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_sudo_available,
+    rocm_is_available,
 )
 from ultralytics.utils.downloads import attempt_download_asset
 from ultralytics.utils.tal import make_anchors
@@ -105,6 +106,7 @@ def onnx2saved_model(
         f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
     )
+    ort = "onnxruntime-gpu" if cuda and not rocm_is_available() else "onnxruntime"
     check_requirements(
         (
             f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}",  # required by 'onnx2tf' package
@@ -115,7 +117,7 @@ def onnx2saved_model(
             f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
             "onnxslim>=0.1.82",
             # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
-            ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
+            (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-migraphx"),
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault

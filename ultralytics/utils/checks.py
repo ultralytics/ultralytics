@@ -554,7 +554,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> check_requirements(["numpy", "ultralytics"])
 
         Check with interchangeable packages
-        >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
+        >>> check_requirements([("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx"), "numpy"])
     """
     prefix = colorstr("red", "bold", "requirements:")
 
@@ -1135,6 +1135,15 @@ def cuda_is_available() -> bool:
         (bool): True if one or more NVIDIA GPUs are available, False otherwise.
     """
     return cuda_device_count() > 0
+
+
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and torch.cuda.is_available() and bool(getattr(torch.version, "hip", None))
 
 
 def is_rockchip():

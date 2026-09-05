@@ -47,6 +47,10 @@ on:
         type: boolean
         description: Dockerfile-conda
         default: true
+      Dockerfile-amd:
+        type: boolean
+        description: Dockerfile-amd
+        default: true
       push:
         type: boolean
         description: Publish to DockerHub and ghcr.io
@@ -96,6 +100,11 @@ jobs:
             tags: "latest-jetson-jetpack4"
             platforms: "linux/arm64"
             runs_on: "ubuntu-24.04-arm"
+            derivatives: ""
+          - dockerfile: "Dockerfile-amd"
+            tags: "latest-amd"
+            platforms: "linux/amd64"
+            runs_on: "ubuntu-latest"
             derivatives: ""
           # - dockerfile: "Dockerfile-conda"
           #   tags: "latest-conda"
@@ -248,7 +257,7 @@ jobs:
         run: docker builder prune -af
 
       - name: Run Tests
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
         run: |
           test_torch=""
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
@@ -257,7 +266,7 @@ jobs:
           docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
 
       - name: Run Benchmarks
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
         run: docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
 
       - name: Push All Images

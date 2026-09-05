@@ -10,6 +10,7 @@ SOURCE = ASSETS / "bus.jpg"
 SOURCES_LIST = [ASSETS / "bus.jpg", ASSETS, ASSETS / "*", ASSETS / "**/*.jpg"]  # file, dir, and glob patterns
 CUDA_IS_AVAILABLE = checks.cuda_is_available()
 CUDA_DEVICE_COUNT = checks.cuda_device_count()
+ROCM_IS_AVAILABLE = checks.rocm_is_available()
 TASK_MODEL_DATA = sorted(
     [(task, WEIGHTS_DIR / TASK2MODEL[task], TASK2DATA[task]) for task in TASKS]
 )  # (task, model, data) tuples
@@ -32,6 +33,7 @@ __all__ = (
     "CUDA_DEVICE_COUNT",
     "CUDA_IS_AVAILABLE",
     "MODEL",
+    "ROCM_IS_AVAILABLE",
     "SOLUTION_ASSETS",
     "SOURCE",
     "SOURCES_LIST",

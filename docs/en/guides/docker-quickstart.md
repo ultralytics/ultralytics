@@ -105,6 +105,7 @@ Ultralytics publishes the following images to [Docker Hub](https://hub.docker.co
 | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [`latest`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest)                                 | Linux AMD64 with CUDA for GPU training and inference                                                                                 | [`Dockerfile`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile)                                 |
 | [`latest-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-export)                   | Linux AMD64 with CUDA and export dependencies for conversion and benchmarking                                                        | [`Dockerfile-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-export)                   |
+| [`latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd)                         | Linux AMD64 with [ROCm](https://rocm.docs.amd.com/) and MIGraphX for AMD GPU training and inference                                  | [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd)                         |
 | [`latest-python`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python)                   | Lightweight Linux AMD64 Python image for CPU inference                                                                               | [`Dockerfile-python`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python)                   |
 | [`latest-python-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python-export)     | Linux AMD64 CPU image with export dependencies                                                                                       | [`Dockerfile-python-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python-export)     |
 | [`latest-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-cpu)                         | Linux AMD64 CPU image with Bash as the default command                                                                               | [`Dockerfile-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-cpu)                         |
@@ -148,15 +149,31 @@ sudo docker run -it --ipc=host ultralytics/ultralytics:latest-cpu
 
 ### Using GPUs
 
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
+=== "NVIDIA"
 
-# Run specifying which GPUs to use
-sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest
-```
+    ```bash
+    # Run with all GPUs
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
 
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--device nvidia.com/gpu=...` flag grants the container access to the host's GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html).
+    # Run specifying which GPUs to use
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest
+    ```
+
+=== "AMD (ROCm)"
+
+    For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, use the `latest-amd` image and pass the GPU devices:
+
+    ```bash
+    # Pull the AMD ROCm image
+    sudo docker pull ultralytics/ultralytics:latest-amd
+
+    # Run with AMD GPU access
+    sudo docker run -it --ipc=host --device=/dev/kfd --device=/dev/dri --group-add video ultralytics/ultralytics:latest-amd
+    ```
+
+    The `latest-amd` image targets the ROCm 7.2 / MIGraphX wheel stack (`rocm-rel-7.2`), validated by Ultralytics `Dockerfile-amd`. For a different ROCm minor, rebuild `Dockerfile-amd` against AMD's [matching wheel index](https://repo.radeon.com/rocm/manylinux/).
+
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. For NVIDIA GPUs, the `--device nvidia.com/gpu=...` flag grants access through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html). For AMD GPUs, the `--device` flags grant access to the GPU kernel driver (`/dev/kfd`) and display render nodes (`/dev/dri`).
 
 !!! warning "Use CDI instead of `--gpus all`"
 

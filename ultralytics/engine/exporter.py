@@ -110,6 +110,7 @@ from ultralytics.utils import (
     MACOS_VERSION,
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
+    ROCM_EXTRA_INDEX,
     SETTINGS,
     TORCH_VERSION,
     WINDOWS,
@@ -126,6 +127,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
+    rocm_is_available,
 )
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
@@ -1059,14 +1061,19 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
-            # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
-            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
+        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
+            # Install the MIGraphX build on ROCm so AMD GPU inference finds its EP instead of the stock CPU wheel.
+            # Elsewhere onnxruntime variants are interchangeable candidates so AutoUpdate keeps an installed build
+            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
+            rocm = rocm_is_available()
+            ort = "onnxruntime-migraphx" if rocm else "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+            check_requirements(
+                ort if rocm else [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-migraphx")],
+                cmds=ROCM_EXTRA_INDEX if rocm else "",
+            )
         import onnx
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx

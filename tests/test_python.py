@@ -1165,7 +1165,7 @@ def test_dense_result_tensor_indexing():
 
 
 def test_results_plot_empty_dense_selection():
-    """result[1:].plot() on a one-result dense (semantic/depth) Results returns the plain image, no overlay."""
+    """Result[1:].plot() on a one-result dense (semantic/depth) Results returns the plain image, no overlay."""
     from ultralytics.engine.results import Results
 
     img = np.zeros((16, 16, 3), dtype=np.uint8)

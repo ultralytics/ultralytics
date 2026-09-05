@@ -16,6 +16,7 @@
 | [NCNN]({{ integrations_path or "../integrations" }}/ncnn.md) | `ncnn` | `{{ model_name or "yolo26n" }}_ncnn_model/` | ✅ | `imgsz`, `quantize`, `batch`, `device` |
 | [IMX500]({{ integrations_path or "../integrations" }}/sony-imx500.md){{ tip2 }} | `imx` | `{{ model_name or "yolo26n" }}_imx_model/` | ✅ | `imgsz`, `quantize`, `data`, `fraction`, `nms`{{ tip1 }}, `device` |
 | [RKNN]({{ integrations_path or "../integrations" }}/rockchip-rknn.md) | `rknn` | `{{ model_name or "yolo26n" }}_rknn_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
+| [RDK]({{ integrations_path or "../integrations" }}/drobotics-rdk.md) | `rdk` | `{{ model_name or "yolo26n" }}_rdk_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction` |
 | [ExecuTorch]({{ integrations_path or "../integrations" }}/executorch.md) | `executorch` | `{{ model_name or "yolo26n" }}_executorch_model/` | ✅ | `imgsz`, `batch`, `device` |
 | [Axelera]({{ integrations_path or "../integrations" }}/axelera.md) | `axelera` | `{{ model_name or "yolo26n" }}_axelera_model/` | ✅ | `imgsz`, `batch`, `quantize`, `data`, `fraction`, `device` |
 | [DEEPX]({{ integrations_path or "../integrations" }}/deepx.md) | `deepx` | `{{ model_name or "yolo26n" }}_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |

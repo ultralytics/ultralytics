@@ -2140,6 +2140,16 @@ def test_yoloe(tmp_path):
     assert Path(model.trainer.best).exists()  # end-of-training validation ran and weights were saved
 
 
+def test_yoloe_vocab_head_switch():
+    """Keep prompt-free inference on the branch that its vocabulary reparameterized."""
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
+    model.model.args["imgsz"] = 32
+    names = ["person", "bus"]
+    model.set_vocab(model.get_vocab(names), names)
+    for nms in (None, False):
+        model(SOURCE, imgsz=32, nms=nms)
+
+
 def test_yoloe_visual_prompt_verbose_false(capfd):
     """Verify that YOLOE visual prompting respects verbose=False."""
     model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")

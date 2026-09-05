@@ -36,9 +36,9 @@ YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 {% include "macros/yolo-seg-perf.md" %}
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu`
-- **Params** and **FLOPs** values are for fused models; published YOLO26 results select the NMS-free head with `nms=False`, removing the unused one-to-many branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0 nms=False`
+- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu nms=False`
+- **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 These checkpoints segment the 80 COCO classes. To segment categories outside that list without retraining, see [YOLOE](../models/yoloe.md), which takes the classes as a text prompt, a visual example, or a built-in vocabulary.
 

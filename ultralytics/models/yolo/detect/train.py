@@ -215,9 +215,7 @@ class DetectionTrainer(BaseTrainer):
         if self.args.task in {"detect", "segment", "pose", "obb"}:
             datasets = {"train": self.train_loader.dataset, "val": self.test_loader.dataset}
             yolo.detect.DetectionValidator._check_max_det(self.args, datasets)
-            model = unwrap_model(self.model)
-            if getattr(getattr(model, "student_model", model).model[-1], "one2one_cv2", None) is not None:
-                model.set_head_attr(max_det=self.args.max_det)
+            unwrap_model(self.model).set_head_attr(max_det=self.args.max_det)
 
     def progress_string(self):
         """Return a formatted string of training progress with epoch, GPU memory, loss, instances and size."""

@@ -585,11 +585,11 @@ def _handle_deprecation(custom: dict) -> dict:
 
     if "end2end" in custom:
         end2end = custom.pop("end2end")
-        deprecation_warn("end2end", "nms")
         if end2end is not None:
             if not isinstance(end2end, bool):
                 raise TypeError("Deprecated 'end2end' must be a bool.")
             custom["nms"] = False if end2end else True if custom.get("nms") is True else None
+            deprecation_warn(f"end2end={end2end}", f"nms={custom.get('nms')}")
 
     # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
     # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false
@@ -1060,10 +1060,10 @@ def entrypoint(debug: str = "") -> None:
         elif a.lower() in special:
             special[a.lower()]()
             return
-        elif a in CFG_BOOL_KEYS:
-            overrides[a] = True  # auto-True for bool args, i.e. 'yolo show' sets show=True
-        elif a in {"half", "int8", "end2end"}:
-            overrides[a] = True  # deprecated bare flags, forwarded by _handle_deprecation
+        elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
+            overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
+        elif a in {"half", "int8", "end2end", "nms"}:
+            overrides[a] = True  # bare boolean flags whose defaults are missing or None
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
                 f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "

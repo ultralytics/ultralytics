@@ -1323,6 +1323,7 @@ class YOLOEModel(DetectionModel):
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
+        head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
         self.model[-1].nc = len(names)
         self.names = names
 

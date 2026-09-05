@@ -155,7 +155,7 @@ This unified framework covers real-time detection, instance segmentation, semant
 
         --8<-- "docs/macros/yolo-obb-perf.md"
 
-_Params and FLOPs values are for the fused model with the NMS-free head selected (`nms=False`), which folds Conv and BatchNorm layers and removes the unused one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts._
+_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ---
 

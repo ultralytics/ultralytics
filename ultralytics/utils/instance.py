@@ -192,8 +192,8 @@ class Instances:
         keypoints (np.ndarray): Keypoints with shape (N, 17, 3) in format (x, y, visible).
         normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
         segments (np.ndarray): Segment parts with shape (P, M, 2) after resampling.
-        seg_idx (np.ndarray | None): Index with shape (P,) mapping each segment part to its instance, or None
-            when every instance owns exactly one part.
+        seg_idx (np.ndarray | None): Index with shape (P,) mapping each segment part to its instance, or None when every
+            instance owns exactly one part.
 
     Methods:
         convert_bbox: Convert bounding box format.
@@ -234,8 +234,8 @@ class Instances:
             keypoints (np.ndarray, optional): Keypoints with shape (N, 17, 3) in format (x, y, visible).
             bbox_format (str): Format of bboxes.
             normalized (bool): Whether the coordinates are normalized.
-            seg_idx (np.ndarray, optional): Index with shape (P,) mapping each segment part to its instance.
-                Leave it None when every instance owns exactly one part, which is the common case.
+            seg_idx (np.ndarray, optional): Index with shape (P,) mapping each segment part to its instance. Leave it
+                None when every instance owns exactly one part, which is the common case.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
         self.keypoints = keypoints

@@ -460,8 +460,8 @@ def rle2mask(counts: str | list[int], shape: tuple[int, int]) -> np.ndarray:
     """Decode COCO run lengths into a binary mask.
 
     Args:
-        counts (str | list[int]): A COCO JSON `segmentation.counts` field, either compressed to a string or
-            given as plain run lengths.
+        counts (str | list[int]): A COCO JSON `segmentation.counts` field, either compressed to a string or given as
+            plain run lengths.
         shape (tuple[int, int]): Mask shape as (height, width).
 
     Returns:
@@ -517,8 +517,8 @@ def mask2rle(mask: np.ndarray) -> str:
 def rle2segments(counts: str, shape: tuple[int, int]) -> list[np.ndarray]:
     """Decode a COCO compressed RLE string into normalized polygon parts.
 
-    Disjoint regions become separate parts and holes become inner rings, both of which `polygon2mask` fills
-    back to the original mask because `cv2.fillPoly` applies the even-odd rule across all rings it is given.
+    Disjoint regions become separate parts and holes become inner rings, both of which `polygon2mask` fills back to the
+    original mask because `cv2.fillPoly` applies the even-odd rule across all rings it is given.
 
     Args:
         counts (str): Compressed run-length string as stored in a COCO JSON `segmentation.counts` field.
@@ -561,8 +561,8 @@ def polygons2masks(
 
     Args:
         imgsz (tuple[int, int]): The size of the image as (height, width).
-        polygons (list[np.ndarray]): One entry per mask, either a single polygon of shape (M, 2) or a group of
-            polygon parts sharing one mask, given as a (K, M, 2) array or a list of (M, 2) arrays.
+        polygons (list[np.ndarray]): One entry per mask, either a single polygon of shape (M, 2) or a group of polygon
+            parts sharing one mask, given as a (K, M, 2) array or a list of (M, 2) arrays.
         color (int): The color value to fill in the polygons on the masks.
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
@@ -582,8 +582,8 @@ def polygons2masks_overlap(
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return a downsampled overlap mask and sorted area indices.
 
-    Each entry of `segments` is either a single polygon of shape (M, 2) or a group of polygon parts sharing one
-    mask, given as a (K, M, 2) array or a list of (M, 2) arrays.
+    Each entry of `segments` is either a single polygon of shape (M, 2) or a group of polygon parts sharing one mask,
+    given as a (K, M, 2) array or a list of (M, 2) arrays.
     """
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),

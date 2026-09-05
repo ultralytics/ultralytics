@@ -187,6 +187,7 @@ class AutoBackend(nn.Module):
         fuse: bool = True,
         verbose: bool = True,
         channels_last: bool | None = None,
+        end2end: bool | None = None,
     ):
         """Initialize the AutoBackend for inference.
 
@@ -199,6 +200,7 @@ class AutoBackend(nn.Module):
             fuse (bool): Fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Enable verbose logging.
             channels_last (bool, optional): Use channels-last memory format, or auto-enable it on supported x86 CPUs.
+            end2end (bool, optional): Select the native detection head before fusion; None preserves its current mode.
         """
         super().__init__()
         device = device or torch.device("cpu")
@@ -237,6 +239,7 @@ class AutoBackend(nn.Module):
         if format == "pt":
             backend_kwargs["fuse"] = fuse
             backend_kwargs["verbose"] = verbose
+            backend_kwargs["end2end"] = end2end
         elif format in {"saved_model", "pb", "edgetpu", "dnn"}:
             backend_kwargs["format"] = format
         self.backend = self._BACKEND_MAP[format](model, **backend_kwargs)
@@ -334,7 +337,8 @@ class AutoBackend(nn.Module):
         Returns:
             (Any): Tensor on `self.device`, or the unchanged non-tensor output.
         """
-        x = torch.tensor(x) if isinstance(x, np.ndarray) else x
+        if isinstance(x, np.ndarray):
+            return torch.as_tensor(x, device=self.device)  # shares memory on CPU, one fused copy to accelerators
         return x.to(self.device) if isinstance(x, torch.Tensor) else x
 
     def warmup(self, imgsz: tuple[int, int, int, int] = (1, 3, 640, 640), im: torch.Tensor | None = None) -> None:

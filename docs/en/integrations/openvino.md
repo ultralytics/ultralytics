@@ -29,6 +29,16 @@ OpenVINO export supports all seven Ultralytics tasks. Semantic segmentation and 
 
 {% include "macros/supported-tasks.md" %}
 
+## Installation
+
+Install the OpenVINO export dependencies with:
+
+```bash
+pip install "ultralytics[export-openvino]"
+```
+
+These dependencies are also included in `ultralytics[export]` and installed automatically when required by an export.
+
 ## Usage Examples
 
 The OpenVINO format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Export your model, then load the exported model to run inference or validate its accuracy on Intel CPU, integrated/discrete GPU, or NPU.
@@ -110,7 +120,7 @@ The OpenVINO format supports the [Export](../modes/export.md), [Predict](../mode
 | `imgsz`    | `int` or `tuple`          | `640`        | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
 | `quantize` | `int` or `str`            | `None`       | Quantization precision: `16` (FP16) or `8` (INT8/PTQ; needs calibration `data`/`fraction`); `32`/unset is FP32. Replaces the deprecated `half`/`int8` flags.                                                                                                     |
 | `dynamic`  | `bool`                    | `False`      | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                          |
-| `nms`      | `bool`                    | `False`      | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
+| `nms`      | `bool`, optional          | `None`       | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                                                                                      |
 | `batch`    | `int`                     | `1`          | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
 | `data`     | `str`                     | `None`       | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
 | `fraction` | `float`, `int`, or `list` | `1.0`        | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |

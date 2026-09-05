@@ -162,7 +162,7 @@ class Events:
                     model = run.model
                     params["format"] = model.format
                     params["nc"] = len(getattr(model, "names", None) or ()) or None  # drives head width and NMS
-                    # toggles that move inference time, as applied: compile replaces .model, end2end is tri-state
+                    # toggles that move inference time, as applied: compile replaces .model, end2end reflects the backend output
                     flags = {
                         "compile": hasattr(model, "_orig_mod"),
                         "end2end": getattr(model, "end2end", False),

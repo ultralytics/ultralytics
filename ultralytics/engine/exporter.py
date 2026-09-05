@@ -713,9 +713,8 @@ class Exporter:
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
-                            "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
-                            ""
+                            "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. "
+                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
                         )
                 except ImportError:
                     pass

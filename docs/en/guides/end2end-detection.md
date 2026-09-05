@@ -1,7 +1,7 @@
 ---
 title: YOLO26 End-to-End NMS-Free Detection
 comments: true
-description: Choose conventional NMS or end-to-end inference with one nms argument, understand exported outputs, and migrate existing end2end and nms options.
+description: Choose NMS or NMS-free inference with the nms argument and understand model outputs, accuracy, and export compatibility.
 keywords: YOLO26, end-to-end detection, NMS-free inference, NMS, model export, deployment guide, Ultralytics, ONNX, TensorRT, CoreML
 ---
 
@@ -68,15 +68,9 @@ Here `N` is batch size, `nc` is the number of classes, and 8400 is the candidate
 
 Fusion removes unused inference branches as well as folding Conv and BatchNorm layers. Keep the original training checkpoint if you need to switch heads: fusion cannot reconstruct a branch that has already been removed. A model with only its one-to-one head remaining keeps that available path.
 
-## Do I Need to Change My Code?
+## Exported Outputs
 
-### Using the Ultralytics Python API or CLI
-
-Prediction and validation continue to return the same result and metric types. The default for models with both heads now selects one-to-many predictions with NMS. To keep the previous YOLO26 NMS-free behavior, add `nms=False`.
-
-### Using Custom Inference Code
-
-Default YOLOv8 and YOLO11 exports retain their existing raw output layout. Default YOLO26 exports now use that layout too. If your application expects YOLO26's previous `(N, 300, 6)` output, export with `nms=False` explicitly.
+YOLOv8, YOLO11 and YOLO26 detection models export raw one-to-many predictions by default. Export YOLO26 with `nms=False` for NMS-free detections.
 
 |                     | `nms=None`                        | `nms=False`                           |
 | ------------------- | --------------------------------- | ------------------------------------- |
@@ -87,31 +81,18 @@ Default YOLOv8 and YOLO11 exports retain their existing raw output layout. Defau
 
 `nms=True` also produces processed detections, but uses the one-to-many head and embeds traditional NMS. It is useful when your deployment runtime should receive detections without implementing suppression itself.
 
-Existing exported models keep their original graphs and outputs. Passing a different `nms` value when loading an exported graph does not rebuild it; export the source checkpoint again to change its output path. Ultralytics uses the artifact's metadata to avoid applying NMS twice.
-
-### Migrating `end2end`
-
-`end2end` remains accepted with a deprecation warning. Use `nms` instead:
-
-| Older arguments            | Replacement |
-| -------------------------- | ----------- |
-| `end2end=True`             | `nms=False` |
-| `end2end=False`            | `nms=None`  |
-| `end2end=False, nms=True`  | `nms=True`  |
-| `end2end=False, nms=False` | `nms=None`  |
-
-Existing explicit `nms=False` calls keep NMS-free inference on dual-head models and raw exports on models without that head. A standalone `nms=True` now selects one-to-many predictions on dual-head models instead of being discarded by the exporter. When both older arguments are supplied, the `end2end` selection retains its previous precedence: `end2end=True, nms=True` selects the NMS-free head.
+An exported model's graph determines its outputs. Passing `nms` when loading it does not rebuild the graph; export the source checkpoint with the desired `nms` value to select its output path. Ultralytics uses the artifact's metadata to avoid applying NMS twice.
 
 ## Export Format Compatibility
 
-ONNX, TensorRT, CoreML, OpenVINO and several other formats support NMS-free exports. NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, Edge TPU and Qualcomm QNN fall back to the one-to-many path when their operators cannot support end-to-end output. Existing format warnings explain the fallback.
+ONNX, TensorRT, CoreML, OpenVINO and several other formats support NMS-free exports. NCNN, RKNN, PaddlePaddle, ExecuTorch, IMX, Edge TPU and Qualcomm QNN fall back to the one-to-many path when their operators cannot support end-to-end output. Format warnings explain the fallback.
 
-- **Embedded NMS:** `nms=True` remains subject to each format's existing task, precision and dynamic-shape restrictions. Formats without embedded NMS support export native outputs for external processing.
+- **Embedded NMS:** `nms=True` is subject to each format's task, precision and dynamic-shape restrictions. Formats without embedded NMS support export native outputs for external processing.
 - **CoreML:** Embedded NMS supports detect, segment and pose with static shapes. Use `nms=True` for detection models that need Xcode Preview's NMS pipeline.
 - **MNN:** Embedded NMS supports detect and pose with `dynamic=False`.
 - **IMX:** Detection, instance segmentation and pose require embedded NMS, selected automatically.
-- **Hailo:** YOLO26 uses raw tensors with host NMS by default; `nms=False` selects its one-to-one path. YOLOv8/YOLO11 detection keeps HailoRT NMS. Other tasks retain their existing Hailo output contracts.
-- **Quantization:** TensorRT versions before 8.5.0, TensorRT 10.3.0 INT8 on JetPack 6, and LiteRT INT8 or `w8a16` retain their existing end-to-end fallback restrictions.
+- **Hailo:** YOLO26 uses raw tensors with host NMS by default; `nms=False` selects its one-to-one path. YOLOv8/YOLO11 detection uses HailoRT NMS.
+- **Quantization:** TensorRT versions before 8.5.0, TensorRT 10.3.0 INT8 on JetPack 6, and LiteRT INT8 or `w8a16` fall back to one-to-many outputs.
 
 See the individual [integration guides](../integrations/index.md) for hardware requirements. For full FP16 output tensors, use `nms=None`; end-to-end class indices can keep output tensors in FP32 even when the model is quantized.
 
@@ -130,10 +111,6 @@ It limits detections returned by prediction and validation. For end-to-end and e
 ### My exported ONNX model outputs `(1, 300, 6)` — is that correct?
 
 Yes, for `nms=False` or `nms=True` with the default detection limit. The shape alone does not identify which head was exported. A default raw COCO detection export instead normally has shape `(1, 84, 8400)` at `imgsz=640`.
-
-### How can I tell which output path was exported?
-
-The export metadata's `end2end` field identifies the selected head. Its `args.nms=True` field identifies embedded NMS, as in older runtimes. By contrast, `model.predictor.model.end2end` means the backend output is already processed and should not receive external NMS. It can therefore be true for either NMS-free or embedded-NMS exports.
 
 ### Does this apply to segmentation, pose and OBB?
 

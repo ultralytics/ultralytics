@@ -237,7 +237,7 @@ Note that the example below is for YOLO26 [Detect](../tasks/detect.md) models fo
         yolo export model=yolo26n.pt format=onnx nms=False
         ```
 
-    Prediction and validation default to the one-to-many head for accuracy. Use `nms=False` for NMS-free inference, or `nms=True` to embed NMS in a supported export. Both heads are trained regardless of this choice. See the [End-to-End Detection guide](../guides/end2end-detection.md) for output formats, export compatibility, and migration steps.
+    Prediction and validation default to the one-to-many head for accuracy. Use `nms=False` for NMS-free inference, or `nms=True` to embed NMS in a supported export. Both heads are trained regardless of this choice. See the [End-to-End Detection guide](../guides/end2end-detection.md) for output formats and export compatibility.
 
 ## YOLOE-26: Open-Vocabulary Detection and Segmentation
 

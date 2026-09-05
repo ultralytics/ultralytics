@@ -251,9 +251,9 @@ that runtime's native C++ API.
 
 For example, export a detection model with `yolo export model=yolo26n.pt format=onnx` and run the `.onnx` file with
 ONNX Runtime C++, or export with `format=engine` and run the TensorRT engine from a TensorRT C++ application. When you
-use custom C++ post-processing, match the output tensor layout for your task and export settings; YOLO26 end-to-end
-detection exports usually return `(batch, max_det, 6)`, while non-end-to-end exports return raw prediction tensors that
-require external post-processing.
+use custom C++ post-processing, match the output tensor layout for your task and export settings; default YOLO26 detection
+exports return raw prediction tensors that require external NMS. Export with `nms=False` for NMS-free detections shaped
+`(batch, max_det, 6)`, or `nms=True` to embed NMS in supported formats.
 
 ### Why is `output0` FP32 when exporting quantized models with `nms=False`?
 

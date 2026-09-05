@@ -107,6 +107,7 @@ jobs:
       new_release: ${{ steps.check_tag.outputs.new_release }}
     steps:
       - name: Cleanup disk space
+        if: ${{ !startsWith(matrix.dockerfile, 'Dockerfile-jetson-') }}
         uses: ultralytics/actions/cleanup-disk@main
 
       - name: Checkout repo

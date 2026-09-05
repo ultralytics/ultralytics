@@ -38,19 +38,21 @@ def test_settings_migration(tmp_path: Path, api_key: str) -> None:
     settings_file.write_text(
         json.dumps(
             {
-                "settings_version": "0.0.6",
+                "settings_version": "0.0.7",
                 "runs_dir": "/custom/runs",
                 "api_key": api_key,
                 "hub": True,
+                "neptune": True,
             }
         )
     )
-    settings = SettingsManager(settings_file, version="0.0.7")
+    settings = SettingsManager(settings_file)
 
     assert settings["runs_dir"] == "/custom/runs"
     assert settings["api_key"] == (api_key if api_key.startswith("ul_") else "")
-    assert settings["settings_version"] == "0.0.7"
+    assert settings["settings_version"] == "0.0.8"
     assert "hub" not in settings
+    assert "neptune" not in settings
 
 
 def test_platform_login(monkeypatch) -> None:
@@ -94,8 +96,8 @@ def test_train(task: str, model: str, data: str) -> None:
 @pytest.mark.parametrize("task,model,data", TASK_MODEL_DATA)
 def test_val(task: str, model: str, data: str) -> None:
     """Test YOLO validation process for specified task, model, and data using a shell command."""
-    for end2end in (False, True):
-        run(f"yolo val {task} model={model} data={data} imgsz=32 end2end={end2end} max_det=100 agnostic_nms")
+    for nms in (None, False):
+        run(f"yolo val {task} model={model} data={data} imgsz=32 nms={nms} max_det=100 agnostic_nms")
 
 
 @pytest.mark.parametrize("task,model,data", MONO_TASK_MODEL_DATA)
@@ -105,8 +107,8 @@ def test_predict(task: str, model: str, data: str) -> None:
     Uses MONO_TASK_MODEL_DATA, not TASK_MODEL_DATA: `source=ASSETS` is a directory of single images, which a
     paired-source task like s3d cannot consume.
     """
-    for end2end in (False, True):
-        run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save end2end={end2end} max_det=100")
+    for nms in (None, False):
+        run(f"yolo {task} predict model={model} source={ASSETS} imgsz=32 save nms={nms} max_det=100")
 
 
 @pytest.mark.parametrize("model", MODELS)
@@ -116,8 +118,8 @@ def test_export(model: str, tmp_path: Path) -> None:
 
     isolated = tmp_path / model
     shutil.copy(Path(attempt_download_asset(model)), isolated)
-    for end2end in (False, True):
-        run(f"yolo export model={isolated} format=torchscript imgsz=32 end2end={end2end} max_det=100")
+    for nms in (None, False):
+        run(f"yolo export model={isolated} format=torchscript imgsz=32 nms={nms} max_det=100")
 
 
 @pytest.mark.parametrize(

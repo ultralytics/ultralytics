@@ -66,8 +66,7 @@ class HailoBackend(BaseBackend):
             from ultralytics.nn.modules import DFL
 
             self._dfl = DFL()
-        # segmentation, pose and OBB return a dense tensor for the predictor's NMS; detect and classify do not
-        self.end2end = self.task not in {"segment", "pose", "obb"}
+        self.end2end = self.end2end or self.metadata.get("nms", False)  # head selection or HailoRT NMS
 
     def __del__(self):
         """Release the Hailo pipeline and device."""
@@ -183,8 +182,10 @@ class HailoBackend(BaseBackend):
             self._anchors = make_anchors(box_maps, strides)
         anchors, stride_tensor = self._anchors
         boxes = torch.cat([x.flatten(2) for x in box_maps], 2).transpose(1, 2)
-        boxes = dist2bbox(boxes, anchors, xywh=False) * stride_tensor
+        boxes = dist2bbox(boxes, anchors, xywh=not self.end2end) * stride_tensor
         scores = torch.cat([x.flatten(2) for x in cls_maps], 2).transpose(1, 2).sigmoid()
+        if not self.end2end:
+            return torch.cat((boxes, scores), 2).transpose(1, 2).numpy()
         classes = scores.shape[2]
         anchor_index = scores.amax(-1).topk(min(300, scores.shape[1]), dim=1).indices[..., None]
         boxes = boxes.gather(1, anchor_index.expand(-1, -1, 4))

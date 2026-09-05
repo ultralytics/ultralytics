@@ -173,11 +173,11 @@ class Bboxes:
             When using boolean indexing, make sure to provide a boolean array with the same length as the number of
             bounding boxes.
         """
-        if isinstance(index, int):
-            return Bboxes(self.bboxes[index].reshape(1, -1))
         b = self.bboxes[index]
+        if b.ndim == 1:
+            b = b.reshape(1, -1)
         assert b.ndim == 2, f"Indexing on Bboxes with {index} failed to return a matrix!"
-        return Bboxes(b)
+        return Bboxes(b, format=self.format)
 
 
 class Instances:
@@ -355,15 +355,12 @@ class Instances:
 
         Returns:
             (Instances): A new Instances object containing the selected boxes, segments, and keypoints if present.
-
-        Notes:
-            When using boolean indexing, make sure to provide a boolean array with the same length as the number of
-            instances.
         """
+        index = [index] if isinstance(index, (int, np.integer)) else index
         if self.seg_idx is None:  # one part per instance, index it directly
             segments, seg_idx = self.segments[index] if len(self.segments) else self.segments, None
         else:
-            segments, seg_idx = self.select_segments(np.atleast_1d(np.arange(len(self))[index]))
+            segments, seg_idx = self.select_segments(np.arange(len(self))[index])
         keypoints = self.keypoints[index] if self.keypoints is not None else None
         bboxes = self.bboxes[index]
         bbox_format = self._bboxes.format

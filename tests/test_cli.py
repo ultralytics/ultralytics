@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODELS, TASK_MODEL_DATA
+from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, HAS_ACTION_RECOGNITION, MODELS, TASK_MODEL_DATA
 from ultralytics.utils import ARM64, ASSETS, DATASETS_DIR, IS_RASPBERRYPI, LINUX, WEIGHTS_DIR, checks
 from ultralytics.utils.torch_utils import TORCH_1_11, TORCH_VERSION
 
@@ -212,7 +212,22 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
 
 @pytest.mark.parametrize(
     "solution",
-    ["count", "blur", "workout", "heatmap", "isegment", "visioneye", "speed", "queue", "analytics", "trackzone"],
+    [
+        "count",
+        "blur",
+        "workout",
+        "heatmap",
+        "isegment",
+        "visioneye",
+        "speed",
+        "queue",
+        "analytics",
+        "trackzone",
+        pytest.param(
+            "action",
+            marks=pytest.mark.skipif(not HAS_ACTION_RECOGNITION, reason="torchvision build lacks s3d video weights"),
+        ),
+    ],
 )
 def test_solutions(solution: str) -> None:
     """Test yolo solutions command-line modes."""

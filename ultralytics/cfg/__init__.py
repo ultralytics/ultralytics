@@ -726,6 +726,45 @@ def handle_yolo_login(args: list[str]) -> None:
     if len(args) < 2:
         LOGGER.info(f"Get an API key from {api_key_url} and then run 'yolo login API_KEY'.")
         return
+    if not args[1]:
+        LOGGER.warning("Invalid API key")
+        return
+
+    if sys.version_info >= (3, 11):
+        try:
+            import httpx
+
+            from ultralytics import APIConnectionError, APIError, Platform
+        except ImportError:
+            LOGGER.warning("Install the Platform SDK with 'pip install -U ultralytics-platform'.")
+            return
+
+        try:
+            responses = []
+            with Platform(
+                api_key=args[1],
+                base_url=PLATFORM_URL,
+                timeout=30,
+                max_retries=0,
+                http_client=httpx.Client(timeout=30, event_hooks={"response": [responses.append]}),
+            ) as client:
+                account = client.account.summary()
+            if responses[0].status_code != 200 or not (
+                isinstance(account, dict) and isinstance(account.get("username"), str) and account["username"]
+            ):
+                LOGGER.warning("Authentication failed: expected HTTP 200 with account information.")
+                return
+        except APIError as e:
+            LOGGER.warning(
+                "Invalid API key" if e.status_code == 401 else f"Authentication failed (HTTP {e.status_code})."
+            )
+            return
+        except (APIConnectionError, ValueError):
+            LOGGER.warning("Authentication request failed; check your connection and the Platform server response.")
+            return
+        SETTINGS["api_key"] = args[1]
+        LOGGER.info("New authentication successful ✅")
+        return
 
     import requests  # scoped as slow import
 

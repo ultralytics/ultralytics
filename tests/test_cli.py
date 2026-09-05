@@ -1,10 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import json
+import os
 import shutil
 import subprocess
 import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from threading import Thread
 
 import pytest
 from PIL import Image
@@ -55,23 +58,62 @@ def test_settings_migration(tmp_path: Path, api_key: str) -> None:
     assert "neptune" not in settings
 
 
-def test_platform_login(monkeypatch) -> None:
-    """Verify Platform login saves valid keys and logout removes them."""
-    import requests
+@pytest.mark.parametrize(
+    "status,body",
+    [
+        (200, '{"username":"tester"}'),
+        (200, "{}"),
+        (201, '{"username":"tester"}'),
+        (302, '{"username":"tester"}'),
+        (401, "ul_secret"),
+        (500, "ul_secret"),
+    ],
+)
+def test_platform_login(tmp_path: Path, status: int, body: str) -> None:
+    """Verify real login clients persist only validated keys and never retry through another endpoint."""
+    from ultralytics.utils import SettingsManager
 
-    from ultralytics import cfg
+    received = []
 
-    class Response:
-        status_code = 200
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            received.append((self.path, self.headers.get("Authorization")))
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(body.encode())
 
-    settings = {"api_key": ""}
-    monkeypatch.setattr(cfg, "SETTINGS", settings)
-    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: Response())
+        def log_message(self, *args):
+            pass
 
-    cfg.handle_yolo_login(["login", "ul_valid"])
-    assert settings["api_key"] == "ul_valid"
-    cfg.handle_yolo_login(["logout"])
-    assert settings["api_key"] == ""
+    settings_file = tmp_path / "Ultralytics" / "settings.json"
+    SettingsManager(settings_file)["api_key"] = "ul_previous"
+    command = [sys.executable, "-c", "from ultralytics.cfg import entrypoint; entrypoint()"]
+    with HTTPServer(("127.0.0.1", 0), Handler) as server:
+        thread = Thread(target=server.serve_forever)
+        thread.start()
+        env = dict(
+            os.environ,
+            YOLO_CONFIG_DIR=str(tmp_path),
+            ULTRALYTICS_PLATFORM_URL=f"http://127.0.0.1:{server.server_port}",
+            ULTRALYTICS_API_KEY="ul_environment",
+        )
+        try:
+            result = subprocess.run(
+                [*command, "login", "ul_supplied"], env=env, capture_output=True, text=True, check=True
+            )
+            subprocess.run([*command, "login", ""], env=env, check=True)
+        finally:
+            server.shutdown()
+            thread.join()
+    expected = "ul_supplied" if status == 200 and (sys.version_info < (3, 11) or "username" in body) else "ul_previous"
+    assert json.loads(settings_file.read_text())["api_key"] == expected
+    assert received == [
+        ("/api/account/summary" if sys.version_info >= (3, 11) else "/api/settings", "Bearer ul_supplied")
+    ]
+    assert "ul_secret" not in result.stdout + result.stderr
+    subprocess.run([*command, "logout"], env=env, check=True)
+    assert json.loads(settings_file.read_text())["api_key"] == ""
 
 
 def test_cli_imports_defer_torchvision() -> None:

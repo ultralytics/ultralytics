@@ -181,7 +181,7 @@ The figures below were measured with Raspberry Pi OS Bookworm 64-bit and a USB C
 === "Raspberry Pi 4B 2GB"
 
     | Image Size | Model   | Standard Inference Time (ms) | High-Frequency Inference Time (ms) |
-    |------------|---------|------------------------------|------------------------------------|
+    | ---------- | ------- | ---------------------------- | ---------------------------------- |
     | 320        | YOLOv8n | 32.2                         | 26.7                               |
     | 320        | YOLOv8s | 47.1                         | 39.8                               |
     | 512        | YOLOv8n | 73.5                         | 60.7                               |
@@ -190,7 +190,7 @@ The figures below were measured with Raspberry Pi OS Bookworm 64-bit and a USB C
 === "Raspberry Pi 5 8GB"
 
     | Image Size | Model   | Standard Inference Time (ms) | High Frequency Inference Time (ms) |
-    |------------|---------|------------------------------|------------------------------------|
+    | ---------- | ------- | ---------------------------- | ---------------------------------- |
     | 320        | YOLOv8n | 22.2                         | 16.7                               |
     | 320        | YOLOv8s | 40.1                         | 32.2                               |
     | 512        | YOLOv8n | 53.5                         | 41.6                               |

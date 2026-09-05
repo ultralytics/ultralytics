@@ -18,7 +18,7 @@ class OpenVINOBackend(BaseBackend):
     """Intel OpenVINO inference backend for Intel hardware acceleration.
 
     Loads and runs inference with Intel OpenVINO IR models (*_openvino_model/ directories). Supports automatic device
-    selection, Intel-specific device targeting, and async inference for throughput optimization.
+    selection and Intel-specific device targeting.
     """
 
     def load_model(self, weight: str | Path) -> None:
@@ -69,12 +69,9 @@ class OpenVINOBackend(BaseBackend):
         if self.read_model is not None:
             self.dynamic = False  # fixed letterbox shapes so recompiles stay rare
 
-        # Set inference mode
-        self.inference_mode = (
-            ("CUMULATIVE_THROUGHPUT" if device_name == "AUTO" else "THROUGHPUT")
-            if self.dynamic and self.batch > 1
-            else "LATENCY"
-        )
+        # Force sync inference because AsyncInferQueue can hang indefinitely on Intel and AMD CPUs, see
+        # https://github.com/ultralytics/ultralytics/issues/25923.
+        self.inference_mode = "LATENCY"
         config = {"PERFORMANCE_HINT": self.inference_mode}
         if LINUX and ARM64 and device_name == "CPU":
             config["EXECUTION_MODE_HINT"] = ov.properties.hint.ExecutionMode.ACCURACY
@@ -96,7 +93,7 @@ class OpenVINOBackend(BaseBackend):
         self.ov = ov
 
     def forward(self, im: torch.Tensor) -> list[np.ndarray]:
-        """Run Intel OpenVINO inference with sync or async execution based on inference mode.
+        """Run Intel OpenVINO inference.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].

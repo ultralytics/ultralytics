@@ -26,6 +26,8 @@ GITHUB_ASSETS_NAMES = frozenset(
         for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb", "-depth", "-reid", "-reid-market")
     ]  # ReID weights provided for the yolo26 family only
     + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
+    + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "sem-ade20k")]
+    + [f"yolo26{k}-reid.onnx" for k in "nsmlx"]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -34,6 +36,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yoloe-11{k}{suffix}.pt" for k in "sml" for suffix in ("-seg", "-seg-pf")]
     + [f"yoloe-26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("-seg", "-seg-pf")]
     + [f"yolov9{k}.pt" for k in "tsmce"]
+    + [f"yolov9{k}-seg.pt" for k in "ce"]
     + [f"yolov10{k}.pt" for k in "nsmblx"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
@@ -44,7 +47,9 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [
         "mobile_sam.pt",
         "mobileclip_blt.ts",
+        "mobileclip2_b.ts",
         "yolo11n-grayscale.pt",
+        "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
     ]
 )

@@ -572,6 +572,7 @@ nav:
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - LiteRT: integrations/litert.md
+      - Luxonis OAK: integrations/luxonis.md
       - MLflow: integrations/mlflow.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md

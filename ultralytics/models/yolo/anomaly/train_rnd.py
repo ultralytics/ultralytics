@@ -171,7 +171,11 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                 if branch not in {"o2m", "o2o"}:
                     LOGGER.warning(f"fitness_branch={branch!r} invalid; falling back to 'o2m'")
                     branch = "o2m"
-                prior = getattr(self.args, "fitness_prior", "heatmap") or "heatmap"
+                # ``smart_value`` turns the CLI's ``fitness_prior=none`` into Python None, so the
+                # usual ``or <default>`` idiom would silently swallow the opt-in and select on the
+                # prior-ON pass instead. None IS the "none" option here.
+                prior = getattr(self.args, "fitness_prior", "heatmap")
+                prior = "none" if prior is None else prior
                 if prior not in {"heatmap", "none"}:
                     LOGGER.warning(f"fitness_prior={prior!r} invalid; falling back to 'heatmap'")
                     prior = "heatmap"

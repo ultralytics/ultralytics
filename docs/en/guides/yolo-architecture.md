@@ -103,8 +103,8 @@ Each version keeps the same **backbone → neck → head** skeleton and changes 
         SP --> PSA[C2PSA attention]:::extern
         PSA --> FPN[Neck FPN top-down<br/>Upsample + Concat]:::decide
         FPN --> PAN[Neck PAN bottom-up<br/>Conv + Concat]:::decide
-        PAN --> HD[Detect head<br/>anchor-free, reg_max 1, end2end]:::out
-        HD --> O[End-to-end predictions<br/>NMS-free]:::out
+        PAN --> HD[Detect head<br/>anchor-free, reg_max 1, dual heads]:::out
+        HD --> O[Predictions<br/>NMS by default; optional NMS-free]:::out
         classDef start fill:#4CAF50,color:#fff
         classDef proc fill:#2196F3,color:#fff
         classDef decide fill:#FF9800,color:#fff
@@ -204,7 +204,7 @@ YOLOv8 and YOLO11 regress each of the 4 box coordinates as a **distribution** ov
 
 [YOLO26](../models/yolo26.md) sets two YAML parameters that the head reads directly:
 
-- **`end2end: True`** — `Detect` deep-copies its branches into a one-to-one head (`one2one_cv2`/`one2one_cv3`) that produces a single prediction per object, removing the [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. See the [End-to-End Detection guide](end2end-detection.md) for export and migration details.
+- **`end2end: True`** — `Detect` deep-copies its branches into a one-to-one head (`one2one_cv2`/`one2one_cv3`) that learns a single prediction per object. This YAML setting creates both training heads; runtime `nms=False` selects the one-to-one head and removes the [Non-Maximum Suppression](https://www.ultralytics.com/glossary/non-maximum-suppression-nms) (NMS) post-processing step. See the [End-to-End Detection guide](end2end-detection.md) for inference and export details.
 - **`reg_max: 1`** — with one bin, `self.dfl` becomes `nn.Identity()` and `no = nc + 4`; the head regresses coordinates directly and no DFL operation appears in the exported [ONNX](https://www.ultralytics.com/glossary/onnx-open-neural-network-exchange) graph.
 
 Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 mAP on COCO at 1.7-11.8 ms T4 [TensorRT](https://www.ultralytics.com/glossary/tensorrt) latency, as reported in the [YOLO26 paper](https://arxiv.org/abs/2606.03748).
@@ -217,7 +217,7 @@ Across its five model sizes (n/s/m/l/x), YOLO26 reaches 40.9-57.5 mAP on COCO at
 | **YOLOv5** | `C3` (CSP)                | `SPPF`              | none      | Original: anchor-based; `u` variant: anchor-free | no / yes (`u`)            |
 | **YOLOv8** | `C2f`                     | `SPPF`              | none      | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
 | **YOLO11** | `C3k2`                    | `SPPF`              | `C2PSA`   | Anchor-free, decoupled                           | yes (`reg_max=16`)        |
-| **YOLO26** | `C3k2`                    | `SPPF` + shortcut   | `C2PSA`   | Anchor-free, **NMS-free** (`end2end`)            | **removed** (`reg_max=1`) |
+| **YOLO26** | `C3k2`                    | `SPPF` + shortcut   | `C2PSA`   | Anchor-free, dual heads; optional NMS-free       | **removed** (`reg_max=1`) |
 
 For per-model details, performance tables, and usage examples, see the individual pages for [YOLOv3](../models/yolov3.md), [YOLOv5](../models/yolov5.md), [YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md).
 
@@ -241,18 +241,18 @@ The `model.info()` method prints a layer, parameter, and [FLOPs](https://www.ult
 
     # Inspect the detection head (the last module in the network)
     head = model.model.model[-1]
-    print(type(head).__name__, "| reg_max:", head.reg_max, "| end2end:", head.end2end)
+    print(type(head).__name__, "| reg_max:", head.reg_max, "| DFL layer:", type(head.dfl).__name__)
     ```
 
 Running the snippet across three generations shows the changes numerically. These are real fused-model outputs from the `ultralytics` package, matching the parameter and FLOPs counts published on each [model page](../models/index.md):
 
-| Model   | Layers | Parameters | GFLOPs | `reg_max` | `end2end` | DFL layer  |
-| ------- | ------ | ---------- | ------ | --------- | --------- | ---------- |
-| YOLOv8n | 72     | 3,151,904  | 8.7    | 16        | `False`   | `DFL`      |
-| YOLO11n | 100    | 2,616,248  | 6.5    | 16        | `False`   | `DFL`      |
-| YOLO26n | 122    | 2,408,932  | 5.5    | 1         | `True`    | `Identity` |
+| Model   | Layers | Parameters | GFLOPs | `reg_max` | DFL layer  |
+| ------- | ------ | ---------- | ------ | --------- | ---------- |
+| YOLOv8n | 72     | 3,151,904  | 8.7    | 16        | `DFL`      |
+| YOLO11n | 100    | 2,616,248  | 6.5    | 16        | `DFL`      |
+| YOLO26n | 120    | 2,408,932  | 5.5    | 1         | `Identity` |
 
-YOLO26n reports `reg_max=1`, `end2end=True`, and an `Identity` DFL layer — the architectural signature of its NMS-free, DFL-free head.
+YOLO26n reports `reg_max=1` and an `Identity` DFL layer. Prediction and validation use one-to-many with NMS by default; set `nms=False` for NMS-free inference. Both heads are trained.
 
 !!! note "Fused vs unfused counts"
 
@@ -284,7 +284,7 @@ Modern Ultralytics YOLO models are anchor-free. YOLOv8, YOLO11, and YOLO26 use a
 
 ### Did YOLO26 remove NMS?
 
-Yes — [YOLO26](../models/yolo26.md) sets `end2end=True`, which gives `Detect` a one-to-one head that produces a single prediction per object and removes the Non-Maximum Suppression post-processing step required by earlier models. See the [End-to-End Detection guide](end2end-detection.md) for details.
+Yes — [YOLO26](../models/yolo26.md) includes a one-to-one head that supports NMS-free inference with `nms=False`. Its default one-to-many inference path uses NMS, and both heads receive supervision during training. See the [End-to-End Detection guide](end2end-detection.md) for details.
 
 ### What is Distribution Focal Loss (DFL) and why did YOLO26 remove it?
 
@@ -292,4 +292,4 @@ DFL regresses each box coordinate as a softmax distribution over `reg_max` bins 
 
 ### How can I see the architecture of a specific YOLO model?
 
-Load the model in Python and call `model.info()` for a layer, parameter, and GFLOPs summary. The parsed layers are in `model.model.model` — for example, `model.model.model[-1]` is the `Detect` head, exposing attributes like `reg_max` and `end2end`. The full architecture is defined in the model's [YAML configuration file](model-yaml-config.md).
+Load the model in Python and call `model.info()` for a layer, parameter, and GFLOPs summary. The parsed layers are in `model.model.model` — for example, `model.model.model[-1]` is the `Detect` head, exposing attributes like `reg_max` and `dfl`. The full architecture is defined in the model's [YAML configuration file](model-yaml-config.md).

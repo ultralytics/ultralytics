@@ -145,8 +145,6 @@ class DetectionTrainer(BaseTrainer):
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model
-        if getattr(getattr(self.model, "student_model", self.model).model[-1], "one2one_cv2", None) is not None:
-            self.model.set_head_attr(max_det=self.args.max_det)
 
     def set_model_names_for_load(self, model):
         """Set target dataset names before loading weights so cls heads can remap by name."""

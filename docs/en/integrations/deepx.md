@@ -68,7 +68,7 @@ pip install "ultralytics[export-deepx]" --find-links https://sdk.deepx.ai/releas
 For an editable repository install, replace `"ultralytics[export-deepx]"` with `-e ".[export-base,export-deepx]"`. To reproduce the Python 3.12 environment and smoke export used by CI, run the existing environment builder from the repository root:
 
 ```bash
-ULTRALYTICS_ISOLATED_VENVS=.venvs python .github/scripts/create-export-env.py --env isolated-deepx
+ULTRALYTICS_ISOLATED_VENVS="$PWD/.venvs" python .github/scripts/create-export-env.py --env isolated-deepx
 ```
 
 The environment builder requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and an installed Ultralytics checkout. It installs the compiler from the SDK source and applies the tested dependency constraints automatically.

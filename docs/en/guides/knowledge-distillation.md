@@ -55,8 +55,8 @@ Knowledge distillation improves student [mAP](yolo-performance-metrics.md) acros
 | [YOLO26l-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 55.0                                   | **56.0**                                | 54.4                                         | **55.5**                                      |
 | [YOLO26x-distill](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 57.5                                   | **57.9**                                | 56.9                                         | **57.4**                                      |
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce a distilled row with `yolo val detect model=yolo26n-distill.pt data=coco.yaml device=0`; add `end2end=False` for the non-e2e column.
-- **e2e** values use the default NMS-free inference path; non-e2e values use traditional NMS post-processing (`end2end=False`). See [End-to-End Detection](end2end-detection.md) for details.
+- **mAP<sup>val</sup>** values are for single-model single-scale on the [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce a distilled row with `yolo val detect model=yolo26n-distill.pt data=coco.yaml device=0`; add `nms=False` for the e2e column.
+- **e2e** values use the NMS-free inference path (`nms=False`); non-e2e values use default NMS post-processing (`nms=None`). See [End-to-End Detection](end2end-detection.md) for details.
 
 ## Prerequisites
 

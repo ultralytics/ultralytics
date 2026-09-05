@@ -127,6 +127,7 @@ from ultralytics.utils.checks import (
     check_version,
     is_intel,
 )
+from ultralytics.utils.export.axelera import AXELERA_SDK
 from ultralytics.utils.files import file_size
 from ultralytics.utils.metrics import batch_probiou
 from ultralytics.utils.nms import TorchNMS
@@ -280,7 +281,7 @@ def export_formats():
 EXPORT_ENVS = {
     "base": {
         "python": None,
-        "extras": ["export-base"],
+        "extras": ["export-base", "export-openvino"],
         "torch": None,
         "requirements": [],
         "indexes": [],
@@ -365,15 +366,14 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=rknn model=yolo26n.pt imgsz=32 quantize=16"],
     },
     "isolated-axelera": {
-        # Axelera devkit 1.7.0 does not provide Python 3.13 wheels.
-        "python": "3.12",
+        "python": "3.13",
         "extras": ["export-base"],
-        # Axelera export requires 2.8.0 <= torch < 2.12.0.
-        "torch": ">=2.8,<2.12",
+        # Axelera export requires 2.8.0 <= torch < 2.13.0.
+        "torch": ">=2.8,<2.13",
         "requirements": [
-            "axelera-devkit==1.7.0",
+            f"axelera-devkit=={AXELERA_SDK}",
+            f"axelera-rt=={AXELERA_SDK}",
             "omnimalloc==0.5.0",
-            "numpy<=2.3.5",
             "onnx>=1.12.0,<2.0.0",
             "onnxslim>=0.1.71",
         ],
@@ -456,7 +456,7 @@ def validate_args(format, passed_args, valid_args):
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
     # Format-specific args come from the export table; skip inference args and quantize (validated above)
-    export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize"})
+    export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize", "nms"})
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
     custom = {"batch": 1, "data": None, "device": None}  # exporter defaults
@@ -652,10 +652,6 @@ class Exporter:
                 )
             if model.task in {"semantic", "depth"} and not family.startswith("yolo26"):
                 raise ValueError(f"Hailo export supports {model.task} models only for YOLO26.")
-            if self.args.end2end is not None:
-                raise ValueError(
-                    "Hailo export selects the model output path automatically; remove the end2end argument."
-                )
             self.args.name = str(self.args.name or "hailo8l").lower()
             hailo_archs = ("hailo8", "hailo8l", "hailo10h", "hailo15h", "hailo15l")
             if self.args.name not in hailo_archs:
@@ -672,16 +668,27 @@ class Exporter:
                 raise ValueError(
                     "IMX export only supported for detection, pose estimation, classification, and segmentation models."
                 )
+        memo = {}
+        if isinstance(model, WorldModel):
+            LOGGER.warning(
+                "YOLOWorld (original version) export is not supported to any format. "
+                "YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
+                "(torchscript, onnx, openvino, engine, coreml) formats. "
+                "See https://docs.ultralytics.com/models/yolo-world for details."
+            )
+            # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
+            memo[id(getattr(model, "clip_model", None))] = None
+        model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
         if not hasattr(model, "names"):
             model.names = default_class_names()
         model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):
-            if self.args.end2end is not None:
-                model.end2end = self.args.end2end
+            model.end2end = self.args.nms is False
+        if getattr(model, "end2end", False):
             if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
-                # Disable end2end branch for certain export formats as they does not support topk
+                # Disable the end2end branch for formats without top-k support
                 model.end2end = False
-                LOGGER.warning(f"{fmt.upper()} export does not support end2end models, disabling end2end branch.")
+                LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
             if fmt == "litert" and self.args.quantize in {8, "w8a16"}:
                 # Static activation quantization collapses the end2end class-index output; export raw and run NMS later
                 model.end2end = False
@@ -706,9 +713,8 @@ class Exporter:
                         # https://github.com/ultralytics/ultralytics/issues/23841
                         model.end2end = False
                         LOGGER.warning(
-                            "TensorRT 10.3.0 on JetPack 6 with int8 has known end2end build issues, disabling end2end branch. "
-                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-end2end-on-jetpack-6"
-                            ""
+                            "TensorRT 10.3.0 on JetPack 6 with INT8 cannot build NMS-free exports; selecting one-to-many outputs. "
+                            "For a fix, see https://docs.ultralytics.com/guides/nvidia-jetson#why-does-my-tensorrt-int8-export-disable-nms-free-inference-on-jetpack-6"
                         )
                 except ImportError:
                     pass
@@ -770,21 +776,25 @@ class Exporter:
             assert self.args.name in QNN_HTP_TARGETS, (
                 f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {tuple(QNN_HTP_TARGETS)}."
             )
+        if self.args.nms and "nms" not in fmt_keys:
+            LOGGER.warning(f"format={fmt} does not support embedded NMS; exporting native outputs for external NMS.")
+            self.args.nms = None
         if self.args.nms and model.task in {"semantic", "depth"}:
-            LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=False'.")
-            self.args.nms = False
+            LOGGER.warning(f"'nms=True' is not valid for {model.task} models. Forcing 'nms=None'.")
+            self.args.nms = None
         if fmt == "coreml" and self.args.nms and model.task not in {"detect", "segment", "pose"}:
             LOGGER.warning(
-                "CoreML 'nms=True' is only supported for detect, segment and pose models. Forcing 'nms=False'."
+                "CoreML 'nms=True' is only supported for detect, segment and pose models. Forcing 'nms=None'."
             )
-            self.args.nms = False
+            self.args.nms = None
         if self.args.nms:
             assert not isinstance(model, ClassificationModel), "'nms=True' is not valid for classification models."
             assert not is_tf_format or TORCH_1_13, "TensorFlow exports with NMS require torch>=1.13"
             assert fmt != "onnx" or TORCH_1_13, "ONNX export with NMS requires torch>=1.13"
+            # A previously fused checkpoint may only have its one-to-one branch remaining.
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
-                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=False'.")
-                self.args.nms = False
+                LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=None'.")
+                self.args.nms = None
             self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
         if fmt == "mnn" and self.args.nms:
             if self.args.dynamic:
@@ -809,9 +819,7 @@ class Exporter:
                     "'dynamic=True' is not supported for CoreML classification or RT-DETR models."
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
-            LOGGER.warning(
-                f"'dynamic=True' model with '{'nms=True' if self.args.nms else f'format={self.args.format}'}' requires max batch size, i.e. 'batch=16'"
-            )
+            LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
         if fmt == "edgetpu":
             if not LINUX or ARM64:
                 raise SystemError(
@@ -820,14 +828,6 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
-        if isinstance(model, WorldModel):
-            LOGGER.warning(
-                "YOLOWorld (original version) export is not supported to any format. "
-                "YOLOWorldv2 models (i.e. 'yolov8s-worldv2.pt') only support export to "
-                "(torchscript, onnx, openvino, engine, coreml) formats. "
-                "See https://docs.ultralytics.com/models/yolo-world for details."
-            )
-            model.clip_model = None  # openvino int8 export error: https://github.com/ultralytics/ultralytics/pull/18445
         if self.args.quantize in {8, "w8a16"} and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
@@ -851,7 +851,6 @@ class Exporter:
             file = Path(file.name)
 
         # Update model
-        model = deepcopy(model).to(self.device)
         for p in model.parameters():
             p.requires_grad = False
         model.eval()
@@ -1663,6 +1662,7 @@ class Exporter:
         head = self.model.model[head_index]
         one2one = getattr(self.model, "end2end", False)
         task = self.model.task
+        raw_detect = task == "detect" and head.reg_max == 1
         if task == "classify":
             # The Classify head ends in Gemm -> Softmax; cut at the Softmax so the HEF returns the same
             # (1, nc) probabilities as the PyTorch model. The DFC translates the softmax to a native layer.
@@ -1684,9 +1684,10 @@ class Exporter:
             end_nodes = [f"/model.{head_index}/head/head.3/Conv"]
         else:
             scales = range(len(head.one2one_cv2 if one2one else head.cv2))
-            if one2one:
+            if raw_detect:
+                branch_prefix = "one2one_" if one2one else ""
                 end_nodes = [
-                    f"/model.{head_index}/one2one_cv{branch}.{i}/one2one_cv{branch}.{i}.2/Conv"
+                    f"/model.{head_index}/{branch_prefix}cv{branch}.{i}/{branch_prefix}cv{branch}.{i}.2/Conv"
                     for branch in (2, 3)
                     for i in scales
                 ]
@@ -1715,8 +1716,8 @@ class Exporter:
                 "model_optimization_flavor(optimization_level=2)",
                 f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
             ]
-            if one2one or task == "depth":
-                # a16 on the output(s): the NMS-free detect logits and the single dense depth logit both need the
+            if raw_detect or task == "depth":
+                # a16 on the output(s): the DFL-free detect logits and the single dense depth logit both need the
                 # wider activation to keep their range (a8 collapses the depth map; validated on Hailo-8L).
                 outputs = ", ".join(f"output_layer{i + 1}" for i in range(len(end_nodes)))
                 model_script.append(f"quantization_param([{outputs}], precision_mode=a16_w16)")
@@ -1780,7 +1781,7 @@ class Exporter:
                 {
                     **self.metadata,
                     "hailo_arch": self.args.name,
-                    "nms": task == "detect" and not one2one,
+                    "nms": task == "detect" and not raw_detect,
                     "semantic_baked": task == "semantic" and head.bake_argmax,
                     # Depth's learned log-affine calibration is applied on the host, so it must ride in metadata.
                     **({"cal_a": float(head.cal_a), "cal_b": float(head.cal_b)} if task == "depth" else {}),

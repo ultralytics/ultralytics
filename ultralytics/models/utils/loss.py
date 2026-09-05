@@ -142,8 +142,9 @@ class DETRLoss(nn.Module):
 
         loss = {}
         if len(gt_bboxes) == 0:
-            loss[name_bbox] = torch.tensor(0.0, device=self.device)
-            loss[name_giou] = torch.tensor(0.0, device=self.device)
+            # WARNING: lines below prevent Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+            loss[name_bbox] = pred_bboxes[..., :0].sum()
+            loss[name_giou] = pred_bboxes[..., :0].sum()
             return loss
 
         loss[name_bbox] = self.loss_gain["bbox"] * F.l1_loss(pred_bboxes, gt_bboxes, reduction="sum") / len(gt_bboxes)

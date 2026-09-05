@@ -129,11 +129,11 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
+        self.check_resume(overrides)
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
             self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
-        self.check_resume(overrides)
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
         self.accelerator = get_torch_device_backend(self.device) if self.device.type not in {"cpu", "mps"} else None
@@ -164,7 +164,9 @@ class BaseTrainer:
             self.args.workers = 0  # faster CPU training as time dominated by inference, not dataloading
 
         # Callbacks - initialize early so on_pretrain_routine_start can capture original args.data
-        self.callbacks = _callbacks or callbacks.get_default_callbacks()
+        self.callbacks = copy(_callbacks) if _callbacks else callbacks.get_default_callbacks()
+        for k, v in self.callbacks.items():
+            self.callbacks[k] = v.copy()
 
         # Device count in the launching process; distinct from utils.WORLD_SIZE set in spawned DDP workers
         if self.device.type in {"cpu", "mps"}:
@@ -411,8 +413,8 @@ class BaseTrainer:
             self.args.batch = self.batch_size = self.auto_batch()
         self._build_train_pipeline()
         self.validator = self.get_validator()
-        self.ema = ModelEMA(self.model)
         self.set_class_weights()  # compute class weights after dataloader is ready
+        self.ema = ModelEMA(self.model)  # after set_class_weights, so the copy carries them at any nesting depth
         if RANK in {-1, 0}:
             metric_keys = self.validator.metrics.keys + self.label_loss_items(prefix="val")
             self.metrics = dict(zip(metric_keys, [0] * len(metric_keys)))
@@ -723,7 +725,7 @@ class BaseTrainer:
         # save_model would otherwise skip every epoch and the run would finish with no checkpoint on valid input.
         # Resync each poisoned EMA tensor from the live model where finite; any tensor that is non-finite in both is
         # left for the nan_to_num_ pass below, so a usable checkpoint is always written.
-        ema = unwrap_model(self.ema.ema)
+        ema = self.ema.ema
         if not all(torch.isfinite(v).all() for v in ema.state_dict().values() if isinstance(v, torch.Tensor)):
             model_sd = unwrap_model(self.model).state_dict()
             for k, v in ema.state_dict().items():
@@ -1068,11 +1070,12 @@ class BaseTrainer:
         )
         LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
         self._load_checkpoint_state(ckpt)
-        if getattr(unwrap_model(self.model), "end2end", False):
-            # initialize loss and resume o2o and o2m args
-            unwrap_model(self.model).criterion = unwrap_model(self.model).init_criterion()
-            unwrap_model(self.model).criterion.updates = start_epoch - 1
-            unwrap_model(self.model).criterion.update()
+        model = unwrap_model(self.model)
+        if getattr(getattr(model, "student_model", model).model[-1], "one2one_cv2", None) is not None:
+            # Resume both head losses independently of the selected inference head.
+            model.criterion = model.init_criterion()
+            model.criterion.updates = start_epoch - 1
+            model.criterion.update()
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()
@@ -1247,7 +1250,9 @@ class MultiTrainer:
                 LOGGER.info(
                     f"\n{colorstr('blue', 'bold', f'MultiTrainer {i + 1}/{len(datasets)}:')} fine-tuning on {data}"
                 )
-                name = Path(str(data)).stem
+                path = Path(str(data))
+                parent = path.parent.name
+                name = Path(os.path.abspath(path.parent)).name if path.stem == "data" and parent else path.stem
                 run_name = name
                 try:
                     overrides = {

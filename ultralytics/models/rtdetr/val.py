@@ -8,6 +8,7 @@ from typing import Any
 import torch
 
 from ultralytics.data import YOLODataset
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import colorstr, ops
 
@@ -120,6 +121,9 @@ class RTDETRValidator(DetectionValidator):
             prefix=colorstr(f"{mode}: "),
             classes=self.args.classes,
             data=self.data,
+            fraction=1.0
+            if self.data.get("complete")
+            else get_split_fraction(self.args.fraction, self.args.split or "val"),
         )
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:

@@ -23,3 +23,6 @@
 | [LiteRT]({{ integrations_path or "../integrations" }}/litert.md) | `litert` | `{{ model_name or "yolo26n" }}.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
 | [Hailo]({{ integrations_path or "../integrations" }}/hailo.md) | `hailo` | `{{ model_name or "yolo26n" }}_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
 | [Huawei Ascend]({{ integrations_path or "../integrations" }}/ascend.md) | `ascend` | `{{ model_name or "yolo26n" }}_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`{{ tip1 }} |
+| [Apple Core AI]({{ integrations_path or "../integrations" }}/coreai.md) | `coreai` | `{{ model_name or "yolo26n" }}.aimodel` | ✅ | `imgsz`, `batch`, `quantize` |
+
+`nms=None` defaults to raw outputs for external NMS. Set `nms=False` to select an available NMS-free head; unsupported formats fall back to their native output path. The `nms` entries above identify formats that can embed NMS with `nms=True`.

@@ -54,7 +54,7 @@
 
 ## 📄 文档
 
-请参阅下文了解快速安装和使用示例。有关训练、验证、预测和部署的全面指南，请参阅我们的完整 [Ultralytics 文档](https://docs.ultralytics.com)。
+请参阅下文了解快速安装和使用示例。准备阅读源码并定制网络结构、训练流程或损失函数的研究人员，可以从 [YOLO 科研定制 Quickstart](RESEARCH_QUICKSTART.zh-CN.md) 开始。有关训练、验证、预测和部署的全面指南，请参阅我们的完整 [Ultralytics 文档](https://docs.ultralytics.com)。
 
 <details open>
 <summary>安装</summary>

@@ -986,7 +986,19 @@ def test_platform_job_transport(monkeypatch, tmp_path):
 def test_train_scratch():
     """Test training the YOLO model from scratch on 12 different image types in the COCO12-Formats dataset."""
     model = YOLO(CFG)
-    model.train(data="coco12-formats.yaml", epochs=2, imgsz=32, cache="disk", batch=-1, close_mosaic=1, name="model")
+    model.train(
+        data="coco12-formats.yaml",
+        epochs=3,
+        imgsz=32,
+        cache="disk",
+        batch=-1,
+        close_mosaic=1,
+        name="model",
+        val_period=3,
+    )
+    with open(model.trainer.save_dir / "results.csv", encoding="utf-8") as f:
+        mAP = [row["metrics/mAP50-95(B)"] for row in csv.DictReader(f)]
+    assert mAP[0] and mAP[1] == "" and mAP[2], f"val_period=3 must validate epochs 1 and 3 only, got {mAP}"
     model(SOURCE)
 
 

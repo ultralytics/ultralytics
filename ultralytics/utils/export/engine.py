@@ -7,6 +7,7 @@ import re
 import types
 from pathlib import Path
 
+import numpy as np
 import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
@@ -116,6 +117,8 @@ def modelopt_quantize_onnx(
     dataset=None,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dynamic: bool = False,
+    dynamic_dim: int = 1,
+    calib_shapes: dict[str, tuple] | None = None,
     prefix: str = "",
 ) -> str:
     """Bake reduced precision into an ONNX model for TensorRT 11 strongly-typed builds using NVIDIA ModelOpt.
@@ -131,6 +134,10 @@ def modelopt_quantize_onnx(
             Required when ``quantize=8``.
         shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
+        dynamic_dim (int): Size to substitute for symbolic dimensions when synthesizing calibration data.
+        calib_shapes (dict[str, tuple] | None): Exact calibration shape per input name, overriding the synthesized
+            one. Needed when several inputs carry related symbolic dimensions, such as feature pyramid levels that
+            must stay at their fixed ratio for the graph to run at all.
         prefix (str): Prefix for log messages.
 
     Returns:
@@ -143,7 +150,8 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
-    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
+    graph_inputs = onnx.load(onnx_file, load_external_data=False).graph.input
+    input_name = graph_inputs[0].name
     if quantize == 8:
         from modelopt.onnx.quantization import quantize as modelopt_quantize
 
@@ -175,14 +183,35 @@ def modelopt_quantize_onnx(
 
     from modelopt.onnx import autocast
 
+    # AutoCast only needs representative shapes and ranges, so synthesize one tensor per graph input
+    # from its own declared rank and dtype. A single 4D float image reproduces the original behavior,
+    # while multi input graphs also get valid token ids, masks and symbolic dims.
+    calib = {}
+    for inp in graph_inputs:
+        tt = inp.type.tensor_type
+        dims = [d.dim_value if d.dim_value > 0 else dynamic_dim for d in tt.shape.dim]
+        if not dims:  # a scalar input still needs an array
+            dims = [1]
+        if calib_shapes and inp.name in calib_shapes:
+            dims = list(calib_shapes[inp.name])
+        # Only a dynamic image input needs the caller's size; a declared shape is already correct and
+        # must be kept, otherwise a non image first input would be calibrated at the wrong shape.
+        elif inp.name == input_name and len(dims) == len(shape) and any(d.dim_value <= 0 for d in tt.shape.dim):
+            dims = list(shape)
+        np_dtype = onnx.helper.tensor_dtype_to_np_dtype(tt.elem_type)
+        if np_dtype == np.bool_:
+            calib[inp.name] = np.zeros(dims, dtype=np.bool_)
+        elif np.issubdtype(np_dtype, np.integer):
+            # Integer inputs are usually indices into an embedding, so keep them small and in range.
+            calib[inp.name] = np.ones(dims, dtype=np_dtype)
+        else:
+            calib[inp.name] = np.random.randn(*dims).astype(np_dtype)
+
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
     onnx.save(
         autocast.convert_to_mixed_precision(
-            onnx_file,
-            low_precision_type="fp16",
-            keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            onnx_file, low_precision_type="fp16", keep_io_types=True, calibration_data=calib
         ),
         out_file,
     )
@@ -201,6 +230,9 @@ def onnx2engine(
     metadata: dict | None = None,
     verbose: bool = False,
     prefix: str = "",
+    profile_shapes: dict[str, tuple[tuple, ...]] | None = None,
+    strongly_typed: bool = False,
+    onnx_bytes: bytes | None = None,
 ) -> str:
     """Export a YOLO model to TensorRT engine format.
 
@@ -216,6 +248,13 @@ def onnx2engine(
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
+        profile_shapes (dict[str, tuple[tuple, ...]] | None): Per-input ``(min, opt, max)`` shapes for the optimization
+            profile, covering every network input. For multi-input graphs where one uniform ``dynamic`` profile is
+            wrong. Implies a profile is always added, and each input must be present.
+        strongly_typed (bool): Create a strongly-typed network (TensorRT >= 10) that honors per-node precision baked
+            into the ONNX, instead of the legacy FP16 builder flag. Pair with a ModelOpt-quantized ``onnx_file``.
+        onnx_bytes (bytes | None): Parse these bytes instead of reading ``onnx_file``, for graphs that need a
+            TensorRT-specific adjustment the exported file should not carry.
 
     Returns:
         (str): Path to the exported engine file.
@@ -267,6 +306,9 @@ def onnx2engine(
             config.max_workspace_size = workspace_bytes
     # EXPLICIT_BATCH flag is removed in TensorRT 10 (explicit batch is the only/default mode); keep it for TRT 7/8
     flag = 0 if is_trt10 else (1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+    if strongly_typed:  # a strongly-typed network honors per-node precision baked into the ONNX graph
+        check_version(trt.__version__, ">=10.0.0", name="TensorRT strongly-typed build", hard=True)
+        flag = 1 << int(trt.NetworkDefinitionCreationFlag.STRONGLY_TYPED)
     network = builder.create_network(flag)
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
@@ -292,13 +334,14 @@ def onnx2engine(
         config.set_flag(trt.BuilderFlag.GPU_FALLBACK)
 
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
-    # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
-    if is_trt11 and (use_fp16 or use_int8):
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+    # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ).
+    # A strongly-typed build on TensorRT 10 follows the same path so its per-node precision is honored.
+    if (is_trt11 or strongly_typed) and (use_fp16 or use_int8):
+        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix=prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
-    if not parser.parse_from_file(onnx_file):
+    if not (parser.parse(onnx_bytes) if onnx_bytes is not None else parser.parse_from_file(onnx_file)):
         raise RuntimeError(f"failed to load ONNX file: {onnx_file}")
 
     # Network inputs
@@ -309,7 +352,13 @@ def onnx2engine(
     for out in outputs:
         LOGGER.info(f'{prefix} output "{out.name}" with shape{out.shape} {out.dtype}')
 
-    if dynamic:
+    if profile_shapes:
+        profile = builder.create_optimization_profile()
+        for inp in inputs:
+            assert inp.name in profile_shapes, f"{prefix} no profile shape for input '{inp.name}'"
+            profile.set_shape(inp.name, *profile_shapes[inp.name])
+        config.add_optimization_profile(profile)
+    elif dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
         max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
@@ -321,10 +370,9 @@ def onnx2engine(
         if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
-    LOGGER.info(
-        f"{prefix} building {'INT8' if use_int8 else 'FP' + ('16' if use_fp16 else '32')} engine as {output_file}"
-    )
-    if use_int8 and not is_trt11:
+    precision = "INT8" if use_int8 else "mixed FP16" if strongly_typed else f"FP{'16' if use_fp16 else '32'}"
+    LOGGER.info(f"{prefix} building {precision} engine as {output_file}")
+    if use_int8 and not (is_trt11 or strongly_typed):
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
 
@@ -428,7 +476,7 @@ def onnx2engine(
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
             LOGGER.info(f"{prefix} keeping {count} head Sigmoid layers in FP32 for INT8 accuracy")
 
-    elif use_fp16 and not is_trt11:
+    elif use_fp16 and not (is_trt11 or strongly_typed):
         config.set_flag(trt.BuilderFlag.FP16)
 
     # Write file

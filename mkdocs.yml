@@ -769,6 +769,7 @@ nav:
               - pytorch: reference/nn/backends/pytorch.md
               - qnn: reference/nn/backends/qnn.md
               - rknn: reference/nn/backends/rknn.md
+              - sam3: reference/nn/backends/sam3.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
               - triton: reference/nn/backends/triton.md
@@ -856,6 +857,7 @@ nav:
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
+              - sam3_onnx: reference/utils/export/sam3_onnx.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md
           - files: reference/utils/files.md

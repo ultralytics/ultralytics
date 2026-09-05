@@ -276,12 +276,12 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     === "Raspberry Pi 5"
 
-        | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLO26n | PyTorch     | ✅     | 5.3       | 0.4790              | 314.80                  |
-        | YOLO26n | ExecuTorch  | ✅     | 9.4        | 0.4800              | 142                    |
-        | YOLO26s | PyTorch     | ✅     | 19.5       | 0.5730             | 930.90                 |
-        | YOLO26s | ExecuTorch  | ✅     | 36.5        | 0.5780              | 376.1                 |
+        | Model   | Format     | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ---------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n | PyTorch    | ✅     | 5.3       | 0.4790              | 314.80                 |
+        | YOLO26n | ExecuTorch | ✅     | 9.4       | 0.4800              | 142                    |
+        | YOLO26s | PyTorch    | ✅     | 19.5      | 0.5730              | 930.90                 |
+        | YOLO26s | ExecuTorch | ✅     | 36.5      | 0.5780              | 376.1                  |
 
     === "More devices coming soon!"
 

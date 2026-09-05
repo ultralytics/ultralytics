@@ -175,6 +175,8 @@ For mobile applications (iOS/Android), you'll need to:
 2. **Load Model**: Load the `.pte` file in your application
 3. **Run Inference**: Process images and get predictions
 
+#### iOS
+
 Example iOS integration (Objective-C/C++):
 
 ```objc
@@ -194,6 +196,16 @@ auto tensor = from_blob(input, {1, 3, 640, 640});
 
 // Run inference
 const auto result = module.forward(tensor);
+```
+
+#### Android
+
+Add the [ExecuTorch Android AAR](https://docs.pytorch.org/executorch/stable/using-executorch-android.html) from Maven Central:
+
+```kotlin
+dependencies {
+    implementation("org.pytorch:executorch-android:<version>")
+}
 ```
 
 Example Android integration (Kotlin):
@@ -264,12 +276,12 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     === "Raspberry Pi 5"
 
-        | Model   | Format      | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
-        | ------- | ----------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLO26n | PyTorch     | ✅     | 5.3       | 0.4790              | 314.80                  |
-        | YOLO26n | ExecuTorch  | ✅     | 9.4        | 0.4800              | 142                    |
-        | YOLO26s | PyTorch     | ✅     | 19.5       | 0.5730             | 930.90                 |
-        | YOLO26s | ExecuTorch  | ✅     | 36.5        | 0.5780              | 376.1                 |
+        | Model   | Format     | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ---------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n | PyTorch    | ✅     | 5.3       | 0.4790              | 314.80                 |
+        | YOLO26n | ExecuTorch | ✅     | 9.4       | 0.4800              | 142                    |
+        | YOLO26s | PyTorch    | ✅     | 19.5      | 0.5730              | 930.90                 |
+        | YOLO26s | ExecuTorch | ✅     | 36.5      | 0.5780              | 376.1                  |
 
     === "More devices coming soon!"
 

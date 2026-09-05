@@ -143,13 +143,13 @@ Each log entry shows:
 
     Each entry carries a color-coded severity bar:
 
-    | Level        | Color  | Description         |
-    | ------------ | ------ | ------------------- |
-    | **DEBUG**    | Gray   | Debug messages      |
-    | **INFO**     | Blue   | Normal requests     |
-    | **WARNING**  | Amber  | Non-critical issues |
-    | **ERROR**    | Red    | Failed requests     |
-    | **CRITICAL** | Red    | Critical failures   |
+    | Level        | Color | Description         |
+    | ------------ | ----- | ------------------- |
+    | **DEBUG**    | Gray  | Debug messages      |
+    | **INFO**     | Blue  | Normal requests     |
+    | **WARNING**  | Amber | Non-critical issues |
+    | **ERROR**    | Red   | Failed requests     |
+    | **CRITICAL** | Red   | Critical failures   |
 
     The API accepts the full set of log severities as a comma-separated filter: `DEBUG`, `INFO`, `NOTICE`, `WARNING`, `ERROR`, `CRITICAL`, `ALERT`, and `EMERGENCY`.
 

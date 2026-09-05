@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: CC-BY-SA-3.0
+    url: https://creativecommons.org/licenses/by-sa/3.0/
 description: Explore the Hypersim depth dataset for monocular depth estimation, a photorealistic synthetic indoor dataset with dense per-pixel ground truth used to train Ultralytics YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, Hypersim, synthetic indoor dataset, photorealistic, dense depth, monocular depth
 ---

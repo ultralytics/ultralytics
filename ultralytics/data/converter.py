@@ -17,6 +17,7 @@ import numpy as np
 from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
@@ -409,7 +410,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix in {".png", ".jpg"}:
             mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
-            img_height, img_width = mask.shape[:2]  # patched Windows imread returns (H, W, 1) for grayscale
+            img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
             unique_values = np.unique(mask)  # Get unique pixel values representing different classes
@@ -814,7 +815,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
@@ -830,6 +831,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
+        fraction (float | int | list): Train ratio/count or [train, val, test] ratios/counts to download.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
@@ -850,14 +852,18 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
+    if isinstance(fraction, list):
+        fraction = [get_split_fraction(fraction, split) for split in ("train", "val", "test")[: len(fraction)]]
+    else:
+        fraction = get_split_fraction(fraction, "train")
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
-    source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
+    source_hash = hashlib.sha256(repr((source_id, fraction)).encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local, fraction)
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
@@ -876,7 +882,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -906,7 +912,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256()
+    _h = hashlib.sha256(repr(fraction).encode())
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
@@ -945,7 +951,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
-    # Depth adds one sibling URL per image record; file naming, caching, and retries remain shared.
+    # Depth adds one sibling URL per image record. File naming, caching, and retries remain shared.
     if is_depth:
         for record in image_records:
             depth = record.get("depth")
@@ -1003,6 +1009,16 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
                 inferred_nc = max_class_id + 1
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
+
+    selected = []
+    for split in ("train", "val", "test"):
+        limit = get_split_fraction(fraction, split)
+        if limit:
+            records = sorted((r for r in image_records if r["split"] == split), key=lambda r: r["file"])
+            count = min(limit if type(limit) is int else round(len(records) * limit), len(records))
+            selected.extend(records[i] for i in np.linspace(0, len(records) - 1, count, dtype=int))
+    image_records = selected
+    split_counts = {split: sum(r["split"] == split for r in image_records) for split in ("train", "val", "test")}
 
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
@@ -1102,7 +1118,8 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
     async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
-            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
+            desc=f"Converting {ndjson_path.name} fraction={fraction} → {dataset_dir} "
+            f"using {split_counts['train']} train, {split_counts['val']} val, {split_counts['test']} test images",
         )
 
         async def tracked_process(record):

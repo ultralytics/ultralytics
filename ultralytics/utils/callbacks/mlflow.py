@@ -17,8 +17,6 @@ Commands:
        It will by default start a local server at http://127.0.0.1:5000.
        To specify a different URI, set the MLFLOW_TRACKING_URI environment variable.
 
-    4. To kill all running MLflow server instances:
-        ps aux | grep 'mlflow' | grep -v 'grep' | awk '{print $2}' | xargs kill -9
 """
 
 import os

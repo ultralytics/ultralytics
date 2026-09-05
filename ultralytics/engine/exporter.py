@@ -26,6 +26,7 @@ LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 Apple Core AI           | `coreai`                  | yolo26n.aimodel
+ExportedProgram         | `exported_program`        | yolo26n.pt2
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -273,6 +274,7 @@ def export_formats():
             ["batch", "quantize"],
             "base",
         ],
+        ["ExportedProgram", "exported_program", ".pt2", False, False, ["batch"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -544,6 +546,7 @@ class Exporter:
         export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
+        export_exported_program: Export model to ExportedProgram (PT2) format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -1481,6 +1484,20 @@ class Exporter:
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
             model_name=self.file.stem,
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_exported_program(self, prefix=colorstr("ExportedProgram:")):  # noqa: B008
+        """Export YOLO model to torch.export ExportedProgram *.pt2 format."""
+        assert TORCH_2_9, f"ExportedProgram requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.exported_program import torch2exported_program
+
+        return torch2exported_program(
+            model=self.model,
+            im=self.im,
+            output_file=self.file.with_suffix(".pt2"),
             metadata=self.metadata,
             prefix=prefix,
         )

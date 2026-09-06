@@ -70,7 +70,7 @@ class GMC:
 
         elif self.method == "sparseOptFlow":
             self.feature_params = {
-                "maxCorners": 1000,
+                "maxCorners": 400,  # over-determines the 4-DOF transform; optical flow costs one solve per corner
                 "qualityLevel": 0.01,
                 "minDistance": 0,  # integer-pixel corners: 1 rejects nothing but forces a per-pixel grid
                 "blockSize": 3,

@@ -108,7 +108,7 @@ There are a couple of other techniques to consider when handling a large dataset
 
 - **[Learning Rate](https://www.ultralytics.com/glossary/learning-rate) Schedulers**: Implementing learning rate schedulers dynamically adjusts the learning rate during training. A well-tuned learning rate can prevent the model from overshooting minima and improve stability. When training YOLO26, the `lrf` parameter helps manage learning rate scheduling by setting the final learning rate as a fraction of the initial rate. For behavior no argument exposes, such as per-layer learning rates or gradient clipping, [subclass the trainer](./custom-trainer.md).
 - **Distributed Training**: For handling large datasets, distributed training can be a game-changer. You can reduce the training time by spreading the training workload across multiple GPUs or machines. This approach is particularly valuable for enterprise-scale projects with substantial computational resources.
-- **Channels-last memory format**: `channels_last=True` uses NHWC memory layout on CUDA, which can improve convolution performance on compatible hardware. Other devices warn and keep the default layout.
+- **Channels-last memory format**: CUDA training automatically uses the faster NHWC memory layout on PyTorch 1.11 and newer. Set `channels_last=False` to keep NCHW; PyTorch 1.10 and older, CPU, and MPS remain NCHW by default.
 
 ## The Number of Epochs To Train For
 

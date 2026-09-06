@@ -232,9 +232,9 @@ For deployment on specific hardware platforms, consider using specialized export
 
 When you export a YOLO model to formats like ONNX or TensorRT, the output tensor structure depends on the model task. Understanding these outputs is important for custom inference implementations.
 
-For **YOLO26 detection models** (e.g., `yolo26n.pt`), end-to-end export is enabled by default in formats that support it, so the output is shaped like `(batch_size, max_detections, 6)` with `[x1, y1, x2, y2, confidence, class_id]` values. With the default `max_det=300`, this is commonly `(batch_size, 300, 6)`. Some constrained formats automatically fall back to the traditional output layout when end-to-end operators are unsupported.
+For **YOLO26 detection models** (e.g., `yolo26n.pt`) exported with `nms=False`, supported formats produce NMS-free output shaped like `(batch_size, max_detections, 6)` with `[x1, y1, x2, y2, confidence, class_id]` values. With the default `max_det=300`, this is commonly `(batch_size, 300, 6)`. Some constrained formats automatically fall back to the traditional output layout when end-to-end operators are unsupported.
 
-For non-end-to-end detection models, or YOLO26 models exported with `end2end=False`, the output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
+By default (`nms=None`), detection models including YOLO26 export raw one-to-many predictions: the output is typically a single tensor shaped like `(batch_size, 4 + num_classes, num_predictions)` where the channels represent box coordinates plus per-class scores, and `num_predictions` depends on the export input resolution (and can be dynamic). The [End-to-End Detection guide](../guides/end2end-detection.md) covers which formats keep the end-to-end output.
 
 For **segmentation models** (e.g., `yolo26n-seg.pt`), you'll typically get two outputs: the first tensor shaped like `(batch_size, 4 + num_classes + mask_dim, num_predictions)` (boxes, class scores, and mask coefficients), and the second tensor shaped like `(batch_size, mask_dim, proto_h, proto_w)` containing mask prototypes used with the coefficients to generate instance masks. Sizes depend on the export input resolution (and can be dynamic).
 
@@ -251,16 +251,16 @@ that runtime's native C++ API.
 
 For example, export a detection model with `yolo export model=yolo26n.pt format=onnx` and run the `.onnx` file with
 ONNX Runtime C++, or export with `format=engine` and run the TensorRT engine from a TensorRT C++ application. When you
-use custom C++ post-processing, match the output tensor layout for your task and export settings; YOLO26 end-to-end
-detection exports usually return `(batch, max_det, 6)`, while non-end-to-end exports return raw prediction tensors that
-require external post-processing.
+use custom C++ post-processing, match the output tensor layout for your task and export settings; default YOLO26 detection
+exports return raw prediction tensors that require external NMS. Export with `nms=False` for NMS-free detections shaped
+`(batch, max_det, 6)`, or `nms=True` to embed NMS in supported formats.
 
-### Why is `output0` FP32 when exporting quantized models with `end2end=True`?
+### Why is `output0` FP32 when exporting quantized models with `nms=False`?
 
-When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors are converted to lower precision to reduce model size and improve performance. However, when `end2end=True` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
+When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors are converted to lower precision to reduce model size and improve performance. However, when `nms=False` is enabled, post-processing (including class indices) is embedded directly in the exported graph.
 
 The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
 
 This behavior is expected and also applies to lower-precision or quantized exports where class index fidelity must be preserved.
 
-If full FP16 outputs are required, export with `end2end=False` and perform post-processing externally.
+If full FP16 outputs are required, export with `nms=None` and perform post-processing externally.

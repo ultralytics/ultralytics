@@ -261,23 +261,20 @@ class BaseModel(torch.nn.Module):
                 if isinstance(m, RepVGGDW):
                     m.fuse()
                     m.forward = m.forward_fuse
-                if isinstance(m, Detect) and getattr(m, "end2end", False):
-                    m.fuse()  # remove one2many head
+                if isinstance(m, Detect):
+                    m.fuse()  # remove the unused detection branch
             self.info(verbose=verbose, imgsz=imgsz)
 
         return self
 
-    def is_fused(self, thresh=10):
-        """Check if the model has less than a certain threshold of normalization layers.
-
-        Args:
-            thresh (int, optional): The threshold number of normalization layers.
-
-        Returns:
-            (bool): True if the number of normalization layers in the model is less than the threshold, False otherwise.
-        """
-        bn = tuple(v for k, v in torch.nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()
-        return sum(isinstance(v, bn) for v in self.modules()) < thresh  # True if < 'thresh' BatchNorm layers in model
+    def is_fused(self):
+        """Return True once fuse() has nothing left to do."""
+        return not any(
+            (isinstance(m, (Conv, ConvTranspose)) and hasattr(m, "bn"))
+            or (isinstance(m, (RepConv, RepVGGDW)) and hasattr(m, "conv1"))
+            or (isinstance(m, Detect) and m.cv2 is not None and getattr(m, "one2one_cv2", None) is not None)
+            for m in self.modules()
+        )
 
     def info(self, detailed=False, verbose=True, imgsz=640):
         """Print model information.
@@ -315,7 +312,7 @@ class BaseModel(torch.nn.Module):
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress.
         """
-        model = weights["model"] if isinstance(weights, dict) else weights  # torchvision models are not dicts
+        model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
 
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)
@@ -334,8 +331,11 @@ class BaseModel(torch.nn.Module):
                 c1, c2 = min(c1, cc1), min(c2, cc2)
                 state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
                 len_updated_csd += 1
+        self.pt_path = getattr(model, "pt_path", None)  # provenance follows the weights selected above
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
+            if getattr(model, "is_fused", lambda: False)() and not self.is_fused():
+                LOGGER.warning("Pretrained weights are fused for inference; train from the unfused checkpoint instead.")
 
     def _remap_cls_by_names(self, csd: dict[str, torch.Tensor], src_model: torch.nn.Module, verbose: bool = True):
         """Remap pretrained classification head rows to current class order by name.
@@ -486,7 +486,7 @@ class DetectionModel(BaseModel):
             def _forward(x):
                 """Perform a forward pass through the model, handling different Detect subclass types accordingly."""
                 output = self.forward(x)
-                if self.end2end:
+                if "one2many" in output:
                     output = output["one2many"]
                 return output["feats"]
 
@@ -512,8 +512,9 @@ class DetectionModel(BaseModel):
 
     @end2end.setter
     def end2end(self, value):
-        """Override the end-to-end detection mode."""
-        self.set_head_attr(end2end=value)
+        """Select the inference head while retaining both branches for training."""
+        if isinstance(self.model[-1], Detect):
+            self.model[-1].end2end = value
 
     def set_head_attr(self, **kwargs):
         """Set attributes of the model head (last layer).
@@ -594,7 +595,7 @@ class DetectionModel(BaseModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the DetectionModel."""
-        return E2ELoss(self) if getattr(self, "end2end", False) else v8DetectionLoss(self)
+        return E2ELoss(self) if getattr(self.model[-1], "one2one_cv2", None) is not None else v8DetectionLoss(self)
 
 
 class OBBModel(DetectionModel):
@@ -626,7 +627,7 @@ class OBBModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the model."""
-        return E2ELoss(self, v8OBBLoss) if getattr(self, "end2end", False) else v8OBBLoss(self)
+        return E2ELoss(self, v8OBBLoss) if getattr(self.model[-1], "one2one_cv2", None) is not None else v8OBBLoss(self)
 
 
 class SegmentationModel(DetectionModel):
@@ -658,7 +659,11 @@ class SegmentationModel(DetectionModel):
 
     def init_criterion(self):
         """Initialize the loss criterion for the SegmentationModel."""
-        return E2ELoss(self, v8SegmentationLoss) if getattr(self, "end2end", False) else v8SegmentationLoss(self)
+        return (
+            E2ELoss(self, v8SegmentationLoss)
+            if getattr(self.model[-1], "one2one_cv2", None) is not None
+            else v8SegmentationLoss(self)
+        )
 
 
 class SemanticSegmentationModel(BaseModel):
@@ -772,7 +777,7 @@ class PoseModel(DetectionModel):
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""
         loss = PoseLoss26 if isinstance(self.model[-1], Pose26) else v8PoseLoss
-        return E2ELoss(self, loss) if self.end2end else loss(self)
+        return E2ELoss(self, loss) if getattr(self.model[-1], "one2one_cv2", None) is not None else loss(self)
 
 
 class DepthModel(DetectionModel):
@@ -1306,8 +1311,8 @@ class YOLOEModel(DetectionModel):
         with torch.no_grad():  # a tracked warmup would build a graph through the backbone
             self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
-        cv3 = getattr(head, "one2one_cv3", head.cv3)
-        cv2 = getattr(head, "one2one_cv2", head.cv2)
+        cv3 = head.one2one_cv3 if head.end2end else head.cv3
+        cv2 = head.one2one_cv2 if head.end2end else head.cv2
 
         # re-parameterization for prompt-free model
         self.model[-1].lrpc = nn.ModuleList(
@@ -1318,6 +1323,7 @@ class YOLOEModel(DetectionModel):
             assert isinstance(cls_head, nn.Sequential)
             del loc_head[-1]
             del cls_head[-1]
+        head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
         self.model[-1].nc = len(names)
         self.names = names
 
@@ -1341,7 +1347,7 @@ class YOLOEModel(DetectionModel):
         device = next(self.model.parameters()).device
         head.fuse(self.pe.to(device))  # fuse prompt embeddings to classify head
 
-        cv3 = getattr(head, "one2one_cv3", head.cv3)
+        cv3 = head.one2one_cv3 if head.end2end else head.cv3
         vocab = nn.ModuleList()
         for cls_head in cv3:
             assert isinstance(cls_head, nn.Sequential)
@@ -1439,7 +1445,11 @@ class YOLOEModel(DetectionModel):
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = (
-                (E2ELoss(self, TVPDetectLoss) if getattr(self, "end2end", False) else TVPDetectLoss(self))
+                (
+                    E2ELoss(self, TVPDetectLoss)
+                    if getattr(self.model[-1], "one2one_cv2", None) is not None
+                    else TVPDetectLoss(self)
+                )
                 if visual_prompt
                 else self.init_criterion()
             )
@@ -1491,7 +1501,11 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
             self.criterion = (
-                (E2ELoss(self, TVPSegmentLoss) if getattr(self, "end2end", False) else TVPSegmentLoss(self))
+                (
+                    E2ELoss(self, TVPSegmentLoss)
+                    if getattr(self.model[-1], "one2one_cv2", None) is not None
+                    else TVPSegmentLoss(self)
+                )
                 if visual_prompt
                 else self.init_criterion()
             )
@@ -2166,6 +2180,9 @@ def parse_model(d, ch, verbose=True):
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+        if m is SPPF and len(args) <= 3:  # Legacy YAML rows predate the unactivated YOLO26 SPPF.
+            for block in m_ if n > 1 else [m_]:
+                block.cv1.act = Conv.default_act
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
@@ -2224,7 +2241,7 @@ def guess_model_task(model):
         model (torch.nn.Module | dict | str | Path): PyTorch model, model configuration dict, or model file path.
 
     Returns:
-        (str): Task of the model ('detect', 'segment', 'classify', 'pose', 'obb', 'semantic', 'depth').
+        (str): Task of the model ('detect', 'segment', 'semantic', 'depth', 'classify', 'pose', 'obb').
     """
 
     def cfg2task(cfg):
@@ -2299,6 +2316,7 @@ def guess_model_task(model):
     # Unable to determine task from model
     LOGGER.warning(
         "Unable to automatically guess model task, assuming 'task=detect'. "
-        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'classify', 'pose', 'obb' or 'semantic'."
+        "Explicitly define task for your model, i.e. 'task=detect', 'segment', 'semantic', 'depth', 'classify', 'pose' "
+        "or 'obb'."
     )
     return "detect"  # assume detect

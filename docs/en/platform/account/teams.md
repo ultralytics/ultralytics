@@ -68,6 +68,7 @@ hyphens, and it must not already be taken.
 Switch between your personal account and team workspaces using the workspace switcher in the sidebar. All teams you belong to appear in the list.
 
 ![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.ul.run/i/b5d3298767cc96743a74133b7c92fe6b.avif)<!-- screenshot -->
+
 When you switch to a team workspace, all resources you see and create belong to that team. Your personal workspace resources remain separate.
 
 ## Roles and Permissions

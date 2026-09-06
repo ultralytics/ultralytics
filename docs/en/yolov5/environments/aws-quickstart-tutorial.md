@@ -43,7 +43,7 @@ For detailed information on monitoring and optimizing GPU usage, refer to the AW
 
 ### Configuring Your Instance
 
-Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances allow you to bid on unused EC2 capacity, often at a significant discount compared to On-Demand prices. For tasks that require persistence (saving data even if the Spot Instance is interrupted), choose a **persistent request**. This ensures your storage volume persists.
+Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances allow you to bid on unused EC2 capacity, often at a significant discount compared to On-Demand prices. For training that must survive an interruption, choose a **persistent request** and set the interruption behavior to **stop** rather than terminate, so the EBS volume and your training outputs are kept and the instance restarts when capacity returns.
 
 ![Spot Request Configuration](https://cdn.ul.run/i/ef8dca50c53d56c949c91231dec18a69.avif)
 
@@ -125,4 +125,4 @@ Use `scp` with your `.pem` key for small transfers, or stage data in Amazon S3 a
 
 ### What happens to training if my Spot Instance is interrupted?
 
-Choose a persistent Spot request so the volume survives, and resume the run from its last checkpoint with `python train.py --resume`. Copy `last.pt` and `best.pt` to S3 periodically if you cannot afford to lose progress.
+Use a persistent Spot request with the interruption behavior set to **stop** so the EBS volume is kept, then resume the run from its last checkpoint with `python train.py --resume` once the instance restarts. Copy `last.pt` and `best.pt` to S3 periodically if you cannot afford to lose progress.

@@ -9,7 +9,7 @@ keywords: KITTI dataset, depth estimation, monocular depth, autonomous driving, 
 
 # KITTI Depth Dataset
 
-The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outdoor [autonomous-driving](https://www.ultralytics.com/glossary/autonomous-vehicles) benchmark captured from a moving vehicle in and around the city of Karlsruhe. For monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation), the ground-truth depth is derived from a Velodyne HDL-64 LiDAR scanner and densified using the method of [Uhrig et al. 2017](https://arxiv.org/abs/1708.06500). The resulting depth maps remain sparse, with roughly 16–20% of pixels carrying a valid depth value. KITTI is the only real outdoor long-range source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark.
+The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outdoor [autonomous-driving](https://www.ultralytics.com/glossary/autonomous-vehicles) benchmark captured from a moving vehicle in and around the city of Karlsruhe. For monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation), the ground-truth depth is derived from a Velodyne HDL-64 LiDAR scanner and densified using the method of [Uhrig et al. 2017](https://arxiv.org/abs/1708.06500). The resulting depth maps remain sparse, with roughly 16–20% of pixels carrying a valid depth value. KITTI is the real outdoor driving source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark.
 
 ## Key Features
 
@@ -30,7 +30,7 @@ The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.y
 
 ## Role in YOLO26-Depth
 
-KITTI supplies the only real outdoor, long-range supervision in the YOLO26-Depth pretraining mix, complementing the predominantly indoor sources. It is also the standard KITTI Eigen benchmark for reporting driving-scene depth accuracy.
+KITTI supplies real outdoor driving supervision in the YOLO26-Depth pretraining mix, complementing the predominantly indoor sources. It is also the standard KITTI Eigen benchmark for reporting driving-scene depth accuracy.
 
 KITTI is a key example of why the depth head is unbounded (`log` mode): a fixed 10 m output ceiling cannot represent 80 m driving scenes. See the [depth task page](../../tasks/depth.md) for details on the head output range and `max_depth` handling.
 
@@ -46,7 +46,7 @@ KITTI Eigen `delta1` accuracy by model size (higher is better):
 | YOLO26l-Depth | 0.926          |
 | YOLO26x-Depth | 0.932          |
 
-Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; it pools every valid pixel of the split rather than averaging the per-image metric; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
+Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
 
 ## Dataset YAML
 

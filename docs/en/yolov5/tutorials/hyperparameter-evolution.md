@@ -113,7 +113,7 @@ done
 
 The default evolution settings run for 300 generations, and every generation trains the base scenario once for each of the 50 individuals in the population. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
 
-The main genetic operators are **crossover** and **mutation**. Each generation keeps the fittest individuals as elites and fills the rest of the population through tournament selection, crossover, and mutation of the best parents, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
+The main genetic operators are **crossover** and **mutation**. Each generation trains and scores every individual, selects parents by tournament selection with the fittest elites added to the parent pool, and builds the next population through crossover and mutation, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
 
 ```yaml
 # YOLOv5 Hyperparameter Evolution Results
@@ -183,7 +183,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 ### How long does hyperparameter evolution take?
 
-Each generation trains the base scenario once per individual in the 50-member population, so 300 generations of a 10-epoch COCO128 run is roughly 15,000 times the cost of one such run. Keep the base scenario short and representative, and spread generations across GPUs with the multi-GPU loop above.
+Each generation trains the base scenario once per individual in the 50-member population, so 300 generations of a 10-epoch COCO128 run is roughly 15,000 times the cost of one such run. Keep the base scenario short and representative. The multi-GPU loop above starts an independent search on each GPU rather than sharing one search, so lower `--evolve` per process if you are working to a fixed budget.
 
 ### Can I change the number of generations?
 

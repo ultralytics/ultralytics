@@ -94,13 +94,13 @@ Start your Triton server with a deployed Ultralytics YOLO model, then run the cl
 
 ```bash
 # Defaults: --url localhost:8001 --model yolo26n --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
-./yolo_triton --model yolo26n --source bus.jpg                     # detect   (auto)
-./yolo_triton --model yolo26n-seg --source bus.jpg --out seg.jpg   # segment  (auto)
+./yolo_triton --model yolo26n --source bus.jpg                                 # detect   (auto)
+./yolo_triton --model yolo26n-seg --source bus.jpg --out seg.jpg               # segment  (auto)
 ./yolo_triton --model yolo26n-pose --source bus.jpg --out pose.jpg --task pose # pose (grid export: needs --task)
-./yolo_triton --model yolo26n-obb --source boats.jpg --out obb.jpg --task obb   # obb  (grid export: needs --task)
-./yolo_triton --model yolo26n-cls --source bus.jpg --out cls.jpg   # classify (auto)
-./yolo_triton --model yolo26n-sem --source bus.jpg --out sem.jpg   # semantic (auto)
-./yolo_triton --model yolo11n-pose --source bus.jpg --task pose    # legacy grid pose: needs --task
+./yolo_triton --model yolo26n-obb --source boats.jpg --out obb.jpg --task obb  # obb  (grid export: needs --task)
+./yolo_triton --model yolo26n-cls --source bus.jpg --out cls.jpg               # classify (auto)
+./yolo_triton --model yolo26n-sem --source bus.jpg --out sem.jpg               # semantic (auto)
+./yolo_triton --model yolo11n-pose --source bus.jpg --task pose                # legacy grid pose: needs --task
 ./yolo_triton --url 192.168.1.10:8001 --model yolo26n --source street.jpg --show
 ```
 

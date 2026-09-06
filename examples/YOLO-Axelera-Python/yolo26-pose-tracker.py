@@ -109,8 +109,8 @@ class ConfidenceFilter(op.Operator):
 def build_pipeline(model_path: str, conf: float = 0.25, tracker_algo: str | None = "tracktrack"):
     """Build the YOLO26 pose pipeline, optionally with tracking.
 
-    The nms=False YOLO26 export is NMS-free, so there's no op.nms(). Pose-only returns the raw model rows (np.ndarray); adding a tracker
-    switches the output to a list of TrackedObject.
+    The nms=False YOLO26 export is NMS-free, so there's no op.nms(). Pose-only returns the raw model rows (np.ndarray);
+    adding a tracker switches the output to a list of TrackedObject.
     """
     stages = [
         op.color_convert("RGB", src="BGR"),  # OpenCV reads BGR; models expect RGB

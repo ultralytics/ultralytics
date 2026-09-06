@@ -1897,6 +1897,50 @@ def test_nn_depth_head_no_dead_parameters():
     assert not unused, f"parameters with no gradient: {unused}"
 
 
+def _sam3_rpb_decoder(nheads=4, n_input=2):
+    """Construct a bare TransformerDecoder exposing only what `_get_rpb_matrix` needs.
+
+    TransformerDecoder's real constructor requires fully built layer/interaction_layer
+    modules, so this bypasses `__init__` (`nn.Module.__init__` still runs) and sets only
+    the handful of attributes `_get_rpb_matrix` reads, matching the state a real instance
+    would have right after construction with `boxRPB="none"`.
+    """
+    from ultralytics.models.sam.sam3.decoder import TransformerDecoder
+    from ultralytics.nn.modules.transformer import MLP
+
+    decoder = TransformerDecoder.__new__(TransformerDecoder)
+    torch.nn.Module.__init__(decoder)
+    decoder.compilable_cord_cache = None
+    decoder.compilable_cache_key = None
+    decoder.coord_cache = {}
+    decoder.boxRPB = "none"
+    decoder.training = False
+    decoder.boxRPB_embed_x = MLP(n_input, 8, nheads, 2)
+    decoder.boxRPB_embed_y = MLP(n_input, 8, nheads, 2)
+    return decoder
+
+
+def test_sam3_decoder_rpb_cache_tracks_dtype_change():
+    """_get_rpb_matrix's coord cache must invalidate on a dtype change, not just (H, W).
+
+    The cache used to key on (H, W) alone. A same-size call in a different dtype (e.g. a
+    float32 warm-up forward followed by a half-precision inference forward) silently reused
+    stale-dtype coordinates, which promoted deltas_x/deltas_y back up to that stale dtype
+    and crashed boxRPB_embed_x/y once the model had actually been converted to half.
+    """
+    H, W = 8, 8
+    decoder = _sam3_rpb_decoder()
+    boxes32 = torch.rand(2, 3, 4)
+
+    out32 = decoder._get_rpb_matrix(boxes32, (H, W))
+    assert out32.dtype == torch.float32
+
+    decoder.boxRPB_embed_x = decoder.boxRPB_embed_x.half()
+    decoder.boxRPB_embed_y = decoder.boxRPB_embed_y.half()
+    out16 = decoder._get_rpb_matrix(boxes32.half(), (H, W))  # same (H, W), different dtype
+    assert out16.dtype == torch.float16  # would previously raise: mat1 and mat2 must have the same dtype
+
+
 def test_classification_fraction_samples_across_classes(tmp_path):
     """Sample classification fractions across the class-major ImageFolder ordering."""
     from ultralytics.data.dataset import ClassificationDataset

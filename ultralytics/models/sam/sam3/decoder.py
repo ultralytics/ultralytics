@@ -261,7 +261,7 @@ class TransformerDecoder(nn.Module):
             self.boxRPB_embed_x = MLP(n_input, d_model, nheads, 2)
             self.boxRPB_embed_y = MLP(n_input, d_model, nheads, 2)
             self.compilable_cord_cache = None
-            self.compilable_stored_size = None
+            self.compilable_cache_key = None
             self.coord_cache = {}
 
         if interaction_layer is not None:
@@ -317,22 +317,27 @@ class TransformerDecoder(nn.Module):
         H, W = feat_size
         boxes_xyxy = xywh2xyxy(reference_boxes).transpose(0, 1)
         bs, num_queries, _ = boxes_xyxy.shape
+        # Cache key includes device/dtype, not just (H, W): the coords cache is a plain
+        # tensor pair that neither moves with Module.to()/.half() nor gets invalidated by
+        # a dtype/device change alone. Without this, a size-preserving switch (e.g. a
+        # float32 warm-up forward followed by a .half() inference forward at the same
+        # feat_size) silently reuses stale-precision coords, promoting deltas_x/deltas_y
+        # back up to the stale dtype and crashing the (correctly half-precision)
+        # boxRPB_embed_x/y linear layers with "mat1 and mat2 must have the same dtype".
+        cache_key = (H, W, reference_boxes.device, reference_boxes.dtype)
         if self.compilable_cord_cache is None:
             self.compilable_cord_cache = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
-            self.compilable_stored_size = (H, W)
+            self.compilable_cache_key = cache_key
 
-        if torch.compiler.is_dynamo_compiling() or self.compilable_stored_size == (
-            H,
-            W,
-        ):
+        if torch.compiler.is_dynamo_compiling() or self.compilable_cache_key == cache_key:
             # good, hitting the cache, will be compilable
             coords_h, coords_w = self.compilable_cord_cache
         else:
             # cache miss, will create compilation issue
             # In case we're not compiling, we'll still rely on the dict-based cache
-            if feat_size not in self.coord_cache:
-                self.coord_cache[feat_size] = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
-            coords_h, coords_w = self.coord_cache[feat_size]
+            if cache_key not in self.coord_cache:
+                self.coord_cache[cache_key] = self._get_coords(H, W, reference_boxes.device, reference_boxes.dtype)
+            coords_h, coords_w = self.coord_cache[cache_key]
 
             assert coords_h.shape == (H,)
             assert coords_w.shape == (W,)

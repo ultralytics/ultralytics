@@ -443,7 +443,7 @@ nav:
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
       - Oriented Bounding Boxes (OBB):
-          - OBB Datasets: datasets/obb/index.md
+          - datasets/obb/index.md
           - DOTA8: datasets/obb/dota8.md
           - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md
@@ -573,6 +573,7 @@ nav:
       - JupyterLab: integrations/jupyterlab.md
       - Kaggle: integrations/kaggle.md
       - LiteRT: integrations/litert.md
+      - Luxonis OAK: integrations/luxonis.md
       - MLflow: integrations/mlflow.md
       - MNN: integrations/mnn.md
       - NCNN: integrations/ncnn.md

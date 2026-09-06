@@ -608,6 +608,8 @@ class LoadNumpyFrames:
         fps (int): Frames per second (used by video-saving logic).
         bs (int): Always ``1`` — one frame per iteration step.
         count (int): Internal 0-based iteration counter.
+        source_type (SourceTypes): Classifies the source as in-memory images so it can be routed through
+            ``load_inference_source()``.
 
     Examples:
         >>> frames = [np.zeros((64, 64, 3), dtype=np.uint8) for _ in range(5)]
@@ -636,6 +638,7 @@ class LoadNumpyFrames:
         self.fps = fps
         self.bs = 1
         self.count = 0
+        self.source_type = SourceTypes(from_img=True)
 
     def __iter__(self):
         """Reset the iterator and return self."""

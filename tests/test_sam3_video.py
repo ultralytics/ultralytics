@@ -72,6 +72,18 @@ class TestLoadNumpyFrames:
         with pytest.raises(FileNotFoundError):
             LoadNumpyFrames([])
 
+    def test_routes_through_load_inference_source(self):
+        from ultralytics.data.build import load_inference_source
+
+        loader = LoadNumpyFrames(_distinct_frames(3))
+        dataset = load_inference_source(source=loader)
+        assert dataset is loader
+        assert dataset.source_type is not None
+        assert dataset.source_type.from_img
+        assert not dataset.source_type.stream
+        assert not dataset.source_type.screenshot
+        assert not dataset.source_type.tensor
+
 
 # ---------------------------------------------------------------------------
 # Input validation (no model needed)

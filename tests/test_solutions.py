@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 import torch
 
-from tests import MODEL
+from tests import HAS_ACTION_RECOGNITION, MODEL
 from ultralytics import solutions
 from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
@@ -174,6 +174,14 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
             False,
             None,  # streamlit application doesn't require video file
             {},  # streamlit application doesn't accept arguments
+        ),
+        pytest.param(
+            "ActionRecognition",
+            solutions.ActionRecognition,
+            False,
+            "demo_video",
+            {"model": MODEL, "video_classifier_model": "s3d", "show": SHOW},
+            marks=pytest.mark.skipif(not HAS_ACTION_RECOGNITION, reason="torchvision build lacks s3d video weights"),
         ),
     ],
 )
@@ -465,3 +473,12 @@ def test_display_output_method():
         mock_imshow.assert_called_once()
         mock_wait.assert_called_once()
         mock_destroy.assert_called_once()
+
+
+@pytest.mark.skipif(not HAS_ACTION_RECOGNITION, reason="torchvision build lacks s3d video weights")
+def test_torchvision_video_classifier_invalid_model():
+    """Test that TorchVisionVideoClassifier raises ValueError for unsupported model name."""
+    from ultralytics.solutions.action_recognition import TorchVisionVideoClassifier
+
+    with pytest.raises(ValueError, match="Invalid model"):
+        TorchVisionVideoClassifier(model_name="invalid_model")

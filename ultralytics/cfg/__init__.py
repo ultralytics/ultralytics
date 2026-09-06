@@ -38,6 +38,7 @@ from ultralytics.utils import (
 # Define valid solutions
 SOLUTION_MAP = {
     "count": "ObjectCounter",
+    "action": "ActionRecognition",
     "crop": "ObjectCropper",
     "blur": "ObjectBlurrer",
     "workout": "AIGym",

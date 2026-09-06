@@ -1,0 +1,9 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# VeRi-776 vehicle re-identification (cross-camera). 576 train identities.
+path: VeRi-776
+train: train
+val: query
+gallery: gallery
+nc: 576
+filename_re: '(\d+)_c(\d+)_\d+_\d+\.(?:jpg|png|bmp)' # group1=pid, group2=camid (1-indexed)

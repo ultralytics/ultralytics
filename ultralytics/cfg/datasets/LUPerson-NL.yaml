@@ -1,0 +1,95 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# LUPerson-NL: large-scale ReID pre-training dataset with noisy (tracker-generated) identity labels.
+# Paper: "Large-Scale Pre-training for Person Re-identification with Noisy Labels" (CVPR 2022)
+# Source repo: https://github.com/DengpanFu/LUPerson-NL
+# Built from HF mirror wahdan2003/LUPerson-NL (arrow shards) → converted to folder-per-identity.
+# Example usage (Step-1 pretrain): yolo reid train data=LUPerson-NL.yaml model=yolo26l-reid.yaml val=False
+#
+# Composition: 10,683,716 images / 433,997 identities (folder-per-identity layout).
+# Intended as a Step-1 supervised pretrain (replaces/augments the smaller MSMT17 pretrain),
+# fine-tuned afterwards on Market-1501 / DukeMTMC / MSMT17.
+
+# Dataset root directory (relative to datasets_dir; symlink it to wherever the data actually lives)
+path: LUPerson-NL
+train: train # train/<person_id>/<original_key>.jpg — pid = folder name (folder-per-identity mode)
+val: val_tiny # unused at pretrain time (val=False); tiny 8-identity dir so the trainer doesn't scan all 10.68M images building an unused val loader
+
+# Classes (training identities)
+nc: 433997
+
+# camid is auto-assigned (unique per image) — LUPerson-NL keys do not encode a stable camera id,
+# and camid only matters for the eval-time same-cam exclusion, which pretrain (val=False) skips.
+
+# Download + build script (runs automatically when the dataset is missing). Heavy two-stage job —
+# ~10.68M images / 434K ids — needs huggingface_hub + pyarrow, HF auth for the mirror, and fast NVMe:
+#   1) snapshot_download the HF arrow shards into <path>/hf
+#   2) convert arrow shards -> train/<person_id>/<key>.<ext> (folder-per-identity, raw bytes, no re-encode)
+#   3) copy 8 train identities into val_tiny/ as a placeholder val loader
+# Threaded (not multiprocess) because a download-block function can't be pickled to worker processes;
+# the work is I/O-bound (pyarrow C++ reads + byte writes both drop the GIL), so threads parallelize fine.
+download: |
+  import glob
+  import os
+  import shutil
+  from concurrent.futures import ThreadPoolExecutor, as_completed
+  from pathlib import Path
+
+  import pyarrow as pa
+  from huggingface_hub import snapshot_download
+
+  root = Path(yaml["path"])
+  hf_dir, train_dir, val_dir = root / "hf", root / "train", root / "val_tiny"
+
+  # 1) Download arrow shards from the HF mirror
+  snapshot_download(repo_id="wahdan2003/LUPerson-NL", repo_type="dataset", local_dir=str(hf_dir), max_workers=8)
+
+  # 2) Convert arrow shards -> folder-per-identity images
+  def ext_for(b):
+      if b[:3] == b"\xff\xd8\xff":
+          return "jpg"
+      if b[:8] == b"\x89PNG\r\n\x1a\n":
+          return "png"
+      if b[:2] == b"BM":
+          return "bmp"
+      return "jpg"
+
+  def read_table(f):
+      try:
+          return pa.ipc.open_file(f).read_all()
+      except Exception:
+          return pa.ipc.open_stream(f).read_all()
+
+  def process(f):
+      t = read_table(f)
+      imgs, pids, keys = t.column("image").to_pylist(), t.column("person_id").to_pylist(), t.column("original_key").to_pylist()
+      n, made = 0, set()
+      for img, pid, key in zip(imgs, pids, keys):
+          b = img["bytes"]
+          if not b:
+              continue
+          d = train_dir / str(pid)
+          if d not in made:
+              d.mkdir(parents=True, exist_ok=True)
+              made.add(d)
+          (d / f"{key}.{ext_for(b)}").write_bytes(b)
+          n += 1
+      return n
+
+  files = sorted(glob.glob(str(hf_dir / "**" / "*.arrow"), recursive=True))
+  train_dir.mkdir(parents=True, exist_ok=True)
+  print(f"{len(files)} shards -> {train_dir}", flush=True)
+  total = 0
+  with ThreadPoolExecutor(max_workers=16) as ex:
+      for i, fut in enumerate(as_completed([ex.submit(process, f) for f in files]), 1):
+          total += fut.result()
+          print(f"[{i}/{len(files)}] total={total}", flush=True)
+  nids = sum(1 for d in os.scandir(train_dir) if d.is_dir())
+  print(f"CONVERT_DONE images={total} identities={nids}", flush=True)
+
+  # 3) Tiny val placeholder (8 identities) so the trainer skips scanning all images for the unused val loader
+  val_dir.mkdir(parents=True, exist_ok=True)
+  for d in sorted((d for d in os.scandir(train_dir) if d.is_dir()), key=lambda d: d.name)[:8]:
+      dst = val_dir / d.name
+      if not dst.exists():
+          shutil.copytree(d.path, dst)

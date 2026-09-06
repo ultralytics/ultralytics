@@ -1900,10 +1900,9 @@ def test_nn_depth_head_no_dead_parameters():
 def _sam3_rpb_decoder(nheads=4, n_input=2):
     """Construct a bare TransformerDecoder exposing only what `_get_rpb_matrix` needs.
 
-    TransformerDecoder's real constructor requires fully built layer/interaction_layer
-    modules, so this bypasses `__init__` (`nn.Module.__init__` still runs) and sets only
-    the handful of attributes `_get_rpb_matrix` reads, matching the state a real instance
-    would have right after construction with `boxRPB="none"`.
+    TransformerDecoder's real constructor requires fully built layer/interaction_layer modules, so this bypasses
+    `__init__` (`nn.Module.__init__` still runs) and sets only the handful of attributes `_get_rpb_matrix` reads,
+    matching the state a real instance would have right after construction with `boxRPB="none"`.
     """
     from ultralytics.models.sam.sam3.decoder import TransformerDecoder
     from ultralytics.nn.modules.transformer import MLP
@@ -1923,10 +1922,10 @@ def _sam3_rpb_decoder(nheads=4, n_input=2):
 def test_sam3_decoder_rpb_cache_tracks_dtype_change():
     """_get_rpb_matrix's coord cache must invalidate on a dtype change, not just (H, W).
 
-    The cache used to key on (H, W) alone. A same-size call in a different dtype (e.g. a
-    float32 warm-up forward followed by a half-precision inference forward) silently reused
-    stale-dtype coordinates, which promoted deltas_x/deltas_y back up to that stale dtype
-    and crashed boxRPB_embed_x/y once the model had actually been converted to half.
+    The cache used to key on (H, W) alone. A same-size call in a different dtype (e.g. a float32 warm-up forward
+    followed by a half-precision inference forward) silently reused stale-dtype coordinates, which promoted
+    deltas_x/deltas_y back up to that stale dtype and crashed boxRPB_embed_x/y once the model had actually been
+    converted to half.
     """
     H, W = 8, 8
     decoder = _sam3_rpb_decoder()

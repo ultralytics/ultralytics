@@ -1919,6 +1919,7 @@ def _sam3_rpb_decoder(nheads=4, n_input=2):
     return decoder
 
 
+@pytest.mark.skipif(not TORCH_2_0, reason="SAM3 decoder uses torch.compiler (torch>=2.0)")
 def test_sam3_decoder_rpb_cache_tracks_dtype_change():
     """_get_rpb_matrix's coord cache must invalidate on a dtype change, not just (H, W).
 

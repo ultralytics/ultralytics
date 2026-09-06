@@ -345,7 +345,7 @@ You can easily convert labels from the popular [COCO dataset](coco.md) format to
         convert_coco(labels_dir="path/to/coco/annotations/")
         ```
 
-This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo26.md).
+This conversion tool can be used to convert the COCO dataset or any dataset in the COCO format to the Ultralytics YOLO format. The process transforms the JSON-based COCO annotations into the simpler text-based YOLO format, making it compatible with [Ultralytics YOLO models](../../models/yolo26.md). For the full workflow — including class ID mapping, directory layout, and segmentation or pose annotations — see [Convert COCO Annotations to YOLO](../../guides/coco-to-yolo.md).
 
 Remember to double-check if the dataset you want to use is compatible with your model and follows the necessary format conventions. Properly formatted datasets are crucial for training successful object detection models.
 

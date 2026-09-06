@@ -19,6 +19,7 @@ import torch
 import torch.distributed as dist
 import torch.nn.functional as F
 from torch import nn
+from torch.nn.utils.fusion import fuse_conv_bn_weights
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -87,7 +88,15 @@ def smart_inference_mode(mode=True):
     def decorate(fn):
         """Apply appropriate torch decorator for inference mode based on torch version."""
         if not mode:
-            return torch.inference_mode(False)(torch.no_grad()(fn)) if TORCH_1_9 else torch.no_grad()(fn)
+            if TORCH_1_9:
+
+                @functools.wraps(fn)
+                def disable(*args, **kwargs):
+                    with torch.inference_mode(False), torch.no_grad():
+                        return fn(*args, **kwargs)
+
+                return disable
+            return torch.no_grad()(fn)
         if TORCH_1_9 and torch.is_inference_mode_enabled():
             return fn  # already in inference_mode, act as a pass-through
         else:
@@ -96,14 +105,14 @@ def smart_inference_mode(mode=True):
     return decorate
 
 
-def autocast(enabled: bool, device: str = "cuda"):
+def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
     """Get the appropriate autocast context manager based on PyTorch version and AMP setting.
 
     This function returns a context manager for automatic mixed precision (AMP) training that is compatible with both
     older and newer versions of PyTorch. It handles the differences in the autocast API between PyTorch versions.
 
     Args:
-        enabled (bool): Whether to enable automatic mixed precision.
+        enabled (bool | torch.dtype): Whether to enable AMP, or the autocast dtype to enable.
         device (str, optional): Device type to use for autocast, e.g. "cuda" or "npu".
 
     Returns:
@@ -115,17 +124,30 @@ def autocast(enabled: bool, device: str = "cuda"):
         ...     pass
 
     Notes:
-        - For PyTorch versions 1.13 and newer, it uses `torch.amp.autocast`.
-        - For older versions, it uses the backend-specific AMP context.
+        Uses `torch.amp.autocast` on torch>=1.13 and the backend-specific AMP context on older releases.
     """
+    dtype = enabled if isinstance(enabled, torch.dtype) else None
+    enabled = bool(enabled)
+    if dtype is torch.bfloat16:
+        bf16_supported = device == "cuda" and TORCH_1_13
+        if bf16_supported:
+            bf16_supported = (
+                torch.cuda.is_bf16_supported(including_emulation=False)
+                if TORCH_2_4
+                else torch.cuda.is_bf16_supported()
+                and (bool(torch.version.hip) or torch.cuda.get_device_capability()[0] >= 8)
+            )
+        if not bf16_supported:
+            raise RuntimeError("bfloat16 autocast requires CUDA with native bfloat16 support and torch>=1.13")
+    kwargs = {"dtype": dtype} if dtype is not None else {}
     if device == "npu":
         import torch_npu
 
-        return torch_npu.npu.amp.autocast(enabled=enabled)
+        return torch_npu.npu.amp.autocast(enabled=enabled, **kwargs)
     if TORCH_1_13:
         if device == "mps" and not TORCH_2_5:  # MPS autocast added in torch 2.5.0, errors on older versions
             device, enabled = "cpu", False
-        return torch.amp.autocast(device, enabled=enabled)
+        return torch.amp.autocast(device, enabled=enabled, **kwargs)
     else:
         return torch.cuda.amp.autocast(enabled)
 
@@ -355,24 +377,9 @@ def fuse_conv_and_bn(conv, bn):
         >>> bn = nn.BatchNorm2d(16)
         >>> fused_conv = fuse_conv_and_bn(conv, bn)
     """
-    # Compute fused weights: Conv2d weight is [out_channels, in_channels // groups, kH, kW], scale along axis 0
-    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
-    conv.weight.data = conv.weight * bn_scale.view(-1, 1, 1, 1)
-
-    # Compute fused bias
-    b_conv = (
-        torch.zeros(conv.out_channels, device=conv.weight.device, dtype=conv.weight.dtype)
-        if conv.bias is None
-        else conv.bias
+    conv.weight, conv.bias = fuse_conv_bn_weights(
+        conv.weight, conv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = bn_scale * b_conv + b_bn
-
-    if conv.bias is None:
-        conv.register_parameter("bias", nn.Parameter(fused_bias))
-    else:
-        conv.bias.data = fused_bias
-
     return conv.requires_grad_(False)
 
 
@@ -393,26 +400,14 @@ def fuse_deconv_and_bn(deconv, bn):
     """
     if isinstance(bn, nn.Identity):  # ConvTranspose(bn=False) leaves bn as nn.Identity, nothing to fuse
         return deconv.requires_grad_(False)
-    # Compute fused weights: ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW], so the
-    # per-output-channel BN scale applies along axis 1 (group-mapped from axis 0), not axis 0 as for Conv2d.
-    bn_scale = bn.weight.div(torch.sqrt(bn.eps + bn.running_var))
-    w_scale = bn_scale.view(deconv.groups, -1).repeat_interleave(deconv.in_channels // deconv.groups, 0)
-    deconv.weight.data = deconv.weight * w_scale[:, :, None, None]
-
-    # Compute fused bias
-    b_conv = (
-        torch.zeros(deconv.out_channels, device=deconv.weight.device, dtype=deconv.weight.dtype)
-        if deconv.bias is None
-        else deconv.bias
+    # ConvTranspose2d weight is [in_channels, out_channels // groups, kH, kW]; view it in the Conv2d layout
+    # [out_channels, in_channels // groups, kH, kW] so the per-output-channel BN scale folds along axis 0
+    g, (ci, co, *k) = deconv.groups, deconv.weight.shape
+    weight = deconv.weight.view(g, ci // g, co, *k).transpose(1, 2).reshape(g * co, ci // g, *k)
+    weight, deconv.bias = fuse_conv_bn_weights(
+        weight, deconv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
-    b_bn = bn.bias - bn.weight.mul(bn.running_mean).div(torch.sqrt(bn.running_var + bn.eps))
-    fused_bias = bn_scale * b_conv + b_bn
-
-    if deconv.bias is None:
-        deconv.register_parameter("bias", nn.Parameter(fused_bias))
-    else:
-        deconv.bias.data = fused_bias
-
+    deconv.weight = nn.Parameter(weight.view(g, co, ci // g, *k).transpose(1, 2).reshape(ci, co, *k))
     return deconv.requires_grad_(False)
 
 
@@ -679,9 +674,7 @@ def init_seeds(seed=0, deterministic=False):
     """
     random.seed(seed)
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)  # for Multi-GPU, exception safe
+    torch.manual_seed(seed)  # also seeds every CUDA, MPS and XPU device
     # torch.backends.cudnn.benchmark = True  # AutoBatch problem https://github.com/ultralytics/yolov5/issues/9287
     if deterministic:
         if TORCH_2_0:
@@ -765,16 +758,16 @@ class ModelEMA:
                 for v, m in zip(ema_v, model_v):
                     v.mul_(d).add_(m, alpha=1 - d)
 
-    def update_attr(self, model, include=(), exclude=("process_group", "reducer")):
+    def update_attr(self, model, include=(), exclude=()):
         """Copy attributes from model to EMA, with options to include/exclude certain attributes.
 
         Args:
-            model (nn.Module): Model to copy attributes from.
+            model (nn.Module): Model to copy attributes from; compile and parallel wrappers are unwrapped first.
             include (tuple, optional): Attributes to include.
             exclude (tuple, optional): Attributes to exclude.
         """
         if self.enabled:
-            copy_attr(self.ema, model, include, exclude)
+            copy_attr(self.ema, unwrap_model(model), include, exclude)
 
 
 def strip_optimizer(f: str | Path = "best.pt", s: str = "", updates: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -957,10 +950,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                     if max_num_obj:  # simulate training with predictions per image grid (for AutoBatch)
                         with cuda_memory_usage(device) as cuda_info:
                             anchors = int(sum((x.shape[-1] / s) * (x.shape[-2] / s) for s in m.stride.tolist()))
-                            # Envelope of the detect-loss memory peaks: TaskAlignedAssigner.get_box_metrics holds ~6
-                            # simultaneous (bs, max_num_obj, anchors) fp32 buffers (overlaps, bbox_scores, gathered
-                            # pd_scores, two pow temps + align_metric); the cls path holds ~6 (bs, anchors, nc)
-                            # fp32-equivalents (pred/target + two op temps of the unreduced BCE in v8DetectionLoss:
+                            # Conservative detect-loss envelope: ~6 fp32-equivalents each for TaskAlignedAssigner
+                            # metric/top-k state and the cls path (pred/target + two op temps of unreduced BCE:
                             # ~4 in pure fp32, ~6 under AMP where autocast upcasts both BCE inputs to fp32 copies)
                             sim = (
                                 torch.randn(x.shape[0], 6 * max_num_obj, anchors, device=device, dtype=torch.float32),

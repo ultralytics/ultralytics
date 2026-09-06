@@ -6,9 +6,9 @@ keywords: YOLO26, ONNX, model export, Ultralytics, ONNX Runtime, machine learnin
 
 # ONNX Export for YOLO26 Models
 
-???+ tip "~43% faster inference."
+???+ tip "~43% faster CPU ONNX inference: YOLO26n vs YOLO11n"
 
-    - Exporting the Ultralytics YOLO26 model to ONNX can deliver up to a 43% boost in inference speed, enabling faster and more efficient deployment.
+    - YOLO26n runs up to 43% faster than YOLO11n on CPU ONNX inference (Intel Xeon CPU @ 2.00 GHz). See the [YOLO26 model page](../models/yolo26.md) for the full comparison.
 
 Often, when deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, you'll need a model format that's both flexible and compatible with multiple platforms.
 
@@ -189,7 +189,7 @@ When exporting your YOLO26 model to ONNX format, you can customize the process u
 | `dynamic`  | `bool`                    | `False`  | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                         |
 | `simplify` | `bool`                    | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                |
 | `opset`    | `int`                     | `None`   | Specifies the ONNX opset version for compatibility with different ONNX parsers and runtimes. If not set, uses the latest supported version.                                                                                     |
-| `nms`      | `bool`                    | `False`  | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                             |
+| `nms`      | `bool`, optional          | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                                                     |
 | `batch`    | `int`                     | `1`      | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                         |
 | `device`   | `str`                     | `None`   | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                 |
 

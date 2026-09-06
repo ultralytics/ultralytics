@@ -1213,6 +1213,19 @@ def test_results_update_probs():
     assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
 
 
+def test_results_copy_preserves_save_dir():
+    """Results copy operations preserve the prediction output directory."""
+    from ultralytics.engine.results import Results
+
+    image = np.zeros((8, 8, 3), dtype=np.uint8)
+    boxes = torch.tensor([[0.0, 0.0, 4.0, 4.0, 0.9, 0.0]])
+    result = Results(image, path="image.jpg", names={0: "object"}, boxes=boxes)
+    result.save_dir = "runs/detect/predict"
+
+    for copied in (result[0], result.cpu(), result.numpy(), result.to("cpu")):
+        assert copied.save_dir == result.save_dir
+
+
 def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]

@@ -469,7 +469,7 @@ class Results(SimpleClass, DataExportMixin):
         return self._apply("to", *args, **kwargs)
 
     def new(self):
-        """Create a new Results object with the same image, path, names, and speed attributes.
+        """Create a new Results object with the same image, path, names, speed, and save directory attributes.
 
         Returns:
             (Results): A new Results object with copied attributes from the original instance.
@@ -478,7 +478,9 @@ class Results(SimpleClass, DataExportMixin):
             >>> results = model("path/to/image.jpg")
             >>> new_result = results[0].new()
         """
-        return Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+        result = Results(orig_img=self.orig_img, path=self.path, names=self.names, speed=self.speed)
+        result.save_dir = self.save_dir
+        return result
 
     def plot(
         self,

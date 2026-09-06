@@ -746,7 +746,7 @@ class Model(torch.nn.Module):
                 - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
                 - device (str): Device to run the export on.
                 - workspace (int): Maximum memory workspace size for TensorRT engines.
-                - nms (bool | None): None for raw output, True to embed NMS, or False for NMS-free inference.
+                - nms (bool | None): None for raw output, True to embed NMS, or False for the NMS-free head where available.
                 - simplify (bool): Simplify ONNX model.
 
         Returns:

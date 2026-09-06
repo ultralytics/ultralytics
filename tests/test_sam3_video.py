@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # Ultralytics AGPL-3.0 License - https://ultralytics.com/license
 
 """Tests for SAM3 video prediction via LoadNumpyFrames and stream_inference lifecycle."""
@@ -11,6 +13,7 @@ from ultralytics.data.loaders import LoadNumpyFrames
 def _sam3_available():
     """Check if sam3.pt weights are available."""
     from pathlib import Path
+
     from ultralytics.utils import SETTINGS
 
     weights_dir = Path(SETTINGS["weights_dir"])
@@ -112,6 +115,7 @@ class TestPredictFramesEndToEnd:
     @pytest.fixture
     def predictor(self):
         from pathlib import Path
+
         from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
         from ultralytics.utils import SETTINGS
 

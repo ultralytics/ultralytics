@@ -595,9 +595,8 @@ class LoadPilAndNumpy:
 class LoadNumpyFrames:
     """Load ordered in-memory NumPy frames as a video-like sequence.
 
-    Unlike ``LoadPilAndNumpy`` which yields all images in a single batch, this
-    loader yields one frame at a time with ``mode="video"`` so that video-prediction
-    lifecycle hooks (temporal memory, tracker state, per-frame callbacks) work
+    Unlike ``LoadPilAndNumpy`` which yields all images in a single batch, this loader yields one frame at a time with
+    ``mode="video"`` so that video-prediction lifecycle hooks (temporal memory, tracker state, per-frame callbacks) work
     correctly through ``BasePredictor.stream_inference()``.
 
     Attributes:

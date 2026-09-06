@@ -19,7 +19,7 @@ Performance metrics are key tools to evaluate the [accuracy](https://www.ultraly
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong>  Ultralytics YOLO26 Performance Metrics | MAP, F1 Score, <a href="https://www.ultralytics.com/glossary/precision">Precision</a>, IoU & Accuracy
+  <strong>Watch:</strong> Ultralytics YOLO26 Performance Metrics | MAP, F1 Score, <a href="https://www.ultralytics.com/glossary/precision">Precision</a>, IoU & Accuracy
 </p>
 
 ## Object Detection Metrics
@@ -159,11 +159,11 @@ Tapping into a community of enthusiasts and experts can amplify your journey wit
 
 ### Engage with the Broader Community
 
-- **GitHub Issues:** The YOLO26 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
+- **GitHub Issues:** The Ultralytics repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
 - **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and the developers.
 
-### Official Documentation and Resources:
+### Official Documentation and Resources
 
 - **Ultralytics YOLO26 Docs:** The [official documentation](../index.md) provides a comprehensive overview of YOLO26, along with guides on installation, usage, and troubleshooting.
 

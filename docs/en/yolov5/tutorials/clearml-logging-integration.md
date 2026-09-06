@@ -220,3 +220,21 @@ Watch the getting-started video below:
 ## Learn More
 
 For more information about integrating ClearML with Ultralytics models, check out our [ClearML integration guide](../../integrations/clearml.md) and explore how you can enhance your [MLOps workflow](https://www.ultralytics.com/blog/exploring-yolov8-ml-experiment-tracking-integrations) with other experiment tracking tools.
+
+## FAQ
+
+### Do I need to host a ClearML server?
+
+No. The free hosted service at [app.clear.ml](https://app.clear.ml) works out of the box after `clearml-init`. Self-hosting is optional and is the usual choice when data cannot leave your network.
+
+### How do I turn ClearML logging off?
+
+YOLOv5 activates the integration whenever the `clearml` package is importable, so uninstall it with `pip uninstall clearml` to disable tracking for a run.
+
+### How do I train on a versioned ClearML dataset?
+
+Register the dataset with `clearml-data sync`, then pass its ID as the data argument: `python train.py --data clearml://YOUR_DATASET_ID --weights yolov5s.pt`. The ID is recorded on the task so every experiment knows exactly which data it used.
+
+### Can I run hyperparameter optimization on remote machines?
+
+Yes. Start a `clearml-agent daemon` on each machine, then either enqueue cloned experiments from the UI or switch `task.execute_locally()` to `task.execute()` in `utils/loggers/clearml/hpo.py` so the optimizer pushes trials to the queue.

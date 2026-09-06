@@ -178,3 +178,21 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### How long does hyperparameter evolution take?
+
+Each generation retrains the base scenario, so 300 generations of a 10-epoch COCO128 run is roughly 300 times the cost of one such run. Keep the base scenario short and representative, and spread generations across GPUs with the multi-GPU loop above.
+
+### Can I change the number of generations?
+
+Yes. `--evolve` defaults to 300 generations; pass a number such as `--evolve 1000` to run more.
+
+### How do I keep a hyperparameter fixed during evolution?
+
+Set its mutation gain to `0` in the `meta` dictionary in `train.py`. Those parameters keep their initial value and appear as vertical lines in `evolve.png`.
+
+### How do I train with the evolved hyperparameters?
+
+Pass the saved file to a normal training run: `python train.py --hyp runs/evolve/exp/hyp_evolve.yaml --data your.yaml --weights yolov5s.pt`.

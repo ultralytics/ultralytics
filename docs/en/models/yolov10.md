@@ -302,7 +302,7 @@ Each variant is designed for different computational needs and accuracy requirem
 
 ### How does the NMS-free approach in YOLOv10 improve performance?
 
-YOLOv10 trains with consistent dual assignments so that its one-to-one head produces a single best prediction per object, which removes the need for non-maximum suppression (NMS) at inference. Select that head with `nms=False` to reduce inference latency; the default one-to-many head runs with NMS. For a detailed explanation, see the [Consistent Dual Assignments for NMS-Free Training](#consistent-dual-assignments-for-nms-free-training) section.
+YOLOv10 trains with consistent dual assignments so that its one-to-one head produces a single best prediction per object, which removes the need for non-maximum suppression (NMS) at inference. Ultralytics prediction and validation default to the one-to-many head with NMS; set `nms=False` to select the NMS-free head and drop the NMS pass. For a detailed explanation, see the [Consistent Dual Assignments for NMS-Free Training](#consistent-dual-assignments-for-nms-free-training) section.
 
 ### Where can I find the export options for YOLOv10 models?
 

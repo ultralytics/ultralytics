@@ -70,7 +70,7 @@ The COCO12-Formats dataset is configured using a YAML file that defines dataset 
 
 ### Requirements
 
-No manual setup is needed. OpenCV reads most formats directly, and Ultralytics falls back to Pillow for AVIF, HEIC, and HEIF. AVIF is decoded natively by Pillow, and HEIC/HEIF decoding installs the lightweight `pi-heif` package automatically on first use.
+No manual setup is needed. OpenCV reads most formats directly, and Ultralytics falls back to Pillow for AVIF, HEIC, and HEIF. AVIF is decoded natively by Pillow 11.3 or newer, so upgrade Pillow if AVIF files fail to load, and HEIC/HEIF decoding installs the lightweight `pi-heif` package automatically on first use.
 
 ## Usage
 
@@ -101,7 +101,7 @@ The COCO12-Formats dataset (1 MB) downloads automatically the first time you sta
 
 ### AVIF (AV1 Image File Format)
 
-AVIF is a modern image format based on the AV1 video codec, offering excellent compression. Ultralytics decodes it through Pillow when OpenCV lacks AVIF support, with no extra packages required.
+AVIF is a modern image format based on the AV1 video codec, offering excellent compression. Ultralytics decodes it through Pillow 11.3 or newer when OpenCV lacks AVIF support, with no extra packages required.
 
 ### DNG (Digital Negative)
 
@@ -188,4 +188,4 @@ Different image formats have unique characteristics (compression, bit depth, col
 
 ### Which Formats Require Special Dependencies?
 
-None need manual installation. AVIF is decoded natively by Pillow, and HEIC/HEIF decoding installs `pi-heif` automatically on first use. Install the full `pillow-heif` package only if you need to write HEIC/HEIF files yourself.
+None need manual installation. AVIF is decoded natively by Pillow 11.3 or newer, and HEIC/HEIF decoding installs `pi-heif` automatically on first use. Install the full `pillow-heif` package only if you need to write HEIC/HEIF files yourself.

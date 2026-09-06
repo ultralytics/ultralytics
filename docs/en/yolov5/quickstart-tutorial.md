@@ -88,7 +88,7 @@ Not for inference. PyTorch Hub downloads the code and weights on demand with `to
 
 ### Which YOLOv5 model should I start with?
 
-`yolov5s.pt` is the best balance of speed and accuracy for most projects. Use `yolov5n.pt` for edge devices, `yolov5m.pt` to `yolov5x.pt` when accuracy matters more than speed, and the P6 variants such as `yolov5s6.pt` for training at 1280 pixels. See [YOLOv5](../models/yolov5.md) for the full checkpoint table.
+`yolov5s.pt` is the best balance of speed and accuracy for most projects. Use `yolov5n.pt` for edge devices, `yolov5m.pt` to `yolov5x.pt` when accuracy matters more than speed, and the P6 variants such as `yolov5s6.pt` for training at 1280 pixels. See the [pretrained checkpoints table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for the full list.
 
 ### How do I train on my own dataset?
 

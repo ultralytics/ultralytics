@@ -101,4 +101,4 @@ No. ETH3D is evaluated with a dedicated script that applies multi-scale and flip
 
 ### Which other benchmarks accompany ETH3D?
 
-The YOLO26-Depth family is also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [KITTI Eigen](kitti.md), [Make3D](make3d.md), and [iBims-1](ibims-1.md). The [Depth Estimation task page](../../tasks/depth.md) summarizes results across all five.
+The YOLO26-Depth family is also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [Make3D](make3d.md), and [iBims-1](ibims-1.md), and on the [KITTI Eigen](kitti.md) split, whose training drives are part of the pretraining mix. The [Depth Estimation task page](../../tasks/depth.md) summarizes results across all five.

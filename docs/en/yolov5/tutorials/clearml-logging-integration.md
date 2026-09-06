@@ -161,7 +161,7 @@ pip install optuna
 python utils/loggers/clearml/hpo.py
 ```
 
-Switch `task.execute_locally()` to `task.execute()` to push the job to a ClearML queue for a remote agent to pick up.
+To run the trials on remote agents instead, replace `optimizer.start_locally()` with `optimizer.start()` and set `execution_queue` in the `HyperParameterOptimizer` call to the queue your agents listen to.
 
 ![ClearML HPO dashboard with YOLOv5 metrics](https://cdn.ul.run/i/49f494e1b64967a77f01b991fcf3c1f1.avif)
 
@@ -237,4 +237,4 @@ Register the dataset with `clearml-data sync`, then pass its ID as the data argu
 
 ### Can I run hyperparameter optimization on remote machines?
 
-Yes. Start a `clearml-agent daemon` on each machine, then either enqueue cloned experiments from the UI or switch `task.execute_locally()` to `task.execute()` in `utils/loggers/clearml/hpo.py` so the optimizer pushes trials to the queue.
+Yes. Start a `clearml-agent daemon` on each machine, then either enqueue cloned experiments from the UI or edit `utils/loggers/clearml/hpo.py` to call `optimizer.start()` with `execution_queue` set so the optimizer pushes trials to the queue.

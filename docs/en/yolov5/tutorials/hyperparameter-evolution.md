@@ -111,9 +111,9 @@ done
 # done
 ```
 
-The default evolution settings will run the base scenario 300 times, i.e. for 300 generations. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
+The default evolution settings run for 300 generations, and every generation trains the base scenario once for each of the 50 individuals in the population. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
 
-The main genetic operators are **crossover** and **mutation**. In this work mutation is used, with an 80% probability and a 0.04 variance to create new offspring based on a combination of the best parents from all previous generations. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
+The main genetic operators are **crossover** and **mutation**. Each generation keeps the fittest individuals as elites and fills the rest of the population through tournament selection, crossover, and mutation of the best parents, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
 
 ```yaml
 # YOLOv5 Hyperparameter Evolution Results
@@ -153,7 +153,7 @@ mixup: 0.0 # image mixup (probability)
 copy_paste: 0.0 # segment copy-paste (probability)
 ```
 
-We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained hundreds of times, possibly requiring hundreds or thousands of GPU hours.
+We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained thousands of times, possibly requiring hundreds or thousands of GPU hours.
 
 When evolution finishes, reuse the discovered settings by pointing training at the saved file, for example `python train.py --hyp runs/evolve/exp/hyp_evolve.yaml --data your.yaml --weights yolov5s.pt`.
 
@@ -183,7 +183,7 @@ This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultraly
 
 ### How long does hyperparameter evolution take?
 
-Each generation retrains the base scenario, so 300 generations of a 10-epoch COCO128 run is roughly 300 times the cost of one such run. Keep the base scenario short and representative, and spread generations across GPUs with the multi-GPU loop above.
+Each generation trains the base scenario once per individual in the 50-member population, so 300 generations of a 10-epoch COCO128 run is roughly 15,000 times the cost of one such run. Keep the base scenario short and representative, and spread generations across GPUs with the multi-GPU loop above.
 
 ### Can I change the number of generations?
 
@@ -191,7 +191,7 @@ Yes. `--evolve` defaults to 300 generations; pass a number such as `--evolve 100
 
 ### How do I keep a hyperparameter fixed during evolution?
 
-Set its mutation gain to `0` in the `meta` dictionary in `train.py`. Those parameters keep their initial value and appear as vertical lines in `evolve.png`.
+Set the first value of its entry in the `meta` dictionary in `train.py` to `False`. Excluded parameters keep their initial value and appear as vertical lines in `evolve.png`.
 
 ### How do I train with the evolved hyperparameters?
 

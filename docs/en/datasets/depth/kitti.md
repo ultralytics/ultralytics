@@ -124,7 +124,7 @@ We would like to acknowledge the Karlsruhe Institute of Technology and Toyota Te
 
 ### What role does KITTI play in YOLO26-Depth?
 
-KITTI is the only real outdoor, long-range source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark. Its Velodyne LiDAR depth reaches roughly 80 m, which is why the depth head is unbounded rather than capped at a fixed indoor range.
+KITTI is the real outdoor driving source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark. Its Velodyne LiDAR depth reaches roughly 80 m, which is why the depth head is unbounded rather than capped at a fixed indoor range.
 
 ### How is the KITTI depth dataset split?
 
@@ -136,4 +136,4 @@ Run `yolo depth train data=depth-kitti.yaml model=yolo26n-depth.pt epochs=100 im
 
 ### Why do the KITTI results differ from published numbers?
 
-The values in [Results](#results) come from the Ultralytics validator with `imgsz=768` and `rect=False`, which resizes images to a square input, masks ground truth against `max_depth`, and pools every valid pixel rather than averaging per image. Reference KITTI evaluators use a different protocol, so the numbers are not directly comparable.
+The values in [Results](#results) come from the Ultralytics validator with `imgsz=768` and `rect=False`, which resizes images to a square input, masks ground truth against `max_depth`, and computes metrics per image with per-image scale alignment before averaging them across the validation set. Reference KITTI evaluators use a different protocol, so the numbers are not directly comparable.

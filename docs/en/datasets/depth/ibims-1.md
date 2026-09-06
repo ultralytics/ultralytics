@@ -101,4 +101,4 @@ No. iBims-1 ships without a bundled YAML and is scored through a dedicated evalu
 
 ### What other benchmarks are used alongside iBims-1?
 
-The released models are also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [KITTI Eigen](kitti.md), [ETH3D](eth3d.md), and [Make3D](make3d.md); see the [Depth Estimation task page](../../tasks/depth.md) for the combined results.
+The released models are also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [ETH3D](eth3d.md), and [Make3D](make3d.md), and on the [KITTI Eigen](kitti.md) split, whose training drives are part of the pretraining mix; see the [Depth Estimation task page](../../tasks/depth.md) for the combined results.

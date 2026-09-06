@@ -263,7 +263,7 @@ Add `--half`. Half precision needs a GPU for most formats, so pass `--device 0` 
 
 ### Can I export with a dynamic batch size?
 
-Yes. Add `--dynamic` for ONNX or TensorRT exports to accept variable batch sizes and image dimensions. The export then runs on CPU, so omit `--device 0` when combining it with `--dynamic`.
+Yes. Add `--dynamic`. ONNX exports gain dynamic batch, height, and width axes and are traced on CPU, so omit `--device 0`. TensorRT exports keep the image size fixed and vary only the batch dimension: they still need `--device 0`, and `--batch-size` sets the largest batch the engine accepts.
 
 ### How do I run an exported model?
 

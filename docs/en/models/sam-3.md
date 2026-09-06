@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover SAM 3, Meta's next evolution of the Segment Anything Model, introducing Promptable Concept Segmentation with text and image exemplar prompts for detecting all instances of visual concepts across images and videos.
+description: Discover SAM 3, Meta's Segment Anything Model with Promptable Concept Segmentation that detects every instance of a text or image-exemplar concept across images and videos.
 keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
 ---
 

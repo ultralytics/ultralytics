@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Discover SAM 2, the next generation of Meta's Segment Anything Model, supporting real-time promptable segmentation in both images and videos with state-of-the-art performance. Learn about its key features, datasets, and how to use it.
+description: Discover SAM 2, Meta's next-generation Segment Anything Model for real-time promptable segmentation in images and videos. Learn its key features, datasets, and usage.
 keywords: SAM 2, SAM 2.1, SAM-2, Segment Anything, video segmentation, image segmentation, promptable segmentation, zero-shot segmentation, instance segmentation, interactive segmentation, real-time segmentation, SAM 2 vs YOLO, SAM 2 vs SAM 3, SA-V dataset, Meta, Ultralytics
 ---
 

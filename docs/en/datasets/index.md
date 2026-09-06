@@ -1,6 +1,6 @@
 ---
 comments: true
-description: Explore Ultralytics' diverse datasets for vision tasks like detection, segmentation, semantic segmentation, depth estimation, classification, and more. Enhance your projects with high-quality annotated data.
+description: Explore Ultralytics datasets for detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB, with high-quality annotated data for your projects.
 keywords: Ultralytics, datasets, computer vision, object detection, instance segmentation, semantic segmentation, depth estimation, image classification, pose estimation, multi-object tracking
 ---
 

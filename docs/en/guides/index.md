@@ -117,7 +117,7 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
     === "CLI"
 
         ```bash
-        yolo task=detect mode=train model=yolo26n.pt data=path/to/dataset.yaml epochs=50
+        yolo detect train model=yolo26n.pt data=path/to/dataset.yaml epochs=50
         ```
 
 For detailed dataset formatting and additional options, refer to our [Tips for Model Training](model-training-tips.md) guide.

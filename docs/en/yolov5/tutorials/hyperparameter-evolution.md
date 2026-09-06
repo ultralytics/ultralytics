@@ -69,7 +69,7 @@ copy_paste: 0.0 # segment copy-paste (probability)
 
 ## 2. Define Fitness
 
-Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended).
+Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended). This fitness decides which result is saved to `hyp_evolve.yaml`; the genetic algorithm itself ranks parents and elites by `mAP@0.5` alone, so changing these weights does not change parent selection.
 
 ```python
 def fitness(x):
@@ -113,7 +113,7 @@ done
 
 The default evolution settings run for 300 generations, and every generation trains the base scenario once for each of the 50 individuals in the population. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
 
-The main genetic operators are **crossover** and **mutation**. Each generation trains and scores every individual, selects parents by tournament selection with the fittest elites added to the parent pool, and builds the next population through crossover and mutation, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
+The main genetic operators are **crossover** and **mutation**. Each generation trains every individual and scores it by `mAP@0.5`, selects parents by tournament selection with the fittest elites added to the parent pool, and builds the next population through crossover and mutation, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
 
 ```yaml
 # YOLOv5 Hyperparameter Evolution Results

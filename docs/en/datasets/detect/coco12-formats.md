@@ -70,41 +70,7 @@ The COCO12-Formats dataset is configured using a YAML file that defines dataset 
 
 ### Requirements
 
-Some formats require additional dependencies:
-
-```bash
-pip install pillow pillow-heif pillow-avif-plugin
-```
-
-#### AVIF System Library (Optional)
-
-For OpenCV to read AVIF files directly, `libavif` must be installed **before** building OpenCV:
-
-=== "macOS"
-
-    ```bash
-    brew install libavif
-    ```
-
-=== "Ubuntu/Debian"
-
-    ```bash
-    sudo apt install libavif-dev libavif-bin
-    ```
-
-=== "From Source"
-
-    ```bash
-    git clone -b v1.2.1 https://github.com/AOMediaCodec/libavif.git
-    cd libavif
-    cmake -B build -DAVIF_CODEC_AOM=SYSTEM -DAVIF_BUILD_APPS=ON
-    cmake --build build --config Release --parallel
-    sudo cmake --install build
-    ```
-
-!!! note
-
-    The pip-installed `opencv-python` package may not include AVIF support since it's pre-built. Ultralytics uses Pillow with `pillow-avif-plugin` as a fallback for AVIF images when OpenCV lacks support.
+No manual setup is needed. OpenCV reads most formats directly, and Ultralytics falls back to Pillow for AVIF, HEIC, and HEIF. AVIF is decoded natively by Pillow, and HEIC/HEIF decoding installs the lightweight `pi-heif` package automatically on first use.
 
 ## Usage
 
@@ -135,11 +101,7 @@ The COCO12-Formats dataset (1 MB) downloads automatically the first time you sta
 
 ### AVIF (AV1 Image File Format)
 
-AVIF is a modern image format based on the AV1 video codec, offering excellent compression. Requires `pillow-avif-plugin`:
-
-```bash
-pip install pillow-avif-plugin
-```
+AVIF is a modern image format based on the AV1 video codec, offering excellent compression. Ultralytics decodes it through Pillow when OpenCV lacks AVIF support, with no extra packages required.
 
 ### DNG (Digital Negative)
 
@@ -226,5 +188,4 @@ Different image formats have unique characteristics (compression, bit depth, col
 
 ### Which Formats Require Special Dependencies?
 
-- **AVIF**: Requires `pillow-avif-plugin`
-- **HEIC**: Requires `pillow-heif`
+None need manual installation. AVIF is decoded natively by Pillow, and HEIC/HEIF decoding installs `pi-heif` automatically on first use. Install the full `pillow-heif` package only if you need to write HEIC/HEIF files yourself.

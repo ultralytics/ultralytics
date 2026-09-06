@@ -50,7 +50,7 @@ Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. The
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information such as the maximum depth.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information such as the maximum depth.
 
 !!! example "ultralytics/cfg/datasets/depth-kitti.yaml"
 
@@ -119,3 +119,21 @@ If you use the KITTI dataset in your research or development work, please cite t
         ```
 
 We would like to acknowledge the Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago for creating and maintaining the KITTI dataset, and Uhrig et al. for the depth densification method that makes dense supervision possible.
+
+## FAQ
+
+### What role does KITTI play in YOLO26-Depth?
+
+KITTI is the only real outdoor, long-range source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark. Its Velodyne LiDAR depth reaches roughly 80 m, which is why the depth head is unbounded rather than capped at a fixed indoor range.
+
+### How is the KITTI depth dataset split?
+
+The Ultralytics configuration uses 55,198 training images from the left and right cameras, with all 28 KITTI Eigen test drives excluded, and evaluates on the 652 left-camera Eigen test frames with improved ground truth. Depth PNGs use 256 units per meter (`depth_scale: 256`) and the YAML sets `max_depth: 80`.
+
+### How do I train a YOLO26 depth model on KITTI?
+
+Run `yolo depth train data=depth-kitti.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`, or use the Python example in the [Usage](#usage) section. The [Training](../../modes/train.md) page lists every available argument.
+
+### Why do the KITTI results differ from published numbers?
+
+The values in [Results](#results) come from the Ultralytics validator with `imgsz=768` and `rect=False`, which resizes images to a square input, masks ground truth against `max_depth`, and pools every valid pixel rather than averaging per image. Reference KITTI evaluators use a different protocol, so the numbers are not directly comparable.

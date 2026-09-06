@@ -221,7 +221,7 @@ Dynamic input sizing is particularly useful for applications where input dimensi
 
 Understanding and configuring export arguments is crucial for optimizing model performance:
 
-- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
+- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `saved_model`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
 - **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
 - **`optimize:`** Enables higher compiler optimization for DEEPX exports.

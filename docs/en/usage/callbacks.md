@@ -7,7 +7,7 @@ keywords: Ultralytics, callbacks, training, validation, export, prediction, ML m
 
 # Callbacks
 
-Ultralytics framework supports callbacks, which serve as entry points at strategic stages during the `train`, `val`, `export`, and `predict` modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. All properties of these objects are detailed in the [Reference section](../reference/cfg/__init__.md) of the documentation.
+Ultralytics framework supports callbacks, which serve as entry points at strategic stages during the `train`, `val`, `export`, and `predict` modes. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. All properties of these objects are detailed in the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), and [`BasePredictor`](../reference/engine/predictor.md) reference pages.
 
 <p align="center">
   <br>
@@ -32,7 +32,7 @@ from ultralytics import YOLO
 
 def on_predict_batch_end(predictor):
     """Combine prediction results with corresponding frames."""
-    _, image, _, _ = predictor.batch
+    _, image, _ = predictor.batch
 
     # Ensure that image is a list
     image = image if isinstance(image, list) else [image]
@@ -135,7 +135,7 @@ Below are all the supported callbacks. For more details, refer to the callbacks 
 
 ### What are Ultralytics callbacks and how can I use them?
 
-Ultralytics callbacks are specialized entry points that are triggered during key stages of model operations such as training, validation, exporting, and prediction. These callbacks enable custom functionality at specific points in the process, allowing for enhancements and modifications to the workflow. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. For detailed properties of these objects, refer to the [Reference section](../reference/cfg/__init__.md).
+Ultralytics callbacks are specialized entry points that are triggered during key stages of model operations such as training, validation, exporting, and prediction. These callbacks enable custom functionality at specific points in the process, allowing for enhancements and modifications to the workflow. Each callback accepts a `Trainer`, `Validator`, or `Predictor` object, depending on the operation type. For detailed properties of these objects, refer to the [`BaseTrainer`](../reference/engine/trainer.md), [`BaseValidator`](../reference/engine/validator.md), and [`BasePredictor`](../reference/engine/predictor.md) reference pages.
 
 To use a callback, define a function and add it to the model using the [`model.add_callback()`](../reference/engine/model.md#ultralytics.engine.model.Model.add_callback) method. Here is an example of returning additional information during prediction:
 
@@ -145,7 +145,7 @@ from ultralytics import YOLO
 
 def on_predict_batch_end(predictor):
     """Handle prediction batch end by combining results with corresponding frames; modifies predictor results."""
-    _, image, _, _ = predictor.batch
+    _, image, _ = predictor.batch
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
 
@@ -258,7 +258,7 @@ from ultralytics import YOLO
 
 def on_predict_batch_end(predictor):
     """Combine prediction results with frames."""
-    _, image, _, _ = predictor.batch
+    _, image, _ = predictor.batch
     image = image if isinstance(image, list) else [image]
     predictor.results = zip(predictor.results, image)
 

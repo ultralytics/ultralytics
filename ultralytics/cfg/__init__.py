@@ -304,7 +304,6 @@ CFG_BOOL_KEYS = frozenset(
         "nms",
         "profile",
         "channels_last",
-        "end2end",
         "cls_remap",
     }
 )
@@ -369,7 +368,7 @@ def get_cfg(
           `project` and `name` to strings and validating configuration keys and values.
         - The function performs type and value checks on the configuration data.
     """
-    cfg = cfg2dict(cfg)
+    cfg = _handle_deprecation(cfg2dict(cfg))
 
     # Merge overrides
     if overrides:
@@ -583,6 +582,14 @@ def _handle_deprecation(custom: dict) -> dict:
         "line_thickness": ("line_width", lambda v: v),
     }
     removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
+
+    if "end2end" in custom:
+        end2end = custom.pop("end2end")
+        if end2end is not None:
+            if not isinstance(end2end, bool):
+                raise TypeError("Deprecated 'end2end' must be a bool.")
+            custom["nms"] = False if end2end else True if custom.get("nms") is True else None
+            deprecation_warn(f"end2end={end2end}", f"nms={custom.get('nms')}")
 
     # Forward the deprecated precision flags onto the unified `quantize` scheme (int8 wins over half). The value is read
     # as a bool so quoted/string 'False' disables it while a bare CLI flag (empty string) enables it; an explicit false
@@ -1055,8 +1062,8 @@ def entrypoint(debug: str = "") -> None:
             return
         elif a in DEFAULT_CFG_DICT and isinstance(DEFAULT_CFG_DICT[a], bool):
             overrides[a] = True  # auto-True for default bool args, i.e. 'yolo show' sets show=True
-        elif a in {"half", "int8"}:
-            overrides[a] = True  # deprecated bare precision flags, forwarded to quantize by _handle_deprecation
+        elif a in {"half", "int8", "end2end", "nms"}:
+            overrides[a] = True  # bare boolean flags whose defaults are missing or None
         elif a in DEFAULT_CFG_DICT:
             raise SyntaxError(
                 f"'{colorstr('red', 'bold', a)}' is a valid YOLO argument but is missing an '=' sign "

@@ -1045,9 +1045,9 @@ def plot_images(
 
 @plt_settings()
 def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
-    """Plot training results from a results CSV file. The function supports various types of data including instance
-    segmentation, semantic segmentation, pose estimation, and classification. Plots are saved as 'results.png' in
-    the directory where the CSV is located.
+    """Plot training results from a results CSV file. The function supports various types of data including detection,
+    instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation. Plots are
+    saved as 'results.png' in the directory where the CSV is located.
 
     Args:
         file (str, optional): Path to the CSV file containing the training results.
@@ -1370,8 +1370,8 @@ def class_activation_map(
     def hook(module, inputs, output):
         """Capture the class logits leaving the head."""
         raw = output[1] if isinstance(output, tuple) else output  # heads returning (predictions, raw) keep the raw
-        if isinstance(raw, dict):  # Detect and subclasses, end2end heads predict from their one2one branch
-            s = raw.get("one2one", raw)["scores"]  # (B, nc, anchors)
+        if isinstance(raw, dict):  # Detect and subclasses: follow the selected inference branch
+            s = raw.get("one2one" if module.end2end else "one2many", raw)["scores"]  # (B, nc, anchors)
         elif isinstance(raw, tuple):  # RTDETRDecoder, raw = (dec_bboxes, dec_scores, ...)
             s = raw[1][-1].transpose(1, 2)  # last decoder layer, (B, nc, queries)
         else:  # Classify (B, nc), SemanticSegment (B, nc, h, w), Depth (B, 1, h, w)

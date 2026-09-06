@@ -127,7 +127,7 @@ For debugging, you can enable more verbose output. While this specific script do
 
 ### Can I Use Other YOLO Versions or Custom Models?
 
-Yes, you can use different Ultralytics YOLO model versions (like YOLOv8, YOLO26, or YOLO26) or your own custom-trained models by specifying the path to the `.pt` file using the `--weights` argument. Ensure the model is compatible with the Ultralytics framework. Find more about training custom models in the [Model Training guide](https://docs.ultralytics.com/modes/train).
+Yes, you can use different Ultralytics YOLO model versions (like YOLOv8, YOLO11, or YOLO26) or your own custom-trained models by specifying the path to the `.pt` file using the `--weights` argument. Ensure the model is compatible with the Ultralytics framework. Find more about training custom models in the [Model Training guide](https://docs.ultralytics.com/modes/train).
 
 ## 🤝 Contributing
 

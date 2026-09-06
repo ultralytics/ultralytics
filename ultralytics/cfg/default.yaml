@@ -58,12 +58,8 @@ max_det: 300 # (int) maximum number of detections per image
 quantize: # (int|str, optional) precision: predict/val 16/fp16 or 32/fp32/None sets pt/torchscript compute; elsewhere the artifact/runtime decides, though 16 rounds openvino/triton inputs and returns triton outputs as fp16; export also supports 8/int8 and w8a8|w16a16|w8a16|w8a32; replaces deprecated half/int8 args
 dnn: False # (bool) use OpenCV DNN for ONNX inference
 plots: True # (bool) save plots and images during train/val
-<<<<<<< HEAD
-end2end: # (bool, optional) whether to use end2end head (YOLO26, YOLOv10) for predict/val/export
-score_labels: False # (bool) compute per-image possible FP, FN, and label-confusion scores
-=======
 nms: # (bool, optional) None: external NMS (default); True: embed NMS on export; False: NMS-free head if available
->>>>>>> origin/analysis-2-correlation
+score_labels: False # (bool) compute per-image possible FP, FN, and label-confusion scores
 
 # Predict settings -----------------------------------------------------------------------------------------------------
 source: # (str, optional) path/dir/URL/stream for images or videos; e.g. 'ultralytics/assets' or '0' for webcam

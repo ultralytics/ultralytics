@@ -475,7 +475,7 @@ Tests run on a NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `u
         for file_name in ["yolov8n-seg.pt", "yolo11n-seg.pt", "yolo26n-seg.pt"]:
             model = YOLO(file_name)
             model.info()
-            model(ASSETS, nms=False)  # NMS-free head, as benchmarked
+            model(ASSETS, nms=False)  # YOLO26 NMS-free head; no-op for YOLOv8/YOLO11
         ```
 
 ## Evaluation Metrics

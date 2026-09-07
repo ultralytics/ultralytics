@@ -300,7 +300,7 @@ class BaseDataset(Dataset):
 
             return im, (h0, w0), im.shape[:2]
 
-        return self.ims[i], self.im_hw0[i], self.im_hw[i]
+        return im, self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self) -> None:
         """Cache images to memory or disk for faster training."""

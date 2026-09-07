@@ -37,7 +37,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, get_split_fraction
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import LOGGER, RANK, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
@@ -123,6 +123,35 @@ class _RepeatSampler:
         """Iterate over the sampler indefinitely, yielding its contents."""
         while True:
             yield from iter(self.sampler)
+
+
+def _estimate_auto_workers(
+    batch: int,
+    batches: int,
+    prefetch_factor: int,
+    nd: int,
+    imgsz: int | list[int] | tuple[int, ...],
+) -> int:
+    """Estimate a host-RAM-bounded worker count for ``workers=-1`` dataloaders."""
+    try:
+        import psutil  # scoped as slow import
+
+        available = psutil.virtual_memory().available
+    except Exception as e:
+        LOGGER.warning(f"{colorstr('AutoWorkers: ')}host memory check failed ({e}), using 1 worker")
+        return 1
+
+    cpu_limit = os.cpu_count() // max(nd, 1)
+    if batches <= 1 or cpu_limit <= 0:
+        return 0
+
+    mib = 1 << 20
+    # Approximate worker footprint from measured PSS:
+    # 124 MiB baseline + 0.93 * queued RGB uint8 image bytes.
+    imgsz = max(imgsz) if isinstance(imgsz, (list, tuple)) else imgsz
+    worker_bytes = 124 * mib + int(0.93 * prefetch_factor * batch * imgsz**2 * 3)
+    memory_limit = max(int(available * 0.5 // max(worker_bytes, 1)), 1)
+    return min(cpu_limit, batches, memory_limit)
 
 
 class ContiguousDistributedSampler(torch.utils.data.Sampler):
@@ -358,6 +387,10 @@ def build_dataloader(
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
+    prefetch_factor = 4 if shuffle else 2
+    if workers == -1:
+        workers = _estimate_auto_workers(batch, batches, prefetch_factor, nd, getattr(dataset, "imgsz", 640))
+        LOGGER.info(f"{colorstr('AutoWorkers: ')}{workers} workers")
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
@@ -373,7 +406,7 @@ def build_dataloader(
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        prefetch_factor=(4 if shuffle else 2) if nw > 0 else None,  # validation holds fewer batches between passes
+        prefetch_factor=prefetch_factor if nw > 0 else None,  # validation holds fewer batches between passes
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,

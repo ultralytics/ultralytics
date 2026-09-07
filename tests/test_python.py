@@ -5,11 +5,13 @@ import csv
 import os
 import platform
 import shutil
+import sys
 import tarfile
 import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
+from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -59,6 +61,74 @@ def test_dataloader_caps_workers_to_batches():
         single_batch.close()
         drop_last_single_batch.close()
         two_batches.close()
+
+
+def test_dataloader_auto_workers_clamps_to_batches(monkeypatch, caplog):
+    """Test workers=-1 resolves from host memory and still clamps to useful batch count."""
+    caplog.set_level("INFO")
+    monkeypatch.setitem(
+        sys.modules,
+        "psutil",
+        SimpleNamespace(virtual_memory=lambda: SimpleNamespace(available=1 << 40)),
+    )
+    monkeypatch.setattr(data_build.os, "cpu_count", lambda: 32)
+    loader = build_dataloader(range(12), batch=4, workers=-1)
+    try:
+        assert loader.num_workers == 3
+        assert "AutoWorkers: 3 workers" in caplog.text
+    finally:
+        loader.close()
+
+
+def test_dataloader_auto_workers_preserves_tiny_dataset_cap(monkeypatch):
+    """Test auto workers keep single-batch datasets in-process."""
+    monkeypatch.setitem(
+        sys.modules,
+        "psutil",
+        SimpleNamespace(virtual_memory=lambda: SimpleNamespace(available=1 << 40)),
+    )
+    loader = build_dataloader(range(4), batch=4, workers=-1)
+    try:
+        assert loader.num_workers == 0
+    finally:
+        loader.close()
+
+
+def test_dataloader_auto_workers_clamps_per_ddp_rank(monkeypatch):
+    """Test auto workers respect the per-rank CPU cap when a multi-device backend is active."""
+    sampler_cls = data_build.distributed.DistributedSampler
+
+    def distributed_sampler(dataset, shuffle, seed):
+        return sampler_cls(dataset, num_replicas=2, rank=0, shuffle=shuffle, seed=seed)
+
+    monkeypatch.setitem(
+        sys.modules,
+        "psutil",
+        SimpleNamespace(virtual_memory=lambda: SimpleNamespace(available=1 << 40)),
+    )
+    monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
+    monkeypatch.setattr(data_build.os, "cpu_count", lambda: 4)
+    monkeypatch.setattr(data_build, "get_torch_device_backend", lambda device: SimpleNamespace(device_count=lambda: 2))
+    loader = build_dataloader(range(64), batch=4, workers=-1, rank=0, device="cuda", pin_memory=False)
+    try:
+        assert loader.num_workers == 2
+    finally:
+        loader.close()
+
+
+def test_dataloader_auto_workers_low_memory_falls_back_to_one(monkeypatch):
+    """Test auto workers keep at least one worker when host memory is below the estimated worker footprint."""
+    monkeypatch.setitem(
+        sys.modules,
+        "psutil",
+        SimpleNamespace(virtual_memory=lambda: SimpleNamespace(available=1)),
+    )
+    monkeypatch.setattr(data_build.os, "cpu_count", lambda: 32)
+    loader = build_dataloader(range(64), batch=4, workers=-1)
+    try:
+        assert loader.num_workers == 1
+    finally:
+        loader.close()
 
 
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):

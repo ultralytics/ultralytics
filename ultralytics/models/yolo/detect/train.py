@@ -97,7 +97,7 @@ class DetectionTrainer(BaseTrainer):
         return build_dataloader(
             dataset,
             batch=batch_size,
-            workers=self.args.workers if mode == "train" else self.args.workers * 2,
+            workers=self.args.workers if mode == "train" or self.args.workers == -1 else self.args.workers * 2,
             shuffle=shuffle,
             rank=rank,
             drop_last=self.args.compile and mode == "train",

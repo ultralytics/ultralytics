@@ -173,6 +173,7 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - Stereo 3D: tasks/s3d.md
   - Models:
       - models/index.md
       - YOLO26 🚀: models/yolo26.md
@@ -384,6 +385,7 @@ nav:
           - GlobalWheat2020: datasets/detect/globalwheat2020.md
           - HomeObjects-3K: datasets/detect/homeobjects-3k.md
           - KITTI: datasets/detect/kitti.md
+          - KITTI Stereo: datasets/detect/kitti-stereo.md
           - LVIS: datasets/detect/lvis.md
           - Medical-pills: datasets/detect/medical-pills.md
           - Objects365: datasets/detect/objects365.md
@@ -653,8 +655,14 @@ nav:
           - converter: reference/data/converter.md
           - dataset: reference/data/dataset.md
           - loaders: reference/data/loaders.md
+          - scripts:
+              - benchmark_s3d: reference/data/scripts/benchmark_s3d.md
+              - convert_kitti_3d: reference/data/scripts/convert_kitti_3d.md
           - split: reference/data/split.md
           - split_dota: reference/data/split_dota.md
+          - stereo:
+              - box3d: reference/data/stereo/box3d.md
+              - calib: reference/data/stereo/calib.md
           - utils: reference/data/utils.md
       - engine:
           - exporter: reference/engine/exporter.md
@@ -733,6 +741,19 @@ nav:
                   - predict: reference/models/yolo/pose/predict.md
                   - train: reference/models/yolo/pose/train.md
                   - val: reference/models/yolo/pose/val.md
+              - s3d:
+                  - augment: reference/models/yolo/s3d/augment.md
+                  - dataset: reference/models/yolo/s3d/dataset.md
+                  - head: reference/models/yolo/s3d/head.md
+                  - loss: reference/models/yolo/s3d/loss.md
+                  - metrics: reference/models/yolo/s3d/metrics.md
+                  - model: reference/models/yolo/s3d/model.md
+                  - orientation: reference/models/yolo/s3d/orientation.md
+                  - plotting: reference/models/yolo/s3d/plotting.md
+                  - predict: reference/models/yolo/s3d/predict.md
+                  - preprocess: reference/models/yolo/s3d/preprocess.md
+                  - train: reference/models/yolo/s3d/train.md
+                  - val: reference/models/yolo/s3d/val.md
               - segment:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md

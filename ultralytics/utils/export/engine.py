@@ -215,8 +215,8 @@ def onnx2engine(
         dla (int | None): DLA core to use (Jetson devices only).
         dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when
             `qdq=True`.
-        qdq (bool): Whether the ONNX already carries Q/DQ nodes from quantization-aware training, in which case
-            the graph holds the INT8 ranges and no calibration runs.
+        qdq (bool): Whether the ONNX already carries Q/DQ nodes from quantization-aware training, in which case the
+            graph holds the INT8 ranges and no calibration runs.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.

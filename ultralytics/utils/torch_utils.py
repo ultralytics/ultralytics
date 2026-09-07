@@ -419,10 +419,10 @@ MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
 def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
     """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
 
-    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training
-    learns weights that survive INT8 export and `torch.onnx.export` emits those ranges as Q/DQ nodes.
-    Activation and weight ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's
-    INT8 config keeps `amax` as a buffer, not a learnable parameter), so training adapts the weights to them.
+    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training learns
+    weights that survive INT8 export and `torch.onnx.export` emits those ranges as Q/DQ nodes. Activation and weight
+    ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as a
+    buffer, not a learnable parameter), so training adapts the weights to them.
 
     BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
     `fuse()` and leaves BN folding to the deployment backend, and the head is left in float because a single INT8
@@ -468,9 +468,9 @@ def is_qat(model: nn.Module) -> bool:
 def qat_state(model: nn.Module) -> dict[str, Any]:
     """Strip fake-quantization from a model in place and return the state that restores it.
 
-    Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at
-    runtime, which pickle cannot look up on load. The serialization copy is therefore reverted to the plain layers it
-    wraps and the quantization travels beside it as data, which `restore_qat` re-applies.
+    Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at runtime,
+    which pickle cannot look up on load. The serialization copy is therefore reverted to the plain layers it wraps and
+    the quantization travels beside it as data, which `restore_qat` re-applies.
 
     Args:
         model (nn.Module): QAT model copy to strip, modified in place.

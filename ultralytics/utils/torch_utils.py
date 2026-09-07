@@ -426,7 +426,8 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     buffer, not a learnable parameter), so training adapts the weights to them.
 
     BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
-    `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy loss.
+    `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy
+    loss.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.

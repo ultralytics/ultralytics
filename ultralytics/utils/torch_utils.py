@@ -416,7 +416,7 @@ def fuse_deconv_and_bn(deconv, bn):
 MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
 
 
-def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
+def prepare_qat(model: nn.Module, dataloader, batches: int = 8) -> nn.Module:
     """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
 
     Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training learns
@@ -431,7 +431,6 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     Args:
         model (nn.Module): Model to prepare, modified in place.
         dataloader (Iterable): Loader yielding Ultralytics batches for the initial range calibration.
-        preprocess (callable): Batch preprocessing, i.e. `BaseTrainer.preprocess_batch`.
         batches (int): Number of calibration batches.
 
     Returns:
@@ -442,11 +441,14 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
 
     def forward_loop(m):
         """Run calibration batches with BatchNorm statistics frozen, as at deployment."""
+        device = next(m.parameters()).device
         training = m.training
         m.eval()
         with torch.no_grad():
             for batch, _ in zip(dataloader, range(batches)):
-                m(preprocess(batch)["img"])
+                # Normalize here rather than through a trainer hook: ranges must come from fixed-size deployment-like
+                # inputs, not multi-scale training crops, and calibration then needs no trainer state at all
+                m(batch["img"].to(device, non_blocking=True).float() / 255)
         m.train(training)
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
@@ -465,32 +467,44 @@ def is_qat(model: nn.Module) -> bool:
     return any(type(m).__name__ == "TensorQuantizer" for m in model.modules())
 
 
-def qat_state(model: nn.Module) -> dict[str, Any]:
-    """Strip fake-quantization from a model in place and return the state that restores it.
+def qat_state(model: nn.Module) -> dict[str, Any] | None:
+    """Return the state that reproduces a model's fake-quantization, or None if it carries none.
 
     Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at runtime,
-    which pickle cannot look up on load. The serialization copy is therefore reverted to the plain layers it wraps and
-    the quantization travels beside it as data, which `restore_qat` re-applies.
+    which pickle cannot look up on load. The quantization therefore travels beside the module as data, and both the
+    checkpoint writers and `BaseModel.load` read it from here so QAT lives in one place instead of once per caller.
 
     Args:
-        model (nn.Module): QAT model copy to strip, modified in place.
+        model (nn.Module): Model to read, left untouched.
 
     Returns:
-        (dict): ModelOpt conversion state and the calibrated quantizer ranges.
+        (dict | None): ModelOpt conversion state and the calibrated quantizer ranges, or None for a plain model.
     """
+    if not is_qat(model):
+        return None
     import modelopt.torch.opt as mto
-    from modelopt.torch.opt.conversion import ModeloptStateManager
-    from modelopt.torch.opt.dynamic import DynamicModule
 
-    state = {
+    return {
         "modelopt": mto.modelopt_state(model),
         "ranges": {k: v for k, v in model.state_dict().items() if "quantizer" in k},
     }
+
+
+def strip_qat(model: nn.Module) -> None:
+    """Revert a model's fake-quantization in place, leaving the plain layers it wraps.
+
+    Checkpoint writers call this on the copy they are about to pickle, after `qat_state` has read the quantization
+    out of it, since the runtime-generated layer classes cannot be pickled.
+    """
+    if not is_qat(model):
+        return
+    from modelopt.torch.opt.conversion import ModeloptStateManager
+    from modelopt.torch.opt.dynamic import DynamicModule
+
     for m in model.modules():
         if isinstance(m, DynamicModule):
             m.export()  # revert the runtime class to the plain layer it wraps
     ModeloptStateManager.remove_state(model)  # a reverted copy must not claim to be converted
-    return state
 
 
 def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:

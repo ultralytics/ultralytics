@@ -110,6 +110,7 @@ from ultralytics.utils.torch_utils import (
     intersect_dicts,
     is_qat,
     model_info,
+    qat_state,
     restore_qat,
     scale_img,
     smart_inference_mode,
@@ -318,6 +319,10 @@ class BaseModel(torch.nn.Module):
             verbose (bool, optional): Whether to log the transfer progress.
         """
         model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
+        if state := qat_state(model):
+            # A QAT source carries calibrated activation ranges this freshly built model has no keys for, so mirror
+            # its quantizers here or intersect_dicts below drops them and training re-derives a different set
+            restore_qat(self, state)
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
 
         # Remap classification head rows by class-name when nc differs (e.g. Obj365 -> COCO fine-tune)

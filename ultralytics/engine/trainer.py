@@ -64,6 +64,7 @@ from ultralytics.utils.torch_utils import (
     parse_device,
     prepare_qat,
     qat_state,
+    strip_qat,
     select_device,
     strip_optimizer,
     torch_distributed_zero_first,
@@ -330,12 +331,14 @@ class BaseTrainer:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
 
-        # Quantization-aware training: fake-quantize before the compile, DDP and EMA wraps below, and calibrate off a
-        # rank-independent loader so every rank starts from identical activation ranges without a distributed sync
+        # Quantization-aware training: fake-quantize before the compile, DDP and EMA wraps below, which all need the
+        # final module structure
+        # A model rebuilt from a QAT checkpoint arrives already quantized from BaseModel.load, ranges included
         if self.args.quantize == 8 and not is_qat(self.model):
+            # Calibrate off a rank-independent loader so every rank starts from identical ranges without a sync
             batch = self.batch_size if self.batch_size >= 1 else 16  # autobatch resolves after the DDP wrap below
             calibration_loader = self.get_dataloader(self.data["train"], batch_size=batch, rank=-1, mode="val")
-            self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+            self.model = prepare_qat(self.model, calibration_loader)
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
@@ -752,7 +755,8 @@ class BaseTrainer:
                 torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
-        modelopt = qat_state(ema) if is_qat(ema) else None  # QAT layer classes are built at runtime and cannot pickle
+        modelopt = qat_state(ema)  # QAT layer classes are built at runtime and cannot pickle; carried as data
+        strip_qat(ema)
         buffer = io.BytesIO()
         torch.save(
             {
@@ -1256,9 +1260,10 @@ class MultiTrainer:
         model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
         base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
-            torch_save(
-                {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
-            )
+            model = deepcopy(self.model).half()
+            state = qat_state(model)
+            strip_qat(model)
+            torch_save({"model": model, "modelopt": state, "train_args": getattr(self.model, "args", {})}, base_model)
         try:
             for i, data in enumerate(datasets):
                 LOGGER.info(

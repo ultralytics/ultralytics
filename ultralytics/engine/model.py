@@ -368,11 +368,21 @@ class Model(torch.nn.Module):
 
         from ultralytics import __version__
 
+        from ultralytics.utils.torch_utils import qat_state, strip_qat
+
+        model = (
+            deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
+            if isinstance(self.model, torch.nn.Module)
+            else self.model
+        )
+        state = None
+        if isinstance(model, torch.nn.Module):
+            state = qat_state(model)  # read the quantization out before pickling, its layer classes cannot pickle
+            strip_qat(model)
         updates = {
             "ema": None,
-            "model": deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
-            if isinstance(self.model, torch.nn.Module)
-            else self.model,
+            "model": model,
+            "modelopt": state,
             "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",

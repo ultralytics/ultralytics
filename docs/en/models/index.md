@@ -8,7 +8,7 @@ keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9
 
 Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
 
-![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
+![Ultralytics YOLO26 Comparison Plots](https://cdn.ul.run/i/1b042c1a3e984e8d2eb58c2af3c53965.avif)
 
 ## Featured Models
 

@@ -34,7 +34,7 @@ DIODE is a **training** source in the Ultralytics YOLO26-Depth multi-dataset pre
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
 
 !!! example "ultralytics/cfg/datasets/depth-diode.yaml"
 
@@ -89,3 +89,17 @@ If you use the DIODE dataset in your research or development work, please cite t
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What makes the DIODE dataset unique for depth estimation?
+
+DIODE captures both indoor and outdoor scenes with the same FARO Focus survey-grade laser scanner, producing very dense and accurate depth ground truth across short indoor and long outdoor ranges. This single-sensor coverage makes it a high-precision bridge between the indoor and outdoor domains in the YOLO26-Depth training mix.
+
+### How is the DIODE dataset structured?
+
+The Ultralytics configuration provides 25,458 training and 771 validation image-depth pairs. Depth is stored as uint16 PNGs with 256 units per meter (`depth_scale: 256`), which keeps 3.9 mm resolution while covering the full 80 m outdoor range described in the [Ultralytics depth dataset format](index.md).
+
+### How do I train a YOLO26 depth model on DIODE?
+
+Load a pretrained depth checkpoint and point `data` at the bundled YAML, for example `yolo depth train data=depth-diode.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`. See the [Usage](#usage) section for the Python equivalent and the [Training](../../modes/train.md) page for all arguments.

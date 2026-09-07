@@ -38,7 +38,7 @@ The architecture of YOLOv10 builds upon the strengths of previous YOLO models wh
 ## Key Features
 
 1. **NMS-Free Training**: Utilizes consistent dual assignments to eliminate the need for NMS, reducing [inference latency](https://www.ultralytics.com/glossary/inference-latency).
-2. **Holistic Model Design**: Comprehensive optimization of various components from both efficiency and accuracy perspectives, including lightweight classification heads, spatial-channel decoupled down sampling, and rank-guided block design.
+2. **Holistic Model Design**: Comprehensive optimization of various components from both efficiency and accuracy perspectives, including lightweight classification heads, spatial-channel decoupled downsampling, and rank-guided block design.
 3. **Enhanced Model Capabilities**: Incorporates large-kernel [convolutions](https://www.ultralytics.com/glossary/convolution) and partial self-attention modules to improve performance without significant computational cost.
 
 ## Model Variants
@@ -62,16 +62,16 @@ YOLOv10 outperforms previous YOLO versions and other state-of-the-art models in 
 
     === "Detection (COCO)"
 
-    Latency measured with TensorRT FP16 on T4 GPU.
+        Latency measured with TensorRT FP16 on T4 GPU.
 
-    | Model         | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
-    | ------------- | ---------- | ---------------- | --------- | ------------ |
-    | [YOLOv10n][1] | 640        | 38.5             | **6.7**   | **1.84**     |
-    | [YOLOv10s][2] | 640        | 46.3             | 21.6      | 2.49         |
-    | [YOLOv10m][3] | 640        | 51.1             | 59.1      | 4.74         |
-    | [YOLOv10b][4] | 640        | 52.5             | 92.0      | 5.74         |
-    | [YOLOv10l][5] | 640        | 53.2             | 120.3     | 7.28         |
-    | [YOLOv10x][6] | 640        | **54.4**         | 160.4     | 10.70        |
+        | Model         | Input Size | AP<sup>val</sup> | FLOPs (G) | Latency (ms) |
+        | ------------- | ---------- | ---------------- | --------- | ------------ |
+        | [YOLOv10n][1] | 640        | 38.5             | **6.7**   | **1.84**     |
+        | [YOLOv10s][2] | 640        | 46.3             | 21.6      | 2.49         |
+        | [YOLOv10m][3] | 640        | 51.1             | 59.1      | 4.74         |
+        | [YOLOv10b][4] | 640        | 52.5             | 92.0      | 5.74         |
+        | [YOLOv10l][5] | 640        | 53.2             | 120.3     | 7.28         |
+        | [YOLOv10x][6] | 640        | **54.4**         | 160.4     | 10.70        |
 
 ## Methodology
 
@@ -84,7 +84,7 @@ YOLOv10 employs dual label assignments, combining one-to-many and one-to-one str
 #### Efficiency Enhancements
 
 1. **Lightweight Classification Head**: Reduces the computational overhead of the classification head by using depth-wise separable convolutions.
-2. **Spatial-Channel Decoupled Down sampling**: Decouples spatial reduction and channel modulation to minimize information loss and computational cost.
+2. **Spatial-Channel Decoupled Downsampling**: Decouples spatial reduction and channel modulation to minimize information loss and computational cost.
 3. **Rank-Guided Block Design**: Adapts block design based on intrinsic stage redundancy, ensuring optimal parameter utilization.
 
 #### Accuracy Enhancements
@@ -207,9 +207,9 @@ For training YOLOv10 on a custom dataset:
 
 The YOLOv10 model series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model   | Filenames                                                             | Tasks                                  | Training | Validation | Inference | Export |
-| ------- | --------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
-| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
+| Model   | Filenames                                                                           | Tasks                                  | Training | Validation | Inference | Export |
+| ------- | ----------------------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLOv10 | `yolov10n.pt` `yolov10s.pt` `yolov10m.pt` `yolov10b.pt` `yolov10l.pt` `yolov10x.pt` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
 ## Exporting YOLOv10
 
@@ -227,7 +227,7 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 | [LiteRT](../integrations/litert.md)               | ✅             | ✅                       | Optimized for mobile, embedded, and browser (LiteRT.js).                               |
 | [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.                                                 |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.                                                 |
-| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | Layer `torch.topk` not exists or registered                                            |
+| [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | The `torch.topk` operator is not supported by the NCNN runtime.                        |
 
 ## Conclusion
 

@@ -76,7 +76,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Detection 
 
 ### Dataset format
 
-YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also annotate and manage detection datasets with [Ultralytics Platform's AI-assisted annotation tools](../platform/data/annotation.md).
+YOLO detection dataset format can be found in detail in the [Dataset Guide](../datasets/detect/index.md). To convert an existing COCO JSON dataset to YOLO format, use the built-in `convert_coco` function described in the [COCO to YOLO guide](../guides/coco-to-yolo.md). You can also annotate and manage detection datasets with [Ultralytics Platform's AI-assisted annotation tools](../platform/data/annotation.md).
 
 ## Val
 

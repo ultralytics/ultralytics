@@ -17,8 +17,7 @@ This comprehensive guide provides a detailed walkthrough for deploying [Ultralyt
 
 [Deep Learning Streamer (DL Streamer) Pipeline Framework](https://github.com/open-edge-platform/dlstreamer) is an open-source streaming media analytics framework based on the [GStreamer](https://github.com/GStreamer/gstreamer) multimedia framework, designed for creating complex media analytics pipelines for the Cloud or at the Edge.
 
-DL Streamer enables analysis of audio and video streams to detect, classify, track, identify, and count objects, events, and people. It is
-optimized for Intel hardware and provides interoperability between GStreamer plugins built on various backend libraries:
+DL Streamer enables analysis of audio and video streams to detect, classify, track, identify, and count objects, events, and people. It is optimized for Intel hardware and provides interoperability between GStreamer plugins built on various backend libraries:
 
 - **Inference**: [OpenVINO™](https://docs.openvino.ai/) inference engine, optimized for Intel CPU, GPU, and NPU
 - **Video Encoding/Decoding**: GPU-acceleration via VA-API
@@ -28,8 +27,7 @@ optimized for Intel hardware and provides interoperability between GStreamer plu
 
 DL Streamer supports many AI models including the full Ultralytics YOLO family (YOLOv5 through YOLO26) all in OpenVINO™ format.
 
-DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform
-Documentation](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/dlstreamer/get_started/system_requirements.html)
+DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform Documentation](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/dlstreamer/get_started/system_requirements.html)
 
 ## Prerequisites
 
@@ -51,13 +49,13 @@ python3 -m venv .dls-venv && source .dls-venv/bin/activate
 pip install openvino==2026.2.0 ultralytics==8.4.92
 ```
 
-2.  Download PyTorch YOLO26s model from Ultralytics, converts it to OpenVINO™ IR format, and generates INT8 precision variant.
+2.  Download the PyTorch YOLO26s model from Ultralytics, convert it to OpenVINO™ IR format, and generate an INT8 precision variant.
 
 ```bash
 yolo export model=yolo26s.pt format=openvino dynamic=True quantize=8 data=coco128.yaml
 ```
 
-Model should be downloaded to `~/intel/dlstreamer_demo/yolo26s_int8_openvino_model` folder.
+The model is exported to the `~/intel/dlstreamer_demo/yolo26s_int8_openvino_model` folder.
 
 ### Model Precision
 
@@ -78,7 +76,7 @@ The examples below use the INT8 model exported in the [preparation step](#yolo26
 
 ## Running Inference with YOLO26
 
-Before running DL Streamer YOLO26 inference detection pipeline, run DL Streamer docker image in the interactive mode.
+Before running DL Streamer YOLO26 inference detection pipeline, run the DL Streamer Docker image in interactive mode.
 Make sure you followed [YOLO26 Model Preparation](#yolo26-model-preparation) step and download the following video file from Pexels database.
 
 ```bash
@@ -134,7 +132,7 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 
 ## Multi-Stream Setup
 
-DL Streamer supports multi-stream processing, where multiple video sources are decoded and inferred simultaneously. You can launch multiple pipelines in parallel using GStreamer’s `vacompositor` element to combine multiple streams.
+DL Streamer supports multi-stream processing, where multiple video sources are decoded and inferred simultaneously. You can launch multiple pipelines in parallel using GStreamer's `vacompositor` element to combine multiple streams.
 
 ### Running Multiple Pipelines (4 streams) in Parallel (GPU)
 
@@ -166,11 +164,11 @@ Install DL Streamer following the [Installation Guide](https://github.com/open-e
 
 ### What is the benefit of using OpenVINO™ with YOLO26 on Intel hardware?
 
-OpenVINO™ optimizes the YOLO26 model specifically for Intel hardware through techniques such as graph optimization, layer fusion, and hardware-specific kernel tuning. Combined with DL Streamer’s VA-API accelerated decode and zero-copy `va-surface-sharing` pre-processing, the full video analytics pipeline achieves significantly higher throughput than unoptimized frameworks.
+OpenVINO™ optimizes the YOLO26 model specifically for Intel hardware through techniques such as graph optimization, layer fusion, and hardware-specific kernel tuning. Combined with DL Streamer's VA-API accelerated decode and zero-copy `va-surface-sharing` pre-processing, the full video analytics pipeline achieves significantly higher throughput than unoptimized frameworks.
 
 ### Can I run YOLO26 with DL Streamer on different Intel devices?
 
-Yes. DL Streamer supports inference on Intel CPUs (Core, Core Ultra, Xeon), integrated GPUs (Iris Xe, Arc), discrete GPUs (Arc A-Series, B-Series), and NPUs (AI Boost) across multiple Intel platform generations. Simply change the `DEVICE` parameter to `CPU`, `GPU`, or `NPU`.
+Yes. DL Streamer supports inference on Intel CPUs (Core, Core Ultra, Xeon), integrated GPUs (Iris Xe, Arc), discrete GPUs (Arc A-Series, B-Series), and NPUs (AI Boost) across multiple Intel platform generations. Simply change the `device` property of `gvadetect` to `CPU`, `GPU`, or `NPU`.
 
 ### How do I choose between FP16 and INT8 precision?
 
@@ -179,7 +177,13 @@ Yes. DL Streamer supports inference on Intel CPUs (Core, Core Ultra, Xeon), inte
 
 ### What YOLO26 tasks are supported?
 
-DL Streamer supports all YOLO26 task variants: - **Detection**: yolo26n, yolo26s, yolo26m, yolo26l, yolo26x - **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants) - **Instance Segmentation**: yolo26s-seg (and all size variants) - **Pose Estimation**: yolo26s-pose (and all size variants) - **Classification**: yolo26s-cls (composite pipeline with detection)
+DL Streamer supports all YOLO26 task variants:
+
+- **Detection**: yolo26n, yolo26s, yolo26m, yolo26l, yolo26x
+- **Oriented Bounding Box (OBB)**: yolo26s-obb (and all size variants)
+- **Instance Segmentation**: yolo26s-seg (and all size variants)
+- **Pose Estimation**: yolo26s-pose (and all size variants)
+- **Classification**: yolo26s-cls (composite pipeline with detection)
 
 ### How can I export detections as structured data?
 

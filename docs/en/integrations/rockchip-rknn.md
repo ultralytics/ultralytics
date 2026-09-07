@@ -89,7 +89,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         model = YOLO("yolo26n-obb.pt")
 
         # Export the model to RKNN format
-        model.export(format="rknn", name="rk3588")  # creates '/yolo26n-obb_rknn_model'
+        model.export(format="rknn", name="rk3588")  # creates 'yolo26n-obb_rknn_model'
 
         # Export an INT8-quantized RKNN model with calibration data
         model.export(format="rknn", name="rk3588", quantize=8, data="dota8.yaml")
@@ -99,7 +99,7 @@ The RKNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
         ```bash
         # Export a YOLO26n-obb PyTorch model to RKNN format
-        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 # creates '/yolo26n-obb_rknn_model'
+        yolo export model=yolo26n-obb.pt format=rknn name=rk3588 # creates 'yolo26n-obb_rknn_model'
 
         # Export an INT8-quantized RKNN model with calibration data
         yolo export model=yolo26n-obb.pt format=rknn name=rk3588 quantize=8 data=dota8.yaml
@@ -226,7 +226,7 @@ YOLO26 benchmarks below were run by the Ultralytics team on Radxa Rock 5B based 
 
     !!! note
 
-        Validation for the above benchmarks were done using COCO128 dataset. Inference time does not include pre/post-processing.
+        Validation for the above benchmarks was done using the COCO128 dataset. Inference time does not include pre/post-processing.
 
 ## Summary
 

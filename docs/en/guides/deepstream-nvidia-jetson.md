@@ -162,6 +162,12 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=12.6
     ```
 
+    For JetPack 7.1:
+
+    ```bash
+    export CUDA_VER=13.0
+    ```
+
 8.  Compile the library
 
     ```bash

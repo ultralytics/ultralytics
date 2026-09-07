@@ -28,7 +28,7 @@ Detection is the primary task supported by YOLO26. It involves identifying objec
 
 [Detection Examples](detect.md){ .md-button }
 
-## [Image segmentation](segment.md)
+## [Instance Segmentation](segment.md)
 
 Segmentation takes object detection further by producing pixel-level masks for each object. This precision is useful for applications such as [medical imaging](https://www.ultralytics.com/blog/ai-and-radiology-a-new-era-of-precision-and-efficiency), [agricultural analysis](https://www.ultralytics.com/blog/from-farm-to-table-how-ai-drives-innovation-in-agriculture), and [manufacturing quality control](https://www.ultralytics.com/blog/improving-manufacturing-with-computer-vision).
 
@@ -40,7 +40,7 @@ Semantic segmentation assigns a class label to every pixel in an image, producin
 
 [Semantic Segmentation Examples](semantic.md){ .md-button }
 
-## [Monocular Depth Estimation](depth.md)
+## [Depth Estimation](depth.md)
 
 Monocular depth estimation predicts a per-pixel depth map in meters from a single RGB image. The output is a dense float map aligned to the input image, making it suitable for 3D scene reconstruction, robot navigation, and AR/VR applications where spatial layout must be inferred from a single camera.
 
@@ -52,7 +52,7 @@ Classification involves categorizing entire images based on their content. This 
 
 [Classification Examples](classify.md){ .md-button }
 
-## [Pose estimation](pose.md)
+## [Pose Estimation](pose.md)
 
 Pose estimation detects specific keypoints in images or video frames to track movements or estimate poses. These keypoints can represent human joints, facial features, or other significant points of interest. YOLO26 excels at keypoint detection with high accuracy and speed, making it valuable for [fitness applications](https://www.ultralytics.com/blog/ai-in-our-day-to-day-health-and-fitness), [sports analytics](https://www.ultralytics.com/blog/exploring-the-applications-of-computer-vision-in-sports), and [human-computer interaction](https://www.ultralytics.com/blog/custom-training-ultralytics-yolo11-for-dog-pose-estimation).
 
@@ -79,11 +79,11 @@ Picked a task? Format your data for it with the [Datasets guide](../datasets/ind
 Ultralytics YOLO26 is a versatile AI framework capable of performing various computer vision tasks with high accuracy and speed. These tasks include:
 
 - **[Object Detection](detect.md):** Identifying and localizing objects in images or video frames by drawing bounding boxes around them.
-- **[Image segmentation](segment.md):** Segmenting images into different regions based on their content, useful for applications like medical imaging.
+- **[Instance Segmentation](segment.md):** Producing a pixel-level mask for each detected object, useful for applications like medical imaging.
 - **[Semantic Segmentation](semantic.md):** Assigning a class label to every pixel in an image for dense scene understanding.
-- **[Monocular Depth Estimation](depth.md):** Predicting a per-pixel depth map in meters from a single RGB image.
+- **[Depth Estimation](depth.md):** Predicting a per-pixel depth map in meters from a single RGB image.
 - **[Classification](classify.md):** Categorizing entire images based on their content.
-- **[Pose estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
+- **[Pose Estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
 
 ### How do I use Ultralytics YOLO26 for object detection?

@@ -5,7 +5,7 @@ description: Discover VisionEye's object mapping and tracking powered by Ultraly
 keywords: VisionEye, YOLO26, Ultralytics, object mapping, object tracking, distance calculation, computer vision, AI, machine learning, Python, tutorial
 ---
 
-# VisionEye View Object Mapping using Ultralytics YOLO26 🚀
+# VisionEye View Object Mapping using Ultralytics YOLO26
 
 ## What is VisionEye Object Mapping?
 
@@ -51,7 +51,7 @@ VisionEye fixes a single observation point in the frame and draws a ray from it 
         # Initialize vision eye object
         visioneye = solutions.VisionEye(
             show=True,  # display the output
-            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
+            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., yolo26s.pt
             classes=[0, 2],  # generate visioneye view for specific classes
             vision_point=(50, 50),  # the point where VisionEye will view objects and draw tracks
         )
@@ -140,7 +140,7 @@ video_writer = cv2.VideoWriter("vision-eye-mapping.avi", cv2.VideoWriter_fourcc(
 # Init vision eye object
 visioneye = solutions.VisionEye(
     show=True,  # display the output
-    model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv10
+    model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., yolo26s.pt
     classes=[0, 2],  # generate visioneye view for specific classes
 )
 

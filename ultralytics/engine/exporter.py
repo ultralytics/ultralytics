@@ -37,8 +37,8 @@ Python:
     results = model.export(format='onnx', quantize=8, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
-    $ yolo mode=export model=yolo26n.pt format=onnx
-    $ yolo mode=export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml
+    $ yolo export model=yolo26n.pt format=onnx
+    $ yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch

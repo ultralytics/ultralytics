@@ -92,7 +92,7 @@ DeepSparse Engine requires YOLO26 models in [ONNX format](../integrations/onnx.m
 
         ```bash
         # Export YOLO26 model to ONNX format
-        yolo task=detect mode=export model=yolo26n.pt format=onnx opset=13
+        yolo detect export model=yolo26n.pt format=onnx opset=13
         ```
 
 This command will save the `yolo26n.onnx` model to your disk.
@@ -160,7 +160,7 @@ After running the eval command, you will receive detailed output metrics such as
 
 This guide explored integrating Ultralytics' YOLO26 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLO26's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
 
-For more detailed information and advanced usage, visit the [DeepSparse documentation by Neural Magic](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud). You can also [explore the YOLO26 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
+For more detailed information and advanced usage, visit the [DeepSparse repository by Neural Magic](https://github.com/neuralmagic/deepsparse). You can also [explore the YOLO26 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLO26 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
 
@@ -185,7 +185,7 @@ Once installed, follow the steps provided in the [Installation section](#step-1-
 To convert YOLO26 models to the ONNX format, which is required for compatibility with DeepSparse, you can use the following CLI command:
 
 ```bash
-yolo task=detect mode=export model=yolo26n.pt format=onnx opset=13
+yolo detect export model=yolo26n.pt format=onnx opset=13
 ```
 
 This command will export your YOLO26 model (`yolo26n.pt`) to a format (`yolo26n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolo26-to-onnx-format).

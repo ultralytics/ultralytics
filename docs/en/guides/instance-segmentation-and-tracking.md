@@ -5,7 +5,7 @@ description: Master instance segmentation and tracking with Ultralytics YOLO26. 
 keywords: instance segmentation, tracking, YOLO26, Ultralytics, object detection, machine learning, computer vision, python
 ---
 
-# Instance Segmentation and Tracking using Ultralytics YOLO26 🚀
+# Instance Segmentation and Tracking using Ultralytics YOLO26
 
 ## What is Instance Segmentation?
 

@@ -289,7 +289,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 ## Troubleshooting
 
@@ -297,7 +297,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
 **Issue**: `Python version error`
 
-**Solution**: ExecuTorch requires Python 3.10 or higher. Upgrade your Python installation:
+**Solution**: ExecuTorch requires Python 3.10 to 3.13. Create an environment with a supported version:
 
 ```bash
 # Using conda
@@ -358,7 +358,7 @@ yolo export model=yolo26n.pt format=executorch
 
 ExecuTorch export requires:
 
-- Python 3.10 or higher
+- Python 3.10 to 3.13
 - `executorch` package (install via `pip install executorch`)
 - PyTorch (installed automatically with ultralytics)
 

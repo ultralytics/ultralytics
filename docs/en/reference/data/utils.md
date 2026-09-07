@@ -12,7 +12,11 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 
 <br>
 
-## ::: ultralytics.data.utils.HUBDatasetStats
+## ::: ultralytics.data.utils.save_depth_png
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.load_depth
 
 <br><br><hr><br>
 
@@ -69,6 +73,10 @@ keywords: Ultralytics, dataset utils, data handling, image verification, Python,
 <br><br><hr><br>
 
 ## ::: ultralytics.data.utils.find_dataset_yaml
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.utils.get_split_fraction
 
 <br><br><hr><br>
 

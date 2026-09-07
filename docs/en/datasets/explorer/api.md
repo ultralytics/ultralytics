@@ -8,11 +8,10 @@ keywords: Ultralytics, Explorer API, dataset exploration, SQL queries, similarit
 
 !!! warning "Community Note ⚠️"
 
-    As of **`ultralytics>=8.3.12`**, Ultralytics Explorer has been removed. To use Explorer, install `pip install ultralytics==8.3.11`. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com/).
+    As of **`ultralytics>=8.3.12`**, Ultralytics Explorer has been removed. To use Explorer, install `pip install ultralytics==8.3.11`. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Introduction
 
-<a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/docs/en/datasets/explorer/explorer.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a>
 The Explorer API is a Python API for exploring your datasets. It supports filtering and searching your dataset using SQL queries, vector similarity search, and semantic search.
 
 <p align="center">

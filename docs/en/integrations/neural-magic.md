@@ -7,7 +7,7 @@ keywords: YOLO26, DeepSparse, Neural Magic, model optimization, object detection
 
 # Optimizing YOLO26 Inferences with Neural Magic's DeepSparse Engine
 
-When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO26](https://www.ultralytics.com/) on various hardware, you can bump into unique issues like optimization. This is where YOLO26's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLO26 models are executed and enables GPU-level performance directly on CPUs.
+When deploying [object detection](https://www.ultralytics.com/glossary/object-detection) models like [Ultralytics YOLO26](https://www.ultralytics.com) on various hardware, you can bump into unique issues like optimization. This is where YOLO26's integration with Neural Magic's DeepSparse Engine steps in. It transforms the way YOLO26 models are executed and enables GPU-level performance directly on CPUs.
 
 This guide shows you how to deploy YOLO26 using Neural Magic's DeepSparse, how to run inferences, and also how to benchmark performance to ensure it is optimized.
 
@@ -18,7 +18,7 @@ This guide shows you how to deploy YOLO26 using Neural Magic's DeepSparse, how t
 ## Neural Magic's DeepSparse
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/neural-magic-deepsparse-overview.avif" alt="Neural Magic's DeepSparse Overview">
+  <img width="640" src="https://cdn.ul.run/i/3d8e3af43482c4b7e90b74b561d745ba.avif" alt="Neural Magic's DeepSparse Overview">
 </p>
 
 [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) is an inference run-time designed to optimize the execution of neural networks on CPUs. It applies advanced techniques like sparsity, pruning, and quantization to dramatically reduce computational demands while maintaining accuracy. DeepSparse offers an agile solution for efficient and scalable [neural network](https://www.ultralytics.com/glossary/neural-network-nn) execution across various devices.
@@ -30,13 +30,13 @@ Before diving into how to deploy YOLO26 using DeepSparse, let's understand the b
 - **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLO11n), significantly speeding up YOLO's inference capabilities compared to traditional methods.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/enhanced-inference-speed.avif" alt="Neural Magic DeepSparse inference acceleration">
+  <img width="640" src="https://cdn.ul.run/i/381d75e89a2246172df54ed54b95a401.avif" alt="Neural Magic DeepSparse inference acceleration">
 </p>
 
 - **Optimized Model Efficiency**: Uses pruning and quantization to enhance YOLO26's efficiency, reducing model size and computational requirements while maintaining [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/optimized-model-efficiency.avif" alt="Neural Magic model optimization and pruning">
+  <img width="640" src="https://cdn.ul.run/i/255dff0fdefd1b251c7bde46f8a0b22a.avif" alt="Neural Magic model optimization and pruning">
 </p>
 
 - **High Performance on Standard CPUs**: Delivers GPU-like performance on CPUs, providing a more accessible and cost-effective option for various applications.
@@ -56,7 +56,7 @@ Neural Magic's DeepSparse technology is inspired by the human brain's efficiency
 - **Locality of Reference**: DeepSparse uses a unique execution method, breaking the network into Tensor Columns. These columns are executed depth-wise, fitting entirely within the CPU's cache. This approach mimics the brain's efficiency, minimizing data movement and maximizing the CPU's cache use.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/neural-magic-deepsparse-technology.avif" alt="How Neural Magic's DeepSparse Technology Works ">
+  <img width="640" src="https://cdn.ul.run/i/2a82126a927d17f64d8930324e26667e.avif" alt="How Neural Magic's DeepSparse Technology Works ">
 </p>
 
 ## Creating A Sparse Version of YOLO26 Trained on a Custom Dataset
@@ -92,7 +92,7 @@ DeepSparse Engine requires YOLO26 models in [ONNX format](../integrations/onnx.m
 
         ```bash
         # Export YOLO26 model to ONNX format
-        yolo task=detect mode=export model=yolo26n.pt format=onnx opset=13
+        yolo detect export model=yolo26n.pt format=onnx opset=13
         ```
 
 This command will save the `yolo26n.onnx` model to your disk.
@@ -151,7 +151,7 @@ DeepSparse provides additional features for practical integration of YOLO26 in a
 Running the annotate command processes your specified image, detecting objects, and saving the annotated image with bounding boxes and classifications. The annotated image will be stored in an annotation-results folder. This helps provide a visual representation of the model's detection capabilities.
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/image-annotation-feature.avif" alt="Neural Magic annotation feature interface">
+  <img width="640" src="https://cdn.ul.run/i/04bce7ff2e51a8b09544a5a22039af05.avif" alt="Neural Magic annotation feature interface">
 </p>
 
 After running the eval command, you will receive detailed output metrics such as [precision](https://www.ultralytics.com/glossary/precision), [recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map) (mean Average Precision). This provides a comprehensive view of your model's performance on the dataset and is particularly useful for fine-tuning and optimizing your YOLO26 models for specific use cases, ensuring high accuracy and efficiency.
@@ -160,7 +160,7 @@ After running the eval command, you will receive detailed output metrics such as
 
 This guide explored integrating Ultralytics' YOLO26 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLO26's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
 
-For more detailed information and advanced usage, visit the [DeepSparse documentation by Neural Magic](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud). You can also [explore the YOLO26 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
+For more detailed information and advanced usage, visit the [DeepSparse repository by Neural Magic](https://github.com/neuralmagic/deepsparse). You can also [explore the YOLO26 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLO26 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
 
@@ -185,7 +185,7 @@ Once installed, follow the steps provided in the [Installation section](#step-1-
 To convert YOLO26 models to the ONNX format, which is required for compatibility with DeepSparse, you can use the following CLI command:
 
 ```bash
-yolo task=detect mode=export model=yolo26n.pt format=onnx opset=13
+yolo detect export model=yolo26n.pt format=onnx opset=13
 ```
 
 This command will export your YOLO26 model (`yolo26n.pt`) to a format (`yolo26n.onnx`) that can be utilized by the DeepSparse Engine. More information about model export can be found in the [Model Export section](#step-2-exporting-yolo26-to-onnx-format).

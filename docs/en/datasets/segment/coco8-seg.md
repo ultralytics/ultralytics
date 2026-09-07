@@ -3,7 +3,7 @@ title: COCO8 Segmentation Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: CC-BY-4.0
     url: https://cocodataset.org/#termsofuse
@@ -15,7 +15,7 @@ keywords: COCO8-Seg, Ultralytics, segmentation dataset, YOLO26, COCO 2017, model
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com/) COCO8-Seg is a small but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com) COCO8-Seg is a small but versatile [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) dataset composed of the first 8 images of the COCO train 2017 set, 4 for training and 4 for validation. This dataset is ideal for testing and debugging segmentation models, or for experimenting with new detection approaches. With 8 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 
@@ -65,7 +65,7 @@ To train a YOLO26n-seg model on the COCO8-Seg dataset for 100 [epochs](https://w
 
 Here are some examples of images from the COCO8-Seg dataset, along with their corresponding annotations:
 
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaiced-training-batch-2.avif" alt="COCO8-seg instance segmentation dataset mosaic" width="800">
+<img src="https://cdn.ul.run/i/ef2102eee716563150eb0ceeb43f4fbd.avif" alt="COCO8-seg instance segmentation dataset mosaic" width="800">
 
 - **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. Mosaicing is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This helps improve the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
@@ -137,6 +137,6 @@ COCO8-Seg (8 images) sits below [COCO128-Seg](coco128-seg.md) (128 images) and t
 
 - **COCO8-Seg**: 8 images (4 train, 4 val) — the fastest sanity check, ideal for CI and quick debugging.
 - **COCO128-Seg**: 128 images — balanced between size and diversity, with train and val sharing the same directory.
-- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~27 GB on first download.
+- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~20 GB on first download.
 
 Use COCO8-Seg for the fastest possible pipeline check, then scale to COCO128-Seg or the full COCO-Seg dataset as confidence grows.

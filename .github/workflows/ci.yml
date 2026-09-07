@@ -85,6 +85,10 @@ jobs:
             uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
+            if [[ "${{ matrix.os }}" == "macos-26" ]]; then
+              # Exercise the Core AI benchmark rows on the Apple silicon macOS runner
+              uv pip install "${uv_system_args[@]}" -e ".[export-coreai]" --torch-backend cpu
+            fi
       - name: Check environment
         run: |
           yolo checks
@@ -103,7 +107,7 @@ jobs:
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
         shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.185
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-obb.pt' imgsz=160 verbose=0.371
@@ -165,7 +169,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install -e ".[export-base,solutions]" \
+          uv pip install -e ".[export-base,export-openvino,solutions]" \
             $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -318,7 +322,7 @@ jobs:
           if [ "${{ matrix.torch }}" != "latest" ]; then
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
-          uv pip install -e ".[export-base,solutions${legacy_extra}]" $torch \
+          uv pip install -e ".[export-base,export-openvino,solutions${legacy_extra}]" $torch \
             aiohttp faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
@@ -352,7 +356,7 @@ jobs:
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest -n 2 --dist=loadfile "${pytest_args[@]}"
             fi
           retries: 1 # Retry once after initial attempt (2 total runs)
-          timeout_minutes: 180
+          timeout_minutes: 120
           retry_delay_seconds: 60
         env:
           YOLO_AUTOINSTALL: "false"
@@ -461,7 +465,7 @@ jobs:
     runs-on: raspberry-pi
     steps:
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.39
       - uses: actions/checkout@v7
       - name: Activate Virtual Environment for Tests
         run: |
@@ -520,7 +524,7 @@ jobs:
       - name: Benchmark SegmentationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.185
+        run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-pose.pt' imgsz=160 verbose=0.179
       - name: Benchmark OBBModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-obb.pt' imgsz=160 verbose=0.371
       - name: Benchmark SemanticSegmentationModel
@@ -530,7 +534,7 @@ jobs:
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.39
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
@@ -560,7 +564,7 @@ jobs:
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.39
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
       - name: Activate virtual environment
@@ -586,7 +590,7 @@ jobs:
       - name: Pytest tests
         run: pytest --slow tests/test_cuda.py
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.39
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
@@ -607,15 +611,17 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v4
         with:
           python-version: ${{ matrix.python }}
-          channels: conda-forge,defaults
-          channel-priority: true
+          channels: conda-forge
+          channel-priority: strict
+          conda-remove-defaults: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
-        run: conda install -c pytorch -c conda-forge pytorch-cpu torchvision ultralytics "openvino<2026"
+        timeout-minutes: 20
+        run: conda install --yes pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")
-          uv pip install pytest "ultralytics[export-base,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
+          uv pip install pytest "ultralytics[export-base,export-openvino,solutions]==${VERSION}" "git+https://github.com/ultralytics/CLIP.git"
       - name: Check environment
         run: conda list
       - name: Test benchmark CLI

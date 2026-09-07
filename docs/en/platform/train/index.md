@@ -65,6 +65,12 @@ Ultralytics Platform supports multiple training approaches:
 | **[Local Training](cloud-training.md#remote-training)** | Train locally, stream metrics to the platform | Existing hardware, privacy |
 | **[Colab Training](cloud-training.md#remote-training)** | Use Google Colab with platform integration    | Free GPU access            |
 
+!!! tip "Automatic GPU Routing"
+
+    When you select a GPU cheaper than the RTX PRO 6000 and Ultralytics-managed capacity is free, the Platform runs
+    your job on an RTX PRO 6000 while still billing your selected GPU's hourly rate. Runs can finish sooner and cost
+    less than they would have on the selected GPU — the upgrade never adds time or cost.
+
 ## GPU Options
 
 Available GPUs for cloud training on Ultralytics Cloud:
@@ -86,25 +92,27 @@ During training, view live metrics across three subtabs:
 ```mermaid
 graph LR
     A[Charts]:::start --> B[Loss Curves]:::out
-    A --> C[Performance Metrics]:::out
+    A --> C[Task Metrics]:::out
     D[Console]:::start --> E[Live Logs]:::out
     D --> F[Error Detection]:::out
-    G[System]:::start --> H[GPU Utilization]:::out
-    G --> I[Memory & Temp]:::out
+    G[System]:::start --> H[GPU, CPU & Memory]:::out
+    G --> I[Network & Disk I/O]:::out
 
     classDef start fill:#4CAF50,color:#fff
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Subtab      | Metrics                                                |
-| ----------- | ------------------------------------------------------ |
-| **Charts**  | Box/class/DFL loss, mAP50, mAP50-95, precision, recall |
-| **Console** | Live training logs with ANSI color and error detection |
-| **System**  | GPU utilization, memory, temperature, CPU, disk        |
+| Subtab      | Metrics                                                                                          |
+| ----------- | ------------------------------------------------------------------------------------------------ |
+| **Charts**  | Task metrics (mAP50, mAP50-95, precision, recall for detection), train/val losses, learning rate |
+| **Console** | Live training logs with ANSI color and automatic error detection                                 |
+| **System**  | GPU utilization, GPU memory and temperature, CPU, RAM, network and disk I/O                      |
 
 !!! info "Automatic Checkpoints"
 
-    For cloud training, the **best model** (`best.pt`, the highest-mAP checkpoint) is saved automatically and made available for download, export, and deployment after training completes.
+    The best checkpoint (`best.pt`, the highest-fitness epoch) is uploaded to the Platform periodically **while
+    training runs** and again when the run ends, so download, export, and deployment always use the best epoch
+    produced so far. Cancelled runs keep the last checkpoint that finished uploading.
 
 ## Quick Start
 
@@ -169,8 +177,10 @@ Yes. Concurrent cloud training limits depend on your plan: Free allows 3, Pro al
 If training fails:
 
 1. The model is marked failed and the compute instance is terminated
-2. You can start a new training run from the base model
-3. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
+2. The model page shows an error banner with the captured error, a link to the console output, and a **Retry**
+   action that reopens the training dialog with the same configuration
+3. A run that stops reporting activity for several hours is automatically marked failed and its compute released
+4. If cloud compute had started, elapsed GPU time is charged; failures before compute starts have no GPU usage charge
 
 ### How do I choose the right GPU?
 

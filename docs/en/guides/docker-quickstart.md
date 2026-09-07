@@ -7,7 +7,7 @@ keywords: Ultralytics, Docker, Quickstart Guide, CPU support, GPU support, NVIDI
 # Docker Quickstart Guide for Ultralytics
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-docker-package-visual.avif" alt="Ultralytics Docker Package Visual">
+  <img width="800" src="https://cdn.ul.run/i/d99e8da40d9d1fc1ed886265ec8676f0.avif" alt="Ultralytics Docker Package Visual">
 </p>
 
 This guide serves as a comprehensive introduction to setting up a Docker environment for your Ultralytics projects. [Docker](https://www.docker.com/) is a platform for developing, shipping, and running applications in containers. It is particularly beneficial for ensuring that the software will always run the same, regardless of where it's deployed. For more details, visit the Ultralytics Docker repository on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics).
@@ -34,15 +34,11 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
   <strong>Watch:</strong> How to Get started with Docker | Usage of Ultralytics Python Package inside Docker live demo 🎉
 </p>
 
----
-
 ## Prerequisites
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - For GPU acceleration, ensure that your system has an NVIDIA GPU and [NVIDIA drivers](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/index.html) installed. CPU images do not require NVIDIA hardware.
 - If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](nvidia-jetson.md) for more details.
-
----
 
 ## Setting up Docker with NVIDIA Support (Optional)
 
@@ -95,8 +91,6 @@ nvidia-ctk cdi list
 
 You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. Discovered CDI devices also appear in `docker info`.
 
----
-
 ## Installing Ultralytics Docker Images
 
 Ultralytics publishes the following images to [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics/tags). Each image is built from its linked Dockerfile by the [Docker publishing workflow](https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml).
@@ -126,7 +120,12 @@ To pull the latest image:
 sudo docker pull ultralytics/ultralytics:latest
 ```
 
----
+To build an image yourself instead, clone the repository and pass the matching Dockerfile from the table above, using the repository root as the build context:
+
+```bash
+# Build the CPU image locally from docker/Dockerfile-cpu
+sudo docker build -t ultralytics/ultralytics:latest-cpu -f docker/Dockerfile-cpu .
+```
 
 ## Running Ultralytics in Docker Container
 
@@ -201,7 +200,8 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 !!! example
 
     ??? info "Use GPUs"
-            If you're using [GPUs](#using-gpus), you can add the `--device nvidia.com/gpu=all` flag to the command.
+
+        If you're using [GPUs](#using-gpus), you can add the `--device nvidia.com/gpu=all` flag to the command.
 
     === "X11"
 
@@ -215,7 +215,6 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
         ```
 
         This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.
-
 
     === "Wayland"
 
@@ -254,8 +253,6 @@ yolo predict model=yolo26n.pt show=True
 ??? question "Want to view image results directly in the Terminal?"
 
     Refer to the following guide on [viewing the image results using a terminal](./view-results-in-terminal.md)
-
----
 
 You are now set up to use Ultralytics with Docker and ready to take advantage of its capabilities. To self-host the Ultralytics web application, see the [Platform On-Premise guide](../platform/integrations/on-premise.md). For alternative Python package installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
 

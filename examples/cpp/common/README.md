@@ -1,6 +1,6 @@
 # Shared Helpers for the Inference in C++
 
-Header-only utilities shared across the [Ultralytics YOLO](https://docs.ultralytics.com/) C++ examples. They have no dependencies beyond [OpenCV](https://opencv.org/) and the C++ standard library, so an example can use them by adding this folder to its include path:
+Header-only utilities shared across the [Ultralytics YOLO](https://docs.ultralytics.com) C++ examples. They have no dependencies beyond [OpenCV](https://opencv.org/) and the C++ standard library, so an example can use them by adding this folder to its include path:
 
 ```cmake
 target_include_directories(your_target PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../common)

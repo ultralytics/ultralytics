@@ -23,15 +23,15 @@ MobileSAM is a compact, efficient image segmentation model purpose-built for mob
 
 MobileSAM has been adopted in a variety of projects, including [Grounding-SAM](https://github.com/IDEA-Research/Grounded-Segment-Anything), [AnyLabeling](https://github.com/vietanhdev/anylabeling), and [Segment Anything in 3D](https://github.com/Jumpat/SegmentAnythingin3D).
 
-MobileSAM was trained on a single GPU using a 100k image dataset (1% of the original images) in less than a day. The training code will be released in the future.
+MobileSAM was trained on a single GPU using a 100k image dataset (1% of the original images) in less than a day.
 
 ## Available Models, Supported Tasks, and Operating Modes
 
 The table below outlines the available MobileSAM model, its pretrained weights, supported tasks, and compatibility with different operating modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Supported modes are indicated by ✅ and unsupported modes by ❌.
 
-| Model Type | Pretrained Weights                                                                            | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ❌     |
+| Model Type | Pretrained Weights                                                                            | Tasks Supported                              | Training | Validation | Inference | Export |
+| ---------- | --------------------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| MobileSAM  | [mobile_sam.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/mobile_sam.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ❌         | ✅        | ❌     |
 
 ## MobileSAM Comparison vs YOLO
 
@@ -108,9 +108,9 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
 
-![Image with Point as Prompt](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mask-box.avif)
+![Image with Point as Prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
 
-![Image with Box as Prompt](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mask-box.avif)
+![Image with Box as Prompt](https://cdn.ul.run/i/9c372cef6bc33fa515bb2f5284d67c7b.avif)
 
 MobileSAM is approximately 7 times smaller and 5 times faster than FastSAM. For further details, visit the [MobileSAM project page](https://github.com/ChaoningZhang/MobileSAM).
 
@@ -207,7 +207,7 @@ Read the full [MobileSAM paper on arXiv](https://arxiv.org/pdf/2306.14289).
 
 ### What Is MobileSAM and How Does It Differ from the Original SAM Model?
 
-MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This results in MobileSAM being about 5 times smaller and 7 times faster than the original SAM, operating at roughly 12ms per image versus SAM's 456ms. Explore more about MobileSAM's implementation on the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM is a lightweight, fast [image segmentation](https://www.ultralytics.com/glossary/image-segmentation) model optimized for mobile and edge applications. It maintains the same pipeline as the original SAM but replaces the large ViT-H encoder (637M parameters) with a compact Tiny-ViT encoder (5M parameters). This makes the full MobileSAM pipeline about 66 times smaller than the original SAM (9.66M vs 641M parameters) and about 38 times faster, operating at roughly 12 ms per image versus SAM's 456 ms. Explore more about MobileSAM's implementation on the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
 
 ### How Can I Test MobileSAM Using Ultralytics?
 
@@ -227,11 +227,11 @@ For more details, see the [Testing MobileSAM in Ultralytics](#testing-mobilesam-
 
 ### Why Should I Use MobileSAM for My Mobile Application?
 
-MobileSAM is ideal for mobile and edge applications due to its lightweight design and rapid inference speed. Compared to the original SAM, MobileSAM is about 5 times smaller and 7 times faster, making it suitable for real-time segmentation on devices with limited computational resources. Its efficiency enables mobile devices to perform [real-time image segmentation](https://www.ultralytics.com/glossary/real-time-inference) without significant latency. Additionally, MobileSAM supports [Inference mode](../modes/predict.md) optimized for mobile performance.
+MobileSAM is ideal for mobile and edge applications due to its lightweight design and rapid inference speed. Compared to the original SAM, MobileSAM has about 66 times fewer parameters and runs about 38 times faster, making it suitable for real-time segmentation on devices with limited computational resources. Its efficiency enables mobile devices to perform [real-time image segmentation](https://www.ultralytics.com/glossary/real-time-inference) without significant latency. Additionally, MobileSAM supports [Inference mode](../modes/predict.md) optimized for mobile performance.
 
-### How Was MobileSAM Trained, and Is the Training Code Available?
+### How Was MobileSAM Trained?
 
-MobileSAM was trained on a single GPU with a 100k image dataset (1% of the original images) in under a day. While the training code will be released in the future, you can currently access pretrained weights and implementation details from the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
+MobileSAM was trained on a single GPU with a 100k image dataset (1% of the original SA-1B images) in under a day, distilling the ViT-H image encoder of SAM into a Tiny-ViT encoder. Pretrained weights and implementation details are available from the [MobileSAM GitHub repository](https://github.com/ChaoningZhang/MobileSAM).
 
 ### What Are the Primary Use Cases for MobileSAM?
 

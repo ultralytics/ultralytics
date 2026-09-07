@@ -32,10 +32,10 @@ Monitoring workouts through pose estimation with [Ultralytics YOLO26](https://gi
 
 ## Real World Applications
 
-|                                                      Workouts Monitoring                                                       |                                                      Workouts Monitoring                                                       |
-| :----------------------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------------------: |
-| ![YOLO push-ups counting with pose estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pushups-counting.avif) | ![YOLO pull-ups counting with pose estimation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pullups-counting.avif) |
-|                                                        PushUps Counting                                                        |                                                        PullUps Counting                                                        |
+|                                            Workouts Monitoring                                             |                                            Workouts Monitoring                                             |
+| :--------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------: |
+| ![YOLO push-ups counting with pose estimation](https://cdn.ul.run/i/23814aa65bc9fb3e54e9b3d3ba5ddf25.avif) | ![YOLO pull-ups counting with pose estimation](https://cdn.ul.run/i/a2cf99202738097f0d6e3b7dc3334683.avif) |
+|                                              PushUps Counting                                              |                                              PullUps Counting                                              |
 
 ## Monitor Workouts with YOLO26
 
@@ -99,24 +99,24 @@ The `AIGym` solution runs [pose estimation](../tasks/pose.md) and counts repetit
 
 ### KeyPoints Map
 
-![YOLO pose estimation keypoints order diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/keypoints-order-ultralytics-yolov8-pose.avif)
+![YOLO pose estimation keypoints order diagram](https://cdn.ul.run/i/81cf2f22517cde0e0773b02eb3d852ee.avif)
 
 ### `AIGym` Arguments
 
 Here's a table with the `AIGym` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "up_angle", "down_angle", "kpts"]) }}
+{{ param_table(["model", "up_angle", "down_angle", "kpts", "line_width", "verbose"]) }}
 
 The `AIGym` solution also supports a range of object tracking parameters:
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the following visualization settings can be applied:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_conf", "show_labels"]) }}
 
 ## FAQ
 

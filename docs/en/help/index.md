@@ -19,7 +19,7 @@ Welcome to the Ultralytics Help page. This page brings together practical guides
 - [Security Policy](security.md): Familiarize yourself with our security protocols and the procedure for reporting vulnerabilities.
 - [Privacy Policy](privacy.md): Read our privacy policy to understand how we protect your data and respect your privacy in all our services and operations.
 
-We encourage you to review these resources for a smooth and productive experience. If you need additional support, reach out via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Community](https://community.ultralytics.com/).
+We encourage you to review these resources for a smooth and productive experience. If you need additional support, reach out via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues) or the [Ultralytics Community](https://community.ultralytics.com).
 
 ## FAQ
 

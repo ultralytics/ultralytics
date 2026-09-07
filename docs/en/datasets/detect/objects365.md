@@ -32,21 +32,21 @@ Ultralytics publishes [YOLO26](../../models/yolo26.md) detection and [segmentati
 
 | Model                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | -------------------------------------------------------------- | --------------------------- | -------------------------- | ----------------------- | ------------------------ | ----------------------- |
-| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 16.3                       | 22.3                    | 2.5                      | 6.0                     |
-| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 24.3                       | 31.7                    | 9.6                      | 21.3                    |
-| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 30.3                       | 38.2                    | 20.6                     | 69.4                    |
-| [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 32.2                       | 40.1                    | 25.0                     | 87.7                    |
-| [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.8                       | 44.1                    | 56.1                     | 195.7                   |
+| [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 16.3                       | 22.3                    | 2.5                      | 6.1                     |
+| [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 24.3                       | 31.7                    | 9.6                      | 21.5                    |
+| [YOLO26m](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 30.3                       | 38.2                    | 20.6                     | 69.7                    |
+| [YOLO26l](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 32.2                       | 40.1                    | 25.0                     | 88.0                    |
+| [YOLO26x](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.8                       | 44.1                    | 56.1                     | 196.3                   |
 
 Segmentation models use masks generated for Objects365v1 and report both box and mask accuracy:
 
 | Model                                                              | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
 | ------------------------------------------------------------------ | --------------------------- | -------------------------- | --------------------------- | ------------------------ | ----------------------- |
-| [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 15.7                       | 13.2                        | 2.8                      | 9.7                     |
-| [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 23.8                       | 19.5                        | 10.5                     | 34.8                    |
-| [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 29.5                       | 23.8                        | 23.8                     | 122.7                   |
-| [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 31.7                       | 25.3                        | 28.2                     | 141.0                   |
-| [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.4                       | 27.9                        | 63.1                     | 315.3                   |
+| [YOLO26n-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 15.7                       | 13.2                        | 2.8                      | 9.8                     |
+| [YOLO26s-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 23.8                       | 19.5                        | 10.5                     | 35.1                    |
+| [YOLO26m-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 29.5                       | 23.8                        | 23.8                     | 123.0                   |
+| [YOLO26l-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 31.7                       | 25.3                        | 28.2                     | 141.3                   |
+| [YOLO26x-seg](https://platform.ultralytics.com/ultralytics/yolo26) | 640                         | 35.4                       | 27.9                        | 63.1                     | 315.9                   |
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on the Objects365v1 validation split.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`.
@@ -107,7 +107,7 @@ The Objects365 dataset supports a wide range of [deep learning](https://www.ultr
 - **Robotics and smart environments**: Broad household and street-object coverage helps robots and smart cameras recognize objects in unstructured scenes.
 - **Detector benchmarking**: The long class list and in-the-wild imagery make it a demanding benchmark for evaluating how well detection models generalize.
 
-To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
+To label your own images, train, and manage large-scale datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com).
 
 ## Dataset YAML
 
@@ -152,7 +152,7 @@ To train a YOLO26n model on the Objects365 dataset for 100 [epochs](https://www.
 
 The Objects365 dataset contains diverse, high-resolution images with dense bounding-box annotations across its 365 classes. The sample below shows the in-the-wild scenes and multi-object annotations typical of the dataset:
 
-![Objects365 dataset sample with diverse object annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/objects365-sample-image.avif)
+![Objects365 dataset sample with diverse object annotations](https://cdn.ul.run/i/0bcf0c5da49d70164e367f8f86287753.avif)
 
 ## Citations and Acknowledgments
 

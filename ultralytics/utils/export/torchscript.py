@@ -32,7 +32,7 @@ def torch2torchscript(
     LOGGER.info(f"\n{prefix} starting export with torch {TORCH_VERSION}...")
 
     output_file = str(output_file)
-    ts = torch.jit.trace(model, im, strict=False)
+    ts = torch.jit.trace(model, im, strict=False, check_trace=False)
     extra_files = {"config.txt": json.dumps(metadata or {})}  # torch._C.ExtraFilesMap()
     ts.save(output_file, _extra_files=extra_files)
     return output_file

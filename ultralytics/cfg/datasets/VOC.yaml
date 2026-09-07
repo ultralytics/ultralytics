@@ -1,6 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# PASCAL VOC dataset http://host.robots.ox.ac.uk/pascal/VOC by University of Oxford
+# PASCAL VOC dataset https://www.robots.ox.ac.uk/~vgg/projects/pascal/VOC by University of Oxford
 # Documentation: https://docs.ultralytics.com/datasets/detect/voc
 # Example usage: yolo train data=VOC.yaml
 # parent

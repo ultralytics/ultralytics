@@ -10,7 +10,7 @@ keywords: YOLOv5, YOLOv5u, object detection, Ultralytics, anchor-free, pretraine
 
 YOLOv5u represents an advancement in [object detection](https://www.ultralytics.com/glossary/object-detection) methodologies. Originating from the foundational architecture of the [YOLOv5](https://github.com/ultralytics/yolov5) model developed by Ultralytics, YOLOv5u integrates the anchor-free, objectness-free split head, a feature previously introduced in the [YOLOv8](yolov8.md) models. This adaptation refines the model's architecture, leading to an improved accuracy-speed tradeoff in object detection tasks. Given the empirical results and its derived features, YOLOv5u provides an efficient alternative for those seeking robust solutions in both research and practical applications.
 
-![YOLOv5 object detection model architecture and performance](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov5-splash.avif)
+![YOLOv5 object detection model architecture and performance](https://cdn.ul.run/i/76b943ef63f00f48350f0afddcbd15f9.avif)
 
 !!! warning "Models trained with the original YOLOv5 repo are not compatible with the Ultralytics library"
 
@@ -32,16 +32,13 @@ YOLOv5u represents an advancement in [object detection](https://www.ultralytics.
 
 The YOLOv5u models, with various pretrained weights, excel in [Object Detection](../tasks/detect.md) tasks. They support a comprehensive range of modes, making them suitable for diverse applications, from development to deployment.
 
-| Model Type | Pretrained Weights                                                                                                          | Task                                   | Inference | Validation | Training | Export |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Object Detection](../tasks/detect.md) | ✅        | ✅         | ✅       | ✅     |
+| Model Type | Pretrained Weights                                                                                                          | Task                                   | Training | Validation | Inference | Export |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLOv5u    | `yolov5nu`, `yolov5su`, `yolov5mu`, `yolov5lu`, `yolov5xu`, `yolov5n6u`, `yolov5s6u`, `yolov5m6u`, `yolov5l6u`, `yolov5x6u` | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
 This table provides a detailed overview of the YOLOv5u model variants, highlighting their applicability in object detection tasks and support for various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv5u models in a wide range of object detection scenarios.
 
 ## Performance Metrics
-
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
 
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv5"]'></canvas>
 
@@ -49,21 +46,21 @@ This table provides a detailed overview of the YOLOv5u model variants, highlight
 
     === "Detection (COCO)"
 
-    See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [COCO](../datasets/detect/coco.md), which include 80 pretrained classes.
 
-    | Model                                                                                       | YAML                                                                                                           | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-    |---------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-----------------------|----------------------|--------------------------------|-------------------------------------|--------------------|-------------------|
-    | [yolov5nu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5nu)   | [yolov5n.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 34.3                 | 73.6                           | 1.06                                | 2.6                | 7.7               |
-    | [yolov5su.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5su)   | [yolov5s.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 43.0                 | 120.7                          | 1.27                                | 9.1                | 24.0              |
-    | [yolov5mu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5mu)   | [yolov5m.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 49.0                 | 233.9                          | 1.86                                | 25.1               | 64.2              |
-    | [yolov5lu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5lu)   | [yolov5l.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 52.2                 | 408.4                          | 2.50                                | 53.2               | 135.0             |
-    | [yolov5xu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5xu)   | [yolov5x.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                   | 53.2                 | 763.2                          | 3.81                                | 97.2               | 246.4             |
-    |                                                                                             |                                                                                                                |                       |                      |                                |                                     |                    |                   |
-    | [yolov5n6u.pt](https://platform.ultralytics.com/ultralytics/yolov5) | [yolov5n6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 42.1                 | 211.0                          | 1.83                                | 4.3                | 7.8               |
-    | [yolov5s6u.pt](https://platform.ultralytics.com/ultralytics/yolov5) | [yolov5s6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 48.6                 | 422.6                          | 2.34                                | 15.3               | 24.6              |
-    | [yolov5m6u.pt](https://platform.ultralytics.com/ultralytics/yolov5) | [yolov5m6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 53.6                 | 810.9                          | 4.36                                | 41.2               | 65.7              |
-    | [yolov5l6u.pt](https://platform.ultralytics.com/ultralytics/yolov5) | [yolov5l6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 55.7                 | 1470.9                         | 5.47                                | 86.1               | 137.4             |
-    | [yolov5x6u.pt](https://platform.ultralytics.com/ultralytics/yolov5) | [yolov5x6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                  | 56.8                 | 2436.5                         | 8.98                                | 155.4              | 250.7             |
+        | Model                                                                       | YAML                                                                                                           | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
+        | [yolov5nu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5nu) | [yolov5n.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                         | 34.3                       | 73.6                                 | 1.06                                      | 2.6                      | 7.7                     |
+        | [yolov5su.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5su) | [yolov5s.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                         | 43.0                       | 120.7                                | 1.27                                      | 9.1                      | 24.0                    |
+        | [yolov5mu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5mu) | [yolov5m.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                         | 49.0                       | 233.9                                | 1.86                                      | 25.1                     | 64.2                    |
+        | [yolov5lu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5lu) | [yolov5l.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                         | 52.2                       | 408.4                                | 2.50                                      | 53.2                     | 135.0                   |
+        | [yolov5xu.pt](https://platform.ultralytics.com/ultralytics/yolov5/yolov5xu) | [yolov5x.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5.yaml)     | 640                         | 53.2                       | 763.2                                | 3.81                                      | 97.2                     | 246.4                   |
+        |                                                                             |                                                                                                                |                             |                            |                                      |                                           |                          |                         |
+        | [yolov5n6u.pt](https://platform.ultralytics.com/ultralytics/yolov5)         | [yolov5n6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                        | 42.1                       | 211.0                                | 1.83                                      | 4.3                      | 31.3                    |
+        | [yolov5s6u.pt](https://platform.ultralytics.com/ultralytics/yolov5)         | [yolov5s6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                        | 48.6                       | 422.6                                | 2.34                                      | 15.3                     | 97.6                    |
+        | [yolov5m6u.pt](https://platform.ultralytics.com/ultralytics/yolov5)         | [yolov5m6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                        | 53.6                       | 810.9                                | 4.36                                      | 41.2                     | 261.3                   |
+        | [yolov5l6u.pt](https://platform.ultralytics.com/ultralytics/yolov5)         | [yolov5l6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                        | 55.7                       | 1470.9                               | 5.47                                      | 86.1                     | 549.4                   |
+        | [yolov5x6u.pt](https://platform.ultralytics.com/ultralytics/yolov5)         | [yolov5x6.yaml](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v5/yolov5-p6.yaml) | 1280                        | 56.8                       | 2436.5                               | 8.98                                      | 155.5                    | 1002.8                  |
 
 ## Usage Examples
 
@@ -73,13 +70,13 @@ This example provides simple YOLOv5 training and inference examples. For full do
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
 
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv5n model
-        model = YOLO("yolov5n.pt")
+        # Load a COCO-pretrained YOLOv5nu model
+        model = YOLO("yolov5nu.pt")
 
         # Display model information (optional)
         model.info()
@@ -87,7 +84,7 @@ This example provides simple YOLOv5 training and inference examples. For full do
         # Train the model on the COCO8 example dataset for 100 epochs
         results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 
-        # Run inference with the YOLOv5n model on the 'bus.jpg' image
+        # Run inference with the YOLOv5nu model on the 'bus.jpg' image
         results = model("path/to/bus.jpg")
         ```
 
@@ -96,11 +93,11 @@ This example provides simple YOLOv5 training and inference examples. For full do
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLOv5n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov5n.pt data=coco8.yaml epochs=100 imgsz=640
+        # Load a COCO-pretrained YOLOv5nu model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov5nu.pt data=coco8.yaml epochs=100 imgsz=640
 
-        # Load a COCO-pretrained YOLOv5n model and run inference on the 'bus.jpg' image
-        yolo predict model=yolov5n.pt source=path/to/bus.jpg
+        # Load a COCO-pretrained YOLOv5nu model and run inference on the 'bus.jpg' image
+        yolo predict model=yolov5nu.pt source=path/to/bus.jpg
         ```
 
 ## Citations and Acknowledgments
@@ -159,8 +156,8 @@ You can train a YOLOv5u model by loading a pretrained model and running the trai
         ```python
         from ultralytics import YOLO
 
-        # Load a COCO-pretrained YOLOv5n model
-        model = YOLO("yolov5n.pt")
+        # Load a COCO-pretrained YOLOv5nu model
+        model = YOLO("yolov5nu.pt")
 
         # Display model information (optional)
         model.info()
@@ -172,8 +169,8 @@ You can train a YOLOv5u model by loading a pretrained model and running the trai
     === "CLI"
 
         ```bash
-        # Load a COCO-pretrained YOLOv5n model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov5n.pt data=coco8.yaml epochs=100 imgsz=640
+        # Load a COCO-pretrained YOLOv5nu model and train it on the COCO8 example dataset for 100 epochs
+        yolo train model=yolov5nu.pt data=coco8.yaml epochs=100 imgsz=640
         ```
 
 For more detailed instructions, visit the [Usage Examples](#usage-examples) section.

@@ -121,23 +121,23 @@ python train.py --batch 48 --weights yolov5m.pt --data voc.yaml --epochs 50 --ca
 
 The results show that freezing layers can accelerate training significantly but may lead to a slight reduction in final [mAP (mean Average Precision)](https://www.ultralytics.com/glossary/mean-average-precision-map). Training all layers generally yields the best accuracy, while freezing more layers offers faster training at the cost of potentially lower performance.
 
-![Training mAP50 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-results.avif)
+![Training mAP50 results comparing different freezing strategies](https://cdn.ul.run/i/71851f7c0d19cd27797bbc4c427b0d64.avif)
 _mAP50 comparison during training_
 
-![Training mAP50-95 results comparing different freezing strategies](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/freezing-training-map50-95-results.avif)
+![Training mAP50-95 results comparing different freezing strategies](https://cdn.ul.run/i/693fc195c0e8db72ccddb4c7f7cd3e12.avif)
 _mAP50-95 comparison during training_
 
-<img width="922" alt="YOLOv5 frozen layer training performance" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/table-results.avif">
+<img width="922" alt="YOLOv5 frozen layer training performance" src="https://cdn.ul.run/i/9e30a29b7a35f86ac7d5fa0ba106ce85.avif">
 *Summary table of performance metrics*
 
 ### Resource Utilization
 
 Freezing more layers substantially reduces [GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit) memory requirements and overall utilization. This makes transfer learning with frozen layers an attractive option when working with limited hardware resources, allowing for training larger models or using larger image sizes than might otherwise be possible.
 
-![GPU memory allocated percentage during training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-gpu-memory-allocated-percent.avif)
+![GPU memory allocated percentage during training](https://cdn.ul.run/i/11dc9df0c7ea7bac0149903d7342844f.avif)
 _GPU Memory Allocated (%)_
 
-![GPU memory utilization percentage during training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/training-gpu-memory-utilization-percent.avif)
+![GPU memory utilization percentage during training](https://cdn.ul.run/i/065e66b93432cb7c162721bc8ad61dbd.avif)
 _GPU Utilization (%)_
 
 ## When to Use Layer Freezing
@@ -149,11 +149,11 @@ Layer freezing during transfer learning is particularly advantageous in several 
 3.  **Rapid Prototyping**: When you need to quickly adapt an existing model to a new task or domain for initial evaluation.
 4.  **Similar Feature Domains**: If the low-level features in your new dataset are very similar to those in the dataset the model was pretrained on.
 
-Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider techniques like [hyperparameter tuning](../../guides/hyperparameter-tuning.md) for optimizing performance.
+Explore more about the nuances of transfer learning in our [glossary entry](https://www.ultralytics.com/glossary/transfer-learning) and consider [hyperparameter evolution](hyperparameter-evolution.md) for optimizing performance.
 
 ## Supported Environments
 
-Ultralytics offers various ready-to-use environments with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [CuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/) pre-installed.
+Ultralytics offers various ready-to-use environments with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [CuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/) pre-installed.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
@@ -166,3 +166,21 @@ Ultralytics offers various ready-to-use environments with essential dependencies
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 Continuous Integration Status"></a>
 
 This badge confirms that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are passing successfully. These CI tests rigorously evaluate the functionality and performance of YOLOv5 across key operations: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, running automatically every 24 hours and on each new code commit.
+
+## FAQ
+
+### What does `--freeze N` do?
+
+It freezes the first `N` modules of `model.model`, so their weights stay fixed and receive no gradients. `--freeze 10` freezes the backbone, and `--freeze 24` freezes everything except the final `Detect` module.
+
+### How much accuracy do I lose by freezing layers?
+
+In the VOC experiment above, training all layers gave the best mAP, freezing the backbone cost a little accuracy, and freezing all but the detection head cost the most. In return, frozen runs train faster and use much less GPU memory.
+
+### When is freezing the backbone a good idea?
+
+When your images share low-level features with the pretraining data, your dataset is small, or you need a quick baseline on limited hardware. Train all layers once the dataset grows or when you need the last few points of mAP.
+
+### Can I unfreeze the layers later?
+
+Yes. Start a new run from the frozen model's `best.pt` without `--freeze` to fine-tune the whole network, typically with a lower learning rate.

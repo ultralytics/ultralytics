@@ -1,6 +1,9 @@
 ---
 comments: true
-description: Explore the TartanAir depth dataset for monocular depth estimation, a large synthetic dataset rendered in AirSim with diverse environments and dense ground truth used to train Ultralytics YOLO26-Depth models.
+license:
+    name: CC-BY-4.0
+    url: https://creativecommons.org/licenses/by/4.0/
+description: Explore the TartanAir depth dataset, a large synthetic AirSim dataset with diverse environments and dense ground truth for training Ultralytics YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, TartanAir, synthetic dataset, AirSim, visual SLAM, dense depth, monocular depth
 ---
 
@@ -25,7 +28,7 @@ The TartanAir depth dataset is split into two subsets:
 1. **Train**: 55,660 images with paired dense depth maps for training.
 2. **Val**: 5,810 images with paired dense depth maps for validation during training.
 
-Each RGB image is paired with a `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each RGB image is paired with a scaled uint16 depth PNG with 256 units per meter (`depth_scale: 256`), following the [Ultralytics depth dataset format](index.md). This represents the full 80 m range at 3.90625 mm resolution.
 
 ## Obtain the Data
 
@@ -44,6 +47,8 @@ from pathlib import Path
 
 import numpy as np
 
+from ultralytics.data.utils import save_depth_png
+
 VAL_ENVS = {"neighborhood"}  # environments held out for validation
 src, dst = Path("data"), Path("datasets/depth-tartanair")
 for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
@@ -55,7 +60,7 @@ for depth_file in sorted(src.rglob("depth_left/*_left_depth.npy")):
     depth[depth > 80.0] = 0.0  # sky/extreme range → 0 = invalid
     frame = depth_file.name.replace("_depth.npy", "")  # e.g. 000000_left
     name = f"{env}_{traj}_{frame}"
-    np.save(dst / f"depth/{out}/{name}.npy", depth)
+    save_depth_png(dst / f"depth/{out}/{name}.png", depth, scale=256)
     shutil.copy(depth_file.parents[1] / "image_left" / f"{frame}.png", dst / f"images/{out}/{name}.png")
 ```
 
@@ -67,7 +72,7 @@ There is no standalone held-out TartanAir benchmark in this setup. Instead, the 
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For TartanAir, the `depth-tartanair.yaml` file defines the paths and the single `depth` class.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For TartanAir, the `depth-tartanair.yaml` file defines the paths and the single `depth` class.
 
 !!! example "ultralytics/cfg/datasets/depth-tartanair.yaml"
 
@@ -122,3 +127,17 @@ If you use the TartanAir dataset in your research or development work, please ci
         ```
 
 We would like to acknowledge the creators of TartanAir for making this diverse synthetic dataset available to the computer vision community.
+
+## FAQ
+
+### What is the TartanAir dataset?
+
+TartanAir is a large synthetic dataset rendered in the AirSim simulator, originally built to stress visual SLAM. It spans indoor, outdoor, urban, and natural environments under varied season, weather, and lighting conditions, and contributes 61,470 images (55,660 train, 5,810 val) with dense depth to roughly 80 m to the YOLO26-Depth training mix.
+
+### How do I obtain and convert TartanAir?
+
+TartanAir has no automatic download. Fetch the RGB and depth data with the [tartanair_tools](https://github.com/castacks/tartanair_tools) scripts, then convert the float32 `.npy` depth in meters to uint16 PNGs with `depth_scale: 256`, clipping sky pixels beyond 80 m to `0`. Hold out one or more environments for validation, as shown in [Obtain the Data](#obtain-the-data).
+
+### How do I train a YOLO26 depth model on TartanAir?
+
+Run `yolo depth train data=depth-tartanair.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`, or use the Python example in the [Usage](#usage) section. The [Training](../../modes/train.md) page lists every available argument.

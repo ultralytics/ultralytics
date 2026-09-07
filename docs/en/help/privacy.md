@@ -8,7 +8,7 @@ keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, 
 
 ## Overview
 
-[Ultralytics](https://www.ultralytics.com/) is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
+[Ultralytics](https://www.ultralytics.com) is dedicated to the continuous enhancement of the user experience and the capabilities of our Python package, including the advanced YOLO models we develop. Our approach involves the gathering of anonymized usage statistics and crash reports, helping us identify opportunities for improvement and ensuring the reliability of our software. This transparency document outlines what data we collect, its purpose, and the choice you have regarding this data collection.
 
 ## Anonymized Google Analytics
 
@@ -62,8 +62,6 @@ To learn more about how Sentry handles data, please visit [Sentry's Privacy Poli
 
 - **Sensitive Information**: We ensure that crash logs are scrubbed of any personally identifiable or sensitive user data, safeguarding the confidentiality of your information.
 - **Controlled Collection**: Our crash reporting mechanism is meticulously calibrated to gather only what is essential for troubleshooting while respecting user privacy.
-
-By detailing the tools used for data collection and offering additional background information with URLs to their respective privacy pages, users are provided with a comprehensive view of our practices, emphasizing transparency and respect for user privacy.
 
 ## Disabling Data Collection
 

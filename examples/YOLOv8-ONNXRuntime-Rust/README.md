@@ -36,7 +36,7 @@ Please follow the official Rust installation guide: [https://www.rust-lang.org/t
 ### 3. [Optional] Install CUDA & CuDNN & TensorRT
 
 - The CUDA execution provider requires [CUDA](https://developer.nvidia.com/cuda/toolkit) v11.6+.
-- The TensorRT execution provider requires CUDA v11.4+ and [TensorRT](https://developer.nvidia.com/tensorrt) v8.4+. You may also need [cuDNN](https://developer.nvidia.com/cudnn).
+- The TensorRT execution provider requires CUDA v11.4+ and [TensorRT](https://developer.nvidia.com/tensorrt) v8.4+. You may also need [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn).
 
 ## ▶️ Get Started
 
@@ -165,7 +165,7 @@ cargo run --release -- --help
 
 ## 🖼️ Examples
 
-![Ultralytics YOLO Tasks](https://raw.githubusercontent.com/ultralytics/assets/main/im/banner-tasks.png)
+![Ultralytics YOLO Tasks](https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif)
 
 ### Classification
 

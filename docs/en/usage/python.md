@@ -1,7 +1,7 @@
 ---
 title: YOLO Python Usage
 comments: true
-description: Learn to integrate Ultralytics YOLO in Python for object detection, segmentation, semantic segmentation, depth estimation, and classification. Load and train models, and make predictions easily with our comprehensive guide.
+description: Learn to use Ultralytics YOLO in Python for detection, segmentation, semantic segmentation, depth estimation, and classification. Load and train models and run predictions.
 keywords: YOLO, Python, object detection, segmentation, semantic segmentation, depth estimation, classification, machine learning, AI, pretrained models, train models, make predictions
 ---
 
@@ -167,8 +167,8 @@ For example, users can load a model, train it, evaluate its performance on a val
             result.boxes.xywh  # box with xywh format, (N, 4)
             result.boxes.xyxyn  # box with xyxy format but normalized, (N, 4)
             result.boxes.xywhn  # box with xywh format but normalized, (N, 4)
-            result.boxes.conf  # confidence score, (N, 1)
-            result.boxes.cls  # cls, (N, 1)
+            result.boxes.conf  # confidence score, (N,)
+            result.boxes.cls  # cls, (N,)
 
             # Segmentation
             result.masks.data  # masks, (N, H, W)
@@ -266,22 +266,23 @@ The `YOLO` model class serves as a high-level wrapper for Trainer classes. Each 
     ```python
     from ultralytics.models.yolo.detect import DetectionPredictor, DetectionTrainer, DetectionValidator
 
-    # trainer
-    trainer = DetectionTrainer(overrides={})
+    overrides = {"model": "yolo26n.pt", "data": "coco8.yaml", "epochs": 3}
+
+    # Trainer
+    trainer = DetectionTrainer(overrides=overrides)
     trainer.train()
-    trained_model = trainer.best
+    trained_model = trainer.best  # path to best.pt
 
     # Validator
-    val = DetectionValidator(args=...)
-    val(model=trained_model)
+    validator = DetectionValidator(args={"data": "coco8.yaml"})
+    validator(model=trained_model)
 
-    # predictor
-    pred = DetectionPredictor(overrides={})
-    pred(source=SOURCE, model=trained_model)
+    # Predictor
+    predictor = DetectionPredictor(overrides={"model": trained_model})
+    predictor(source="https://ultralytics.com/images/bus.jpg")
 
-    # resume from last weight
-    overrides["resume"] = trainer.last
-    trainer = DetectionTrainer(overrides=overrides)
+    # Resume from the last checkpoint
+    trainer = DetectionTrainer(overrides={**overrides, "resume": trainer.last})
     ```
 
 You can easily customize Trainers to support custom tasks or explore research and development ideas. The modular design of Ultralytics YOLO allows you to adapt the framework to your specific needs, whether you're working on a novel [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) task or fine-tuning existing models for better performance.

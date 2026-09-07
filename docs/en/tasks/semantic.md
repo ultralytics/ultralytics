@@ -5,9 +5,9 @@ keywords: semantic segmentation, YOLO26, pixel-wise classification, scene parsin
 model_name: yolo26n-sem
 ---
 
-# Semantic Segmentation
+# Semantic Segmentation with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/semantic-segmentation-examples.avif" alt="Semantic segmentation examples">
+<img width="1024" src="https://cdn.ul.run/i/30702b4e25c1ef422e4638fedd8795c0.avif" alt="Semantic segmentation examples">
 
 [Semantic segmentation](https://www.ultralytics.com/glossary/semantic-segmentation) assigns a class label to every pixel in an image, producing a dense class map that covers the entire scene. Unlike [instance segmentation](segment.md), which separates individual objects, semantic segmentation groups all pixels of the same class together regardless of how many distinct objects are present.
 

@@ -20,14 +20,14 @@ pip install -r requirements.txt # Install dependencies
 
 ## Train On Custom Data
 
-[![Ultralytics active learning loop diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-active-learning-loop.avif)](https://platform.ultralytics.com)
+[![Ultralytics active learning loop diagram](https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif)](https://platform.ultralytics.com)
 
 Developing a custom [object detection](../../tasks/detect.md) model is an iterative process:
 
 1.  **Collect & Organize Images**: Gather images relevant to your specific task. High-quality, diverse data is crucial. See our guide on [Data Collection and Annotation](../../guides/data-collection-and-annotation.md).
 2.  **Label Objects**: Annotate the objects of interest within your images accurately.
-3.  **Train a Model**: Use the labeled data to [train](../../modes/train.md) your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
-4.  **Deploy & Predict**: Utilize the trained model for [inference](../../modes/predict.md) on new, unseen data.
+3.  **Train a Model**: Use the labeled data to train your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
+4.  **Deploy & Predict**: Utilize the trained model for inference on new, unseen data.
 5.  **Collect Edge Cases**: Identify scenarios where the model performs poorly ([edge cases](https://en.wikipedia.org/wiki/Edge_case)) and add similar data to your dataset to improve robustness. Repeat the cycle.
 
 [Ultralytics Platform](../../platform/index.md) offers a streamlined, no-code solution for this entire [machine learning operations (MLOps)](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) cycle, including dataset management, model training, and deployment.
@@ -98,11 +98,11 @@ The YOLO format `*.txt` file specifications are precise:
 - Coordinates must be **normalized** to a range between 0 and 1. To achieve this, divide the pixel values of `x_center` and `width` by the image's total width, and divide `y_center` and `height` by the image's total height.
 - Class indices are zero-indexed (i.e., the first class is represented by `0`, the second by `1`, and so forth).
 
-<p align="center"><img width="750" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie.avif" alt="Example image with two persons and a tie annotated"></p>
+<p align="center"><img width="750" src="https://cdn.ul.run/i/19e1e6d0c5d85a19d97d5f3f731cdf83.avif" alt="Example image with two persons and a tie annotated"></p>
 
 The label file corresponding to the image above, containing two 'person' objects (class index `0`) and one 'tie' object (class index `27`), would look like this:
 
-<p align="center"><img width="428" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/two-persons-tie-1.avif" alt="YOLO format label file content example"></p>
+<p align="center"><img width="428" src="https://cdn.ul.run/i/f83deecdabe2c1c3131e718ae6040cb6.avif" alt="YOLO format label file content example"></p>
 
 ### 1.3 Organize Directories
 
@@ -134,19 +134,19 @@ The recommended directory structure is:
             └── ...
 ```
 
-<p align="center"><img width="700" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-dataset-structure.avif" alt="YOLOv5 recommended dataset directory structure"></p>
+<p align="center"><img width="700" src="https://cdn.ul.run/i/08e7ac4ccad33b342dfe6c658e811009.avif" alt="YOLOv5 recommended dataset directory structure"></p>
 
 ## 2. Select a Model
 
 Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available [models](../../models/index.md).
 
-<p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-comparison.avif"></p>
+<p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 
 ## 3. Train
 
-Begin the [model training](../../modes/train.md) using the `train.py` script. Essential arguments include:
+Begin model training using the `train.py` script. Essential arguments include:
 
-- `--img`: Defines the input [image size](../../usage/cfg.md) (e.g., `--img 640`). Larger sizes generally yield better accuracy but require more GPU memory.
+- `--img`: Defines the input image size (e.g., `--img 640`). Larger sizes generally yield better accuracy but require more GPU memory.
 - `--batch`: Determines the [batch size](https://www.ultralytics.com/glossary/batch-size) (e.g., `--batch 16`). Choose the largest size your GPU can handle.
 - `--epochs`: Specifies the total number of training [epochs](https://www.ultralytics.com/glossary/epoch) (e.g., `--epochs 100`). One epoch represents a full pass over the entire training dataset.
 - `--data`: Path to your `dataset.yaml` file (e.g., `--data coco128.yaml`).
@@ -187,7 +187,7 @@ python train.py --img 640 --epochs 3 --data coco128.yaml --weights yolov5s.pt # 
 
 Dive deeper into the supported features in our [Comet Integration Guide](../../integrations/comet.md). Learn more about Comet's capabilities from their official [documentation](https://bit.ly/yolov5-colab-comet-docs). Try the Comet Colab Notebook for a live demo: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1RG0WOQyxlDlo5Km8GogJpIEJlg_5lyYO?usp=sharing)
 
-<img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolo-ui.avif">
+<img width="1920" alt="Comet UI showing YOLOv5 training metrics and visualizations" src="https://cdn.ul.run/i/1e8e86c44786988ad132d37dc01c7c01.avif">
 
 ### ClearML Logging and Automation
 
@@ -199,7 +199,7 @@ Dive deeper into the supported features in our [Comet Integration Guide](../../i
 ClearML automatically captures experiment details, model uploads, comparisons, uncommitted code changes, and installed packages, ensuring full reproducibility. You can easily schedule training tasks on remote agents and manage dataset versions using ClearML Data. Explore the [ClearML Integration Guide](../../integrations/clearml.md) for comprehensive details.
 
 <a href="https://clear.ml/">
-<img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/clearml-experiment-management-ui.avif" width="1280"></a>
+<img alt="ClearML experiment management UI for YOLOv5" src="https://cdn.ul.run/i/7ab2511e18fbad3150d5ae8e9df4d4c4.avif" width="1280"></a>
 
 ### Local Logging
 
@@ -211,7 +211,7 @@ Training results are automatically logged using [TensorBoard](../../integrations
 - Key evaluation metrics such as [Precision](https://www.ultralytics.com/glossary/precision)-[Recall](https://www.ultralytics.com/glossary/recall) (PR) curves.
 - [Confusion matrices](https://www.ultralytics.com/glossary/confusion-matrix) for detailed class-wise performance analysis.
 
-<img alt="YOLOv5 local logging results with charts and mosaics" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/local-logging-results.avif" width="1280">
+<img alt="YOLOv5 local logging results with charts and mosaics" src="https://cdn.ul.run/i/6af7893c9ca7250dc16c904d36c62ab7.avif" width="1280">
 
 The `results.csv` file is updated after every epoch and is plotted as `results.png` once training concludes. You can also plot any `results.csv` file manually using the provided utility function:
 
@@ -222,21 +222,21 @@ from utils.plots import plot_results
 plot_results("runs/train/exp/results.csv")  # This will generate 'results.png' in the same directory
 ```
 
-<p align="center"><img width="800" alt="YOLOv5 results.png training metrics plot" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-training-results-plot.avif"></p>
+<p align="center"><img width="800" alt="YOLOv5 results.png training metrics plot" src="https://cdn.ul.run/i/0768dc2a9718b2fe69f2945bec326602.avif"></p>
 
 ## 5. Next Steps
 
 Upon successful completion of training, the best performing model checkpoint (`best.pt`) is saved and ready for deployment or further refinement. Potential next steps include:
 
-- Run [inference](../../modes/predict.md) on new images or videos using the trained model via the [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch-hub-model-loading.md).
-- Perform [validation](../../modes/val.md) to evaluate the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) and generalization capabilities on different data splits (e.g., a held-out test set).
-- [Export](../../modes/export.md) the model to various deployment formats like [ONNX](../../integrations/onnx.md), [TensorFlow SavedModel](../../integrations/tf-savedmodel.md), or [TensorRT](../../integrations/tensorrt.md) for optimized inference on diverse platforms.
-- Employ [hyperparameter tuning](../../guides/hyperparameter-tuning.md) techniques to potentially squeeze out additional performance gains.
-- Continue improving your model by following our [Tips for Best Training Results](../../guides/model-training-tips.md) and iteratively adding more diverse and challenging data based on performance analysis.
+- Run inference on new images or videos using the trained model via the [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch-hub-model-loading.md).
+- Run `val.py` to evaluate the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) and generalization capabilities on different data splits (e.g., a held-out test set).
+- [Export](./model-export.md) the model to various deployment formats like [ONNX](../../integrations/onnx.md), [TensorFlow SavedModel](../../integrations/tf-savedmodel.md), or [TensorRT](../../integrations/tensorrt.md) for optimized inference on diverse platforms.
+- Employ [hyperparameter evolution](./hyperparameter-evolution.md) to potentially squeeze out additional performance gains.
+- Continue improving your model by following our [Tips for Best Training Results](./tips-for-best-training-results.md) and iteratively adding more diverse and challenging data based on performance analysis.
 
 ## Supported Environments
 
-Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
+Ultralytics provides ready-to-use environments equipped with essential dependencies like [CUDA](https://developer.nvidia.com/cuda), [cuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), facilitating a smooth start.
 
 - **Free GPU Notebooks**:
     - <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a>
@@ -245,15 +245,15 @@ Ultralytics provides ready-to-use environments equipped with essential dependenc
 - **Cloud Platforms**:
     - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
     - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws-quickstart-tutorial.md)
-    - **Microsoft Azure**: [AzureML Quickstart Guide](../../guides/azureml-quickstart.md)
+    - **Microsoft Azure**: [AzureML Quickstart Guide](../environments/azureml-quickstart-tutorial.md)
 - **Local Setup**:
-    - **Docker**: [Docker Quickstart Guide](../../guides/docker-quickstart.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+    - **Docker**: [Docker Quickstart Guide](../environments/docker-image-quickstart-tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Project Status
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 Continuous Integration Status Badge"></a>
 
-This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These rigorous CI tests cover the core functionalities, including [training](../../modes/train.md), [validation](../../modes/val.md), [inference](../../modes/predict.md), [export](../../modes/export.md), and [benchmarks](../../modes/benchmark.md), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit, ensuring consistent stability and optimal performance.
+This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These rigorous CI tests cover the core functionalities, including [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit, ensuring consistent stability and optimal performance.
 
 ## FAQ
 
@@ -280,11 +280,11 @@ Training YOLOv5 on a custom dataset involves several key steps:
 
 - **Simplified Training**: Easily train models using pre-configured environments and an intuitive user interface.
 - **Integrated Data Management**: Upload, version control, and manage your datasets efficiently within the platform.
-- **Real-time Monitoring**: Track training progress and visualize performance metrics using integrated tools like [Comet](../../integrations/comet.md) or TensorBoard.
+- **Real-time Monitoring**: Track training progress and visualize performance metrics as they stream in.
 - **Collaboration Features**: Facilitates teamwork through shared resources, project management tools, and easy model sharing.
 - **No-Code Deployment**: Deploy trained models directly to various targets.
 
-For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/how-to-train-your-custom-models-with-ultralytics-hub).
+For a practical walkthrough, check out our blog post: [How to Train Your Custom Models with Ultralytics Platform](https://www.ultralytics.com/blog/train-yolo-models-faster-with-ultralytics-platform).
 
 ### How do I convert my annotated data to the YOLOv5 format?
 

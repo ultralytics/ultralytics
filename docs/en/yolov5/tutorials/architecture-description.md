@@ -18,7 +18,7 @@ YOLOv5's architecture consists of three main parts:
 
 The structure of the model is depicted in the image below. The model structure details can be found in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
 
-![YOLOv5 architecture showing backbone, neck, and head](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-model-structure.avif)
+![YOLOv5 architecture showing backbone, neck, and head](https://cdn.ul.run/i/8b17cf84c11c69c30cf24a89a910c141.avif)
 
 YOLOv5 introduces some notable improvements compared to its predecessors:
 
@@ -108,29 +108,29 @@ YOLOv5 employs various data augmentation techniques to improve the model's abili
 
 - **Mosaic Augmentation**: An image processing technique that combines four training images into one in ways that encourage [object detection](https://www.ultralytics.com/glossary/object-detection) models to better handle various object scales and translations.
 
-    ![YOLOv5 mosaic data augmentation combining four images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mosaic-augmentation.avif)
+    ![YOLOv5 mosaic data augmentation combining four images](https://cdn.ul.run/i/8c209c17d47c92f9c3c1abbccf5fb743.avif)
 
 - **Copy-Paste Augmentation**: An innovative data augmentation method that copies random patches from an image and pastes them onto another randomly chosen image, effectively generating a new training sample.
 
-    ![YOLOv5 copy-paste augmentation for instance segmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/copy-paste.avif)
+    ![YOLOv5 copy-paste augmentation for instance segmentation](https://cdn.ul.run/i/330efc1cd07d545e759af37daef44e74.avif)
 
 - **Random Affine Transformations**: This includes random rotation, scaling, translation, and shearing of the images.
 
-    ![YOLOv5 random affine transformations for training](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-affine-transformations.avif)
+    ![YOLOv5 random affine transformations for training](https://cdn.ul.run/i/6e231815f391a61f8a82618095075812.avif)
 
 - **MixUp Augmentation**: A method that creates composite images by taking a linear combination of two images and their associated labels.
 
-    ![YOLOv5 MixUp data augmentation blending two images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/mixup.avif)
+    ![YOLOv5 MixUp data augmentation blending two images](https://cdn.ul.run/i/afdbd5ce80e044c88f3cad1aa03178d1.avif)
 
 - **Albumentations**: A powerful image augmentation library that supports a wide variety of augmentation techniques. Learn more about [using Albumentations augmentations](https://www.ultralytics.com/blog/using-albumentations-augmentations-to-diversify-your-data).
 
 - **HSV Augmentation**: Random changes to the Hue, Saturation, and Value of the images.
 
-    ![YOLOv5 HSV color space augmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/hsv-augmentation.avif)
+    ![YOLOv5 HSV color space augmentation examples](https://cdn.ul.run/i/964efba8eae7436317d4b09d62cf1764.avif)
 
 - **Random Horizontal Flip**: An augmentation method that randomly flips images horizontally.
 
-    ![YOLOv5 random horizontal flip augmentation](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/random-horizontal-flip.avif)
+    ![YOLOv5 random horizontal flip augmentation](https://cdn.ul.run/i/aa20a5fd417d2576b31a417e0203430a.avif)
 
 ## 3. Training Strategies
 
@@ -141,7 +141,7 @@ YOLOv5 applies several sophisticated training strategies to enhance the model's 
 - **Warmup and Cosine LR Scheduler**: A method to adjust the [learning rate](https://www.ultralytics.com/glossary/learning-rate) to enhance model performance.
 - **Exponential Moving Average (EMA)**: A strategy that uses the average of parameters over past steps to stabilize the training process and reduce generalization error.
 - **[Mixed Precision](https://www.ultralytics.com/glossary/mixed-precision) Training**: A method to perform operations in half-[precision](https://www.ultralytics.com/glossary/precision) format, reducing memory usage and enhancing computational speed.
-- **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance. Learn more about [hyperparameter tuning](../../guides/hyperparameter-tuning.md).
+- **Hyperparameter Evolution**: A strategy to automatically tune hyperparameters to achieve optimal performance. See the [Hyperparameter Evolution](hyperparameter-evolution.md) tutorial.
 
 ## 4. Additional Features
 
@@ -228,3 +228,21 @@ This way, the build targets process ensures that each ground truth object is pro
 YOLOv5 represents a meaningful step in the evolution of real-time object detection. Its architectural choices, training strategies, and engineering refinements deliver strong performance and efficiency relative to earlier YOLO versions.
 
 The primary enhancements in YOLOv5 include the use of a dynamic architecture, an extensive range of data augmentation techniques, innovative training strategies, as well as important adjustments in computing losses and the process of building targets. All these innovations significantly improve the accuracy and efficiency of object detection while retaining a high degree of speed, which is the trademark of YOLO models.
+
+## FAQ
+
+### What are the three parts of the YOLOv5 architecture?
+
+A CSPDarknet53 backbone extracts features, an SPPF and PANet neck fuses them across scales, and a YOLOv3-style head predicts boxes, objectness, and classes at strides 8, 16, and 32. The full layer list is in [`models/yolov5l.yaml`](https://github.com/ultralytics/yolov5/blob/master/models/yolov5l.yaml).
+
+### Why did YOLOv5 replace SPP with SPPF?
+
+SPPF chains three 5x5 max-pooling operations instead of running 5x5, 9x9, and 13x13 pools in parallel. The output is mathematically identical, but it runs more than twice as fast, as the profiling snippet above shows.
+
+### What does the (2σ - 0.5) box formula fix?
+
+The original YOLO offset could never reach exactly 0 or 1, so objects centered on grid boundaries were hard to predict. Scaling the sigmoid to the range (-0.5, 1.5) removes that grid sensitivity, and squaring `2σ` for width and height bounds predictions to 4x the anchor size, preventing the runaway gradients of the unbounded exponential.
+
+### How many anchors can one ground-truth box match?
+
+Any anchor whose width and height ratios to the box are within `anchor_t` (4.0 by default) is a match, and the extended offset range lets the box also be assigned to the two neighboring grid cells. A single object can therefore produce several positive targets, which speeds up convergence.

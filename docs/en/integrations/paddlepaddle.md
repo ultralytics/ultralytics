@@ -58,6 +58,12 @@ PaddlePaddle provides a range of options, each offering a distinct balance of ea
 
 - **Paddle.js**: Paddle.js enables you to deploy PaddlePaddle models directly within web browsers. Paddle.js can either load a pretrained model or transform a model from [paddle-hub](https://github.com/PaddlePaddle/PaddleHub) with model transforming tools provided by Paddle.js. It can run in browsers that support WebGL/WebGPU/WebAssembly.
 
+## Supported Tasks
+
+PaddlePaddle export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
+
 ## Export to PaddlePaddle: Converting Your YOLO26 Model
 
 Converting YOLO26 models to the PaddlePaddle format can improve execution flexibility and optimize performance for various deployment scenarios.
@@ -94,14 +100,14 @@ The PaddlePaddle format supports the [Export](../modes/export.md), [Predict](../
         model = YOLO("yolo26n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolo26n_paddle_model'
+        model.export(format="paddle")  # creates 'yolo26n_paddle_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to PaddlePaddle format
-        yolo export model=yolo26n.pt format=paddle # creates '/yolo26n_paddle_model'
+        yolo export model=yolo26n.pt format=paddle # creates 'yolo26n_paddle_model'
         ```
 
 !!! example "Predict"
@@ -195,7 +201,7 @@ Exporting Ultralytics YOLO26 models to PaddlePaddle format is straightforward. Y
         model = YOLO("yolo26n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolo26n_paddle_model'
+        model.export(format="paddle")  # creates 'yolo26n_paddle_model'
 
         # Load the exported PaddlePaddle model
         paddle_model = YOLO("./yolo26n_paddle_model")
@@ -208,7 +214,7 @@ Exporting Ultralytics YOLO26 models to PaddlePaddle format is straightforward. Y
 
         ```bash
         # Export a YOLO26n PyTorch model to PaddlePaddle format
-        yolo export model=yolo26n.pt format=paddle # creates '/yolo26n_paddle_model'
+        yolo export model=yolo26n.pt format=paddle # creates 'yolo26n_paddle_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo26n_paddle_model' source='https://ultralytics.com/images/bus.jpg'

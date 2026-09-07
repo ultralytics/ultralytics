@@ -5,9 +5,9 @@ keywords: instance segmentation, YOLO26, object detection, image segmentation, m
 model_name: yolo26n-seg
 ---
 
-# Instance Segmentation
+# Instance Segmentation with Ultralytics YOLO {#instance-segmentation}
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instance-segmentation-examples.avif" alt="Instance segmentation examples">
+<img width="1024" src="https://cdn.ul.run/i/4f347873b4473e2ccab72d0df4350e7e.avif" alt="Ultralytics YOLO instance segmentation examples">
 
 [Instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) goes a step further than object detection and involves identifying individual objects in an image and segmenting them from the rest of the image.
 
@@ -36,9 +36,11 @@ YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 {% include "macros/yolo-seg-perf.md" %}
 
-- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu`
-- **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers and, for end2end models, removes the auxiliary one-to-many detection head. Pretrained checkpoints retain the full training architecture and may show higher counts.
+- **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val segment data=coco.yaml device=0 nms=False`
+- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val segment data=coco.yaml batch=1 device=0|cpu nms=False`
+- **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
+
+These checkpoints segment the 80 COCO classes. To segment categories outside that list without retraining, see [YOLOE](../models/yoloe.md), which takes the classes as a text prompt, a visual example, or a built-in vocabulary.
 
 ## Train
 
@@ -77,7 +79,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Segmentati
 
 ### Dataset format
 
-YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also create segmentation masks with [Ultralytics Platform annotation](../platform/data/annotation.md) using polygon tools and SAM-powered smart annotation.
+YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert an existing COCO JSON dataset to YOLO format, use the built-in `convert_coco` function with `use_segments=True`, as described in the [COCO to YOLO guide](../guides/coco-to-yolo.md). You can also create segmentation masks with [Ultralytics Platform annotation](../platform/data/annotation.md) using polygon tools and SAM-powered smart annotation.
 
 ## Val
 
@@ -201,7 +203,7 @@ Available YOLO26-seg export formats are in the table below. You can export to an
 
 !!! note
 
-    CoreML embedded NMS pipelines (`nms=True`) only support object detection models. Segmentation exports to CoreML warn and force `nms=False`, producing a raw model without NMS.
+    CoreML supports embedded NMS (`nms=True`) for detection, instance segmentation and pose with static shapes. Default segmentation exports (`nms=None`) leave NMS to the consumer.
 
 {% include "macros/export-table.md" %}
 
@@ -211,7 +213,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 segmentation model on a custom dataset?
 
-To train a YOLO26 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use tools like [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) to convert datasets from other formats. Once your dataset is ready, you can train the model using Python or CLI commands:
+To train a YOLO26 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use the built-in [`convert_coco`](../guides/coco-to-yolo.md) utility to convert COCO JSON datasets. Once your dataset is ready, you can train the model using Python or CLI commands:
 
 !!! example
 

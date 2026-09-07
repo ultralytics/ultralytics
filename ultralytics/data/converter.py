@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import json
+import math
 import random
 import shutil
 from collections import defaultdict
@@ -16,6 +17,7 @@ import numpy as np
 from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
+from ultralytics.data.utils import get_split_fraction
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
@@ -284,6 +286,7 @@ def convert_coco(
             annotations[ann["image_id"]].append(ann)
 
         image_txt = []
+        dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
@@ -318,14 +321,29 @@ def convert_coco(
                     bboxes.append(box)
                     if use_segments:
                         seg = ann.get("segmentation")
-                        if seg is None or len(seg) == 0:
-                            segments.append([])
-                        elif len(seg) > 1:
-                            s = merge_multi_segment(seg)
+                        polygons = (
+                            [
+                                p
+                                for p in seg or []
+                                if isinstance(p, list)
+                                and len(p) >= 6
+                                and not len(p) % 2
+                                and all(isinstance(c, (int, float)) for c in p)
+                            ]
+                            if isinstance(seg, list)
+                            else []
+                        )
+                        if not polygons:
+                            dropped = True
+                            cx, cy, bw, bh = box[1:]
+                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
+                        elif len(polygons) > 1:
+                            s = merge_multi_segment(polygons)
                             s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
                             segments.append([cls, *s])
                         else:
-                            s = [j for i in seg for j in i]  # all segments concatenated
+                            s = [j for i in polygons for j in i]  # all segments concatenated
                             s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
                             segments.append([cls, *s])
 
@@ -335,10 +353,14 @@ def convert_coco(
                     if use_keypoints:
                         line = (*(keypoints[i]),)  # cls, box, keypoints
                     else:
-                        line = (
-                            *(segments[i] if use_segments and len(segments[i]) > 0 else bboxes[i]),
-                        )  # cls, box or segments
+                        line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
+
+        if dropped and not use_keypoints:  # segments are unused when keypoints own the output
+            LOGGER.warning(
+                f"{json_file}: annotations without a usable polygon, because the segmentation is missing, "
+                "empty, or not a point list such as an RLE mask, use a segment shaped like their bounding box."
+            )
 
         if lvis:
             filename = Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")
@@ -388,7 +410,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix in {".png", ".jpg"}:
             mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
-            img_height, img_width = mask.shape[:2]  # patched Windows imread returns (H, W, 1) for grayscale
+            img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
             unique_values = np.unique(mask)  # Get unique pixel values representing different classes
@@ -638,7 +660,7 @@ def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sa
         txt_file = save_dir / lb_name
         cls = label["cls"]
         for i, s in enumerate(label["segments"]):
-            if len(s) == 0:
+            if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                 continue
             line = (int(cls[i]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
@@ -778,7 +800,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
             break
 
     if not kpt_lengths or len(set(kpt_lengths)) != 1:
-        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+        raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
     n = kpt_lengths[0]
 
@@ -790,15 +812,15 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     if n % 2 == 0 and n % 3 != 0:
         return [n // 2, 2]
 
-    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose/")
+    raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Path | None = None) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
-    parallel images/ and depth/ trees with float32 NPY targets. Classification tasks use the ImageNet-style
+    parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the ImageNet-style
     {split}/{class_name}/ folder structure. Downloads run concurrently.
 
     The NDJSON format consists of:
@@ -809,6 +831,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
+        fraction (float | int | list): Train ratio/count or [train, val, test] ratios/counts to download.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
@@ -829,13 +852,18 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
-    source_id = clean_url(source) if "://" in source else str(Path(source).resolve())
-    source_hash = hashlib.sha256(source_id.encode()).hexdigest()[:8]
+    if isinstance(fraction, list):
+        fraction = [get_split_fraction(fraction, split) for split in ("train", "val", "test")[: len(fraction)]]
+    else:
+        fraction = get_split_fraction(fraction, "train")
+    local = Path(source).is_file()
+    source_id = str(Path(source).resolve()) if local else clean_url(source)
+    source_hash = hashlib.sha256(repr((source_id, fraction)).encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path)
+        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local, fraction)
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
@@ -854,24 +882,37 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path: str | Pat
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
     check_requirements("aiohttp")
     import aiohttp
 
-    content = await asyncio.get_running_loop().run_in_executor(None, ndjson_path.read_text)
-    lines = [json.loads(line.strip()) for line in content.splitlines() if line.strip()]
+    def read_records():
+        with ndjson_path.open() as file:
+            return [json.loads(line) for line in file if line.strip()]
+
+    lines = await asyncio.get_running_loop().run_in_executor(None, read_records)
     dataset_record, image_records = lines[0], lines[1:]
     task = dataset_record.get("task", "detect")
     is_classification = task == "classify"
     is_depth = task == "depth"
+    depth_scale = dataset_record.get("depth_scale", 1000)
+    if is_depth and (
+        not isinstance(depth_scale, (int, float))
+        or isinstance(depth_scale, bool)
+        or not math.isfinite(depth_scale)
+        or depth_scale <= 0
+    ):
+        raise ValueError("Depth datasets require a positive finite depth_scale")
     class_names = {int(k): v for k, v in dataset_record.get("class_names", {}).items()}
     classification_ids = set()
 
+    local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
+
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256()
+    _h = hashlib.sha256(repr(fraction).encode())
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")
@@ -879,6 +920,10 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 raise ValueError(f"Invalid NDJSON split: {split!r}")
             if not isinstance(source_name, str) or not source_name:
                 raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+            if local_path:
+                if source_name != Path(source_name).name:
+                    raise ValueError(f"Invalid NDJSON image name: {source_name!r}")
+                r["url"] = (ndjson_path.parent / local_path / "images" / split / source_name).resolve()
             # Preserve safe content hashes already present in the filename or URL while indexes prevent collisions.
             # Depth targets use the same stem, so image and target URLs follow the same output mechanics.
             suffix = source_name.rsplit(".", 1)[-1]
@@ -906,17 +951,12 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     class_dirs = {class_id: f"{i:06d}" for i, class_id in enumerate(sorted(classification_ids))}
     classification_names = {i: class_names.get(class_id, str(class_id)) for i, class_id in enumerate(class_dirs)}
 
-    # Depth adds one sibling URL per image record; file naming, caching, and retries remain shared.
+    # Depth adds one sibling URL per image record. File naming, caching, and retries remain shared.
     if is_depth:
         for record in image_records:
             depth = record.get("depth")
             if not isinstance(depth, dict) or not isinstance(depth.get("url"), str) or not depth["url"]:
                 raise ValueError(f"Depth record '{record.get('file', '<unknown>')}' is missing depth.url")
-            if depth.get("encoding") != "npy-f32" or depth.get("unit") != "m":
-                raise ValueError("Depth records require encoding='npy-f32' and unit='m'")
-            shape = depth.get("shape")
-            if not isinstance(shape, list) or len(shape) != 2 or not all(type(x) is int and x > 0 for x in shape):
-                raise ValueError("Depth records require a positive [height, width] shape")
 
     # Hash-qualified dirs allow identical datasets to reuse downloads while preventing changed datasets from mutating
     # files that another training job may still be reading.
@@ -945,7 +985,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 r["split"] = "val"
             splits.add("val")
             LOGGER.warning(
-                f"WARNING ⚠️ No 'val' split found in dataset. "
+                f"No 'val' split found in dataset. "
                 f"Auto-splitting {len(train_records)} images into {len(train_records) - val_count} train, {val_count} val. "
                 f"For best results, manually assign validation images in Platform dataset page."
             )
@@ -970,13 +1010,23 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
     if task == "pose" and "kpt_shape" not in dataset_record:
         dataset_record["kpt_shape"] = _infer_ndjson_kpt_shape(image_records)
 
+    selected = []
+    for split in ("train", "val", "test"):
+        limit = get_split_fraction(fraction, split)
+        if limit:
+            records = sorted((r for r in image_records if r["split"] == split), key=lambda r: r["file"])
+            count = min(limit if type(limit) is int else round(len(records) * limit), len(records))
+            selected.extend(records[i] for i in np.linspace(0, len(records) - 1, count, dtype=int))
+    image_records = selected
+    split_counts = {split: sum(r["split"] == split for r in image_records) for split in ("train", "val", "test")}
+
     dataset_dir.mkdir(parents=True, exist_ok=True)
     data_yaml = None
 
     if not is_classification:
         # Detection/segmentation/pose/obb/depth: prepare YAML and create base structure
         if is_depth:
-            data_yaml = {"task": "depth", "nc": 1, "names": {0: "depth"}}
+            data_yaml = {"task": "depth", "nc": 1, "names": {0: "depth"}, "depth_scale": depth_scale}
         else:
             data_yaml = dict(dataset_record)
             if class_names:
@@ -997,6 +1047,11 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
         if not url:
             return False
         path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(url, Path):
+            if not url.is_file():
+                return False
+            await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, url, path)
+            return True
         for attempt in range(3):
             error = None
             try:
@@ -1050,7 +1105,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 return image_ok
 
             stem = original_name.rsplit(".", 1)[0] or original_name
-            depth_path = dataset_dir / "depth" / split / f"{stem}.npy"
+            depth_path = dataset_dir / "depth" / split / f"{stem}.png"
             depth_ok = await ensure_file(session, depth_path, record["depth"]["url"])
             if not image_ok or not depth_ok:
                 image_path.unlink(missing_ok=True)
@@ -1058,12 +1113,13 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
                 return False
             return True
 
-    # Process all images with async downloads (limit connections for small datasets)
+    # Keep download concurrency high without creating one live coroutine per record for very large datasets.
     semaphore = asyncio.Semaphore(min(128, len(image_records)))
     async with aiohttp.ClientSession(trust_env=True) as session:
         pbar = TQDM(
             total=len(image_records),
-            desc=f"Converting {ndjson_path.name} → {dataset_dir} ({len(image_records)} images)",
+            desc=f"Converting {ndjson_path.name} fraction={fraction} → {dataset_dir} "
+            f"using {split_counts['train']} train, {split_counts['val']} val, {split_counts['test']} test images",
         )
 
         async def tracked_process(record):
@@ -1071,11 +1127,13 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path) -> Path:
             pbar.update(1)
             return result
 
-        results = await asyncio.gather(*[tracked_process(record) for record in image_records])
+        success_count = 0
+        for start in range(0, len(image_records), 1024):
+            results = await asyncio.gather(*[tracked_process(record) for record in image_records[start : start + 1024]])
+            success_count += sum(results)
         pbar.close()
 
     # Validate images were downloaded successfully
-    success_count = sum(1 for r in results if r)
     if not image_records or success_count < len(image_records):
         raise RuntimeError(f"Downloaded {success_count}/{len(image_records)} images from {ndjson_path}")
 

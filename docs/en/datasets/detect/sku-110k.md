@@ -26,7 +26,7 @@ The SKU-110K dataset is a single-class [object detection](../../tasks/detect.md)
   <strong>Watch:</strong> How to Train Ultralytics YOLO26 to Detect Every Product on a Retail Shelf | SKU-110K 🛒
 </p>
 
-![SKU-110K dataset densely packed retail shelf detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/densely-packed-retail-shelf.avif)
+![SKU-110K dataset densely packed retail shelf detection](https://cdn.ul.run/i/11f308cfda3484ae6ee604a4afedab27.avif)
 
 ## Key Features
 
@@ -54,7 +54,7 @@ The SKU-110K dataset is widely used for training and evaluating [deep learning](
 - Self-checkout systems in stores
 - Robotic picking and sorting in warehouses
 
-To annotate your own shelf images, train, and manage retail-detection datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/).
+To annotate your own shelf images, train, and manage retail-detection datasets in your browser, run the full workflow with [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/sku110k).
 
 ## Dataset YAML
 
@@ -99,7 +99,7 @@ To train a YOLO26n model on the SKU-110K dataset for 100 [epochs](https://www.ul
 
 SKU-110K images capture densely packed products on real store shelves, where dozens of near-identical items sit side by side. Here is an example image with its annotations:
 
-![SKU-110K retail product detection on store shelves](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/densely-packed-retail-shelf-1.avif)
+![SKU-110K retail product detection on store shelves](https://cdn.ul.run/i/b3bf9fbe52f41eb05a537387580ca26e.avif)
 
 - **Densely packed retail shelf image**: This image demonstrates an example of densely packed objects in a retail shelf setting. Objects are annotated with bounding boxes under the single `object` class.
 

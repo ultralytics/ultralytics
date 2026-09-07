@@ -50,6 +50,7 @@ def merge_track_pools(
     tracker.tracked_stracks, tracker.lost_stracks = remove_duplicate_stracks(
         tracker.tracked_stracks, tracker.lost_stracks
     )
+    tracker.removed_stracks_frame = removed
     tracker.removed_stracks.extend(removed)
     if len(tracker.removed_stracks) > removed_buffer:
         tracker.removed_stracks = tracker.removed_stracks[-removed_buffer:]
@@ -169,7 +170,10 @@ def multi_gmc(stracks: list, H: np.ndarray) -> None:
 
     multi_mean = np.matmul(R8x8, multi_mean[..., None])[..., 0]
     multi_mean[:, :2] += t
-    multi_covariance = np.matmul(np.matmul(R8x8, multi_covariance), R8x8.T)
+    # Keep the right operand C-contiguous. An F-contiguous one sends matmul into BLAS's transposed-gemm kernel,
+    # which on macOS Accelerate leaves FP-exception flags set even for finite inputs — numpy then reports spurious
+    # divide/overflow/invalid RuntimeWarnings — and measures slower here than the untransposed kernel.
+    multi_covariance = np.matmul(np.matmul(R8x8, multi_covariance), np.ascontiguousarray(R8x8.T))
     for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
         stracks[i].mean = mean
         stracks[i].covariance = cov

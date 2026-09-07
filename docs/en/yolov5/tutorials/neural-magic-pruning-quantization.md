@@ -12,7 +12,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+   https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +23,10 @@ limitations under the License.
 
 # Deploy YOLOv5 with Neural Magic's DeepSparse
 
+!!! warning "DeepSparse End of Life"
+
+    Neural Magic was [acquired by Red Hat in January 2025](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and [deprecated the community versions](https://github.com/neuralmagic/deepsparse/blob/main/README.md) of DeepSparse, SparseML, SparseZoo, and Sparsify on June 2, 2025. The tools still run but no longer receive updates or support. For maintained CPU acceleration, see the [OpenVINO](../../integrations/openvino.md) and [ONNX](../../integrations/onnx.md) integrations.
+
 Welcome to software-delivered AI.
 
 This guide explains how to deploy YOLOv5 with Neural Magic's DeepSparse.
@@ -30,7 +34,7 @@ This guide explains how to deploy YOLOv5 with Neural Magic's DeepSparse.
 DeepSparse is an inference runtime with exceptional performance on CPUs. For instance, compared to the ONNX Runtime baseline, DeepSparse offers a 5.8x speed-up for YOLOv5s, running on the same machine!
 
 <p align="center">
-  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov5-speed-improvement.avif" alt="YOLOv5 DeepSparse vs ONNX Runtime speed comparison chart">
+  <img width="60%" src="https://cdn.ul.run/i/eaf82d184a9b5fe4e4939298dc8a5225.avif" alt="YOLOv5 DeepSparse vs ONNX Runtime speed comparison chart">
 </p>
 
 For the first time, your [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) workloads can meet the performance demands of production without the complexity and costs of hardware accelerators. Put simply, DeepSparse gives you the performance of GPUs and the simplicity of software:
@@ -46,7 +50,7 @@ DeepSparse takes advantage of model sparsity to gain its performance speedup.
 Sparsification through pruning and quantization is a broadly studied technique, allowing order-of-magnitude reductions in the size and compute needed to execute a network, while maintaining high [accuracy](https://www.ultralytics.com/glossary/accuracy). DeepSparse is sparsity-aware, meaning it skips the zeroed out parameters, shrinking amount of compute in a forward pass. Since the sparse computation is now memory bound, DeepSparse executes the network depth-wise, breaking the problem into Tensor Columns, vertical stripes of computation that fit in cache.
 
 <p align="center">
-  <img width="60%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tensor-columns.avif" alt="DeepSparse tensor columns for sparse neural network inference">
+  <img width="60%" src="https://cdn.ul.run/i/6afa78acdd6246a436a1b90c87136b11.avif" alt="DeepSparse tensor columns for sparse neural network inference">
 </p>
 
 Sparse networks with compressed computation, executed depth-wise in cache, allows DeepSparse to deliver GPU-class performance on CPUs!
@@ -55,7 +59,7 @@ Sparse networks with compressed computation, executed depth-wise in cache, allow
 
 Neural Magic's open-source model repository, [SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
-[Checkout Neural Magic's YOLOv5 documentation for more details](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
+See the [SparseML YOLOv5 integration](https://github.com/neuralmagic/sparseml/blob/main/integrations/ultralytics-yolov5/README.md) for more details.
 
 ## DeepSparse Usage
 
@@ -131,7 +135,7 @@ pip install ultralytics-opencv-headless
 
 #### HTTP Server
 
-DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://uvicorn.dev/) web server. With just a single CLI command, you can easily setup a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
+DeepSparse Server runs on top of the popular [FastAPI](https://fastapi.tiangolo.com/) web framework and [Uvicorn](https://uvicorn.dev/) web server. With just a single CLI command, you can easily set up a model service endpoint with DeepSparse. The Server supports any Pipeline from DeepSparse, including [object detection](https://www.ultralytics.com/glossary/object-detection) with YOLOv5, enabling you to send raw images to the endpoint and receive the bounding boxes.
 
 Spin up the Server with the pruned-quantized YOLOv5s:
 
@@ -175,7 +179,7 @@ deepsparse.object_detection.annotate --model_filepath zoo:cv/detection/yolov5-s/
 Running the above command will create an `annotation-results` folder and save the annotated image inside.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/basilica-annotated.avif" alt="YOLOv5 detection results with bounding boxes" width="60%">
+<img src="https://cdn.ul.run/i/3868ab50ea0f0373ededdef3085bcfeb.avif" alt="YOLOv5 detection results with bounding boxes" width="60%">
 </p>
 
 ## Benchmarking Performance
@@ -274,6 +278,24 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35
 
 ## Get Started With DeepSparse
 
-**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
+**Research or Testing?** DeepSparse Community is free for research and testing. Get started with the [DeepSparse README](https://github.com/neuralmagic/deepsparse/blob/main/README.md).
 
-For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+For more information on deploying YOLOv5 with DeepSparse, check out the [DeepSparse YOLOv5 examples](https://github.com/neuralmagic/deepsparse/blob/main/src/deepsparse/yolo/README.md) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+
+## FAQ
+
+### Do I need a GPU to use DeepSparse?
+
+No. DeepSparse is a CPU runtime, and the benchmarks above were measured on a 16-core AWS `c6i.8xlarge` instance without any accelerator.
+
+### How do I run my own YOLOv5 model in DeepSparse?
+
+Export it to ONNX with `python export.py --weights best.pt --include onnx` and pass the file path as `model_path` instead of a SparseZoo stub. Dense models still gain from the runtime, and pruned-quantized models gain the most.
+
+### How do I create a sparse version of my model?
+
+Fine-tune one of the pre-sparsified SparseZoo checkpoints on your data with SparseML, which preserves the sparsity structure during training, then export to ONNX.
+
+### Is DeepSparse still supported?
+
+No. The community versions were deprecated on June 2, 2025, and the packages on PyPI are frozen. Existing pipelines keep working, but new deployments should consider the [OpenVINO](../../integrations/openvino.md) or [ONNX Runtime](../../integrations/onnx.md) paths, which are actively maintained.

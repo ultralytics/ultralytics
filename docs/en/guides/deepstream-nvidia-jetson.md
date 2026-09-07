@@ -1,5 +1,5 @@
 ---
-title: YOLO26 on Jetson: DeepStream & TensorRT
+title: YOLO26 on Jetson DeepStream & TensorRT
 comments: true
 description: Learn how to deploy Ultralytics YOLO26 on NVIDIA Jetson devices using TensorRT and DeepStream SDK. Explore performance benchmarks and maximize AI capabilities.
 keywords: Ultralytics, YOLO26, NVIDIA Jetson, JetPack, AI deployment, embedded systems, deep learning, TensorRT, DeepStream SDK, computer vision
@@ -22,7 +22,7 @@ This comprehensive guide provides a detailed walkthrough for deploying Ultralyti
 
 This guide walks through [DeepStream configuration for YOLO26](#deepstream-configuration-for-yolo26), [INT8 calibration](#int8-calibration), [multi-stream setup](#multistream-setup), and [benchmark results](#benchmark-results).
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepstream-nvidia-jetson.avif" alt="NVIDIA DeepStream SDK on Jetson platform">
+<img width="1024" src="https://cdn.ul.run/i/e1a3abefffbe04f2b32bb08d151e9e62.avif" alt="NVIDIA DeepStream SDK on Jetson platform">
 
 !!! note
 
@@ -59,7 +59,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     pip install -U pip
     git clone https://github.com/ultralytics/ultralytics
     cd ultralytics
-    pip install -e ".[export]" onnxslim
+    pip install -e . onnx onnxslim
     ```
 
 2.  Clone the DeepStream-Yolo repository
@@ -162,6 +162,12 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=12.6
     ```
 
+    For JetPack 7.1:
+
+    ```bash
+    export CUDA_VER=13.0
+    ```
+
 8.  Compile the library
 
     ```bash
@@ -222,7 +228,7 @@ deepstream-app -c deepstream_app_config.txt
 
     It will take a long time to generate the TensorRT engine file before starting the inference. So please be patient.
 
-<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov8-with-deepstream.avif" alt="YOLO26 with deepstream"></div>
+<div align=center><img width=1000 src="https://cdn.ul.run/i/42c8bde3499593b9dea44594eacfccda.avif" alt="YOLO26 with deepstream"></div>
 
 !!! tip
 
@@ -376,7 +382,7 @@ Run the same command to launch all streams in the tiled display:
 deepstream-app -c deepstream_app_config.txt
 ```
 
-<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/multistream-setup.avif" alt="DeepStream multi-camera streaming configuration"></div>
+<div align=center><img width=1000 src="https://cdn.ul.run/i/05593b559056db5d9d9320800650c67e.avif" alt="DeepStream multi-camera streaming configuration"></div>
 
 ## Benchmark Results
 
@@ -384,7 +390,7 @@ The following [benchmarks](../modes/benchmark.md) summarize how YOLO11 models pe
 
 ### Comparison Chart
 
-<div align=center><img width=1000 src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/jetson-deepstream-benchmarks.avif" alt="NVIDIA Jetson DeepStream performance benchmarks"></div>
+<div align=center><img width=1000 src="https://cdn.ul.run/i/74e5a09c38eabbfb5514b1ee60caf698.avif" alt="NVIDIA Jetson DeepStream performance benchmarks"></div>
 
 ### Detailed Comparison Table
 
@@ -393,42 +399,42 @@ The following [benchmarks](../modes/benchmark.md) summarize how YOLO11 models pe
     === "YOLO11n"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 8.64                   |
-        | TensorRT (FP16) | ✅      | 5.27                   |
-        | TensorRT (INT8) | ✅      | 4.54                   |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 8.64                   |
+        | TensorRT (FP16) | ✅     | 5.27                   |
+        | TensorRT (INT8) | ✅     | 4.54                   |
 
     === "YOLO11s"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 14.53                  |
-        | TensorRT (FP16) | ✅      | 7.91                   |
-        | TensorRT (INT8) | ✅      | 6.05                   |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 14.53                  |
+        | TensorRT (FP16) | ✅     | 7.91                   |
+        | TensorRT (INT8) | ✅     | 6.05                   |
 
     === "YOLO11m"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 32.05                  |
-        | TensorRT (FP16) | ✅      | 15.55                  |
-        | TensorRT (INT8) | ✅      | 10.43                  |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 32.05                  |
+        | TensorRT (FP16) | ✅     | 15.55                  |
+        | TensorRT (INT8) | ✅     | 10.43                  |
 
     === "YOLO11l"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 39.68                  |
-        | TensorRT (FP16) | ✅      | 19.88                  |
-        | TensorRT (INT8) | ✅      | 13.64                  |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 39.68                  |
+        | TensorRT (FP16) | ✅     | 19.88                  |
+        | TensorRT (INT8) | ✅     | 13.64                  |
 
     === "YOLO11x"
 
         | Format          | Status | Inference time (ms/im) |
-        |-----------------|--------|------------------------|
-        | TensorRT (FP32) | ✅      | 80.65                  |
-        | TensorRT (FP16) | ✅      | 39.06                  |
-        | TensorRT (INT8) | ✅      | 22.83                  |
+        | --------------- | ------ | ---------------------- |
+        | TensorRT (FP32) | ✅     | 80.65                  |
+        | TensorRT (FP16) | ✅     | 39.06                  |
+        | TensorRT (INT8) | ✅     | 22.83                  |
 
 ## Acknowledgments
 

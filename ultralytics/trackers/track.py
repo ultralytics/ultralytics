@@ -5,6 +5,7 @@ from pathlib import Path
 
 import torch
 
+from ultralytics.cfg import TASKS
 from ultralytics.utils import YAML, IterableSimpleNamespace
 from ultralytics.utils.checks import check_yaml
 
@@ -38,8 +39,9 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
-    if predictor.args.task == "classify":
-        raise ValueError("❌ Classification doesn't support 'mode=track'")
+    trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
+    if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
+        raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
 
     if hasattr(predictor, "trackers") and persist:
         return
@@ -129,10 +131,12 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
 
 def register_tracker(model: object, persist: bool) -> None:
-    """Register tracking callbacks to the model for object tracking during prediction.
+    """Register or refresh the tracking callbacks on the model for object tracking during prediction.
+
+    Any earlier registration is replaced in place, so repeat calls neither stack callbacks nor keep a stale `persist`.
 
     Args:
-        model (object): The model object to register tracking callbacks for.
+        model (object): The model to register tracking callbacks on, exposing a `callbacks` event mapping.
         persist (bool): Whether to persist the trackers if they already exist.
 
     Examples:
@@ -140,5 +144,13 @@ def register_tracker(model: object, persist: bool) -> None:
         >>> model = YOLOModel()
         >>> register_tracker(model, persist=True)
     """
-    model.add_callback("on_predict_start", partial(on_predict_start, persist=persist))
-    model.add_callback("on_predict_postprocess_end", partial(on_predict_postprocess_end, persist=persist))
+    for event, fn in (
+        ("on_predict_start", on_predict_start),
+        ("on_predict_postprocess_end", on_predict_postprocess_end),
+    ):
+        callbacks = model.callbacks[event]
+        i = next((i for i, cb in enumerate(callbacks) if getattr(cb, "func", None) is fn), None)
+        if i is None:
+            model.add_callback(event, partial(fn, persist=persist))
+        else:
+            callbacks[i] = partial(fn, persist=persist)

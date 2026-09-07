@@ -3,55 +3,28 @@
 from __future__ import annotations
 
 import json
+import types
 import zipfile
 from pathlib import Path
 
 import torch
 
+from ultralytics.nn.modules import Detect
 from ultralytics.utils import LOGGER
+from ultralytics.utils.export.engine import _NormalizeCoords
 
 
-class _NormalizeCoords(torch.nn.Module):
-    """Wrap a model so box (and pose keypoint) coordinates are output normalized to [0, 1].
+def _litert_grouped_topk(x: torch.Tensor, k: int, groups: int) -> tuple[torch.Tensor, torch.Tensor]:
+    """Select the top k of x along dim 1 with int32 indices, which GPU delegates accept and int64 they do not."""
+    values, index = Detect._grouped_topk(x, k, groups)
+    return values, index.int()
 
-    LiteRT exports trace the raw PyTorch model, whose detection output concatenates pixel-space box coordinates
-    (0-imgsz) with [0, 1] class scores in a single tensor. A single per-tensor INT8 scale cannot represent both ranges,
-    so the scores collapse to zero. Normalizing coordinates to [0, 1] keeps the whole tensor in a unit range so
-    quantization preserves score resolution; ``LiteRTBackend`` denormalizes by image size at runtime.
 
-    Only the coordinate channels are divided — x/width and y/height — so the divisor is uniform-magnitude and quantizes
-    cleanly to a single per-tensor scale. (Multiplying the whole tensor by a mixed-magnitude per-channel vector instead
-    would round the small coordinate factors to zero and destroy box accuracy.) Per-axis division also supports
-    non-square ``imgsz``; ``LiteRTBackend`` denormalizes by width/height to match.
-    """
-
-    def __init__(self, model: torch.nn.Module, h: int, w: int, task: str, nc: int, kpt_shape: tuple | None):
-        """Initialize with the wrapped model, input height/width, task, class count and optional keypoint shape."""
-        super().__init__()
-        self.model = model
-        self.h = h
-        self.w = w
-        self.task = task
-        self.nc = nc
-        self.kpt_shape = kpt_shape
-
-    def forward(self, x: torch.Tensor):
-        """Run the wrapped model and normalize coordinate channels of the detection output to [0, 1]."""
-        y = self.model(x)
-        det = y[0] if isinstance(y, (tuple, list)) else y  # segment returns (detections, protos)
-        box_wh = torch.tensor([self.w, self.h, self.w, self.h], dtype=det.dtype, device=det.device).view(1, 4, 1)
-        parts = [det[:, :4] / box_wh]  # box xywh: x,w by width; y,h by height
-        if self.task == "pose" and self.kpt_shape:
-            parts.append(det[:, 4 : 4 + self.nc])  # class scores
-            b, _, a = det.shape
-            kpts = det[:, 4 + self.nc :].view(b, self.kpt_shape[0], self.kpt_shape[1], a)
-            kpt_wh = torch.tensor([self.w, self.h], dtype=det.dtype, device=det.device).view(1, 1, 2, 1)
-            kpts = torch.cat([kpts[:, :, :2] / kpt_wh, kpts[:, :, 2:]], dim=2)  # normalize x, y; keep conf
-            parts.append(kpts.reshape(b, -1, a))
-        else:
-            parts.append(det[:, 4:])  # class scores (+ mask coefficients / angle)
-        det = torch.cat(parts, dim=1)
-        return (det, *y[1:]) if isinstance(y, (tuple, list)) else det
+def _litert_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
+    """Select index (batch, k) rows of x along dim 1 without gather_nd, which GPU delegates do not implement."""
+    b, n = x.shape[:2]
+    offset = torch.arange(b, device=x.device, dtype=index.dtype)[..., None] * n
+    return x.flatten(0, 1).index_select(0, (index + offset).flatten()).view(b, index.shape[1], *x.shape[2:])
 
 
 def torch2litert(
@@ -97,7 +70,7 @@ def torch2litert(
     file = Path(file)
     quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
 
-    # Normalize coordinate channels to [0, 1] so INT8 quantization preserves scores (denormalized in LiteRTBackend).
+    # Normalize coordinate channels by input size so INT8 quantization preserves scores (denormalized in LiteRTBackend).
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
@@ -106,6 +79,15 @@ def torch2litert(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )
 
+    for m in model.modules():  # int32 indices and a gather_nd-free gather keep the head on the GPU delegate
+        if isinstance(m, Detect):
+            m._grouped_topk = _litert_grouped_topk
+            m._gather = types.MethodType(_litert_gather, m)
+
+    # Lower index_select to tfl.gather: the default lowering emits GATHER_ND, which GPU delegates do not implement
+    litert_torch.fx_infra.decomp.add_pre_lower_decomp(
+        torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
+    )
     edge_model = litert_torch.convert(model, (im,))
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)

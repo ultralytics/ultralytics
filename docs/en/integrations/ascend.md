@@ -1,10 +1,10 @@
 ---
 comments: true
-description: Learn how to export Ultralytics YOLO models to Huawei Ascend .om format with the CANN ATC compiler for accelerated FP16 inference on Ascend AI Processors.
-keywords: Huawei Ascend, CANN, ATC, om model, Ascend310B, Atlas 200I, OrangePi AIPro, model export, Ultralytics, YOLO, edge AI, NPU, ais_bench, embedded inference
+description: Train Ultralytics YOLO on Huawei Ascend NPUs and export models to .om format with the CANN ATC compiler for accelerated inference.
+keywords: Huawei Ascend, CANN, torch_npu, HCCL, NPU training, ATC, om model, Ascend310B, Atlas 200I, OrangePi AIPro, model export, Ultralytics, YOLO, edge AI, ais_bench, embedded inference
 ---
 
-# Huawei Ascend Export for Ultralytics YOLO Models
+# Huawei Ascend Integration for Ultralytics YOLO
 
 Deploying computer vision models on [Huawei Ascend](https://www.hiascend.com/) AI Processors requires compiling them into the `.om` offline model format executed by the Ascend AI Core. Exporting [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) models to Ascend lets you run fast, low-power inference on Atlas developer boards and OrangePi AIPro devices used across robotics, industrial inspection, and smart camera deployments.
 
@@ -14,6 +14,10 @@ Huawei Ascend is a family of AI Processors paired with **CANN** (Compute Archite
 
 Because ATC runs entirely on the host, you can compile models on a regular x86-64 or ARM64 Linux machine without any Ascend hardware attached, then copy the resulting `.om` to the target device for inference.
 
+## Train on Ascend NPUs
+
+Ultralytics supports single- and multi-NPU training with `torch_npu`, including AMP, validation, checkpointing, resume, and AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL. Install compatible CANN, PyTorch, and `torch_npu` versions and source the CANN environment first. See the [Ascend NPU training section](../modes/train.md#huawei-ascend-npu-training) for installation and usage examples.
+
 ## Ascend Export Format
 
 The Ultralytics exporter first writes an intermediate ONNX graph, then invokes ATC to compile it for the SoC you target with the `name` argument. The result is a self-contained model directory holding the `.om` binary and its Ultralytics metadata.
@@ -22,23 +26,15 @@ The Ultralytics exporter first writes an intermediate ONNX graph, then invokes A
 
 - **Dedicated AI Core**: Compiled models execute on the Ascend AI Core rather than the host CPU, delivering substantially higher throughput for real-time camera pipelines.
 - **Host-side compilation**: ATC needs no attached NPU, so export runs in CI, in containers, or on a laptop.
-- **ONNX-first**: The standard Ultralytics ONNX export feeds directly into the CANN toolchain with no proprietary intermediate format.
+- **ONNX-first**: The standard [Ultralytics ONNX export](onnx.md) feeds directly into the CANN toolchain with no proprietary intermediate format.
 - **Static shapes**: The input shape is baked into the `.om` at compile time, removing runtime shape negotiation overhead.
 - **Multi-device targeting**: The same ONNX graph compiles for any supported SoC by changing `name`.
 
 ## Supported Tasks
 
-Ascend export supports all seven Ultralytics tasks. Detection, instance segmentation, pose, OBB, and classification cover the YOLO26, YOLO11, and YOLOv8 families; semantic segmentation and depth estimation are YOLO26-only.
+Huawei Ascend export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
-| [Depth Estimation](../tasks/depth.md)         | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Supported Devices
 
@@ -119,7 +115,7 @@ The Ascend format supports the [Export](../modes/export.md), [Predict](../modes/
 | `quantize` | `int`            | `16`            | Quantization precision. Ascend export is FP16-only and auto-enables `16` if not specified. Replaces the deprecated `half`/`int8` flags.                                                              |
 | `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                                                                               |
 | `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                              |
-| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression to supported detection, segmentation, pose, and OBB models.                                                                                                             |
+| `nms`      | `bool`, optional | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                          |
 
 !!! note "Why is FP32 unavailable?"
 
@@ -131,9 +127,11 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After a successful export, a model directory is created with the following layout:
 
-    yolo26n_ascend_model/
-    ├── yolo26n_Ascend310B4.om  # Compiled Ascend offline model (AI Core executable)
-    └── metadata.yaml           # Model metadata (classes, image size, task, etc.)
+```text
+yolo26n_ascend_model/
+├── yolo26n_Ascend310B4.om  # Compiled Ascend offline model (AI Core executable)
+└── metadata.yaml           # Model metadata (classes, image size, task, etc.)
+```
 
 The `.om` file is the compiled offline model that the CANN runtime loads on the device. Its name carries the target SoC so the artifact is self-describing; keep one `.om` per directory, since the loader picks the single model it finds there. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 
@@ -178,9 +176,9 @@ YOLO models running on Ascend hardware suit a wide range of embedded and industr
 
 ## Summary
 
-In this guide, you have learned how to export Ultralytics YOLO models to the Huawei Ascend `.om` format using the CANN ATC compiler. The export runs entirely on the host, produces a self-contained model directory, and targets any supported Ascend SoC through a single `name` argument — giving you a direct path from a trained `.pt` checkpoint to accelerated FP16 inference on Ascend AI Processors.
+In this guide, you have learned how to train Ultralytics YOLO on Huawei Ascend NPUs and export models to the Ascend `.om` format using the CANN ATC compiler. Export runs entirely on the host, produces a self-contained model directory, and targets any supported Ascend SoC through a single `name` argument.
 
-For more details on usage, visit the [official CANN documentation](https://www.hiascend.com/software/cann).
+For more details on usage, visit the [official CANN documentation](https://www.hiascend.com/cann).
 
 Also, if you'd like to know more about other Ultralytics YOLO integrations, visit our [integration guide page](index.md) to find plenty of helpful resources.
 

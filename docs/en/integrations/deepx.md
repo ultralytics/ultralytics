@@ -11,7 +11,7 @@ Deploying computer vision models on specialized NPU hardware requires a compatib
 ## What is DEEPX?
 
 <p align="center">
-  <img width="640" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx_cover.avif" alt="DEEPX NPU Inference">
+  <img width="640" src="https://cdn.ul.run/i/e9365c5acf3cdcbfc6526467c3e58fcf.avif" alt="DEEPX NPU Inference">
 </p>
 
 [DEEPX](https://deepx.ai/) is an AI semiconductor company specializing in Neural Processing Units (NPUs) designed for power-efficient [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference at the edge. DEEPX NPUs are engineered for demanding embedded and industrial AI applications, delivering high throughput with minimal power consumption. Their hardware is well suited for deployment scenarios where cloud connectivity is unreliable or undesirable, such as robotics, smart cameras, and industrial automation systems.
@@ -32,16 +32,9 @@ DEEPX models offer several advantages for edge deployment:
 
 ## Supported Tasks
 
-All standard Ultralytics tasks are supported for DEEPX export across YOLO26, YOLO11, and YOLOv8 model families.
+DEEPX export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
 
-| Task                                          | Supported |
-| :-------------------------------------------- | :-------- |
-| [Object Detection](../tasks/detect.md)        | ✅        |
-| [Instance Segmentation](../tasks/segment.md)  | ✅        |
-| [Semantic Segmentation](../tasks/semantic.md) | ✅        |
-| [Pose Estimation](../tasks/pose.md)           | ✅        |
-| [OBB Detection](../tasks/obb.md)              | ✅        |
-| [Classification](../tasks/classify.md)        | ✅        |
+{% include "macros/supported-tasks.md" %}
 
 ## Export to DEEPX: Converting Your YOLO Model
 
@@ -64,7 +57,21 @@ To install the required packages, run:
         pip install ultralytics
         ```
 
-The `dx_com` compiler package will be automatically installed from the DEEPX SDK repository on first export. For detailed instructions and best practices related to the installation process, check our [Ultralytics Installation guide](../quickstart.md). While installing the required packages for YOLO, if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md) for solutions and tips.
+The `dx_com` compiler is automatically installed from the [DEEPX SDK repository](https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html) on first export. The current export workflow uses DX-COM 2.3.0, which provides wheels for Python 3.8–3.12 on x86-64 Linux with glibc 2.31 or newer.
+
+The compiler's PyPI releases are yanked. To preinstall the export dependencies, supply the SDK wheel page with `--find-links`; this works with both `pip` and `uv pip`:
+
+```bash
+pip install "ultralytics[export-deepx]" --find-links https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html
+```
+
+For an editable repository install, replace `"ultralytics[export-deepx]"` with `-e ".[export-base,export-deepx]"`. To reproduce the Python 3.12 environment and smoke export used by CI, run the existing environment builder from the repository root:
+
+```bash
+ULTRALYTICS_ISOLATED_VENVS="$PWD/.venvs" python .github/scripts/create-export-env.py --env isolated-deepx
+```
+
+The environment builder requires [uv](https://docs.astral.sh/uv/getting-started/installation/) and an installed Ultralytics checkout. It installs the compiler from the SDK source and applies the tested dependency constraints automatically.
 
 ### Usage
 
@@ -135,16 +142,16 @@ The DEEPX format supports the [Export](../modes/export.md), [Predict](../modes/p
 
 ### Export Arguments
 
-| Argument   | Type             | Default        | Description                                                                                                                                        |
-| :--------- | :--------------- | :------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'deepx'`      | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                              |
-| `imgsz`    | `int` or `tuple` | `640`          | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width. |
-| `quantize` | `int` or `str`   | `8`/auto       | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.    |
-| `simplify` | `bool`           | `True`         | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                            |
-| `opset`    | `int`            | `None`         | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                   |
-| `data`     | `str`            | `'coco8.yaml'` | Dataset configuration file used for INT8 calibration. Specifies the calibration image source.                                                      |
-| `device`   | `str`            | `None`         | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                        |
-| `optimize` | `bool`           | `False`        | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                               |
+| Argument   | Type             | Default   | Description                                                                                                                                                                                                                |
+| :--------- | :--------------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'deepx'` | Target format for the exported model, defining compatibility with DEEPX NPU hardware.                                                                                                                                      |
+| `imgsz`    | `int` or `tuple` | `640`     | Desired image size for the model input. DEEPX export requires a square input — pass an integer (e.g., `640`) or a tuple where height equals width.                                                                         |
+| `quantize` | `int` or `str`   | `8`/auto  | Quantization precision. `8` (INT8) is required for DEEPX export and auto-enabled if not specified. Replaces the deprecated `half`/`int8` flags.                                                                            |
+| `simplify` | `bool`           | `True`    | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                                                    |
+| `opset`    | `int`            | `None`    | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                           |
+| `data`     | `str`            | `None`    | Dataset YAML used for INT8 calibration; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
+| `device`   | `str`            | `None`    | Specifies the device for exporting: GPU (`device=0`) or CPU (`device=cpu`).                                                                                                                                                |
+| `optimize` | `bool`           | `False`   | Enables higher compiler optimization which reduces inference latency and increases compilation time.                                                                                                                       |
 
 !!! tip
 
@@ -156,10 +163,12 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After a successful export, a model directory is created with the following layout:
 
-    yolo26n_deepx_model/
-    ├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
-    ├── config.json      # Calibration and preprocessing configuration
-    └── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+```text
+yolo26n_deepx_model/
+├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
+├── config.json      # Calibration and preprocessing configuration
+└── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+```
 
 The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 
@@ -235,24 +244,24 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
     === "Raspberry Pi 5 + DX-M1 M.2 Module"
 
         <div align="center">
-        <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/deepx-m1-npu-vs-pytorch.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
+        <img width="800" src="https://cdn.ul.run/i/857bf50e3c613f76c2b26b28311106ce.avif" alt="Raspberry Pi 5 DEEPX M1 NPU vs PyTorch benchmarks">
         </div>
 
-        | Model        	| Format  	| Status 	| Size (MB) 	| metrics/mAP50-95(B) 	| Inference time (ms/im) 	|
-        |--------------	|---------	|--------	|-----------	|---------------------	|------------------------	|
-        | YOLO26n      	| PyTorch 	| ✅      	| 5.3       	| 0.4760              	| 315.2                  	|
-        | YOLO26n      	| DEEPX   	| ✅      	| 6.6       	| 0.4660              	| 34.6                   	|
-        | YOLO26n-seg  	| PyTorch 	| ✅      	| 6.5       	| 0.4080              	| 485.4                  	|
-        | YOLO26n-seg  	| DEEPX   	| ✅      	| 7.9       	| 0.3920              	| 53.8                   	|
-        | YOLO26n-pose 	| PyTorch 	| ✅      	| 7.6       	| 0.4230              	| 506.3                  	|
-        | YOLO26n-pose 	| DEEPX   	| ✅      	| 8.8       	| 0.4590              	| 37.6                   	|
-        | YOLO26n-obb  	| PyTorch 	| ✅      	| 5.7       	| 0.817               	| 1094.4                 	|
-        | YOLO26n-obb  	| DEEPX   	| ✅      	| 7.3       	| 0.783               	| 56.4                   	|
+        | Model        | Format  | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------------ | ------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n      | PyTorch | ✅     | 5.3       | 0.4760              | 315.2                  |
+        | YOLO26n      | DEEPX   | ✅     | 6.6       | 0.4660              | 34.6                   |
+        | YOLO26n-seg  | PyTorch | ✅     | 6.5       | 0.4080              | 485.4                  |
+        | YOLO26n-seg  | DEEPX   | ✅     | 7.9       | 0.3920              | 53.8                   |
+        | YOLO26n-pose | PyTorch | ✅     | 7.6       | 0.4230              | 506.3                  |
+        | YOLO26n-pose | DEEPX   | ✅     | 8.8       | 0.4590              | 37.6                   |
+        | YOLO26n-obb  | PyTorch | ✅     | 5.7       | 0.817               | 1094.4                 |
+        | YOLO26n-obb  | DEEPX   | ✅     | 7.3       | 0.783               | 56.4                   |
 
-        | Model       	| Format  	| Status 	| Size (MB) 	| acc (top1) 	| acc (top5) 	| Inference time (ms/im) 	|
-        |-------------	|---------	|--------	|-----------	|------------	|------------	|------------------------	|
-        | YOLO26n-cls 	| PyTorch 	| ✅      	| 5.6       	| 0.431      	| 0.716      	| 23.8                   	|
-        | YOLO26n-cls 	| DEEPX   	| ✅      	| 5.9       	| 0.333      	| 0.686      	| 2.7                    	|
+        | Model       | Format  | Status | Size (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
+        | ----------- | ------- | ------ | --------- | ---------- | ---------- | ---------------------- |
+        | YOLO26n-cls | PyTorch | ✅     | 5.6       | 0.431      | 0.716      | 23.8                   |
+        | YOLO26n-cls | DEEPX   | ✅     | 5.9       | 0.333      | 0.686      | 2.7                    |
 
     === "More devices coming soon!"
 
@@ -260,7 +269,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Validation for the above benchmarks were done using coco128 for detection, coco128-seg for segmentation, coco8-pose for pose estimation, imagenet100 for classification and dota128 for OBB models. Inference time does not include pre/ post-processing.
+        Validation for the above benchmarks was done using COCO128 for detection, COCO128-seg for segmentation, COCO8-pose for pose estimation, ImageNet100 for classification and DOTA128 for OBB models. Inference time does not include pre/post-processing.
 
 !!! tip "Performance Optimization Tips"
 
@@ -358,7 +367,7 @@ The export creates a directory (e.g., `yolo26n_deepx_model/`) containing:
 
 ### Can I deploy custom-trained models on DEEPX hardware?
 
-Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DEEPX NPU hardware, provided it uses supported layer operations. Export supports detection, segmentation, pose estimation, oriented bounding box (OBB), and classification tasks.
+Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exported with `format="deepx"` can be deployed on DEEPX NPU hardware, provided it uses supported layer operations. Export supports all seven Ultralytics tasks: detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding box (OBB).
 
 ### How many calibration images should I use for DEEPX export?
 

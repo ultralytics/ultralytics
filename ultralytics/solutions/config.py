@@ -13,7 +13,7 @@ class SolutionConfig:
     """Manages configuration parameters for Ultralytics Vision AI solutions.
 
     The SolutionConfig class serves as a centralized configuration container for all the Ultralytics solution modules:
-    https://docs.ultralytics.com/solutions/#solutions. It leverages Python `dataclass` for clear, type-safe, and
+    https://docs.ultralytics.com/solutions#solutions. It leverages Python `dataclass` for clear, type-safe, and
     maintainable parameter definitions.
 
     Attributes:
@@ -48,7 +48,9 @@ class SolutionConfig:
         conf (float): Confidence threshold for keeping predictions.
         device (str, optional): Device to run inference on (e.g., 'cpu', '0' for CUDA GPU).
         max_det (int): Maximum number of detections allowed per video frame.
-        quantize (int | str | None): Inference precision, e.g. 16 (FP16); replaces the deprecated half flag.
+        quantize (int | str | None): Inference precision, e.g. 16 (FP16). Only PyTorch and TorchScript models compute in
+            it; elsewhere the artifact and runtime decide, though 16 rounds OpenVINO and Triton inputs and returns
+            Triton outputs as FP16. Replaces the deprecated half flag.
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
@@ -110,7 +112,7 @@ class SolutionConfig:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                url = "https://docs.ultralytics.com/solutions/#solutions-arguments"
+                url = "https://docs.ultralytics.com/solutions#solutions-arguments"
                 raise ValueError(f"{key} is not a valid solution argument, see {url}")
 
         return self

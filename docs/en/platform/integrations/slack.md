@@ -22,9 +22,9 @@ You do not need a Slack API key, webhook, or technical setup. Before you start, 
 4. After returning to Platform, choose the alerts you want and click **Save alerts**. **Training complete** and
    **Training failed** are selected initially.
 
-![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/2dc5cd661e9a2b02a8daea9d3c4ef548.avif)<!-- screenshot -->
+![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/9a47efa8a0df9db1d13e941e7572ca49.avif)<!-- screenshot -->
 
-Platform posts a confirmation in the selected channel as soon as the connection succeeds. Workspace admins manage the connection and alert choices for the whole workspace from the [Integrations tab](../account/settings.md#integrations-tab).
+Platform posts a confirmation in the selected channel as soon as the connection succeeds, and the integration then shows which Slack workspace and channel it is connected to. Workspace admins manage the connection and alert choices for the whole workspace from the [Integrations tab](../account/settings.md#integrations-tab).
 
 !!! info "What Slack Allows"
 
@@ -41,7 +41,7 @@ Platform posts a confirmation in the selected channel as soon as the connection 
 | **Deployment ready**  | A [deployment](../deploy/endpoints.md#deployment-lifecycle) is ready           |
 | **Deployment failed** | A deployment fails to start                                                    |
 
-Each message says what finished and includes a direct link to the related model or deployment in Platform. Failed-job alerts include a short error summary when one is available. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments page](../deploy/index.md#deployments-page).
+Each message says what finished and links straight to the related model or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments page](../deploy/index.md#deployments-page).
 
 ## Change or Disconnect Slack
 
@@ -59,3 +59,21 @@ To use a different channel, click **Disconnect**, then connect Slack again and c
 - **A job finished without a Slack message:** check the selected alerts in **Settings > Integrations**, then open the related [model](../train/models.md) or [deployment](../deploy/index.md) in Platform. Slack alerts are informational and never control job processing.
 
 Return to the [Platform integrations overview](index.md) to connect data, storage, or On Premise services.
+
+## FAQ
+
+### Do I need a Slack API key or webhook?
+
+No. Connecting Slack is an OAuth flow: click **Continue to Slack**, choose a channel, and click **Allow**. Platform only receives permission to post to that one channel.
+
+### Can I post alerts to more than one channel?
+
+Each workspace connects to a single channel. To switch channels, disconnect Slack and connect again with the new channel selected.
+
+### Who can connect or change the Slack integration?
+
+In a team workspace, the admin or owner [role](../account/teams.md#roles-and-permissions) manages the connection and the alert selection for everyone. Alerts are available on all plans.
+
+### Why did a job finish without a Slack message?
+
+Check that the matching alert is selected in **Settings > Integrations**, and reconnect Slack if the app permission was revoked or the channel was removed. Alerts are informational only and never affect the training, export, or deployment itself.

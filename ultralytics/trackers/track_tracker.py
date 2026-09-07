@@ -201,8 +201,10 @@ def _cosine_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray
     dfeat = [d.curr_feat for d in dets]
     dim = next((f.shape[0] for f in (*tfeat, *dfeat) if f is not None), 128)
     zeros = np.zeros(dim, dtype=np.float32)
-    T = np.stack([f if f is not None else zeros for f in tfeat])
-    D = np.stack([f if f is not None else zeros for f in dfeat])
+    # Pin float32 as `matching.embedding_distance` does: an unpinned stack inherits the encoder's dtype, so a
+    # half-precision ReID backend (`quantize=16`, or a float16 ONNX model) would decide this cost matrix' precision.
+    T = np.asarray([f if f is not None else zeros for f in tfeat], dtype=np.float32)
+    D = np.asarray([f if f is not None else zeros for f in dfeat], dtype=np.float32)
     valid = np.array([f is not None for f in tfeat])[:, None] & np.array([f is not None for f in dfeat])[None, :]
     return np.where(valid, np.clip(1 - T @ D.T, 0, 1), np.nan).astype(np.float32)
 
@@ -227,7 +229,7 @@ class TTSTrack(BOTrack):
 
     Examples:
         Create and activate a new track
-        >>> track = TTSTrack([100, 200, 50, 80, 0], score=0.9, cls="person")
+        >>> track = TTSTrack(np.array([100, 200, 50, 80, 0]), score=0.9, cls="person")
         >>> track.activate(KalmanFilterXYWH(), frame_id=1)
     """
 
@@ -275,9 +277,8 @@ class TTSTrack(BOTrack):
         self.mean, self.covariance = kalman_filter.initiate(self.convert_coords(self._tlwh))
         self._history.append((frame_id, self.xyxy))
         self.tracklet_len = 0
-        self.state = TrackState.New
-        if frame_id == 1:
-            self.is_activated = True
+        self.state = TrackState.Tracked if self.min_track_len <= 1 else TrackState.New
+        self.is_activated = frame_id == 1 or self.state == TrackState.Tracked
         self.frame_id = self.start_frame = frame_id
 
     def re_activate(self, new_track, frame_id: int, new_id: bool = False) -> None:
@@ -321,7 +322,7 @@ class TTSTrack(BOTrack):
         if new_track.curr_feat is not None:
             self.update_features(new_track.curr_feat)
 
-        if self.state == TrackState.Tracked or self.tracklet_len >= self.min_track_len:
+        if self.state == TrackState.Tracked or self.tracklet_len + 1 >= self.min_track_len:
             self.state = TrackState.Tracked
             self.is_activated = True
         self.cls, self.angle, self.idx = new_track.cls, new_track.angle, new_track.idx
@@ -482,14 +483,16 @@ class TRACKTRACK:
                 del_boxes = np.concatenate([del_xywh[mask], -np.ones((mask.sum(), 1))], axis=-1)
                 dets_recovered = [_new_track(b, s, c) for b, s, c in zip(del_boxes, del_conf[mask], del_cls[mask])]
 
+        # Route by state: frame-1 tracks are visible (is_activated) but still New, so they must stay unconfirmed
         unconfirmed, tracked = [], []
         for track in self.tracked_stracks:
-            (unconfirmed if not track.is_activated else tracked).append(track)
+            (tracked if track.state == TrackState.Tracked else unconfirmed).append(track)
         pool = joint_stracks(tracked, self.lost_stracks)
 
-        if img is not None:
+        if img is not None and self.gmc.method is not None:
             self._apply_gmc(img, dets_high, [pool, unconfirmed])
         TTSTrack.multi_predict(pool)
+        TTSTrack.multi_predict(unconfirmed)
 
         # Main association: pool vs (high + low + recovered) detections, with per-bucket cost penalties.
         all_dets = dets_high + dets_low + dets_recovered

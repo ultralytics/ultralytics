@@ -15,6 +15,8 @@ keywords: Fashion-MNIST, image classification, Zalando dataset, machine learning
 
 The [Fashion-MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset is an [image classification](https://www.ultralytics.com/glossary/image-classification) benchmark of 70,000 28x28 grayscale images of Zalando's clothing articles, evenly split across 10 classes — T-shirt/top, trouser, pullover, dress, coat, sandal, shirt, sneaker, bag, and ankle boot. It ships with a predefined split of 60,000 training and 10,000 test images (7,000 per class) and serves as a drop-in replacement for the original [MNIST](mnist.md) dataset for benchmarking [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) algorithms. For the color-image equivalent, see the related [CIFAR-10](cifar10.md) dataset.
 
+Explore [Fashion-MNIST on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/fashion-mnist) to preview samples, inspect dataset statistics, and clone it for training.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/eX5ad6udQ9Q"
@@ -80,7 +82,7 @@ Train a YOLO model on Fashion-MNIST for 100 [epochs](https://www.ultralytics.com
 
 Sample images from the Fashion-MNIST dataset:
 
-![Fashion-MNIST clothing classification dataset samples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fashion-mnist-sample.avif)
+![Fashion-MNIST clothing classification dataset samples](https://cdn.ul.run/i/a6bf21f75576305211b4f4c6054fa47d.avif)
 
 The samples show the variety of clothing categories in the Fashion-MNIST dataset, underlining the value of a varied dataset for training robust image classification models.
 

@@ -228,7 +228,7 @@ model.export(format="engine")  # creates 'yolo26n.engine'
 
 For more information on TensorRT optimization, see the [TensorRT integration guide](../integrations/tensorrt.md).
 
-You can now deploy and run [Ultralytics YOLO26](../models/yolo26.md) models on Triton Inference Server for scalable, high-performance inference. For more detail, see the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or ask the [Ultralytics community](https://community.ultralytics.com/) for help.
+You can now deploy and run [Ultralytics YOLO26](../models/yolo26.md) models on Triton Inference Server for scalable, high-performance inference. For more detail, see the [official Triton documentation](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/index.html) or ask the [Ultralytics community](https://community.ultralytics.com) for help.
 
 ## FAQ
 
@@ -354,7 +354,7 @@ This approach allows you to leverage Triton's optimizations while using the fami
 
 - **Real-time Performance**: Optimized for real-time object detection tasks, [Ultralytics YOLO26](../models/yolo26.md) provides state-of-the-art [accuracy](https://www.ultralytics.com/glossary/accuracy) and speed, making it ideal for applications requiring live video analytics.
 - **Ease of Use**: [Ultralytics YOLO26](../models/yolo26.md) integrates seamlessly with Triton Inference Server and supports diverse export formats ([ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md)), making it flexible for various deployment scenarios.
-- **Advanced Features**: [Ultralytics YOLO26](../models/yolo26.md) includes features like dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
+- **Advanced Features**: Serving through Triton adds dynamic model loading, model versioning, and ensemble inference, which are crucial for scalable and reliable AI deployments.
 - **Simplified API**: The Ultralytics API provides a consistent interface across different deployment targets, reducing the learning curve and development time.
 - **Edge Optimization**: [Ultralytics YOLO26](../models/yolo26.md) models are designed with edge deployment in mind, offering excellent performance even on resource-constrained devices.
 

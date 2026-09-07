@@ -46,7 +46,7 @@ class STrack(BaseTrack):
 
     Examples:
         Initialize and activate a new track
-        >>> track = STrack(xywh=[100, 200, 50, 80, 0], score=0.9, cls="person")
+        >>> track = STrack(xywh=np.array([100, 200, 50, 80, 0]), score=0.9, cls="person")
         >>> track.activate(kalman_filter=KalmanFilterXYAH(), frame_id=1)
     """
 
@@ -87,7 +87,7 @@ class STrack(BaseTrack):
         """Perform multi-object predictive tracking using Kalman filter for the provided list of STrack instances."""
         if not stracks:
             return
-        multi_mean = np.asarray([st.mean.copy() for st in stracks])
+        multi_mean = np.asarray([st.mean for st in stracks])
         multi_covariance = np.asarray([st.covariance for st in stracks])
         for i, st in enumerate(stracks):
             if st.state != TrackState.Tracked:
@@ -135,8 +135,9 @@ class STrack(BaseTrack):
 
         Examples:
             Update the state of a track with new detection information
-            >>> track = STrack([100, 200, 50, 80, 0], score=0.9, cls=0)
-            >>> new_track = STrack([105, 205, 55, 85, 0], score=0.95, cls=0)
+            >>> track = STrack(np.array([100, 200, 50, 80, 0]), score=0.9, cls=0)
+            >>> track.activate(KalmanFilterXYAH(), 1)
+            >>> new_track = STrack(np.array([105, 205, 55, 85, 0]), score=0.95, cls=0)
             >>> track.update(new_track, 2)
         """
         self.frame_id = frame_id
@@ -299,20 +300,22 @@ class BYTETracker:
         return self._format_output()
 
     def _split_detections(self, results: Any) -> tuple[Any, Any, np.ndarray, np.ndarray]:
-        """Split detections into high-confidence and low-confidence subsets.
+        """Split detections into high-confidence and low-confidence subsets, dropping degenerate boxes.
 
         Args:
-            results (Any): Results-like object with ``conf`` attribute supporting boolean indexing.
+            results (Any): Results-like object with ``conf`` and ``xywh``/``xywhr`` attributes supporting boolean
+                indexing.
 
         Returns:
             (tuple[Any, Any, np.ndarray, np.ndarray]): High-confidence results, low-confidence results, high mask, and
                 low mask.
         """
         scores = results.conf
-        remain_inds = scores >= self.args.track_high_thresh
-        inds_low = scores > self.args.track_low_thresh
-        inds_below_high = scores < self.args.track_high_thresh
-        return results[remain_inds], results[inds_low & inds_below_high], remain_inds, inds_low & inds_below_high
+        wh = (results.xywhr if hasattr(results, "xywhr") else results.xywh)[:, 2:4]
+        valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)  # tlwh_to_xyah divides by height, so h=0 would give an inf Kalman mean
+        remain_inds = valid & (scores >= self.args.track_high_thresh)
+        inds_low = valid & (scores > self.args.track_low_thresh) & (scores < self.args.track_high_thresh)
+        return results[remain_inds], results[inds_low], remain_inds, inds_low
 
     def _input_for(self, img: np.ndarray | None, feats: np.ndarray | None, mask: np.ndarray) -> Any:
         """Return the per-detection auxiliary input for ``init_track``.
@@ -352,7 +355,7 @@ class BYTETracker:
         self, strack_pool: list[STrack], unconfirmed: list[STrack], img: np.ndarray | None, results_high: Any
     ) -> None:
         """Hook called after Kalman predict, before first-stage assignment. Default: GMC if available."""
-        if hasattr(self, "gmc") and img is not None:
+        if hasattr(self, "gmc") and self.gmc.method is not None and img is not None:
             try:
                 warp = self.gmc.apply(img, results_high.xyxy)
             except Exception as e:

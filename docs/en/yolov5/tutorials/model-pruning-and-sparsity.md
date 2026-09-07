@@ -50,7 +50,7 @@ val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 f
                  all       5000      36335      0.732      0.628      0.683      0.496
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- base speed
 
-Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp2/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.507  # <--- base mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.689
@@ -64,14 +64,14 @@ Evaluating pycocotools mAP... saving runs/val/exp-2/yolov5x_predictions.json...
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.526
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.731
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.829
-Results saved to runs/val/exp
+Results saved to runs/val/exp2
 ```
 
 ## Apply Pruning to YOLOv5x (30% Sparsity)
 
 We can apply pruning to the model using the `torch_utils.prune()` command defined in `utils/torch_utils.py`. To test a pruned model, we update `val.py` to prune YOLOv5x to 0.3 sparsity (30% of weights set to zero):
 
-<img width="894" alt="YOLOv5 model pruning to 30% sparsity code" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sparsity-test-yolov5x-coco.avif">
+<img width="894" alt="YOLOv5 model pruning to 30% sparsity code" src="https://cdn.ul.run/i/7467c17a4caacd673678e6fd992a57a9.avif">
 
 30% pruned output:
 
@@ -87,7 +87,7 @@ val: Scanning '/content/datasets/coco/val2017.cache' images and labels... 4952 f
                  all       5000      36335      0.724      0.614      0.671      0.478
 Speed: 0.1ms pre-process, 5.2ms inference, 1.7ms NMS per image at shape (32, 3, 640, 640)  # <--- prune speed
 
-Evaluating pycocotools mAP... saving runs/val/exp-3/yolov5x_predictions.json...
+Evaluating pycocotools mAP... saving runs/val/exp3/yolov5x_predictions.json...
 ...
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.489  # <--- prune mAP
  Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.677
@@ -101,7 +101,7 @@ Evaluating pycocotools mAP... saving runs/val/exp-3/yolov5x_predictions.json...
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.496
  Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.722
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.803
-Results saved to runs/val/exp-3
+Results saved to runs/val/exp3
 ```
 
 ## Results Analysis
@@ -127,7 +127,7 @@ This process helps the remaining parameters adapt to compensate for the removed 
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
@@ -140,3 +140,27 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### Why is the pruned model not faster?
+
+Unstructured pruning sets weights to zero but leaves the tensor shapes unchanged, so dense PyTorch kernels do the same amount of work. Speedups require a sparsity-aware runtime such as [DeepSparse](neural-magic-pruning-quantization.md) or structured pruning that removes whole channels.
+
+### How do I prune a model in code?
+
+Call the helper from `utils/torch_utils.py` before validation or export:
+
+```python
+from utils.torch_utils import prune
+
+prune(model, amount=0.3)  # 30% global sparsity on nn.Conv2d weights
+```
+
+### How much sparsity can I apply?
+
+Start at 0.3 and measure mAP. YOLOv5x lost about 3.6% mAP at 30% sparsity without fine-tuning; higher sparsity levels usually need a few epochs of retraining with a low learning rate to recover accuracy.
+
+### Can I export a pruned model?
+
+Yes. The zeroed weights are saved like any others, so `export.py` works unchanged. File size only shrinks if the target format or runtime compresses sparse tensors.

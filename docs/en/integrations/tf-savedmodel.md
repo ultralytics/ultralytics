@@ -16,7 +16,7 @@ Learning how to export to TF SavedModel from [Ultralytics YOLO26](https://github
 The TensorFlow SavedModel format is part of the TensorFlow ecosystem developed by Google as shown below. It is designed to save and serialize TensorFlow models seamlessly. It encapsulates the complete details of models like the architecture, weights, and even compilation information. This makes it straightforward to share, deploy, and continue training across different environments.
 
 <p align="center">
-  <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/tf-savedmodel-overview.avif" alt="TensorFlow SavedModel export format structure">
+  <img width="100%" src="https://cdn.ul.run/i/3f7da5d5bba13367aaf3ba2735b4bb28.avif" alt="TensorFlow SavedModel export format structure">
 </p>
 
 The TF SavedModel has a key advantage: its compatibility. It works well with [TensorFlow Serving](https://www.tensorflow.org/tfx/guide/serving), [LiteRT](litert.md) (formerly TensorFlow Lite), and TensorFlow.js. This compatibility makes it easier to share and deploy models across various platforms, including web and mobile applications. The TF SavedModel format is useful both for research and production. It provides a unified way to manage your models, ensuring they are ready for any application.
@@ -44,6 +44,12 @@ TF SavedModel provides a range of options to deploy your machine learning models
 - **Mobile and Embedded Devices:** [LiteRT](litert.md) (formerly TensorFlow Lite), a lightweight solution for running machine learning models on mobile, embedded, and IoT devices, supports converting TF SavedModels to the LiteRT format. This allows you to deploy your models on a wide range of devices, from smartphones and tablets to microcontrollers and edge devices.
 
 - **TensorFlow Runtime:** TensorFlow Runtime (`tfrt`) is a high-performance runtime for executing [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) graphs. It provides lower-level APIs for loading and running TF SavedModels in C++ environments. TensorFlow Runtime offers better performance compared to the standard TensorFlow runtime. It is suitable for deployment scenarios that require low-latency inference and tight integration with existing C++ codebases.
+
+## Supported Tasks
+
+TF SavedModel export supports all seven Ultralytics tasks. Semantic segmentation and depth estimation are available only with YOLO26, the only family that ships those heads.
+
+{% include "macros/supported-tasks.md" %}
 
 ## Exporting YOLO26 Models to TF SavedModel
 
@@ -81,14 +87,14 @@ The TF SavedModel format supports the [Export](../modes/export.md), [Predict](..
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolo26n_saved_model'
+        model.export(format="saved_model")  # creates 'yolo26n_saved_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to TF SavedModel format
-        yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
+        yolo export model=yolo26n.pt format=saved_model # creates 'yolo26n_saved_model'
         ```
 
 !!! example "Predict"
@@ -135,18 +141,18 @@ The TF SavedModel format supports the [Export](../modes/export.md), [Predict](..
 
 ### Export Arguments
 
-| Argument   | Type             | Default         | Description                                                                                                                                                                                                                                                      |
-| ---------- | ---------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'saved_model'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
-| `imgsz`    | `int` or `tuple` | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
-| `keras`    | `bool`           | `False`         | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                                                                                        |
-| `quantize` | `int` or `str`   | `None`          | Quantization precision: `8` (INT8/PTQ; needs calibration `data`/`fraction`) or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                                                                              |
-| `opset`    | `int`            | `None`          | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
-| `nms`      | `bool`           | `False`         | Adds Non-Maximum Suppression (NMS), essential for accurate and efficient detection post-processing.                                                                                                                                                              |
-| `batch`    | `int`            | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
-| `data`     | `str`            | `'coco8.yaml'`  | Path to the [dataset](../datasets/index.md) configuration file (default: `coco8.yaml`), essential for quantization.                                                                                                                                              |
-| `fraction` | `float`          | `1.0`           | Specifies the fraction of the dataset to use for INT8 quantization calibration. Allows for calibrating on a subset of the full dataset, useful for experiments or when resources are limited. If not specified with INT8 enabled, the full dataset will be used. |
-| `device`   | `str`            | `None`          | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
+| Argument   | Type                      | Default         | Description                                                                                                                                                                                                                                                      |
+| ---------- | ------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`                     | `'saved_model'` | Target format for the exported model, defining compatibility with various deployment environments.                                                                                                                                                               |
+| `imgsz`    | `int` or `tuple`          | `640`           | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                |
+| `keras`    | `bool`                    | `False`         | Enables export to Keras format, providing compatibility with TensorFlow serving and APIs.                                                                                                                                                                        |
+| `quantize` | `int` or `str`            | `None`          | Quantization precision: `8` (INT8/PTQ; needs calibration `data`/`fraction`) or `32`/unset (FP32). FP16 is not supported for SavedModel export. Replaces the deprecated `int8` flag.                                                                              |
+| `opset`    | `int`                     | `None`          | Specifies the ONNX opset version for the intermediate ONNX graph. If not set, uses the latest supported version.                                                                                                                                                 |
+| `nms`      | `bool`, optional          | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                                                                                      |
+| `batch`    | `int`                     | `1`             | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                          |
+| `data`     | `str`                     | `None`          | Path to the [dataset](../datasets/index.md) YAML, essential for quantization; classification instead takes a dataset directory or a built-in dataset name. If omitted with `quantize=8`, Ultralytics selects the default calibration dataset for the model task. |
+| `fraction` | `float`, `int`, or `list` | `1.0`           | Calibration subset as a ratio, image count, or `[train, val, test]` ratios/counts. Two-item lists leave `test` full, while `0` skips it.                                                                                                                         |
+| `device`   | `str`                     | `None`          | Specifies the device for exporting: CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                    |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -187,7 +193,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolo26n_saved_model'
+        model.export(format="saved_model")  # creates 'yolo26n_saved_model'
 
         # Load the exported TF SavedModel for inference
         tf_savedmodel_model = YOLO("./yolo26n_saved_model")
@@ -198,7 +204,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
 
         ```bash
         # Export the YOLO26 model to TF SavedModel format
-        yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
+        yolo export model=yolo26n.pt format=saved_model # creates 'yolo26n_saved_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo26n_saved_model' source='https://ultralytics.com/images/bus.jpg'

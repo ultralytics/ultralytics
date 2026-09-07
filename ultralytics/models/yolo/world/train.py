@@ -19,7 +19,7 @@ def on_pretrain_routine_end(trainer) -> None:
     """Set up model classes and text encoder at the end of the pretrain routine."""
     # Set on all ranks: validation runs on every rank, but txt_feats/nc are not DDP buffers so they don't sync
     names = [name.split("/", 1)[0] for name in list(trainer.test_loader.dataset.data["names"].values())]
-    unwrap_model(trainer.ema.ema).set_classes(names, cache_clip_model=False)
+    trainer.ema.ema.set_classes(names, cache_clip_model=False)
 
 
 class WorldTrainer(DetectionTrainer):
@@ -86,7 +86,9 @@ class WorldTrainer(DetectionTrainer):
         )
         if weights:
             model.load(weights)
-        self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)
+        # the caller's Model shares this dict, so a bare append outlives the trainer and stacks on every later one
+        if on_pretrain_routine_end not in self.callbacks["on_pretrain_routine_end"]:
+            self.add_callback("on_pretrain_routine_end", on_pretrain_routine_end)
 
         return model
 
@@ -166,7 +168,7 @@ class WorldTrainer(DetectionTrainer):
         # Add text features
         texts = list(itertools.chain(*batch["texts"]))
         txt_feats = torch.stack([self.text_embeddings[text] for text in texts]).to(
-            self.device, non_blocking=self.device.type == "cuda"
+            self.device, non_blocking=self.device.type not in {"cpu", "mps"}
         )
         batch["txt_feats"] = txt_feats.reshape(len(batch["texts"]), -1, txt_feats.shape[-1])
         return batch

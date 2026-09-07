@@ -6,9 +6,11 @@ import os
 import shutil
 import sys
 import tempfile
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from . import USER_CONFIG_DIR
+from .patches import torch_save
 from .torch_utils import TORCH_1_9
 
 if TYPE_CHECKING:
@@ -61,40 +63,12 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
 
     Notes:
         The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
-        - Trainer class import
+        - Trainer class and callback reconstruction
         - Configuration overrides from the trainer arguments
-        - Model path configuration
         - Training initialization code
     """
-    module, name = f"{trainer.__class__.__module__}.{trainer.__class__.__name__}".rsplit(".", 1)
+    import cloudpickle
 
-    # Serialize augmentations to JSON-safe dicts to avoid NameError in DDP subprocess
-    overrides = vars(trainer.args).copy()
-    if overrides.get("augmentations") is not None:
-        import albumentations as A
-
-        overrides["augmentations"] = [A.to_dict(t) for t in overrides["augmentations"]]
-
-    content = f"""
-# Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
-from pathlib import Path, PosixPath  # For model arguments stored as Path instead of str
-overrides = {overrides}
-
-if __name__ == "__main__":
-    from {module} import {name}
-    from ultralytics.utils import DEFAULT_CFG_DICT
-
-    # Deserialize augmentations from dicts back to Albumentations transform objects
-    if overrides.get("augmentations") is not None:
-        import albumentations as A
-        overrides["augmentations"] = [A.from_dict(t) for t in overrides["augmentations"]]
-
-    cfg = DEFAULT_CFG_DICT.copy()
-    cfg.update(save_dir='')   # handle the extra key 'save_dir'
-    trainer = {name}(cfg=cfg, overrides=overrides)
-    trainer.args.model = "{getattr(trainer.hub_session, "model_url", trainer.args.model)}"
-    results = trainer.train()
-"""
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)
     with tempfile.NamedTemporaryFile(
         prefix="_temp_",
@@ -104,7 +78,36 @@ if __name__ == "__main__":
         dir=USER_CONFIG_DIR / "DDP",
         delete=False,
     ) as file:
-        file.write(content)
+        path = Path(file.name).with_suffix(".pt")
+        torch_save(
+            {
+                "trainer": type(trainer),
+                "args": vars(trainer.args),
+                "model": trainer.model,
+                "callbacks": trainer.callbacks,
+            },
+            path,
+            pickle_module=cloudpickle,
+        )
+        file.write(
+            f"""
+# Ultralytics Multi-GPU training temp file (should be automatically deleted after use)
+if __name__ == "__main__":
+    import sys
+    sys.path = {sys.path!r}
+
+    from ultralytics.utils import DEFAULT_CFG_DICT
+    from ultralytics.utils.patches import torch_load
+
+    state = torch_load({str(path)!r}, map_location="cpu")
+
+    cfg = DEFAULT_CFG_DICT.copy()
+    cfg.update(save_dir='')   # handle the extra key 'save_dir'
+    trainer = state["trainer"](cfg=cfg, overrides=state["args"], _callbacks=state["callbacks"])
+    trainer.model = state["model"]
+    trainer.train()
+"""
+        )
     return file.name
 
 
@@ -118,8 +121,6 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
         cmd (list[str]): The command to execute for distributed training.
         file (str): Path to the temporary file created for DDP training.
     """
-    import __main__  # noqa local import to avoid https://github.com/Lightning-AI/pytorch-lightning/issues/15218
-
     if not trainer.resume:
         shutil.rmtree(trainer.save_dir)  # remove the save_dir
     file = generate_ddp_file(trainer)
@@ -155,3 +156,4 @@ def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)
+        Path(file).with_suffix(".pt").unlink(missing_ok=True)  # the state written for the workers

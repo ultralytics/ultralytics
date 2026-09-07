@@ -2,7 +2,7 @@
 
 <img alt="C++" src="https://img.shields.io/badge/C%2B%2B-17-00599C.svg?logo=cplusplus&logoColor=white"> <img alt="NVIDIA Triton" src="https://img.shields.io/badge/NVIDIA%20Triton-76B900.svg?logo=nvidia&logoColor=white"> <img alt="OpenCV" src="https://img.shields.io/badge/OpenCV-5C3EE8.svg?logo=opencv&logoColor=white"> <img alt="gRPC" src="https://img.shields.io/badge/gRPC-244c5a.svg?logo=google&logoColor=white">
 
-A C++ gRPC client that runs **every [Ultralytics YOLO](https://docs.ultralytics.com/) task and model generation** against a model served by the [NVIDIA Triton Inference Server](https://github.com/triton-inference-server/server). The client reads the input/output layout from the model metadata, infers the task from the output shapes, and shares its post-processing with the other C++ examples — so the same binary handles detection, segmentation, pose, OBB, classification, and Ultralytics YOLO26 semantic segmentation.
+A C++ gRPC client that runs **every [Ultralytics YOLO](https://docs.ultralytics.com) task and model generation** against a model served by the [NVIDIA Triton Inference Server](https://github.com/triton-inference-server/server). The client reads the input/output layout from the model metadata, infers the task from the output shapes, and shares its post-processing with the other C++ examples — so the same binary handles detection, segmentation, pose, OBB, classification, and Ultralytics YOLO26 semantic segmentation.
 
 ## ✨ Features
 
@@ -105,7 +105,7 @@ Start your Triton server with a deployed Ultralytics YOLO model, then run the cl
 ```
 
 > [!NOTE]
-> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
+> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB — is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
 
 | Argument    | Default          | Description                                                    |
 | :---------- | :--------------- | :------------------------------------------------------------- |

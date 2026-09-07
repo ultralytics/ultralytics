@@ -2,13 +2,13 @@
 title: Install YOLO with Conda
 comments: true
 description: Install Ultralytics YOLO with Conda. Set up an isolated conda-forge environment, add CUDA GPU support, run the Conda Docker image, and speed up installs with the libmamba solver.
-keywords: Ultralytics, YOLO, Conda, conda-forge, install Ultralytics, conda environment, CUDA, GPU, pytorch-cuda, Miniconda, Anaconda, libmamba solver, Conda Docker image, machine learning, environment management
+keywords: Ultralytics, YOLO, Conda, conda-forge, install Ultralytics, conda environment, CUDA, GPU, pytorch-gpu, Miniconda, Anaconda, libmamba solver, Conda Docker image, machine learning, environment management
 ---
 
 # How to Install Ultralytics YOLO with Conda
 
 <p align="center">
-  <img width="800" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-conda-package-visual.avif" alt="Ultralytics Conda Package Visual">
+  <img width="800" src="https://cdn.ul.run/i/59a3c831a2309a5822e4d5f5be52dbe5.avif" alt="Ultralytics Conda Package Visual">
 </p>
 
 This guide walks through setting up a Conda environment for your Ultralytics projects. Conda is an open-source package and environment management system that offers an excellent alternative to pip for installing packages and dependencies. Its isolated environments make it particularly well-suited for data science and [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) work. For more details, visit the Ultralytics Conda package on [Anaconda](https://anaconda.org/conda-forge/ultralytics) and check out the Ultralytics feedstock repository for package updates on [GitHub](https://github.com/conda-forge/ultralytics-feedstock/).
@@ -48,10 +48,10 @@ conda install -c conda-forge ultralytics
 
 !!! note "Installing in a CUDA environment"
 
-    If you're working in a CUDA-enabled environment, it's good practice to install `ultralytics`, `pytorch`, and `pytorch-cuda` together so the Conda package manager can resolve any conflicts:
+    If you're working in a CUDA-enabled environment, install `ultralytics` together with the conda-forge `pytorch-gpu` metapackage so the Conda package manager resolves a CUDA-enabled PyTorch build alongside it:
 
     ```bash
-    conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+    conda install -c conda-forge ultralytics pytorch-gpu
     ```
 
 ## Using Ultralytics
@@ -138,10 +138,10 @@ Conda is a robust package and environment management system that offers several 
 
 ### Can I use Ultralytics YOLO in a CUDA-enabled environment for faster performance?
 
-Yes, you can enhance performance by utilizing a CUDA-enabled environment. Ensure that you install `ultralytics`, `pytorch`, and `pytorch-cuda` together to avoid conflicts:
+Yes, you can enhance performance by utilizing a CUDA-enabled environment. Install `ultralytics` together with the conda-forge `pytorch-gpu` metapackage so a CUDA-enabled PyTorch build is resolved alongside it:
 
 ```bash
-conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+conda install -c conda-forge ultralytics pytorch-gpu
 ```
 
 This setup enables GPU acceleration, crucial for intensive tasks like [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model training and inference. For more information, visit the [Ultralytics installation guide](../quickstart.md).

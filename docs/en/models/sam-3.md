@@ -1,16 +1,12 @@
 ---
 comments: true
-description: Discover SAM 3, Meta's next evolution of the Segment Anything Model, introducing Promptable Concept Segmentation with text and image exemplar prompts for detecting all instances of visual concepts across images and videos.
+description: Discover SAM 3, Meta's Segment Anything Model with Promptable Concept Segmentation that detects every instance of a text or image-exemplar concept across images and videos.
 keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
 ---
 
 # SAM 3: Segment Anything with Concepts
 
-!!! success "Now Available in Ultralytics"
-
-    SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
-
-![SAM 3 promptable concept segmentation overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-overview.webp)
+![SAM 3 promptable concept segmentation overview](https://cdn.ul.run/i/48018c7df06e1f5b500ba441da1f22ec.avif)
 
 **SAM 3** (Segment Anything Model 3) is Meta's released foundation model for **Promptable Concept Segmentation (PCS)**. Building upon [SAM 2](sam-2.md), SAM 3 introduces a fundamentally new capability: detecting, segmenting, and tracking **all instances** of a visual concept specified by text prompts, image exemplars, or both. Unlike previous SAM versions that segment single objects per prompt, SAM 3 can find and segment every occurrence of a concept appearing anywhere in images or videos, aligning with open-vocabulary goals in modern [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation).
 
@@ -25,13 +21,13 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text pro
   <strong>Watch:</strong> How to Use Meta Segment Anything 3 with Ultralytics | Text-Prompt Segmentation on Images & Videos
 </p>
 
-SAM 3 is now fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking capabilities.
+SAM 3 is fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking.
 
 ## Overview
 
 SAM 3 achieves a **2× performance gain** over existing systems in Promptable Concept Segmentation while maintaining and improving SAM 2's capabilities for interactive [visual segmentation](../tasks/segment.md). The model excels at open-vocabulary segmentation, allowing users to specify concepts using simple noun phrases (e.g., "yellow school bus", "striped cat") or by providing example images of the target object. These capabilities complement production-ready pipelines that rely on streamlined [predict](../modes/predict.md) and [track](../modes/track.md) workflows.
 
-![SAM 3 text-prompt segmentation examples](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-segmentation.webp)
+![SAM 3 text-prompt segmentation examples](https://cdn.ul.run/i/d484414be765e8fb2e05c15a96cccdc5.avif)
 
 ### What is Promptable Concept Segmentation (PCS)?
 
@@ -77,7 +73,7 @@ SAM 3 consists of a **detector** and **tracker** that share a Perception Encoder
 
 - **Presence Token**: A learned global token that predicts whether the target concept is present in the image/frame, improving detection by separating recognition from localization.
 
-![SAM 3 model architecture diagram](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/sam-3-architecture.webp)
+![SAM 3 model architecture diagram](https://cdn.ul.run/i/dfed2ba8bfbf8c723c1903fcd7cf7d45.avif)
 
 ### Key Innovations
 
@@ -119,7 +115,7 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 is available in Ultralytics **version 8.3.237** and later. Install or upgrade with:
+Install or upgrade the `ultralytics` package:
 
 ```bash
 pip install -U ultralytics
@@ -411,7 +407,7 @@ SAM 3 provides accurate counting by segmenting all instances, a common requireme
 
 ## SAM 3 vs SAM 2 vs YOLO Comparison
 
-Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models:
+Here we compare SAM 3's capabilities with [SAM 2](./sam-2.md) and [YOLO26](./yolo26.md) models. For real-time open-vocabulary detection and segmentation from the same kinds of prompt, see [YOLOE](./yoloe.md):
 
 | Capability                   | SAM 3                                 | SAM 2                | YOLO26n-seg      |
 | ---------------------------- | ------------------------------------- | -------------------- | ---------------- |
@@ -583,23 +579,22 @@ While SAM 3 represents a major advancement, it has certain limitations:
     === "BibTeX"
 
         ```bibtex
-        @inproceedings{sam3_2025,
-          title     = {SAM 3: Segment Anything with Concepts},
-          author    = {Anonymous authors},
-          booktitle = {Submitted to ICLR 2026},
-          year      = {2025},
-          url       = {https://openreview.net/forum?id=r35clVtGzw},
-          note      = {Paper ID: 4183, under double-blind review}
+        @misc{carion2025sam3,
+          title         = {SAM 3: Segment Anything with Concepts},
+          author        = {Nicolas Carion and Laura Gustafson and Yuan-Ting Hu and Shoubhik Debnath and Ronghang Hu and Didac Suris and Chaitanya Ryali and Kalyan Vasudev Alwala and Haitham Khedr and Andrew Huang and Jie Lei and Tengyu Ma and Baishan Guo and Arpit Kalla and Markus Marks and Joseph Greer and Meng Wang and Peize Sun and Roman R{\"a}dle and Triantafyllos Afouras and Effrosyni Mavroudi and Katherine Xu and Tsung-Han Wu and Yu Zhou and Liliane Momeni and Rishi Hazra and Shuangrui Ding and Sagar Vaze and Francois Porcher and Feng Li and Siyuan Li and Aishwarya Kamath and Ho Kei Cheng and Piotr Doll{\'a}r and Nikhila Ravi and Kate Saenko and Pengchuan Zhang and Christoph Feichtenhofer},
+          year          = {2025},
+          eprint        = {2511.16719},
+          archivePrefix = {arXiv},
+          primaryClass  = {cs.CV},
+          url           = {https://arxiv.org/abs/2511.16719}
         }
         ```
-
----
 
 ## FAQ
 
 ### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated into Ultralytics as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 19, 2025** and is fully integrated into the `ultralytics` package, with support for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
 ### Is SAM 3 Integrated Into Ultralytics?
 

@@ -15,7 +15,9 @@ keywords: DOTA dataset, object detection, aerial images, oriented bounding boxes
 
 The [DOTA](https://captain-whu.github.io/DOTA/index.html) dataset is a large-scale benchmark for [object detection](https://www.ultralytics.com/glossary/object-detection) in aerial images, released in three versions (v1.0, v1.5, v2.0) with up to 1.7M [Oriented Bounding Box (OBB)](index.md) annotations across 18 categories, captured from diverse aerial sensors and platforms.
 
-![DOTA dataset object classes for aerial detection](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/dota-classes-visual.avif)
+Explore the officially hosted [DOTA v1.5](https://platform.ultralytics.com/ultralytics/datasets/dotav1-5) and [DOTA v1.0](https://platform.ultralytics.com/ultralytics/datasets/dotav1) datasets on Ultralytics Platform to preview their oriented annotations, inspect statistics, and clone them for training.
+
+![DOTA dataset object classes for aerial detection](https://cdn.ul.run/i/6e5661d90a5751378dff73cbcd25cef2.avif)
 
 ## Key Features
 
@@ -135,8 +137,8 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO26n-OBB model from scratch
-        model = YOLO("yolo26n-obb.yaml")
+        # Load a pretrained YOLO26n-OBB model
+        model = YOLO("yolo26n-obb.pt")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -145,7 +147,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
     === "CLI"
 
         ```bash
-        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        # Train a pretrained YOLO26n-OBB model on the DOTAv1 dataset
         yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 
@@ -153,7 +155,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
 Having a glance at the dataset illustrates its depth:
 
-![DOTA dataset  with oriented bounding box annotations](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/instances-DOTA.avif)
+![DOTA dataset  with oriented bounding box annotations](https://cdn.ul.run/i/088eb7273a274b58c389da29578dfe28.avif)
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 
@@ -203,8 +205,8 @@ To train a model on the DOTA dataset, you can use the following example with [Ul
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO26n-OBB model from scratch
-        model = YOLO("yolo26n-obb.yaml")
+        # Load a pretrained YOLO26n-OBB model
+        model = YOLO("yolo26n-obb.pt")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -213,7 +215,7 @@ To train a model on the DOTA dataset, you can use the following example with [Ul
     === "CLI"
 
         ```bash
-        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        # Train a pretrained YOLO26n-OBB model on the DOTAv1 dataset
         yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 

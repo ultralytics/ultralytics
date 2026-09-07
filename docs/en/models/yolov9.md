@@ -7,7 +7,7 @@ keywords: YOLOv9, object detection, real-time, PGI, GELAN, deep learning, MS COC
 
 # YOLOv9: A Leap Forward in [Object Detection](https://www.ultralytics.com/glossary/object-detection) Technology
 
-YOLOv9 marks a significant advancement in real-time object detection, introducing groundbreaking techniques such as Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). This model demonstrates remarkable improvements in efficiency, accuracy, and adaptability, setting new benchmarks on the MS COCO dataset. The YOLOv9 project, while developed by a separate open-source team, builds upon the robust codebase provided by [Ultralytics](https://www.ultralytics.com/) [YOLOv5](yolov5.md), showcasing the collaborative spirit of the AI research community.
+YOLOv9 marks a significant advancement in real-time object detection, introducing groundbreaking techniques such as Programmable Gradient Information (PGI) and the Generalized Efficient Layer Aggregation Network (GELAN). This model demonstrates remarkable improvements in efficiency, accuracy, and adaptability, setting new benchmarks on the MS COCO dataset. The YOLOv9 project, while developed by a separate open-source team, builds upon the robust codebase provided by [Ultralytics](https://www.ultralytics.com) [YOLOv5](yolov5.md), showcasing the collaborative spirit of the AI research community.
 
 <p align="center">
   <br>
@@ -20,7 +20,7 @@ YOLOv9 marks a significant advancement in real-time object detection, introducin
   <strong>Watch:</strong> YOLOv9 Training on Custom Data using Ultralytics | Industrial Package Dataset
 </p>
 
-![YOLOv9 performance comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-performance-comparison.avif)
+![YOLOv9 performance comparison](https://cdn.ul.run/i/8aed32329a039a65a2e5134cb536cbd4.avif)
 
 ## Introduction to YOLOv9
 
@@ -62,7 +62,7 @@ PGI is a novel concept introduced in YOLOv9 to combat the information bottleneck
 
 GELAN represents a strategic architectural advancement, enabling YOLOv9 to achieve superior parameter utilization and computational efficiency. Its design allows for flexible integration of various computational blocks, making YOLOv9 adaptable to a wide range of applications without sacrificing speed or accuracy.
 
-![YOLOv9 architecture comparison](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/yolov9-architecture-comparison.avif)
+![YOLOv9 architecture comparison](https://cdn.ul.run/i/6483991ea76b36341988f6b06074b1da.avif)
 
 ## YOLOv9 Benchmarks
 
@@ -70,7 +70,7 @@ Benchmarking in YOLOv9 using [Ultralytics](../modes/benchmark.md) involves evalu
 
 - **Performance Evaluation:** Assessing the model's speed and accuracy.
 - **Export Formats:** Testing the model across different export formats to ensure it meets the necessary standards and performs well in various environments.
-- **Framework Support:** Providing a comprehensive framework within Ultralytics YOLOv8 to facilitate these assessments and ensure consistent and reliable results.
+- **Framework Support:** Providing a comprehensive framework within the Ultralytics package to facilitate these assessments and ensure consistent and reliable results.
 
 By benchmarking, you can ensure that your model not only performs well in controlled testing environments but also maintains high performance in practical, real-world applications.
 
@@ -87,9 +87,6 @@ By benchmarking, you can ensure that your model not only performs well in contro
 
 ## Performance on MS COCO Dataset
 
-<script async src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="../../javascript/benchmark.js"></script>
-
 <canvas id="modelComparisonChart" width="1024" height="400" active-models='["YOLOv9"]'></canvas>
 
 The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exemplifies its significant advancements in real-time object detection, setting new benchmarks across various model sizes. Table 1 presents a comprehensive comparison of state-of-the-art real-time object detectors, illustrating YOLOv9's superior efficiency and [accuracy](https://www.ultralytics.com/glossary/accuracy).
@@ -98,20 +95,20 @@ The performance of YOLOv9 on the [COCO dataset](../datasets/detect/coco.md) exem
 
     === "Detection (COCO)"
 
-        | Model                                                                                 | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        |---------------------------------------------------------------------------------------|-----------------------|----------------------|-------------------|--------------------|-------------------|
-        | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9t.pt)  | 640                   | 38.3                 | 53.1              | 2.0                | 7.7               |
-        | [YOLOv9s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9s.pt)  | 640                   | 46.8                 | 63.4              | 7.2                | 26.7              |
-        | [YOLOv9m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9m.pt)  | 640                   | 51.4                 | 68.1              | 20.1               | 76.8              |
-        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c.pt)  | 640                   | 53.0                 | 70.2              | 25.5               | 102.8             |
-        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e.pt)  | 640                   | 55.6                 | 72.8              | 58.1               | 192.5             |
+        | Model                                                                                | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | mAP<sup>val<br>50</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | ------------------------------------------------------------------------------------ | --------------------------- | -------------------------- | ----------------------- | ------------------------ | ----------------------- |
+        | [YOLOv9t](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9t.pt) | 640                         | 38.3                       | 53.1                    | 2.0                      | 7.7                     |
+        | [YOLOv9s](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9s.pt) | 640                         | 46.8                       | 63.4                    | 7.2                      | 26.7                    |
+        | [YOLOv9m](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9m.pt) | 640                         | 51.4                       | 68.1                    | 20.1                     | 76.8                    |
+        | [YOLOv9c](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c.pt) | 640                         | 53.0                       | 70.2                    | 25.5                     | 102.8                   |
+        | [YOLOv9e](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e.pt) | 640                         | 55.6                       | 72.8                    | 58.1                     | 192.5                   |
 
     === "Segmentation (COCO)"
 
-        | Model                                                                                         | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-        |-----------------------------------------------------------------------------------------------|-----------------------|----------------------|-----------------------|--------------------|-------------------|
-        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c-seg.pt)  | 640                   | 52.4                 | 42.2                  | 27.9               | 159.4             |
-        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e-seg.pt)  | 640                   | 55.1                 | 44.3                  | 60.5               | 248.4             |
+        | Model                                                                                        | size<br><sup>(pixels)</sup> | mAP<sup>box<br>50-95</sup> | mAP<sup>mask<br>50-95</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+        | -------------------------------------------------------------------------------------------- | --------------------------- | -------------------------- | --------------------------- | ------------------------ | ----------------------- |
+        | [YOLOv9c-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9c-seg.pt) | 640                         | 52.4                       | 42.2                        | 27.9                     | 159.4                   |
+        | [YOLOv9e-seg](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolov9e-seg.pt) | 640                         | 55.1                       | 44.3                        | 60.5                     | 248.4                   |
 
 YOLOv9's iterations, ranging from the tiny `t` variant to the extensive `e` model, demonstrate improvements not only in accuracy (mAP metrics) but also in efficiency with a reduced number of parameters and computational needs (FLOPs). This table underscores YOLOv9's ability to deliver high [precision](https://www.ultralytics.com/glossary/precision) while maintaining or reducing the computational overhead compared to prior versions and competing models.
 
@@ -136,7 +133,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
 
         ```python
         from ultralytics import YOLO
@@ -173,10 +170,10 @@ This example provides simple YOLOv9 training and inference examples. For full do
 
 The YOLOv9 series offers a range of models, each optimized for high-performance [Object Detection](../tasks/detect.md). These models cater to varying computational needs and accuracy requirements, making them versatile for a wide array of applications.
 
-| Model      | Filenames                                                        | Tasks                                        | Inference | Validation | Training | Export |
-| ---------- | ---------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| YOLOv9     | `yolov9t.pt` `yolov9s.pt` `yolov9m.pt` `yolov9c.pt` `yolov9e.pt` | [Object Detection](../tasks/detect.md)       | ✅        | ✅         | ✅       | ✅     |
-| YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt`                                | [Instance Segmentation](../tasks/segment.md) | ✅        | ✅         | ✅       | ✅     |
+| Model      | Filenames                                                        | Tasks                                        | Training | Validation | Inference | Export |
+| ---------- | ---------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| YOLOv9     | `yolov9t.pt` `yolov9s.pt` `yolov9m.pt` `yolov9c.pt` `yolov9e.pt` | [Object Detection](../tasks/detect.md)       | ✅       | ✅         | ✅        | ✅     |
+| YOLOv9-seg | `yolov9c-seg.pt` `yolov9e-seg.pt`                                | [Instance Segmentation](../tasks/segment.md) | ✅       | ✅         | ✅        | ✅     |
 
 This table provides a detailed overview of the YOLOv9 model variants, highlighting their capabilities in object detection tasks and their compatibility with various operational modes such as [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). This comprehensive support ensures that users can fully leverage the capabilities of YOLOv9 models in a broad range of object detection scenarios.
 

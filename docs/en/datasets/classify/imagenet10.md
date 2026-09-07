@@ -3,7 +3,7 @@ title: ImageNet10 Image Classification Dataset
 comments: true
 creator:
     name: Ultralytics
-    url: https://www.ultralytics.com/
+    url: https://www.ultralytics.com
 license:
     name: Research-Only
     url: https://www.image-net.org/download.php
@@ -68,7 +68,7 @@ To test a classification model on the ImageNet10 dataset at an image size of 224
 
 The ImageNet10 dataset contains a subset of images from the original ImageNet dataset, chosen to represent its first 10 classes and provide a diverse yet compact resource for quick testing and evaluation.
 
-![ImageNet-10 classification dataset sample images](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/imagenet10-sample-images.avif)
+![ImageNet-10 classification dataset sample images](https://cdn.ul.run/i/065171376b7fd97b9751493a1d22236e.avif)
 
 The example showcases the variety and complexity of the images in the ImageNet10 dataset, highlighting its usefulness for sanity checks and quick testing of computer vision models.
 

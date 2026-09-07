@@ -21,7 +21,7 @@ The Fast Segment Anything Model (FastSAM) is a novel, real-time CNN-based soluti
 
 ## Model Architecture
 
-![Fast Segment Anything Model (FastSAM) architecture overview](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/fastsam-architecture-overview.avif)
+![Fast Segment Anything Model (FastSAM) architecture overview](https://cdn.ul.run/i/d3f722adeedd75d45ebc977649321acd.avif)
 
 ## Overview
 
@@ -47,14 +47,14 @@ FastSAM is designed to address the limitations of the [Segment Anything Model (S
 
 This table presents the available models with their specific pretrained weights, the tasks they support, and their compatibility with different operating modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md), indicated by ✅ emojis for supported modes and ❌ emojis for unsupported modes.
 
-| Model Type | Pretrained Weights                                                                          | Tasks Supported                              | Inference | Validation | Training | Export |
-| ---------- | ------------------------------------------------------------------------------------------- | -------------------------------------------- | --------- | ---------- | -------- | ------ |
-| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
-| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ✅        | ❌         | ❌       | ✅     |
+| Model Type | Pretrained Weights                                                                          | Tasks Supported                              | Training | Validation | Inference | Export |
+| ---------- | ------------------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ---------- | --------- | ------ |
+| FastSAM-s  | [FastSAM-s.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-s.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ✅         | ✅        | ✅     |
+| FastSAM-x  | [FastSAM-x.pt](https://github.com/ultralytics/assets/releases/download/v8.4.0/FastSAM-x.pt) | [Instance Segmentation](../tasks/segment.md) | ❌       | ✅         | ✅        | ✅     |
 
 ## FastSAM Comparison vs YOLO
 
-Here we compare Meta's SAM 2 models, including the smallest SAM2-t variant, with Ultralytics segmentation models including [YOLO26n-seg](yolo26.md):
+Here we compare FastSAM-s with Meta's SAM variants and Ultralytics segmentation models including [YOLO26n-seg](yolo26.md):
 
 | Model                                                                                          | Size<br><sup>(MB)</sup> | Parameters<br><sup>(M)</sup> | Speed (CPU)<br><sup>(ms/im)</sup> |
 | ---------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- | --------------------------------- |
@@ -104,7 +104,7 @@ The FastSAM models are easy to integrate into your Python applications. Ultralyt
 
 ### Predict Usage
 
-To perform [object detection](https://www.ultralytics.com/glossary/object-detection) on an image, use the `predict` method as shown below:
+To segment an image, use the `predict` method as shown below:
 
 !!! example
 
@@ -172,6 +172,8 @@ This snippet demonstrates the simplicity of loading a pretrained model and runni
 
 ### Val Usage
 
+Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
+
 Validation of the model on a dataset can be done as follows:
 
 !!! example
@@ -194,8 +196,6 @@ Validation of the model on a dataset can be done as follows:
         # Load a FastSAM model and validate it on the COCO8 example dataset at image size 640
         yolo segment val model=FastSAM-s.pt data=coco8-seg.yaml imgsz=640
         ```
-
-Please note that FastSAM only supports detection and segmentation of a single class of object. This means it will recognize and segment all objects as the same class. Therefore, when preparing the dataset, you need to convert all object category IDs to 0.
 
 ### Track Usage
 
@@ -223,14 +223,14 @@ To perform object tracking on an image, use the `track` method as shown below:
 
 ## FastSAM official Usage
 
-FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/FastSAM](https://github.com/CASIA-LMC-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
+FastSAM is also available directly from the [CASIA-LMC-Lab/FastSAM](https://github.com/CASIA-LMC-Lab/FastSAM) repository. Here is a brief overview of the typical steps you might take to use FastSAM:
 
 ### Installation
 
 1. Clone the FastSAM repository:
 
     ```bash
-    git clone https://github.com/CASIA-IVA-Lab/FastSAM.git
+    git clone https://github.com/CASIA-LMC-Lab/FastSAM.git
     ```
 
 2. Create and activate a Conda environment with Python 3.9:
@@ -280,7 +280,7 @@ FastSAM is also available directly from the [https://github.com/CASIA-IVA-Lab/Fa
         python Inference.py --model_path ./weights/FastSAM.pt --img_path ./images/dogs.jpg --point_prompt "[[520,360],[620,300]]" --point_label "[1,0]"
         ```
 
-Additionally, you can try FastSAM through the CASIA-IVA-Lab [Colab demo](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing).
+Additionally, you can try FastSAM through the CASIA-LMC-Lab [Colab demo](https://colab.research.google.com/drive/1oX14f6IneGGw612WgVlAiy91UHwFAvr9?usp=sharing).
 
 ## Citations and Acknowledgments
 
@@ -290,16 +290,16 @@ We would like to acknowledge the FastSAM authors for their significant contribut
 
     === "BibTeX"
 
-      ```bibtex
-      @misc{zhao2023fast,
-            title={Fast Segment Anything},
-            author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
-            year={2023},
-            eprint={2306.12156},
-            archivePrefix={arXiv},
-            primaryClass={cs.CV}
-      }
-      ```
+        ```bibtex
+        @misc{zhao2023fast,
+              title={Fast Segment Anything},
+              author={Xu Zhao and Wenchao Ding and Yongqi An and Yinglong Du and Tao Yu and Min Li and Ming Tang and Jinqiao Wang},
+              year={2023},
+              eprint={2306.12156},
+              archivePrefix={arXiv},
+              primaryClass={cs.CV}
+        }
+        ```
 
 The original FastSAM paper can be found on [arXiv](https://arxiv.org/abs/2306.12156). The authors have made their work publicly available, and the codebase can be accessed on [GitHub](https://github.com/CASIA-LMC-Lab/FastSAM). We appreciate their efforts in advancing the field and making their work accessible to the broader community.
 

@@ -80,7 +80,7 @@ Use dataset search to find images based on text descriptions or specific labels/
 Before training, use Roboflow Health Check to gain insights into your dataset and identify potential improvements. Access it via the "Health Check" sidebar link. It provides statistics on image sizes, class balance, annotation heatmaps, and more.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/rf-dataset-health-check.avif" alt="Roboflow Health Check analysis dashboard" width="800">
+<img src="https://cdn.ul.run/i/eb929c239a886f640359d3deb64c8e2a.avif" alt="Roboflow Health Check analysis dashboard" width="800">
 </p>
 
 Health Check might suggest changes to enhance performance, such as addressing class imbalances identified in the class balance feature. Understanding dataset health is crucial for effective [model training](../modes/train.md).
@@ -90,7 +90,7 @@ Health Check might suggest changes to enhance performance, such as addressing cl
 To export your data, you need to create a dataset version, which is a snapshot of your dataset at a specific point in time. Click "Versions" in the sidebar, then "Create New Version." Here, you can apply preprocessing steps and [data augmentations](https://www.ultralytics.com/glossary/data-augmentation) to potentially enhance model robustness.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/creating-dataset-version-on-roboflow.avif" alt="Creating Roboflow dataset version with augmentation" width="800">
+<img src="https://cdn.ul.run/i/8d07c550e9704bb6b40d412e06de1577.avif" alt="Creating Roboflow dataset version with augmentation" width="800">
 </p>
 
 For each selected augmentation, a pop-up allows you to fine-tune its parameters such as brightness. Proper augmentation can significantly improve model generalization, a key concept discussed in our [model training tips guide](../guides/model-training-tips.md).
@@ -100,7 +100,7 @@ For each selected augmentation, a pop-up allows you to fine-tune its parameters 
 Once your dataset version is generated, you can export it in various formats suitable for model training. Click the "Export Dataset" button on the version page.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/exporting-dataset.avif" alt="Roboflow dataset export to YOLO format" width="800">
+<img src="https://cdn.ul.run/i/2d375cd076d209f59bf26453dd74043d.avif" alt="Roboflow dataset export to YOLO format" width="800">
 </p>
 
 Select the "YOLO26" format for compatibility with Ultralytics training pipelines. You are now ready to train your custom [YOLO26](../models/yolo26.md) model. Refer to the [Ultralytics Train mode documentation](../modes/train.md) for detailed instructions on initiating training with your exported dataset.
@@ -150,7 +150,7 @@ When you run the code above, you will be asked to authenticate (usually via an A
 To test your model and find deployment instructions for supported SDKs, go to the "Deploy" tab in the Roboflow sidebar. At the top of this page, a widget will appear allowing you to test your model using your webcam or by uploading images or videos.
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/running-inference-example-image.avif" alt="Roboflow deployment widget for model inference" width="800">
+<img src="https://cdn.ul.run/i/97fd4ee0967ba1d381a66c9f03f811c9.avif" alt="Roboflow deployment widget for model inference" width="800">
 </p>
 
 Your uploaded model can also be used as a labeling assistant, suggesting annotations on new images based on its training.
@@ -162,7 +162,7 @@ Roboflow provides features for evaluating model performance. Understanding [perf
 After uploading a model, access the model evaluation tool via your model page on the Roboflow dashboard. Click "View Detailed Evaluation."
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/roboflow-model-evaluation.avif" alt="Initiating a Roboflow model evaluation" width="800">
+<img src="https://cdn.ul.run/i/a17211578cb7a01b0644d3abdbf3ac6e.avif" alt="Initiating a Roboflow model evaluation" width="800">
 </p>
 
 This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/confusion-matrix) illustrating model performance and an interactive vector analysis plot using [CLIP](https://openai.com/index/clip/) embeddings. These features help identify areas for model improvement.
@@ -170,7 +170,7 @@ This tool displays a [confusion matrix](https://www.ultralytics.com/glossary/con
 The confusion matrix pop-up:
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/confusion-matrix.avif" alt="A confusion matrix displayed in Roboflow" width="800">
+<img src="https://cdn.ul.run/i/cefcff4c547ade4852a84ea3ca91adf7.avif" alt="A confusion matrix displayed in Roboflow" width="800">
 </p>
 
 Hover over cells to see values, and click cells to view corresponding images with model predictions and ground truth data.
@@ -178,7 +178,7 @@ Hover over cells to see values, and click cells to view corresponding images wit
 Click "Vector Analysis" for a scatter plot visualizing image similarity based on CLIP embeddings. Images closer together are semantically similar. Dots represent images, colored from white (good performance) to red (poor performance).
 
 <p align="center">
-<img src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/vector-analysis-plot.avif" alt="Roboflow vector analysis plot using CLIP embeddings" width="800">
+<img src="https://cdn.ul.run/i/8038f2f1b1f72eeedd8262e253d235a2.avif" alt="Roboflow vector analysis plot using CLIP embeddings" width="800">
 </p>
 
 Vector Analysis helps:

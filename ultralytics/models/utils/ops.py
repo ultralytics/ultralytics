@@ -231,18 +231,29 @@ def get_cdn_group(
     if (not training) or num_dn <= 0 or batch is None:
         return None, None, None, None
     gt_groups = batch["gt_groups"]
-    total_num = sum(gt_groups)
-    max_nums = max(gt_groups)
+    max_nums = min(max(gt_groups), num_dn)
     if max_nums == 0:
         return None, None, None, None
 
-    num_group = num_dn // max_nums
-    num_group = 1 if num_group == 0 else num_group
+    num_group = num_dn // max_nums  # always >= 1, because max_nums is capped at num_dn
     # Pad gt to max_num of a batch
     bs = len(gt_groups)
     gt_cls = batch["cls"]  # (bs*num, )
     gt_bbox = batch["bboxes"]  # bs*num, 4
     b_idx = batch["batch_idx"]
+
+    # Denoise a random subset of any image carrying more than num_dn boxes. Uncapped, num_group collapses to 1
+    # and a 700-box image emits 1400 denoising queries against the 2 * num_dn budget, growing decoder self-attention
+    # quadratically. The subset is redrawn on every call, so all boxes are still denoised across training.
+    gt_idx = torch.arange(sum(gt_groups), dtype=torch.long, device=gt_bbox.device)
+    if max(gt_groups) > max_nums:
+        offsets = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)
+        gt_idx = torch.cat(
+            [torch.randperm(n, device=gt_bbox.device)[:max_nums].sort().values + o for n, o in zip(gt_groups, offsets)]
+        )
+        gt_cls, gt_bbox, b_idx = gt_cls[gt_idx], gt_bbox[gt_idx], b_idx[gt_idx]
+        gt_groups = [min(n, max_nums) for n in gt_groups]
+    total_num = sum(gt_groups)
 
     # Each group has positive and negative queries
     dn_cls = gt_cls.repeat(2 * num_group)  # (2*num_group*bs*num, )
@@ -302,6 +313,7 @@ def get_cdn_group(
             attn_mask[max_nums * 2 * i : max_nums * 2 * (i + 1), : max_nums * 2 * i] = True
     dn_meta = {
         "dn_pos_idx": [p.reshape(-1) for p in pos_idx.cpu().split(list(gt_groups), dim=1)],
+        "dn_gt_idx": list(gt_idx.cpu().split(list(gt_groups))),  # gt each denoising query reconstructs
         "dn_num_group": num_group,
         "dn_num_split": [num_dn, num_queries],
     }

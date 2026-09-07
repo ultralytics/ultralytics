@@ -100,6 +100,7 @@ Training settings for YOLO models include hyperparameters and configurations tha
     - **Fixed Batch Size**: Specify the number of images per batch with an integer (e.g., `batch=16`).
     - **Auto Mode (60% GPU Memory)**: Use `batch=-1` for automatic adjustment to approximately 60% CUDA memory utilization.
     - **Auto Mode with Utilization Fraction**: Set a fraction (e.g., `batch=0.70`) to adjust based on a specified GPU memory usage.
+    - **No Fit Found**: If no candidate batch size produces a usable profile, AutoBatch raises a clear `RuntimeError` instead of silently falling back to an unrelated default.
 
 [Train Guide](../modes/train.md){ .md-button }
 

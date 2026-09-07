@@ -69,7 +69,7 @@ copy_paste: 0.0 # segment copy-paste (probability)
 
 ## 2. Define Fitness
 
-Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended).
+Fitness is the value we seek to maximize. In YOLOv5 we define a default fitness function as a weighted combination of metrics: `mAP@0.5` contributes 10% of the weight and `mAP@0.5:0.95` contributes the remaining 90%, with [precision (P)](https://www.ultralytics.com/glossary/precision) and [recall (R)](https://www.ultralytics.com/glossary/recall) absent. You may adjust these as you see fit or use the default fitness definition in utils/metrics.py (recommended). This fitness decides which result is saved to `hyp_evolve.yaml`; the genetic algorithm itself ranks parents and elites by `mAP@0.5` alone, so changing these weights does not change parent selection.
 
 ```python
 def fitness(x):
@@ -111,9 +111,9 @@ done
 # done
 ```
 
-The default evolution settings will run the base scenario 300 times, i.e. for 300 generations. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
+The default evolution settings run for 300 generations, and every generation trains the base scenario once for each of the 50 individuals in the population. You can modify generations via the `--evolve` argument, i.e. `python train.py --evolve 1000`.
 
-The main genetic operators are **crossover** and **mutation**. In this work mutation is used, with an 80% probability and a 0.04 variance to create new offspring based on a combination of the best parents from all previous generations. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
+The main genetic operators are **crossover** and **mutation**. Each generation trains every individual and scores it by `mAP@0.5`, selects parents by tournament selection with the fittest elites added to the parent pool, and builds the next population through crossover and mutation, with rates that adapt as evolution progresses. Results are logged to `runs/evolve/exp/evolve.csv`, and the highest fitness offspring is saved every generation as `runs/evolve/exp/hyp_evolve.yaml`:
 
 ```yaml
 # YOLOv5 Hyperparameter Evolution Results
@@ -153,7 +153,7 @@ mixup: 0.0 # image mixup (probability)
 copy_paste: 0.0 # segment copy-paste (probability)
 ```
 
-We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained hundreds of times, possibly requiring hundreds or thousands of GPU hours.
+We recommend a minimum of 300 generations of evolution for best results. Note that **evolution is generally expensive and time-consuming**, as the base scenario is trained thousands of times, possibly requiring hundreds or thousands of GPU hours.
 
 When evolution finishes, reuse the discovered settings by pointing training at the saved file, for example `python train.py --hyp runs/evolve/exp/hyp_evolve.yaml --data your.yaml --weights yolov5s.pt`.
 
@@ -161,11 +161,11 @@ When evolution finishes, reuse the discovered settings by pointing training at t
 
 `evolve.csv` is plotted as `evolve.png` by `utils.plots.plot_evolve()` after evolution finishes with one subplot per hyperparameter showing fitness (y-axis) vs hyperparameter values (x-axis). Yellow indicates higher concentrations. Vertical distributions indicate that a parameter has been disabled and does not mutate. This is user selectable in the `meta` dictionary in train.py, and is useful for fixing parameters and preventing them from evolving.
 
-![YOLOv5 hyperparameter evolution fitness results](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/evolve.avif)
+![YOLOv5 hyperparameter evolution fitness results](https://cdn.ul.run/i/25f2ec376e0a922b20f0dc8387166eeb.avif)
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CUDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects.
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
@@ -178,3 +178,21 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### How long does hyperparameter evolution take?
+
+Each generation trains the base scenario once per individual in the 50-member population, so 300 generations of a 10-epoch COCO128 run is roughly 15,000 times the cost of one such run. Keep the base scenario short and representative. The multi-GPU loop above starts an independent search on each GPU rather than sharing one search, so lower `--evolve` per process if you are working to a fixed budget.
+
+### Can I change the number of generations?
+
+Yes. `--evolve` defaults to 300 generations; pass a number such as `--evolve 1000` to run more.
+
+### How do I keep a hyperparameter fixed during evolution?
+
+Set the first value of its entry in the `meta` dictionary in `train.py` to `False`. Excluded parameters keep their initial value and appear as vertical lines in `evolve.png`.
+
+### How do I train with the evolved hyperparameters?
+
+Pass the saved file to a normal training run: `python train.py --hyp runs/evolve/exp/hyp_evolve.yaml --data your.yaml --weights yolov5s.pt`.

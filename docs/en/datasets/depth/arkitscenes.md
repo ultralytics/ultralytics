@@ -1,5 +1,8 @@
 ---
 comments: true
+license:
+    name: Other
+    url: https://github.com/apple/ARKitScenes/blob/main/LICENSE
 description: Explore the ARKitScenes depth dataset for monocular depth estimation. Learn about its structure, usage, pretrained models, and role in YOLO26-Depth training.
 keywords: Ultralytics, YOLO, depth estimation, ARKitScenes, indoor RGB-D, LiDAR, monocular depth, depth dataset
 ---
@@ -23,7 +26,7 @@ The ARKitScenes depth dataset is split into two subsets:
 1. **Train**: 676,080 images with paired depth maps for training.
 2. **Val**: 21,559 images with paired depth maps for validation during model training.
 
-Each sample consists of one RGB image and one paired `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each sample consists of one RGB image and one paired uint16 depth PNG in millimeters (`depth_scale: 1000`), following the [Ultralytics depth dataset format](index.md).
 
 ## Obtain the Data
 
@@ -38,10 +41,10 @@ python3 download_data.py upsampling --split Validation --download_dir ./data
 Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth filenames are capture timestamps that do not match exactly — pair each depth frame with the nearest-timestamp RGB frame. Reference conversion to the [Ultralytics depth dataset format](index.md):
 
 ```python
+import shutil
 from pathlib import Path
 
 import cv2
-import numpy as np
 
 src, dst = Path("data/upsampling"), Path("datasets/depth-arkitscenes")
 for split, out in (("Training", "train"), ("Validation", "val")):
@@ -55,8 +58,7 @@ for split, out in (("Training", "train"), ("Validation", "val")):
             t = float(depth_png.stem.split("_")[-1])
             rgb = rgbs[min(rgbs, key=lambda k: abs(k - t))]  # nearest-timestamp RGB frame
             name = f"{video.name}_{depth_png.stem}"
-            depth = cv2.imread(str(depth_png), cv2.IMREAD_UNCHANGED).astype(np.float32) / 1000.0  # mm → m
-            np.save(dst / f"depth/{out}/{name}.npy", depth)
+            shutil.copy2(depth_png, dst / f"depth/{out}/{name}.png")
             cv2.imwrite(str(dst / f"images/{out}/{name}.png"), cv2.imread(str(rgb)))
 ```
 
@@ -66,7 +68,7 @@ ARKitScenes is a **training** source in the Ultralytics YOLO26-Depth multi-datas
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
 
 !!! example "ultralytics/cfg/datasets/depth-arkitscenes.yaml"
 
@@ -121,3 +123,17 @@ If you use the ARKitScenes dataset in your research or development work, please 
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What role does ARKitScenes play in YOLO26-Depth?
+
+ARKitScenes is the single largest real-world source in the roughly 2.19M-image YOLO26-Depth pretraining mix, contributing 676,080 training and 21,559 validation images captured with the LiDAR scanner of Apple iPad Pro devices. Its dense indoor depth anchors the short-range accuracy of the released models, which are then evaluated on [NYU Depth V2](nyu-depth-v2.md), [KITTI](kitti.md), [ETH3D](eth3d.md), [Make3D](make3d.md), and [iBims-1](ibims-1.md).
+
+### How do I download ARKitScenes for Ultralytics training?
+
+ARKitScenes has no automatic download. Accept the license terms in the [ARKitScenes repository](https://github.com/apple/ARKitScenes), download the depth-upsampling subset with the official `download_data.py` script, and pair each depth frame with its nearest-timestamp RGB frame using the conversion script in [Obtain the Data](#obtain-the-data). The result follows the standard [Ultralytics depth layout](index.md) with uint16 millimeter PNGs.
+
+### What depth range does ARKitScenes cover?
+
+ARKitScenes is a handheld indoor dataset with depths of roughly 0.5 to 6 m and a median maximum depth around 2.4 m, so it complements longer-range sources such as [KITTI](kitti.md) and [TartanAir](tartanair.md) in the training mix.

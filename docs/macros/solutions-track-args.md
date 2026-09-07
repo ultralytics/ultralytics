@@ -1,0 +1,22 @@
+{% macro param_table(params=None) -%}
+| Argument | Type | Default | Description |
+| -------- | ---- | ------- | ----------- |
+{% set default_params = {
+    "tracker": ["str", "'botsort.yaml'", "Specifies the tracking algorithm to use. Built-in options: `botsort.yaml`, `bytetrack.yaml`, `ocsort.yaml`, `deepocsort.yaml`, `fasttrack.yaml`, `tracktrack.yaml`."],
+    "conf": ["float", "0.25", "Sets the confidence threshold for detections; lower values allow more objects to be tracked but may include false positives."],
+    "iou": ["float", "0.7", "Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections."],
+    "classes": ["list", "None", "Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes."],
+    "device": ["str", "None", "Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution."],
+} %}
+{% if not params %}
+{% for param, details in default_params.items() %}
+| `{{ param }}` | `{{ details[0] }}` | `{{ details[1] }}` | {{ details[2] }} |
+{% endfor %}
+{% else %}
+{% for param in params %}
+{% if param in default_params %}
+| `{{ param }}` | `{{ default_params[param][0] }}` | `{{ default_params[param][1] }}` | {{ default_params[param][2] }} |
+{% endif %}
+{% endfor %}
+{% endif %}
+{%- endmacro -%}

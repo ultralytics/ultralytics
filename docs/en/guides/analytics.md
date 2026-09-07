@@ -22,9 +22,9 @@ Analytics with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics/)
 
 ## Visual Samples
 
-|                                                              Line Graph                                                              |                                                             Bar Plot                                                              |                                                               Pie Chart                                                               |
-| :----------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------------------: |
-| ![YOLO analytics line graph for object tracking](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-line-graph.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-bar-plot.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/analytics-pie-chart.avif) |
+|                                                  Line Graph                                                  |                                                  Bar Plot                                                   |                                                   Pie Chart                                                    |
+| :----------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------: |
+| ![YOLO analytics line graph for object tracking](https://cdn.ul.run/i/ab5f7bbe8dbf3ffa16c5b3f57e2a1e62.avif) | ![YOLO analytics bar plot for detection counts](https://cdn.ul.run/i/fb022fb21fdc90c61acd4f7f4271e1aa.avif) | ![YOLO analytics pie chart for class distribution](https://cdn.ul.run/i/cf6e1e1697aa19aa016600c7fe8ea937.avif) |
 
 ## Why Visualize Detection Data?
 
@@ -108,17 +108,17 @@ Pass your video to the `Analytics` solution and select a chart with `analytics_t
 Here's a table outlining the Analytics arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "analytics_type"]) }}
+{{ param_table(["model", "analytics_type", "line_width", "verbose"]) }}
 
 You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
 
-{% from "macros/track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "verbose", "device"]) }}
+{% from "macros/solutions-track-args.md" import param_table %}
+{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
 
 Additionally, the following visualization arguments are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "line_width"]) }}
+{{ param_table(["show"]) }}
 
 ## Conclusion
 
@@ -170,7 +170,7 @@ Ultralytics YOLO26 stands out from other object detection solutions like OpenCV 
 1. **State-of-the-art [Accuracy](https://www.ultralytics.com/glossary/accuracy)**: YOLO26 provides superior accuracy in [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), and [classification](../tasks/classify.md) tasks.
 2. **Ease of Use**: User-friendly API allows for quick implementation and integration without extensive coding.
 3. **Real-time Performance**: Optimized for high-speed inference, suitable for real-time applications.
-4. **Diverse Applications**: Supports various tasks including multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.
+4. **Diverse Applications**: Supports multi-object tracking, custom model training, and exporting to different formats like ONNX, TensorRT, and CoreML.
 5. **Comprehensive Documentation**: Extensive [documentation](../index.md) and [blog resources](https://www.ultralytics.com/blog) to guide users through every step.
 
 For more detailed comparisons and use cases, explore our [Ultralytics Blog](https://www.ultralytics.com/blog/ai-use-cases-transforming-your-future).

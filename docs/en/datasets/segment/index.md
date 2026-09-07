@@ -19,7 +19,7 @@ The dataset label format used for training YOLO segmentation models is as follow
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
     - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-    - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
+    - Object polygon coordinates: The `(x, y)` points outlining the object's mask, normalized to be between 0 and 1.
 
 The format for a single row in the segmentation dataset file is as follows:
 
@@ -100,7 +100,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 ## Supported Datasets
 
-Ultralytics YOLO supports various datasets for instance segmentation tasks. Here's a list of the most commonly used ones:
+Ultralytics YOLO supports various datasets for instance segmentation tasks. Here's a list of the most commonly used ones. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.

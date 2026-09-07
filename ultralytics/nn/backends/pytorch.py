@@ -9,6 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
+from ultralytics.utils.torch_utils import unwrap_model
 
 from .base import BaseBackend
 
@@ -27,6 +28,7 @@ class PyTorchBackend(BaseBackend):
         fp16: bool = False,
         fuse: bool = True,
         verbose: bool = True,
+        end2end: bool | None = None,
     ):
         """Initialize the PyTorch backend.
 
@@ -36,9 +38,11 @@ class PyTorchBackend(BaseBackend):
             fp16 (bool): Whether to use FP16 half-precision inference.
             fuse (bool): Whether to fuse Conv2D + BatchNorm layers for optimization.
             verbose (bool): Whether to print verbose model loading messages.
+            end2end (bool, optional): Select the detection head before fusion; None preserves its current mode.
         """
         self.fuse = fuse
         self.verbose = verbose
+        self.end2end_override = end2end
         super().__init__(weight, device, fp16)
 
     def load_model(self, weight: str | torch.nn.Module) -> None:
@@ -49,14 +53,14 @@ class PyTorchBackend(BaseBackend):
         """
         from ultralytics.nn.tasks import BaseModel, load_checkpoint
 
-        if isinstance(weight, torch.nn.Module):
-            if self.fuse and hasattr(weight, "fuse"):
-                if IS_JETSON and is_jetson(jetpack=5):
-                    weight = weight.to(self.device)
-                weight = weight.fuse(verbose=self.verbose) if isinstance(weight, BaseModel) else weight.fuse()
-            model = weight.to(self.device)
-        else:
-            model, _ = load_checkpoint(weight, device=self.device, fuse=self.fuse)
+        model = weight if isinstance(weight, torch.nn.Module) else load_checkpoint(weight, device=self.device)[0]
+        if self.end2end_override is not None and hasattr(model, "end2end"):
+            model.end2end = self.end2end_override
+        if self.fuse and hasattr(model, "fuse"):
+            if IS_JETSON and is_jetson(jetpack=5):
+                model = model.to(self.device)
+            model = model.fuse(verbose=self.verbose) if isinstance(model, BaseModel) else model.fuse()
+        model = model.to(self.device)
 
         # Extract model attributes
         if hasattr(model, "kpt_shape"):
@@ -71,23 +75,25 @@ class PyTorchBackend(BaseBackend):
 
         self.model = model
         self.end2end = getattr(model, "end2end", False)
+        self.base_model = isinstance(unwrap_model(model), BaseModel)
 
     def forward(
-        self, im: torch.Tensor, augment: bool = False, visualize: bool = False, embed: list | None = None, **kwargs: Any
+        self, im: torch.Tensor, augment: bool = False, embed: list | None = None, **kwargs: Any
     ) -> torch.Tensor | list[torch.Tensor]:
-        """Run native PyTorch inference with support for augmentation, visualization, and embeddings.
+        """Run native PyTorch inference with support for augmentation and embeddings.
 
         Args:
             im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
             augment (bool): Whether to apply test-time augmentation.
-            visualize (bool): Whether to visualize intermediate feature maps.
             embed (list | None): List of layer indices to extract embeddings from, or None.
             **kwargs (Any): Additional keyword arguments passed to the model forward method.
 
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
-        return self.model(im, augment=augment, visualize=visualize, embed=embed, **kwargs)
+        if not self.base_model:  # a foreign nn.Module defines no `augment`/`embed` contract to honor
+            return self.model(im, **kwargs)
+        return self.model(im, augment=augment, embed=embed, **kwargs)
 
 
 class TorchScriptBackend(BaseBackend):
@@ -113,17 +119,12 @@ class TorchScriptBackend(BaseBackend):
         Args:
             weight (str): Path to the .torchscript model file.
         """
-        import json
-
         import torchvision  # noqa - required for TorchScript model deserialization
 
         LOGGER.info(f"Loading {weight} for TorchScript inference...")
-        extra_files = {"config.txt": ""}
-        self.model = torch.jit.load(weight, _extra_files=extra_files, map_location=self.device)
+        self.model = torch.jit.load(weight, map_location=self.device)
         self.model.half() if self.fp16 else self.model.float()
-
-        if extra_files["config.txt"]:
-            self.apply_metadata(json.loads(extra_files["config.txt"], object_hook=lambda x: dict(x.items())))
+        self.apply_metadata(self.read_metadata(weight))
 
     def forward(self, im: torch.Tensor) -> torch.Tensor | list[torch.Tensor]:
         """Run TorchScript inference.

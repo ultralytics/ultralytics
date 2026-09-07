@@ -6,7 +6,7 @@ keywords: Ultralytics, YOLO26, model validation, machine learning, object detect
 
 # Model Validation with Ultralytics YOLO
 
-<img width="1024" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov8-ecosystem-integrations.avif" alt="Ultralytics YOLO ecosystem and integrations">
+<img width="1024" src="https://cdn.ul.run/i/f874ab850f33f361d01a01e9a8c98655.avif" alt="Ultralytics YOLO ecosystem and integrations">
 
 ## Introduction
 
@@ -164,7 +164,7 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
     Each entry in `image_metrics` contains the following keys:
 
     | Key         | Description                                       |
-    |-------------|---------------------------------------------------|
+    | ----------- | ------------------------------------------------- |
     | `precision` | Precision score for the image (`tp / (tp + fp)`). |
     | `recall`    | Recall score for the image (`tp / (tp + fn)`).    |
     | `f1`        | Harmonic mean of precision and recall.            |
@@ -173,6 +173,8 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
     | `fn`        | Number of false negatives for the image.          |
 
     This feature is available for detection, segmentation, pose, and OBB tasks.
+
+The returned metrics object also exposes export helpers for downstream analysis:
 
 | Method      | Return Type            | Description                                                                |
 | ----------- | ---------------------- | -------------------------------------------------------------------------- |
@@ -246,11 +248,11 @@ These benefits ensure that your models are evaluated thoroughly and can be optim
 
 ### Can I validate my YOLO26 model using a custom dataset?
 
-Yes, you can validate your YOLO26 model using a [custom dataset](../datasets/index.md). Specify the `data` argument with the path to your dataset configuration file. This file should include the path to the [validation data](https://www.ultralytics.com/glossary/validation-data).
+Yes, you can validate your YOLO26 model using a [custom dataset](../datasets/index.md). Specify the `data` argument with the path to your dataset YAML, which should include the path to the [validation data](https://www.ultralytics.com/glossary/validation-data). Classification instead takes a dataset directory or a built-in dataset name (e.g., `imagenet10`).
 
 !!! note
 
-    Validation is performed using the model's own class names, which you can view using `model.names`, and which may be different to those specified in the dataset configuration file.
+    Validation is performed using the model's own class names, which you can view using `model.names`, and which may be different to those the dataset itself defines.
 
 Example in Python:
 

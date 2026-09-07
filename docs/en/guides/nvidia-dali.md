@@ -538,9 +538,9 @@ DALI preprocessing works with all YOLO tasks that use the standard `LetterBox` p
 | [Detection](../tasks/detect.md)               | ✅        | Standard letterbox preprocessing                         |
 | [Instance Segmentation](../tasks/segment.md)  | ✅        | Same preprocessing as detection                          |
 | [Semantic Segmentation](../tasks/semantic.md) | ✅        | Same image preprocessing as detection                    |
+| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 | [Pose Estimation](../tasks/pose.md)           | ✅        | Same preprocessing as detection                          |
 | [Oriented Detection (OBB)](../tasks/obb.md)   | ✅        | Same preprocessing as detection                          |
-| [Classification](../tasks/classify.md)        | ❌        | Uses torchvision transforms (center crop), not letterbox |
 
 ## Limitations
 

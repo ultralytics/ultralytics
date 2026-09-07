@@ -10,6 +10,7 @@ from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from urllib import parse
+from uuid import uuid4
 
 from ultralytics.utils import ASSETS_URL, LOGGER, TQDM, checks, clean_url, emojis, is_online, url2file
 
@@ -21,6 +22,8 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yolo12{k}{suffix}.pt" for k in "nsmlx" for suffix in ("",)]  # detect models only currently
     + [f"yolo26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("", "-cls", "-seg", "-sem", "-pose", "-obb", "-depth")]
     + [f"yolo26{k}-objv1{suffix}.pt" for k in "nsmlx" for suffix in ("-150", "-seg")]
+    + [f"yolo26{k}-{suffix}.pt" for k in "nsmlx" for suffix in ("distill", "sem-ade20k")]
+    + [f"yolo26{k}-reid.onnx" for k in "nsmlx"]
     + [f"yolov5{k}{resolution}u.pt" for k in "nsmlx" for resolution in ("", "6")]
     + [f"yolov3{k}u.pt" for k in ("", "-spp", "-tiny")]
     + [f"yolov8{k}-world.pt" for k in "smlx"]
@@ -29,6 +32,7 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [f"yoloe-11{k}{suffix}.pt" for k in "sml" for suffix in ("-seg", "-seg-pf")]
     + [f"yoloe-26{k}{suffix}.pt" for k in "nsmlx" for suffix in ("-seg", "-seg-pf")]
     + [f"yolov9{k}.pt" for k in "tsmce"]
+    + [f"yolov9{k}-seg.pt" for k in "ce"]
     + [f"yolov10{k}.pt" for k in "nsmblx"]
     + [f"yolo_nas_{k}.pt" for k in "sml"]
     + [f"sam_{k}.pt" for k in "bl"]
@@ -39,7 +43,9 @@ GITHUB_ASSETS_NAMES = frozenset(
     + [
         "mobile_sam.pt",
         "mobileclip_blt.ts",
+        "mobileclip2_b.ts",
         "yolo11n-grayscale.pt",
+        "yolov8x-pose-p6.pt",
         "calibration_image_sample_data_20x128x128x3_float32.npy.zip",
     ]
 )
@@ -75,11 +81,11 @@ def is_url(url: str | Path, check: bool = False) -> bool:
 
 
 def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_Store", "__MACOSX")) -> None:
-    """Delete all specified system files in a directory.
+    """Delete all specified system files and directories in a directory.
 
     Args:
         path (str | Path): The directory path where the files should be deleted.
-        files_to_delete (tuple[str, ...]): The files to be deleted.
+        files_to_delete (tuple[str, ...]): Names of files and directories to delete.
 
     Examples:
         >>> from ultralytics.utils.downloads import delete_dsstore
@@ -90,10 +96,13 @@ def delete_dsstore(path: str | Path, files_to_delete: tuple[str, ...] = (".DS_St
         are hidden system files and can cause issues when transferring files between different operating systems.
     """
     for file in files_to_delete:
-        matches = list(Path(path).rglob(file))
+        matches = sorted(Path(path).rglob(file), key=lambda x: len(x.parts), reverse=True)
         LOGGER.info(f"Deleting {file} files: {matches}")
         for f in matches:
-            f.unlink()
+            if f.is_dir() and not f.is_symlink():
+                shutil.rmtree(f)
+            else:
+                f.unlink()
 
 
 def zip_directory(
@@ -343,6 +352,8 @@ def safe_download(
             uri = (url if gdrive else clean_url(url)).replace(ASSETS_URL, "https://ultralytics.com/assets")  # clean
             desc = f"Downloading {uri} to '{f}'"
             f.parent.mkdir(parents=True, exist_ok=True)  # make directory if missing
+            target = f
+            f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
             expected_size = None  # set from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
@@ -386,6 +397,8 @@ def safe_download(
                                     f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
                                 )
                             else:
+                                f.replace(target)
+                                f = target
                                 break  # success
                         f.unlink()  # remove partial downloads
                 except MemoryError:

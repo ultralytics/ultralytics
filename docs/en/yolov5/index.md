@@ -7,13 +7,13 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 <div align="center">
   <p>
     <a href="https://www.ultralytics.com/yolo" target="_blank">
-      <img width="100%" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/ultralytics-yolov5-splash.avif" alt="Ultralytics YOLOv5 v7.0 banner">
+      <img width="100%" src="https://cdn.ul.run/i/76b943ef63f00f48350f0afddcbd15f9.avif" alt="Ultralytics YOLOv5 v7.0 banner">
     </a>
   </p>
     <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
     <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
     <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
-    <a href="https://community.ultralytics.com/"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
+    <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
     <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
     <br>
     <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
@@ -35,7 +35,7 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Train Custom Data](tutorials/train-custom-data.md) 🚀 RECOMMENDED: Learn how to train the YOLOv5 model on your custom dataset.
 - [Tips for Best Training Results](tutorials/tips-for-best-training-results.md) ☘️: Uncover practical tips to optimize your model training process.
 - [Multi-GPU Training](tutorials/multi-gpu-training.md): Understand how to leverage multiple GPUs to expedite your training.
-- [PyTorch Hub](tutorials/pytorch-hub-model-loading.md) 🌟 NEW: Learn to load pretrained models via PyTorch Hub.
+- [PyTorch Hub](tutorials/pytorch-hub-model-loading.md): Learn to load pretrained models via PyTorch Hub.
 - [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model-export.md) 🚀: Understand how to export your model to different formats.
 - [Test-Time Augmentation (TTA)](tutorials/test-time-augmentation.md): Explore how to use TTA to improve your model's prediction accuracy.
 - [Model Ensembling](tutorials/model-ensembling.md): Learn the strategy of combining multiple models for improved performance.
@@ -45,11 +45,11 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Architecture Summary](tutorials/architecture-description.md) 🌟 Delve into the structural details of the YOLOv5 model. Read the [YOLOv5 v6.0 blog post](https://www.ultralytics.com/blog/yolov5-v6-0-is-here) for more insights.
 - [ClearML Logging Integration](tutorials/clearml-logging-integration.md) 🌟 Learn how to integrate [ClearML](https://clear.ml/) for efficient logging during your model training.
 - [YOLOv5 with Neural Magic](tutorials/neural-magic-pruning-quantization.md): Discover how to use [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) to prune and quantize your YOLOv5 model.
-- [Comet Logging Integration](tutorials/comet-logging-integration.md) 🌟 NEW: Explore how to utilize [Comet](https://www.comet.com/site/) for improved model training logging.
+- [Comet Logging Integration](tutorials/comet-logging-integration.md): Explore how to utilize [Comet](https://www.comet.com/site/) for improved model training logging.
 
 ## Supported Environments
 
-Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CuDNN](https://developer.nvidia.com/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects. You can also manage your models and datasets using [Ultralytics Platform](https://platform.ultralytics.com).
+Ultralytics provides a range of ready-to-use environments, each pre-installed with essential dependencies such as [CUDA](https://developer.nvidia.com/cuda), [CuDNN](https://developer.nvidia.com/cuda/cuda-x-libraries/cudnn), [Python](https://www.python.org/), and [PyTorch](https://pytorch.org/), to kickstart your projects. You can also manage your models and datasets using [Ultralytics Platform](https://platform.ultralytics.com).
 
 - **Free GPU Notebooks**: <a href="https://bit.ly/yolov5-paperspace-notebook"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient"></a> <a href="https://colab.research.google.com/github/ultralytics/yolov5/blob/master/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"></a> <a href="https://www.kaggle.com/models/ultralytics/yolov5"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open In Kaggle"></a>
 - **Google Cloud**: [GCP Quickstart Guide](environments/google-cloud-quickstart-tutorial.md)

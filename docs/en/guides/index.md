@@ -58,7 +58,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 ### Evaluate & troubleshoot
 
 - [YOLO Performance Metrics](yolo-performance-metrics.md) ⭐ ESSENTIAL: Understand the key metrics like mAP, IoU, and [F1 score](https://www.ultralytics.com/glossary/f1-score) used to evaluate the performance of your YOLO models. Includes practical examples and tips on how to improve detection accuracy and speed.
-- [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md): Evaluate computer vision models with metrics like mAP and IoU, then fine-tune training parameters such as learning-rate warmup to improve detection accuracy.
+- [Insights on Model Evaluation and Fine-Tuning](model-evaluation-insights.md): Evaluate computer vision models with metrics like mAP and IoU, then act on what the metrics expose to improve detection accuracy.
 - [Model Testing](model-testing.md): Learn how to test computer vision models on unseen data, validate YOLO26 models, and catch overfitting, underfitting, and data leakage before deployment.
 - [YOLO Common Issues](yolo-common-issues.md) ⭐ RECOMMENDED: Practical solutions and troubleshooting tips to the most frequently encountered issues when working with Ultralytics YOLO models.
 - [Maintaining Your Computer Vision Model](model-monitoring-and-maintenance.md): Understand the key practices for monitoring, maintaining, and documenting computer vision models to guarantee accuracy, spot anomalies, and mitigate data drift.
@@ -68,7 +68,7 @@ Guides are grouped by project stage — from environment setup and data preparat
 - [Model Deployment Options](model-deployment-options.md): Overview of YOLO [model deployment](https://www.ultralytics.com/glossary/model-deployment) formats like ONNX, OpenVINO, and TensorRT, with pros and cons for each to inform your deployment strategy.
 - [Best Practices for Model Deployment](model-deployment-practices.md): Walk through tips and best practices for efficiently deploying models in computer vision projects, with a focus on optimization, troubleshooting, and security.
 - [Export Non-YOLO Models](export-non-yolo-models.md): Use Ultralytics standalone export utilities to convert any `torch.nn.Module` (timm, torchvision, custom) to ONNX, TorchScript, OpenVINO, CoreML, NCNN, MNN, PaddlePaddle, ExecuTorch, and TensorFlow SavedModel.
-- [End-to-End Detection](end2end-detection.md): Understand YOLO26's NMS-free end-to-end detection, export compatibility, output format changes, and how to migrate from older YOLO models.
+- [End-to-End Detection](end2end-detection.md): Choose NMS or NMS-free inference and understand output formats and export compatibility.
 - [Triton Inference Server Integration](triton-inference-server.md): Dive into the integration of Ultralytics YOLO26 with NVIDIA's Triton Inference Server for scalable and efficient deep learning inference deployments.
 - [YOLO Thread-Safe Inference](yolo-thread-safe-inference.md): Guidelines for performing inference with YOLO models in a thread-safe manner. Learn the importance of thread safety and best practices to prevent race conditions and ensure consistent predictions.
 - [ROS Quickstart](ros-quickstart.md): Learn how to integrate YOLO with the Robot Operating System (ROS) for real-time object detection in robotics applications, including Point Cloud and Depth images.
@@ -117,7 +117,7 @@ Training a custom object detection model with Ultralytics YOLO is straightforwar
     === "CLI"
 
         ```bash
-        yolo task=detect mode=train model=yolo26n.pt data=path/to/dataset.yaml epochs=50
+        yolo detect train model=yolo26n.pt data=path/to/dataset.yaml epochs=50
         ```
 
 For detailed dataset formatting and additional options, refer to our [Tips for Model Training](model-training-tips.md) guide.

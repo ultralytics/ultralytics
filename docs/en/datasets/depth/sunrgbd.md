@@ -1,5 +1,7 @@
 ---
 comments: true
+license:
+    name: None
 description: Explore the SUN RGB-D depth dataset for monocular depth estimation. Learn about its structure, usage, pretrained models, and role in YOLO26-Depth training.
 keywords: Ultralytics, YOLO, depth estimation, SUN RGB-D, indoor RGB-D, multi-sensor, monocular depth, depth dataset
 ---
@@ -7,6 +9,8 @@ keywords: Ultralytics, YOLO, depth estimation, SUN RGB-D, indoor RGB-D, multi-se
 # SUN RGB-D Depth Dataset
 
 [SUN RGB-D](https://rgbd.cs.princeton.edu/) is a real-world indoor scene-understanding benchmark captured with four different RGB-D sensors: Intel RealSense, Asus Xtion, and Microsoft Kinect v1 and v2. Its multi-sensor design makes it a valuable source of real indoor depth diversity for [monocular depth estimation](index.md).
+
+Explore [SUN RGB-D on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/depth-sunrgbd) to preview its RGB-depth pairs, inspect dataset statistics, and clone it for training.
 
 ## Key Features
 
@@ -23,7 +27,7 @@ The SUN RGB-D depth dataset is split into two subsets:
 1. **Train**: 9,245 images with paired depth maps for training.
 2. **Val**: 1,090 images with paired depth maps for validation during model training.
 
-Each sample consists of one RGB image and one paired `.npy` float32 depth map storing per-pixel distances in meters, following the [Ultralytics depth dataset format](index.md).
+Each sample consists of one RGB image and one paired scaled uint16 depth PNG, following the [Ultralytics depth dataset format](index.md). The built-in conversion writes millimeters, so the default `depth_scale: 1000` applies.
 
 ## Role in YOLO26-Depth
 
@@ -31,7 +35,7 @@ SUN RGB-D is a **training** source in the Ultralytics YOLO26-Depth multi-dataset
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
 
 !!! example "ultralytics/cfg/datasets/depth-sunrgbd.yaml"
 
@@ -86,3 +90,17 @@ If you use the SUN RGB-D dataset in your research or development work, please ci
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What is the SUN RGB-D dataset?
+
+SUN RGB-D is a real-world indoor scene-understanding benchmark captured with four RGB-D sensors: Intel RealSense, Asus Xtion, and Microsoft Kinect v1 and v2. The Ultralytics configuration provides 9,245 training and 1,090 validation image-depth pairs with depths up to roughly 10 m.
+
+### How is depth stored for SUN RGB-D?
+
+Each RGB image is paired with a uint16 PNG in millimeters, so the default `depth_scale: 1000` applies, following the [Ultralytics depth dataset format](index.md). The compact [Depth8](depth8.md) test dataset is sampled from SUN RGB-D and uses the same format.
+
+### How do I train a YOLO26 depth model on SUN RGB-D?
+
+Run `yolo depth train data=depth-sunrgbd.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`, or use the Python example in the [Usage](#usage) section. You can also browse and clone the dataset on [Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/depth-sunrgbd).

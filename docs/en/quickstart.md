@@ -54,10 +54,10 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         !!! note
 
-            If you are installing in a CUDA environment, it is best practice to install `ultralytics`, `pytorch`, and `pytorch-cuda` in the same command. This allows the conda package manager to resolve any conflicts. Alternatively, install `pytorch-cuda` last to override the CPU-specific `pytorch` package if necessary.
+            If you are installing in a CUDA environment, install `ultralytics` together with the `pytorch-gpu` metapackage in the same command so conda resolves a CUDA-enabled PyTorch build. PyTorch no longer publishes new releases to the `pytorch` conda channel, so install everything from conda-forge.
             ```bash
             # Install all packages together using conda
-            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+            conda install -c conda-forge ultralytics pytorch-gpu
             ```
 
         ### Conda Docker Image
@@ -97,7 +97,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
     === "Docker"
 
-        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers six main supported Docker images, each designed for high compatibility and efficiency:
+        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics publishes a set of official Docker images, each designed for high compatibility and efficiency:
 
         [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 
@@ -144,7 +144,7 @@ See the `ultralytics` [pyproject.toml](https://github.com/ultralytics/ultralytic
     [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA requirements, so install PyTorch first by following the instructions at [PyTorch](https://pytorch.org/get-started/locally/).
 
     <a href="https://pytorch.org/get-started/locally/">
-        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.jsdelivr.net/gh/ultralytics/assets@main/docs/pytorch-installation-instructions.avif">
+        <img width="800" alt="PyTorch installation selector for different platforms" src="https://cdn.ul.run/i/afbbb2da0266468e5371291bbfed0ab3.avif">
     </a>
 
 ## Headless Server Installation
@@ -321,6 +321,8 @@ The Ultralytics command-line interface (CLI) allows for simple single-line comma
         yolo checks
         yolo version
         yolo settings
+        yolo login API_KEY
+        yolo logout
         yolo copy-cfg
         yolo cfg
         yolo solutions help
@@ -442,7 +444,7 @@ The table below overviews the adjustable settings within Ultralytics, including 
 
 | Name               | Example Value         | Data Type | Description                                                                                                      |
 | ------------------ | --------------------- | --------- | ---------------------------------------------------------------------------------------------------------------- |
-| `settings_version` | `'0.0.6'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
+| `settings_version` | `'0.0.7'`             | `str`     | Ultralytics _settings_ version (distinct from the Ultralytics [pip] version)                                     |
 | `datasets_dir`     | `'/path/to/datasets'` | `str`     | Directory where datasets are stored                                                                              |
 | `weights_dir`      | `'/path/to/weights'`  | `str`     | Directory where model weights are stored                                                                         |
 | `runs_dir`         | `'/path/to/runs'`     | `str`     | Directory where experiment runs are stored                                                                       |
@@ -452,13 +454,12 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `clearml`          | `True`                | `bool`    | Option to use [ClearML] logging                                                                                  |
 | `comet`            | `True`                | `bool`    | Option to use [Comet ML] for experiment tracking and visualization                                               |
 | `dvc`              | `True`                | `bool`    | Option to use [DVC for experiment tracking] and version control                                                  |
-| `hub`              | `True`                | `bool`    | Option to use [Ultralytics Platform] integration                                                                 |
 | `mlflow`           | `True`                | `bool`    | Option to use [MLFlow] for experiment tracking                                                                   |
-| `neptune`          | `True`                | `bool`    | Option to use [Neptune] for experiment tracking                                                                  |
 | `raytune`          | `True`                | `bool`    | Option to use [Ray Tune] for [hyperparameter tuning](https://www.ultralytics.com/glossary/hyperparameter-tuning) |
 | `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
 | `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
 | `vscode_msg`       | `True`                | `bool`    | When a VS Code terminal is detected, enables a prompt to download the [Ultralytics-Snippets] extension.          |
+| `openvino_msg`     | `True`                | `bool`    | On Intel CPUs, enables a prompt suggesting [OpenVINO](./integrations/openvino.md) export for faster inference.   |
 
 Revisit these settings as you progress through projects or experiments to ensure optimal configuration.
 
@@ -488,10 +489,10 @@ Yes, install Ultralytics YOLO using conda with:
 conda install -c conda-forge ultralytics
 ```
 
-This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, install `ultralytics`, `pytorch`, and `pytorch-cuda` together to resolve conflicts:
+This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, install `ultralytics` together with the `pytorch-gpu` metapackage so conda selects a CUDA-enabled PyTorch build:
 
 ```bash
-conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+conda install -c conda-forge ultralytics pytorch-gpu
 ```
 
 For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.md).
@@ -508,7 +509,7 @@ sudo docker pull ultralytics/ultralytics:latest
 sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
 ```
 
-For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).
+On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).
 
 ### How do I clone the Ultralytics repository for development?
 
@@ -548,10 +549,9 @@ Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).
 [Ultralytics Platform]: https://platform.ultralytics.com
 [pip]: https://pypi.org/project/ultralytics/
 [DVC for experiment tracking]: https://dvc.org/doc/dvclive/ml-frameworks/yolo
-[Comet ML]: https://bit.ly/yolov8-readme-comet
+[Comet ML]: ./integrations/comet.md
 [ClearML]: ./integrations/clearml.md
 [MLFlow]: ./integrations/mlflow.md
-[Neptune]: https://neptune.ai/
 [Tensorboard]: ./integrations/tensorboard.md
 [Ray Tune]: ./integrations/ray-tune.md
 [Weights & Biases]: ./integrations/weights-biases.md

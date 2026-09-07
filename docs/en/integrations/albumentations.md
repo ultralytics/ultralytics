@@ -231,7 +231,7 @@ results = model.train(
 
 When using custom Albumentations transforms, keep these points in mind:
 
-- **Python API Only**: Build custom transform objects through the Python API. Serialized transforms can also be passed through CLI or YAML configuration files, including when resuming training.
+- **Configuration**: Build custom transform objects through the Python API. Serialized transforms can also be passed through CLI or YAML configuration files, including when resuming training.
 - **Replaces Defaults**: Your custom transforms will completely replace the default Albumentations transforms. Other YOLO augmentations remain active.
 - **Label Handling**: Spatial transforms, including ones nested in `A.OneOf` or `A.Compose`, move bounding boxes, polygons, keypoints, and depth or semantic masks together with the image. `A.RandomGridShuffle` cannot preserve polygon or keypoint topology and raises on segmentation, pose, and OBB samples.
 - **Performance**: Some transforms are computationally expensive. Monitor training speed and adjust accordingly.

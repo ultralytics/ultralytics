@@ -241,6 +241,7 @@ class Model(torch.nn.Module):
             >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
+        model_uri = checks.normalize_platform_uri(weights)
         if weights.lower().startswith(checks.REMOTE_FILE_PREFIXES):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26n -> yolo26n.pt
@@ -255,7 +256,7 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
-        self.overrides["model"] = weights
+        self.overrides["model"] = model_uri if str(model_uri).startswith("ul://") else weights
         self.overrides["task"] = self.task
         self.model_name = weights
 

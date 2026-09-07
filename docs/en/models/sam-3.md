@@ -427,7 +427,7 @@ Speed benchmarked on NVIDIA RTX PRO 6000 with `torch==2.9.1` and `ultralytics==8
 
 - **SAM 3**: Best for open-vocabulary concept segmentation, finding all instances of a concept with text or exemplar prompts
 - **SAM 2**: Best for interactive single-object segmentation in images and videos with geometric prompts
-- **YOLO26**: Best for real-time, high-speed segmentation with NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices
+- **YOLO26**: Best for real-time, high-speed segmentation with optional NMS-free end-to-end inference, [exportable to many formats](../modes/export.md#export-formats) for deployment on GPUs, CPUs, and edge devices
 
 ## SAM Comparison vs YOLO
 
@@ -471,7 +471,7 @@ Tests run on a NVIDIA RTX PRO 6000 with 96GB of VRAM using `torch==2.9.1` and `u
         for file_name in ["yolov8n-seg.pt", "yolo11n-seg.pt", "yolo26n-seg.pt"]:
             model = YOLO(file_name)
             model.info()
-            model(ASSETS)
+            model(ASSETS, nms=False)  # YOLO26 NMS-free head; no-op for YOLOv8/YOLO11
         ```
 
 ## Evaluation Metrics
@@ -657,7 +657,7 @@ SAM 3 and YOLO26 serve different use cases:
 
 **YOLO26 Advantages**:
 
-- **Speed**: Orders of magnitude faster inference with NMS-free end-to-end design
+- **Speed**: Orders of magnitude faster inference, with an optional NMS-free end-to-end head
 - **Efficiency**: 539× smaller models (6.4MB vs 3.45GB)
 - **Resource-friendly**: Runs on edge devices and mobile
 - **Real-time**: Optimized for production deployments

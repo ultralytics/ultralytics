@@ -506,6 +506,7 @@ def strip_qat(model: nn.Module) -> None:
     for m in model.modules():
         if isinstance(m, DynamicModule):
             m.export()  # revert the runtime class to the plain layer it wraps
+            m.__dict__.pop("_parallel_state", None)  # runtime process groups do not belong in a checkpoint
     ModeloptStateManager.remove_state(model)  # a reverted copy must not claim to be converted
 
 
@@ -516,6 +517,7 @@ def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
     import modelopt.torch.opt as mto
 
     mto.restore_from_modelopt_state(model, state["modelopt"])
+    model.to(next(model.parameters()).device)
     model.load_state_dict(state["ranges"], strict=False)
 
 

@@ -6,6 +6,8 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 ## Core Principles (CRITICAL)
 
+**PyPI release policy (CRITICAL):** Every Ultralytics-owned package published to PyPI must use exactly three numeric components, `MAJOR.MINOR.PATCH`. Never publish post-releases, prereleases, development releases, local versions, or other suffixes; increment the patch number and never weaken or bypass the publishing version guard.
+
 **Less is more. The simplest solution is the best solution.** The action hierarchy for every change: **Delete > Replace > Add**.
 
 1. **Solve at the owner**: Put behavior in the code path that owns or observes it. For fixes, never guard a symptom with a staleness check, initialization flag, skip-first-call branch, or `try/except` around broken logic; relocate the trigger and delete the wrong path. For features, extend the existing owner rather than creating a parallel abstraction.

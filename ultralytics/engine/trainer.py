@@ -315,9 +315,8 @@ class BaseTrainer:
         # Quantization-aware training: fake-quantize before the compile, DDP and EMA wraps below, and calibrate off a
         # rank-independent loader so every rank starts from identical activation ranges without a distributed sync
         if self.args.quantize == 8 and not is_qat(self.model):
-            calibration_loader = self.get_dataloader(
-                self.data["train"], batch_size=max(self.batch_size, 1), rank=-1, mode="val"
-            )
+            batch = self.batch_size if self.batch_size >= 1 else 16  # autobatch resolves after the DDP wrap below
+            calibration_loader = self.get_dataloader(self.data["train"], batch_size=batch, rank=-1, mode="val")
             self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on

@@ -608,7 +608,7 @@ def get_flops(model, imgsz=640):
     finally:
         # thop counts into FP64 buffers it only removes on success, so a failed profile leaves them in state_dict(),
         # where they reach checkpoints and break the mixed-dtype EMA update
-        for m in model.modules() if isinstance(model, torch.nn.Module) else ():
+        for m in model.modules():
             for counter in "total_ops", "total_params":
                 if counter in m._buffers:
                     del m._buffers[counter]

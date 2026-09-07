@@ -25,7 +25,7 @@ A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN mo
 
 ## 📦 Exporting a Model
 
-The OpenCV DNN module runs grid models only. [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) export to a grid by default:
+The OpenCV DNN module runs grid models and, with OpenCV 4.11 or newer, NMS-free YOLO26 exports. [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) export to a grid by default:
 
 ```bash
 yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640 # detect (also -seg / -pose / -obb / -cls / -sem)

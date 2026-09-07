@@ -161,6 +161,8 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
 
 QAT fine-tunes an already-trained checkpoint, so the learning rate is what decides whether it helps at all: the training defaults are built for long runs from scratch, and at `lr0=0.0002` the fine-tune lands _below_ post-training quantization, while `lr0=0.00001` recovers a good part of what INT8 costs. Recovery saturates after about five epochs, so more epochs mostly buy time rather than accuracy.
 
+On COCO, `yolo26n` gives up 0.81 mAP50-95 to INT8 after QAT, against 1.18 for post-training quantization of the same graph. That benefit shrinks as the model grows, because the fine-tune carries a drift of its own that a stronger checkpoint feels more sharply: at this learning rate `yolo26m` loses 0.98 mAP50-95 to five epochs of fine-tuning with quantization switched off entirely, which is most of the 1.20 that INT8 costs it. Scale `lr0` down for the larger sizes, and compare against a plain INT8 export before committing to QAT.
+
 The detection head is deliberately left in float, since a single INT8 activation scale cannot span box coordinates and class probabilities; quantizing it as well costs another 2.0 mAP50-95 on `yolo26n`. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next

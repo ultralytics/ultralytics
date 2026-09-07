@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import os
 import random
+import sys
 from collections.abc import Iterator
 from copy import copy
 from pathlib import Path
@@ -373,6 +374,8 @@ def build_dataloader(
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
+        # Avoid inheriting native-library locks from active threads when starting Linux workers.
+        multiprocessing_context="forkserver" if nw > 0 and sys.platform.startswith("linux") else None,
         prefetch_factor=(4 if shuffle else 2) if nw > 0 else None,  # validation holds fewer batches between passes
         pin_memory=pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),

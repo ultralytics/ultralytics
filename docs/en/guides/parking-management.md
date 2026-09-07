@@ -5,7 +5,7 @@ description: Detect occupied and available parking spaces in real time with Ultr
 keywords: parking management, YOLO26, Ultralytics, vehicle detection, real-time tracking, parking lot optimization, smart parking, parking occupancy detection, parking slot detection, ParkingManagement, ParkingPtsSelection, yolo26 parking, parking space detection
 ---
 
-# Build a Parking Management System with Ultralytics YOLO26 🚀
+# Build a Parking Management System with Ultralytics YOLO26
 
 ## What Is a Parking Management System?
 
@@ -117,6 +117,7 @@ A parking management system built with [Ultralytics YOLO26](https://github.com/u
         ```
 
         !!! note
+
             Create parking zone annotations first using `ParkingPtsSelection()` in Python (Step 2 above), then pass the JSON file to the CLI command.
 
 ### `ParkingManagement` Arguments

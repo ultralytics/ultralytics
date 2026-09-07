@@ -137,6 +137,6 @@ COCO8-Seg (8 images) sits below [COCO128-Seg](coco128-seg.md) (128 images) and t
 
 - **COCO8-Seg**: 8 images (4 train, 4 val) — the fastest sanity check, ideal for CI and quick debugging.
 - **COCO128-Seg**: 128 images — balanced between size and diversity, with train and val sharing the same directory.
-- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~27 GB on first download.
+- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~20 GB on first download.
 
 Use COCO8-Seg for the fastest possible pipeline check, then scale to COCO128-Seg or the full COCO-Seg dataset as confidence grows.

@@ -87,14 +87,14 @@ The TF SavedModel format supports the [Export](../modes/export.md), [Predict](..
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolo26n_saved_model'
+        model.export(format="saved_model")  # creates 'yolo26n_saved_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to TF SavedModel format
-        yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
+        yolo export model=yolo26n.pt format=saved_model # creates 'yolo26n_saved_model'
         ```
 
 !!! example "Predict"
@@ -193,7 +193,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
         model = YOLO("yolo26n.pt")
 
         # Export the model to TF SavedModel format
-        model.export(format="saved_model")  # creates '/yolo26n_saved_model'
+        model.export(format="saved_model")  # creates 'yolo26n_saved_model'
 
         # Load the exported TF SavedModel for inference
         tf_savedmodel_model = YOLO("./yolo26n_saved_model")
@@ -204,7 +204,7 @@ Exporting an Ultralytics YOLO model to the TensorFlow SavedModel format is strai
 
         ```bash
         # Export the YOLO26 model to TF SavedModel format
-        yolo export model=yolo26n.pt format=saved_model # creates '/yolo26n_saved_model'
+        yolo export model=yolo26n.pt format=saved_model # creates 'yolo26n_saved_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo26n_saved_model' source='https://ultralytics.com/images/bus.jpg'

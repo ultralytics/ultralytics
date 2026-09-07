@@ -5,7 +5,7 @@ keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLO26, Ultralytics, D
 model_name: yolo26n-obb
 ---
 
-# Oriented Bounding Boxes [Object Detection](https://www.ultralytics.com/glossary/object-detection)
+# Oriented Bounding Box Detection with Ultralytics YOLO {#oriented-bounding-boxes-object-detection}
 
 <img width="1024" src="https://cdn.ul.run/i/5358256c7e6abec4c69ca11be99143ba.avif" alt="Ultralytics YOLO oriented bounding box detection of boats in aerial imagery">
 
@@ -120,7 +120,7 @@ Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossa
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
-        metrics = model.val(data="dota8.yaml")  # no arguments needed, dataset and settings remembered
+        metrics = model.val(data="dota8.yaml")  # validate on the DOTA8 dataset
         metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)

@@ -117,7 +117,17 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=12.6
     ```
 
+<<<<<<< HEAD
 7.  Compile the library
+=======
+    For JetPack 7.1:
+
+    ```bash
+    export CUDA_VER=13.0
+    ```
+
+8.  Compile the library
+>>>>>>> origin/main
 
     ```bash
     make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo

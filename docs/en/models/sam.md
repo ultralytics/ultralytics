@@ -233,7 +233,7 @@ Auto-annotation with pretrained models can dramatically cut down the time and ef
 
 ## Citations and Acknowledgments
 
-If you find SAM useful in your research or development work, please consider citing our paper:
+If you find SAM useful in your research or development work, please consider citing the paper:
 
 !!! quote ""
 
@@ -254,9 +254,9 @@ We would like to express our gratitude to Meta AI for creating and maintaining t
 
 ## FAQ
 
-### What is the Segment Anything Model (SAM) by Ultralytics?
+### What is the Segment Anything Model (SAM)?
 
-The Segment Anything Model (SAM) by Ultralytics is a revolutionary image segmentation model designed for promptable segmentation tasks. It leverages advanced architecture, including image and prompt encoders combined with a lightweight mask decoder, to generate high-quality segmentation masks from various prompts such as spatial or text cues. Trained on the expansive [SA-1B dataset](https://ai.meta.com/datasets/segment-anything/), SAM excels in zero-shot performance, adapting to new image distributions and tasks without prior knowledge.
+Meta's Segment Anything Model (SAM) is a revolutionary image segmentation model designed for promptable segmentation tasks. It leverages advanced architecture, including image and prompt encoders combined with a lightweight mask decoder, to generate high-quality segmentation masks from various prompts such as spatial or text cues. Trained on the expansive [SA-1B dataset](https://ai.meta.com/datasets/segment-anything/), SAM excels in zero-shot performance, adapting to new image distributions and tasks without prior knowledge.
 
 ### How can I use the Segment Anything Model (SAM) for image segmentation?
 

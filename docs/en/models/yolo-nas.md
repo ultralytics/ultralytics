@@ -44,7 +44,7 @@ Each model variant is designed to offer a balance between [Mean Average Precisio
 
 ## Usage Examples
 
-Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` python package. The package provides a user-friendly Python API to streamline the process.
+Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` Python package. The package provides a user-friendly Python API to streamline the process.
 
 The following examples show how to use YOLO-NAS models with the `ultralytics` package for inference and validation:
 
@@ -58,7 +58,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in Python:
 
         ```python
         from ultralytics import NAS
@@ -81,7 +81,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
+        # Load a COCO-pretrained YOLO-NAS-s model and validate its performance on the COCO8 example dataset
         yolo val model=yolo_nas_s.pt data=coco8.yaml
 
         # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image

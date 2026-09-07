@@ -291,7 +291,7 @@ from ultralytics.utils.ops import scale_boxes
 
 image = cv.imread("ultralytics/assets/bus.jpg")
 h, w, c = image.shape
-resized = cv.resize(image, None, (), fx=1.2, fy=1.2)
+resized = cv.resize(image, None, fx=1.2, fy=1.2)
 new_h, new_w, _ = resized.shape
 
 xyxy_boxes = np.array(
@@ -568,12 +568,10 @@ Find additional details about the `sweep_annotator` method in our reference sect
 
 #### Adaptive label Annotation
 
-!!! warning
+`SolutionAnnotator.adaptive_label` draws a label whose shape is chosen with the `shape` argument (it replaces the older `circle_label` and `text_label` methods):
 
-    Starting from **Ultralytics v8.3.167**, `circle_label` and `text_label` have been replaced by a unified `adaptive_label` function. You can now specify the annotation type using the `shape` argument:
-
-    * **Rectangle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")`
-    * **Circle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")`
+- **Rectangle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="rect")`
+- **Circle**: `annotator.adaptive_label(box, label=names[int(cls)], color=colors(cls, True), shape="circle")`
 
 <p align="center">
   <br>

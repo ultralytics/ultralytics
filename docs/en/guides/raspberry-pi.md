@@ -155,7 +155,6 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
         | YOLO26l | 54.4        | 1259.46                |
         | YOLO26x | 56.9        | 2636.26                |
 
-
     === "YOLO11 (ONNX)"
 
         | Model   | mAP50-95(B) | Inference time (ms/im) |
@@ -374,7 +373,7 @@ There are a couple of best practices to follow in order to enable maximum perfor
 
 3. Overclock Raspberry Pi
 
-    If you want a little boost in performance while running Ultralytics YOLO26 models on Raspberry Pi 5, you can overclock the CPU from its base 2.4GHz to 2.9GHz and the GPU from 800MHz to 1GHz. If the system becomes unstable or crashes, reduce the overclock values by 100MHz increments. Ensure proper cooling is in place, as overclocking increases heat generation and may lead to thermal throttling.
+    If you want a little boost in performance while running Ultralytics YOLO26 models on Raspberry Pi 5, you can overclock the CPU from its base 2.4GHz to 3.0GHz and the GPU from 800MHz to 1GHz. If the system becomes unstable or crashes, reduce the overclock values by 100MHz increments. Ensure proper cooling is in place, as overclocking increases heat generation and may lead to thermal throttling.
 
     a. Upgrade the software
 

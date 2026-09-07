@@ -137,18 +137,31 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
         from ultralytics import YOLO
 
         model = YOLO("yolo26n.pt")
-        model.train(data="coco.yaml", epochs=10, lr0=0.00001, warmup_epochs=0.0, mosaic=0.0, quantize=8)
+        model.train(
+            data="coco.yaml",
+            quantize=8,
+            epochs=5,
+            batch=64,
+            optimizer="AdamW",
+            lr0=0.00001,
+            lrf=0.1,
+            warmup_epochs=0.5,
+            cos_lr=True,
+            mosaic=0.0,
+        )
         model.export(format="engine", quantize=8)  # ranges are already learned, no calibration data needed
         ```
 
     === "CLI"
 
         ```bash
-        yolo train model=yolo26n.pt data=coco.yaml epochs=10 lr0=0.00001 warmup_epochs=0 mosaic=0 quantize=8
+        yolo train model=yolo26n.pt data=coco.yaml quantize=8 epochs=5 batch=64 optimizer=AdamW lr0=0.00001 lrf=0.1 warmup_epochs=0.5 cos_lr=True mosaic=0
         yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
         ```
 
-QAT fine-tunes an already-trained checkpoint, so it needs a small learning rate and few epochs: the training defaults are built for long runs from scratch, and both the warmup learning-rate spike and mosaic augmentation cost more accuracy than quantization does. On COCO, `yolo26n` at `lr0=0.00001` comes within 0.8 mAP50-95 of its FP32 accuracy after ten epochs (0.97 after four, and the curve is flat past epoch five), where post-training quantization of the same graph loses 3.2; raising the learning rate to `0.0002` instead ends up below post-training quantization. The detection head is deliberately left in float, since a single INT8 activation scale cannot span box coordinates and class probabilities. It runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+QAT fine-tunes an already-trained checkpoint, so the learning rate is what decides whether it helps at all: the training defaults are built for long runs from scratch, and at `lr0=0.0002` the fine-tune lands _below_ post-training quantization, while `lr0=0.00001` recovers a good part of what INT8 costs. Recovery saturates after about five epochs, so more epochs mostly buy time rather than accuracy.
+
+The detection head is deliberately left in float, since a single INT8 activation scale cannot span box coordinates and class probabilities; quantizing it as well costs another 2.0 mAP50-95 on `yolo26n`. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

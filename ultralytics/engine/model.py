@@ -309,6 +309,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.overrides["pretrained"] = False  # train() builds the seeded model from the architecture
         self.predictor = None
         return self
 
@@ -334,12 +335,11 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
-            self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, ckpt = load_checkpoint(weights)
             ckpt_path = weights.pt_path
         else:
-            self.overrides.pop("pretrained", None)
             ckpt, ckpt_path = {"model": self.model}, None  # an object load has no file to resume from
+        self.overrides.pop("pretrained", None)
         self.model.load(weights)
         self.ckpt, self.ckpt_path = ckpt, ckpt_path  # train() seeds from self.model while ckpt is set
         self.predictor = None
@@ -842,6 +842,7 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
+        pretrained = args.setdefault("pretrained", self.overrides.get("pretrained", True))
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
             from ultralytics.engine.trainer import MultiTrainer
 
@@ -854,7 +855,6 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
-        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"] = self.ckpt_path

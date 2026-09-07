@@ -1299,7 +1299,7 @@ class MultiTrainer:
                     overrides["save_dir"] = str(save_dir)
                     if self.trainer is None:
                         overrides["model"] = str(base_model)
-                        overrides["pretrained"] = True
+                        overrides.pop("cfg", None)  # already merged here; the CLI would re-apply the file
                         subprocess.run(
                             [
                                 *_YOLO_CLI_COMMAND,
@@ -1310,7 +1310,11 @@ class MultiTrainer:
                         )
                     else:
                         trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
-                        trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)
+                        pretrained = overrides.get("pretrained", True)
+                        weights = None if pretrained is False else self.model
+                        if isinstance(pretrained, (str, Path)):
+                            weights, _ = load_checkpoint(pretrained)
+                        trainer.model = trainer.get_model(weights=weights, cfg=self.model.yaml)
                         trainer.train()
                     best, last = save_dir / "weights" / "best.pt", save_dir / "weights" / "last.pt"
                     ckpt = best if best.exists() else last

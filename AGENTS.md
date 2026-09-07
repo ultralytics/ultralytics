@@ -6,7 +6,7 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 ## Core Principles (CRITICAL)
 
-**PyPI release policy (CRITICAL):** Every Ultralytics-owned package published to PyPI must use exactly three numeric components, `MAJOR.MINOR.PATCH`. Never publish post-releases, prereleases, development releases, local versions, or other suffixes; increment the patch number and never weaken or bypass the publishing version guard.
+**PyPI releases:** Ultralytics-owned packages must use three-number `MAJOR.MINOR.PATCH` versions only; increment the patch number, never add suffixes or bypass version guards.
 
 **Less is more. The simplest solution is the best solution.** The action hierarchy for every change: **Delete > Replace > Add**.
 

@@ -335,8 +335,7 @@ def onnx2engine(
     elif use_fp16 and not is_trt11:
         config.set_flag(trt.BuilderFlag.FP16)
 
-    # Explicit quantization (QAT Q/DQ in the graph) needs the INT8 flag above but neither a calibrator nor the
-    # per-layer Sigmoid constraints below: Q/DQ placement already keeps everything but conv/matmul inputs in float
+    # Explicit Q/DQ graphs need neither calibration nor per-layer Sigmoid constraints.
     if calibrate and not is_trt11:
 
         class EngineCalibrator(trt.IInt8Calibrator):

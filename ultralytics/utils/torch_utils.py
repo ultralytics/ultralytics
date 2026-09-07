@@ -426,8 +426,7 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     buffer, not a learnable parameter), so training adapts the weights to them.
 
     BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
-    `fuse()` and leaves BN folding to the deployment backend, and the head is left in float because a single INT8
-    activation scale cannot cover both box coordinates and class probabilities.
+    `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy loss.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.
@@ -453,8 +452,7 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
     model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
-    # Leave the head in float: one INT8 activation scale cannot span box pixels (~0-640) and class probabilities
-    # (0-1), and on COCO quantizing it costs 2.0 mAP of the 3.2 that INT8 costs at all
+    # Keep the output head in float to limit INT8 accuracy loss.
     mtq.disable_quantizer(model, f"*model.{len(model.model) - 1}.*")
     return model
 
@@ -464,6 +462,7 @@ def is_qat(model: nn.Module) -> bool:
 
     Matched by class name so that non-QAT models, i.e. every ordinary export, never import ModelOpt.
     """
+    model = model.model if isinstance(getattr(model, "model", None), nn.Module) else model
     return any(type(m).__name__ == "TensorQuantizer" for m in model.modules())
 
 
@@ -1174,6 +1173,8 @@ def attempt_compile(
     """
     if not hasattr(torch, "compile") or not mode:
         return model
+    if is_qat(model):
+        raise ValueError("QAT models do not support torch.compile. Use compile=False.")
 
     if mode is True:
         mode = "default"

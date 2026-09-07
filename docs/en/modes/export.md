@@ -163,7 +163,9 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
 
 Use a small learning rate when fine-tuning a pretrained checkpoint. QAT can initially reduce accuracy, and its benefit over post-training quantization depends on the model, dataset, and training budget. Validate the exported model against both the original checkpoint and a post-training quantized export; fake-quantization scores during training do not establish deployment accuracy.
 
-The detection head is deliberately left in float, since a single INT8 activation scale cannot span box coordinates and class probabilities; quantizing it as well costs another 2.0 mAP50-95 on `yolo26n`. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
+
+The output head is deliberately left in float to limit INT8 accuracy loss. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

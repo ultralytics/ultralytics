@@ -1120,8 +1120,8 @@ class Exporter:
 
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
-                model,
-                self.im,
+                model.cpu() if self.qat else model,
+                self.im.cpu() if self.qat else self.im,
                 f,
                 opset=opset,
                 input_names=["images"],

@@ -369,14 +369,13 @@ class Model(torch.nn.Module):
         from ultralytics import __version__
         from ultralytics.utils.torch_utils import qat_state, strip_qat
 
+        state = qat_state(self.model) if isinstance(self.model, torch.nn.Module) else None
         model = (
             deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
             if isinstance(self.model, torch.nn.Module)
             else self.model
         )
-        state = None
         if isinstance(model, torch.nn.Module):
-            state = qat_state(model)  # read the quantization out before pickling, its layer classes cannot pickle
             strip_qat(model)
         updates = {
             "ema": None,

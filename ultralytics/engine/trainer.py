@@ -59,11 +59,11 @@ from ultralytics.utils.torch_utils import (
     convert_optimizer_state_dict_to_fp16,
     get_torch_device_backend,
     init_seeds,
-    is_qat,
     one_cycle,
     parse_device,
     prepare_qat,
     qat_state,
+    restore_qat,
     select_device,
     strip_optimizer,
     strip_qat,
@@ -331,14 +331,23 @@ class BaseTrainer:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
 
-        # Quantization-aware training: fake-quantize before the compile, DDP and EMA wraps below, which all need the
-        # final module structure
-        # A model rebuilt from a QAT checkpoint arrives already quantized from BaseModel.load, ranges included
-        if self.args.quantize == 8 and not is_qat(self.model):
-            # Calibrate off a rank-independent loader so every rank starts from identical ranges without a sync
-            batch = self.batch_size if self.batch_size >= 1 else 16  # autobatch resolves after the DDP wrap below
-            calibration_loader = self.get_dataloader(self.data["train"], batch_size=batch, rank=-1, mode="val")
-            self.model = prepare_qat(self.model, calibration_loader)
+        # Check imgsz
+        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        self.stride = gs  # for multiscale training
+
+        # Prepare the final module structure before compile, DDP, and EMA wrap it.
+        if self.args.quantize == 8:
+            if self.resume and ckpt.get("modelopt"):
+                restore_qat(self.model, ckpt["modelopt"])
+            else:
+                batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
+                with torch_distributed_zero_first(LOCAL_RANK):
+                    calibration_loader = self.get_dataloader(self.data["train"], batch_size=batch, rank=-1, mode="val")
+                self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+                if RANK != -1:
+                    for buffer in self.model.buffers():
+                        dist.broadcast(buffer, 0)  # use rank 0's ranges even with random multi-scale preprocessing
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
@@ -401,11 +410,6 @@ class BaseTrainer:
                 if TORCH_2_4
                 else torch.cuda.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
             )
-        # Check imgsz
-        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        self.stride = gs  # for multiscale training
-
         # resume training would directly load DistillationModel so check here
         if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
             self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
@@ -746,6 +750,7 @@ class BaseTrainer:
                     v.copy_(model_sd[k])
         # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
         # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
+        modelopt = qat_state(ema)
         ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
         if hasattr(ema, "criterion"):
             ema.criterion = None  # strip training-only state from the serialization snapshot
@@ -755,7 +760,6 @@ class BaseTrainer:
                 torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
-        modelopt = qat_state(ema)  # QAT layer classes are built at runtime and cannot pickle; carried as data
         strip_qat(ema)
         buffer = io.BytesIO()
         torch.save(
@@ -1260,8 +1264,8 @@ class MultiTrainer:
         model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
         base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
+            state = qat_state(self.model)
             model = deepcopy(self.model).half()
-            state = qat_state(model)
             strip_qat(model)
             torch_save({"model": model, "modelopt": state, "train_args": getattr(self.model, "args", {})}, base_model)
         try:

@@ -198,7 +198,6 @@ def onnx2engine(
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
     dla: int | None = None,
     dataset=None,
-    qdq: bool = False,
     metadata: dict | None = None,
     verbose: bool = False,
     prefix: str = "",
@@ -213,10 +212,8 @@ def onnx2engine(
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when
-            `qdq=True`.
-        qdq (bool): Whether the ONNX already carries Q/DQ nodes from quantization-aware training, in which case the
-            graph holds the INT8 ranges and no calibration runs.
+        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when the
+            ONNX graph already carries Q/DQ ranges.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
@@ -236,6 +233,8 @@ def onnx2engine(
         `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the Sigmoid layers at higher precision to preserve
         confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
+    import onnx
+
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
@@ -275,7 +274,8 @@ def onnx2engine(
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
     use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
-    calibrate = use_int8 and not qdq  # a QAT graph carries its own ranges, so every calibration step is skipped
+    qdq = any(n.op_type == "QuantizeLinear" for n in onnx.load(onnx_file, load_external_data=False).graph.node)
+    calibrate = use_int8 and not qdq  # explicit quantization carries its ranges in the graph
     if calibrate and dataset is None:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 

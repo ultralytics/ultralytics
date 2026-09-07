@@ -416,7 +416,7 @@ def fuse_deconv_and_bn(deconv, bn):
 MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
 
 
-def prepare_qat(model: nn.Module, dataloader, batches: int = 8) -> nn.Module:
+def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
     """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
 
     Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training learns
@@ -431,6 +431,7 @@ def prepare_qat(model: nn.Module, dataloader, batches: int = 8) -> nn.Module:
     Args:
         model (nn.Module): Model to prepare, modified in place.
         dataloader (Iterable): Loader yielding Ultralytics batches for the initial range calibration.
+        preprocess (Callable): Task trainer preprocessing applied to each calibration batch.
         batches (int): Number of calibration batches.
 
     Returns:
@@ -441,14 +442,11 @@ def prepare_qat(model: nn.Module, dataloader, batches: int = 8) -> nn.Module:
 
     def forward_loop(m):
         """Run calibration batches with BatchNorm statistics frozen, as at deployment."""
-        device = next(m.parameters()).device
         training = m.training
         m.eval()
         with torch.no_grad():
             for batch, _ in zip(dataloader, range(batches)):
-                # Normalize here rather than through a trainer hook: ranges must come from fixed-size deployment-like
-                # inputs, not multi-scale training crops, and calibration then needs no trainer state at all
-                m(batch["img"].to(device, non_blocking=True).float() / 255)
+                m(preprocess(batch)["img"])
         m.train(training)
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
@@ -471,8 +469,8 @@ def qat_state(model: nn.Module) -> dict[str, Any] | None:
     """Return the state that reproduces a model's fake-quantization, or None if it carries none.
 
     Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at runtime,
-    which pickle cannot look up on load. The quantization therefore travels beside the module as data, and both the
-    checkpoint writers and `BaseModel.load` read it from here so QAT lives in one place instead of once per caller.
+    which pickle cannot look up on load. The quantization therefore travels beside the module as data. The
+    checkpoint writers read it here and `restore_qat` reconstructs it at load and resume.
 
     Args:
         model (nn.Module): Model to read, left untouched.
@@ -658,13 +656,6 @@ def get_flops(model, imgsz=640):
         return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
     except Exception:
         return 0.0
-    finally:
-        # thop counts into FP64 buffers it only removes on success, so a failed profile leaves them in state_dict(),
-        # where they reach checkpoints and break the mixed-dtype EMA update
-        for m in model.modules():
-            for counter in "total_ops", "total_params":
-                if counter in m._buffers:
-                    del m._buffers[counter]
 
 
 def initialize_weights(model):

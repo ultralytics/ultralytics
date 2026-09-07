@@ -1276,6 +1276,7 @@ class MultiTrainer:
                     overrides["save_dir"] = str(save_dir)
                     if self.trainer is None:
                         overrides["model"] = str(base_model)
+                        overrides.pop("cfg", None)  # already merged here; the CLI would re-apply the file
                         subprocess.run(
                             [
                                 *_YOLO_CLI_COMMAND,

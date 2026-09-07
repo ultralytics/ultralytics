@@ -389,7 +389,9 @@ Serialize the DALI pipeline for the Triton DALI backend:
     from ultralytics import YOLO
 
     model = YOLO("yolo26n.pt")
-    model.export(format="engine", imgsz=640, quantize=16, batch=8, dynamic=True, nms=False)  # NMS-free (N, 300, 6); TensorRT >= 8.5
+    model.export(
+        format="engine", imgsz=640, quantize=16, batch=8, dynamic=True, nms=False
+    )  # NMS-free (N, 300, 6); TensorRT >= 8.5
     # Copy the .engine file to model_repository/yolo_trt/1/model.plan
     ```
 

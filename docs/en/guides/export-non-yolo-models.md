@@ -17,7 +17,7 @@ Deploying PyTorch models to production usually means juggling a different export
 - **Shared utility surface:** the export helpers live under `ultralytics.utils.export`, so once the backend packages are installed you can keep the same calling pattern across formats.
 - **Same code path as YOLO exports:** the same helpers power every Ultralytics YOLO export.
 - **FP16 and INT8 quantization** built in for formats that support it (OpenVINO, CoreML, and MNN; FP16 only for NCNN and Core AI).
-- **Works on CPU:** no GPU required for the export step itself, so you can run it locally on any laptop.
+- **Works on CPU:** no GPU required for the export step itself, so you can run it locally on a laptop; CoreML export is not supported on Windows, and Core AI export needs macOS 26 or later on Apple silicon.
 
 ## Quick Start
 

@@ -343,8 +343,10 @@ class BaseTrainer:
             else:
                 batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
                 with torch_distributed_zero_first(LOCAL_RANK):
-                    calibration_loader = self.get_dataloader(self.data["train"], batch_size=batch, rank=-1, mode="val")
-                self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+                    calibration_loader = self.get_dataloader(
+                        self.data["train"], batch_size=batch, rank=-1, mode="train"
+                    )
+                    self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
                 if RANK != -1:
                     for buffer in self.model.buffers():
                         dist.broadcast(buffer, 0)  # use rank 0's ranges even with random multi-scale preprocessing

@@ -441,12 +441,12 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     import modelopt.torch.quantization as mtq
 
     def forward_loop(m):
-        """Run calibration batches with BatchNorm statistics frozen, as at deployment."""
+        """Calibrate through the task batch path, with BatchNorm statistics frozen."""
         training = m.training
         m.eval()
         with torch.no_grad():
             for batch, _ in zip(dataloader, range(batches)):
-                m(preprocess(batch)["img"])
+                m(preprocess(batch))
         m.train(training)
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
@@ -478,6 +478,7 @@ def qat_state(model: nn.Module) -> dict[str, Any] | None:
     Returns:
         (dict | None): ModelOpt conversion state and the calibrated quantizer ranges, or None for a plain model.
     """
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
     if not is_qat(model):
         return None
     import modelopt.torch.opt as mto
@@ -494,6 +495,7 @@ def strip_qat(model: nn.Module) -> None:
     Checkpoint writers call this on the copy they are about to pickle, after `qat_state` has read the quantization out
     of it, since the runtime-generated layer classes cannot be pickled.
     """
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
     if not is_qat(model):
         return
     from modelopt.torch.opt.conversion import ModeloptStateManager
@@ -507,6 +509,7 @@ def strip_qat(model: nn.Module) -> None:
 
 def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
     """Re-apply the fake-quantization captured by `qat_state` to a model, in place."""
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
     check_requirements(MODELOPT_REQUIREMENTS)
     import modelopt.torch.opt as mto
 

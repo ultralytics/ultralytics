@@ -88,7 +88,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
     !!! note "Export arguments"
 
-        `nms=False` exports the NMS-free head, and `agnostic_nms=True` keeps a single class per detection so that `cluster-mode=4` (no clustering) in the DeepStream config does not draw a box twice. Add `imgsz=1280` to change the inference size (default: 640), `batch=4` for a static batch size of 4, and `opset=12` for TensorRT 8.2 or older (DeepStream 6.0.1 and earlier). See the [export arguments](../modes/export.md#arguments) for the full list.
+        `nms=False` exports the NMS-free head, and `agnostic_nms=True` keeps a single class per detection so that `cluster-mode=4` (no clustering) in the DeepStream config does not draw a box twice. Add `imgsz=1280` to change the inference size (default: 640), `batch=4` for a batch size of 4 (the exported batch is static, so it must match `batch-size` in the DeepStream config), and `opset=12` for TensorRT 8.2 or older (DeepStream 6.0.1 and earlier). See the [export arguments](../modes/export.md#arguments) for the full list.
 
 5.  Copy the generated `.onnx` model file and `labels.txt` file to the `DeepStream-Yolo` folder
 
@@ -405,10 +405,15 @@ Yes, the guide for deploying Ultralytics YOLO26 with the DeepStream SDK and Tens
 
 ### How can I convert a YOLO26 model to ONNX for DeepStream?
 
-Export the model with the NMS-free head using the Ultralytics exporter:
+Export the model with the NMS-free head using the Ultralytics exporter, and write the `labels.txt` file DeepStream reads the class names from:
 
-```bash
-yolo export model=yolo26s.pt format=onnx nms=False agnostic_nms=True
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26s.pt")
+model.export(format="onnx", nms=False, agnostic_nms=True)  # creates 'yolo26s.onnx'
+with open("labels.txt", "w") as f:
+    f.write("\n".join(model.names.values()))
 ```
 
 Add `opset=12` for TensorRT 8.2 or older (DeepStream 6.0.1 and earlier). For more details on model conversion, check out our [model export section](../modes/export.md).

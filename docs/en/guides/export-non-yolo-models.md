@@ -383,7 +383,7 @@ Yes. torchvision classifiers, detectors, and segmentation models export to `.mlp
 
 ### Can I quantize my exported model to INT8 or FP16?
 
-Yes, for several formats. Pass `quantize=16` for FP16 or `quantize=8` for INT8 when exporting to OpenVINO, CoreML, or MNN; NCNN and Core AI accept `quantize=16` only. INT8 in OpenVINO additionally requires a `calibration_dataset` argument for [post-training quantization](https://www.ultralytics.com/glossary/model-quantization). See each format's integration page for quantization trade-offs.
+Yes, for several formats. Pass `quantize=16` for FP16 or `quantize=8` for INT8 when exporting to OpenVINO, CoreML, or MNN; NCNN and Core AI export FP32 by default, take `quantize=16` for FP16, and have no INT8 path. INT8 in OpenVINO additionally requires a `calibration_dataset` argument for [post-training quantization](https://www.ultralytics.com/glossary/model-quantization). See each format's integration page for quantization trade-offs.
 
 ### How do I verify an exported model matches the original?
 

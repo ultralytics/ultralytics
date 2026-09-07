@@ -47,6 +47,7 @@ from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
+from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_1_11,
@@ -342,11 +343,12 @@ class BaseTrainer:
                 restore_qat(self.model, ckpt["modelopt"])
             else:
                 batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
-                with torch_distributed_zero_first(LOCAL_RANK):
+                with torch_distributed_zero_first(LOCAL_RANK), override_configs(self.args, {"cache": False}):
                     calibration_loader = self.get_dataloader(
                         self.data["train"], batch_size=batch, rank=-1, mode="train"
                     )
                     self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+                    del calibration_loader
                 if RANK != -1:
                     for buffer in self.model.buffers():
                         dist.broadcast(buffer, 0)  # use rank 0's ranges even with random multi-scale preprocessing

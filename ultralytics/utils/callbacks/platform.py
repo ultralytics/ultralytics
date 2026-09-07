@@ -284,6 +284,11 @@ def on_pretrain_routine_start(trainer):
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not _api_key:
         return
+    if sys.version_info < (3, 11):
+        LOGGER.warning(
+            f"{PREFIX}Platform integration requires Python 3.11 or newer. Training will continue without tracking."
+        )
+        return
 
     project, name = _get_project_name(trainer)
     LOGGER.info(f"{PREFIX}Streaming training metrics to Platform")

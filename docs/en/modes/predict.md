@@ -974,7 +974,7 @@ Ultralytics YOLO can process a wide range of data sources, including individual 
 
 To optimize inference speed and manage memory efficiently, you can use the streaming mode by setting `stream=True` in the predictor's call method. The streaming mode generates a memory-efficient generator of `Results` objects instead of loading all frames into memory. For processing long videos or large datasets, streaming mode is particularly useful. Learn more about [streaming mode](#key-features-of-predict-mode).
 
-On very large images with dense same-class detections, NMS performance also matters: [`non_max_suppression()`](../reference/utils/nms.md) runs on the faster `torchvision.ops.nms` kernel whenever `torchvision` is imported, and the standard predict and val pipelines import it automatically during model warmup. If your custom pipeline calls `non_max_suppression()` directly, add `import torchvision` before inference — the pure-torch fallback can be over 20× slower on such scenes.
+On very large images with dense same-class detections, NMS performance also matters: on non-XPU devices, [`non_max_suppression()`](../reference/utils/nms.md) runs on the faster `torchvision.ops.nms` kernel whenever `torchvision` is imported, and the standard predict and val pipelines import it automatically during model warmup. If your custom pipeline calls `non_max_suppression()` directly, add `import torchvision` before inference — the pure-torch fallback can be over 20× slower on such scenes.
 
 ### What inference arguments does Ultralytics YOLO support?
 

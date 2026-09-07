@@ -241,7 +241,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [20 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, and Huawei Ascend.
+The Platform supports export to 20 deployment formats, listed with the `format` value the [API](../api/index.md#create-export) takes: ONNX (`onnx`), TorchScript (`torchscript`), OpenVINO (`openvino`), TensorRT (`engine`), CoreML (`coreml`), TF SavedModel (`saved_model`), TF GraphDef (`pb`), LiteRT (`litert`), TF Edge TPU (`edgetpu`), PaddlePaddle (`paddle`), NCNN (`ncnn`), MNN (`mnn`), RKNN (`rknn`), Qualcomm QNN (`qnn`), IMX500 (`imx`), Axelera (`axelera`), ExecuTorch (`executorch`), DeepX (`deepx`), Hailo (`hailo`), and Huawei Ascend (`ascend`).
 
 ### Format Selection Guide
 
@@ -416,7 +416,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 20 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to every export format and its options
 
 ## FAQ
 

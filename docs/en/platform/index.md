@@ -46,7 +46,7 @@ graph LR
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                  |
 | **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported task types](data/annotation.md#supported-task-types)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                    |
-| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                |
+| **Export**   | 20 deployment formats (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                      |
 | **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                |
 
 **What you can do:**
@@ -54,7 +54,7 @@ graph LR
 - **Upload** images, videos, and dataset files to create training datasets
 - **Visualize** annotations with interactive overlays for the 6 YOLO task types supported by the annotation editor (see [supported task types](data/annotation.md#supported-task-types))
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
-- **Export** to [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
+- **Export** to [20 deployment formats](train/models.md#supported-formats) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
 - **Monitor** training progress, deployment health, and usage metrics
 - **Connect** cloud storage, annotation tools, and Slack through [integrations](integrations/index.md)
@@ -456,8 +456,6 @@ See [Annotation](data/annotation.md) for the complete guide.
 
 ### What export formats are supported?
 
-The Platform supports the same 20 deployment formats as Ultralytics Export mode. PyTorch is the source format; each row with a `format` argument is an export target.
-
-{% include "macros/export-table.md" %}
+The Platform exports to 20 deployment formats; see [supported formats](train/models.md#supported-formats) for the list and the per-format restrictions.
 
 See [Models Export](train/models.md#export-model), the [Export mode guide](../modes/export.md), and the [Integrations index](../integrations/index.md) for format-specific options.

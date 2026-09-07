@@ -1614,7 +1614,7 @@ POST /api/models/{owner}/{project}/{model}/exports
 
 | Field     | Type   | Required    | Description                                                                                                                                                                                               |
 | --------- | ------ | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`  | string | Yes         | Target export format (see table below)                                                                                                                                                                    |
+| `format`  | string | Yes         | Target export format (see [supported formats](../train/models.md#supported-formats))                                                                                                                      |
 | `gpuType` | string | Conditional | Required when `format` is `engine`; use a supported [GPU or Jetson target](../train/models.md#nvidia-jetson-tensorrt-targets)                                                                             |
 | `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `optimize`, `keras`, and `name` (device target for RKNN, QNN, Hailo, and Ascend formats) |
 
@@ -1641,10 +1641,8 @@ is already in flight returns `409`.
 
 **Supported Formats:**
 
-Use the `format` argument from the shared export table below. PyTorch is the source format and is not an API export
-target.
-
-{% include "macros/export-table.md" %}
+`format` accepts the 20 values listed under [supported formats](../train/models.md#supported-formats). PyTorch is the
+source format and is not an API export target.
 
 ### Get Export Status
 

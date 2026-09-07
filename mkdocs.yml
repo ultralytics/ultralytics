@@ -561,6 +561,7 @@ nav:
       - Comet ML: integrations/comet.md
       - Core AI: integrations/coreai.md
       - CoreML: integrations/coreml.md
+      - D-Robotics RDK: integrations/drobotics-rdk.md
       - DEEPX: integrations/deepx.md
       - DVC: integrations/dvc.md
       - ExecuTorch: integrations/executorch.md
@@ -856,6 +857,7 @@ nav:
               - openvino: reference/utils/export/openvino.md
               - paddle: reference/utils/export/paddle.md
               - qnn: reference/utils/export/qnn.md
+              - rdk: reference/utils/export/rdk.md
               - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md

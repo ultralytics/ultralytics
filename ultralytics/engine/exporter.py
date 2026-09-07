@@ -464,8 +464,8 @@ def validate_args(format, passed_args, valid_args):
     if passed_args.quantize is not None:  # 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS
         options = [label for label, formats in QUANTIZE_PRECISIONS if format in formats]
         if format not in FP32_UNSUPPORTED_FORMATS:
-            options.append("32 (FP32)")
-        hint = f"format='{format}' supports quantize={', '.join(options) or 'none'} (or None for FP32). See {QUANTIZE_DOCS_URL}"
+            options.append("32 or None (FP32)")
+        hint = f"format='{format}' supports quantize={', '.join(options)}. See {QUANTIZE_DOCS_URL}"
         if passed_args.quantize == 16:  # FP16
             assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported; {hint}"
         elif passed_args.quantize == 8:  # INT8

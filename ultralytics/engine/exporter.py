@@ -465,8 +465,8 @@ def validate_args(format, passed_args, valid_args):
     if passed_args.quantize is not None:  # 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS
         options = [label for label, formats in QUANTIZE_PRECISIONS if format in formats]
         if format not in FP32_UNSUPPORTED_FORMATS:
-            options.append("32 (FP32)")
-        hint = f"format='{format}' supports quantize={', '.join(options) or 'none'} (or None for FP32). See {QUANTIZE_DOCS_URL}"
+            options.append("32 or None (FP32)")
+        hint = f"format='{format}' supports quantize={', '.join(options)}. See {QUANTIZE_DOCS_URL}"
         if passed_args.quantize == 16:  # FP16
             assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported; {hint}"
         elif passed_args.quantize == 8:  # INT8
@@ -623,11 +623,6 @@ class Exporter:
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
-            if self.args.quantize == 32:
-                raise ValueError(
-                    f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
-                    f"See {QUANTIZE_DOCS_URL}"
-                )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo"} and not self.args.data:

@@ -117,23 +117,23 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=12.6
     ```
 
-<<<<<<< HEAD
-7.  Compile the library
+<<<<<<< HEAD 7. Compile the library
 =======
-    For JetPack 7.1:
+For JetPack 7.1:
 
     ```bash
     export CUDA_VER=13.0
     ```
 
 8.  Compile the library
->>>>>>> origin/main
 
-    ```bash
-    make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
-    ```
+    > > > > > > > origin/main
 
-8.  Edit the `config_infer_primary_yolo26.txt` file according to your model (for YOLO26s with 80 classes)
+        ```bash
+        make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
+        ```
+
+9.  Edit the `config_infer_primary_yolo26.txt` file according to your model (for YOLO26s with 80 classes)
 
     ```bash
     [property]
@@ -159,7 +159,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
         ...
         ```
 
-9.  Edit the `deepstream_app_config` file
+10. Edit the `deepstream_app_config` file
 
     ```bash
     ...
@@ -168,7 +168,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     config-file=config_infer_primary_yolo26.txt
     ```
 
-10. You can also change the video source in `deepstream_app_config` file. Here, a default video file is loaded
+11. You can also change the video source in `deepstream_app_config` file. Here, a default video file is loaded
 
     ```bash
     ...

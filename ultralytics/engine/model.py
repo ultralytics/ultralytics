@@ -367,7 +367,6 @@ class Model(torch.nn.Module):
         from datetime import datetime
 
         from ultralytics import __version__
-
         from ultralytics.utils.torch_utils import qat_state, strip_qat
 
         model = (

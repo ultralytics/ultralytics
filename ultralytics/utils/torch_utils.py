@@ -469,8 +469,8 @@ def qat_state(model: nn.Module) -> dict[str, Any] | None:
     """Return the state that reproduces a model's fake-quantization, or None if it carries none.
 
     Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at runtime,
-    which pickle cannot look up on load. The quantization therefore travels beside the module as data. The
-    checkpoint writers read it here and `restore_qat` reconstructs it at load and resume.
+    which pickle cannot look up on load. The quantization therefore travels beside the module as data. The checkpoint
+    writers read it here and `restore_qat` reconstructs it at load and resume.
 
     Args:
         model (nn.Module): Model to read, left untouched.
@@ -491,8 +491,8 @@ def qat_state(model: nn.Module) -> dict[str, Any] | None:
 def strip_qat(model: nn.Module) -> None:
     """Revert a model's fake-quantization in place, leaving the plain layers it wraps.
 
-    Checkpoint writers call this on the copy they are about to pickle, after `qat_state` has read the quantization
-    out of it, since the runtime-generated layer classes cannot be pickled.
+    Checkpoint writers call this on the copy they are about to pickle, after `qat_state` has read the quantization out
+    of it, since the runtime-generated layer classes cannot be pickled.
     """
     if not is_qat(model):
         return

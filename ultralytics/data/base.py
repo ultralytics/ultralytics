@@ -7,7 +7,6 @@ import math
 import os
 import random
 from copy import deepcopy
-from multiprocessing import RawArray
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Any
@@ -71,28 +70,22 @@ class BaseDataset(Dataset):
     """
 
     class _ImageCache:
-        """Store images in one shared buffer across fork, spawn, and forkserver workers."""
+        """Store images in one contiguous array to preserve copy-on-write sharing between workers."""
 
         def __init__(self, images: list[np.ndarray]):
             """Pack images and their layouts into contiguous NumPy arrays."""
             self.shapes = np.array([im.shape for im in images])
             self.dtypes = np.array([im.dtype.str for im in images])
             self.offsets = np.concatenate(([0], np.cumsum([im.nbytes for im in images])))
-            self.buffer = RawArray("B", int(self.offsets[-1]))
-            buffer = np.frombuffer(self.buffer, dtype=np.uint8)
+            self.buffer = np.empty(self.offsets[-1], dtype=np.uint8)
             for i, im in enumerate(images):
-                buffer[self.offsets[i] : self.offsets[i + 1]] = im.reshape(-1).view(np.uint8)
+                self.buffer[self.offsets[i] : self.offsets[i + 1]] = im.reshape(-1).view(np.uint8)
                 images[i] = None
 
         def __getitem__(self, i: int) -> np.ndarray:
-            """Return a private image copy so transforms cannot modify the shared cache."""
+            """Return an image view by index."""
             i = range(len(self.shapes))[i]
-            return (
-                np.frombuffer(self.buffer, dtype=np.uint8)[self.offsets[i] : self.offsets[i + 1]]
-                .view(self.dtypes[i])
-                .reshape(self.shapes[i])
-                .copy()
-            )
+            return self.buffer[self.offsets[i] : self.offsets[i + 1]].view(self.dtypes[i]).reshape(self.shapes[i])
 
     def __init__(
         self,
@@ -300,7 +293,7 @@ class BaseDataset(Dataset):
 
             return im, (h0, w0), im.shape[:2]
 
-        return im, self.im_hw0[i], self.im_hw[i]
+        return self.ims[i], self.im_hw0[i], self.im_hw[i]
 
     def cache_images(self) -> None:
         """Cache images to memory or disk for faster training."""

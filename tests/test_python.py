@@ -80,6 +80,42 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
         loader.close()
 
 
+def test_dataloader_auto_workers(monkeypatch):
+    """Test workers<0 auto-scales from the default down to fit available host memory."""
+    from types import SimpleNamespace
+
+    rich = build_dataloader(range(64), batch=4, workers=-1, device="cpu")
+    tiny = build_dataloader(range(4), batch=4, workers=-1, device="cpu")
+    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=600 * 2**20))
+    mid = build_dataloader(range(64), batch=4, workers=-1, device="cpu")
+    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=300 * 2**20))
+    low = build_dataloader(range(64), batch=4, workers=-1, device="cpu")
+    try:
+        assert rich.num_workers == min(DEFAULT_CFG.workers, os.cpu_count(), 16)  # rich host keeps the default
+        assert tiny.num_workers == 0  # single-batch loader runs in-process regardless of memory
+        assert mid.num_workers == 2  # lowered to budget: 0.6*600MiB / (124MiB + 0.93*4*4*640^2*3) ~= 2
+        assert low.num_workers == 1  # low-memory floor
+    finally:
+        for loader in (rich, tiny, mid, low):
+            loader.close()
+
+
+def test_dataloader_auto_workers_distributed(monkeypatch):
+    """Test workers<0 resolves under a distributed sampler like on any other rank."""
+    sampler_cls = data_build.distributed.DistributedSampler
+
+    def distributed_sampler(dataset, shuffle, seed):
+        return sampler_cls(dataset, num_replicas=3, rank=2, shuffle=shuffle, seed=seed)
+
+    monkeypatch.setattr(data_build.distributed, "DistributedSampler", distributed_sampler)
+    monkeypatch.setattr(data_build, "RANK", 2)
+    loader = build_dataloader(range(64), batch=4, workers=-1, rank=0, device="cpu")
+    try:
+        assert 1 <= loader.num_workers <= min(DEFAULT_CFG.workers, os.cpu_count(), len(loader))
+    finally:
+        loader.close()
+
+
 def test_dataloader_seed_varies_sampling_order():
     """Test the run seed reaches the loader RNG instead of every run replaying one fixed order."""
     with torch.random.fork_rng():

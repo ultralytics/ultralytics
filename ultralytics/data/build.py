@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 import numpy as np
+import psutil
 import torch
 import torch.distributed as dist
 from PIL import Image
@@ -37,7 +38,7 @@ from ultralytics.data.loaders import (
     autocast_list,
 )
 from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, get_split_fraction
-from ultralytics.utils import RANK, colorstr
+from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
 
@@ -328,7 +329,8 @@ def build_dataloader(
     Args:
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
-        workers (int): Number of worker processes for data loading.
+        workers (int): Number of worker processes for data loading, or a negative value to auto-scale: start from
+            the default count and lower it to fit available host memory, never raise it.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.
@@ -360,7 +362,16 @@ def build_dataloader(
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
+    auto = workers < 0
+    if auto:  # start from the default and lower it to fit available host memory, never raise it
+        imgsz = getattr(dataset, "imgsz", 640)
+        imgsz = max(imgsz) if isinstance(imgsz, (list, tuple)) else imgsz
+        per_worker = 124 * 2**20 + 0.93 * (4 if shuffle else 2) * batch * imgsz**2 * 3
+        budget = int(psutil.virtual_memory().available * 0.6 // per_worker)
+        workers = min(DEFAULT_CFG.workers, max(1, budget))
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
+    if auto:
+        LOGGER.info(f"{colorstr('AutoWorkers:')} using {nw} workers for imgsz={imgsz} batch={batch}")
     generator = torch.Generator()
     generator.manual_seed((6148914691236517205 + RANK + seed) % (1 << 64))
     pin_memory = nd > 0 and pin_memory

@@ -1003,6 +1003,8 @@ class BaseTrainer:
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
             self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
+            # A QAT checkpoint serializes its EMA without quantizers, but load_checkpoint() re-applied them in place
+            # to this very module, so the strict load below still matches the QAT-structured EMA built above.
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")

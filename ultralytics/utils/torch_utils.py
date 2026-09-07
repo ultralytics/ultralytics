@@ -25,6 +25,7 @@ from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
+    LOCAL_RANK,
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
@@ -437,8 +438,9 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     Returns:
         (nn.Module): The prepared model, carrying fake-quantization modules.
     """
-    check_requirements(MODELOPT_REQUIREMENTS)  # same package as the ONNX-side INT8 path in utils/export/engine.py
-    import modelopt.torch.quantization as mtq
+    with torch_distributed_zero_first(LOCAL_RANK):
+        check_requirements(MODELOPT_REQUIREMENTS)
+        import modelopt.torch.quantization as mtq
 
     def forward_loop(m):
         """Calibrate through the task batch path, with BatchNorm statistics frozen."""

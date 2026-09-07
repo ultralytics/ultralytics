@@ -347,11 +347,8 @@ class BaseTrainer:
                     calibration_loader = self.get_dataloader(
                         self.data["train"], batch_size=batch, rank=-1, mode="train"
                     )
-                    self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
-                    del calibration_loader
-                if RANK != -1:
-                    for buffer in self.model.buffers():
-                        dist.broadcast(buffer, 0)  # use rank 0's ranges even with random multi-scale preprocessing
+                self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+                del calibration_loader
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)

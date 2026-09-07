@@ -103,7 +103,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
-Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.5"`), which also reads `ULTRALYTICS_API_KEY`:
+Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.32"`), which reads `ULTRALYTICS_API_KEY` or the key saved by `yolo login` when `api_key` is omitted:
 
 ```python
 from ultralytics_platform import Platform

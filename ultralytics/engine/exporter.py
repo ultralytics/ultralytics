@@ -622,11 +622,6 @@ class Exporter:
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
-            if self.args.quantize == 32:
-                raise ValueError(
-                    f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
-                    f"See {QUANTIZE_DOCS_URL}"
-                )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo"} and not self.args.data:

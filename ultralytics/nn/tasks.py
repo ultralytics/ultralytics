@@ -249,7 +249,7 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if is_qat(self):  # fusing rewrites conv weights, invalidating the ranges QAT learned for the unfused ones
+        if is_qat(self):  # fusing rewrites conv weights, invalidating the ranges calibrated for the unfused ones
             return self
         if not self.is_fused():
             for m in self.model.modules():

@@ -808,7 +808,7 @@ class Exporter:
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
-                f"format='{fmt}' cannot export a QAT model: the learned Q/DQ ranges are only read by the 'onnx' and "
+                f"format='{fmt}' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and "
                 f"'engine' backends. Export a non-QAT checkpoint to this format instead."
             )
             assert self.args.quantize in {None, 8}, (

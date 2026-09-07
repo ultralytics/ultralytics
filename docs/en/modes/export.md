@@ -149,7 +149,7 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
             cos_lr=True,
             mosaic=0.0,
         )
-        model.export(format="engine", quantize=8)  # ranges are already learned, no calibration data needed
+        model.export(format="engine", quantize=8)  # ranges travel with the checkpoint, no calibration data needed
         ```
 
     === "CLI"
@@ -163,7 +163,7 @@ QAT fine-tunes an already-trained checkpoint, so the learning rate is what decid
 
 On COCO, `yolo26n` gives up 0.81 mAP50-95 to INT8 after QAT against 1.18 for post-training quantization of the same graph, and `yolo26s` 1.25 against 1.44. From `yolo26m` up, the fine-tune costs more than the quantization it repairs and QAT ends up behind a plain INT8 export: `yolo26m` loses 0.98 mAP50-95 to five epochs of this recipe with quantization switched off entirely, which is most of the 1.20 that INT8 costs it, and lowering `lr0` to 0.000002 does not recover it. Validate QAT against post-training quantization for your own model and size before committing to it.
 
-The detection head is deliberately left in float, since a single INT8 activation scale cannot span box coordinates and class probabilities; quantizing it as well costs another 2.0 mAP50-95 on `yolo26n`. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. The learned ranges travel with that checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+The detection head is deliberately left in float, since a single INT8 activation scale cannot span box coordinates and class probabilities; quantizing it as well costs another 2.0 mAP50-95 on `yolo26n`. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

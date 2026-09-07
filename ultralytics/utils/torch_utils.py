@@ -469,14 +469,13 @@ def qat_state(model: nn.Module) -> dict[str, Any]:
     return state
 
 
-def restore_qat(model: nn.Module, state: dict[str, Any]) -> nn.Module:
+def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
     """Re-apply the fake-quantization captured by `qat_state` to a model, in place."""
     check_requirements(MODELOPT_REQUIREMENTS)
     import modelopt.torch.opt as mto
 
     mto.restore_from_modelopt_state(model, state["modelopt"])
     model.load_state_dict(state["ranges"], strict=False)
-    return model
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):

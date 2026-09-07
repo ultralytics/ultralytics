@@ -14,13 +14,6 @@ keywords: Roboflow 100, Ultralytics, object detection, dataset, benchmarking, ma
 
 Roboflow 100, sponsored by [Intel](https://www.intel.com/), is a groundbreaking [object detection](../../tasks/detect.md) benchmark dataset. It includes 100 diverse datasets. This benchmark is specifically designed to test the adaptability of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models, like [Ultralytics YOLO models](../../models/yolo26.md), to various domains, including healthcare, aerial imagery, and video games.
 
-!!! question "Licensing"
-
-    Ultralytics offers two licensing options to accommodate different use cases:
-
-    - **AGPL-3.0 License**: This [OSI-approved](https://opensource.org/license) open-source license is ideal for students and enthusiasts, promoting open collaboration and knowledge sharing. See the [LICENSE](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) file for more details and visit our [AGPL-3.0 License page](https://www.ultralytics.com/legal/agpl-3-0-software-license).
-    - **Enterprise License**: For development and production use, this license enables seamless integration of Ultralytics software and AI models into business products and services, including internal tools, automated workflows, and production deployments, bypassing the open-source requirements of AGPL-3.0. To get started, please contact us via [Ultralytics Licensing](https://www.ultralytics.com/license).
-
 <p align="center">
   <img width="640" src="https://cdn.ul.run/i/282413c77a0a549c9d21f70e9a3e44c6.avif" alt="Roboflow 100 diverse object detection benchmark">
 </p>

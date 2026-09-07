@@ -235,6 +235,7 @@ To create a dataset:
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/9a60591229e11552b91f805de387893e.avif)<!-- screenshot -->
+
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
 #### Data Sources
@@ -298,6 +299,7 @@ graph LR
     AVIF and WebP originals are stored byte-for-byte when no resize or color change is needed. Everything else is re-encoded — WebP sources stay WebP, and all other formats (JPEG, PNG, BMP, TIFF, HEIC, JP2, DNG, MPO) become JPEG at quality 92. Your original filename and source extension are retained as metadata.
 
 ![Ultralytics Platform Datasets Upload Progress Bar](https://cdn.ul.run/i/5ed3a283c82984bbc109ac647d26f73f.avif)<!-- screenshot -->
+
 ??? tip "Validate Before Upload"
 
     You can validate your dataset locally before uploading:
@@ -490,6 +492,7 @@ Manage annotation classes for your dataset:
 - **Delete classes**: Select one or more rows and click `Delete`
 
 ![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.ul.run/i/4436768ff6dd3de4184b44ddec5fb042.avif)<!-- screenshot -->
+
 !!! note "Log Scale for Imbalanced Datasets"
 
     If your dataset has class imbalance (e.g., 10,000 "person" annotations but only 50 "bicycle"), use the `Log Scale` toggle on the class histogram to visualize all classes clearly.
@@ -543,6 +546,7 @@ Charts appear in this order, and each one is omitted when the dataset has no dat
 | **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)                   |
 
 ![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.ul.run/i/7f75c56ff648ab3dfa612ba732283a6f.avif)<!-- screenshot -->
+
 !!! tip "Statistics Caching"
 
     The Platform caches computed statistics and invalidates them when images, annotations, classes, or splits change. On datasets larger than 100,000 images the charts are computed from a 100,000-image subset, noted above the grid.
@@ -580,6 +584,7 @@ Images that failed processing are listed here with:
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
 ![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/bdf0b8ce26f807b8633305f27d3fbccd.avif)<!-- screenshot -->
+
 ??? info "Common Processing Errors"
 
     | Error                     | Cause                              | Fix                                 |
@@ -646,6 +651,7 @@ To export:
 3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
 ![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.ul.run/i/46ba78e4a1e8489108dd1d999d59e7a7.avif)<!-- screenshot -->
+
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
 ```json
@@ -685,6 +691,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | **Delete**        | Delete the image from the dataset               |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/a5dd2918d992405d4f2fe7e6b51a76cc.avif)<!-- screenshot -->
+
 !!! tip "Single vs Bulk"
 
     The image context menu operates on a **single image**. For bulk operations on multiple images, use **Table** view with checkbox selection.
@@ -714,6 +721,7 @@ Redistribute all images across train, validation, and test splits using custom r
 4. Click **Apply** to randomly reassign all images according to your percentages
 
 ![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/cddfa652da98b5c8bcbd89894e33c2c9.avif)<!-- screenshot -->
+
 The dialog provides three ways to set your target split ratios:
 
 | Method   | Description                                                                                  |

@@ -15,7 +15,7 @@ By using Albumentations, you can boost your YOLO26 training data with techniques
 
 [Albumentations](https://albumentations.ai/) is an open-source image augmentation library created in [June 2018](https://arxiv.org/pdf/1809.06839). It is designed to simplify and accelerate the image augmentation process in [computer vision](https://www.ultralytics.com/blog/exploring-image-processing-computer-vision-and-machine-vision). Created with [performance](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) and flexibility in mind, it supports many diverse augmentation techniques, ranging from simple transformations like rotations and flips to more complex adjustments like brightness and contrast changes. Albumentations helps developers generate rich, varied datasets for tasks like [image classification](https://www.youtube.com/watch?v=5BO0Il_YYAg), [object detection](https://www.youtube.com/watch?v=5ku7npMrW40&t=1s), and [segmentation](https://www.youtube.com/watch?v=o4Zd-IeMlSY).
 
-You can use Albumentations to easily apply augmentations to images, [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation), [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), and [key points](../datasets/pose/index.md), and make sure that all elements of your dataset are transformed together. It works seamlessly with popular deep learning frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md), making it accessible for a wide range of projects.
+You can use Albumentations to easily apply augmentations to images, [segmentation masks](https://www.ultralytics.com/glossary/image-segmentation), [bounding boxes](https://www.ultralytics.com/glossary/bounding-box), and [keypoints](../datasets/pose/index.md), and make sure that all elements of your dataset are transformed together. It works seamlessly with popular deep learning frameworks like [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow), making it accessible for a wide range of projects.
 
 Also, Albumentations is a great option for augmentation whether you're handling small datasets or large-scale [computer vision tasks](../tasks/index.md). It ensures fast and efficient processing, cutting down the time spent on data preparation. At the same time, it helps improve [model performance](../guides/yolo-performance-metrics.md), making your models more effective in real-world applications.
 
@@ -290,7 +290,7 @@ Albumentations stands out for several reasons:
 
 1. Performance: Built on OpenCV and NumPy with SIMD optimization for superior speed
 2. Flexibility: Supports 70+ transformations across pixel-level, spatial-level, and mixing-level augmentations
-3. Compatibility: Works seamlessly with popular frameworks like [PyTorch](../integrations/torchscript.md) and [TensorFlow](../integrations/tensorboard.md)
+3. Compatibility: Works seamlessly with popular frameworks like [PyTorch](https://www.ultralytics.com/glossary/pytorch) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)
 4. Reliability: Extensive test suite prevents silent data corruption
 5. Ease of use: Single unified API for all augmentation types
 

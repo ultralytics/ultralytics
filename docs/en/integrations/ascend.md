@@ -16,10 +16,7 @@ Because ATC runs entirely on the host, you can compile models on a regular x86-6
 
 ## Train on Ascend NPUs
 
-Ultralytics supports single- and multi-NPU training with `torch_npu`, including AMP, validation, checkpointing, resume, and
-AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL.
-Install compatible CANN, PyTorch, and `torch_npu` versions and source the CANN environment first. See the
-[Ascend NPU training section](../modes/train.md#huawei-ascend-npu-training) for installation and usage examples.
+Ultralytics supports single- and multi-NPU training with `torch_npu`, including AMP, validation, checkpointing, resume, and AutoBatch. Select one NPU with `device=npu:0` or multiple NPUs with `device=npu:0,1`; distributed training uses HCCL. Install compatible CANN, PyTorch, and `torch_npu` versions and source the CANN environment first. See the [Ascend NPU training section](../modes/train.md#huawei-ascend-npu-training) for installation and usage examples.
 
 ## Ascend Export Format
 
@@ -130,9 +127,11 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After a successful export, a model directory is created with the following layout:
 
-    yolo26n_ascend_model/
-    ├── yolo26n_Ascend310B4.om  # Compiled Ascend offline model (AI Core executable)
-    └── metadata.yaml           # Model metadata (classes, image size, task, etc.)
+```text
+yolo26n_ascend_model/
+├── yolo26n_Ascend310B4.om  # Compiled Ascend offline model (AI Core executable)
+└── metadata.yaml           # Model metadata (classes, image size, task, etc.)
+```
 
 The `.om` file is the compiled offline model that the CANN runtime loads on the device. Its name carries the target SoC so the artifact is self-describing; keep one `.om` per directory, since the loader picks the single model it finds there. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 

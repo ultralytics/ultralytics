@@ -1,14 +1,10 @@
 ---
 comments: true
-description: Discover SAM 3, Meta's next evolution of the Segment Anything Model, introducing Promptable Concept Segmentation with text and image exemplar prompts for detecting all instances of visual concepts across images and videos.
+description: Discover SAM 3, Meta's Segment Anything Model with Promptable Concept Segmentation that detects every instance of a text or image-exemplar concept across images and videos.
 keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
 ---
 
 # SAM 3: Segment Anything with Concepts
-
-!!! success "Now Available in Ultralytics"
-
-    SAM 3 is fully integrated into the Ultralytics package as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Install or upgrade with `pip install -U ultralytics` to access all SAM 3 features including text-based concept segmentation, image exemplar prompts, and video tracking.
 
 ![SAM 3 promptable concept segmentation overview](https://cdn.ul.run/i/48018c7df06e1f5b500ba441da1f22ec.avif)
 
@@ -25,7 +21,7 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text pro
   <strong>Watch:</strong> How to Use Meta Segment Anything 3 with Ultralytics | Text-Prompt Segmentation on Images & Videos
 </p>
 
-SAM 3 is now fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking capabilities.
+SAM 3 is fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking.
 
 ## Overview
 
@@ -119,7 +115,7 @@ SAM 3's scalable human- and model-in-the-loop data engine achieves **2× annotat
 
 ## Installation
 
-SAM 3 is available in Ultralytics **version 8.3.237** and later. Install or upgrade with:
+Install or upgrade the `ultralytics` package:
 
 ```bash
 pip install -U ultralytics
@@ -583,23 +579,22 @@ While SAM 3 represents a major advancement, it has certain limitations:
     === "BibTeX"
 
         ```bibtex
-        @inproceedings{sam3_2025,
-          title     = {SAM 3: Segment Anything with Concepts},
-          author    = {Anonymous authors},
-          booktitle = {Submitted to ICLR 2026},
-          year      = {2025},
-          url       = {https://openreview.net/forum?id=r35clVtGzw},
-          note      = {Paper ID: 4183, under double-blind review}
+        @misc{carion2025sam3,
+          title         = {SAM 3: Segment Anything with Concepts},
+          author        = {Nicolas Carion and Laura Gustafson and Yuan-Ting Hu and Shoubhik Debnath and Ronghang Hu and Didac Suris and Chaitanya Ryali and Kalyan Vasudev Alwala and Haitham Khedr and Andrew Huang and Jie Lei and Tengyu Ma and Baishan Guo and Arpit Kalla and Markus Marks and Joseph Greer and Meng Wang and Peize Sun and Roman R{\"a}dle and Triantafyllos Afouras and Effrosyni Mavroudi and Katherine Xu and Tsung-Han Wu and Yu Zhou and Liliane Momeni and Rishi Hazra and Shuangrui Ding and Sagar Vaze and Francois Porcher and Feng Li and Siyuan Li and Aishwarya Kamath and Ho Kei Cheng and Piotr Doll{\'a}r and Nikhila Ravi and Kate Saenko and Pengchuan Zhang and Christoph Feichtenhofer},
+          year          = {2025},
+          eprint        = {2511.16719},
+          archivePrefix = {arXiv},
+          primaryClass  = {cs.CV},
+          url           = {https://arxiv.org/abs/2511.16719}
         }
         ```
-
----
 
 ## FAQ
 
 ### When Was SAM 3 Released?
 
-SAM 3 was released by Meta on **November 20th, 2025** and is fully integrated into Ultralytics as of **version 8.3.237** ([PR #22897](https://github.com/ultralytics/ultralytics/pull/22897)). Full support is available for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
+SAM 3 was released by Meta on **November 19, 2025** and is fully integrated into the `ultralytics` package, with support for [predict mode](../modes/predict.md) and [track mode](../modes/track.md).
 
 ### Is SAM 3 Integrated Into Ultralytics?
 

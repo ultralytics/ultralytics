@@ -23,6 +23,7 @@ Upload existing model weights to the platform:
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
 ![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/bc0d8b8d2325e5fa4d4a5d084cd5338b.avif)<!-- screenshot -->
+
 Supported model formats:
 
 | Format  | Extension | Description               |

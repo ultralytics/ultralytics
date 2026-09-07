@@ -31,6 +31,7 @@ graph TB
 Navigate to **Projects** in the sidebar and click **New Project**.
 
 ![Ultralytics Platform Projects List](https://cdn.ul.run/i/11ba0c7e59d846cbc7bde563701bc141.avif)<!-- screenshot -->
+
 ??? tip "Quick Create"
 
     You can also create a project from the Home page quick actions.
@@ -44,6 +45,7 @@ Enter your project details:
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
 ![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/81a34dad08ad659335f49cd7d9f7bcd9.avif)<!-- screenshot -->
+
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
 ## Project Page

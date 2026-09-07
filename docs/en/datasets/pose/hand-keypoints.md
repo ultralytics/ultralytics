@@ -112,8 +112,6 @@ If you use the Hand Keypoints dataset in your research or development work, plea
 
 !!! quote ""
 
-    === "Credits"
-
     We would like to thank the following sources for providing the images used in this dataset:
 
     - [11k Hands](https://sites.google.com/view/11khands)

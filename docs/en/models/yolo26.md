@@ -83,8 +83,6 @@ Together, these updates improve the accuracy-latency tradeoff across model scale
 
 ![Ultralytics YOLO26 End-to-End Comparison Plots](https://cdn.ul.run/i/93c237f74ef9032861f5c821943a2f7b.avif)
 
----
-
 ## Supported Tasks and Modes
 
 YOLO26 supports the standard Ultralytics task set across five model scales:
@@ -104,8 +102,6 @@ This unified framework covers real-time detection, instance segmentation, semant
 !!! note "Architecture-only variants"
 
     [`yolo26-p2.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p2.yaml) and [`yolo26-p6.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/26/yolo26-p6.yaml) add a P2 (small-object) or P6 (large-input) detection head and are shipped as YAML architectures only. No scale-specific `yolo26*-p2.pt` or `yolo26*-p6.pt` weights are released. Instantiate a scaled config from YAML (for example, `YOLO("yolo26n-p6.yaml")`) and train or fine-tune it as needed.
-
----
 
 ## Performance Metrics
 
@@ -156,8 +152,6 @@ This unified framework covers real-time detection, instance segmentation, semant
         --8<-- "docs/macros/yolo-obb-perf.md"
 
 _Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
-
----
 
 ## Usage Examples
 
@@ -267,8 +261,6 @@ For a complete technical description of the YOLO26 architecture, training recipe
         ```
 
 YOLO26 code, models, and documentation are available in the [Ultralytics GitHub repository](https://github.com/ultralytics/ultralytics) and [Ultralytics Docs](../index.md) under [AGPL-3.0](https://github.com/ultralytics/ultralytics/blob/main/LICENSE) and [Enterprise](https://www.ultralytics.com/license) licenses.
-
----
 
 ## FAQ
 

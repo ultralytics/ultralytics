@@ -3,7 +3,7 @@
 Train a model on a dataset.
 
 Usage:
-    $ yolo mode=train model=yolo26n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
+    $ yolo train model=yolo26n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
 from __future__ import annotations

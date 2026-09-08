@@ -417,7 +417,7 @@ yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-projec
 
 !!! note "Requirements"
 
-    Local training with metric streaming requires **ultralytics>=8.4.120**. API keys start with `ul_` followed by 40 hex characters (43 characters total) and are full-access tokens scoped to your workspace.
+    Local training with metric streaming requires **Python>=3.11** and **ultralytics>=8.4.120**. API keys start with `ul_` followed by 40 hex characters (43 characters total) and are full-access tokens scoped to your workspace.
 
 Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md#dataset-uri), and [remote training](train/cloud-training.md#remote-training).
 

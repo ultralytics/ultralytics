@@ -135,7 +135,7 @@ The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and the 
 
 ### How do I deploy a YOLO model on TI Edge AI hardware?
 
-Download the model and configuration files from the [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/models) or run `prepare_model.py` from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) — the script handles ONNX export, static shape fixing, and graph validation in one go. Then follow [Step 3](#step-3--compile-with-tidl-runner) and [Step 4](#step-4--evaluate-with-tidl-runner) to compile and evaluate on your target device.
+Download the model and configuration files from the [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/models) or run `prepare_model.py` from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) — the script handles ONNX export, static shape fixing, and graph validation in one go. Then follow [Step 3](#step-3-compile-with-tidl-runner-on-pc) and [Step 4](#step-4-infer-with-tidl-runner-on-device) to compile and evaluate on your target device.
 
 ### What is the difference between edgeai-tidl-tools and edgeai-tidlrunner?
 

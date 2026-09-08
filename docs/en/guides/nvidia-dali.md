@@ -389,7 +389,9 @@ Serialize the DALI pipeline for the Triton DALI backend:
     from ultralytics import YOLO
 
     model = YOLO("yolo26n.pt")
-    model.export(format="engine", imgsz=640, quantize=16, batch=8)
+    model.export(
+        format="engine", imgsz=640, quantize=16, batch=8, dynamic=True, nms=False
+    )  # NMS-free (N, 300, 6); TensorRT >= 8.5
     # Copy the .engine file to model_repository/yolo_trt/1/model.plan
     ```
 
@@ -519,7 +521,7 @@ ensemble_scheduling {
     result = client.infer(model_name="ensemble_dali_yolo", inputs=[input_tensor])
     detections = result.as_numpy("OUTPUT")  # Shape: (1, 300, 6) -> [x1, y1, x2, y2, conf, class_id]
 
-    # Filter by confidence (no NMS needed — YOLO26 is end-to-end)
+    # Filter by confidence (no NMS needed for the nms=False export)
     detections = detections[0]  # First image
     detections = detections[detections[:, 4] > 0.25]  # Confidence threshold
     print(f"Detected {len(detections)} objects")

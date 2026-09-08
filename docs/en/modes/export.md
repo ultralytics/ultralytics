@@ -173,7 +173,7 @@ How much QAT is worth depends on how well the export backend's own calibration h
 | `yolo26l` | 0.5440      | 0.4889          | 0.5307          |
 | `yolo26x` | 0.5701      | 0.5138          | 0.5527          |
 
-QAT costs 0.8 to 1.7 mAP50-95 against FP32 across the range, while post-training quantization costs 1.0 on `yolo26n` and 3.8 to 5.7 on the larger models. So QAT buys almost nothing on the smallest model, where calibration already works well, and 3.0 to 4.4 points on the rest. Expect different figures on another dataset, export format, or TensorRT version, and measure your own.
+QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-training quantization costs 0.010 on `yolo26n` and 0.038 to 0.057 on the larger models. So QAT buys almost nothing on the smallest model, where calibration already works well, and 0.030 to 0.044 on the rest. Expect different figures on another dataset, export format, or TensorRT version, and measure your own.
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 

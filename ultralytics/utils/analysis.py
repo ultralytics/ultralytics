@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Extract image properties and correlate them with per-image F1."""
+"""Extract image properties, correlations, and label-review scores."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
 COCO_AREA_SMALL = 32**2  # COCO small-object area threshold (px^2), Lin et al. 2014
+_LABEL_ISSUES = ("possible_fp", "possible_fn", "possible_label_confusion")
 
 
 @dataclass
@@ -24,6 +25,7 @@ class AnalysisReport(DataExportMixin):
     Attributes:
         per_image (dict[str, dict]): Per-image metrics and properties keyed by image path.
         correlations (dict[str, dict]): Per-property Spearman correlation and sample count against F1.
+        label_issues (list[dict]): Three highest-priority label-review candidates.
     """
 
     per_image: dict[str, dict]
@@ -39,6 +41,20 @@ class AnalysisReport(DataExportMixin):
             }
             for prop, row in self.correlations.items()
         ]
+
+    @property
+    def label_issues(self) -> list[dict]:
+        """Return the three strongest label-review candidates."""
+        return sorted(
+            (
+                {"image": image, "issue": issue, "score": score}
+                for issue in _LABEL_ISSUES
+                for image, row in self.per_image.items()
+                if (score := row.get(issue, 0.0)) > 0.5
+            ),
+            key=lambda row: row["score"],
+            reverse=True,
+        )[:3]
 
     @plt_settings()
     def plot(self) -> np.ndarray:
@@ -134,6 +150,24 @@ def analyze_correlations(labels: list[dict], metrics) -> AnalysisReport:
             r = float(np.corrcoef(_rankdata(values[mask]), _rankdata(f1[mask]))[0, 1])
         correlations[prop] = {"spearman_r": r, "n": int(mask.sum())}
     return AnalysisReport(per_image, correlations)
+
+
+def _label_issue_scores(
+    iou: np.ndarray,
+    pred_cls: np.ndarray,
+    pred_conf: np.ndarray,
+    gt_cls: np.ndarray,
+) -> dict[str, float]:
+    """Return image-level possible FP, FN, and label-confusion scores."""
+    pred_cls, gt_cls = pred_cls.astype(int), gt_cls.astype(int)
+    same_class = gt_cls[:, None] == pred_cls[None]
+    weighted_iou = iou * pred_conf[None]
+    scores = (
+        np.max(pred_conf * (1 - np.max(iou, axis=0, initial=0)), initial=0),
+        np.max(1 - np.max(np.where(same_class, weighted_iou, 0), axis=1, initial=0), initial=0),
+        np.max(np.where(~same_class, weighted_iou, 0), initial=0),
+    )
+    return dict(zip(_LABEL_ISSUES, map(float, scores)))
 
 
 def _rankdata(values: np.ndarray) -> np.ndarray:

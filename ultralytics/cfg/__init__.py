@@ -305,6 +305,7 @@ CFG_BOOL_KEYS = frozenset(
         "profile",
         "channels_last",
         "cls_remap",
+        "preprocess_tensor",
     }
 )
 CFG_STR_KEYS = frozenset({"optimizer", "split", "copy_paste_mode", "auto_augment"})

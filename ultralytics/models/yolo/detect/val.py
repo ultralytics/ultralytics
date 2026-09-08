@@ -587,7 +587,7 @@ class DetectionValidator(BaseValidator):
                         assert Path(x).is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 suffix = [suffix] if isinstance(suffix, str) else suffix
-                check_requirements("ultrafast-pycocotools>=0.1.6")
+                check_requirements("ultrafast-pycocotools>=0.1.7")
                 from ultrafast_pycocotools import COCO, COCOeval
 
                 anno = getattr(self, "_coco_api", None) or COCO(anno_json)

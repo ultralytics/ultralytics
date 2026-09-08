@@ -2,6 +2,7 @@
 
 import contextlib
 import copy
+import json
 import subprocess
 import time
 from pathlib import Path
@@ -135,41 +136,51 @@ def test_triton(tmp_path, isolated_model):
     "task,suffix,iou_type", [("detect", "", "bbox"), ("segment", "-seg", "segm"), ("pose", "-pose", "keypoints")]
 )
 def test_ultrafast_pycocotools(task, suffix, iou_type, caplog, tmp_path):
-    """Exercise real YOLO prediction serialization and COCO evaluation against synthetic ground truth."""
+    """Compare real YOLO predictions against independent official COCO annotations."""
+    faster = pytest.importorskip("faster_coco_eval")  # Reference only; not a runtime dependency.
+    from ultralytics.data.converter import coco80_to_coco91_class
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
     cls = {"detect": DetectionValidator, "segment": SegmentationValidator, "pose": PoseValidator}[task]
     validator = cls(
-        args={"model": f"yolo26n{suffix}.pt", "data": f"coco8{suffix}.yaml", "save_json": True, "imgsz": 64},
+        args={"model": f"yolo26n{suffix}.pt", "data": f"coco8{suffix}.yaml", "save_json": True, "imgsz": 320},
         save_dir=tmp_path,
     )
     validator()
     assert validator.jdict
-    annotations = []
-    for prediction in validator.jdict:
-        annotation = dict(prediction, id=len(annotations) + 1, iscrowd=0)
-        annotation["area"] = annotation["bbox"][2] * annotation["bbox"][3]
-        if iou_type == "keypoints":
-            annotation["num_keypoints"] = len(annotation["keypoints"]) // 3
-        annotations.append(annotation)
-    images = {p["image_id"]: {"id": p["image_id"]} for p in validator.jdict}
-    if task == "segment":
+    # Original train2017 annotations for the eight COCO8/COCO8-pose validation images.
+    data = json.loads((Path(__file__).parent / "fixtures/coco8-annotations.json").read_text())
+    image_ids = {int(Path(path).stem) for path in validator.dataloader.dataset.im_files}
+    data["images"] = [im for im in data["images"] if im["id"] in image_ids]
+    data["annotations"] = [ann for ann in data["annotations"] if ann["image_id"] in image_ids]
+    if task == "pose":
+        data["categories"] = [cat for cat in data["categories"] if cat["id"] == 1]
+        data["annotations"] = [ann for ann in data["annotations"] if ann["category_id"] == 1]
+    else:
         for prediction in validator.jdict:
-            height, width = prediction["segmentation"]["size"]
-            images[prediction["image_id"]].update(height=height, width=width)
-    data = {
-        "images": list(images.values()),
-        "categories": [{"id": i} for i in sorted({p["category_id"] for p in validator.jdict})],
-        "annotations": annotations,
-    }
+            prediction["category_id"] = coco80_to_coco91_class()[prediction["category_id"] - 1]
     validator.gdict, validator.is_coco, validator._coco_api = data, True, None
     types = ["bbox"] if task == "detect" else ["bbox", iou_type]
     suffixes = ["Box"] if task == "detect" else ["Box", "Mask" if task == "segment" else "Pose"]
     stats = validator.coco_evaluate({}, validator.jdict, data, types, suffix=suffixes)
-    for name in suffixes:
-        assert 0 <= stats[f"metrics/mAP50-95({name[0]})"] <= 1
+    for name, kind in zip(suffixes, types):
+        gt = faster.COCO(copy.deepcopy(data))
+        reference = faster.COCOeval_faster(gt, gt.loadRes(copy.deepcopy(validator.jdict)), kind)
+        reference.evaluate()
+        reference.accumulate()
+        reference.summarize()
+        for metric, key in [("mAP50", "AP_50"), ("mAP50-95", "AP_all")]:
+            assert stats[f"metrics/{metric}({name[0]})"] == pytest.approx(
+                reference.stats_as_dict[key], rel=0, abs=1e-12
+            )
+    assert stats["fitness"] == pytest.approx(
+        0.9 * reference.stats_as_dict["AP_all"] + 0.1 * reference.stats_as_dict["AP_50"], rel=0, abs=1e-12
+    )
+    cached_gt = validator._coco_api
+    assert validator.coco_evaluate({}, validator.jdict, data, types, suffix=suffixes) == stats
+    assert validator._coco_api is cached_gt
     assert "unable to run" not in caplog.text
 
 

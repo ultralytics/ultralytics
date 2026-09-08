@@ -323,7 +323,7 @@ jobs:
             torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
           uv pip install -e ".[export-base,export-openvino,solutions${legacy_extra}]" $torch \
-            aiohttp "ultrafast-pycocotools>=0.1.6" faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            aiohttp "ultrafast-pycocotools>=0.1.7" faster-coco-eval mlflow pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
         run: |
@@ -480,7 +480,7 @@ jobs:
           retry_delay_seconds: 20
           timeout_minutes: 20
           run: |
-            uv pip install -e ".[export]" pytest pytest-xdist mlflow "ultrafast-pycocotools>=0.1.6" faster-coco-eval --torch-backend cpu
+            uv pip install -e ".[export]" pytest pytest-xdist mlflow "ultrafast-pycocotools>=0.1.7" faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -510,7 +510,7 @@ jobs:
           retry_delay_seconds: 20
           timeout_minutes: 20
           run: |
-            uv pip install -e ".[export]" pytest mlflow "ultrafast-pycocotools>=0.1.6" faster-coco-eval --torch-backend cpu
+            uv pip install -e ".[export]" pytest mlflow "ultrafast-pycocotools>=0.1.7" faster-coco-eval --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks

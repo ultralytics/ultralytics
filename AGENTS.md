@@ -96,3 +96,7 @@ Adding a task or family means a Trainer/Validator/Predictor triplet wired into `
 - Releases: bump `__version__` in `ultralytics/__init__.py`; on push to main, `publish.yml` detects the increment, then tags, creates the GitHub release, and publishes to PyPI (gated to the ultralytics repo and glenn-jocher).
 - Docs: `docs/build_docs.py` prepares macros, references, and comparison pages before running `zensical build --strict`. Its local output intentionally omits production-owned site chrome. Production is rendered by the centralized publisher, so relative `.md` cross-file links are the correct convention in `docs/en/`.
 - Tasks and modes are listed in one canonical order everywhere — tables, navs, prose, code, and the Ultralytics Platform: `detect, segment, semantic, depth, classify, pose, obb` and `train, val, predict, export, track, benchmark`. `TASKS` and `MODES` in `ultralytics/cfg/__init__.py` are ordered tuples that define it; never introduce a different ordering.
+
+## Project Fork Instructions
+
+This checkout is also maintained as a project fork for custom YOLO networks and public/private dataset experiments. Read [`custom/AGENTS.md`](custom/AGENTS.md) before making changes; it records the fork's purpose, `origin`/`upstream` roles, worktree and branch rules, private-data boundaries, and required validation. The general rules above remain authoritative.

@@ -174,6 +174,8 @@ The below examples showcase YOLO model validation with custom arguments in Pytho
 
     This feature is available for detection, segmentation, pose, and OBB tasks.
 
+The returned metrics object also exposes export helpers for downstream analysis:
+
 | Method      | Return Type            | Description                                                                |
 | ----------- | ---------------------- | -------------------------------------------------------------------------- |
 | `summary()` | `List[Dict[str, Any]]` | Converts validation results to a summarized dictionary.                    |

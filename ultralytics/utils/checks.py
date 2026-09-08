@@ -38,7 +38,6 @@ from ultralytics.utils import (
     LOGGER,
     MACOS,
     ONLINE,
-    PLATFORM_API_URL,
     PLATFORM_URL,
     PYTHON_VERSION,
     RKNN_CHIPS,
@@ -95,76 +94,56 @@ def resolve_platform_uri(uri, hard=True):
         FileNotFoundError: If the resource is not found and hard=True.
         ConnectionError: If the request fails and hard=True.
     """
-    import requests  # scoped as slow import
-
-    # Scoped: SettingsManager imports torch_utils, which imports checks before SETTINGS is assigned.
+    from ultralytics import APIConnectionError, APIError, Platform
     from ultralytics.utils import SETTINGS
 
-    path = str(uri)[5:]
-    parts = path.split("/")
+    parts = str(uri)[5:].split("/")
+    if len(parts) != 3 or not all(parts):
+        raise ValueError(f"Invalid Platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
     api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not api_key:
         raise ValueError(f"ULTRALYTICS_API_KEY required for '{uri}'. Get a key at {PLATFORM_URL}/settings")
 
-    if len(parts) == 3 and parts[1] == "datasets":
-        username, _, slug = parts
-        endpoint = f"datasets/{username}/{slug}/export"
-    elif len(parts) == 3:
-        username, project, model = parts
-        endpoint = f"models/{username}/{project}/{model}/download"
-    else:
-        raise ValueError(f"Invalid Platform URI: {uri}. Use ul://user/datasets/name or ul://user/project/model")
+    import httpx
 
-    url = f"{PLATFORM_API_URL}/{endpoint}"
-    # Short connect so retries are fast; long read for server-side generation.
-    timeout = (10, 3600) if "/datasets/" in url else (10, 90)
-    headers = {"Authorization": f"Bearer {api_key}"}
-
+    dataset = parts[1] == "datasets"
     try:
-        for attempt in range(5):
-            try:
-                # GET preserves Platform error bodies, unlike HEAD.
-                response = requests.get(url, headers=headers, allow_redirects=False, timeout=timeout)
-                if response.status_code in {408, 429} or response.status_code >= 500:
-                    raise requests.exceptions.HTTPError(f"HTTP {response.status_code}", response=response)
-                break
-            except (
-                requests.exceptions.ConnectionError,
-                requests.exceptions.ReadTimeout,
-                requests.exceptions.HTTPError,
-            ) as error:
-                if attempt >= 4:
-                    raise
-                delay = 2 * (2**attempt)  # 2s, 4s, 8s, 16s backoff
-                LOGGER.warning(f"Retry {attempt + 1}/5 for {uri} in {delay}s: {error}")
-                time.sleep(delay)
-    except Exception as error:
+        with Platform(
+            api_key=api_key,
+            base_url=PLATFORM_URL,
+            timeout=httpx.Timeout(3600 if dataset else 90, connect=10),
+            max_retries=4,
+        ) as client:
+            if dataset:
+                return client.datasets.export(parts[0], parts[2])["downloadUrl"]
+            files = client.models.files(*parts)["files"]
+            if files:
+                return files[0]["downloadUrl"]
+    except APIConnectionError as error:
         if hard:
             raise ConnectionError(f"Failed to resolve {uri}: {error}") from error
         LOGGER.warning(f"Failed to resolve {uri}: {error}")
         return None
+    except APIError as error:
+        # APIError.body may contain a proxy page echoing credentials; show only bounded JSON errors.
+        detail = str(error.json.get("error", "")).strip()[:500] if isinstance(error.json, dict) else ""
+        if error.status_code == 401:
+            raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'. {detail}") from None
+        if error.status_code == 403:
+            raise PermissionError(f"Access denied for '{uri}'. {detail}") from None
+        if error.status_code in {408, 429} or error.status_code >= 500:
+            message = f"Failed to resolve {uri} (HTTP {error.status_code}). {detail}"
+            if hard:
+                raise ConnectionError(message) from None
+            LOGGER.warning(message)
+            return None
+        if error.status_code != 404:
+            raise RuntimeError(f"Platform error for '{uri}' (HTTP {error.status_code}). {detail}") from None
 
-    if 300 <= response.status_code < 400 and "location" in response.headers:
-        return response.headers["location"]
-
-    # Echo only Platform's bounded JSON error: proxy/WAF pages may quote the Authorization header.
-    try:
-        detail = str(response.json().get("error", "")).strip()
-    except (AttributeError, TypeError, ValueError):
-        detail = ""
-    detail = f" {detail[:500]}" if detail else ""
-    if response.status_code == 401:
-        raise ValueError(f"Invalid ULTRALYTICS_API_KEY for '{uri}'.{detail}")
-    if response.status_code == 403:
-        raise PermissionError(f"Access denied for '{uri}'. Check dataset/model visibility settings.{detail}")
-    if response.status_code == 404:
-        if hard:
-            raise FileNotFoundError(f"Not found on Platform: {uri}.{detail}")
-        LOGGER.warning(f"Not found on Platform: {uri}.{detail}")
-        return None
-    if response.status_code == 409:
-        raise RuntimeError(f"Resource not ready: {uri}. Dataset may still be processing.{detail}")
-    raise RuntimeError(f"Platform error for '{uri}' (HTTP {response.status_code}).{detail or f' {response.reason}'}")
+    if hard:
+        raise FileNotFoundError(f"No dataset or model weights found on Platform: {uri}")
+    LOGGER.warning(f"No dataset or model weights found on Platform: {uri}")
+    return None
 
 
 def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):

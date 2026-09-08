@@ -39,8 +39,6 @@ TFLite Edge TPU offers various deployment options for machine learning models, i
 
 - **On-Device Deployment**: TensorFlow Edge TPU models can be directly deployed on mobile and embedded devices. On-device deployment allows the models to execute directly on the hardware, eliminating the need for cloud connectivity, either by embedding the model in the application bundle or downloading it on demand.
 
-- **Edge Computing with Cloud TensorFlow TPUs**: In scenarios where edge devices have limited processing capabilities, TensorFlow Edge TPUs can offload inference tasks to cloud servers equipped with TPUs.
-
 - **Hybrid Deployment**: A hybrid approach combines on-device and cloud deployment and offers a versatile and scalable solution for deploying machine learning models. Advantages include on-device processing for quick responses and [cloud computing](https://www.ultralytics.com/glossary/cloud-computing) for more complex computations.
 
 ## Supported Tasks
@@ -154,7 +152,7 @@ The TFLite Edge TPU format supports the [Export](../modes/export.md), [Predict](
 
 !!! tip
 
-    Please make sure to use an x86 Linux machine when exporting to EdgeTPU.
+    Please make sure to use an x86 Linux machine when exporting to Edge TPU.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -174,7 +172,7 @@ However, for in-depth instructions on deploying your TFLite Edge TPU models, tak
 
 In this guide, we've learned how to export Ultralytics YOLO26 models to TFLite Edge TPU format. By following the steps mentioned above, you can increase the speed and power of your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) applications.
 
-For further details on usage, visit the [Edge TPU official website](https://cloud.google.com/tpu).
+For further details on usage, visit the [Coral Edge TPU official website](https://developers.google.com/coral).
 
 Also, for more information on other Ultralytics YOLO26 integrations, please visit our [integration guide page](index.md). There, you'll discover valuable resources and insights.
 

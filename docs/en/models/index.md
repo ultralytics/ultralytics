@@ -8,7 +8,7 @@ keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9
 
 Welcome to Ultralytics' model documentation! We offer support for a wide range of models, each tailored to specific tasks like [object detection](../tasks/detect.md), [instance segmentation](../tasks/segment.md), [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), [image classification](../tasks/classify.md), [pose estimation](../tasks/pose.md), and [oriented bounding boxes](../tasks/obb.md). If you're interested in contributing your model architecture to Ultralytics, check out our [Contributing Guide](../help/contributing.md).
 
-![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
+![Ultralytics YOLO26 Comparison Plots](https://cdn.ul.run/i/1b042c1a3e984e8d2eb58c2af3c53965.avif)
 
 ## Featured Models
 
@@ -18,7 +18,7 @@ The table lists every documented model with the tasks it covers, which of the [t
 
 | Model                           | Tasks                                                 | Modes                       | Choose it for                                                                                                                                                                                    |
 | ------------------------------- | ----------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **[YOLO26](yolo26.md) 🚀 NEW**  | Detect, Segment, Semantic, Depth, Classify, Pose, OBB | Train, Val, Predict, Export | New projects: end-to-end NMS-free inference, edge-optimized deployment, and the widest task coverage                                                                                             |
+| **[YOLO26](yolo26.md) 🚀 NEW**  | Detect, Segment, Semantic, Depth, Classify, Pose, OBB | Train, Val, Predict, Export | New projects: optional NMS-free inference, edge-optimized deployment, and the widest task coverage                                                                                               |
 | **[YOLO12](yolo12.md)**         | Detect, Segment, Classify, Pose, OBB                  | Train, Val, Predict, Export | Benchmarking the attention-centric community release; pretrained weights cover detection only                                                                                                    |
 | **[YOLO11](yolo11.md)**         | Detect, Segment, Classify, Pose, OBB                  | Train, Val, Predict, Export | Stable production workloads, with pretrained checkpoints for every task it supports                                                                                                              |
 | **[YOLOv10](yolov10.md)**       | Detect                                                | Train, Val, Predict, Export | NMS-free detection research from Tsinghua University                                                                                                                                             |
@@ -116,7 +116,7 @@ For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
 ### What is the latest Ultralytics YOLO model?
 
-The latest Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features end-to-end NMS-free inference, optimized edge deployment, and supports detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), classification, pose estimation, and OBB plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
+The latest Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), classification, pose estimation, and OBB plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
 
 ### How can I train a YOLO model on custom data?
 

@@ -43,7 +43,7 @@ For detailed information on monitoring and optimizing GPU usage, refer to the AW
 
 ### Configuring Your Instance
 
-Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances allow you to bid on unused EC2 capacity, often at a significant discount compared to On-Demand prices. For tasks that require persistence (saving data even if the Spot Instance is interrupted), choose a **persistent request**. This ensures your storage volume persists.
+Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances allow you to bid on unused EC2 capacity, often at a significant discount compared to On-Demand prices. For training that must survive an interruption, choose a **persistent request** and set the interruption behavior to **stop** rather than terminate, so the EBS volume and your training outputs are kept and the instance restarts when capacity returns.
 
 ![Spot Request Configuration](https://cdn.ul.run/i/ef8dca50c53d56c949c91231dec18a69.avif)
 
@@ -81,11 +81,10 @@ python val.py --weights yolov5s.pt --data coco128.yaml --img 640
 python detect.py --weights yolov5s.pt --source path/to/your/images_or_videos/ --img 640
 
 # Export the trained model to various formats like ONNX, CoreML, TFLite for deployment
-# See https://docs.ultralytics.com/modes/export for more details
 python export.py --weights yolov5s.pt --include onnx coreml tflite --img 640
 ```
 
-Refer to the Ultralytics documentation for detailed guides on [Training](../../modes/train.md), [Validation](../../modes/val.md), [Prediction (Inference)](../../modes/predict.md), and [Exporting](../../modes/export.md).
+See the [Train Custom Data](../tutorials/train-custom-data.md) and [Model Export](../tutorials/model-export.md) tutorials for detailed guides.
 
 ## Optional Extras: Increasing Swap Memory
 
@@ -109,3 +108,21 @@ free -h
 ```
 
 Congratulations! 🎉 You have successfully set up an AWS Deep Learning instance, installed Ultralytics YOLOv5, and are ready to perform [object detection](https://www.ultralytics.com/glossary/object-detection) tasks. Whether you're experimenting with pretrained models or [training](../../modes/train.md) on your own data, this powerful setup provides a scalable foundation for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Should you encounter any issues, consult the extensive [AWS documentation](https://docs.aws.amazon.com/) and the helpful Ultralytics community resources like the [FAQ](../../help/FAQ.md). Happy detecting!
+
+## FAQ
+
+### Which AMI should I choose for YOLOv5?
+
+Pick the latest Ubuntu-based AWS Deep Learning AMI. It ships with NVIDIA drivers, CUDA, and PyTorch preinstalled, so the only setup left is cloning the repository and installing `requirements.txt`.
+
+### Which instance type do I need?
+
+Any GPU instance from the Accelerated Computing family works, for example `g4dn`, `g5`, or `p3` instances. Choose enough GPU memory for your batch size and image size, and use `--batch-size -1` to let YOLOv5 pick the largest batch that fits.
+
+### How do I move datasets and results on and off the instance?
+
+Use `scp` with your `.pem` key for small transfers, or stage data in Amazon S3 and copy it with `aws s3 sync`. Training outputs land in `runs/train/`, and weights are in `runs/train/exp/weights/`.
+
+### What happens to training if my Spot Instance is interrupted?
+
+Use a persistent Spot request with the interruption behavior set to **stop** so the EBS volume is kept, then resume the run from its last checkpoint with `python train.py --resume` once the instance restarts. Copy `last.pt` and `best.pt` to S3 periodically if you cannot afford to lose progress.

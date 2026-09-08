@@ -4,7 +4,7 @@ description: Discover YOLOv3 and its variants YOLOv3-Ultralytics and YOLOv3u. Le
 keywords: YOLOv3, YOLOv3-Ultralytics, YOLOv3u, object detection, Ultralytics, computer vision, AI models, deep learning
 ---
 
-# YOLOv3, and YOLOv3u
+# YOLOv3 and YOLOv3u
 
 ## Overview
 
@@ -12,7 +12,9 @@ This document presents an overview of three closely related object detection mod
 
 1. **YOLOv3:** This is the third version of the You Only Look Once (YOLO) object detection algorithm. Originally developed by Joseph Redmon, YOLOv3 improved on its predecessors by introducing features such as multiscale predictions and three different sizes of detection kernels.
 
-2. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same [backbone](https://www.ultralytics.com/glossary/backbone) and neck architecture as YOLOv3 but with the updated [detection head](https://www.ultralytics.com/glossary/detection-head) from YOLOv8.
+2. **YOLOv3-Ultralytics:** This is the Ultralytics PyTorch implementation of YOLOv3, maintained in the [ultralytics/yolov3](https://github.com/ultralytics/yolov3) repository. It keeps the original anchor-based architecture while adding more pretrained models and easier customization.
+
+3. **YOLOv3u:** This is an updated version of YOLOv3-Ultralytics that incorporates the anchor-free, objectness-free split head used in YOLOv8 models. YOLOv3u maintains the same [backbone](https://www.ultralytics.com/glossary/backbone) and neck architecture as YOLOv3 but with the updated [detection head](https://www.ultralytics.com/glossary/detection-head) from YOLOv8.
 
 ![YOLOv3 object detection model banner](https://cdn.ul.run/i/86bbfe2f973e8746de786a46f9ccaf5d.avif)
 
@@ -32,7 +34,7 @@ All three models support a comprehensive set of modes, ensuring versatility in v
 | -------------- | ------------------ | -------------------------------------- | -------- | ---------- | --------- | ------ |
 | YOLOv3(u)      | `yolov3u.pt`       | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 | YOLOv3-Tiny(u) | `yolov3-tinyu.pt`  | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
-| YOLOv3u-SPP(u) | `yolov3-sppu.pt`   | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
+| YOLOv3-SPP(u)  | `yolov3-sppu.pt`   | [Object Detection](../tasks/detect.md) | ✅       | ✅         | ✅        | ✅     |
 
 This table provides an at-a-glance view of the capabilities of each YOLOv3 variant, highlighting their versatility and suitability for various tasks and operational modes in object detection workflows.
 
@@ -44,7 +46,7 @@ This example provides simple YOLOv3 training and inference examples. For full do
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLO()` class to create a model instance in Python:
 
         ```python
         from ultralytics import YOLO

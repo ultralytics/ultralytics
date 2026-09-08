@@ -137,6 +137,7 @@ The `Profile` tab includes a Security card:
 Monitor your storage consumption on the [`Usage` tab](#usage-tab) and the **Home** page:
 
 ![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/d4907e21c741a134223d33d80be6f9ed.avif)<!-- screenshot -->
+
 The storage card shows:
 
 - **Overall progress bar** with color-coded status (green under 70%, amber 70-89%, red 90%+)
@@ -265,6 +266,7 @@ The `Billing` tab is where you manage credits, payment methods, and review trans
 metered cloud training.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
+
 From this tab you can:
 
 - **View your current plan** and cancel, resume, or upgrade it from the plan card
@@ -383,6 +385,7 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
 ![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
+
 From this tab you can:
 
 - **Browse deleted items** filtered by type (All, Datasets, Projects, Models) and search them by name

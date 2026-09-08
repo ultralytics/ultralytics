@@ -15,7 +15,7 @@ keywords: DOTA128 dataset, Ultralytics, YOLO26, object detection, debugging, tra
 
 ## Introduction
 
-[Ultralytics](https://www.ultralytics.com) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set, 128 for training and validation. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
+[Ultralytics](https://www.ultralytics.com) DOTA128 is a small but versatile oriented [object detection](https://www.ultralytics.com/glossary/object-detection) dataset composed of 128 images from the DOTAv1 set that serve as both the training and validation split. This dataset is ideal for testing and debugging oriented bounding box (OBB) models, or for experimenting with new detection approaches. With 128 images, it is small enough to be easily manageable, yet diverse enough to test training pipelines for errors and act as a sanity check before training larger datasets.
 
 ## Dataset Structure
 
@@ -131,11 +131,11 @@ The DOTA dataset is known for its large-scale benchmark and the challenges it pr
 
 ### How does DOTA128 compare to other DOTA dataset variants?
 
-DOTA128 (128 images) sits between [DOTA8](dota8.md) (8 images) and the full [DOTA-v1](dota-v2.md) dataset (1,869 images) in terms of size:
+DOTA128 (128 images) sits between [DOTA8](dota8.md) (8 images) and the full [DOTA-v1](dota-v2.md) dataset (1,869 labeled train and val images) in terms of size:
 
 - **DOTA8**: Contains just 8 images (4 train, 4 val) - ideal for quick tests and debugging
 - **DOTA128**: Contains 128 images (all in train folder, used for both train and val) - balanced between size and diversity
-- **Full DOTA-v1**: Contains 1,869 images - comprehensive but resource-intensive
+- **Full DOTA-v1**: Contains 1,869 labeled train and val images - comprehensive but resource-intensive
 
 DOTA128 provides a good middle ground, offering more diversity than DOTA8 while remaining much more manageable than the full DOTA dataset for experimentation and initial model development.
 

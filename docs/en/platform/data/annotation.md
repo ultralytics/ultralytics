@@ -149,6 +149,7 @@ Draw rectangular boxes around objects:
 3. Release to complete the box
 
 ![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/03f7437fabd12653415375312874950c.avif)<!-- screenshot -->
+
 !!! tip "Resize and Move"
 
     - Drag 8 corner/edge handles to resize
@@ -164,6 +165,7 @@ Draw precise polygon masks:
 3. Double-click, click the first vertex, or press `Enter` or `Escape` to close the polygon
 
 ![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/be5cf764c0b8a32158064b352934cdff.avif)<!-- screenshot -->
+
 !!! tip "Edit Vertices"
 
     - Drag individual vertices to adjust
@@ -207,6 +209,7 @@ Create custom templates for any pose structure:
 6. Save the template for reuse across your dataset
 
 ![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/17471f496ec024a8b1db75ac99d1bc09.avif)<!-- screenshot -->
+
 Custom templates are saved to your account and available in all pose datasets.
 
 !!! tip "Template Workflow"
@@ -300,6 +303,7 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 | **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
 ![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/f58a86dfc093bd70d95901a53d7b0851.avif)<!-- screenshot -->
+
 !!! tip "When to Use Auto-Apply"
 
     Auto-apply is ideal for datasets with well-separated objects where a single click produces an accurate mask. For complex or overlapping objects, turn auto-apply off and use multiple positive/negative points to refine the mask before saving.
@@ -317,6 +321,7 @@ When Smart mode is active, a model picker appears in the toolbar. Five SAM model
 | **SAM 3**         | 3.45 GB | Slowest  | Default, latest generation |
 
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/88703961af233af7fe5ddf35ff8a5f96.avif)<!-- screenshot -->
+
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
 ### YOLO Smart Annotation
@@ -329,6 +334,7 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 4. Review the added annotations and make any needed corrections
 
 ![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/5340dc36ed1da9a4804c4fc8ec5c4552.avif)<!-- screenshot -->
+
 !!! tip "YOLO Model Notes"
 
     - The model picker only lists models that match the current dataset task.
@@ -489,6 +495,7 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
 ![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/6bb507eae033a53c4181106227895112.avif)<!-- screenshot -->
+
 ??? tip "View All Shortcuts"
 
     Click the keyboard icon in the annotation toolbar to open the shortcuts reference.

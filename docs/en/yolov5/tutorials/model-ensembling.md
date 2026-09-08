@@ -171,3 +171,21 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### How many models can I ensemble?
+
+Any number. List every checkpoint after `--weights`, for example `--weights yolov5x.pt yolov5l6.pt runs/train/exp/weights/best.pt`. Inference time grows roughly in proportion to the number of models.
+
+### Do the models need the same classes?
+
+Yes. Predictions are concatenated before NMS, so every model must be trained on the same class list in the same order. Input sizes and architectures can differ.
+
+### Can I combine ensembling with test-time augmentation?
+
+Yes. Add `--augment` to the same `val.py` or `detect.py` command to apply [TTA](test-time-augmentation.md) to every model in the ensemble.
+
+### Does ensembling work with exported models?
+
+Ensembling is handled by the PyTorch `Ensemble` module in `models/experimental.py`, so it applies to `.pt` checkpoints only. Export each model separately if you need ONNX or TensorRT files.

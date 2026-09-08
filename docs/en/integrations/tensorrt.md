@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to convert YOLO26 models to TensorRT for high-speed NVIDIA GPU inference. Boost efficiency and deploy optimized models with our step-by-step guide.
-keywords: YOLO26, YOLO26, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
+keywords: YOLO26, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
 ---
 
 # TensorRT Export for YOLO26 Models
@@ -245,7 +245,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
         4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
 
-
     === "CLI"
 
         ```bash
@@ -402,7 +401,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
         | FP32      | Predict            | 1.76         | 1.69 \| 1.87       |                            |                               | 8       | 640                         |
@@ -530,7 +528,7 @@ Having successfully exported your Ultralytics YOLO26 models to TensorRT format, 
 
 - **[End-to-End AI for NVIDIA-Based PCs: NVIDIA TensorRT Deployment](https://developer.nvidia.com/blog/end-to-end-ai-for-nvidia-based-pcs-nvidia-tensorrt-deployment/)**: This blog post explains the use of NVIDIA TensorRT for optimizing and deploying AI models on NVIDIA-based PCs.
 
-- **[GitHub Repository for NVIDIA TensorRT:](https://github.com/NVIDIA/TensorRT)**: This is the official GitHub repository that contains the source code and documentation for NVIDIA TensorRT.
+- **[GitHub Repository for NVIDIA TensorRT](https://github.com/NVIDIA/TensorRT)**: This is the official GitHub repository that contains the source code and documentation for NVIDIA TensorRT.
 
 ## Summary
 

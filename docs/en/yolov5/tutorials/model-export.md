@@ -36,7 +36,7 @@ YOLOv5 inference is officially supported in 12 formats:
 | [ONNX](../../integrations/onnx.md)                           | `onnx`                | `yolov5s.onnx`            |
 | [OpenVINO](../../integrations/openvino.md)                   | `openvino`            | `yolov5s_openvino_model/` |
 | [TensorRT](../../integrations/tensorrt.md)                   | `engine`              | `yolov5s.engine`          |
-| [CoreML](../../integrations/coreml.md)                       | `coreml`              | `yolov5s.mlmodel`         |
+| [CoreML](../../integrations/coreml.md)                       | `coreml`              | `yolov5s.mlpackage`       |
 | [TensorFlow SavedModel](../../integrations/tf-savedmodel.md) | `saved_model`         | `yolov5s_saved_model/`    |
 | [TensorFlow GraphDef](../../integrations/tf-graphdef.md)     | `pb`                  | `yolov5s.pb`              |
 | [TensorFlow Lite](../../integrations/tflite.md)              | `tflite`              | `yolov5s.tflite`          |
@@ -156,7 +156,7 @@ python detect.py --weights yolov5s.torchscript    # TorchScript
 python detect.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
 python detect.py --weights yolov5s_openvino_model # OpenVINO
 python detect.py --weights yolov5s.engine         # TensorRT
-python detect.py --weights yolov5s.mlmodel        # CoreML (macOS only)
+python detect.py --weights yolov5s.mlpackage      # CoreML (macOS only)
 python detect.py --weights yolov5s_saved_model    # TensorFlow SavedModel
 python detect.py --weights yolov5s.pb             # TensorFlow GraphDef
 python detect.py --weights yolov5s.tflite         # TensorFlow Lite
@@ -172,7 +172,7 @@ python val.py --weights yolov5s.torchscript    # TorchScript
 python val.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
 python val.py --weights yolov5s_openvino_model # OpenVINO
 python val.py --weights yolov5s.engine         # TensorRT
-python val.py --weights yolov5s.mlmodel        # CoreML (macOS Only)
+python val.py --weights yolov5s.mlpackage      # CoreML (macOS only)
 python val.py --weights yolov5s_saved_model    # TensorFlow SavedModel
 python val.py --weights yolov5s.pb             # TensorFlow GraphDef
 python val.py --weights yolov5s.tflite         # TensorFlow Lite
@@ -191,7 +191,7 @@ model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.torchscript")  #
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.onnx")  # ONNX Runtime
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_openvino_model")  # OpenVINO
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.engine")  # TensorRT
-model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.mlmodel")  # CoreML (macOS Only)
+model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.mlpackage")  # CoreML (macOS only)
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s_saved_model")  # TensorFlow SavedModel
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.pb")  # TensorFlow GraphDef
 model = torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.tflite")  # TensorFlow Lite
@@ -250,3 +250,21 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### Which export format should I use?
+
+Use ONNX or OpenVINO for CPU deployment, where they run up to 3x faster than PyTorch, and TensorRT for NVIDIA GPUs, where it runs up to 5x faster. CoreML targets Apple devices, and TensorFlow Lite or Edge TPU target Android and Coral hardware.
+
+### How do I export at FP16?
+
+Add `--half`. Half precision needs a GPU for most formats, so pass `--device 0` as well; CoreML is the exception and can export FP16 on CPU.
+
+### Can I export with a dynamic batch size?
+
+Yes. Add `--dynamic`. ONNX exports gain dynamic batch, height, and width axes and are traced on CPU, so omit `--device 0`. TensorRT exports keep the image size fixed and vary only the batch dimension: they still need `--device 0`, and `--batch-size` sets the largest batch the engine accepts.
+
+### How do I run an exported model?
+
+Pass the exported file to `detect.py --weights`, `val.py --weights`, or `torch.hub.load("ultralytics/yolov5", "custom", "yolov5s.onnx")`. YOLOv5 picks the correct backend from the file suffix.

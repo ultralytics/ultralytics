@@ -229,3 +229,25 @@ files are never touched.
   on macOS and Windows. Run `docker compose logs -f` from that folder to follow the worker.
 
 Also see [Datasets](../data/datasets.md), [Annotation](../data/annotation.md), and [Training](../train/index.md).
+
+## FAQ
+
+### What data leaves my computer?
+
+Dataset pixels never do. They are read locally for ingest, preview, and training. Classes, labels, annotations, training metrics, and the best checkpoint are stored in Platform so you can annotate, download, predict, export, and deploy. See [Data Boundaries](#data-boundaries).
+
+### Do I need a GPU?
+
+No. Every host can ingest datasets and train on its CPU, and a compatible NVIDIA GPU on Linux accelerates larger jobs automatically. On Premise training does not use Platform compute credits.
+
+### What happens if the host goes offline?
+
+Its datasets become temporarily unavailable and running jobs fail rather than moving to cloud compute. Datasets that finished importing keep their classes, labels, and annotations and work again once the host reconnects.
+
+### How do I update a dataset after its files change?
+
+A dataset is indexed once when it is created and is not rescanned. Create a new dataset from the updated folder to pick up the changes.
+
+### Where are the worker logs?
+
+The installer writes to `/opt/ultralytics-worker` on Linux and `~/.ultralytics/worker` on macOS and Windows. Run `docker compose logs -f` from that folder.

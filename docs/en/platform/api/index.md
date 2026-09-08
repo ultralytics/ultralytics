@@ -25,7 +25,7 @@ integrations_path: ../../integrations
     === "Python SDK"
 
         ```bash
-        pip install "ultralytics-platform>=0.1.5" # Python 3.11+
+        pip install "ultralytics-platform>=0.1.32" # Python 3.11+
         ```
 
         ```python
@@ -2384,13 +2384,13 @@ OpenAPI contract, with one method per endpoint (`client.datasets.list`, `client.
 and optional per-request `timeout` and `extra_headers`.
 
 ```bash
-pip install "ultralytics-platform>=0.1.5" # Python 3.11+
+pip install "ultralytics-platform>=0.1.32" # Python 3.11+
 ```
 
 ```python
 from ultralytics_platform import Platform
 
-with Platform() as client:  # reads ULTRALYTICS_API_KEY
+with Platform() as client:  # reads ULTRALYTICS_API_KEY or the key saved by yolo login
     dataset = client.datasets.retrieve("acme-vision", "warehouse")
     images = client.datasets.images("acme-vision", "warehouse", limit=10)
     export = client.exports.create("acme-vision", "inspection", "v3", format="onnx")

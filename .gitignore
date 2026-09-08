@@ -153,6 +153,10 @@ runs/
 wandb/
 .DS_Store
 
+# Project-local private configuration and experiment outputs
+custom/configs/datasets/private.yaml
+custom/configs/local/
+
 # Neural Network weights -----------------------------------------------------------------------------------------------
 weights/
 *.weights

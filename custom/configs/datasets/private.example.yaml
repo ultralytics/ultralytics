@@ -1,0 +1,16 @@
+# Copy this file to private.yaml before editing:
+#   cp private.example.yaml private.yaml
+# Keep private.yaml out of Git. Do not commit images, labels, credentials, or machine-local paths.
+
+# Dataset root. Use an absolute path or a path relative to this YAML file.
+path: /absolute/path/to/your/dataset
+
+# Each split may be a directory, an image-list .txt file, or a list of directories.
+train: images/train
+val: images/val
+# test: images/test
+
+# Zero-indexed class names. Keep this mapping stable after training starts.
+names:
+  0: class_a
+  1: class_b

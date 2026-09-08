@@ -329,8 +329,8 @@ def build_dataloader(
     Args:
         dataset (Dataset): Dataset to load data from.
         batch (int): Batch size for the dataloader.
-        workers (int): Number of worker processes for data loading, or a negative value to auto-scale: start from
-            the default count and lower it to fit available host memory, never raise it.
+        workers (int): Number of worker processes for data loading, or a negative value to auto-scale: start from the
+            default count and lower it to fit available host memory, never raise it.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
         drop_last (bool, optional): Whether to drop the last incomplete batch.

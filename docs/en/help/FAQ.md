@@ -116,10 +116,10 @@ For advanced inference options, including batch processing and video inference, 
 
 Absolutely! Ultralytics models are designed for versatile deployment across various platforms:
 
-- Edge devices: Optimize inference on devices like NVIDIA Jetson or Intel Neural Compute Stick using TensorRT, ONNX, or OpenVINO.
+- Edge devices: Optimize inference on devices like NVIDIA Jetson or Raspberry Pi using TensorRT, ONNX, or OpenVINO.
 - Mobile: Deploy on Android or iOS devices by converting models to LiteRT or Core ML.
-- Cloud: Leverage frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Serving or PyTorch Serve for scalable cloud deployments.
-- Web: Implement in-browser inference using LiteRT.js or ONNX.js.
+- Cloud: Leverage frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Serving or TorchServe for scalable cloud deployments.
+- Web: Implement in-browser inference using ONNX Runtime Web.
 
 Ultralytics provides export functions to convert models to various formats for deployment. Explore the wide range of [deployment options](../guides/model-deployment-options.md) to find the best solution for your use case.
 
@@ -148,22 +148,6 @@ Contributing to Ultralytics is a great way to improve the project and expand you
 
 You can also contribute by reporting bugs, suggesting features, or improving documentation. For detailed guidelines and best practices, refer to the [contributing guide](contributing.md).
 
-### How do I install the Ultralytics package in Python?
-
-Installing the Ultralytics package in Python is simple. Use pip by running the following command in your terminal or command prompt:
-
-```bash
-pip install ultralytics
-```
-
-For the cutting-edge development version, install directly from the GitHub repository:
-
-```bash
-pip install git+https://github.com/ultralytics/ultralytics.git
-```
-
-For environment-specific installation instructions and troubleshooting tips, consult the comprehensive [quickstart guide](../quickstart.md).
-
 ### What are the main features of Ultralytics YOLO?
 
 Ultralytics YOLO boasts a rich set of features for advanced computer vision tasks:
@@ -184,40 +168,6 @@ Enhancing your YOLO model's performance can be achieved through several techniqu
 3. [Transfer Learning](https://www.ultralytics.com/glossary/transfer-learning): Leverage pretrained models and fine-tune them on your specific dataset using the [Train guide](../modes/train.md).
 4. Export to Efficient Formats: Convert your model to optimized formats like TensorRT or ONNX for faster inference using the [Export guide](../modes/export.md).
 5. Benchmarking: Utilize the [Benchmark Mode](../modes/benchmark.md) to measure and improve inference speed and accuracy systematically.
-
-### Can I deploy Ultralytics YOLO models on mobile and edge devices?
-
-Yes, Ultralytics YOLO models are designed for versatile deployment, including mobile and edge devices:
-
-- Mobile: Convert models to LiteRT or CoreML for seamless integration into Android or iOS apps. Refer to the [LiteRT Integration Guide](../integrations/litert.md) and [CoreML Integration Guide](../integrations/coreml.md) for platform-specific instructions.
-- Edge Devices: Optimize inference on devices like NVIDIA Jetson or other edge hardware using TensorRT or ONNX. The [Edge TPU Integration Guide](../integrations/edge-tpu.md) provides detailed steps for edge deployment.
-
-For a comprehensive overview of deployment strategies across various platforms, consult the [deployment options guide](../guides/model-deployment-options.md).
-
-### How can I perform inference using a trained Ultralytics YOLO model?
-
-Performing inference with a trained Ultralytics YOLO model is straightforward:
-
-1. Load the Model:
-
-    ```python
-    from ultralytics import YOLO
-
-    model = YOLO("path/to/your/model.pt")
-    ```
-
-2. Run Inference:
-
-    ```python
-    results = model("path/to/image.jpg")
-
-    for r in results:
-        print(r.boxes)  # print bounding box predictions
-        print(r.masks)  # print mask predictions
-        print(r.probs)  # print class probabilities
-    ```
-
-For advanced inference techniques, including batch processing, video inference, and custom preprocessing, refer to the detailed [prediction guide](../modes/predict.md).
 
 ### Where can I find examples and tutorials for using Ultralytics?
 

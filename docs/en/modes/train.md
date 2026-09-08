@@ -134,18 +134,13 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
-AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the
-[AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU
-support status.
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU support status.
 
 Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
 
 ### Huawei Ascend NPU Training
 
-Ultralytics supports training and validation on Huawei Ascend NPUs through
-[`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu`
-versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation),
-then source the CANN environment before starting Ultralytics:
+Ultralytics supports training and validation on Huawei Ascend NPUs through [`torch_npu`](https://github.com/Ascend/pytorch). Install mutually compatible CANN, PyTorch, and `torch_npu` versions by following the [Ascend Extension for PyTorch installation guide](https://github.com/Ascend/pytorch#installation), then source the CANN environment before starting Ultralytics:
 
 ```bash
 source /usr/local/Ascend/ascend-toolkit/set_env.sh
@@ -177,9 +172,7 @@ source /usr/local/Ascend/ascend-toolkit/set_env.sh
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=npu:0,1
         ```
 
-The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is
-available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the
-[Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
+The standard training features, including AMP, validation, checkpointing, and resume, use the active NPU. AutoBatch is available for single-NPU training, while multiple NPU IDs launch distributed training through HCCL. See the [Huawei Ascend integration guide](../integrations/ascend.md) for model export and deployment after training.
 
 ### Idle GPU Training
 
@@ -334,9 +327,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-In training a YOLO26 model, you might find it valuable to keep track of the model's performance over time. This is where logging comes into play. Ultralytics YOLO provides support for three types of loggers - [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), and [TensorBoard](../integrations/tensorboard.md).
-
-To use a logger, select it from the dropdown menu in the code snippet above and run it. The chosen logger will be installed and initialized.
+Training metrics, plots, and checkpoints are always written to the run directory, and Ultralytics also streams them to any experiment tracker you have installed and enabled: [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), [TensorBoard](../integrations/tensorboard.md), [MLflow](../integrations/mlflow.md), [Weights & Biases](../integrations/weights-biases.md), and [DVCLive](../integrations/dvc.md). Each logger is toggled through the [Ultralytics settings](../quickstart.md#ultralytics-settings), for example `yolo settings tensorboard=True`. The three most common setups are shown below.
 
 ### Comet
 
@@ -387,7 +378,7 @@ To use TensorBoard in [Google Colab](https://colab.research.google.com/github/ul
     === "CLI"
 
         ```bash
-        load_ext tensorboard
+        %load_ext tensorboard
         tensorboard --logdir ultralytics/runs # replace with 'runs' directory
         ```
 

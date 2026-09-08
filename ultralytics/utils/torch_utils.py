@@ -25,6 +25,7 @@ from ultralytics import __version__
 from ultralytics.utils import (
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
+    LOCAL_RANK,
     LOGGER,
     NUM_THREADS,
     PYTHON_VERSION,
@@ -33,7 +34,7 @@ from ultralytics.utils import (
     WINDOWS,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_requirements, check_version
 from ultralytics.utils.cpu import CPUInfo
 from ultralytics.utils.patches import torch_load
 
@@ -409,6 +410,115 @@ def fuse_deconv_and_bn(deconv, bn):
     )
     deconv.weight = nn.Parameter(weight.view(g, co, ci // g, *k).transpose(1, 2).reshape(ci, co, *k))
     return deconv.requires_grad_(False)
+
+
+# ModelOpt's torch plugins import huggingface_hub unconditionally but declare it only under its heavy [hf] extra,
+# so a bare install cannot import modelopt.torch at all
+MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
+
+
+def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
+    """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
+
+    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training learns
+    weights that survive INT8 export and `torch.onnx.export` emits those ranges as Q/DQ nodes. Activation and weight
+    ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as a
+    buffer, not a learnable parameter), so training adapts the weights to them.
+
+    BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
+    `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy
+    loss.
+
+    Args:
+        model (nn.Module): Model to prepare, modified in place.
+        dataloader (Iterable): Loader yielding Ultralytics batches for the initial range calibration.
+        preprocess (Callable): Task trainer preprocessing applied to each calibration batch.
+        batches (int): Number of calibration batches.
+
+    Returns:
+        (nn.Module): The prepared model, carrying fake-quantization modules.
+    """
+    with torch_distributed_zero_first(LOCAL_RANK):
+        check_requirements(MODELOPT_REQUIREMENTS)
+        import modelopt.torch.quantization as mtq
+
+    def forward_loop(m):
+        """Calibrate through the task batch path, with BatchNorm statistics frozen."""
+        training = m.training
+        m.eval()
+        with torch.no_grad():
+            for batch, _ in zip(dataloader, range(batches)):
+                m(preprocess(batch))
+        m.train(training)
+
+    LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
+    model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
+    # Keep the output head in float to limit INT8 accuracy loss.
+    mtq.disable_quantizer(model, f"*model.{len(model.model) - 1}.*")
+    return model
+
+
+def is_qat(model: nn.Module) -> bool:
+    """Return True if the model carries fake-quantization modules inserted by `prepare_qat`.
+
+    Matched by class name so that non-QAT models, i.e. every ordinary export, never import ModelOpt.
+    """
+    model = model.model if isinstance(getattr(model, "model", None), nn.Module) else model
+    return any(type(m).__name__ == "TensorQuantizer" for m in model.modules())
+
+
+def qat_state(model: nn.Module) -> dict[str, Any] | None:
+    """Return the state that reproduces a model's fake-quantization, or None if it carries none.
+
+    Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at runtime,
+    which pickle cannot look up on load. The quantization therefore travels beside the module as data. The checkpoint
+    writers read it here and `restore_qat` reconstructs it at load and resume.
+
+    Args:
+        model (nn.Module): Model to read, left untouched.
+
+    Returns:
+        (dict | None): ModelOpt conversion state and the calibrated quantizer ranges, or None for a plain model.
+    """
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
+    if not is_qat(model):
+        return None
+    import modelopt.torch.opt as mto
+
+    return {
+        "modelopt": mto.modelopt_state(model),
+        "ranges": {k: v for k, v in model.state_dict().items() if "quantizer" in k},
+    }
+
+
+def strip_qat(model: nn.Module) -> None:
+    """Revert a model's fake-quantization in place, leaving the plain layers it wraps.
+
+    Checkpoint writers call this on the copy they are about to pickle, after `qat_state` has read the quantization out
+    of it, since the runtime-generated layer classes cannot be pickled.
+    """
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
+    if not is_qat(model):
+        return
+    from modelopt.torch.opt.conversion import ModeloptStateManager
+    from modelopt.torch.opt.dynamic import DynamicModule
+
+    for m in model.modules():
+        if isinstance(m, DynamicModule):
+            m.export()  # revert the runtime class to the plain layer it wraps
+            m.__dict__.pop("_parallel_state", None)  # runtime process groups do not belong in a checkpoint
+    ModeloptStateManager.remove_state(model)  # a reverted copy must not claim to be converted
+
+
+def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
+    """Re-apply the fake-quantization captured by `qat_state` to a model, in place."""
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
+    check_requirements(MODELOPT_REQUIREMENTS)
+    import modelopt.torch.opt as mto
+
+    mto.restore_from_modelopt_state(model, state["modelopt"])
+    model.to(next(model.parameters()).device)
+    model.load_state_dict(state["ranges"], strict=False)
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
@@ -1064,6 +1174,8 @@ def attempt_compile(
     """
     if not hasattr(torch, "compile") or not mode:
         return model
+    if is_qat(model):
+        raise ValueError("QAT models do not support torch.compile. Use compile=False.")
 
     if mode is True:
         mode = "default"

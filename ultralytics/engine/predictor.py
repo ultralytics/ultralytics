@@ -3,38 +3,38 @@
 Run prediction on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
-    $ yolo mode=predict model=yolo26n.pt source=0                               # webcam
-                                                img.jpg                         # image
-                                                vid.mp4                         # video
-                                                screen                          # screenshot
-                                                path/                           # directory
-                                                list.txt                        # list of images
-                                                list.streams                    # list of streams
-                                                'path/*.jpg'                    # glob
-                                                'https://youtu.be/LNwODJXcvt4'  # YouTube
-                                                'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP stream
+    $ yolo predict model=yolo26n.pt source=0                               # webcam
+                                           img.jpg                         # image
+                                           vid.mp4                         # video
+                                           screen                          # screenshot
+                                           path/                           # directory
+                                           list.txt                        # list of images
+                                           list.streams                    # list of streams
+                                           'path/*.jpg'                    # glob
+                                           'https://youtu.be/LNwODJXcvt4'  # YouTube
+                                           'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP, TCP stream
 
 Usage - formats:
-    $ yolo mode=predict model=yolo26n.pt                 # PyTorch
-                              yolo26n.torchscript        # TorchScript
-                              yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
-                              yolo26n_openvino_model     # OpenVINO
-                              yolo26n.engine             # TensorRT
-                              yolo26n.mlpackage          # CoreML (macOS-only)
-                              yolo26n_saved_model        # TensorFlow SavedModel
-                              yolo26n.pb                 # TensorFlow GraphDef
-                              yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
-                              yolo26n_paddle_model       # PaddlePaddle
-                              yolo26n.mnn                # MNN
-                              yolo26n_ncnn_model         # NCNN
-                              yolo26n_imx_model          # Sony IMX
-                              yolo26n_rknn_model         # Rockchip RKNN
-                              yolo26n_executorch_model   # PyTorch ExecuTorch
-                              yolo26n_axelera_model      # Axelera AI
-                              yolo26n_deepx_model        # DEEPX
-                              yolo26n_qnn.onnx           # Qualcomm QNN
-                              yolo26n.tflite             # LiteRT
-                              yolo26n_ascend_model       # Huawei Ascend
+    $ yolo predict model=yolo26n.pt                 # PyTorch
+                         yolo26n.torchscript        # TorchScript
+                         yolo26n.onnx               # ONNX Runtime or OpenCV DNN with dnn=True
+                         yolo26n_openvino_model     # OpenVINO
+                         yolo26n.engine             # TensorRT
+                         yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n_saved_model        # TensorFlow SavedModel
+                         yolo26n.pb                 # TensorFlow GraphDef
+                         yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n_paddle_model       # PaddlePaddle
+                         yolo26n.mnn                # MNN
+                         yolo26n_ncnn_model         # NCNN
+                         yolo26n_imx_model          # Sony IMX
+                         yolo26n_rknn_model         # Rockchip RKNN
+                         yolo26n_executorch_model   # PyTorch ExecuTorch
+                         yolo26n_axelera_model      # Axelera AI
+                         yolo26n_deepx_model        # DEEPX
+                         yolo26n_qnn.onnx           # Qualcomm QNN
+                         yolo26n.tflite             # LiteRT
+                         yolo26n_ascend_model       # Huawei Ascend
 """
 
 from __future__ import annotations

@@ -51,7 +51,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 !!! note "Track args"
 
-     Solutions forward some of their arguments to `track`, namely `tracker`, `conf`, `iou`, `classes` and `device`.
+    Solutions forward some of their arguments to `track`, namely `tracker`, `conf`, `iou`, `classes` and `device`.
 
 {% from "macros/solutions-track-args.md" import param_table %}
 {{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
@@ -140,9 +140,7 @@ For more details, refer to the [`SolutionResults` class documentation](../refere
 
 !!! tip "Command Info"
 
-    Most of the Solutions can be used directly through the command-line interface, including:
-
-    `Count`, `Crop`, `Blur`, `Workout`, `Heatmap`, `Isegment`, `Visioneye`, `Speed`, `Queue`, `Analytics`, `Inference`, `Trackzone`
+    Most of the Solutions can be used directly through the command-line interface.
 
     **Syntax**
 

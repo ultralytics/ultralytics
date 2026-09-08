@@ -22,6 +22,7 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
 4. Click **Import** to start.
 
 ![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/7eaadb8f6bb5bbcd57a6d46f89c524f1.avif)<!-- screenshot -->
+
 Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
 Any workspace editor can run the import. The preview is the slow step: Roboflow generates each new dataset's export archive before it can report a size, so a workspace with many fresh versions can take a minute or more to preview. If a very large workspace times out, run it again — everything already imported is skipped, so the second pass only has the remainder to do.
@@ -52,3 +53,21 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 !!! warning "Trashed imports still count as imported"
 
     A previously imported dataset that you moved to [Trash](../account/trash.md) is still detected and skipped, because it keeps occupying storage during the retention window. Delete it permanently before re-importing the same Roboflow version.
+
+## FAQ
+
+### Does Platform store my Roboflow API key?
+
+No. The key is used to run the preview and the import, then discarded. There is no saved connection and nothing to disconnect later.
+
+### Which Roboflow projects are imported?
+
+Object detection, instance segmentation, single-label classification, and keypoint detection projects that have at least one generated version. Multi-label classification and semantic segmentation projects, and projects without a version, are skipped and listed in the preview.
+
+### How do I pick up new datasets after the first import?
+
+Run the import again. Datasets that are already imported, including ones sitting in [Trash](../account/trash.md), are skipped, so only new projects and new versions are transferred.
+
+### Why does the preview take a long time?
+
+Roboflow generates an export archive for each new dataset version before it can report a size, so workspaces with many fresh versions can take a minute or more to preview. If it times out, run it again and the second pass only has the remainder to do.

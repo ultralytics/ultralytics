@@ -734,23 +734,19 @@ def handle_yolo_login(args: list[str]) -> None:
         LOGGER.info(f"Get an API key from {api_key_url} and then run 'yolo login API_KEY'.")
         return
 
-    import requests  # scoped as slow import
+    from ultralytics import APIConnectionError, APIError, Platform
 
     try:
-        response = requests.get(
-            f"{PLATFORM_URL}/api/settings",
-            headers={"Authorization": f"Bearer {args[1]}"},
-            timeout=30,
+        with Platform(api_key=args[1], base_url=PLATFORM_URL, timeout=30) as client:
+            client.account.summary()
+        SETTINGS["api_key"] = args[1]
+        LOGGER.info("New authentication successful ✅")
+    except APIError as error:
+        LOGGER.warning(
+            "Invalid API key" if error.status_code == 401 else f"Authentication failed (HTTP {error.status_code})"
         )
-        if response.status_code == 200:
-            SETTINGS["api_key"] = args[1]
-            LOGGER.info("New authentication successful ✅")
-        elif response.status_code == 401:
-            LOGGER.warning("Invalid API key")
-        else:
-            response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        LOGGER.warning(f"Authentication request failed, check your connection: {e}")
+    except APIConnectionError as error:
+        LOGGER.warning(f"Authentication request failed, check your connection: {error}")
 
 
 def handle_yolo_settings(args: list[str]) -> None:

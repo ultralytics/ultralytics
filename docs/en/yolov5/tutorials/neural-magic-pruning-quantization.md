@@ -12,7 +12,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+   https://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing,
 software distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,6 +22,10 @@ limitations under the License.
 -->
 
 # Deploy YOLOv5 with Neural Magic's DeepSparse
+
+!!! warning "DeepSparse End of Life"
+
+    Neural Magic was [acquired by Red Hat in January 2025](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and [deprecated the community versions](https://github.com/neuralmagic/deepsparse/blob/main/README.md) of DeepSparse, SparseML, SparseZoo, and Sparsify on June 2, 2025. The tools still run but no longer receive updates or support. For maintained CPU acceleration, see the [OpenVINO](../../integrations/openvino.md) and [ONNX](../../integrations/onnx.md) integrations.
 
 Welcome to software-delivered AI.
 
@@ -55,7 +59,7 @@ Sparse networks with compressed computation, executed depth-wise in cache, allow
 
 Neural Magic's open-source model repository, [SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), contains pre-sparsified checkpoints of each YOLOv5 model. Using [SparseML](https://github.com/neuralmagic/sparseml), which is integrated with Ultralytics, you can fine-tune a sparse checkpoint onto your data with a single CLI command.
 
-[Checkout Neural Magic's YOLOv5 documentation for more details](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
+See the [SparseML YOLOv5 integration](https://github.com/neuralmagic/sparseml/blob/main/integrations/ultralytics-yolov5/README.md) for more details.
 
 ## DeepSparse Usage
 
@@ -274,6 +278,24 @@ deepsparse.benchmark zoo:cv/detection/yolov5-s/pytorch/ultralytics/coco/pruned35
 
 ## Get Started With DeepSparse
 
-**Research or Testing?** DeepSparse Community is free for research and testing. Get started with their [Documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud).
+**Research or Testing?** DeepSparse Community is free for research and testing. Get started with the [DeepSparse README](https://github.com/neuralmagic/deepsparse/blob/main/README.md).
 
-For more information on deploying YOLOv5 with DeepSparse, check out the [Neural Magic's DeepSparse documentation](https://www.redhat.com/en/about/press-releases/red-hat-completes-acquisition-neural-magic-fuel-optimized-generative-ai-innovation-across-hybrid-cloud) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+For more information on deploying YOLOv5 with DeepSparse, check out the [DeepSparse YOLOv5 examples](https://github.com/neuralmagic/deepsparse/blob/main/src/deepsparse/yolo/README.md) and the [Ultralytics blog post on DeepSparse integration](https://www.ultralytics.com/blog/deploy-yolov5-with-neural-magics-deepsparse-for-gpu-class-performance-on-cpus).
+
+## FAQ
+
+### Do I need a GPU to use DeepSparse?
+
+No. DeepSparse is a CPU runtime, and the benchmarks above were measured on a 16-core AWS `c6i.8xlarge` instance without any accelerator.
+
+### How do I run my own YOLOv5 model in DeepSparse?
+
+Export it to ONNX with `python export.py --weights best.pt --include onnx` and pass the file path as `model_path` instead of a SparseZoo stub. Dense models still gain from the runtime, and pruned-quantized models gain the most.
+
+### How do I create a sparse version of my model?
+
+Fine-tune one of the pre-sparsified SparseZoo checkpoints on your data with SparseML, which preserves the sparsity structure during training, then export to ONNX.
+
+### Is DeepSparse still supported?
+
+No. The community versions were deprecated on June 2, 2025, and the packages on PyPI are frozen. Existing pipelines keep working, but new deployments should consider the [OpenVINO](../../integrations/openvino.md) or [ONNX Runtime](../../integrations/onnx.md) paths, which are actively maintained.

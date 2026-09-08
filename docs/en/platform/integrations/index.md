@@ -49,3 +49,21 @@ Enterprise plan.
 Connecting, changing, or disconnecting cloud storage and Slack requires the workspace admin or owner
 [role](../account/teams.md#roles-and-permissions). Importing datasets and connecting an On Premise host require the
 editor role.
+
+## FAQ
+
+### Which integrations need a connection and which work from an upload?
+
+On Premise, Amazon S3, Google Cloud Storage, Azure Blob Storage, and Slack are live connections managed from **Settings > Integrations**. Roboflow imports from an API key that is used once and discarded. Labelbox, LabelMe, CVAT, and Label Studio need no connection at all: export from the tool and upload the file as a new dataset.
+
+### Do cloud storage datasets count against my Platform storage?
+
+No. Cloud storage and On Premise datasets are indexed in place, so the images are streamed on demand and do not consume your [storage quota](../account/billing.md). Only labels, classes, and annotations are stored in Platform.
+
+### Which plan do I need?
+
+Slack alerts and every dataset import work on all plans. Cloud storage connections require a [Pro or Enterprise plan](../account/billing.md#plans), and On Premise requires an active Enterprise plan.
+
+### Can I disconnect an integration without losing my datasets?
+
+Yes. Disconnecting cloud storage or On Premise deletes the stored credentials but keeps the datasets, classes, labels, and annotations in your workspace. Their images become available again when you reconnect the same storage account or host.

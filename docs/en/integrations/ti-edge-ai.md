@@ -62,13 +62,13 @@ Compatible TI MPU device families compiled and validated via TIDL. See the suppo
 [EdgeAI developer landing space](https://github.com/TexasInstruments/edgeai/blob/main/edgeai-mpu/readme_sdk.md) and the
 [edgeai-tidl-tools SDK version compatibility matrix](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/sdk_version_compatibility_table.md).
 
-| Device Family | Variants |
-|---|---|
-| **AM62A** | [AM62A3](https://www.ti.com/product/AM62A3) · [AM62A7](https://www.ti.com/product/AM62A7) |
-| **J722S** | [TDA4AEN](https://www.ti.com/product/TDA4AEN-Q1) · [AM67A](https://www.ti.com/product/AM67A) |
-| **J721E** | [TDA4VM](https://www.ti.com/product/TDA4VM) |
-| **J721S2** | [TDA4VE](https://www.ti.com/product/TDA4VE-Q1) · [TDA4VL](https://www.ti.com/product/TDA4VL-Q1) · [TDA4AL](https://www.ti.com/product/TDA4AL-Q1) · [AM68A](https://www.ti.com/product/AM68A) |
-| **J784S4** | [TDA4VH](https://www.ti.com/product/TDA4VH-Q1) · [TDA4AH](https://www.ti.com/product/TDA4AH-Q1) · [AM69A](https://www.ti.com/product/AM69A) |
+| Device Family | Variants                                                                                                                                                                                     |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AM62A**     | [AM62A3](https://www.ti.com/product/AM62A3) · [AM62A7](https://www.ti.com/product/AM62A7)                                                                                                    |
+| **J722S**     | [TDA4AEN](https://www.ti.com/product/TDA4AEN-Q1) · [AM67A](https://www.ti.com/product/AM67A)                                                                                                 |
+| **J721E**     | [TDA4VM](https://www.ti.com/product/TDA4VM)                                                                                                                                                  |
+| **J721S2**    | [TDA4VE](https://www.ti.com/product/TDA4VE-Q1) · [TDA4VL](https://www.ti.com/product/TDA4VL-Q1) · [TDA4AL](https://www.ti.com/product/TDA4AL-Q1) · [AM68A](https://www.ti.com/product/AM68A) |
+| **J784S4**    | [TDA4VH](https://www.ti.com/product/TDA4VH-Q1) · [TDA4AH](https://www.ti.com/product/TDA4AH-Q1) · [AM69A](https://www.ti.com/product/AM69A)                                                  |
 
 ## Workflow for compiling and infering pre-trained YOLO Models on TI Hardware
 

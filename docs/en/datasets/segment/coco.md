@@ -82,7 +82,7 @@ COCO-Seg contains the same diverse images, object categories, and complex scenes
 
 ![COCO segmentation dataset mosaic training batch](https://cdn.ul.run/i/63f5611da08d9163cafb15ec0e215e45.avif)
 
-- **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. [Mosaicing](../../guides/hyperparameter-tuning.md) is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This aids the model's ability to generalize to different object sizes, aspect ratios, and contexts.
+- **Mosaiced Image**: This image demonstrates a training batch composed of mosaiced dataset images. [Mosaicing](../../guides/yolo-data-augmentation.md#mosaic-mosaic) is a technique used during training that combines multiple images into a single image to increase the variety of objects and scenes within each training batch. This aids the model's ability to generalize to different object sizes, aspect ratios, and contexts.
 
 ## Citations and Acknowledgments
 

@@ -77,6 +77,7 @@ Choose from 42 regions worldwide. The interactive region map and table show:
 - **Bidirectional highlighting**: Hover on the map highlights the table row, and vice versa
 
 ![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.ul.run/i/b763bfb3b965aac1e274bfed782a82e8.avif)<!-- screenshot -->
+
 The region table on the model `Deploy` tab includes:
 
 | Column       | Description                                   |
@@ -174,6 +175,7 @@ The `New Deployment` dialog collects three inputs:
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
 ![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->
+
 Below the name, a read-only **Resources** panel carries a `Custom resources coming soon` badge. Resources are not
 configurable today: every endpoint runs as a single instance that scales to zero when idle.
 
@@ -263,6 +265,7 @@ https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
 ![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/4f02beb3dd4915d65c72051e0235b1ea.avif)<!-- screenshot -->
+
 Click the copy button to copy the URL. Click the docs icon to open the endpoint's own API reference. The endpoint
 serves these paths:
 

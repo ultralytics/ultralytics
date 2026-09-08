@@ -143,7 +143,13 @@ Ryzen AI NPUs are not exposed through PyTorch ROCm and are not native Ultralytic
 export YOLO models to ONNX and run them with AMD's external Ryzen AI or Vitis AI tools, but that runtime, conversion, and
 hardware compatibility are outside the supported Ultralytics execution path.
 
-## Troubleshooting
+## Summary
+
+Use a compatible PyTorch ROCm build with `device=0` or `device=cuda:0` for supported AMD GPU training, validation, and
+inference. Treat MIGraphX, DirectML, and Ryzen AI NPU as separate capabilities: none is enabled merely by installing
+ROCm or exporting an ONNX model.
+
+## FAQ
 
 ### Why does `torch.cuda.is_available()` return `False` on my AMD system?
 
@@ -159,9 +165,3 @@ compatibility. The model still executes through HIP and ROCm on the AMD GPU.
 
 No. ONNX is a portable model format. Accelerated execution still requires a compatible runtime, and native MIGraphX,
 DirectML, and Ryzen AI NPU backends are not included in the current Ultralytics Python package.
-
-## Summary
-
-Use a compatible PyTorch ROCm build with `device=0` or `device=cuda:0` for supported AMD GPU training, validation, and
-inference. Treat MIGraphX, DirectML, and Ryzen AI NPU as separate capabilities: none is enabled merely by installing
-ROCm or exporting an ONNX model.

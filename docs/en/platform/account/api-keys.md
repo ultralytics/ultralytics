@@ -43,6 +43,7 @@ Give your key a descriptive name:
 After creation, the key is displayed in a confirmation dialog:
 
 ![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.ul.run/i/9d54f61a64e1d9887f622d64834d7d2e.avif)<!-- screenshot -->
+
 !!! tip "Copy Your Key"
 
     Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and
@@ -102,7 +103,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
-Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.5"`), which also reads `ULTRALYTICS_API_KEY`:
+Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.32"`), which reads `ULTRALYTICS_API_KEY` or the key saved by `yolo login` when `api_key` is omitted:
 
 ```python
 from ultralytics_platform import Platform

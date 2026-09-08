@@ -9,7 +9,7 @@ keywords: KITTI dataset, depth estimation, monocular depth, autonomous driving, 
 
 # KITTI Depth Dataset
 
-The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outdoor [autonomous-driving](https://www.ultralytics.com/glossary/autonomous-vehicles) benchmark captured from a moving vehicle in and around the city of Karlsruhe. For monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation), the ground-truth depth is derived from a Velodyne HDL-64 LiDAR scanner and densified using the method of [Uhrig et al. 2017](https://arxiv.org/abs/1708.06500). The resulting depth maps remain sparse, with roughly 16–20% of pixels carrying a valid depth value. KITTI is the only real outdoor long-range source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark.
+The [KITTI](https://www.cvlibs.net/datasets/kitti/) dataset is a real-world outdoor [autonomous-driving](https://www.ultralytics.com/glossary/autonomous-vehicles) benchmark captured from a moving vehicle in and around the city of Karlsruhe. For monocular [depth estimation](https://www.ultralytics.com/glossary/depth-estimation), the ground-truth depth is derived from a Velodyne HDL-64 LiDAR scanner and densified using the method of [Uhrig et al. 2017](https://arxiv.org/abs/1708.06500). The resulting depth maps remain sparse, with roughly 16–20% of pixels carrying a valid depth value. KITTI is the real outdoor driving source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark.
 
 ## Key Features
 
@@ -30,7 +30,7 @@ The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.y
 
 ## Role in YOLO26-Depth
 
-KITTI supplies the only real outdoor, long-range supervision in the YOLO26-Depth pretraining mix, complementing the predominantly indoor sources. It is also the standard KITTI Eigen benchmark for reporting driving-scene depth accuracy.
+KITTI supplies real outdoor driving supervision in the YOLO26-Depth pretraining mix, complementing the predominantly indoor sources. It is also the standard KITTI Eigen benchmark for reporting driving-scene depth accuracy.
 
 KITTI is a key example of why the depth head is unbounded (`log` mode): a fixed 10 m output ceiling cannot represent 80 m driving scenes. See the [depth task page](../../tasks/depth.md) for details on the head output range and `max_depth` handling.
 
@@ -46,11 +46,11 @@ KITTI Eigen `delta1` accuracy by model size (higher is better):
 | YOLO26l-Depth | 0.926          |
 | YOLO26x-Depth | 0.932          |
 
-Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; it pools every valid pixel of the split rather than averaging the per-image metric; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
+Measured on the 652-frame canonical split with `imgsz=768` and `rect=False`. They are not directly comparable to published KITTI numbers: val stretches each image to a square `imgsz` and nearest-resamples the sparse ground truth onto it, where the reference evaluators instead resize the prediction back to the native ground-truth resolution; `DepthMetrics` masks ground truth against `max_depth` where the improved-ground-truth protocol masks `gt > 0` and caps only the prediction; and the released weights were trained with the previous split, which placed 72 of these test frames in the training set.
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information such as the maximum depth.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information such as the maximum depth.
 
 !!! example "ultralytics/cfg/datasets/depth-kitti.yaml"
 
@@ -119,3 +119,21 @@ If you use the KITTI dataset in your research or development work, please cite t
         ```
 
 We would like to acknowledge the Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago for creating and maintaining the KITTI dataset, and Uhrig et al. for the depth densification method that makes dense supervision possible.
+
+## FAQ
+
+### What role does KITTI play in YOLO26-Depth?
+
+KITTI is the real outdoor driving source in the YOLO26-Depth pretraining mix and also serves as the KITTI Eigen evaluation benchmark. Its Velodyne LiDAR depth reaches roughly 80 m, which is why the depth head is unbounded rather than capped at a fixed indoor range.
+
+### How is the KITTI depth dataset split?
+
+The Ultralytics configuration uses 55,198 training images from the left and right cameras, with all 28 KITTI Eigen test drives excluded, and evaluates on the 652 left-camera Eigen test frames with improved ground truth. Depth PNGs use 256 units per meter (`depth_scale: 256`) and the YAML sets `max_depth: 80`.
+
+### How do I train a YOLO26 depth model on KITTI?
+
+Run `yolo depth train data=depth-kitti.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`, or use the Python example in the [Usage](#usage) section. The [Training](../../modes/train.md) page lists every available argument.
+
+### Why do the KITTI results differ from published numbers?
+
+The values in [Results](#results) come from the Ultralytics validator with `imgsz=768` and `rect=False`, which resizes images to a square input, masks ground truth against `max_depth`, and computes metrics per image with per-image scale alignment before averaging them across the validation set. Reference KITTI evaluators use a different protocol, so the numbers are not directly comparable.

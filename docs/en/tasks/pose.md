@@ -98,7 +98,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Pose model
 
 ### Dataset format
 
-YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert your existing dataset from other formats (like [COCO](../datasets/pose/coco.md) etc.) to YOLO format, please use the [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. [Ultralytics Platform annotation](../platform/data/annotation.md) also supports pose labels with built-in skeleton templates for person, hand, face, and custom keypoint layouts.
+YOLO pose dataset format can be found in detail in the [Dataset Guide](../datasets/pose/index.md). To convert an existing [COCO keypoints](../datasets/pose/coco.md) JSON dataset to YOLO format, use the built-in `convert_coco` function with `use_keypoints=True`, as described in the [COCO to YOLO guide](../guides/coco-to-yolo.md). [Ultralytics Platform annotation](../platform/data/annotation.md) also supports pose labels with built-in skeleton templates for person, hand, face, and custom keypoint layouts.
 
 For custom pose estimation tasks, you can also explore specialized datasets like [Tiger-Pose](../datasets/pose/tiger-pose.md) for animal pose estimation, [Hand Keypoints](../datasets/pose/hand-keypoints.md) for hand tracking, or [Dog-Pose](../datasets/pose/dog-pose.md) for canine pose analysis.
 

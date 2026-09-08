@@ -79,7 +79,7 @@ See full `train` mode details in the [Train](../modes/train.md) page. Segmentati
 
 ### Dataset format
 
-YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert your existing dataset from other formats (like COCO etc.) to YOLO format, please use [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) tool by Ultralytics. You can also create segmentation masks with [Ultralytics Platform annotation](../platform/data/annotation.md) using polygon tools and SAM-powered smart annotation.
+YOLO segmentation dataset format can be found in detail in the [Dataset Guide](../datasets/segment/index.md). To convert an existing COCO JSON dataset to YOLO format, use the built-in `convert_coco` function with `use_segments=True`, as described in the [COCO to YOLO guide](../guides/coco-to-yolo.md). You can also create segmentation masks with [Ultralytics Platform annotation](../platform/data/annotation.md) using polygon tools and SAM-powered smart annotation.
 
 ## Val
 
@@ -213,7 +213,7 @@ See full `export` details in the [Export](../modes/export.md) page.
 
 ### How do I train a YOLO26 segmentation model on a custom dataset?
 
-To train a YOLO26 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use tools like [JSON2YOLO](https://github.com/ultralytics/JSON2YOLO) to convert datasets from other formats. Once your dataset is ready, you can train the model using Python or CLI commands:
+To train a YOLO26 segmentation model on a custom dataset, you first need to prepare your dataset in the YOLO segmentation format. You can use the built-in [`convert_coco`](../guides/coco-to-yolo.md) utility to convert COCO JSON datasets. Once your dataset is ready, you can train the model using Python or CLI commands:
 
 !!! example
 

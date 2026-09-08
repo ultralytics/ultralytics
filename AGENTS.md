@@ -90,6 +90,7 @@ Adding a task or family means a Trainer/Validator/Predictor triplet wired into `
 
 ## Conventions
 
+- Ultralytics-owned PyPI packages use `MAJOR.MINOR.PATCH` versions only; no suffixes.
 - Every Python file starts with `# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license` — Ultralytics Actions adds headers automatically; don't add or revert them manually.
 - Google-style docstrings with types in parentheses (`arg1 (int): ...`); Ruff enforces `convention = "google"` and formats docstring code blocks; the Actions bot also runs docformatter, prettier (YAML/JSON/Markdown), and codespell — expect bot commits on PR branches. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (the documentation dialect requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
 - Tests hit the live network: weights (e.g. `yolo26n.pt`) and assets auto-download from GitHub releases; shared constants (`MODEL`, `CFG`, `SOURCE`) live in `tests/__init__.py`, with `MODEL` deliberately under a "path with spaces" directory.

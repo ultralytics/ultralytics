@@ -170,7 +170,7 @@ jobs:
               torch="torch==${{ matrix.torch }} torchvision==${{ matrix.torchvision }}"
           fi
           uv pip install -e ".[export-base,export-openvino,solutions]" \
-            $torch aiohttp pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
+            $torch aiohttp "ultrafast-pycocotools>=0.1.7" faster-coco-eval pytest-cov pytest-xdist "git+https://github.com/ultralytics/CLIP.git" \
             --torch-backend cpu
       - name: Check environment
         run: |

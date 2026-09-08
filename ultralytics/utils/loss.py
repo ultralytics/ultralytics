@@ -399,6 +399,7 @@ class v8DetectionLoss:
         # E2ELoss overwrites both after construction.
         self.obj_gamma = parse_target_gamma(getattr(h, "obj_target", "soft"))[0]
         self.cls_gamma = parse_target_gamma(getattr(h, "cls_target", "soft"))[0]
+        self.cls_ce = float(getattr(h, "cls_ce", 0.0) or 0.0)
         nl = len(m.stride)
         # v5 weights the objectness loss per level because P3 holds most of the negatives.
         self.obj_balance = {3: [4.0, 1.0, 0.4], 5: [4.0, 1.0, 0.25, 0.06, 0.02]}.get(nl, [1.0] * nl)
@@ -518,6 +519,28 @@ class v8DetectionLoss:
             if self.class_weights is not None:
                 bce_loss *= self.class_weights
             loss[1] = bce_loss.sum() / cls_targets_sum  # BCE
+
+        # Per-positive-anchor class balance. Measured on v10.2 multiclass (nc=57, o2o, trained
+        # best.pt, runs/tests/cls_grad_split.py): of the total cls gradient mass, the GT channel of
+        # a foreground anchor carries 48.3% and the 56 sibling channels of that same anchor carry
+        # 1.5% -- the "it is A, not B" signal is ~1/30 of the "be confident" signal, and the per
+        # entry gap is 1740x (0.31305 vs 0.00018). Background is NOT the problem: bg-neg sits at
+        # 50.2% against fg-pos 48.3%, i.e. 1.0:1, and the binary run measures the same 1.0:1 --
+        # sigmoid BCE self-balances against nc by driving the per-entry probability down, so the
+        # nc-way term count does not translate into nc-way pressure.
+        #
+        # Softmax CE over the nc logits of a foreground anchor is the balanced form of that missing
+        # term: its gradient is (p - onehot), which sums to zero across classes, so the positive and
+        # negative halves are equal BY CONSTRUCTION rather than by a tuning constant. It also makes
+        # the classes compete for one shared probability mass, which plain per-class sigmoids do not
+        # -- under BCE two confusable classes can both settle low and the mass simply evaporates.
+        # Added alongside the BCE term rather than replacing it: BCE still sets the absolute
+        # magnitude that becomes detection confidence, CE only sets the relative ordering. Weighted
+        # by the same alignment quality so a sloppy match counts less, and inert at nc=1 (CE over a
+        # single class is identically zero), so binary runs are unaffected.
+        if self.cls_ce and fg_mask.sum():
+            ce = F.cross_entropy(pred_scores[fg_mask].float(), target_labels[fg_mask], reduction="none")
+            loss[1] = loss[1] + self.cls_ce * (ce * cls_targets.sum(-1)[fg_mask]).sum() / cls_targets_sum
 
         # Objectness loss: class-agnostic BCE over ALL anchors, targeting the detached IoU of the
         # assigned box (v5's soft label -- a well-placed box is worth more than a sloppy one).

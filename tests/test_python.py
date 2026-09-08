@@ -140,10 +140,10 @@ def test_dataloader_auto_workers_dataset_imgsz(tmp_path, monkeypatch):
             cv2.imwrite(str(root / str(i) / f"{j}.jpg"), np.zeros((640, 640, 3), np.uint8))
     args = copy(DEFAULT_CFG)
     args.imgsz = 224
-    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=850 * 2**20))
+    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=700 * 2**20))
     loader = build_dataloader(ClassificationDataset(str(root), args), batch=4, workers=-1, device="cpu")
     try:
-        assert loader.num_workers == 4  # 510 MiB // (124 MiB + 0.93*4*4*224^2*3 B) = 4; the 640 fallback would give 3
+        assert loader.num_workers == 3  # 420 MiB // (124 MiB + 0.93*4*4*224^2*3 B) = 3; the 640 fallback would give 2
     finally:
         loader.close()
 

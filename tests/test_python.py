@@ -115,6 +115,36 @@ def test_dataloader_auto_workers_distributed(monkeypatch):
         loader.close()
 
 
+def test_dataloader_auto_workers_spawn_keeps_default(monkeypatch):
+    """Test workers<0 keeps the default count on spawn start methods where the memory model is uncalibrated."""
+    monkeypatch.setattr(torch.multiprocessing, "get_start_method", lambda: "spawn")
+    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=100 * 2**20))
+    loader = build_dataloader(range(64), batch=4, workers=-1, device="cpu")
+    try:
+        assert loader.num_workers == min(DEFAULT_CFG.workers, os.cpu_count(), 16)  # low RAM ignored: default kept
+    finally:
+        loader.close()
+
+
+def test_dataloader_auto_workers_dataset_imgsz(tmp_path, monkeypatch):
+    """Test workers<0 budgets with the dataset's own imgsz, e.g. ClassificationDataset at 224, not the 640 default."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    root = tmp_path / "cls"
+    for i in range(4):  # 4 classes x 4 images -> 4 batches of 4, so the budget is the binding cap
+        (root / str(i)).mkdir(parents=True)
+        for j in range(4):
+            cv2.imwrite(str(root / str(i) / f"{j}.jpg"), np.zeros((640, 640, 3), np.uint8))
+    args = copy(DEFAULT_CFG)
+    args.imgsz = 224
+    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=850 * 2**20))
+    loader = build_dataloader(ClassificationDataset(str(root), args), batch=4, workers=-1, device="cpu")
+    try:
+        assert loader.num_workers == 4  # 510 MiB // (124 MiB + 0.93*4*4*224^2*3 B) = 4; the 640 fallback would give 3
+    finally:
+        loader.close()
+
+
 def test_dataloader_seed_varies_sampling_order():
     """Test the run seed reaches the loader RNG instead of every run replaying one fixed order."""
     with torch.random.fork_rng():

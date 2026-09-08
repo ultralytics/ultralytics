@@ -1183,6 +1183,7 @@ class ClassificationDataset:
             else self.samples
         )
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
+        self.imgsz = args.imgsz  # configured size, e.g. for dataloader worker memory budgeting
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images

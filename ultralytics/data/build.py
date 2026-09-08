@@ -364,16 +364,31 @@ def build_dataloader(
     if auto:  # start from the default and lower it to fit available host memory, never raise it
         imgsz = getattr(dataset, "imgsz", 640)
         imgsz = max(imgsz) if isinstance(imgsz, (list, tuple)) else imgsz
-        px = 3 + 4 * isinstance(dataset, DepthDataset) + isinstance(dataset, (SemanticDataset, PolygonSemanticDataset))
-        px += getattr(dataset, "use_segments", False)  # instance masks measured <5% per worker; 1 B/px covers them
-        per_worker = 124 * 2**20 + 0.93 * (4 if shuffle else 2) * batch * imgsz**2 * px  # MiB baseline + fitted B/px
-        budget = int(psutil.virtual_memory().available * 0.6 // (max(nd, 1) * per_worker))  # per-local-rank share
-        workers = min(DEFAULT_CFG.workers, max(1, budget))
+        forked = torch.multiprocessing.get_start_method() == "fork"
+        if forked:  # per-worker model is calibrated on forked workers (shared pages) only
+            px = (
+                3
+                + 4 * isinstance(dataset, DepthDataset)
+                + isinstance(dataset, (SemanticDataset, PolygonSemanticDataset))
+            )
+            px += getattr(dataset, "use_segments", False)  # instance masks measured <5% per worker; 1 B/px covers them
+            per_worker = (
+                124 * 2**20 + 0.93 * (4 if shuffle else 2) * batch * imgsz**2 * px
+            )  # MiB baseline + fitted B/px
+            budget = int(psutil.virtual_memory().available * 0.6 // (max(nd, 1) * per_worker))  # per-local-rank share
+            workers = min(DEFAULT_CFG.workers, max(1, budget))
+        else:  # spawn/forkserver workers each pay a full interpreter + dataset copy, unmeasured: keep the default
+            workers = DEFAULT_CFG.workers
     # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
     # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     if auto:
-        LOGGER.info(f"{colorstr('AutoWorkers:')} using {nw} workers for imgsz={imgsz} batch={batch}")
+        msg = (
+            f"using {nw} workers for imgsz={imgsz} batch={batch}"
+            if forked
+            else f"spawn workers unmeasured, default {nw}"
+        )
+        LOGGER.info(f"{colorstr('AutoWorkers:')} {msg}")
     generator = torch.Generator()
     generator.manual_seed((6148914691236517205 + RANK + seed) % (1 << 64))
     pin_memory = nd > 0 and pin_memory

@@ -107,7 +107,9 @@ from ultralytics.utils.torch_utils import (
     fuse_deconv_and_bn,
     initialize_weights,
     intersect_dicts,
+    is_qat,
     model_info,
+    restore_qat,
     scale_img,
     smart_inference_mode,
     time_sync,
@@ -243,6 +245,8 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
+        if is_qat(self):  # fusing rewrites conv weights, invalidating the ranges calibrated for the unfused ones
+            return self
         if not self.is_fused():
             for m in self.model.modules():
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
@@ -1961,6 +1965,8 @@ def load_checkpoint(weight, device=None, inplace=True, fuse=False):
             )
         )
     model = candidate.float()  # FP32 model
+    if ckpt.get("modelopt"):  # QAT checkpoint: re-apply the fake-quantization it learned
+        restore_qat(model, ckpt["modelopt"])
 
     # Model compatibility updates
     model.args = args  # attach args to model

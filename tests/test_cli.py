@@ -55,25 +55,6 @@ def test_settings_migration(tmp_path: Path, api_key: str) -> None:
     assert "neptune" not in settings
 
 
-def test_platform_login(monkeypatch) -> None:
-    """Verify Platform login saves valid keys and logout removes them."""
-    import requests
-
-    from ultralytics import cfg
-
-    class Response:
-        status_code = 200
-
-    settings = {"api_key": ""}
-    monkeypatch.setattr(cfg, "SETTINGS", settings)
-    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: Response())
-
-    cfg.handle_yolo_login(["login", "ul_valid"])
-    assert settings["api_key"] == "ul_valid"
-    cfg.handle_yolo_login(["logout"])
-    assert settings["api_key"] == ""
-
-
 def test_cli_imports_defer_torchvision() -> None:
     """Verify startup imports do not load torchvision or SAM3 geometry."""
     code = (

@@ -121,9 +121,51 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | DEEPX         | ❌                | ❌                | ✅ auto    | ❌                | DEEPX export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
 | Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                                                                                                                                                                        |
 | LiteRT        | ✅                | ❌                | ✅         | ✅                | Static INT8 (`8`) and `"w8a16"` (int8 weights + **int16** activations) use calibration data; also supports `"w8a32"` dynamic INT8 (no calibration). `quantize=16` is not a separate export; an FP32 model runs in FP16 at runtime via the GPU delegate. |
+| Hailo         | ❌                | ❌                | ✅ auto    | ❌                | Hailo export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
 | Huawei Ascend | ❌                | ✅ auto           | ❌         | ❌                | Ascend AI Core convolutions accept only FP16/INT8 inputs, so ATC compiles FP16; it is auto-enabled when unset.                                                                                                                                          |
+| Core AI       | ✅                | ✅                | ❌         | ❌                | FP32 by default or an FP16 `.aimodel` asset with `quantize=16`; no INT8 path.                                                                                                                                                                           |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
+
+### Quantization-Aware Training
+
+The INT8 exports above are post-training quantization: ranges are observed in a single calibration pass over `data`. Quantization-aware training (QAT) instead learns weights that tolerate INT8 by fine-tuning with fake-quantization in the loop, which recovers accuracy that calibration alone loses. Pass `quantize=8` to `train` to fine-tune a pretrained checkpoint, then export it as usual:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+        model.train(
+            data="coco.yaml",
+            quantize=8,
+            epochs=5,
+            batch=64,
+            optimizer="AdamW",
+            lr0=0.00001,
+            lrf=0.1,
+            warmup_epochs=0.5,
+            cos_lr=True,
+            mosaic=0.0,
+        )
+        model.export(format="engine", quantize=8)  # ranges travel with the checkpoint, no calibration data needed
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo train model=yolo26n.pt data=coco.yaml quantize=8 epochs=5 batch=64 optimizer=AdamW lr0=0.00001 lrf=0.1 warmup_epochs=0.5 cos_lr=True mosaic=0
+        yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
+        ```
+
+Use a small learning rate when fine-tuning a pretrained checkpoint. QAT can initially reduce accuracy, and its benefit over post-training quantization depends on the model, dataset, and training budget. Validate the exported model against both the original checkpoint and a post-training quantized export; fake-quantization scores during training do not establish deployment accuracy.
+
+QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
+
+The output head is deliberately left in float to limit INT8 accuracy loss. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 
@@ -221,7 +263,7 @@ Dynamic input sizing is particularly useful for applications where input dimensi
 
 Understanding and configuring export arguments is crucial for optimizing model performance:
 
-- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `tensorflow`).
+- **`format:`** The target format for the exported model (e.g., `onnx`, `torchscript`, `saved_model`).
 - **`imgsz:`** Desired image size for the model input (e.g., `640` or `(height, width)`).
 - **`quantize:`** Quantization precision, such as `8`/`"int8"`, `16`/`"fp16"`, `32`/`"fp32"`, or the mixed weight/activation schemes `"w8a16"` and `"w8a32"` (LiteRT dynamic INT8) on supported formats. See [Quantization Options](#quantization-options).
 - **`optimize:`** Enables higher compiler optimization for DEEPX exports.

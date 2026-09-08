@@ -96,6 +96,7 @@ classification scores, semantic coverage, or a depth map. Object results use the
 The panel also shows preprocess, inference, postprocess, and network timing.
 
 ![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/b12413a329d89294abbe75ed8b488356.avif)<!-- screenshot -->
+
 The results panel shows:
 
 | Field               | Description                                                                      |

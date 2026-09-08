@@ -27,7 +27,7 @@ A single C++ application that runs **every [Ultralytics YOLO](https://docs.ultra
 Export any model and task to ONNX with the Ultralytics `export` mode. `opset=12` is recommended for broad compatibility.
 
 ```bash
-yolo export model=yolo26n.pt format=onnx opset=12      # detect   (end2end)
+yolo export model=yolo26n.pt format=onnx opset=12      # detect   (add nms=False for NMS-free output)
 yolo export model=yolo26n-seg.pt format=onnx opset=12  # segment
 yolo export model=yolo26n-pose.pt format=onnx opset=12 # pose
 yolo export model=yolo26n-obb.pt format=onnx opset=12  # obb

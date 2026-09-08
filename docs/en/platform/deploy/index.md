@@ -114,6 +114,7 @@ Access the global deployments page from the sidebar under `Deploy`. This page sh
 - **Refresh** button and an `Updated` timestamp in the page header
 
 ![Ultralytics Platform Deploy Page Overview Cards And Deployments List](https://cdn.ul.run/i/eb51c1bb9c4884b4b1bc89e4caf94eee.avif)<!-- screenshot -->
+
 !!! info "Automatic Polling"
 
     The page refreshes automatically, polling faster while deployments are in a transitional state (`creating`, `deploying`, or `stopping`). See [Monitoring](monitoring.md) for details.

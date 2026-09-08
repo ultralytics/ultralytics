@@ -59,3 +59,21 @@ To use a different channel, click **Disconnect**, then connect Slack again and c
 - **A job finished without a Slack message:** check the selected alerts in **Settings > Integrations**, then open the related [model](../train/models.md) or [deployment](../deploy/index.md) in Platform. Slack alerts are informational and never control job processing.
 
 Return to the [Platform integrations overview](index.md) to connect data, storage, or On Premise services.
+
+## FAQ
+
+### Do I need a Slack API key or webhook?
+
+No. Connecting Slack is an OAuth flow: click **Continue to Slack**, choose a channel, and click **Allow**. Platform only receives permission to post to that one channel.
+
+### Can I post alerts to more than one channel?
+
+Each workspace connects to a single channel. To switch channels, disconnect Slack and connect again with the new channel selected.
+
+### Who can connect or change the Slack integration?
+
+In a team workspace, the admin or owner [role](../account/teams.md#roles-and-permissions) manages the connection and the alert selection for everyone. Alerts are available on all plans.
+
+### Why did a job finish without a Slack message?
+
+Check that the matching alert is selected in **Settings > Integrations**, and reconnect Slack if the app permission was revoked or the channel was removed. Alerts are informational only and never affect the training, export, or deployment itself.

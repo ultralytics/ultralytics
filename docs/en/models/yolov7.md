@@ -329,9 +329,9 @@ To use YOLOv7 ONNX model with Ultralytics:
 3. Run the following script to convert the modified ONNX model to TensorRT engine:
 
     ```python
-    from ultralytics.utils.export import export_engine
+    from ultralytics.utils.export import onnx2engine
 
-    export_engine("yolov7-ultralytics.onnx", half=True)
+    onnx2engine("yolov7-ultralytics.onnx", quantize=16)
     ```
 
 4. Load and run the model in Ultralytics:

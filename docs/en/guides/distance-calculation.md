@@ -40,12 +40,10 @@ Distance calculation is the process of measuring the space between two detected 
 
     - Click any two bounding boxes with the left mouse button to calculate distance.
     - Use the right mouse button to delete all drawn points.
-    - Left-click anywhere in the frame to add new points.
 
 ???+ warning "Distance is an estimate"
 
-    Distance is an estimate and may not be fully accurate because it is calculated using 2D data,
-    which lacks depth information.
+    Distance is an estimate and may not be fully accurate because it is calculated using 2D data, which lacks depth information.
 
 ## Calculate Distances with YOLO26
 

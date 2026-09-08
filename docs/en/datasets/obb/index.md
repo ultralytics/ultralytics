@@ -15,7 +15,7 @@ Training a precise [object detection](https://www.ultralytics.com/glossary/objec
 
 The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1. It follows this format:
 
-```bash
+```text
 class_index x1 y1 x2 y2 x3 y3 x4 y4
 ```
 
@@ -25,7 +25,7 @@ Internally, YOLO processes losses and outputs in the `xywhr` format, which repre
 
 An example of a `*.txt` label file for the above image, which contains an object of class `0` in OBB format, could look like:
 
-```bash
+```text
 0 0.780811 0.743961 0.782371 0.74686 0.777691 0.752174 0.776131 0.749758
 ```
 
@@ -72,8 +72,8 @@ To train a model using these OBB formats:
         ```python
         from ultralytics import YOLO
 
-        # Create a new YOLO26n-OBB model from scratch
-        model = YOLO("yolo26n-obb.yaml")
+        # Load a pretrained YOLO26n-OBB model
+        model = YOLO("yolo26n-obb.pt")
 
         # Train the model on the DOTAv1 dataset
         results = model.train(data="DOTAv1.yaml", epochs=100, imgsz=1024)
@@ -82,13 +82,13 @@ To train a model using these OBB formats:
     === "CLI"
 
         ```bash
-        # Train a new YOLO26n-OBB model on the DOTAv1 dataset
+        # Train a pretrained YOLO26n-OBB model on the DOTAv1 dataset
         yolo obb train data=DOTAv1.yaml model=yolo26n-obb.pt epochs=100 imgsz=1024
         ```
 
 ## Supported Datasets
 
-Currently, the following datasets with oriented bounding boxes are supported:
+Currently, the following datasets with oriented bounding boxes are supported. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [DOTA-v1](dota-v2.md#dota-v10): The first version of the DOTA dataset, providing a comprehensive set of aerial images with oriented bounding boxes for object detection.
 - [DOTA-v1.5](dota-v2.md#dota-v15): An intermediate version of the DOTA dataset, offering additional annotations and improvements over DOTA-v1 for enhanced object detection tasks.

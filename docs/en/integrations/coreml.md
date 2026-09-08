@@ -29,7 +29,7 @@ Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhon
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to CoreML with INT8 Quantization | Apple  Deployment | iOS/MacOS 🍎
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to CoreML with INT8 Quantization | Apple Deployment | iOS/MacOS 🍎
 </p>
 
 ## What is CoreML?

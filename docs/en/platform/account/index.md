@@ -17,7 +17,7 @@ keywords: Ultralytics Platform, account, settings, API keys, billing, security, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch: </strong> Get Started with Ultralytics Platform - Account
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Account
 </p>
 
 ## Overview

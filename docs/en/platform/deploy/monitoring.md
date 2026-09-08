@@ -118,6 +118,7 @@ refresh icon to manually trigger a health check, which doubles as a way to warm 
 sending traffic.
 
 ![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/c1c2da5731737f6afbd70b12eb144f9f.avif)<!-- screenshot -->
+
 !!! info "Cold Start Tolerance"
 
     Platform gives the health check extra time and retries transient connection failures, so a scale-to-zero endpoint has time to start. If the card reports "Service starting up...", refresh it to pick up an instance that finished booting in the meantime.

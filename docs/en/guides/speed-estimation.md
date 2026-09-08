@@ -5,7 +5,7 @@ description: Estimate the speed of tracked objects in video with Ultralytics YOL
 keywords: Ultralytics YOLO26, speed estimation, object tracking, vehicle speed, traffic control, autonomous navigation, surveillance, computer vision
 ---
 
-# Speed Estimation using Ultralytics YOLO26 🚀
+# Speed Estimation using Ultralytics YOLO26
 
 ## What is Speed Estimation?
 

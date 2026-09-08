@@ -170,7 +170,7 @@ Beyond the Python package, two more surfaces run on the same models: the [Ultral
 ## YOLO Licenses: How is Ultralytics YOLO licensed?
 
 <a href="https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_banner" target="_blank" rel="noopener noreferrer">
-<img width="100%" style="border-radius:.4rem" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-license.avif" alt="Ultralytics Enterprise License banner"></a>
+<img width="100%" style="border-radius:.4rem" src="https://cdn.ul.run/i/f349bcf492eb2982b9a5e7711c984585.avif" alt="Ultralytics Enterprise License banner"></a>
 
 Ultralytics offers two licensing options to accommodate diverse use cases:
 

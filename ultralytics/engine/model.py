@@ -949,7 +949,7 @@ class Model(torch.nn.Module):
 
         This method extends the functionality of the parent class's _apply method by additionally updating the device
         in the model's overrides and dropping the cached predictor, which wraps its own copy of the module, when the
-        call actually moved the model or changed its precision.
+        call actually replaced the parameter storage it was built from.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -966,10 +966,10 @@ class Model(torch.nn.Module):
             >>> model = model._apply(lambda t: t.cuda())  # Move model to GPU
         """
         self._check_is_pytorch_model()
-        state = [(t.device, t.dtype) for t in self.model.parameters()]
+        state = [(t.device, t.data_ptr()) for t in self.model.parameters()]
         super()._apply(fn)
-        if state != [(t.device, t.dtype) for t in self.model.parameters()]:
-            self.predictor = None  # the cached predictor holds a copy of the module this call changed
+        if state != [(t.device, t.data_ptr()) for t in self.model.parameters()]:
+            self.predictor = None  # the cached predictor holds a copy of the storage this call replaced
         self.overrides["device"] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 

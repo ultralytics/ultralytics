@@ -255,7 +255,7 @@ def test_checkpoint_fp16_overflow():
     def inflate_ema(trainer):
         """Push an EMA weight above the fp16 max (65504) so its fp16 snapshot would otherwise become Inf."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = 1.0e5
+            next(iter(trainer.ema.ema.parameters())).data[0] = 1.0e5
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -279,7 +279,7 @@ def test_checkpoint_nonfinite_ema_resync():
     def poison_ema(trainer):
         """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run)."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+            next(iter(trainer.ema.ema.parameters())).data[0] = float("inf")
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -298,8 +298,8 @@ def test_checkpoint_nonfinite_ema_and_model_sanitized():
     def poison_ema_and_model(trainer):
         """Force the first parameter non-finite in both the live EMA and the model (finite-loss sticky-NaN)."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
-            next(iter(unwrap_model(trainer.model).parameters())).data.flatten()[0] = float("nan")
+            next(iter(trainer.ema.ema.parameters())).data[0] = float("inf")
+            next(iter(unwrap_model(trainer.model).parameters())).data[0] = float("nan")
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 1}
     trainer = detect.DetectionTrainer(overrides=overrides)

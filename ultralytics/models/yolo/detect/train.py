@@ -164,8 +164,14 @@ class DetectionTrainer(BaseTrainer):
 
         weights = (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
         weights = weights / weights.mean()  # normalize so mean equals 1.0
-        self.model.class_weights = torch.from_numpy(weights).to(self.device)
-        LOGGER.info(f"Class weights: {self.model.class_weights.cpu().numpy().round(3)}")
+        # unwrap: BaseTrainer calls this AFTER DDP wrapping, and the criterion is built lazily on
+        # the inner module (tasks.py `loss`), so setting the attribute on the DDP wrapper leaves
+        # `getattr(model, "class_weights")` None for the training loss. Under DDP that made cls_pw
+        # a silent no-op -- the weights still reached the EMA via `update_attr`, so only the
+        # reported val loss moved while the gradients were bit-identical.
+        model = unwrap_model(self.model)
+        model.class_weights = torch.from_numpy(weights).to(self.device)
+        LOGGER.info(f"Class weights: {model.class_weights.cpu().numpy().round(3)}")
 
     def objectness_cfg(self, cfg: str | dict | None) -> str | dict | None:
         """Inject the ``objectness`` train arg into the model YAML dict.

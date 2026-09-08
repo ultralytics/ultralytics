@@ -400,6 +400,7 @@ class v8DetectionLoss:
         self.obj_gamma = parse_target_gamma(getattr(h, "obj_target", "soft"))[0]
         self.cls_gamma = parse_target_gamma(getattr(h, "cls_target", "soft"))[0]
         self.cls_ce = float(getattr(h, "cls_ce", 0.0) or 0.0)
+        self.cls_ls = float(getattr(h, "cls_ls", 0.0) or 0.0)
         nl = len(m.stride)
         # v5 weights the objectness loss per level because P3 holds most of the negatives.
         self.obj_balance = {3: [4.0, 1.0, 0.4], 5: [4.0, 1.0, 0.25, 0.06, 0.02]}.get(nl, [1.0] * nl)
@@ -500,6 +501,13 @@ class v8DetectionLoss:
             if self.cls_gamma == 1.0
             else torch.where(target_scores > 0, target_scores.pow(self.cls_gamma), target_scores)
         )
+        # Label smoothing, FOREGROUND ANCHORS ONLY. The mask is the whole point: applied to every
+        # anchor, cls_ls/nc becomes a floor under all nc*(anchors - n_pos) background entries --
+        # 3.83M of them at nc=57 -- whose predictions sit at ~7e-7, so a 0.0018 target is a 2600x
+        # upward pull on the largest bucket in the loss. Measured: runs/tests/clsgrad_mc.log.
+        if self.cls_ls > 0:
+            fg = cls_targets.amax(-1, keepdim=True) > 0
+            cls_targets = torch.where(fg, cls_targets * (1 - self.cls_ls) + self.cls_ls / self.nc, cls_targets)
         cls_targets_sum = max(cls_targets.sum(), 1)  # == target_scores_sum when cls_gamma == 1
 
         # Cls loss with optional class weighting
@@ -510,6 +518,8 @@ class v8DetectionLoss:
                 pos_scores = pred_scores[fg_mask]  # (n_pos, nc)
                 t = torch.zeros_like(pos_scores)
                 t[torch.arange(t.shape[0], device=self.device), target_labels[fg_mask]] = 1.0
+                if self.cls_ls > 0:  # no mask needed: this rung already trains on positives only
+                    t = t * (1 - self.cls_ls) + self.cls_ls / self.nc
                 bce_loss = self.bce(pos_scores, t)
                 if self.class_weights is not None:
                     bce_loss *= self.class_weights.view(1, -1)
@@ -559,7 +569,9 @@ class v8DetectionLoss:
                 if self.obj_gamma == 0.0:
                     tobj[fg_mask] = 1.0  # TAL already filtered for quality; IoU supervision is box+cls's job
                 else:
-                    iou = bbox_iou(pred_bboxes[fg_mask], (target_bboxes / stride_tensor)[fg_mask], xywh=False, CIoU=True)
+                    iou = bbox_iou(
+                        pred_bboxes[fg_mask], (target_bboxes / stride_tensor)[fg_mask], xywh=False, CIoU=True
+                    )
                     iou = iou.detach().squeeze(-1).clamp_(0)  # clamped, so a fractional power is real
                     tobj[fg_mask] = (iou if self.obj_gamma == 1.0 else iou.pow(self.obj_gamma)).to(tobj.dtype)
             obj_loss = self.bce(pred_obj, tobj)  # (bs, num_anchors), reduction='none'

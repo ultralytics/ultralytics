@@ -555,6 +555,8 @@ class Model(torch.nn.Module):
                 self.predictor.args.show = checks.check_imshow(warn=True)
             if prev_save_args != tuple(getattr(self.predictor.args, k, None) for k in save_keys):
                 self.predictor.save_dir = get_save_dir(self.predictor.args)
+        # An explicit batch also batches in-memory PIL/numpy lists, which otherwise infer in a single batch
+        self.predictor.in_memory_batch = kwargs.get("batch")
         if prompts and hasattr(self.predictor, "set_prompts"):  # for SAM-type models
             self.predictor.set_prompts(prompts)
         return self.predictor.predict_cli(source=source) if is_cli else self.predictor(source=source, stream=stream)
@@ -597,7 +599,6 @@ class Model(torch.nn.Module):
 
         register_tracker(self, persist)
         kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
-        kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
 

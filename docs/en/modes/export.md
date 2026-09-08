@@ -163,6 +163,18 @@ The INT8 exports above are post-training quantization: ranges are observed in a 
 
 Use a small learning rate when fine-tuning a pretrained checkpoint. QAT can initially reduce accuracy, and its benefit over post-training quantization depends on the model, dataset, and training budget. Validate the exported model against both the original checkpoint and a post-training quantized export; fake-quantization scores during training do not establish deployment accuracy.
 
+How much QAT is worth depends on how well the export backend's own calibration handles the model. Measured on COCO val2017 with TensorRT engines exported from QAT runs stopped by `patience`, at `imgsz=640` and batch 1:
+
+| Model     | FP32 engine | PTQ INT8 engine | QAT INT8 engine |
+| --------- | ----------- | --------------- | --------------- |
+| `yolo26n` | 0.4032      | 0.3934          | 0.3935          |
+| `yolo26s` | 0.4794      | 0.4412          | 0.4711          |
+| `yolo26m` | 0.5269      | 0.4696          | 0.5137          |
+| `yolo26l` | 0.5440      | 0.4889          | 0.5307          |
+| `yolo26x` | 0.5701      | 0.5138          | 0.5527          |
+
+QAT costs 0.8 to 1.7 mAP50-95 against FP32 across the range, while post-training quantization costs 1.0 on `yolo26n` and 5.5 to 5.7 on the larger models. So QAT buys almost nothing on the smallest model, where calibration already works well, and 3 to 4 points on the rest. Expect different figures on another dataset, export format, or TensorRT version, and measure your own.
+
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 
 The output head is deliberately left in float to limit INT8 accuracy loss. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.

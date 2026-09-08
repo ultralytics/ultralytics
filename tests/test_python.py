@@ -83,6 +83,7 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
 
 def test_dataloader_auto_workers(monkeypatch):
     """Test workers<0 auto-scales from the default down to fit available host memory."""
+    monkeypatch.setattr(torch.multiprocessing, "get_start_method", lambda: "fork")  # the budget path is fork-only
     monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=64 * 2**30))
     rich, tiny = (build_dataloader(range(n), batch=4, workers=-1, device="cpu") for n in (64, 4))
     monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=600 * 2**20))
@@ -129,6 +130,8 @@ def test_dataloader_auto_workers_spawn_keeps_default(monkeypatch):
 def test_dataloader_auto_workers_dataset_imgsz(tmp_path, monkeypatch):
     """Test workers<0 budgets with the dataset's own imgsz, e.g. ClassificationDataset at 224, not the 640 default."""
     from ultralytics.data.dataset import ClassificationDataset
+
+    monkeypatch.setattr(torch.multiprocessing, "get_start_method", lambda: "fork")  # the budget path is fork-only
 
     root = tmp_path / "cls"
     for i in range(4):  # 4 classes x 4 images -> 4 batches of 4, so the budget is the binding cap

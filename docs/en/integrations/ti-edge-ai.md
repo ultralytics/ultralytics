@@ -40,7 +40,7 @@ TI MPU processors combine a powerful application CPU with dedicated AI accelerat
 
 ## Key Features of TI Edge AI Deployment
 
-- **ONNX-first**: Compile any Ultralytics YOLO ONNX export directly with TIDL.
+- **ONNX-first**: Compile supported Ultralytics YOLO ONNX exports with TIDL after checking the target release's [operator support and static-shape requirements](https://github.com/TexasInstruments/edgeai-tidlrunner/blob/main/tidlrunner/docs/faq.md). Configure preprocessing and detection post-processing for your model; accelerated detection heads also need the appropriate [meta-architecture configuration](https://github.com/TexasInstruments/edgeai-tidl-tools/blob/master/docs/od_meta_arch.md). Unsupported layers may run on ARM or prevent compilation.
 - **Automated shape fixing**: The Model Hub `prepare_model.py` script resolves dynamic tensor dimensions to static shapes, a prerequisite for TIDL compilation.
 - **Per-model config YAML**: Every model in the Model Hub ships with a `<model>_model_config.yaml` that specifies pre/post-processing, calibration, and hardware targets — a single file for compile and evaluate.
 - **Two-line compile and evaluate**: `tidlrunner-cli compile` and `tidlrunner-cli evaluate` cover the full benchmark pipeline.
@@ -54,7 +54,7 @@ The TI Edge AI Model Hub currently provides the following Ultralytics YOLO model
 | :----- | :--------------- | :------------ | :--------- | :----------- | :------- |
 | YOLO26 | Object Detection | n, s, m, l, x | 640×640    | 40.9 – 57.5  | AGPL 3.0 |
 | YOLO11 | Object Detection | n, s, m, l, x | 640×640    | 39.5 – 54.7  | AGPL 3.0 |
-| YOLOv8 | Object Detection | n, m          | 640×640    | 37.3 – 53.9  | AGPL 3.0 |
+| YOLOv8 | Object Detection | n, m          | 640×640    | 37.3 – 50.2  | AGPL 3.0 |
 
 ## Supported Devices
 
@@ -91,7 +91,7 @@ Run `prepare_model.py` for your chosen variant. The script handles the full prep
 ```bash
 # Compile for TI TDA4VH (run from edgeai-tidlrunner path)
 cd /path/to/edgeai-tidlrunner
-tidlrunner-cli compile --target_device TDA4VH --config_path /path/to/model/ < model > _model_config.yaml
+tidlrunner-cli compile --target_device TDA4VH --config_path /path/to/model/yolo26n_model_config.yaml
 ```
 
 ### Step 4 — Infer with TIDL Runner (on device)
@@ -101,7 +101,7 @@ Each model ships with a `<model>_model_config.yaml`; pass it to `tidlrunner-cli`
 ```bash
 # Run infernce (run from edgeai-tidlrunner path)
 cd /path/to/edgeai-tidlrunner
-tidlrunner-cli infer --target_device TDA4VH --config_path /path/to/model/ < model > _model_config.yaml
+tidlrunner-cli infer --target_device TDA4VH --config_path /path/to/model/yolo26n_model_config.yaml
 ```
 
 Note: For fine-grained control over the compilation and inferene script, use [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) directly.
@@ -110,7 +110,7 @@ Note: For fine-grained control over the compilation and inferene script, use [ed
 
 1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
 2. **Export** the model to ONNX format using the Ultralytics ONNX export method.
-3. **Update** the `<model>_model_config.yaml` file to use the path of the ONNX model that you just exported.
+3. **Adapt** the [model YAML configuration](https://huggingface.co/TexasInstruments-EdgeAI/YOLO26-Detection/blob/main/yolo26n_model_config.yaml): set `session.model_path` to your ONNX file, `dataloader.name` and `dataloader.path` for your dataset, and `preprocess` plus `session.input_mean`/`session.input_scale` to match training. Match `postprocess` to the exported output layout and box decoding, and replace the COCO mapping in `metric.label_offset_pred` with your dataset's class IDs.
 4. **Compile** on PC for your target TI device with `tidlrunner-cli compile`, passing the per-model config YAML.
 5. **Infer** on your target TI device with `tidlrunner-cli infer`, passing the per-model config YAML to test that the inference is working correctly on device.
 6. **Deploy** on device through the ONNX Runtime APIs with TIDL Offfload (see [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for more details).

@@ -947,9 +947,9 @@ class Model(torch.nn.Module):
     def _apply(self, fn) -> Model:
         """Apply a function to model parameters, buffers, and tensors.
 
-        This method extends the functionality of the parent class's _apply method by additionally resetting the
-        predictor and updating the device in the model's overrides. It's typically used for operations like moving the
-        model to a different device or changing its precision.
+        This method extends the functionality of the parent class's _apply method by additionally updating the device
+        in the model's overrides and dropping the cached predictor when a model tensor is converted. No-op tensor
+        conversions preserve the predictor.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -966,8 +966,14 @@ class Model(torch.nn.Module):
             >>> model = model._apply(lambda t: t.cuda())  # Move model to GPU
         """
         self._check_is_pytorch_model()
-        super()._apply(fn)
-        self.predictor = None  # reset predictor as device may have changed
+
+        def apply(t):
+            converted = fn(t)
+            if converted is not t:
+                self.predictor = None  # predictor owns a copy, including buffers and detection-head tensors
+            return converted
+
+        super()._apply(apply)
         self.overrides["device"] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 

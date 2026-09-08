@@ -27,7 +27,7 @@ DL Streamer enables analysis of audio and video streams to detect, classify, tra
 
 DL Streamer supports many AI models including the full Ultralytics YOLO family (YOLOv5 through YOLO26) all in OpenVINO™ format.
 
-DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform Documentation](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/dlstreamer/get_started/system_requirements.html)
+DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/system_requirements.html)
 
 ## Prerequisites
 

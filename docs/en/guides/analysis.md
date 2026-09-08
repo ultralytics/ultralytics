@@ -1,26 +1,28 @@
 ---
 comments: true
-description: Extract six per-image properties from object detection datasets.
-keywords: Ultralytics, image property analysis, dataset analysis, object size, crowdedness
+description: Extract image properties and correlate them with per-image detection quality.
+keywords: Ultralytics, image property analysis, correlation, dataset quality, detection
 ---
 
 # Image Property Analysis
 
-[`ImagePropertyExtractor`](../reference/utils/analysis.md) adds six scalar properties to each `YOLODataset` label using only image headers and annotations. It does not need a model, decode pixels, or write files.
-
-## Quick start
+[`ImagePropertyExtractor`](../reference/utils/analysis.md) adds six scalar properties to each `YOLODataset` label using image headers and annotations. [`analyze_correlations`](../reference/utils/analysis.md) compares those properties with per-image F1.
 
 ```python
+from ultralytics import YOLO
 from ultralytics.data import YOLODataset
 from ultralytics.data.utils import check_det_dataset
-from ultralytics.utils.analysis import ImagePropertyExtractor
+from ultralytics.utils.analysis import ImagePropertyExtractor, analyze_correlations
 
 data = check_det_dataset("coco128.yaml")
 dataset = YOLODataset(data["val"], data=data, augment=False)
-labels = ImagePropertyExtractor(dataset).labels
+metrics = YOLO("yolo26n.pt").val(data="coco128.yaml", conf=0.25)
+report = analyze_correlations(ImagePropertyExtractor(dataset).labels, metrics)
+print(report.summary())
+plot = report.plot()  # RGB numpy array
 ```
 
-Each label keeps its existing fields and gains an `im_properties` dictionary:
+The extractor writes the following scalar dictionary to each label:
 
 | Field                   | Meaning                                                |
 | ----------------------- | ------------------------------------------------------ |
@@ -31,4 +33,4 @@ Each label keeps its existing fields and gains an `im_properties` dictionary:
 | `center_spread`         | spread of normalized box centers                       |
 | `max_pairwise_iou`      | maximum box overlap as a crowdedness proxy             |
 
-Undefined box statistics are `NaN` for empty-label images. The scalar dictionary can be serialized directly for API or Platform use.
+`report.summary()` returns `property`, Spearman `spearman_r`, and sample count `n`. `report.per_image` and `report.correlations` retain the source values, while `report.to_csv()`, `report.to_json()`, and `report.plot()` return data without writing files.

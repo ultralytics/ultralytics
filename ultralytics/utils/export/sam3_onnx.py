@@ -704,16 +704,6 @@ def _prepare_for_onnx_export(model, dynamic=False):
     if getattr(model, "geometry_encoder", None) is not None:
         model.geometry_encoder._export_roi_grid_sample = True
 
-    # Tell the box relative position bias to rebuild its coordinate grid per call instead of reusing
-    # the one cached on the first pass, which would otherwise be traced in as a constant.
-    if dynamic:
-        from ultralytics.models.sam.sam3.decoder import TransformerDecoder
-        from ultralytics.models.sam.sam3.encoder import TransformerEncoder
-
-        for module in model.modules():
-            if isinstance(module, (TransformerDecoder, TransformerEncoder)):
-                module._export_dynamic_shapes = True
-
 
 def _onnx_postprocess(f, metadata, half=False, device_type="cpu", prefix="SAM3 ONNX:"):
     """Post-process: shape inference + metadata + IR version limit.

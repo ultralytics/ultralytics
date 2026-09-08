@@ -131,6 +131,7 @@ This preserves the data used for the run even if you later add or remove images,
 Choose your GPU from Ultralytics Cloud:
 
 ![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/7c588c7e6369f13267f9301dafd4647e.avif)<!-- screenshot -->
+
 {% include "macros/platform-gpu-table.md" %}
 
 !!! tip "GPU Selection"
@@ -247,7 +248,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.120**. Lower versions will not work with Platform.
+    Platform integration requires **Python>=3.11** and **ultralytics>=8.4.120**. Lower versions will not work with Platform.
 
     ```bash
     pip install -U ultralytics
@@ -607,6 +608,7 @@ The YAML editor also supports **importing configurations from previous training 
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
 ![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/d03490834657b55f99a40363f102f47d.avif)<!-- screenshot -->
+
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 
 ### Can I retry a failed run?

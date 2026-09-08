@@ -92,6 +92,7 @@ Recover a deleted item (Editor role or higher in a team workspace):
 3. Click the **Restore** button (undo icon)
 
 ![Ultralytics Platform Settings Trash Tab Restore Button On Item](https://cdn.ul.run/i/2dd74fa1d628c9dc2c1bd7581f299976.avif)<!-- screenshot -->
+
 The item returns to its original location with all data intact.
 
 If the original slug is already taken, the platform restores the item with a unique available slug so you can access it immediately.

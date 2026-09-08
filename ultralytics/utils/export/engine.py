@@ -244,7 +244,8 @@ def onnx2engine(
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
         dla (int | None): DLA core to use (Jetson devices only).
-        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration.
+        dataset (ultralytics.data.build.InfiniteDataLoader, optional): Dataset for INT8 calibration, unused when the
+            ONNX graph already carries Q/DQ ranges.
         metadata (dict | None): Metadata to include in the engine file.
         verbose (bool, optional): Enable verbose logging.
         prefix (str, optional): Prefix for log messages.
@@ -271,6 +272,8 @@ def onnx2engine(
         `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the Sigmoid layers at higher precision to preserve
         confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
     """
+    import onnx
+
     # Force re-install TensorRT on CUDA 13 ARM devices to 10.15.x versions for RT-DETR exports
     # https://github.com/ultralytics/ultralytics/issues/22873
     if is_jetson(jetpack=7) or is_dgx():
@@ -313,7 +316,9 @@ def onnx2engine(
     # platform_has_fast_fp16/int8 were removed from the Builder in TensorRT 10; default to True when absent
     use_fp16 = getattr(builder, "platform_has_fast_fp16", True) and quantize == 16
     use_int8 = getattr(builder, "platform_has_fast_int8", True) and quantize == 8
-    if use_int8 and dataset is None:
+    qdq = any(n.op_type == "QuantizeLinear" for n in onnx.load(onnx_file, load_external_data=False).graph.node)
+    calibrate = use_int8 and not qdq  # explicit quantization carries its ranges in the graph
+    if calibrate and dataset is None:
         raise ValueError("INT8 TensorRT export requires a calibration dataset.")
 
     # Optionally switch to DLA if enabled
@@ -336,7 +341,7 @@ def onnx2engine(
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ).
     # A strongly-typed build on TensorRT 10 follows the same path so its per-node precision is honored.
-    if (is_trt11 or strongly_typed) and (use_fp16 or use_int8):
+    if (is_trt11 or strongly_typed) and (use_fp16 or calibrate):
         onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix=prefix)
 
     # Read ONNX file
@@ -367,7 +372,7 @@ def onnx2engine(
             inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))
             profile.set_shape(inp.name, min=inp_min, opt=shape, max=inp_max)
         config.add_optimization_profile(profile)
-        if use_int8 and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
+        if calibrate and not is_trt10:  # deprecated in TensorRT 10, causes internal errors
             config.set_calibration_profile(profile)
 
     precision = "INT8" if use_int8 else "mixed FP16" if strongly_typed else f"FP{'16' if use_fp16 else '32'}"
@@ -375,6 +380,11 @@ def onnx2engine(
     if use_int8 and not (is_trt11 or strongly_typed):
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
+    elif use_fp16 and not (is_trt11 or strongly_typed):
+        config.set_flag(trt.BuilderFlag.FP16)
+
+    # Explicit Q/DQ graphs need neither calibration nor per-layer Sigmoid constraints.
+    if calibrate and not is_trt11:
 
         class EngineCalibrator(trt.IInt8Calibrator):
             """Custom INT8 calibrator for TensorRT engine optimization.
@@ -475,9 +485,6 @@ def onnx2engine(
             )
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
             LOGGER.info(f"{prefix} keeping {count} head Sigmoid layers in FP32 for INT8 accuracy")
-
-    elif use_fp16 and not (is_trt11 or strongly_typed):
-        config.set_flag(trt.BuilderFlag.FP16)
 
     # Write file
     if hasattr(builder, "build_serialized_network"):

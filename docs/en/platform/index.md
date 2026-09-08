@@ -115,6 +115,7 @@ graph LR
 - **20 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
 ![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/fd80b9795191f02b24d9b8d8d1c8380b.avif)<!-- screenshot -->
+
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
 === "Cloud Training (Web UI)"
@@ -382,7 +383,7 @@ You can train models on your own hardware and stream real-time metrics to Ultral
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.120**. Lower versions will NOT work with Platform.
+    Platform integration requires **Python>=3.11** and **ultralytics>=8.4.120**. Lower versions will NOT work with Platform.
 
     ```bash
     pip install "ultralytics>=8.4.120"

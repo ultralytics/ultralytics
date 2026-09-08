@@ -5,7 +5,7 @@ Ultralytics YOLO26 Pose Estimation with optional Multi-Object Tracking using Axe
 Standalone example using the axelera-rt pipeline API.
 No ultralytics dependency at runtime.
 
-Ultralytics YOLO26 is NMS-free: the model outputs (1, 300, 57) already in final format
+Exported with nms=False, YOLO26 is NMS-free: the model outputs (1, 300, 57) already in final format
 [x0, y0, x1, y1, score, class_id, kpt0_x, kpt0_y, kpt0_conf, ...].
 We use a small ConfidenceFilter operator instead of decode_pose (which only
 supports yolov8/yolo11 raw output layout).
@@ -109,8 +109,8 @@ class ConfidenceFilter(op.Operator):
 def build_pipeline(model_path: str, conf: float = 0.25, tracker_algo: str | None = "tracktrack"):
     """Build the YOLO26 pose pipeline, optionally with tracking.
 
-    YOLO26 is NMS-free, so there's no op.nms(). Pose-only returns the raw model rows (np.ndarray); adding a tracker
-    switches the output to a list of TrackedObject.
+    The nms=False YOLO26 export is NMS-free, so there's no op.nms(). Pose-only returns the raw model rows (np.ndarray);
+    adding a tracker switches the output to a list of TrackedObject.
     """
     stages = [
         op.color_convert("RGB", src="BGR"),  # OpenCV reads BGR; models expect RGB

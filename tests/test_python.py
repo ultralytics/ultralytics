@@ -10,6 +10,7 @@ import urllib
 import zipfile
 from copy import copy
 from pathlib import Path
+from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -82,10 +83,8 @@ def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
 
 def test_dataloader_auto_workers(monkeypatch):
     """Test workers<0 auto-scales from the default down to fit available host memory."""
-    from types import SimpleNamespace
-
-    rich = build_dataloader(range(64), batch=4, workers=-1, device="cpu")
-    tiny = build_dataloader(range(4), batch=4, workers=-1, device="cpu")
+    monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=64 * 2**30))
+    rich, tiny = (build_dataloader(range(n), batch=4, workers=-1, device="cpu") for n in (64, 4))
     monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=600 * 2**20))
     mid = build_dataloader(range(64), batch=4, workers=-1, device="cpu")
     monkeypatch.setattr(data_build.psutil, "virtual_memory", lambda: SimpleNamespace(available=300 * 2**20))

@@ -360,15 +360,17 @@ def build_dataloader(
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
-    # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
-    # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     auto = workers < 0
     if auto:  # start from the default and lower it to fit available host memory, never raise it
         imgsz = getattr(dataset, "imgsz", 640)
         imgsz = max(imgsz) if isinstance(imgsz, (list, tuple)) else imgsz
-        per_worker = 124 * 2**20 + 0.93 * (4 if shuffle else 2) * batch * imgsz**2 * 3
-        budget = int(psutil.virtual_memory().available * 0.6 // per_worker)
+        px = 3 + 4 * isinstance(dataset, DepthDataset) + isinstance(dataset, (SemanticDataset, PolygonSemanticDataset))
+        px += getattr(dataset, "use_segments", False)  # instance masks measured <5% per worker; 1 B/px covers them
+        per_worker = 124 * 2**20 + 0.93 * (4 if shuffle else 2) * batch * imgsz**2 * px  # MiB baseline + fitted B/px
+        budget = int(psutil.virtual_memory().available * 0.6 // (max(nd, 1) * per_worker))  # per-local-rank share
         workers = min(DEFAULT_CFG.workers, max(1, budget))
+    # Do not create more worker processes than final loader batches. Single-batch loaders run in-process to avoid
+    # persistent DataLoader worker pools that add overhead and can stall tiny datasets while holding CUDA context.
     nw = min(os.cpu_count() // max(nd, 1), workers, 0 if batches <= 1 else batches)  # number of workers
     if auto:
         LOGGER.info(f"{colorstr('AutoWorkers:')} using {nw} workers for imgsz={imgsz} batch={batch}")

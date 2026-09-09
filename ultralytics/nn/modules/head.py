@@ -1584,7 +1584,7 @@ class RTDETRDecoder(nn.Module):
         dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
             batch,
             self.nc,
-            self.num_queries,
+            min(self.num_queries, feats.shape[1]),
             self.denoising_class_embed.weight,
             self.num_denoising,
             self.label_noise_ratio,
@@ -1626,7 +1626,9 @@ class RTDETRDecoder(nn.Module):
             (torch.Tensor): Processed predictions with shape (batch_size, num_queries, 6), limited to max_det during
                 export, and last dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
-        k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        k = min(self.num_queries, scores.shape[1] * self.nc)
+        if self.export:
+            k = min(k, self.max_det)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
@@ -1732,14 +1734,15 @@ class RTDETRDecoder(nn.Module):
         # Query selection
         # (bs*num_queries,)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
+        k = min(self.num_queries, enc_outputs_scores.shape[1])
+        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, k, groups)[1].view(-1)
         # (bs*num_queries,)
-        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, k).view(-1)
 
         # (bs, num_queries, 256)
-        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        top_k_features = features[batch_ind, topk_ind].view(bs, k, -1)
         # (bs, num_queries, 4)
-        top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)
+        top_k_anchors = self.anchors[:, topk_ind].view(bs, k, -1)
 
         # Dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
@@ -1747,9 +1750,11 @@ class RTDETRDecoder(nn.Module):
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, k, -1)
 
-        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        embeddings = (
+            self.tgt_embed.weight[:k].unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        )
         if self.training:
             refer_bbox = refer_bbox.detach()
             if not self.learnt_init_query:

@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Builds ultralytics/ultralytics:latest-nvidia-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# NVIDIA ARM64 image for YOLO on JetPack 7 and DGX OS
+# NVIDIA ARM64 image for JetPack 7.1 on Jetson AGX Thor and DGX OS on DGX Spark
 
 # Start FROM PyTorch image nvcr.io/nvidia/pytorch:26.08-py3
 FROM nvcr.io/nvidia/pytorch:26.08-py3

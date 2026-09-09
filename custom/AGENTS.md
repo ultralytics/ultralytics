@@ -52,8 +52,8 @@ python3 -m compileall -q ultralytics
 
 ```bash
 yolo detect train model=yolo26n.pt data=coco8.yaml \
-    epochs=1 imgsz=320 batch=2 workers=0 device=cpu \
-    project=runs/smoke name=agent-check exist_ok=True
+  epochs=1 imgsz=320 batch=2 workers=0 device=cpu \
+  project=runs/smoke name=agent-check exist_ok=True
 ```
 
 提交前检查 `git diff --check` 和完整 diff。不要为可逆的小改动新增与实现重复的测试。

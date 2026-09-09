@@ -43,9 +43,9 @@ Git。训练时直接使用：
 
 ```bash
 yolo detect train \
-    model=yolo26n.pt \
-    data=custom/configs/datasets/private.yaml \
-    epochs=100 imgsz=640
+  model=yolo26n.pt \
+  data=custom/configs/datasets/private.yaml \
+  epochs=100 imgsz=640
 ```
 
 ## 分支和提交
@@ -83,9 +83,9 @@ git switch -c feature/custom-block
 ```bash
 yolo checks
 yolo detect train \
-    model=yolo26n.pt data=coco8.yaml \
-    epochs=1 imgsz=320 batch=2 workers=0 device=cpu \
-    project=runs/smoke name=upstream-sync exist_ok=True
+  model=yolo26n.pt data=coco8.yaml \
+  epochs=1 imgsz=320 batch=2 workers=0 device=cpu \
+  project=runs/smoke name=upstream-sync exist_ok=True
 ```
 
 如果仓库包含自定义模块，还应加载自己的模型 YAML，执行一次前向推理，并验证导出：

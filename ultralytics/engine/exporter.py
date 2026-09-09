@@ -548,14 +548,15 @@ class Exporter:
 
     Examples:
         Export a YOLO26 model to TorchScript format
+        >>> from ultralytics import YOLO
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
+        >>> exporter(model=YOLO("yolo26n.pt").model)  # exports to yolo26n.torchscript
 
         Export with specific arguments
         >>> args = {"format": "onnx", "dynamic": True, "quantize": 8, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
-        >>> exporter(model="yolo26n.pt")
+        >>> exporter(model=YOLO("yolo26n.pt").model)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):

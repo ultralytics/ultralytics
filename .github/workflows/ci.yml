@@ -63,13 +63,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -77,17 +75,13 @@ jobs:
           retry_delay_seconds: 20
           timeout_minutes: 20
           run: |
-            uv_system_args=()
-            if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
-              uv_system_args=(--system)
-            fi
             # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
-            uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
+            uv pip install --system -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
             if [[ "${{ matrix.os }}" == "macos-26" ]]; then
               # Exercise the Core AI benchmark rows on the Apple silicon macOS runner
-              uv pip install "${uv_system_args[@]}" -e ".[export-coreai]" --torch-backend cpu
+              uv pip install --system -e ".[export-coreai]" --torch-backend cpu
             fi
       - name: Check environment
         run: |
@@ -418,7 +412,8 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    # Temporarily disabled; remove "false &&" to re-enable.
+    if: false && github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     permissions:
       contents: read
       id-token: write

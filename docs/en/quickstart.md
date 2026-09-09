@@ -62,21 +62,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         ### Conda Docker Image
 
-        Ultralytics Conda Docker images are also available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
-
-        ```bash
-        # Set image name as a variable
-        t=ultralytics/ultralytics:latest-conda
-
-        # Pull the latest ultralytics image from Docker Hub
-        sudo docker pull $t
-
-        # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
-        sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
-        ```
-
-        On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for details.
+        Build the current Conda image locally using the [Conda Docker instructions](guides/conda-quickstart.md#ultralytics-conda-docker-image). Automated publishing of `latest-conda` is disabled; pulling that tag does not provide the current Dockerfile's PyTorch 2.13 / CUDA 13.0 environment.
 
     === "Git clone"
 
@@ -101,12 +87,7 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 
-        - **Dockerfile:** GPU image recommended for training.
-        - **Dockerfile-arm64:** Optimized for ARM64 architecture, suitable for deployment on devices like Raspberry Pi and other ARM64-based platforms.
-        - **Dockerfile-cpu:** Ubuntu-based CPU-only version, suitable for inference and environments without GPUs.
-        - **Dockerfile-jetson:** Tailored for [NVIDIA Jetson](guides/nvidia-jetson.md) devices, integrating GPU support optimized for these platforms.
-        - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
-        - **Dockerfile-conda:** Based on Miniconda3 with a conda installation of the `ultralytics` package.
+        See the [Docker image table](guides/docker-quickstart.md#installing-ultralytics-docker-images) for the complete list of GPU, CPU, export, ARM64, and JetPack images. The default AMD64 GPU image uses PyTorch 2.14 and CUDA 13.2; check the [GPU and host driver requirements](guides/docker-quickstart.md#installing-ultralytics-docker-images) before running it.
 
         Here are the commands to get the latest image and execute it:
 

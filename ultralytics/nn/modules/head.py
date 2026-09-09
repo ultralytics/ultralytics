@@ -1637,18 +1637,16 @@ class RTDETRDecoder(nn.Module):
     @staticmethod
     def _generate_anchors(
         shapes: list[list[int]],
+        feats: torch.Tensor,
         grid_size: float = 0.05,
-        dtype: torch.dtype = torch.float32,
-        device: str = "cpu",
         eps: float = 1e-2,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Generate anchor bounding boxes for given shapes with specific grid size and validate them.
 
         Args:
             shapes (list): List of feature map shapes.
+            feats (torch.Tensor): Tensor whose dtype and device the anchors inherit.
             grid_size (float, optional): Base size of grid cells.
-            dtype (torch.dtype, optional): Data type for tensors.
-            device (str, optional): Device to create tensors on.
             eps (float, optional): Small value for numerical stability.
 
         Returns:
@@ -1657,14 +1655,11 @@ class RTDETRDecoder(nn.Module):
         """
         anchors = []
         for i, (h, w) in enumerate(shapes):
-            sy = torch.arange(end=h, dtype=dtype, device=device)
-            sx = torch.arange(end=w, dtype=dtype, device=device)
+            sy = torch.arange(h, out=feats.new_zeros(h))
+            sx = torch.arange(w, out=feats.new_zeros(w))
             grid_y, grid_x = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
-            grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
-
-            valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
-            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
+            grid_xy = torch.stack([(grid_x + 0.5) / w, (grid_y + 0.5) / h], -1)[None]  # (1, h, w, 2)
+            wh = torch.full_like(grid_xy, grid_size * (2.0**i))
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
@@ -1722,7 +1717,7 @@ class RTDETRDecoder(nn.Module):
         """
         bs = feats.shape[0]
         if self.dynamic or self.shapes != shapes:
-            self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+            self.anchors, self.valid_mask = self._generate_anchors(shapes, feats)
             self.shapes = shapes
 
         # Prepare input for decoder

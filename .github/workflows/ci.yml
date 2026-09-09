@@ -363,6 +363,8 @@ jobs:
     timeout-minutes: 360
     runs-on: ubuntu-latest
     steps:
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:

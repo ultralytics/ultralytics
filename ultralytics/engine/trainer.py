@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
+    WINDOWS,
     YAML,
     callbacks,
     clean_url,
@@ -324,8 +325,10 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU
-        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
+        channels_last = self.args.channels_last is True or (
+            self.args.channels_last is None and TORCH_1_11 and not WINDOWS
+        )
         if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:

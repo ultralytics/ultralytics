@@ -70,7 +70,7 @@ def non_max_suppression(
             if classes is not None:
                 mask &= (pred[:, 5:6] == classes).any(1)
             idx = mask.nonzero(as_tuple=False).view(-1)[:max_det]
-            output.append(pred[idx])
+            output.append(pred[idx].float())  # half backend outputs: match the float32 rows the NMS branch returns
             keepi.append(idx)
         return (output, keepi) if return_idxs else output
 

@@ -325,8 +325,7 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where the WDDM driver model makes the
-        # extra layout-conversion kernels cost more than the Tensor-Core gain.
+        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
         channels_last = self.args.channels_last is True or (
             self.args.channels_last is None and TORCH_1_11 and not WINDOWS
         )

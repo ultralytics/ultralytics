@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Builds ultralytics/ultralytics:latest-nvidia-arm64 image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# NVIDIA ARM64 image for JetPack 7.1 on Jetson AGX Thor and DGX OS on DGX Spark
+# NVIDIA ARM64 image for DGX Spark; PyTorch on Thor/JetPack 7.1 (bundled TensorRT 11.2 does not support JetPack).
 
 # Start FROM PyTorch image nvcr.io/nvidia/pytorch:26.08-py3
 FROM nvcr.io/nvidia/pytorch:26.08-py3

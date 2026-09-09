@@ -95,14 +95,14 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 
 ## Quick Start with Docker
 
-The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to run with pre-built docker images. The same Docker image that supports Jetson AGX Thor (JetPack 7.1) works on DGX Spark with DGX OS.
+The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to run with pre-built docker images. The NVIDIA ARM64 image supports DGX Spark with DGX OS.
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
 sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t
 ```
 
-The CDI device request above applies to DGX Spark running DGX OS. On Jetson AGX Thor, launch the same image with `--runtime=nvidia` instead, as shown in the [NVIDIA Jetson guide](nvidia-jetson.md).
+The CDI device request above applies to DGX Spark running DGX OS. For PyTorch workloads on Jetson AGX Thor, see the separate host requirements and TensorRT restriction in the [NVIDIA Jetson guide](nvidia-jetson.md).
 
 This image uses NVIDIA PyTorch 26.08, CUDA 13.4, and TensorRT 11. Update the DGX OS host driver to a version supported by [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), and rebuild TensorRT engines after changing the image or target GPU.
 
@@ -420,4 +420,4 @@ DGX Spark offers up to 1 PFLOP of AI performance and 128GB unified memory, compa
 
 ### Can I use the same Docker image for DGX Spark and Jetson AGX Thor?
 
-Yes! The `ultralytics/ultralytics:latest-nvidia-arm64` Docker image supports both NVIDIA DGX Spark (with DGX OS) and Jetson AGX Thor (with JetPack 7.1), as both use ARM64 architecture with CUDA 13 and similar software stacks.
+For PyTorch workloads, `ultralytics/ultralytics:latest-nvidia-arm64` supports DGX Spark with DGX OS and Thor with JetPack 7.1. The bundled TensorRT 11.2 does not support JetPack, so Jetson TensorRT workflows must use the supported TensorRT 10.x runtime for their JetPack release. See the [Jetson Docker requirements](nvidia-jetson.md#quick-start-with-docker).

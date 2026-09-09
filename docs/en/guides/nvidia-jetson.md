@@ -107,16 +107,16 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to ru
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-=== "JetPack 7.1 (Thor/DGX Spark)"
+=== "JetPack 7.1 (Thor, PyTorch only)"
 
     ```bash
     t=ultralytics/ultralytics:latest-nvidia-arm64
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-!!! note "JetPack 7 Docker scope"
+!!! warning "JetPack 7 Docker and TensorRT support"
 
-    The `latest-nvidia-arm64` image uses [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), including CUDA 13.4 and TensorRT 11. NVIDIA lists JetPack 7.1 in its [compatibility table](https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform-release-notes/pytorch-jetson-rel.html#compatibility). Use a supported host driver. JetPack 7.2 on Thor or Orin requires separate validation; use the native installation below for those devices. TensorRT engines must be rebuilt for the target GPU and TensorRT version.
+    The `latest-nvidia-arm64` image uses [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), including CUDA 13.4 and TensorRT 11.2. NVIDIA lists JetPack 7.1 for PyTorch in its [compatibility table](https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform-release-notes/pytorch-jetson-rel.html#compatibility), but [TensorRT 11.2.1 does not support JetPack](https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html), including Thor. Use this image only for PyTorch workloads on a supported host. For Jetson TensorRT exports, use the native installation below with the TensorRT 10.x runtime supported by your JetPack release. JetPack 7.2 on Thor or Orin requires separate container validation. Rebuild engines for the target GPU and TensorRT version.
 
 After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
 
@@ -355,9 +355,9 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 
 [NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
 
-!!! warning "TensorRT 11.0 and DLA"
+!!! warning "TensorRT and DLA compatibility"
 
-    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 6.x/7.x, export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11.0 engines.
+    NVIDIA lists TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html); TensorRT 11.0, 11.1, and 11.2 do not support DLA. Use a DLA-capable TensorRT release supported by your JetPack version. TensorRT 11.2.1 does not support JetPack, including GPU-only exports.
 
 The following Jetson devices are equipped with DLA hardware:
 

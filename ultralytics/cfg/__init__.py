@@ -742,11 +742,11 @@ def handle_yolo_login(args: list[str]) -> None:
         SETTINGS["api_key"] = args[1]
         LOGGER.info("New authentication successful ✅")
     except APIError as error:
-        LOGGER.warning(
+        raise SystemExit(
             "Invalid API key" if error.status_code == 401 else f"Authentication failed (HTTP {error.status_code})"
-        )
+        ) from None
     except APIConnectionError as error:
-        LOGGER.warning(f"Authentication request failed, check your connection: {error}")
+        raise SystemExit(f"Authentication request failed, check your connection: {error}") from None
 
 
 def handle_yolo_settings(args: list[str]) -> None:

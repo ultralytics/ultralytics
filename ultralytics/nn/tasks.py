@@ -1165,7 +1165,7 @@ class WorldModel(DetectionModel):
         Returns:
             (torch.Tensor): Model's output tensor.
         """
-        txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
+        txt_feats = (self.txt_feats if txt_feats is None else txt_feats).type_as(x)
         if txt_feats.shape[0] != x.shape[0] or self.model[-1].export:
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
@@ -1424,7 +1424,7 @@ class YOLOEModel(DetectionModel):
                     assert vpe is not None
                     assert not self.training
                     return vpe
-                cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
+                cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).type_as(x[0])
                 if cls_pe.shape[0] != b or m.export:
                     cls_pe = cls_pe.expand(b, -1, -1)
                 x.append(cls_pe)  # adding cls embedding

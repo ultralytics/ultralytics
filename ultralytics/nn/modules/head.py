@@ -1006,7 +1006,7 @@ class LRPCHead(nn.Module):
             return (
                 loc_feat,
                 cls_feat.flatten(2),
-                torch.ones(cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool),
+                cls_feat.new_ones(cls_feat.shape[2] * cls_feat.shape[3], dtype=torch.bool),
             )
 
 

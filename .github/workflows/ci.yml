@@ -26,6 +26,10 @@ on:
         description: "Run Tests"
         default: true
         type: boolean
+      gpu:
+        description: "Run GPU"
+        default: true
+        type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
         default: true
@@ -407,6 +411,48 @@ jobs:
       - name: Prune uv Cache
         run: uv cache prune --ci
 
+  GPU:
+    # Temporarily disabled; remove "false &&" to re-enable.
+    if: false && github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    permissions:
+      contents: read
+      id-token: write
+    timeout-minutes: 60
+    runs-on: gpu-latest
+    env:
+      YOLO_AUTOINSTALL: "false"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: true
+      - name: Install requirements
+        run: |
+          # Install TensorRT into the job venv so uv can reuse the runner image cache.
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44" lap  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
+      - name: Pytest tests
+        run: |
+          slow=""
+          if [[ "${{ github.event_name }}" =~ ^(schedule|workflow_dispatch)$ ]]; then
+            slow="--slow"
+          fi
+          pytest $slow --cov=ultralytics/ --cov-report xml tests/test_cuda.py -sv
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+      - name: Upload Coverage Reports to CodeCov
+        continue-on-error: true
+        uses: codecov/codecov-action@v7
+        with:
+          flags: GPU
+          fail_ci_if_error: false
+          use_oidc: true
+
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
@@ -608,11 +654,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

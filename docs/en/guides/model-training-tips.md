@@ -82,6 +82,7 @@ Caching can be controlled when training YOLO26 using the `cache` parameter:
 
 - **`cache=True`**: Stores dataset images in RAM, providing the fastest access speed but at the cost of increased memory usage.
 - **`cache='disk'`**: Stores the images on disk, slower than RAM but faster than loading fresh data each time.
+- **`cache='force-disk'`**: Same as `'disk'` but bypasses the 50% disk space safety margin, caching even when available space is limited.
 - **`cache=False`**: Disables caching, relying entirely on disk I/O, which is the slowest option.
 
 ### Mixed Precision Training

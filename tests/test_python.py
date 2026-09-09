@@ -2245,3 +2245,13 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_force_disk_cache():
+    """Test cache='force-disk' bypasses the disk space safety margin and caches to disk."""
+    model = YOLO("yolo26n.pt")
+    model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="force-disk")
+    # Verify cache normalized to "disk" and .npy files were created
+    dataset = model.trainer.train_loader.dataset
+    assert dataset.cache == "disk"
+    assert any(f.exists() for f in dataset.npy_files)

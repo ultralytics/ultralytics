@@ -1190,7 +1190,10 @@ class ClassificationDataset:
         )
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
-        self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
+        self.cache_disk = str(args.cache).lower() in {
+            "disk",
+            "force-disk",
+        }  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
         if is_ndjson:
             self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]

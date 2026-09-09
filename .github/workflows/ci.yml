@@ -373,7 +373,9 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install export system dependencies
-        run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+        run: |
+          sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/ubuntu.sources" -o Dir::Etc::sourceparts="-"
+          sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Cache uv wheels
         uses: actions/cache@v6
         with:

@@ -111,6 +111,12 @@ Ultralytics publishes the following images to [Docker Hub](https://hub.docker.co
 | [`latest-runner`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-runner)                   | Linux AMD64 CUDA image for a self-hosted GitHub Actions GPU runner                                                                   | [`Dockerfile-runner`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-runner)                   |
 | [`latest-runner-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-runner-cpu)           | Linux AMD64 image for a self-hosted GitHub Actions CPU runner                                                                        | [`Dockerfile-runner-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-runner-cpu)           |
 
+The AMD64 GPU images (`latest`, `latest-export`, and `latest-runner`) use PyTorch 2.14 and CUDA 13.2. Check the host driver's CUDA support with `nvidia-smi` before launching them; installing a newer container does not upgrade the host driver. CUDA 13 removes support for Maxwell, Pascal, and Volta GPUs, including Tesla P100 and V100. See [NVIDIA's CUDA release notes](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#deprecated-architectures) and [driver compatibility requirements](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
+
+The NVIDIA ARM64 image uses NVIDIA PyTorch 26.08 with CUDA 13.4 and TensorRT 11. Follow the host and JetPack requirements in the [Jetson guide](nvidia-jetson.md#quick-start-with-docker) or [DGX Spark guide](nvidia-dgx-spark.md#quick-start-with-docker). The JetPack 4, 5, and 6 images retain their separate device-specific stacks.
+
+The Conda Dockerfile is available for [local builds](conda-quickstart.md#ultralytics-conda-docker-image); automated publishing of `latest-conda` is disabled, so that registry tag does not contain these updates.
+
 Use `latest-python-export` for LiteRT exports. The GPU `latest-export` image keeps PyTorch 2.14 and omits LiteRT because its current dependency requires PyTorch below 2.14.
 
 Tags beginning with `latest` track the most recently published main-branch build. Versioned tags replace the `latest` prefix with an Ultralytics release, such as `VERSION`, `VERSION-cpu`, or `VERSION-jetson-jetpack6`. Use a versioned tag for a reproducible environment.

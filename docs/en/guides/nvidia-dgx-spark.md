@@ -95,7 +95,7 @@ DGX Spark comes with a built-in [DGX Dashboard](https://docs.nvidia.com/dgx/dgx-
 
 ## Quick Start with Docker
 
-The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to run with pre-built docker images. The same Docker image that supports Jetson AGX Thor (JetPack 7.0) works on DGX Spark with DGX OS.
+The fastest way to get started with Ultralytics YOLO26 on NVIDIA DGX Spark is to run with pre-built docker images. The same Docker image that supports Jetson AGX Thor (JetPack 7.1) works on DGX Spark with DGX OS.
 
 ```bash
 t=ultralytics/ultralytics:latest-nvidia-arm64
@@ -103,6 +103,8 @@ sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=al
 ```
 
 The CDI device request above applies to DGX Spark running DGX OS. On Jetson AGX Thor, launch the same image with `--runtime=nvidia` instead, as shown in the [NVIDIA Jetson guide](nvidia-jetson.md).
+
+This image uses NVIDIA PyTorch 26.08, CUDA 13.4, and TensorRT 11. Update the DGX OS host driver to a version supported by [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), and rebuild TensorRT engines after changing the image or target GPU.
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).
 
@@ -418,4 +420,4 @@ DGX Spark offers up to 1 PFLOP of AI performance and 128GB unified memory, compa
 
 ### Can I use the same Docker image for DGX Spark and Jetson AGX Thor?
 
-Yes! The `ultralytics/ultralytics:latest-nvidia-arm64` Docker image supports both NVIDIA DGX Spark (with DGX OS) and Jetson AGX Thor (with JetPack 7.0), as both use ARM64 architecture with CUDA 13 and similar software stacks.
+Yes! The `ultralytics/ultralytics:latest-nvidia-arm64` Docker image supports both NVIDIA DGX Spark (with DGX OS) and Jetson AGX Thor (with JetPack 7.1), as both use ARM64 architecture with CUDA 13 and similar software stacks.

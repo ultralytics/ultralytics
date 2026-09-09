@@ -277,7 +277,7 @@ The timings are single observed end-to-end production routing tests from July 20
 
 !!! warning "Match the TensorRT engine build environment"
 
-    Downloaded engines are tied to their build platform, GPU family, TensorRT version, and a compatible CUDA runtime. For Jetson targets, the software versions are shown in the table above. Validate each engine and its memory fit on the deployment device, and perform INT8 calibration there for best results. If the environments do not match, export the engine locally instead. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
+    Downloaded engines are tied to their build platform, GPU family, TensorRT version, and a compatible CUDA runtime. The table above records the measured deployment environment, which can differ from newer `latest-nvidia-arm64` Docker images. Check the actual target runtime before reusing an engine. Validate each engine and its memory fit on the deployment device, and perform INT8 calibration there for best results. If the environments do not match, export the engine locally instead. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
 
 ### RKNN Chip Support
 

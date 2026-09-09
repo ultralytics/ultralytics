@@ -228,12 +228,13 @@ class AIFI(TransformerEncoderLayer):
             (torch.Tensor): Position embedding with shape [1, h*w, embed_dim].
         """
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
-        # arange(out=new_*) inherits the runtime device in traces, unlike a device= literal
-        grid_w = torch.arange(w, out=like.new_zeros(w, dtype=torch.float32))
-        grid_h = torch.arange(h, out=like.new_zeros(h, dtype=torch.float32))
+        # type_as inherits the runtime device in traces, unlike a device= literal; fp32 seed keeps sin/cos exact
+        like = like.new_zeros(1, dtype=torch.float32)
+        grid_w = torch.arange(w).type_as(like)
+        grid_h = torch.arange(h).type_as(like)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_w, grid_h)
         pos_dim = embed_dim // 4
-        omega = torch.arange(pos_dim, out=like.new_zeros(pos_dim, dtype=torch.float32)) / pos_dim
+        omega = torch.arange(pos_dim).type_as(like) / pos_dim
         omega = 1.0 / (temperature**omega)
 
         # Pin matmul to fp32 for CoreML export: fp16 sin/cos on integer-derived positions accumulates visible error.

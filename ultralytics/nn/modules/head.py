@@ -1655,8 +1655,8 @@ class RTDETRDecoder(nn.Module):
         """
         anchors = []
         for i, (h, w) in enumerate(shapes):
-            sy = torch.arange(h, out=feats.new_zeros(h))
-            sx = torch.arange(w, out=feats.new_zeros(w))
+            sy = torch.arange(h).type_as(feats)  # type_as inherits the runtime device in traces, unlike device=
+            sx = torch.arange(w).type_as(feats)
             grid_y, grid_x = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
             grid_xy = torch.stack([(grid_x + 0.5) / w, (grid_y + 0.5) / h], -1)[None]  # (1, h, w, 2)
             wh = torch.full_like(grid_xy, grid_size * (2.0**i))

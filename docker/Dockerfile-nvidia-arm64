@@ -32,8 +32,9 @@ COPY . .
 RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
-# Install pip packages (uv already installed in base image)
-RUN uv pip install --system \
+# Install pip packages
+RUN python -m pip install --no-cache-dir uv && \
+    uv pip install --system \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl && \
     uv pip install --system -e ".[export]" && \
     # Remove extra build files

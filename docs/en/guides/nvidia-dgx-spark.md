@@ -157,12 +157,10 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
 ### Install `onnxruntime-gpu`
 
-The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for ARM64 systems. So we need to manually install this package. This package is needed for some of the exports.
-
-Here we will download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
+Current [ONNX Runtime GPU releases](https://pypi.org/project/onnxruntime-gpu/) provide Linux ARM64 wheels, including Python 3.12. The NVIDIA ARM64 Docker image installs the official package; for native CUDA 13 installations, use:
 
 ```bash
-pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.24.0-cp312-cp312-linux_aarch64.whl
+pip install onnxruntime-gpu
 ```
 
 ## Use TensorRT on NVIDIA DGX Spark

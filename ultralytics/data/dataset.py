@@ -888,6 +888,7 @@ class SemanticDataset(YOLODataset):
         data (dict): Dataset configuration from YAML.
         mask_files (list[str]): List of mask file paths corresponding to images.
         include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
+        masks (dict[int, np.ndarray]): Resized masks of the images in the mosaic buffer, evicted with them.
     """
 
     format_class = SemanticFormat
@@ -905,6 +906,7 @@ class SemanticDataset(YOLODataset):
         self.label_lut, self.inverse_lut = self._build_label_luts()
         self.mask_files = []
         self.include_class = None
+        self.masks = {}  # masks of the buffered images, evicted with the image buffer
         super().__init__(*args, data=data, **kwargs)
 
     def update_labels(self, include_class: list[int] | None) -> None:
@@ -1053,8 +1055,7 @@ class SemanticDataset(YOLODataset):
     def get_image_and_label(self, index):
         """Get image, label and semantic mask for the given index.
 
-        Overrides parent to include semantic mask so that Mosaic/CopyPaste mix images
-        also have their masks loaded.
+        Overrides parent to include the semantic mask, served from RAM for the images Mosaic draws from the buffer.
 
         Args:
             index (int): Dataset index.
@@ -1064,12 +1065,17 @@ class SemanticDataset(YOLODataset):
         """
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
-        mask = self.load_mask(index, image_shape=(h, w))
-        if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
-            mask[~np.isin(mask, self.include_class)] = 255
-        # Resize mask to match the resized image dimensions
-        if mask.shape[:2] != (h, w):
-            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+        mask = self.masks.get(index)
+        if mask is None:
+            mask = self.load_mask(index, image_shape=(h, w))
+            if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
+                mask[~np.isin(mask, self.include_class)] = 255
+            if mask.shape[:2] != (h, w):
+                mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+            if index in self.buffer:  # image is RAM-resident for mosaic reuse, keep its mask with it
+                self.masks[index] = mask
+                if len(self.masks) > len(self.buffer):
+                    self.masks = {i: self.masks[i] for i in self.buffer if i in self.masks}
         label["semantic_mask"] = mask
         return label
 

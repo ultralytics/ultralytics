@@ -1055,7 +1055,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
         for attempt in range(3):
             error = None
             try:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=30)) as response:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(sock_connect=30, sock_read=30)) as response:
                     response.raise_for_status()
                     path.write_bytes(await response.read())
                 return True

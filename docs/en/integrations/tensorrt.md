@@ -173,9 +173,9 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 
     Please make sure to use a GPU with CUDA support when exporting to TensorRT.
 
-!!! warning "TensorRT 11.0 and DLA"
+!!! warning "JetPack and DLA compatibility"
 
-    TensorRT 11.0 does not support DLA; use TensorRT 10.x for `device=dla:0` or `device=dla:1`, or export a TensorRT 11.0 GPU engine.
+    [TensorRT 11.2.1 does not support JetPack](https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html), including Thor; use the TensorRT 10.x runtime supported by your JetPack release. For `device=dla:0` or `device=dla:1`, NVIDIA identifies TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html). TensorRT 11.0, 11.1, and 11.2 do not support DLA.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 

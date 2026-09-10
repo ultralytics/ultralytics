@@ -68,8 +68,7 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
 def _migraphx_cache_root() -> Path:
     """Resolve the MIGraphX compiled-program cache root once per process.
 
-    `_load_migraphx_session` overwrites ORT_MIGRAPHX_CACHE_DIR with each model's subdirectory, so re-reading it here per
-    call would nest every model's cache under the previous one; resolving once keeps the per-model dirs siblings.
+    Cached so per-model ORT_MIGRAPHX_CACHE_DIR overwrites don't nest each cache under the last, keeping the dirs siblings.
 
     Returns:
         (Path): Cache root from ORT_MIGRAPHX_CACHE_DIR if set, else under USER_CONFIG_DIR.
@@ -80,8 +79,7 @@ def _migraphx_cache_root() -> Path:
 def _migraphx_cache_dir(weight: str | Path) -> Path:
     """Return a per-model cache subdirectory for the MIGraphX compiled program.
 
-    The EP keys its cache by graph structure and input shapes, not weights, so same-architecture models would otherwise
-    share (and mis-load) one program; hashing the model bytes isolates each. Root: ORT_MIGRAPHX_CACHE_DIR or config dir.
+    The EP keys its cache by graph and input shapes (not weights), so hashing the model bytes isolates each model.
 
     Args:
         weight (str | Path): Path to the .onnx model file, hashed to key the cache.
@@ -231,6 +229,8 @@ class ONNXBackend(BaseBackend):
             check_requirements("onnx")
             if rocm:
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
+                # Ensure stock ONNX Runtime as a fallback so a missing plugin wheel degrades to CPU instead of crashing.
+                check_requirements([("onnxruntime", "onnxruntime-gpu")])
             else:
                 ort = "onnxruntime-gpu" if cuda else "onnxruntime"
                 check_requirements([(ort, "onnxruntime", "onnxruntime-gpu")])
@@ -241,7 +241,12 @@ class ONNXBackend(BaseBackend):
             # On ROCm, try the MIGraphX plugin EP first; it returns a configured session, or None if unavailable.
             self.session = None
             if rocm:
-                self.session = _load_migraphx_session(onnxruntime, session_options, weight, self.device.index or 0)
+                try:
+                    self.session = _load_migraphx_session(onnxruntime, session_options, weight, self.device.index or 0)
+                except Exception as e:
+                    # Plugin init can raise (e.g. unsupported-op compile); fall back to CPU with fresh options.
+                    LOGGER.warning(f"MIGraphX EP init failed ({e}). Using CPU...")
+                    session_options = onnxruntime.SessionOptions()
             plugin_ep = self.session is not None
             if not plugin_ep:
                 available = onnxruntime.get_available_providers()

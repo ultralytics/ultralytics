@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
@@ -63,6 +64,19 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
     return name
 
 
+@lru_cache(maxsize=1)
+def _migraphx_cache_root() -> Path:
+    """Resolve the MIGraphX compiled-program cache root once per process.
+
+    `_load_migraphx_session` overwrites ORT_MIGRAPHX_CACHE_DIR with each model's subdirectory, so re-reading it here
+    per call would nest every model's cache under the previous one; resolving once keeps the per-model dirs siblings.
+
+    Returns:
+        (Path): Cache root from ORT_MIGRAPHX_CACHE_DIR if set, else under USER_CONFIG_DIR.
+    """
+    return Path(os.environ.get("ORT_MIGRAPHX_CACHE_DIR") or USER_CONFIG_DIR / "migraphx_cache")
+
+
 def _migraphx_cache_dir(weight: str | Path) -> Path:
     """Return a per-model cache subdirectory for the MIGraphX compiled program.
 
@@ -75,8 +89,7 @@ def _migraphx_cache_dir(weight: str | Path) -> Path:
     Returns:
         (Path): Per-model cache subdirectory under the resolved cache root.
     """
-    root = Path(os.environ.get("ORT_MIGRAPHX_CACHE_DIR") or USER_CONFIG_DIR / "migraphx_cache")
-    return root / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
+    return _migraphx_cache_root() / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
 
 
 def _create_session(onnxruntime, weight: str | Path, session_options, providers=None):

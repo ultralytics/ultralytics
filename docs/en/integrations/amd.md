@@ -141,17 +141,17 @@ The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
 MIGraphX inference reuses the ONNX export arguments. The most relevant options for AMD GPU deployment are:
 
-| Argument   | Type             | Default  | Description                                                                                                           |
-| :--------- | :--------------- | :------- | :-------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'onnx'` | Target format for the exported model. Use `onnx` for MIGraphX EP inference.                                           |
-| `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.             |
-| `quantize` | `int` or `str`   | `None`   | Precision of the exported ONNX model: `16` (FP16) for reduced-precision inference; `32`/unset is FP32.                |
-| `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes. Static shapes let MIGraphX compile a specialized program and enable zero-copy IO binding. |
-| `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                      |
-| `opset`    | `int`            | `None`   | ONNX opset version for compatibility with different runtimes. If not set, uses the latest supported version.          |
+| Argument   | Type             | Default  | Description                                                                                                                                                                                                                           |
+| :--------- | :--------------- | :------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `format`   | `str`            | `'onnx'` | Target format for the exported model. Use `onnx` for MIGraphX EP inference.                                                                                                                                                           |
+| `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                                                                                                             |
+| `quantize` | `int` or `str`   | `None`   | Precision of the exported ONNX model: `16` (FP16) for reduced-precision inference; `32`/unset is FP32.                                                                                                                                |
+| `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes. Static shapes let MIGraphX compile a specialized program and enable zero-copy IO binding.                                                                                                                 |
+| `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                                                                                                      |
+| `opset`    | `int`            | `None`   | ONNX opset version for compatibility with different runtimes. If not set, uses the latest supported version.                                                                                                                          |
 | `nms`      | `bool`, optional | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). Embedded NMS (`True`) is not yet supported by the MIGraphX EP ([ROCm/AMDMIGraphX#5246](https://github.com/ROCm/AMDMIGraphX/issues/5246)). |
-| `batch`    | `int`            | `1`      | Export batch size, or the max number of images the exported model processes concurrently in `predict` mode.           |
-| `device`   | `str`            | `None`   | Device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                           |
+| `batch`    | `int`            | `1`      | Export batch size, or the max number of images the exported model processes concurrently in `predict` mode.                                                                                                                           |
+| `device`   | `str`            | `None`   | Device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                                                                                                           |
 
 For the full list of export arguments, see the [ONNX integration](onnx.md#export-arguments) and the [Ultralytics documentation page on exporting](../modes/export.md).
 

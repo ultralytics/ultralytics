@@ -68,7 +68,8 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
 def _migraphx_cache_root() -> Path:
     """Resolve the MIGraphX compiled-program cache root once per process.
 
-    Cached so per-model ORT_MIGRAPHX_CACHE_DIR overwrites don't nest each cache under the last, keeping the dirs siblings.
+    Cached so per-model ORT_MIGRAPHX_CACHE_DIR overwrites don't nest each cache under the last, keeping the dirs
+    siblings.
 
     Returns:
         (Path): Cache root from ORT_MIGRAPHX_CACHE_DIR if set, else under USER_CONFIG_DIR.

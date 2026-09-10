@@ -76,13 +76,13 @@ DATA = "/absolute/path/to/dataset.yaml"
 - `split`：验证数据划分，默认 `"val"`；仅在数据集提供相应划分时改用 `"test"`。
 
 默认输出通常位于 `runs/<任务>/<模式>/`，实际根目录取决于 Ultralytics 的 `runs_dir` 设置。
-已有目录会自动递增，例如 `train2`；以运行日志打印的实际路径为准。
+已有目录会自动递增，例如 `train-2`；以运行日志打印的实际路径为准。
 设置绝对 `project` 时，请在路径中自行区分任务，例如 `/absolute/path/to/runs/segment`。
 
 训练结束会打印输出目录和最佳权重路径。将实际路径填入 `val.py` 和 `predict.py`：
 
 ```python
-MODEL = "/absolute/path/to/runs/segment/train2/weights/best.pt"
+MODEL = "/absolute/path/to/runs/segment/train-2/weights/best.pt"
 ```
 
 同时在 `val.py` 中填写训练使用的 `DATA`，再运行验证和预测。路径可以包含空格。

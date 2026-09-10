@@ -24,9 +24,9 @@ Ultralytics stores persistent, per-machine settings in a JSON file in the user c
     === "CLI"
 
         ```bash
-        yolo settings  # view all settings
-        yolo settings runs_dir='/path/to/runs' tensorboard=False  # update one or more settings
-        yolo settings reset  # restore defaults
+        yolo settings                                            # view all settings
+        yolo settings runs_dir='/path/to/runs' tensorboard=False # update one or more settings
+        yolo settings reset                                      # restore defaults
         ```
 
 ## Settings Reference

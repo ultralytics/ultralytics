@@ -442,7 +442,7 @@ class Predictor(BasePredictor):
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
 
         if min_mask_region_area > 0:
-            h0, w0 = self.batch[1][0].shape[:2]
+            h0, w0 = self.batch[1][0].shape[:2]  # HWC source; a tensor source is already imgsz x imgsz, so gain is 1
             gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
             min_area = min_mask_region_area * gain * gain
             pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))

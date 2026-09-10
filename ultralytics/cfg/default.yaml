@@ -154,6 +154,7 @@ copy_paste_mode: flip # (str) copy-paste strategy for segmentation: flip or mixu
 auto_augment: randaugment # (str) classification auto augmentation policy: randaugment, autoaugment, augmix
 erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)
 rtdetr_augmentations: False # (bool) use RT-DETR augmentations for detection tasks
+rtdetr_letterbox: False # (bool) letterbox RT-DETR inputs with aspect-preserving pad instead of stretching
 
 # Custom config.yaml ---------------------------------------------------------------------------------------------------
 cfg: # (str, optional) path to a config.yaml that overrides defaults

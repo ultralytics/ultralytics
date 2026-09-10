@@ -8,7 +8,7 @@ from typing import Any
 import torch
 
 from ultralytics.data import YOLODataset
-from ultralytics.data.augment import Compose, Format, v8_transforms
+from ultralytics.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.models.yolo.detect import DetectionValidator
 from ultralytics.utils import LOGGER, colorstr, ops
 
@@ -29,6 +29,8 @@ class RTDETRDataset(YOLODataset):
         use_segments (bool): Whether to use segmentation masks.
         use_keypoints (bool): Whether to use keypoint annotations.
         imgsz (int): Target image size for training.
+        letterbox (bool): Whether to resize with aspect-preserving pad instead of stretching to a square.
+        rtdetr_augmentations (bool): Whether to use the torchvision RT-DETR augmentation pipeline.
 
     Methods:
         load_image: Load one image from dataset index.
@@ -52,14 +54,20 @@ class RTDETRDataset(YOLODataset):
             **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
         """
         self.rtdetr_augmentations = kwargs["hyp"].rtdetr_augmentations
+        self.letterbox = kwargs["hyp"].rtdetr_letterbox
+        if self.letterbox and self.rtdetr_augmentations:
+            # The torchvision DEIM pipeline ends in T.Resize([imgsz, imgsz]), which always stretches. Silently
+            # ignoring the flag would train on a preprocessing that inference does not reproduce.
+            raise ValueError("rtdetr_letterbox=True is not supported with rtdetr_augmentations=True.")
         super().__init__(*args, data=data, **kwargs)
 
-    def load_image(self, i, rect_mode=False):
+    def load_image(self, i, rect_mode=None):
         """Load one image from dataset index 'i'.
 
         Args:
             i (int): Index of the image to load.
-            rect_mode (bool, optional): Whether to use rectangular mode for batch inference.
+            rect_mode (bool, optional): Whether to resize the long side to imgsz while preserving aspect ratio. Defaults
+                to the dataset's `letterbox` setting.
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
@@ -71,7 +79,7 @@ class RTDETRDataset(YOLODataset):
             >>> dataset = RTDETRDataset(img_path="path/to/images")
             >>> image, hw0, hw = dataset.load_image(0)
         """
-        return super().load_image(i=i, rect_mode=rect_mode)
+        return super().load_image(i=i, rect_mode=self.letterbox if rect_mode is None else rect_mode)
 
     def build_transforms(self, hyp=None):
         """Build transformation pipeline for the dataset.
@@ -89,10 +97,10 @@ class RTDETRDataset(YOLODataset):
             if self.rtdetr_augmentations:
                 transforms = rtdetr_transforms(self, self.imgsz, hyp, stretch=True)
             else:
-                transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
+                transforms = v8_transforms(self, self.imgsz, hyp, stretch=not self.letterbox)
         else:
-            # transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False, scale_fill=True)])
-            transforms = Compose([])
+            # load_image already stretched to a square when not letterboxing, so no resize transform is needed
+            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False)] if self.letterbox else [])
         transforms.append(
             Format(
                 bbox_format="xywh",
@@ -224,8 +232,17 @@ class RTDETRValidator(DetectionValidator):
         )
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Return predictions unchanged as RT-DETR handles scaling in postprocessing."""
-        return predn
+        """Scale predictions from the model input canvas back to original image space.
+
+        Metrics are computed in canvas space, so this only runs for `save_json` and `save_txt`. Letterboxed inputs
+        carry padding and a single gain in `ratio_pad`, while stretched inputs have independent x/y gains.
+        """
+        if self.args.rtdetr_letterbox:
+            return super().scale_preds(predn, pbatch)
+        boxes = predn["bboxes"].clone()
+        boxes[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz
+        boxes[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz
+        return {**predn, "bboxes": boxes}
 
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
@@ -270,10 +287,7 @@ class RTDETRValidator(DetectionValidator):
         path = Path(pbatch["im_file"])
         stem = path.stem
         image_id = int(stem) if stem.isnumeric() else stem
-        box = predn["bboxes"].clone()
-        box[..., [0, 2]] *= pbatch["ori_shape"][1] / self.args.imgsz  # native-space pred
-        box[..., [1, 3]] *= pbatch["ori_shape"][0] / self.args.imgsz  # native-space pred
-        box = ops.xyxy2xywh(box)  # xywh
+        box = ops.xyxy2xywh(predn["bboxes"].clone())  # already native-space via scale_preds
         box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
         for b, s, c in zip(box.tolist(), predn["conf"].tolist(), predn["cls"].tolist()):
             self.jdict.append(

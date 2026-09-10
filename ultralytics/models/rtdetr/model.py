@@ -87,7 +87,7 @@ class RTDETRDEIMPredictor(RTDETRPredictor):
 class RTDETRDEIM(RTDETR):
     """RT-DETR interface that routes training/validation through isolated DEIM classes."""
 
-    _EXTRA_CKPT_ARGS = {"rtdetr_input_normalize"}
+    _EXTRA_CKPT_ARGS = {"rtdetr_input_normalize", "rtdetr_letterbox"}
 
     @staticmethod
     def _reset_ckpt_args(args: dict[str, Any]) -> dict[str, Any]:

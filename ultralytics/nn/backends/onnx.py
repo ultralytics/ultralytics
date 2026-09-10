@@ -20,6 +20,12 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
 
     The plugin (`onnxruntime-ep-migraphx`) is not auto-registered. Its libs are preloaded with RTLD_GLOBAL to work
     around a missing `libonnxruntime.so.1` soname link (ROCm/AMDMIGraphX#5235). Registration is idempotent.
+
+    Args:
+        onnxruntime (module): The imported onnxruntime module.
+
+    Returns:
+        (str | None): The registered EP name, or None if the plugin or its registration is unavailable.
     """
     try:
         import onnxruntime_ep_migraphx as ep
@@ -57,25 +63,35 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
     return name
 
 
-_MIGRAPHX_CACHE_ROOT: Path | None = None  # resolved once
-
-
 def _migraphx_cache_dir(weight: str | Path) -> Path:
     """Return a per-model cache subdirectory for the MIGraphX compiled program.
 
     The EP keys its cache by graph structure and input shapes, not weights, so same-architecture models would otherwise
     share (and mis-load) one program; hashing the model bytes isolates each. Root: ORT_MIGRAPHX_CACHE_DIR or config dir.
+
+    Args:
+        weight (str | Path): Path to the .onnx model file, hashed to key the cache.
+
+    Returns:
+        (Path): Per-model cache subdirectory under the resolved cache root.
     """
-    global _MIGRAPHX_CACHE_ROOT
-    if _MIGRAPHX_CACHE_ROOT is None:
-        _MIGRAPHX_CACHE_ROOT = Path(os.environ.get("ORT_MIGRAPHX_CACHE_DIR") or USER_CONFIG_DIR / "migraphx_cache")
-    return _MIGRAPHX_CACHE_ROOT / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
+    root = Path(os.environ.get("ORT_MIGRAPHX_CACHE_DIR") or USER_CONFIG_DIR / "migraphx_cache")
+    return root / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
 
 
 def _create_session(onnxruntime, weight: str | Path, session_options, providers=None):
     """Create an ONNX Runtime InferenceSession, raising a clear error on an unparsable model.
 
     `providers=None` uses the execution providers already configured on `session_options` (e.g. the MIGraphX plugin).
+
+    Args:
+        onnxruntime (module): The imported onnxruntime module.
+        weight (str | Path): Path to the .onnx model file.
+        session_options (onnxruntime.SessionOptions): Session options, optionally carrying pre-configured providers.
+        providers (list | None): Explicit execution providers, or None to use those set on `session_options`.
+
+    Returns:
+        (onnxruntime.InferenceSession): The loaded inference session.
     """
     try:
         if providers is None:
@@ -96,6 +112,15 @@ def _load_migraphx_session(onnxruntime, session_options, weight: str | Path, ind
 
     Registers the plugin, selects the requested GPU, disables Winograd to speed cold compiles, enables the per-model
     compiled-program cache, and creates the session. The EP is added via `add_provider_for_devices`, not `providers=`.
+
+    Args:
+        onnxruntime (module): The imported onnxruntime module.
+        session_options (onnxruntime.SessionOptions): Session options the MIGraphX provider is added to.
+        weight (str | Path): Path to the .onnx model file.
+        index (int): Requested GPU device index, clamped to device 0 if not enumerated by the EP.
+
+    Returns:
+        (onnxruntime.InferenceSession | None): The session on the MIGraphX EP, or None if MIGraphX is unavailable.
     """
     ep = _register_migraphx_ep(onnxruntime)
     devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == ep] if ep else []
@@ -198,10 +223,12 @@ class ONNXBackend(BaseBackend):
                 check_requirements([(ort, "onnxruntime", "onnxruntime-gpu")])
             import onnxruntime
 
-            # On ROCm try the MIGraphX plugin EP first; it returns a configured session, or None if unavailable.
             session_options = self.session_options or onnxruntime.SessionOptions()
-            index = self.device.index or 0
-            self.session = _load_migraphx_session(onnxruntime, session_options, weight, index) if rocm else None
+
+            # On ROCm, try the MIGraphX plugin EP first; it returns a configured session, or None if unavailable.
+            self.session = None
+            if rocm:
+                self.session = _load_migraphx_session(onnxruntime, session_options, weight, self.device.index or 0)
             plugin_ep = self.session is not None
             if not plugin_ep:
                 available = onnxruntime.get_available_providers()

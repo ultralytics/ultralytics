@@ -5,7 +5,8 @@
 
 # Start FROM ROCm PyTorch image https://hub.docker.com/r/rocm/pytorch
 # See https://hub.docker.com/r/rocm/pytorch/tags for available tags
-FROM rocm/pytorch:rocm7.2.1_ubuntu24.04_py3.12_pytorch_release_2.9.1
+# ROCm 10 base aligns with the ROCm 10 / MIGraphX 2.17 / onnxruntime 1.29 plugin wheels installed below.
+FROM rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0
 
 # Set environment variables
 # Suppress TensorFlow and PyTorch warnings
@@ -27,7 +28,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libsm6 migraphx && \
+    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 libsm6 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -41,7 +42,12 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (PyTorch + ROCm already present in base image)
 # Use pip directly for Ubuntu 24.04 externally-managed Python compatibility.
-RUN pip install -e "." albumentations faster-coco-eval onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/ && \
+# The MIGraphX EP ships as the onnxruntime-ep-migraphx plugin (pulls stock onnxruntime 1.29); migraphx-libs provides
+# its C library and libamdhip64.so.7 comes from the base image's ROCm runtime.
+RUN pip install -e "." albumentations faster-coco-eval && \
+    pip install onnxruntime-ep-migraphx migraphx-libs \
+      --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
+      --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ && \
     pip install "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" && \
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
 

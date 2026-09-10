@@ -117,7 +117,7 @@ def onnx2saved_model(
             f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
             "onnxslim>=0.1.82",
             # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
-            (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-migraphx"),
+            (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault

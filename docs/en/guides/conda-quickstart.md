@@ -61,17 +61,18 @@ For AMD GPU acceleration on Linux using [ROCm](https://rocm.docs.amd.com/), PyTo
 ```bash
 conda create --name ultralytics-rocm python=3.12 -y
 conda activate ultralytics-rocm
-pip3 install torch torchvision --index-url https://download.pytorch.org/whl/rocm7.2
+pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 pip install ultralytics
-pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/
+pip install onnxruntime-ep-migraphx migraphx-libs \
+  --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
+  --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
 ```
 
 !!! note
 
-    The AMD `onnxruntime-migraphx` wheel requires **Python 3.10 or 3.12** on **Linux x86_64**. Make sure the MIGraphX C++ library is installed on your system and `/opt/rocm/lib` is in the linker path (see the [ONNX integration guide](../integrations/onnx.md#amd-gpu-inference-with-migraphx) for details).
-    The `--extra-index-url` above targets `rocm-rel-7.2`, the ROCm/MIGraphX stack validated by Ultralytics `Dockerfile-amd` (wheels for `rocm-rel-7.2.x` use the same index). For other ROCm minors, pick the matching folder under [`repo.radeon.com/rocm/manylinux/`](https://repo.radeon.com/rocm/manylinux/).
+    The AMD `onnxruntime-ep-migraphx` plugin requires **Python 3.11 to 3.14** on **Linux x86_64** and targets the ROCm 10 wheels (MIGraphX 2.17, onnxruntime 1.29). The plugin adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module; `migraphx-libs` is installed alongside it because the plugin does not yet declare it as a dependency (see the [AMD GPU guide](../integrations/amd.md#installation) for details).
 
-See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [ONNX integration guide](../integrations/onnx.md#amd-gpu-inference-with-migraphx) for MIGraphX inference setup.
+See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [AMD GPU guide](../integrations/amd.md#installation) for MIGraphX inference setup.
 
 ## Using Ultralytics
 

@@ -267,7 +267,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Check the requirements and select the appropriate backend (CPU, CUDA, or ROCm/MIGraphX)
-    check_requirements([("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx")])
+    check_requirements([("onnxruntime", "onnxruntime-gpu")])
 
     # Create an instance of the YOLOv8 class with the specified arguments
     detection = YOLOv8(args.model, args.img, args.conf_thres, args.iou_thres)

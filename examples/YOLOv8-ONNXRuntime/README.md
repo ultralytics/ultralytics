@@ -30,10 +30,12 @@ pip install onnxruntime-gpu
 
 **GPU Acceleration (AMD, Linux)**
 
-For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, install `onnxruntime-migraphx` for high-performance inference via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html).
+For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, install the `onnxruntime-ep-migraphx` plugin for high-performance inference via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html).
 
 ```bash
-pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/
+pip install onnxruntime-ep-migraphx migraphx-libs \
+  --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
+  --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
 ```
 
 **CPU Only**

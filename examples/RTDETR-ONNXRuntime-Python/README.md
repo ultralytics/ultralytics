@@ -22,12 +22,14 @@ For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`**
 pip install onnxruntime-gpu
 ```
 
-### Installing `onnxruntime-migraphx` (Optional, AMD Linux)
+### Installing `onnxruntime-ep-migraphx` (Optional, AMD Linux)
 
-For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) on Linux, install `onnxruntime-migraphx` for high-performance inference via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html).
+For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) on Linux, install the `onnxruntime-ep-migraphx` plugin for high-performance inference via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html).
 
 ```bash
-pip install onnxruntime-migraphx --extra-index-url https://repo.radeon.com/rocm/manylinux/rocm-rel-7.2/
+pip install onnxruntime-ep-migraphx migraphx-libs \
+  --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
+  --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
 ```
 
 ## 🚀 Usage

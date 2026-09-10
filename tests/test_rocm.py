@@ -6,12 +6,25 @@ import pytest
 
 from tests import MODEL, ROCM_IS_AVAILABLE, SOURCE
 from ultralytics import YOLO
+from ultralytics.cfg import TASK2MODEL, TASKS
 
 
 @pytest.mark.skipif(not ROCM_IS_AVAILABLE, reason="ROCm/HIP not available")
 def test_rocm_migraphx_inference():
     """Test ONNX export and inference route to the MIGraphX execution provider on AMD GPU."""
     file = YOLO(MODEL).export(format="onnx", imgsz=32, device=0)
+    model = YOLO(file)
+    assert model(SOURCE, imgsz=32, device=0)
+    assert "MIGraphXExecutionProvider" in model.predictor.model.session.get_providers()
+    Path(file).unlink()
+
+
+@pytest.mark.slow
+@pytest.mark.skipif(not ROCM_IS_AVAILABLE, reason="ROCm/HIP not available")
+@pytest.mark.parametrize("task", sorted(TASKS))
+def test_rocm_migraphx_matrix(task):
+    """Test every YOLO26 task exports to ONNX and runs on the MIGraphX execution provider."""
+    file = YOLO(TASK2MODEL[task]).export(format="onnx", imgsz=32, device=0)
     model = YOLO(file)
     assert model(SOURCE, imgsz=32, device=0)
     assert "MIGraphXExecutionProvider" in model.predictor.model.session.get_providers()

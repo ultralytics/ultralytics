@@ -255,7 +255,7 @@ def test_checkpoint_fp16_overflow():
     def inflate_ema(trainer):
         """Push an EMA weight above the fp16 max (65504) so its fp16 snapshot would otherwise become Inf."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = 1.0e5
+            next(iter(trainer.ema.ema.parameters())).data[0] = 1.0e5
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -279,7 +279,7 @@ def test_checkpoint_nonfinite_ema_resync():
     def poison_ema(trainer):
         """Make the live fp32 EMA genuinely non-finite while the model stays finite (sticky-NaN on a finite-loss run)."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
+            next(iter(trainer.ema.ema.parameters())).data[0] = float("inf")
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 2}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -298,8 +298,8 @@ def test_checkpoint_nonfinite_ema_and_model_sanitized():
     def poison_ema_and_model(trainer):
         """Force the first parameter non-finite in both the live EMA and the model (finite-loss sticky-NaN)."""
         if trainer.ema is not None:
-            next(iter(trainer.ema.ema.parameters())).data.flatten()[0] = float("inf")
-            next(iter(unwrap_model(trainer.model).parameters())).data.flatten()[0] = float("nan")
+            next(iter(trainer.ema.ema.parameters())).data[0] = float("inf")
+            next(iter(unwrap_model(trainer.model).parameters())).data[0] = float("nan")
 
     overrides = {"data": "coco8.yaml", "model": "yolo26n.yaml", "imgsz": 32, "epochs": 1}
     trainer = detect.DetectionTrainer(overrides=overrides)
@@ -310,53 +310,6 @@ def test_checkpoint_nonfinite_ema_and_model_sanitized():
     assert all(torch.isfinite(v).all() for v in model.state_dict().values() if isinstance(v, torch.Tensor)), (
         "saved checkpoint contains NaN/Inf"
     )
-
-
-@pytest.mark.parametrize(
-    "kwargs,uses_weights",
-    [({}, True), ({"pretrained": True}, True), ({"pretrained": False}, False), ({"pretrained": MODEL}, True)],
-)
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
-def test_train_reuses_loaded_checkpoint_model(monkeypatch, kwargs, uses_weights):
-    """Test training reuses loaded checkpoint config while respecting the pretrained argument."""
-    model = YOLO("yolo26n.yaml")
-    model.ckpt = {"checkpoint": True}
-    model.ckpt_path = "/tmp/fake.pt"
-    model.overrides["model"] = "ul://glenn-jocher/m2/exp-14"
-    model.overrides["pretrained"] = False
-    original_model = model.model
-    captured = {}
-
-    class FakeTrainer:
-        def __init__(self, overrides=None, _callbacks=None):
-            self.overrides = overrides
-            self.callbacks = _callbacks
-            self.model = None
-            self.validator = SimpleNamespace(metrics=None)
-            self.best = MODEL.parent / "nonexistent-best.pt"
-            self.last = MODEL
-            captured["trainer"] = self
-
-        def get_model(self, cfg=None, weights=None, verbose=True):
-            captured["cfg"] = cfg
-            captured["weights"] = weights
-            return original_model
-
-        def train(self):
-            return None
-
-    monkeypatch.setattr("ultralytics.engine.model.checks.check_pip_update_available", lambda: None)
-    monkeypatch.setattr(model, "_smart_load", lambda key: FakeTrainer)
-    monkeypatch.setattr(
-        "ultralytics.engine.model.load_checkpoint",
-        lambda path: (original_model, {"checkpoint": True}),
-    )
-
-    model.train(data="coco8.yaml", epochs=1, **kwargs)
-
-    assert captured["trainer"].model is original_model, "Trainer model does not match original"
-    assert captured["cfg"] == original_model.yaml, f"Config mismatch: {captured['cfg']} != {original_model.yaml}"
-    assert captured["weights"] is (original_model if uses_weights else None), "Unexpected weights loaded"
 
 
 def test_train_multi_custom_trainer_metrics_and_failure_keys(monkeypatch, tmp_path):

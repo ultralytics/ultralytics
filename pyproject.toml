@@ -78,7 +78,7 @@ dependencies = [
     "polars>=0.20.0",
     "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
     "ultralytics-thop>=2.1.6", # FLOPs computation https://github.com/ultralytics/thop
-    "ultralytics-platform>=0.1.3; python_version >= '3.11'",
+    "ultralytics-platform>=0.1.32; python_version >= '3.11'",
 ]
 
 # Optional dependencies ------------------------------------------------------------------------------------------------
@@ -102,7 +102,7 @@ export-base = [
     "onnxruntime>=1.20.0; python_version >= '3.11'",
 ]
 export-openvino = [
-    "nncf>=2.14.0,<4.0.0; python_version >= '3.9'",  # OpenVINO INT8 export
+    "nncf>=2.14.0; python_version >= '3.9'",  # OpenVINO INT8 export
     "openvino>=2024.0.0",  # OpenVINO export
     "packaging>=26.0; platform_machine == 'aarch64' and platform_system == 'Linux' and python_version >= '3.9'", # NNCF on Linux ARM64
 ]

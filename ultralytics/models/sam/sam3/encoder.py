@@ -288,13 +288,8 @@ class TransformerEncoder(nn.Module):
         src_flatten = []
         mask_flatten = []
         lvl_pos_embed_flatten = []
-        spatial_shapes = []
         has_mask = masks is not None and masks[0] is not None
         for lvl, (src, mask, pos_embed) in enumerate(zip(srcs, masks, pos_embeds)):
-            _, _, h, w = src.shape
-            spatial_shape = (h, w)
-            spatial_shapes.append(spatial_shape)
-
             src = src.flatten(2).transpose(1, 2)  # bs, hw, c
             if has_mask:
                 mask = mask.flatten(1)
@@ -310,13 +305,6 @@ class TransformerEncoder(nn.Module):
         src_flatten = torch.cat(src_flatten, 1)  # bs, \sum{hxw}, c
         mask_flatten = torch.cat(mask_flatten, 1) if has_mask else None  # bs, \sum{hxw}
         lvl_pos_embed_flatten = torch.cat(lvl_pos_embed_flatten, 1)  # bs, \sum{hxw}, c
-        spatial_shapes = torch.tensor(spatial_shapes, dtype=torch.long, device=src_flatten.device)
-        level_start_index = torch.cat(
-            (
-                spatial_shapes.new_zeros((1,)),
-                spatial_shapes.prod(1).cumsum(0)[:-1],
-            )
-        )
         if has_mask:
             valid_ratios = torch.stack([get_valid_ratio(m) for m in masks], 1)
         else:
@@ -330,9 +318,7 @@ class TransformerEncoder(nn.Module):
             src_flatten,
             mask_flatten,
             lvl_pos_embed_flatten,
-            level_start_index,
             valid_ratios,
-            spatial_shapes,
         )
 
     def forward(
@@ -343,7 +329,7 @@ class TransformerEncoder(nn.Module):
         prompt: torch.Tensor = None,
         prompt_key_padding_mask: torch.Tensor = None,
         encoder_extra_kwargs: dict | None = None,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Process multi-level features through the transformer encoder.
 
         Args:
@@ -361,8 +347,6 @@ class TransformerEncoder(nn.Module):
             - output: Processed features with shape (seq_len, batch_size, d_model)
             - key_padding_masks_flatten: Flattened padding masks
             - lvl_pos_embed_flatten: Flattened positional embeddings
-            - level_start_index: Starting indices for each feature level
-            - spatial_shapes: Spatial dimensions of each feature level
             - valid_ratios: Valid ratios for each feature level
         """
         assert len(src) == self.num_feature_levels, "must be equal to num_feature_levels"
@@ -375,9 +359,7 @@ class TransformerEncoder(nn.Module):
             src_flatten,
             key_padding_masks_flatten,
             lvl_pos_embed_flatten,
-            level_start_index,
             valid_ratios,
-            spatial_shapes,
         ) = self._prepare_multilevel_features(src, src_key_padding_masks, pos)
 
         output = src_flatten
@@ -401,8 +383,6 @@ class TransformerEncoder(nn.Module):
             output.transpose(0, 1),
             (key_padding_masks_flatten.transpose(0, 1) if key_padding_masks_flatten is not None else None),
             lvl_pos_embed_flatten.transpose(0, 1),
-            level_start_index,
-            spatial_shapes,
             valid_ratios,
         )
 
@@ -488,8 +468,6 @@ class TransformerEncoderFusion(TransformerEncoder):
             out,
             key_padding_masks_flatten,
             lvl_pos_embed_flatten,
-            level_start_index,
-            spatial_shapes,
             valid_ratios,
         ) = super().forward(
             src,
@@ -505,8 +483,6 @@ class TransformerEncoderFusion(TransformerEncoder):
             "padding_mask": key_padding_masks_flatten,
             "pos_embed": lvl_pos_embed_flatten,
             "memory_text": prompt,
-            "level_start_index": level_start_index,
-            "spatial_shapes": spatial_shapes,
             "valid_ratios": valid_ratios,
         }
 

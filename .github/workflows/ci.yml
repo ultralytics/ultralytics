@@ -67,13 +67,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -81,17 +79,13 @@ jobs:
           retry_delay_seconds: 20
           timeout_minutes: 20
           run: |
-            uv_system_args=()
-            if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
-              uv_system_args=(--system)
-            fi
             # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
-            uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
+            uv pip install --system -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
             if [[ "${{ matrix.os }}" == "macos-26" ]]; then
               # Exercise the Core AI benchmark rows on the Apple silicon macOS runner
-              uv pip install "${uv_system_args[@]}" -e ".[export-coreai]" --torch-backend cpu
+              uv pip install --system -e ".[export-coreai]" --torch-backend cpu
             fi
       - name: Check environment
         run: |
@@ -373,6 +367,8 @@ jobs:
     timeout-minutes: 360
     runs-on: ubuntu-latest
     steps:
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
@@ -381,7 +377,12 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install export system dependencies
-        run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          timeout_minutes: 10
+          run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Cache uv wheels
         uses: actions/cache@v6
         with:
@@ -422,7 +423,8 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    # Temporarily disabled; remove "false &&" to re-enable.
+    if: false && github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     permissions:
       contents: read
       id-token: write

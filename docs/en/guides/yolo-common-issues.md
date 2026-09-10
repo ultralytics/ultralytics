@@ -115,7 +115,7 @@ Common training problems and their fixes are covered below.
 - Recall
 - [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP)
 
-You can access these metrics from the training logs or by using tools like TensorBoard or wandb for visualization. Implementing early stopping based on these metrics can help you achieve better results.
+You can access these metrics from the training logs or by using tools like TensorBoard or Weights & Biases for visualization. Implementing early stopping based on these metrics can help you achieve better results.
 
 #### Tools for Tracking Training Progress
 
@@ -211,7 +211,7 @@ Common problems encountered during model prediction and their fixes are covered 
 **Solution**: To detect specific classes use the classes argument to specify the classes you want to include in the output. For instance, to detect only cars (assuming 'cars' have class index 2):
 
 ```bash
-yolo task=segment mode=predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
+yolo segment predict model=yolo26n-seg.pt source='path/to/car.mp4' show=True classes=2
 ```
 
 #### Understanding Precision Metrics in YOLO26
@@ -272,7 +272,7 @@ Get help and share solutions through these channels and resources.
 
 ### Forums and Channels for Getting Help
 
-**GitHub Issues:** The YOLO26 repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
+**GitHub Issues:** The Ultralytics repository on GitHub has an [Issues tab](https://github.com/ultralytics/ultralytics/issues) where you can ask questions, report bugs, and suggest new features. The community and maintainers are active here, and it's a great place to get help with specific problems.
 
 **Ultralytics Discord Server:** Ultralytics has a [Discord server](https://discord.com/invite/ultralytics) where you can interact with other users and the developers.
 

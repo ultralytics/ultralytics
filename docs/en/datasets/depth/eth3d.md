@@ -88,3 +88,17 @@ If you use the ETH3D dataset in your research or development work, please cite t
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### How is ETH3D used in YOLO26-Depth?
+
+ETH3D is a zero-shot evaluation benchmark. The released YOLO26-Depth models are not trained on it, so its 423 indoor and outdoor images with survey-grade laser-scanner depth measure cross-domain generalization out to roughly 60 m. The largest model, YOLO26x-depth, reaches a delta1 of 0.953 on this benchmark.
+
+### Is there a dataset YAML for ETH3D?
+
+No. ETH3D is evaluated with a dedicated script that applies multi-scale and flip test-time augmentation followed by log-least-squares scale alignment. To run a model on ETH3D images yourself, use [predict mode](../../modes/predict.md) as shown in the [Usage](#usage) section.
+
+### Which other benchmarks accompany ETH3D?
+
+The YOLO26-Depth family is also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [Make3D](make3d.md), and [iBims-1](ibims-1.md), and on the [KITTI Eigen](kitti.md) split, whose training drives are part of the pretraining mix. The [Depth Estimation task page](../../tasks/depth.md) summarizes results across all five.

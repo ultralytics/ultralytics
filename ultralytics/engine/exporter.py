@@ -37,8 +37,8 @@ Python:
     results = model.export(format='onnx', quantize=8, data='coco8.yaml')  # INT8 ONNX
 
 CLI:
-    $ yolo mode=export model=yolo26n.pt format=onnx
-    $ yolo mode=export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml
+    $ yolo export model=yolo26n.pt format=onnx
+    $ yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml
 
 Inference:
     $ yolo predict model=yolo26n.pt                 # PyTorch
@@ -142,6 +142,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_3,
     TORCH_2_8,
     TORCH_2_9,
+    is_qat,
     select_device,
 )
 
@@ -466,8 +467,8 @@ def validate_args(format, passed_args, valid_args):
     if passed_args.quantize is not None:  # 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS
         options = [label for label, formats in QUANTIZE_PRECISIONS if format in formats]
         if format not in FP32_UNSUPPORTED_FORMATS:
-            options.append("32 (FP32)")
-        hint = f"format='{format}' supports quantize={', '.join(options) or 'none'} (or None for FP32). See {QUANTIZE_DOCS_URL}"
+            options.append("32 or None (FP32)")
+        hint = f"format='{format}' supports quantize={', '.join(options)}. See {QUANTIZE_DOCS_URL}"
         if passed_args.quantize == 16:  # FP16
             assert format in FP16_FORMATS, f"ERROR ❌️ quantize=16 (FP16) is not supported; {hint}"
         elif passed_args.quantize == 8:  # INT8
@@ -549,14 +550,15 @@ class Exporter:
 
     Examples:
         Export a YOLO26 model to TorchScript format
+        >>> from ultralytics import YOLO
         >>> from ultralytics.engine.exporter import Exporter
         >>> exporter = Exporter()
-        >>> exporter(model="yolo26n.pt")  # exports to yolo26n.torchscript
+        >>> exporter(model=YOLO("yolo26n.pt").model)  # exports to yolo26n.torchscript
 
         Export with specific arguments
         >>> args = {"format": "onnx", "dynamic": True, "quantize": 8, "data": "coco8.yaml"}
         >>> exporter = Exporter(overrides=args)
-        >>> exporter(model="yolo26n.pt")
+        >>> exporter(model=YOLO("yolo26n.pt").model)
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
@@ -624,11 +626,6 @@ class Exporter:
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
         if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
-            if self.args.quantize == 32:
-                raise ValueError(
-                    f"{fmt} export only supports INT8, but got an explicit quantize=32 (FP32) request. "
-                    f"See {QUANTIZE_DOCS_URL}"
-                )
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo"} and not self.args.data:
@@ -830,7 +827,18 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
-        if self.args.quantize in {8, "w8a16"} and not self.args.data:
+        self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
+        if self.qat:
+            assert fmt in {"onnx", "engine"}, (
+                f"format='{fmt}' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and "
+                f"'engine' backends. Export a non-QAT checkpoint to this format instead."
+            )
+            assert self.args.quantize in {None, 8}, (
+                f"a QAT model exports INT8, but got quantize={self.args.quantize}. Export a non-QAT checkpoint for "
+                f"other precisions."
+            )
+            self.args.quantize = 8  # the graph carries Q/DQ nodes whether or not INT8 was requested
+        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
@@ -857,7 +865,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse(imgsz=self.imgsz)
+        model = model.fuse(imgsz=self.imgsz)  # BaseModel.fuse() leaves a QAT model alone, fusing would drop its ranges
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel
@@ -1057,11 +1065,8 @@ class Exporter:
     @try_export
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
-        requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify:
-            requirements += ["onnxslim>=0.1.82"]
-        check_requirements(requirements)
-        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
+        requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]            
+        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
             # Install the MIGraphX build on ROCm so AMD GPU inference finds its EP instead of the stock CPU wheel.
             # Elsewhere onnxruntime variants are interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
@@ -1071,6 +1076,9 @@ class Exporter:
                 ort if rocm else [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-migraphx")],
                 cmds=ROCM_EXTRA_INDEX if rocm else "",
             )
+        if self.args.simplify:
+            requirements += ["onnxslim>=0.1.82"]
+        check_requirements(requirements)
         import onnx
 
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
@@ -1120,8 +1128,8 @@ class Exporter:
 
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
-                model,
-                self.im,
+                model.cpu() if self.qat else model,
+                self.im.cpu() if self.qat else self.im,
                 f,
                 opset=opset,
                 input_names=["images"],
@@ -1176,7 +1184,7 @@ class Exporter:
 
         onnx.save(model_onnx, f)
         del model_onnx
-        if self.args.quantize == 8 and self.args.format == "onnx":
+        if self.args.quantize == 8 and self.args.format == "onnx" and not self.qat:  # QAT exports Q/DQ directly
             from ultralytics.utils.export.onnx import onnx_int8_quantize
 
             source = Path(f)
@@ -1408,7 +1416,7 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=self.dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 and not self.qat else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,
@@ -1923,19 +1931,18 @@ class NMSModel(torch.nn.Module):
 
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
-        kwargs = {"device": pred.device, "dtype": pred.dtype}
         bs = pred.shape[0]
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = torch.zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:], **kwargs)
+            pad = pred.new_zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:])
             pred = torch.cat((pred, pad))
         if self.args.dynamic and self.args.format == "onnx" and self.obb:
             pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)
         boxes, scores, extras = pred.split([4, len(self.model.names), extra_shape], dim=2)
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
-        out = torch.zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape, **kwargs)
+        out = pred.new_zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape)
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
@@ -1949,7 +1956,7 @@ class NMSModel(torch.nn.Module):
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            nmsbox = multiplier * (nmsbox / torch._shape_as_tensor(x)[2:].max().to(**kwargs))
+            nmsbox = multiplier * (nmsbox / torch._shape_as_tensor(x)[2:].max().to(nmsbox.dtype))
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error

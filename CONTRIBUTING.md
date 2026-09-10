@@ -201,7 +201,7 @@ Complying means making the **complete corresponding source code** of your projec
 
 Refer to the [Ultralytics Template Repository](https://github.com/ultralytics/template) for a practical example structure:
 
-```
+```text
 my-yolo-project/
 │
 ├── LICENSE               # Full AGPL-3.0 license text

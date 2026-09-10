@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Learn to convert YOLO26 models to TensorRT for high-speed NVIDIA GPU inference. Boost efficiency and deploy optimized models with our step-by-step guide.
-keywords: YOLO26, YOLO26, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
+keywords: YOLO26, TensorRT, NVIDIA, GPU, deep learning, model optimization, high-speed inference, model export
 ---
 
 # TensorRT Export for YOLO26 Models
@@ -173,9 +173,9 @@ The TensorRT format supports the [Export](../modes/export.md), [Predict](../mode
 
     Please make sure to use a GPU with CUDA support when exporting to TensorRT.
 
-!!! warning "TensorRT 11.0 and DLA"
+!!! warning "JetPack and DLA compatibility"
 
-    TensorRT 11.0 does not support DLA; use TensorRT 10.x for `device=dla:0` or `device=dla:1`, or export a TensorRT 11.0 GPU engine.
+    [TensorRT 11.2.1 does not support JetPack](https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html), including Thor; use the TensorRT 10.x runtime supported by your JetPack release. For `device=dla:0` or `device=dla:1`, NVIDIA identifies TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html). TensorRT 11.0, 11.1, and 11.2 do not support DLA.
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -244,7 +244,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         2. Sets max batch size of 8 for exported model and INT8 calibration.
         3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
         4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).
-
 
     === "CLI"
 
@@ -402,7 +401,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
             Inference times shown for `mean`, `min` (fastest), and `max` (slowest) for each test using pretrained weights `yolov8n.engine`
 
-
         | Precision | Eval test          | mean<br>(ms) | min \| max<br>(ms) | mAP<sup>val</sup><br>50(B) | mAP<sup>val</sup><br>50-95(B) | `batch` | size<br><sup>(pixels)</sup> |
         | --------- | ------------------ | ------------ | ------------------ | -------------------------- | ----------------------------- | ------- | --------------------------- |
         | FP32      | Predict            | 1.76         | 1.69 \| 1.87       |                            |                               | 8       | 640                         |
@@ -530,7 +528,7 @@ Having successfully exported your Ultralytics YOLO26 models to TensorRT format, 
 
 - **[End-to-End AI for NVIDIA-Based PCs: NVIDIA TensorRT Deployment](https://developer.nvidia.com/blog/end-to-end-ai-for-nvidia-based-pcs-nvidia-tensorrt-deployment/)**: This blog post explains the use of NVIDIA TensorRT for optimizing and deploying AI models on NVIDIA-based PCs.
 
-- **[GitHub Repository for NVIDIA TensorRT:](https://github.com/NVIDIA/TensorRT)**: This is the official GitHub repository that contains the source code and documentation for NVIDIA TensorRT.
+- **[GitHub Repository for NVIDIA TensorRT](https://github.com/NVIDIA/TensorRT)**: This is the official GitHub repository that contains the source code and documentation for NVIDIA TensorRT.
 
 ## Summary
 

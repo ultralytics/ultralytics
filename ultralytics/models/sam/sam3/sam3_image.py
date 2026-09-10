@@ -153,7 +153,6 @@ class SAM3SemanticModel(torch.nn.Module):
             "encoder_hidden_states": memory["memory"],
             "pos_embed": memory["pos_embed"],
             "padding_mask": memory["padding_mask"],
-            "spatial_shapes": memory["spatial_shapes"],
             "valid_ratios": memory["valid_ratios"],
             "vis_feat_sizes": vis_feat_sizes,
             # encoded text features (or other prompts)
@@ -184,7 +183,7 @@ class SAM3SemanticModel(torch.nn.Module):
             memory_key_padding_mask=src_mask,
             pos=pos_embed,
             reference_boxes=None,
-            spatial_shapes=encoder_out["spatial_shapes"],
+            spatial_shapes=encoder_out["vis_feat_sizes"],
             valid_ratios=encoder_out["valid_ratios"],
             tgt_mask=None,
             memory_text=prompt,

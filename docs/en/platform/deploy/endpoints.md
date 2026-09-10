@@ -172,6 +172,7 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 | ------------------- | ----------------------------------------------------------------- |
 | **Model**           | Any completed model in the workspace, chosen with the selector    |
 | **Region**          | Deployment region, chosen on the mini map or in the latency table |
+| **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
 ![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->

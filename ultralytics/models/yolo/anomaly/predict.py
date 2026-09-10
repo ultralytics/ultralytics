@@ -25,12 +25,12 @@ class AnomalyPredictor(DetectionPredictor):
         Returns:
             (list[dict[str, torch.Tensor]]): Processed detection predictions with masks.
         """
-        # Baseline AnomalyDetect returns ((detections, heatmap), raw_preds).
+        # Baseline AnomalyDetect returns ((detections, heatmap, fusion), raw_preds).
         # The neck-fusion variant uses a standard Detect head and returns
         # (detections, raw_preds) with no heatmap tensor.
-        if isinstance(preds, (list, tuple)) and isinstance(preds[0], tuple):
+        if isinstance(preds, (list, tuple)) and isinstance(preds[0], (list, tuple)):
+            detections = preds[0][0]  # the detection tensor inside the tuple
             heatmap = preds[0][1]
-            detections = preds[0]
         else:
             heatmap = None
             detections = preds[0] if isinstance(preds, (list, tuple)) else preds

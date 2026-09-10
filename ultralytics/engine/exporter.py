@@ -1073,6 +1073,7 @@ class Exporter:
             rocm = rocm_is_available()
             if rocm:
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
+                check_requirements([("onnxruntime", "onnxruntime-gpu")])
             else:
                 ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
                 check_requirements([(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")])

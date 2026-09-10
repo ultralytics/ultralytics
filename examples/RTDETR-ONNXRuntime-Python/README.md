@@ -14,22 +14,12 @@ Install the core requirements using [pip](https://pip.pypa.io/en/stable/) and th
 pip install -r requirements.txt
 ```
 
-### Installing `onnxruntime-gpu` (Optional, NVIDIA)
+### Installing `onnxruntime-gpu` (Optional)
 
 For accelerated inference using an NVIDIA GPU, install the **`onnxruntime-gpu`** package. Ensure you have the correct [NVIDIA drivers](https://www.nvidia.com/Download/index.aspx) and [CUDA toolkit](https://developer.nvidia.com/cuda/toolkit) installed first. Consult the official [ONNX Runtime GPU documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html) for detailed compatibility information and setup instructions.
 
 ```bash
 pip install onnxruntime-gpu
-```
-
-### Installing `onnxruntime-ep-migraphx` (Optional, AMD Linux)
-
-For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) on Linux, install the `onnxruntime-ep-migraphx` plugin for high-performance inference via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html).
-
-```bash
-pip install onnxruntime-ep-migraphx migraphx-libs \
-  --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
-  --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
 ```
 
 ## 🚀 Usage

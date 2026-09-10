@@ -28,19 +28,9 @@ If you have an NVIDIA GPU and want to leverage CUDA for faster inference, instal
 pip install onnxruntime-gpu
 ```
 
-**GPU Acceleration (AMD, Linux)**
-
-For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, install the `onnxruntime-ep-migraphx` plugin for high-performance inference via the [MIGraphX Execution Provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html).
-
-```bash
-pip install onnxruntime-ep-migraphx migraphx-libs \
-  --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
-  --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
-```
-
 **CPU Only**
 
-If you don't have a compatible NVIDIA/AMD GPU or prefer CPU-based inference, install the standard `onnxruntime` package. Check the [ONNX Runtime installation guide](https://onnxruntime.ai/docs/install/) for more options.
+If you don't have a compatible NVIDIA GPU or prefer CPU-based inference, install the standard `onnxruntime` package. Check the [ONNX Runtime installation guide](https://onnxruntime.ai/docs/install/) for more options.
 
 ```bash
 pip install onnxruntime

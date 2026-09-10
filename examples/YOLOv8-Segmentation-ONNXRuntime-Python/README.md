@@ -11,13 +11,12 @@ This repository provides a [Python](https://www.python.org/) demo for performing
 
 ## 🛠️ Installation
 
-Install the required packages using pip. You will need [`ultralytics`](https://github.com/ultralytics/ultralytics) for exporting the YOLOv8-seg ONNX model and using some utility functions, [`onnxruntime-gpu`](https://pypi.org/project/onnxruntime-gpu/) for NVIDIA GPU-accelerated inference (or [`onnxruntime-ep-migraphx`](https://pypi.org/project/onnxruntime-ep-migraphx/) for AMD GPUs on Linux with ROCm), and [`opencv-python`](https://pypi.org/project/opencv-python/) for image processing.
+Install the required packages using pip. You will need [`ultralytics`](https://github.com/ultralytics/ultralytics) for exporting the YOLOv8-seg ONNX model and using some utility functions, [`onnxruntime-gpu`](https://pypi.org/project/onnxruntime-gpu/) for GPU-accelerated inference, and [`opencv-python`](https://pypi.org/project/opencv-python/) for image processing.
 
 ```bash
 pip install ultralytics
-pip install onnxruntime-gpu # For NVIDIA GPU support
-# pip install onnxruntime-ep-migraphx migraphx-libs --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/  # For AMD GPU support (Linux with ROCm)
-# pip install onnxruntime      # For CPU-only support
+pip install onnxruntime-gpu # For GPU support
+# pip install onnxruntime # For CPU-only support
 pip install numpy opencv-python
 ```
 

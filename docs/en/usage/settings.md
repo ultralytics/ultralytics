@@ -40,7 +40,7 @@ Ultralytics stores persistent, per-machine settings in a JSON file in the user c
 | `uuid`             | `'a1b2c3d4'`          | `str`     | Anonymized machine identifier (SHA-256 hash) used for analytics                                                                              |
 | `sync`             | `True`                | `bool`    | Send anonymized analytics and crash reports to Ultralytics, see [Privacy](../help/privacy.md)                                                |
 | `api_key`          | `''`                  | `str`     | [Ultralytics Platform](https://platform.ultralytics.com) API key                                                                             |
-| `openai_api_key`   | `''`                  | `str`     | OpenAI API key (currently unused)                                                                                                            |
+| `openai_api_key`   | `''`                  | `str`     | OpenAI API key for the [Explorer](../datasets/explorer/index.md) Ask AI feature, available up to `ultralytics==8.3.11`                       |
 | `clearml`          | `True`                | `bool`    | Enable [ClearML](../integrations/clearml.md) logging                                                                                         |
 | `comet`            | `True`                | `bool`    | Enable [Comet ML](../integrations/comet.md) experiment tracking                                                                              |
 | `dvc`              | `True`                | `bool`    | Enable [DVC](../integrations/dvc.md) experiment tracking                                                                                     |

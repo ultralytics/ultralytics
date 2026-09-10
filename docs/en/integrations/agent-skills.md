@@ -55,7 +55,7 @@ The skills include version-grounded catalogs where exact weights, arguments, or 
 
 Once installed, ask the agent naturally, for example: "Export my trained YOLO model to TensorRT with INT8 quantization and benchmark it." The `yolo` router selects the relevant lifecycle guidance.
 
-For the `platform-cli` skill, try asking: "List my Platform datasets using `ul cloud`."
+The `platform-cli` skill uses the `ul` CLI (Python 3.11+), included with `pip install ultralytics` or the standalone SDK (`pip install ultralytics-platform`). Try asking: "List my Ultralytics Platform datasets."
 
 See the [`ultralytics/skills` repository](https://github.com/ultralytics/skills) for current installation commands, source files, updates, and issue reporting.
 

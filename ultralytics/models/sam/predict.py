@@ -341,6 +341,7 @@ class Predictor(BasePredictor):
         stability_score_thresh=0.95,
         stability_score_offset=0.95,
         crop_nms_thresh=0.7,
+        min_mask_region_area=0,
     ):
         """Perform image segmentation using the Segment Anything Model (SAM).
 
@@ -359,6 +360,8 @@ class Predictor(BasePredictor):
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
+            min_mask_region_area (int): If > 0, remove disconnected regions and holes smaller than this area in
+                original-image pixels, then re-run NMS on the cleaned masks.
 
         Returns:
             pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
@@ -437,6 +440,15 @@ class Predictor(BasePredictor):
             scores = 1 / region_areas
             keep = torchvision.ops.nms(pred_bboxes, scores, crop_nms_thresh)
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
+
+        if min_mask_region_area > 0:
+            idx = pred_scores > self.args.conf  # postprocess drops these, so they must not suppress masks it keeps
+            pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
+            h0, w0 = self.batch[1][0].shape[:2]
+            gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
+            min_area = min_mask_region_area * gain * gain
+            pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
+            pred_scores, pred_bboxes = pred_scores[keep], batched_mask_to_box(pred_masks).float()
 
         return pred_masks, pred_scores, pred_bboxes
 
@@ -602,13 +614,13 @@ class Predictor(BasePredictor):
         Args:
             masks (torch.Tensor): Segmentation masks to be processed, with shape (N, H, W) where N is the number of
                 masks, H is height, and W is width.
-            min_area (int): Minimum area threshold for removing disconnected regions and holes. Regions smaller than
+            min_area (float): Minimum area threshold for removing disconnected regions and holes. Regions smaller than
                 this will be removed.
             nms_thresh (float): IoU threshold for the NMS algorithm to remove duplicate boxes.
 
         Returns:
             new_masks (torch.Tensor): Processed masks with small regions removed, shape (N, H, W).
-            keep (list[int]): Indices of remaining masks after NMS, for filtering corresponding boxes.
+            keep (torch.Tensor): Indices of remaining masks after NMS, for filtering corresponding boxes.
 
         Examples:
             >>> masks = torch.rand(5, 640, 640) > 0.5  # 5 random binary masks
@@ -619,7 +631,7 @@ class Predictor(BasePredictor):
         import torchvision  # scope for faster 'import ultralytics'
 
         if masks.shape[0] == 0:
-            return masks
+            return masks, torch.arange(0)
 
         # Filter small disconnected regions and holes
         new_masks = []

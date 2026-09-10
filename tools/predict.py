@@ -1,16 +1,26 @@
 """Predict images, videos, or camera streams with any supported YOLO task."""
 
+import argparse
+
 from ultralytics import YOLO
-from ultralytics.cfg import TASK2MODEL
+from ultralytics.cfg import TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS
 
-TASK = "detect"
-MODEL = None  # Set to the actual best.pt path to predict with your trained model.
-SOURCE = ASSETS  # Image, directory, video path, stream URL, or 0 for a webcam.
-# device=None: framework default; "cpu", 0 (CUDA), or "mps" (Apple Silicon).
-ARGS = {"imgsz": 640, "device": None, "save": True, "show": False, "project": None, "name": "predict"}
+ARGS = {"imgsz": 640, "device": None, "project": None, "name": "predict"}
 
 if __name__ == "__main__":
-    model = YOLO(MODEL or TASK2MODEL[TASK])
-    for result in model.predict(source=SOURCE, stream=True, **ARGS):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--task", choices=TASKS, default="detect", help="Default model task (default: detect)")
+    parser.add_argument("--model", help="Model checkpoint, e.g. the actual best.pt path; defaults to the task model")
+    parser.add_argument("--source", default=str(ASSETS), help="Image, directory, video, stream URL, or 0 for a webcam")
+    parser.add_argument("--no-save", dest="save", action="store_false", help="Disable saving visualizations")
+    parser.add_argument("--show", action="store_true", help="Display predictions in a window")
+    for key, default in ARGS.items():
+        parser.add_argument(
+            f"--{key}", type=type(default) if default is not None else str, default=default, help="Default: %(default)s"
+        )
+    args = vars(parser.parse_args())
+    task = args.pop("task")
+    model = YOLO(args.pop("model") or TASK2MODEL[task])
+    for result in model.predict(stream=True, **args):
         pass  # Consume every result to run inference and save visualizations.

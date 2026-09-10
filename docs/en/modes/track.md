@@ -291,6 +291,17 @@ Once exported, point to the TensorRT model path in your tracker config.
 
 The sections below describe each tracker's design, specific parameters, and tuning tips.
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZsxHIN2PoiY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Which Object Tracker Performs Better? | Speed, FPS & ID Stability | Ultralytics YOLO26 📊
+</p>
+
 ### BoT-SORT
 
 [BoT-SORT](https://github.com/NirAharon/BoT-SORT) (Aharon et al., 2022) extends ByteTrack with camera-motion compensation and optional ReID:

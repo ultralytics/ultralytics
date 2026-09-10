@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filte
 
 [Agents](https://platform.ultralytics.com/agents) connects images, models, conditions, and actions in a visual workflow. Use YOLO to decide which images need a closer look, ask a vision-language model to explain them, or collect selected images in a dataset for review.
 
-Enable **Early access** in your personal **Settings > Profile**, then open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Early access is a personal preference, including when you work in a team workspace.
+Switch to your personal workspace using the sidebar workspace selector and enable **Early access** in **Settings > Profile**. Then open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Early access is a personal preference, including when you work in a team workspace.
 
 <!-- Image placeholder: ![Ultralytics Platform Agents canvas showing an image connected to YOLO, a condition, a vision-language model, and an output block](IMAGE_URL) -->
 
@@ -19,7 +19,7 @@ Enable **Early access** in your personal **Settings > Profile**, then open **Age
 1. Open **Agents** and choose **YOLO → VLM Monitor** from the templates.
 2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person.
 3. Keep the default YOLO26 nano model. The condition passes when YOLO detects at least one person.
-4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys** if you have not already done so.
+4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
 

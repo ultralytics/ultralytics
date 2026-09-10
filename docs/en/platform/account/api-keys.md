@@ -51,7 +51,7 @@ After creation, the key is displayed in a confirmation dialog:
 
 ## Provider Keys for Agents
 
-The same **Settings > API Keys** tab also stores keys for external model providers used by [Agents](../agents.md). To connect a provider:
+The same **Settings > API Keys** tab also stores keys for external model providers used by [Agents](../agents.md). Only the workspace owner can add, replace, or remove these keys; team members can see which providers are connected. Ask the owner to connect a missing provider. To connect a provider as the owner:
 
 1. Click **Add Key**.
 2. Select the provider matching your workflow's language or vision-language model.

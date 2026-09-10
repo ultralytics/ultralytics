@@ -21,9 +21,9 @@ Deploy a model from its `Deploy` tab:
 2. Click the **Deploy** tab
 3. Review the world map and the region table, which is sorted by measured latency from your location
 4. Click **Deploy** in the region row you want to use
+5. In the dialog, review the CPU, memory, pricing, and deployment name, then click **Deploy Model**
 
-Deployment starts immediately with no naming step: the name is generated from the model name and the region city (for
-example `yolo26n-iowa`). The model must have weights, or the tab shows an empty state instead of the region table.
+The suggested name combines the model name and region city (for example `yolo26n-iowa`) and can be edited before deployment. The model must have weights, or the tab shows an empty state instead of the region table.
 
 ### From the Deployments Page
 
@@ -32,7 +32,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 1. Click **New Deployment**
 2. Select a model from the model selector, which lists your completed models
 3. Select a region from the mini map or the latency table
-4. Review the auto-generated deployment name, which you can edit here
+4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
 5. Click **Deploy Model**
 
 ![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/d0447123225bbac5c67ae7aee0f15da2.avif)<!-- screenshot -->

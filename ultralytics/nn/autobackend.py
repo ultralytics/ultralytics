@@ -214,7 +214,7 @@ class AutoBackend(nn.Module):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
         # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
+        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
 
         # Set device
         if (

@@ -96,3 +96,21 @@ Everything else in the export — `embeddings`, `metadata_fields`, `attachments`
 !!! warning "In a mixed export, the boxes are dropped"
 
     An export containing both bounding boxes and polygons is imported as a segment dataset, and a segment dataset carries polygon geometry only — the box annotations are not used for training or included in version exports. Export boxes and polygons as separate Labelbox projects if you need both. Polygons also need at least three points to be read.
+
+## FAQ
+
+### Which Labelbox annotations are imported?
+
+Bounding boxes import as a [detect](../../datasets/detect/index.md) dataset and polygons as a [segment](../../datasets/segment/index.md) dataset. Segmentation masks, points, polylines, relationships, and classifications are not yet read, so a project labeled only with those tools imports its images without annotations.
+
+### Why did my export import with no data rows?
+
+Platform reads NDJSON, one JSON object per line. An export saved as a single JSON array is skipped entirely. Use the SDK loop above or Labelbox's own **Export data** download, which is already NDJSON.
+
+### Why did the import fail with expired links?
+
+Labelbox exports reference images by signed URL, and those signatures expire. Re-export from Labelbox and upload the new file soon after it finishes.
+
+### Can I keep both boxes and polygons from one project?
+
+No. A mixed export imports as a segment dataset and only the polygons are used. Export boxes and polygons as separate Labelbox projects if you need both.

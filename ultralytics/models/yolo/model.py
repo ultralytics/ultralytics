@@ -354,7 +354,7 @@ class YOLOE(Model):
 
     def _prompt_embedding_model(self) -> str:
         """Return the checkpoint identifier used to bind prompt embeddings to this model."""
-        source = self.overrides.get("pretrained") or getattr(self.model, "pt_path", None) or self.ckpt_path
+        source = getattr(self.model, "pt_path", None) or self.ckpt_path
         source = source if isinstance(source, (str, Path)) else self.model.yaml["yaml_file"]
         model = Path(source).stem
         return model[:-4] if model.endswith("-seg") else model

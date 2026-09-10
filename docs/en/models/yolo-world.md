@@ -104,7 +104,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in Python:
 
         ```python
         from ultralytics import YOLOWorld
@@ -123,7 +123,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
         ```bash
         # Load a pretrained YOLOv8s-worldv2 model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
+        yolo train model=yolov8s-worldv2.pt data=coco8.yaml epochs=100 imgsz=640
         ```
 
 ### Predict Usage
@@ -434,7 +434,7 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 Or using CLI:
 
 ```bash
-yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
+yolo train model=yolov8s-worldv2.pt data=coco8.yaml epochs=100 imgsz=640
 ```
 
 ### What are the available pretrained YOLO-World models and their supported tasks?

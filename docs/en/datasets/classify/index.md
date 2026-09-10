@@ -8,7 +8,7 @@ keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, 
 
 ## Dataset Structure for YOLO Classification Tasks
 
-For [Ultralytics](https://www.ultralytics.com) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory to facilitate proper training, testing, and optional validation processes. This structure includes separate directories for training (`train`) and validation (`val`) phases, with an optional directory for testing (`test`).
+For [Ultralytics](https://www.ultralytics.com) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory. This structure includes a `train` directory and a `val` directory (`valid` and `validation` are also accepted), with an optional `test` directory. If no validation directory exists, the `test` directory is used for validation instead.
 
 Each of these directories should contain one subdirectory for each class in the dataset. The subdirectories are named after the corresponding class and contain all the images for that class. Ensure that each image file is named uniquely and stored in a common format such as JPEG or PNG.
 
@@ -37,7 +37,7 @@ cifar-10-/
 |   |
 |   |-- ...
 |
-|-- test/
+|-- test/ (optional)
 |   |-- airplane/
 |   |   |-- 10_airplane.png
 |   |   |-- 11_airplane.png
@@ -55,7 +55,7 @@ cifar-10-/
 |   |
 |   |-- ...
 |
-|-- val/ (optional)
+|-- val/
 |   |-- airplane/
 |   |   |-- 105_airplane.png
 |   |   |-- 106_airplane.png
@@ -105,7 +105,7 @@ This structured approach ensures that the model can effectively learn from well-
 
 ## Supported Datasets
 
-Ultralytics supports the following datasets with automatic download:
+Ultralytics supports the following datasets with automatic download. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [Caltech 101](caltech101.md): A dataset containing images of 101 object categories for [image classification](https://www.ultralytics.com/glossary/image-classification) tasks.
 - [Caltech 256](caltech256.md): An extended version of Caltech 101 with 256 object categories and more challenging images.
@@ -127,7 +127,7 @@ If you have your own dataset and would like to use it for training classificatio
 
 ### How do I structure my dataset for YOLO classification tasks?
 
-To structure your dataset for Ultralytics YOLO classification tasks, you should follow a specific split-directory format. Organize your dataset into separate directories for `train`, `test`, and optionally `val`. Each of these directories should contain subdirectories named after each class, with the corresponding images inside. This facilitates smooth training and evaluation processes. For an example, consider the [CIFAR-10](cifar10.md) dataset format:
+To structure your dataset for Ultralytics YOLO classification tasks, you should follow a specific split-directory format. Organize your dataset into separate directories for `train` and `val`, and optionally `test`. Each of these directories should contain subdirectories named after each class, with the corresponding images inside. This facilitates smooth training and evaluation processes. For an example, consider the [CIFAR-10](cifar10.md) dataset format:
 
 ```text
 cifar-10-/
@@ -136,12 +136,12 @@ cifar-10-/
 |   |-- automobile/
 |   |-- bird/
 |   ...
-|-- test/
+|-- val/
 |   |-- airplane/
 |   |-- automobile/
 |   |-- bird/
 |   ...
-|-- val/ (optional)
+|-- test/ (optional)
 |   |-- airplane/
 |   |-- automobile/
 |   |-- bird/
@@ -156,7 +156,7 @@ Ultralytics YOLO supports automatic downloading of several datasets for image cl
 
 ### How do I add my own dataset for YOLO image classification?
 
-To use your own dataset with Ultralytics YOLO, ensure it follows the specified directory format required for the classification task, with separate `train`, `test`, and optionally `val` directories, and subdirectories for each class containing the respective images. Once your dataset is structured correctly, point the `data` argument to your dataset's root directory when initializing the training script. Here's an example in Python:
+To use your own dataset with Ultralytics YOLO, ensure it follows the specified directory format required for the classification task, with separate `train` and `val` directories (and optionally `test`), and subdirectories for each class containing the respective images. Once your dataset is structured correctly, point the `data` argument to your dataset's root directory when initializing the training script. Here's an example in Python:
 
 ```python
 from ultralytics import YOLO

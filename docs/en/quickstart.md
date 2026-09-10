@@ -54,29 +54,15 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
         !!! note
 
-            If you are installing in a CUDA environment, it is best practice to install `ultralytics`, `pytorch`, and `pytorch-cuda` in the same command. This allows the conda package manager to resolve any conflicts. Alternatively, install `pytorch-cuda` last to override the CPU-specific `pytorch` package if necessary.
+            If you are installing in a CUDA environment, install `ultralytics` together with the `pytorch-gpu` metapackage in the same command so conda resolves a CUDA-enabled PyTorch build. PyTorch no longer publishes new releases to the `pytorch` conda channel, so install everything from conda-forge.
             ```bash
             # Install all packages together using conda
-            conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+            conda install -c conda-forge ultralytics pytorch-gpu
             ```
 
         ### Conda Docker Image
 
-        Ultralytics Conda Docker images are also available on [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics). These images are based on [Miniconda3](https://www.anaconda.com/docs/main) and provide a straightforward way to start using `ultralytics` in a Conda environment.
-
-        ```bash
-        # Set image name as a variable
-        t=ultralytics/ultralytics:latest-conda
-
-        # Pull the latest ultralytics image from Docker Hub
-        sudo docker pull $t
-
-        # Run the ultralytics image in a container with GPU support
-        sudo docker run -it --ipc=host --device nvidia.com/gpu=all $t                         # all GPUs
-        sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 $t # specify GPUs
-        ```
-
-        On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. The legacy `--gpus all` flag can lose GPU access after host daemon reloads, so upgrade older Linux hosts and use `--device` instead. See the [Docker Quickstart Guide](guides/docker-quickstart.md) for details.
+        Build the current Conda image locally using the [Conda Docker instructions](guides/conda-quickstart.md#ultralytics-conda-docker-image). Automated publishing of `latest-conda` is disabled; pulling that tag does not provide the current Dockerfile's PyTorch 2.13 / CUDA 13.0 environment.
 
     === "Git clone"
 
@@ -97,17 +83,11 @@ Ultralytics offers a variety of installation methods, including pip, conda, and 
 
     === "Docker"
 
-        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics offers six main supported Docker images, each designed for high compatibility and efficiency:
+        Use Docker to execute the `ultralytics` package in an isolated container, ensuring consistent performance across various environments. By selecting one of the official `ultralytics` images from [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics), you avoid the complexity of local installation and gain access to a verified working environment. Ultralytics publishes a set of official Docker images, each designed for high compatibility and efficiency:
 
         [![Docker Image Version](https://img.shields.io/docker/v/ultralytics/ultralytics?sort=semver&logo=docker)](https://hub.docker.com/r/ultralytics/ultralytics) [![Docker Pulls](https://img.shields.io/docker/pulls/ultralytics/ultralytics)](https://hub.docker.com/r/ultralytics/ultralytics)
 
-        - **Dockerfile:** GPU image recommended for training.
-        - **Dockerfile-arm64:** Optimized for ARM64 architecture, suitable for deployment on devices like Raspberry Pi and other ARM64-based platforms.
-        - **Dockerfile-cpu:** Ubuntu-based CPU-only version, suitable for inference and environments without GPUs.
-        - **Dockerfile-jetson:** Tailored for [NVIDIA Jetson](guides/nvidia-jetson.md) devices, integrating GPU support optimized for these platforms.
-        - **Dockerfile-python:** Minimal image with just Python and necessary dependencies, ideal for lightweight applications and development.
-        - **Dockerfile-conda:** Based on Miniconda3 with a conda installation of the `ultralytics` package.
-        - **Dockerfile-amd:** For AMD GPU acceleration using [ROCm](https://rocm.docs.amd.com/) and [MIGraphX](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html) Execution Provider.
+        See the [Docker image table](guides/docker-quickstart.md#installing-ultralytics-docker-images) for the complete list of GPU, CPU, export, ARM64, and JetPack images. The default AMD64 GPU image uses PyTorch 2.14 and CUDA 13.2; check the [GPU and host driver requirements](guides/docker-quickstart.md#installing-ultralytics-docker-images) before running it.
 
         Here are the commands to get the latest image and execute it:
 
@@ -460,6 +440,7 @@ The table below overviews the adjustable settings within Ultralytics, including 
 | `tensorboard`      | `False`               | `bool`    | Option to use [TensorBoard] for visualization                                                                    |
 | `wandb`            | `False`               | `bool`    | Option to use [Weights & Biases] logging                                                                         |
 | `vscode_msg`       | `True`                | `bool`    | When a VS Code terminal is detected, enables a prompt to download the [Ultralytics-Snippets] extension.          |
+| `openvino_msg`     | `True`                | `bool`    | On Intel CPUs, enables a prompt suggesting [OpenVINO](./integrations/openvino.md) export for faster inference.   |
 
 Revisit these settings as you progress through projects or experiments to ensure optimal configuration.
 
@@ -489,10 +470,10 @@ Yes, install Ultralytics YOLO using conda with:
 conda install -c conda-forge ultralytics
 ```
 
-This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, install `ultralytics`, `pytorch`, and `pytorch-cuda` together to resolve conflicts:
+This method is a great alternative to pip, ensuring compatibility with other packages. For CUDA environments, install `ultralytics` together with the `pytorch-gpu` metapackage so conda selects a CUDA-enabled PyTorch build:
 
 ```bash
-conda install -c pytorch -c nvidia -c conda-forge pytorch torchvision pytorch-cuda=12.1 ultralytics
+conda install -c conda-forge ultralytics pytorch-gpu
 ```
 
 For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.md).
@@ -509,7 +490,7 @@ sudo docker pull ultralytics/ultralytics:latest
 sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
 ```
 
-For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).
+On Linux, CDI device requests require Docker >= 28.2.0 and NVIDIA Container Toolkit >= 1.18. For detailed Docker instructions, see the [Docker quickstart guide](guides/docker-quickstart.md).
 
 ### How do I clone the Ultralytics repository for development?
 

@@ -241,6 +241,7 @@ class Model(torch.nn.Module):
             >>> model._load("yolo26n.pt")
             >>> model._load("path/to/weights.pth", task="detect")
         """
+        model_uri = checks.normalize_platform_uri(weights)
         if weights.lower().startswith(checks.REMOTE_FILE_PREFIXES):
             weights = checks.check_file(weights, download_dir=SETTINGS["weights_dir"])  # download and return local file
         weights = checks.check_model_file_from_stem(weights)  # add suffix, i.e. yolo26n -> yolo26n.pt
@@ -255,7 +256,7 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
-        self.overrides["model"] = weights
+        self.overrides["model"] = model_uri if str(model_uri).startswith("ul://") else weights
         self.overrides["task"] = self.task
         self.model_name = weights
 
@@ -309,6 +310,7 @@ class Model(torch.nn.Module):
                 m.reset_parameters()
         for p in self.model.parameters():
             p.requires_grad = True
+        self.overrides["pretrained"] = False  # train() builds the seeded model from the architecture
         self.predictor = None
         return self
 
@@ -334,12 +336,11 @@ class Model(torch.nn.Module):
         """
         self._check_is_pytorch_model()
         if isinstance(weights, (str, Path)):
-            self.overrides["pretrained"] = weights  # remember the weights for DDP training
             weights, ckpt = load_checkpoint(weights)
             ckpt_path = weights.pt_path
         else:
-            self.overrides.pop("pretrained", None)
             ckpt, ckpt_path = {"model": self.model}, None  # an object load has no file to resume from
+        self.overrides.pop("pretrained", None)
         self.model.load(weights)
         self.ckpt, self.ckpt_path = ckpt, ckpt_path  # train() seeds from self.model while ckpt is set
         self.predictor = None
@@ -367,12 +368,20 @@ class Model(torch.nn.Module):
         from datetime import datetime
 
         from ultralytics import __version__
+        from ultralytics.utils.torch_utils import qat_state, strip_qat
 
+        state = qat_state(self.model) if isinstance(self.model, torch.nn.Module) else None
+        model = (
+            deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
+            if isinstance(self.model, torch.nn.Module)
+            else self.model
+        )
+        if isinstance(model, torch.nn.Module):
+            strip_qat(model)
         updates = {
             "ema": None,
-            "model": deepcopy(self.model).half().to(memory_format=torch.contiguous_format)
-            if isinstance(self.model, torch.nn.Module)
-            else self.model,
+            "model": model,
+            "modelopt": state,
             "date": datetime.now().astimezone().isoformat(),
             "version": __version__,
             "license": "AGPL-3.0 License (https://ultralytics.com/license)",
@@ -746,7 +755,7 @@ class Model(torch.nn.Module):
                 - quantize (int | str): Precision, e.g. 16 (FP16) or 8 (INT8); 32/None is FP32.
                 - device (str): Device to run the export on.
                 - workspace (int): Maximum memory workspace size for TensorRT engines.
-                - nms (bool | None): None for raw output, True to embed NMS, or False for NMS-free inference.
+                - nms (bool | None): None for raw output, True to embed NMS, or False for the NMS-free head where available.
                 - simplify (bool): Simplify ONNX model.
 
         Returns:
@@ -834,6 +843,7 @@ class Model(torch.nn.Module):
             "task": self.task,
         }  # method defaults
         args = {**overrides, **custom, **kwargs, "mode": "train"}  # prioritizes rightmost args
+        pretrained = args.setdefault("pretrained", self.overrides.get("pretrained", True))
         if isinstance(args.get("data"), (list, tuple)):  # fine-tune a single base model across multiple datasets
             from ultralytics.engine.trainer import MultiTrainer
 
@@ -846,7 +856,6 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
-        pretrained = kwargs.get("pretrained", overrides.get("pretrained", True) if kwargs.get("cfg") else True)
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"] = self.ckpt_path
@@ -938,9 +947,9 @@ class Model(torch.nn.Module):
     def _apply(self, fn) -> Model:
         """Apply a function to model parameters, buffers, and tensors.
 
-        This method extends the functionality of the parent class's _apply method by additionally resetting the
-        predictor and updating the device in the model's overrides. It's typically used for operations like moving the
-        model to a different device or changing its precision.
+        This method extends the functionality of the parent class's _apply method by additionally updating the device
+        in the model's overrides and dropping the cached predictor when a model tensor is converted. No-op tensor
+        conversions preserve the predictor.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -957,8 +966,14 @@ class Model(torch.nn.Module):
             >>> model = model._apply(lambda t: t.cuda())  # Move model to GPU
         """
         self._check_is_pytorch_model()
-        super()._apply(fn)
-        self.predictor = None  # reset predictor as device may have changed
+
+        def apply(t):
+            converted = fn(t)
+            if converted is not t:
+                self.predictor = None  # predictor owns a copy, including buffers and detection-head tensors
+            return converted
+
+        super()._apply(apply)
         self.overrides["device"] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 

@@ -3,7 +3,7 @@
 Train a model on a dataset.
 
 Usage:
-    $ yolo mode=train model=yolo26n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
+    $ yolo train model=yolo26n.pt data=coco8.yaml imgsz=640 epochs=100 batch=16
 """
 
 from __future__ import annotations
@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
+    WINDOWS,
     YAML,
     callbacks,
     clean_url,
@@ -47,6 +48,7 @@ from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
+from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_1_11,
@@ -61,8 +63,12 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     parse_device,
+    prepare_qat,
+    qat_state,
+    restore_qat,
     select_device,
     strip_optimizer,
+    strip_qat,
     torch_distributed_zero_first,
     unset_deterministic,
     unwrap_model,
@@ -319,13 +325,33 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU
-        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
+        channels_last = self.args.channels_last is True or (
+            self.args.channels_last is None and TORCH_1_11 and not WINDOWS
+        )
         if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
+
+        # Check imgsz
+        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        self.stride = gs  # for multiscale training
+
+        # Prepare the final module structure before compile, DDP, and EMA wrap it.
+        if self.args.quantize == 8:
+            if self.resume and ckpt.get("modelopt"):
+                restore_qat(self.model, ckpt["modelopt"])
+            else:
+                batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
+                with torch_distributed_zero_first(LOCAL_RANK), override_configs(self.args, {"cache": False}):
+                    calibration_loader = self.get_dataloader(
+                        self.data["train"], batch_size=batch, rank=-1, mode="train"
+                    )
+                self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+                del calibration_loader
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
@@ -388,11 +414,6 @@ class BaseTrainer:
                 if TORCH_2_4
                 else torch.cuda.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
             )
-        # Check imgsz
-        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        self.stride = gs  # for multiscale training
-
         # resume training would directly load DistillationModel so check here
         if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
             self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
@@ -733,6 +754,7 @@ class BaseTrainer:
                     v.copy_(model_sd[k])
         # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
         # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
+        modelopt = qat_state(ema)
         ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
         if hasattr(ema, "criterion"):
             ema.criterion = None  # strip training-only state from the serialization snapshot
@@ -742,6 +764,7 @@ class BaseTrainer:
                 torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
+        strip_qat(ema)
         buffer = io.BytesIO()
         torch.save(
             {
@@ -750,6 +773,7 @@ class BaseTrainer:
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
+                "modelopt": modelopt,  # quantization state of a QAT model, restored by load_checkpoint()
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
@@ -1015,6 +1039,8 @@ class BaseTrainer:
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
             self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
+            # A QAT checkpoint serializes its EMA without quantizers, but load_checkpoint() re-applied them in place
+            # to this very module, so the strict load below still matches the QAT-structured EMA built above.
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
@@ -1242,9 +1268,10 @@ class MultiTrainer:
         model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
         base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
-            torch_save(
-                {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
-            )
+            state = qat_state(self.model)
+            model = deepcopy(self.model).half()
+            strip_qat(model)
+            torch_save({"model": model, "modelopt": state, "train_args": getattr(self.model, "args", {})}, base_model)
         try:
             for i, data in enumerate(datasets):
                 LOGGER.info(
@@ -1276,7 +1303,7 @@ class MultiTrainer:
                     overrides["save_dir"] = str(save_dir)
                     if self.trainer is None:
                         overrides["model"] = str(base_model)
-                        overrides["pretrained"] = True
+                        overrides.pop("cfg", None)  # already merged here; the CLI would re-apply the file
                         subprocess.run(
                             [
                                 *_YOLO_CLI_COMMAND,
@@ -1287,7 +1314,11 @@ class MultiTrainer:
                         )
                     else:
                         trainer = self.trainer(overrides=overrides, _callbacks=self.callbacks)
-                        trainer.model = trainer.get_model(weights=self.model, cfg=self.model.yaml)
+                        pretrained = overrides.get("pretrained", True)
+                        weights = None if pretrained is False else self.model
+                        if isinstance(pretrained, (str, Path)):
+                            weights, _ = load_checkpoint(pretrained)
+                        trainer.model = trainer.get_model(weights=weights, cfg=self.model.yaml)
                         trainer.train()
                     best, last = save_dir / "weights" / "best.pt", save_dir / "weights" / "last.pt"
                     ckpt = best if best.exists() else last

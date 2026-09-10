@@ -166,9 +166,9 @@ The TorchVision module enables seamless integration of any [TorchVision model](h
     nc: 1000
 
     backbone:
-      - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, False]]
+        - [-1, 1, TorchVision, [768, convnext_tiny, DEFAULT, True, 2, False]]
     head:
-      - [-1, 1, Classify, [nc]]
+        - [-1, 1, Classify, [nc]]
     ```
 
     **Parameter Breakdown:**

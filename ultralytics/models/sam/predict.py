@@ -385,7 +385,7 @@ class Predictor(BasePredictor):
             x1, y1, x2, y2 = crop_region
             w, h = x2 - x1, y2 - y1
             area = torch.tensor(w * h, device=im.device)
-            points_scale = np.array([[w, h]])  # w, h
+            points_scale = np.array([[iw, ih]])  # the crop is resized to the model input, so prompts live in that space
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
             crop_features = self.get_im_features(crop_im)

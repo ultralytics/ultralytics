@@ -149,7 +149,7 @@ MIGraphX inference reuses the ONNX export arguments. The most relevant options f
 | `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes. Static shapes let MIGraphX compile a specialized program and enable zero-copy IO binding. |
 | `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                      |
 | `opset`    | `int`            | `None`   | ONNX opset version for compatibility with different runtimes. If not set, uses the latest supported version.          |
-| `nms`      | `bool`, optional | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                           |
+| `nms`      | `bool`, optional | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). Embedded NMS (`True`) is not yet supported by the MIGraphX EP ([ROCm/AMDMIGraphX#5246](https://github.com/ROCm/AMDMIGraphX/issues/5246)). |
 | `batch`    | `int`            | `1`      | Export batch size, or the max number of images the exported model processes concurrently in `predict` mode.           |
 | `device`   | `str`            | `None`   | Device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                           |
 

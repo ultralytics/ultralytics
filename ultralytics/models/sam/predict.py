@@ -169,6 +169,12 @@ class Predictor(BasePredictor):
         letterbox = LetterBox(self.imgsz, auto=False, center=False)
         return [letterbox(image=x) for x in im]
 
+    @property
+    def src_shape(self):
+        """Return the source image (height, width): an HWC array from files and streams, or a CHW tensor source."""
+        im0 = self.batch[1][0]
+        return im0.shape[-2:] if isinstance(im0, torch.Tensor) else im0.shape[:2]
+
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image.
 
@@ -234,7 +240,7 @@ class Predictor(BasePredictor):
             >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
-        prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
+        prompts = self._prepare_prompts(im.shape[2:], self.src_shape, bboxes, points, labels, masks)
         return self._inference_features(features, *prompts, multimask_output)
 
     def _inference_features(
@@ -392,7 +398,7 @@ class Predictor(BasePredictor):
             points_for_image = point_grids[layer_idx] * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):
-                prompts = self._prepare_prompts(crop_im.shape[2:], self.batch[1][0].shape[:2], points=points)
+                prompts = self._prepare_prompts(crop_im.shape[2:], self.src_shape, points=points)
                 pred_mask, pred_score = self._inference_features(crop_features, *prompts, multimask_output=True)
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask[None], (h, w), mode="bilinear", align_corners=False)[0]
@@ -442,7 +448,7 @@ class Predictor(BasePredictor):
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
 
         if min_mask_region_area > 0:
-            h0, w0 = self.batch[1][0].shape[:2]  # HWC source; a tensor source is already imgsz x imgsz, so gain is 1
+            h0, w0 = self.src_shape
             gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
             min_area = min_mask_region_area * gain * gain
             pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
@@ -938,9 +944,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
-            points, labels, masks = self._prepare_prompts(
-                im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
-            )
+            points, labels, masks = self._prepare_prompts(im.shape[2:], self.src_shape, bboxes, points, labels, masks)
             if points is not None:
                 for i in range(len(points)):
                     self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
@@ -1966,7 +1970,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.get_im_features(im)
         points, labels, masks = self._prepare_prompts(
             dst_shape=self.imgsz,
-            src_shape=self.batch[1][0].shape[:2],
+            src_shape=self.src_shape,
             points=points,
             bboxes=bboxes,
             labels=labels,
@@ -2362,7 +2366,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         labels = self.prompts.pop("labels", labels)
         text = self.prompts.pop("text", text)
         features = self.get_im_features(im) if self.features is None else self.features
-        prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
+        prompts = self._prepare_geometric_prompts(self.src_shape, bboxes, labels)
         return self._inference_features(features, *prompts, text=text)
 
     @smart_inference_mode()
@@ -2791,7 +2795,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             self.model.set_classes(text=text)
 
         # 2) handle box prompt
-        bboxes, labels = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
+        bboxes, labels = self._prepare_geometric_prompts(self.src_shape, bboxes, labels)
         assert (bboxes is not None) == (labels is not None)
         geometric_prompt = self._get_dummy_prompt(num_prompts=n)
         if bboxes is not None:

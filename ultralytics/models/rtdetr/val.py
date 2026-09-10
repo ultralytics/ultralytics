@@ -97,10 +97,12 @@ class RTDETRDataset(YOLODataset):
             if self.rtdetr_augmentations:
                 transforms = rtdetr_transforms(self, self.imgsz, hyp, stretch=True)
             else:
-                transforms = v8_transforms(self, self.imgsz, hyp, stretch=not self.letterbox)
+                # letterbox vs stretch is decided by load_image's rect_mode; the affine always outputs imgsz
+                transforms = v8_transforms(self, self.imgsz, hyp)
         else:
             # load_image already stretched to a square when not letterboxing, so no resize transform is needed
-            transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), auto=False)] if self.letterbox else [])
+            lb = LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)
+            transforms = Compose([lb] if self.letterbox else [])
         transforms.append(
             Format(
                 bbox_format="xywh",

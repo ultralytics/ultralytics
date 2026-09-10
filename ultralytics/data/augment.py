@@ -1001,7 +1001,7 @@ class RandomPerspective:
         shear (float): Maximum shear angle in degrees.
         perspective (float): Perspective distortion factor.
         border (tuple[int, int]): Mosaic border size as (y, x).
-        pre_transform (Callable | None): Optional transform to apply before the random perspective.
+        out_size (tuple[int, int] | None): Fixed affine output size as (width, height), or None to derive it.
 
     Methods:
         affine_transform: Apply affine transformations to the input image.
@@ -1028,7 +1028,7 @@ class RandomPerspective:
         shear: float = 0.0,
         perspective: float = 0.0,
         border: tuple[int, int] = (0, 0),
-        pre_transform=None,
+        size: tuple[int, int] | None = None,
     ):
         """Initialize RandomPerspective object with transformation parameters.
 
@@ -1042,8 +1042,9 @@ class RandomPerspective:
             shear (float): Shear intensity (angle in degrees).
             perspective (float): Perspective distortion factor.
             border (tuple[int, int]): Tuple specifying mosaic border (y, x).
-            pre_transform (Callable | None): Function/transform to apply to the image before starting the random
-                transformation.
+            size (tuple[int, int] | None): Fixed output size (width, height). If None, the size is derived from the
+                input image and mosaic border. Setting it lets the warp letterbox a rectangular input directly, padding
+                with the border value instead of relying on a separate LetterBox pre-transform.
         """
         self.degrees = degrees
         self.translate = translate
@@ -1051,7 +1052,7 @@ class RandomPerspective:
         self.shear = shear
         self.perspective = perspective
         self.border = border  # mosaic border
-        self.pre_transform = pre_transform
+        self.out_size = size
 
     def affine_transform(self, img: np.ndarray, border: tuple[int, int]) -> tuple[np.ndarray, np.ndarray, float]:
         """Apply a sequence of affine transformations centered around the image center.
@@ -1256,8 +1257,6 @@ class RandomPerspective:
             May include:
                 - 'mosaic_border' (tuple[int, int]): Border size for mosaic augmentation.
         """
-        if self.pre_transform and "mosaic_border" not in labels:
-            labels = self.pre_transform(labels)
         labels.pop("ratio_pad", None)  # do not need ratio pad
 
         img = labels["img"]
@@ -1268,7 +1267,10 @@ class RandomPerspective:
         instances.denormalize(*img.shape[:2][::-1])
 
         border = labels.pop("mosaic_border", self.border)
-        self.size = img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2  # w, h
+        if (rect_shape := labels.pop("rect_shape", None)) is not None:  # rect has higher priority
+            self.size = (int(rect_shape[1]), int(rect_shape[0]))  # rect batch shape (h, w) to (w, h)
+        else:
+            self.size = self.out_size or (img.shape[1] + border[1] * 2, img.shape[0] + border[0] * 2)  # w, h
         # M is affine matrix
         # Scale for func:`box_candidates`
         img, M, scale = self.affine_transform(img, border)
@@ -2381,7 +2383,7 @@ class RandomLoadText:
         return labels
 
 
-def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bool = False):
+def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
     """Apply a series of image transformations for training.
 
     This function creates a composition of image augmentation techniques to prepare images for YOLO training. It
@@ -2392,7 +2394,6 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         imgsz (int): The target image size for resizing.
         hyp (IterableSimpleNamespace): A namespace of hyperparameters controlling various aspects of the
             transformations.
-        stretch (bool): If True, applies stretching to the image. If False, uses LetterBox resizing.
 
     Returns:
         (Compose): A composition of image transformations to be applied to the dataset.
@@ -2418,7 +2419,7 @@ def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace, stretch: bo
         scale=hyp.scale,
         shear=hyp.shear,
         perspective=hyp.perspective,
-        pre_transform=None if stretch else LetterBox(new_shape=(imgsz, imgsz)),
+        size=(imgsz, imgsz),
     )
 
     pre_transform = Compose([mosaic, affine])

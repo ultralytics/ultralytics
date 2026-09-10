@@ -16,12 +16,10 @@ from .base import BaseBackend
 
 
 def _register_migraphx_ep(onnxruntime) -> str | None:
-    """Register the MIGraphX plugin execution provider and return its name, or None if unavailable.
+    """Register the MIGraphX plugin EP and return its name, or None if unavailable.
 
-    On ROCm 10 / onnxruntime 1.29 the MIGraphX EP ships as a loadable plugin (`onnxruntime-ep-migraphx`) that is not
-    auto-registered. Its libraries are preloaded with `RTLD_GLOBAL` first because the current wheels miss a
-    `libonnxruntime.so.1` soname link and would otherwise fail to load (ROCm/AMDMIGraphX#5235); this preload is dropped
-    once fixed wheels are published. Registration is idempotent.
+    The plugin (`onnxruntime-ep-migraphx`) is not auto-registered. Its libs are preloaded with RTLD_GLOBAL to work
+    around a missing `libonnxruntime.so.1` soname link (ROCm/AMDMIGraphX#5235). Registration is idempotent.
     """
     try:
         import onnxruntime_ep_migraphx as ep
@@ -35,7 +33,7 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
     import ctypes
     import glob
 
-    # Preload the libraries the plugin links but cannot locate itself (see docstring).
+    # Preload libs the plugin links but cannot locate itself (see docstring).
     search = [str(Path(onnxruntime.__file__).parent / "capi" / "libonnxruntime.so.1*")]
     try:
         import migraphx_libs
@@ -59,20 +57,75 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
     return name
 
 
-_MIGRAPHX_CACHE_ROOT: Path | None = None  # resolved once so per-model subdirectories never nest across loads
+_MIGRAPHX_CACHE_ROOT: Path | None = None  # resolved once
 
 
 def _migraphx_cache_dir(weight: str | Path) -> Path:
-    """Return a per-model subdirectory for the MIGraphX compiled-program cache.
+    """Return a per-model cache subdirectory for the MIGraphX compiled program.
 
-    The MIGraphX EP keys its cache by graph structure and input shapes only, not weights, so distinct models with the
-    same architecture would otherwise share (and silently mis-load) one compiled program. Hashing the model bytes into a
-    subdirectory isolates each model. The root is resolved once from ORT_MIGRAPHX_CACHE_DIR, else USER_CONFIG_DIR.
+    The EP keys its cache by graph structure and input shapes, not weights, so same-architecture models would otherwise
+    share (and mis-load) one program; hashing the model bytes isolates each. Root: ORT_MIGRAPHX_CACHE_DIR or config dir.
     """
     global _MIGRAPHX_CACHE_ROOT
     if _MIGRAPHX_CACHE_ROOT is None:
         _MIGRAPHX_CACHE_ROOT = Path(os.environ.get("ORT_MIGRAPHX_CACHE_DIR") or USER_CONFIG_DIR / "migraphx_cache")
     return _MIGRAPHX_CACHE_ROOT / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
+
+
+def _create_session(onnxruntime, weight: str | Path, session_options, providers=None):
+    """Create an ONNX Runtime InferenceSession, raising a clear error on an unparsable model.
+
+    `providers=None` uses the execution providers already configured on `session_options` (e.g. the MIGraphX plugin).
+    """
+    try:
+        if providers is None:
+            return onnxruntime.InferenceSession(weight, session_options)
+        return onnxruntime.InferenceSession(weight, session_options, providers=providers)
+    except onnxruntime.capi.onnxruntime_pybind11_state.InvalidProtobuf as e:
+        # ONNX Runtime reports an unparsable graph as a raw protobuf error naming neither the problem nor a remedy.
+        # Only this type is caught: other load failures are EP or model-support issues where ORT's message is useful.
+        raise TypeError(
+            f"ERROR ❌️ {weight} is not a loadable ONNX model — the file is empty, truncated or corrupted "
+            f"({type(e).__name__}: {e}).\nRecommend fixes are to re-export it with "
+            f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
+        ) from e
+
+
+def _load_migraphx_session(onnxruntime, session_options, weight: str | Path, index: int):
+    """Build an InferenceSession on the MIGraphX plugin EP, or return None if MIGraphX is unavailable.
+
+    Registers the plugin, selects the requested GPU, disables Winograd to speed cold compiles, enables the per-model
+    compiled-program cache, and creates the session. The EP is added via `add_provider_for_devices`, not `providers=`.
+    """
+    ep = _register_migraphx_ep(onnxruntime)
+    devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == ep] if ep else []
+    if not devices:
+        return None
+    if index >= len(devices):  # requested GPU not enumerated by the EP
+        LOGGER.warning(f"MIGraphX device {index} unavailable ({len(devices)} found); using device 0.")
+        index = 0
+
+    # Disabling Winograd cuts cold-compile time with no accuracy change (ROCm/AMDMIGraphX#5234).
+    os.environ.setdefault("MIGRAPHX_DISABLE_WINOGRAD", "1")
+
+    # Cache the JIT-compiled program so repeat loads skip compilation.
+    options = {}
+    compiling = True  # unless a populated cache is found below
+    try:
+        cache_dir = _migraphx_cache_dir(weight)
+        compiling = not (cache_dir.is_dir() and any(cache_dir.iterdir()))
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        # The EP reads ORT_MIGRAPHX_CACHE_DIR ahead of the cache_dir option, so set both.
+        os.environ["ORT_MIGRAPHX_CACHE_DIR"] = str(cache_dir)
+        options["cache_dir"] = str(cache_dir)
+        LOGGER.info(f"MIGraphX compiled-program cache at {cache_dir}")
+    except OSError as e:
+        LOGGER.warning(f"MIGraphX cache disabled ({e}); recompiling each session init.")
+    if compiling:  # note the one-time JIT compile so the wait is expected
+        LOGGER.info("MIGraphX is compiling the model; this runs once per model and the result is cached...")
+
+    session_options.add_provider_for_devices(devices[index : index + 1], options)
+    return _create_session(onnxruntime, weight, session_options)
 
 
 # ONNX Runtime output type string -> (torch dtype, numpy dtype) for IO binding.
@@ -145,41 +198,12 @@ class ONNXBackend(BaseBackend):
                 check_requirements([(ort, "onnxruntime", "onnxruntime-gpu")])
             import onnxruntime
 
-            # Select execution provider. The MIGraphX plugin EP is chosen via add_provider_for_devices, not providers=.
+            # On ROCm try the MIGraphX plugin EP first; it returns a configured session, or None if unavailable.
             session_options = self.session_options or onnxruntime.SessionOptions()
-            providers = None
-            plugin_ep = False
-            mgx_ep = _register_migraphx_ep(onnxruntime) if rocm else None
-            mgx_devices = [d for d in onnxruntime.get_ep_devices() if d.ep_name == mgx_ep] if mgx_ep else []
-            if mgx_devices:
-                idx = self.device.index or 0
-                if idx >= len(mgx_devices):  # requested GPU not enumerated by the EP
-                    LOGGER.warning(f"MIGraphX device {idx} unavailable ({len(mgx_devices)} found); using device 0.")
-                sel = idx if idx < len(mgx_devices) else 0
-                # Disabling Winograd kernels cuts MIGraphX 2.17 cold-compile time on YOLO graphs with no measurable
-                # accuracy change (ROCm/AMDMIGraphX#5234); setdefault respects an explicit override.
-                os.environ.setdefault("MIGRAPHX_DISABLE_WINOGRAD", "1")
-                # Cache the JIT-compiled program so repeat loads skip compilation (keys lead with the MIGraphX version,
-                # so an upgrade recompiles). ORT_MIGRAPHX_CACHE_DIR sets the root.
-                mgx_options = {}
-                compiling = True  # a compile happens unless a populated cache is found below
-                try:
-                    cache_dir = _migraphx_cache_dir(weight)
-                    compiling = not (cache_dir.is_dir() and any(cache_dir.iterdir()))
-                    cache_dir.mkdir(parents=True, exist_ok=True)
-                    # The EP reads ORT_MIGRAPHX_CACHE_DIR ahead of its cache_dir option, so point both at the per-model
-                    # directory to keep each model's compiled program isolated.
-                    os.environ["ORT_MIGRAPHX_CACHE_DIR"] = str(cache_dir)
-                    mgx_options["cache_dir"] = str(cache_dir)
-                    LOGGER.info(f"MIGraphX compiled-program cache at {cache_dir}")
-                except OSError as e:
-                    LOGGER.warning(f"MIGraphX cache disabled ({e}); recompiling each session init.")
-                if compiling:  # first load of this model: note the one-time JIT compile so the wait is expected
-                    LOGGER.info("MIGraphX is compiling the model; this runs once per model and the result is cached...")
-                session_options.add_provider_for_devices(mgx_devices[sel : sel + 1], mgx_options)
-                provider_name = mgx_ep
-                plugin_ep = True
-            else:
+            index = self.device.index or 0
+            self.session = _load_migraphx_session(onnxruntime, session_options, weight, index) if rocm else None
+            plugin_ep = self.session is not None
+            if not plugin_ep:
                 available = onnxruntime.get_available_providers()
                 if cuda and not rocm and "CUDAExecutionProvider" in available:
                     providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
@@ -194,53 +218,44 @@ class ONNXBackend(BaseBackend):
                         LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU... Fix with '{fix}'")
                         self.device = torch.device("cpu")
                         cuda = False
-                provider_name = providers[0] if isinstance(providers[0], str) else providers[0][0]
+                self.session = _create_session(onnxruntime, weight, session_options, providers)
 
-            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {provider_name}")
-
-            try:
-                if providers is None:  # plugin EP path: the device is already set on session_options
-                    self.session = onnxruntime.InferenceSession(weight, session_options)
-                else:
-                    self.session = onnxruntime.InferenceSession(weight, session_options, providers=providers)
-            except onnxruntime.capi.onnxruntime_pybind11_state.InvalidProtobuf as e:
-                # ONNX Runtime reports an unparsable graph as a raw protobuf error naming neither the problem
-                # nor a remedy. Only this one type is caught: other load failures are execution-provider or
-                # model-support issues, where the runtime's own message is the useful one.
-                raise TypeError(
-                    f"ERROR ❌️ {weight} is not a loadable ONNX model — the file is empty, truncated or corrupted "
-                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-export it with "
-                    f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
-                ) from e
+            LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
             self.output_names = [x.name for x in self.session.get_outputs()]
 
             # Check if dynamic shapes
             self.dynamic = isinstance(self.session.get_outputs()[0].shape[0], str)
             self.fp16 = "float16" in self.session.get_inputs()[0].type
 
-            # Zero-copy GPU IO binding. The MIGraphX plugin tags its device with the AMD vendor id, so DLPack-wrapped
-            # OrtValues (which carry each tensor's real device) are bound for it; CUDA keeps its buffer-pointer binding.
+            # Zero-copy GPU IO binding (CUDA buffer pointers or MIGraphX DLPack OrtValues).
             self.use_io_binding = not self.dynamic and cuda
-            # onnxruntime is a lazy local import, so keep the OrtValue.from_dlpack callable for the plugin forward path.
-            self._from_dlpack = onnxruntime.OrtValue.from_dlpack if plugin_ep else None
+            self._from_dlpack = onnxruntime.OrtValue.from_dlpack if plugin_ep else None  # onnxruntime is a local import
             if self.use_io_binding:
-                self.io = self.session.io_binding()
-                self.bindings = []
-                for output in self.session.get_outputs():
-                    torch_dtype, np_dtype = _ORT_DTYPES.get(output.type, (torch.float32, np.float32))
-                    y_tensor = torch.empty(output.shape, dtype=torch_dtype).to(self.device)
-                    if plugin_ep:
-                        self.io.bind_ortvalue_output(output.name, self._from_dlpack(y_tensor))
-                    else:
-                        self.io.bind_output(
-                            name=output.name,
-                            device_type=self.device.type,
-                            device_id=self.device.index if cuda else 0,
-                            element_type=np_dtype,
-                            shape=tuple(y_tensor.shape),
-                            buffer_ptr=y_tensor.data_ptr(),
-                        )
-                    self.bindings.append(y_tensor)
+                self._setup_io_binding(plugin_ep)
+
+    def _setup_io_binding(self, plugin_ep: bool) -> None:
+        """Bind persistent output buffers for zero-copy GPU inference.
+
+        Args:
+            plugin_ep (bool): True for the MIGraphX plugin EP (DLPack OrtValues), False for CUDA (buffer pointers).
+        """
+        self.io = self.session.io_binding()
+        self.bindings = []
+        for output in self.session.get_outputs():
+            torch_dtype, np_dtype = _ORT_DTYPES.get(output.type, (torch.float32, np.float32))
+            y_tensor = torch.empty(output.shape, dtype=torch_dtype).to(self.device)
+            if plugin_ep:
+                self.io.bind_ortvalue_output(output.name, self._from_dlpack(y_tensor))
+            else:
+                self.io.bind_output(
+                    name=output.name,
+                    device_type=self.device.type,
+                    device_id=self.device.index if self.device.type == "cuda" else 0,
+                    element_type=np_dtype,
+                    shape=tuple(y_tensor.shape),
+                    buffer_ptr=y_tensor.data_ptr(),
+                )
+            self.bindings.append(y_tensor)
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]

@@ -37,6 +37,22 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
+### Development Installation
+
+Clone your fork (or the main repository) and install it in editable mode (`-e`) so Python runs your local files and picks up every change without reinstalling:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/ultralytics.git
+cd ultralytics
+pip install -e .
+```
+
+To make another project depend on a fork instead of the PyPI package, point pip or `requirements.txt` at the fork's branch:
+
+```text title="requirements.txt"
+git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+```
+
 ### 📚 Documentation Changes
 
 Documentation source lives under `docs/en/`. From the repository root, install the development dependencies and run the complete strict validation before opening a PR:

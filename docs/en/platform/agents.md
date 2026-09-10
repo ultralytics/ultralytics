@@ -113,6 +113,6 @@ Reloading the page restores the run's progress and selected execution deployment
 - **Agents is missing from the sidebar:** enable **Early access** in your personal **Settings > Profile**.
 - **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the inputs and model/provider calls.
 - **The deployment is preparing or stopped:** wait for it to become ready or start it from [Deployments](deploy/index.md).
-- **A provider key is missing:** add the selected model provider's key in **Settings > API Keys**.
+- **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.
 - **No images reach the destination:** inspect the condition and prediction confidence cutoff. Empty detection results never satisfy a confidence range.
 - **Collected images have no labels:** collection adds original images for review. Use the existing annotation tools to label them.

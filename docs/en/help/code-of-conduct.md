@@ -105,4 +105,4 @@ Contributing to Ultralytics means engaging positively and respectfully with othe
 
 For more comprehensive details about the Ultralytics Code of Conduct, including reporting guidelines and enforcement policies, you can visit the [Contributor Covenant homepage](https://www.contributor-covenant.org/version/2/0/code_of_conduct/) or check the [FAQ section of Contributor Covenant](https://www.contributor-covenant.org/faq/). Learn more about Ultralytics' goals and initiatives on [our brand page](https://www.ultralytics.com/brand) and [about page](https://www.ultralytics.com/about).
 
-Should you have more questions or need further assistance, check our [Help Center](../help/FAQ.md) and [Contributing Guide](../help/contributing.md) for more information.
+Should you have more questions or need further assistance, check our [Help Center](FAQ.md) and [Contributing Guide](contributing.md) for more information.

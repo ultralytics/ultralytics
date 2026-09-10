@@ -5,7 +5,7 @@ description: Automatically detect and blur objects in real time with Ultralytics
 keywords: YOLO26, object blurring, real-time processing, privacy protection, face blurring, data anonymization, GDPR, image manipulation, video editing, Ultralytics
 ---
 
-# Object Blurring using Ultralytics YOLO26 🚀
+# Object Blurring using Ultralytics YOLO26
 
 ## What is Object Blurring?
 

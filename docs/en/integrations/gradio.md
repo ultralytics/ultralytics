@@ -5,7 +5,7 @@ description: Discover an interactive way to perform object detection with Ultral
 keywords: Ultralytics, YOLO26, Gradio, object detection, interactive, real-time, image processing, AI
 ---
 
-# Interactive Object Detection: Gradio & Ultralytics YOLO26 🚀
+# Interactive Object Detection: Gradio & Ultralytics YOLO26
 
 ## Introduction to Interactive Object Detection
 

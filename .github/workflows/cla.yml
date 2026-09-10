@@ -15,6 +15,7 @@ on:
       - synchronize
 
 permissions:
+  contents: read
   actions: write
   pull-requests: write
 

@@ -33,6 +33,8 @@ body:
         - "Val"
         - "Predict"
         - "Export"
+        - "Track"
+        - "Benchmark"
         - "Multi-GPU"
         - "Augmentation"
         - "Hyperparameter Tuning"
@@ -57,12 +59,12 @@ body:
       placeholder: |
         Paste output of `yolo checks` (CLI) or `ultralytics.utils.checks.collect_system_info()` (Python) command, i.e.:
         ```
-        Ultralytics 8.3.2 🚀 Python-3.11.2 torch-2.4.1 CPU (Apple M3)
+        Ultralytics 8.4.142 🚀 Python-3.13.5 torch-2.8.0 CPU (Apple M3)
         Setup complete ✅ (8 CPUs, 16.0 GB RAM, 266.5/460.4 GB disk)
 
-        OS                  macOS-13.5.2
+        OS                  macOS-26.0
         Environment         Jupyter
-        Python              3.11.2
+        Python              3.13.5
         Install             git
         RAM                 16.00 GB
         CPU                 Apple M3

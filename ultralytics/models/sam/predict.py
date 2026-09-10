@@ -442,8 +442,6 @@ class Predictor(BasePredictor):
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
 
         if min_mask_region_area > 0:
-            idx = pred_scores > self.args.conf  # postprocess drops these, so they must not suppress masks it keeps
-            pred_masks, pred_scores = pred_masks[idx], pred_scores[idx]
             h0, w0 = self.batch[1][0].shape[:2]
             gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
             min_area = min_mask_region_area * gain * gain

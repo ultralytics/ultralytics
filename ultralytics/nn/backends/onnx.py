@@ -66,8 +66,8 @@ def _migraphx_cache_dir(weight: str | Path) -> Path:
     """Return a per-model subdirectory for the MIGraphX compiled-program cache.
 
     The MIGraphX EP keys its cache by graph structure and input shapes only, not weights, so distinct models with the
-    same architecture would otherwise share (and silently mis-load) one compiled program. Hashing the model bytes into
-    a subdirectory isolates each model. The root is resolved once from ORT_MIGRAPHX_CACHE_DIR, else USER_CONFIG_DIR.
+    same architecture would otherwise share (and silently mis-load) one compiled program. Hashing the model bytes into a
+    subdirectory isolates each model. The root is resolved once from ORT_MIGRAPHX_CACHE_DIR, else USER_CONFIG_DIR.
     """
     global _MIGRAPHX_CACHE_ROOT
     if _MIGRAPHX_CACHE_ROOT is None:

@@ -141,17 +141,17 @@ The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/pr
 
 MIGraphX inference reuses the ONNX export arguments. The most relevant options for AMD GPU deployment are:
 
-| Argument   | Type             | Default  | Description                                                                                                                                       |
-| :--------- | :--------------- | :------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `format`   | `str`            | `'onnx'` | Target format for the exported model. Use `onnx` for MIGraphX EP inference.                                                                       |
-| `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.                                         |
-| `quantize` | `int` or `str`   | `None`   | Precision of the exported ONNX model: `16` (FP16) for reduced-precision inference; `32`/unset is FP32.                                             |
-| `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes. Static shapes let MIGraphX compile a specialized program and enable zero-copy IO binding.                             |
-| `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                                                  |
-| `opset`    | `int`            | `None`   | ONNX opset version for compatibility with different runtimes. If not set, uses the latest supported version.                                       |
-| `nms`      | `bool`, optional | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                        |
-| `batch`    | `int`            | `1`      | Export batch size, or the max number of images the exported model processes concurrently in `predict` mode.                                        |
-| `device`   | `str`            | `None`   | Device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                                                        |
+| Argument   | Type             | Default  | Description                                                                                                           |
+| :--------- | :--------------- | :------- | :-------------------------------------------------------------------------------------------------------------------- |
+| `format`   | `str`            | `'onnx'` | Target format for the exported model. Use `onnx` for MIGraphX EP inference.                                           |
+| `imgsz`    | `int` or `tuple` | `640`    | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)`.             |
+| `quantize` | `int` or `str`   | `None`   | Precision of the exported ONNX model: `16` (FP16) for reduced-precision inference; `32`/unset is FP32.                |
+| `dynamic`  | `bool`           | `False`  | Allows dynamic input sizes. Static shapes let MIGraphX compile a specialized program and enable zero-copy IO binding. |
+| `simplify` | `bool`           | `True`   | Simplifies the model graph with `onnxslim`, potentially improving performance and compatibility.                      |
+| `opset`    | `int`            | `None`   | ONNX opset version for compatibility with different runtimes. If not set, uses the latest supported version.          |
+| `nms`      | `bool`, optional | `None`   | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                           |
+| `batch`    | `int`            | `1`      | Export batch size, or the max number of images the exported model processes concurrently in `predict` mode.           |
+| `device`   | `str`            | `None`   | Device for exporting: GPU (`device=0`), CPU (`device=cpu`).                                                           |
 
 For the full list of export arguments, see the [ONNX integration](onnx.md#export-arguments) and the [Ultralytics documentation page on exporting](../modes/export.md).
 
@@ -203,17 +203,17 @@ Ultralytics enables [Automatic Mixed Precision (AMP)](https://www.ultralytics.co
 
 Support for one AMD product or runtime does not imply support for every AMD accelerator. This table summarizes the current status in the Ultralytics Python package.
 
-| AMD product or runtime                           | Support   | Usage or status                                                                                       |
-| :----------------------------------------------- | :-------- | :--------------------------------------------------------------------------------------------------- |
-| AMD Instinct and supported Radeon GPUs with ROCm | ✅        | Train, validate, and run native PyTorch models with `device=0` or `device=cuda:0`.                    |
-| MIGraphX inference                               | ✅        | Run exported ONNX models on AMD GPUs through the MIGraphX EP. All YOLO26 tasks are supported.          |
-| Multi-GPU ROCm                                   | ✅        | Use `device=0,1` or `device=[0, 1]`; distributed execution follows the installed PyTorch ROCm stack.  |
-| ROCm Automatic Mixed Precision (AMP)             | ⚠️        | Available when the installed PyTorch and ROCm versions pass Ultralytics AMP checks; use `amp=False` if incompatible. |
-| AMD Docker image and hardware CI                 | ✅        | `docker/Dockerfile-amd` ships the MIGraphX EP; AMD GPU CI runs on a scheduled job.                    |
-| Native `format="migraphx"` export                | ❌ yet    | Not available; use ONNX export plus the MIGraphX EP for AMD GPU inference today.                       |
-| Windows DirectML                                 | ❌        | No DirectML training or prediction backend in the Python package.                                     |
-| Ryzen AI NPU                                      | ❌        | No native NPU integration; external ONNX/Vitis AI workflows are community-managed.                    |
-| AMD CPUs                                          | ✅ CPU    | Use `device=cpu`; standard CPU execution, not an AMD-specific acceleration backend.                   |
+| AMD product or runtime                           | Support | Usage or status                                                                                                      |
+| :----------------------------------------------- | :------ | :------------------------------------------------------------------------------------------------------------------- |
+| AMD Instinct and supported Radeon GPUs with ROCm | ✅      | Train, validate, and run native PyTorch models with `device=0` or `device=cuda:0`.                                   |
+| MIGraphX inference                               | ✅      | Run exported ONNX models on AMD GPUs through the MIGraphX EP. All YOLO26 tasks are supported.                        |
+| Multi-GPU ROCm                                   | ✅      | Use `device=0,1` or `device=[0, 1]`; distributed execution follows the installed PyTorch ROCm stack.                 |
+| ROCm Automatic Mixed Precision (AMP)             | ⚠️      | Available when the installed PyTorch and ROCm versions pass Ultralytics AMP checks; use `amp=False` if incompatible. |
+| AMD Docker image and hardware CI                 | ✅      | `docker/Dockerfile-amd` ships the MIGraphX EP; AMD GPU CI runs on a scheduled job.                                   |
+| Native `format="migraphx"` export                | ❌ yet  | Not available; use ONNX export plus the MIGraphX EP for AMD GPU inference today.                                     |
+| Windows DirectML                                 | ❌      | No DirectML training or prediction backend in the Python package.                                                    |
+| Ryzen AI NPU                                     | ❌      | No native NPU integration; external ONNX/Vitis AI workflows are community-managed.                                   |
+| AMD CPUs                                         | ✅ CPU  | Use `device=cpu`; standard CPU execution, not an AMD-specific acceleration backend.                                  |
 
 !!! note "Check AMD and PyTorch compatibility first"
 

@@ -19,7 +19,7 @@ Enable **Early access** in your personal **Settings > Profile**, then open **Age
 1. Open **Agents** and choose **YOLO → VLM Monitor** from the templates.
 2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person.
 3. Keep the default YOLO26 nano model. The condition passes when YOLO detects at least one person.
-4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. Add the matching provider key in **Settings > API Keys** if you have not already done so.
+4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys** if you have not already done so.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
 

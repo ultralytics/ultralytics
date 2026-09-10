@@ -24,7 +24,7 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 Create a new API key:
 
 1. Go to **Settings > API Keys**
-2. Click **Create Key**
+2. Click **Add Key** and select **Ultralytics** as the provider
 3. Enter a name for the key (e.g., "Training Server")
 4. Click **Create Key**
 
@@ -48,6 +48,16 @@ After creation, the key is displayed in a confirmation dialog:
 
     Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and
     displays full key values so you can copy them anytime.
+
+## Provider Keys for Agents
+
+The same **Settings > API Keys** tab also stores keys for external model providers used by [Agents](../agents.md). To connect a provider:
+
+1. Click **Add Key**.
+2. Select the provider matching your workflow's language or vision-language model.
+3. Paste that provider's API key into **API Key**, then click **Save Key**. The dialog's **Get an API key** link opens the provider's key page.
+
+An Ultralytics key does not authenticate external model providers. Provider usage is billed through the provider account associated with the saved key. Use the key row's edit control to replace a provider key.
 
 ## Key Format
 

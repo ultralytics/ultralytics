@@ -7,7 +7,7 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
+[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.ul.run/i/176e99f44ab36318aec89d8a5309376f.avif)<!-- screenshot -->
 
@@ -166,7 +166,7 @@ The table is searchable by city, country, and zone, and is sorted by latency by 
 
 ### New Deployment Dialog
 
-The `New Deployment` dialog collects three inputs:
+The `New Deployment` dialog lets you select a model, region, resources, and deployment name:
 
 | Field               | Description                                                       |
 | ------------------- | ----------------------------------------------------------------- |
@@ -176,8 +176,7 @@ The `New Deployment` dialog collects three inputs:
 
 ![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->
 
-Below the name, a read-only **Resources** panel carries a `Custom resources coming soon` badge. Resources are not
-configurable today: every endpoint runs as a single instance that scales to zero when idle.
+Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
 
 !!! note "Auto-Generated Names"
 
@@ -185,8 +184,7 @@ configurable today: every endpoint runs as a single instance that scales to zero
 
 ### Deploy Tab (Quick Deploy)
 
-Deploying from the model's `Deploy` tab uses the same fixed resources and auto-generated name, with no dialog step. The
-deployment appears immediately in the **Active Deployments** list below the region table while it is created.
+Deploying from the model's `Deploy` tab opens the same dialog with the model and region preselected. Review the resource size, pricing, and auto-generated name before creating the endpoint. The deployment appears in the **Active Deployments** list while it is created.
 
 ## Manage Endpoints
 

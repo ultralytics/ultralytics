@@ -362,12 +362,14 @@ class Predictor(BasePredictor):
             point_grids (list[np.ndarray] | None): Custom grids for point sampling normalized to [0,1].
             points_stride (int): Number of points to sample along each side of the image.
             points_batch_size (int): Batch size for the number of points processed simultaneously.
-            conf_thres (float): Confidence threshold [0,1] for filtering based on mask quality prediction.
+            conf_thres (float): Confidence threshold [0,1] on the predicted mask quality; the predictor's conf also
+                applies after the cross-crop NMS.
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
             min_mask_region_area (int): If > 0, remove disconnected regions and holes smaller than this area in
-                original-image pixels, then re-run NMS on the cleaned masks.
+                original-image pixels (the largest region of a mask is always kept), then re-run NMS on the
+                cleaned masks.
 
         Returns:
             pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
@@ -446,6 +448,9 @@ class Predictor(BasePredictor):
             scores = 1 / region_areas
             keep = torchvision.ops.nms(pred_bboxes, scores, crop_nms_thresh)
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
+
+        idx = pred_scores > self.args.conf  # postprocess applies conf too, so it must not decide the cleanup NMS
+        pred_masks, pred_scores, pred_bboxes = pred_masks[idx], pred_scores[idx], pred_bboxes[idx]
 
         if min_mask_region_area > 0:
             h0, w0 = self.src_shape

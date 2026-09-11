@@ -1,14 +1,17 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# YOLO Anomaly — clsgrad + PER-SCALE fusion, MULTIPLICATIVE apply, near-frozen fusion LR.
-# Ported from yoloa_clean_louis' yolo26-anomaly-clsgrad-perscale-fload-flr01-mul.yaml onto the
-# yoloa_clean AnomalyDetect stack (no anomaly_v2 module). Differences vs base yolo26-anomaly.yaml:
+# YOLO Anomaly — clsgrad + SHARED (non-per-scale) fusion, MULTIPLICATIVE apply, near-frozen LR.
+# Size-agnostic — YOLO picks the scale from the pretrained weight (e.g. yolo26l.pt → scale l).
+# (binary head, NO anomaly_v2 / AnomalyMCDetect). Differences vs base yolo26-anomaly.yaml:
+# (binary head, NO anomaly_v2 / AnomalyMCDetect). Differences vs base yolo26-anomaly.yaml:
 #   fusion_target: all_clsgrad   -- all-mode forward (deploy graph == 'all'); fusion module gets
 #                                   cls-path gradients only (box path detached -> no GT-extent oracle)
 #   fusion_apply:  mul           -- p * (1 + tanh(delta)); bounded multiplicative gate in [0, 2]
-#   fusion_per_scale: true       -- unshared fusion conv across P3/P4/P5 (must match donor format)
+#   fusion_per_scale: false      -- SHARED fusion conv across P3/P4/P5 (5 tensors: conv.0/conv.2 +
+#                                   beta(3,)); MUST match the donor format for fusion_load
 #   fusion_lr_scale: 0.1         -- near-frozen fusion (preserve warm-start); consumed trainer-side
-#   fusion_load:                 -- EMPTY for now; set to a donor best.pt to warm-start the fusion
+#   fusion_load: <donor fusion_only.pt>  -- plain fusion state_dict exported from the non-per-scale
+#                                   donor 26l_yoloav2_v8.2_clsgrad_flr4_v1 (set to the ultra6 path)
 #   mask_aug_passes: 2           -- v5 double-augment
 # Branch: yoloa_clean.
 
@@ -23,8 +26,7 @@ scales:
   x: [1.00, 1.50, 512]
 
 anomaly:
-  # AnomalyMCDetect: cv_anom drives detection, cv3 predicts type only.
-  type_gain: 0.5   # weight of the type cross-entropy in the loss
+  type_gain: 0.5   # AnomalyMCDetect: weight of the type cross-entropy (cv_anom drives detection)
   mask_size: 80
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]
@@ -33,9 +35,9 @@ anomaly:
   fusion_mode: bias
   fusion_target: all_clsgrad       # all-mode forward; fusion module gets cls-path gradients only
   fusion_apply: mul                # p * (1 + tanh(delta)) — bounded multiplicative gate in [0, 2]
-  fusion_per_scale: true           # unshared fusion conv across P3/P4/P5 (must match donor format)
+  fusion_per_scale: false          # SHARED fusion conv across P3/P4/P5 (5 tensors; matches donor)
   fusion_lr_scale: 0.1             # near-frozen fusion, preserve warm-start (trainer-side)
-  fusion_load:                     # empty -> fusion trained from beta=0; set donor best.pt to warm-start
+  fusion_load: runs/yoloa_clean/26l_yoloav2_v8.2_clsgrad_flr4_v1/weights/fusion_only.pt  # exported non-per-scale donor
   # aug3 base + mixup re-enabled (aug2 strength)
   mask_jitter: 0.01
   mask_box_drop_p: 0.05            # matches the louis canonical run (base yolo26-anomaly.yaml uses 0.0)
@@ -55,7 +57,7 @@ anomaly:
   # test (cross-dataset MVTec) eval — fitness = OOD heatmap mAP50
   test_val_freq: 1
   test_categories: null            # null = all 15 MVTec categories
-  test_none_prior: false           # test prior=none
+  test_none_prior: true            # test prior=none — the native regime for p_drop=1.0 (pd100) runs
   test_heatmap_prior: true         # test prior=heatmap — required (R&D fitness = OOD mAP50)
 
   # new augs, turned off by default for now

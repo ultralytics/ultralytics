@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 42 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
+description: Deploy YOLO models to dedicated endpoints in 42 global regions with configurable resources and monitoring on Ultralytics Platform.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
 # Dedicated Endpoints
 
-[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with scale-to-zero behavior, a unique endpoint URL, and independent monitoring.
+[Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime.
 
 ![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.ul.run/i/176e99f44ab36318aec89d8a5309376f.avif)<!-- screenshot -->
 
@@ -21,9 +21,9 @@ Deploy a model from its `Deploy` tab:
 2. Click the **Deploy** tab
 3. Review the world map and the region table, which is sorted by measured latency from your location
 4. Click **Deploy** in the region row you want to use
+5. In the dialog, review the CPU, memory, pricing, and deployment name, then click **Create Deployment**
 
-Deployment starts immediately with no naming step: the name is generated from the model name and the region city (for
-example `yolo26n-iowa`). The model must have weights, or the tab shows an empty state instead of the region table.
+The suggested name combines the model name and region city (for example `yolo26n-iowa`) and can be edited before deployment. The model must have weights, or the tab shows an empty state instead of the region table.
 
 ### From the Deployments Page
 
@@ -32,10 +32,10 @@ Create a deployment from the global `Deploy` page in the sidebar:
 1. Click **New Deployment**
 2. Select a model from the model selector, which lists your completed models
 3. Select a region from the mini map or the latency table
-4. Review the auto-generated deployment name, which you can edit here
-5. Click **Deploy Model**
+4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
+5. Click **Create Deployment**
 
-![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/d0447123225bbac5c67ae7aee0f15da2.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/2ef1fde3be1dd5d048bb0d21bdb5b7f8.avif)<!-- screenshot -->
 
 ### Deployment Lifecycle
 
@@ -166,18 +166,20 @@ The table is searchable by city, country, and zone, and is sorted by latency by 
 
 ### New Deployment Dialog
 
-The `New Deployment` dialog collects three inputs:
+The `New Deployment` dialog lets you select a model, region, resources, and deployment name:
 
 | Field               | Description                                                       |
 | ------------------- | ----------------------------------------------------------------- |
 | **Model**           | Any completed model in the workspace, chosen with the selector    |
 | **Region**          | Deployment region, chosen on the mini map or in the latency table |
+| **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
-![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/2ef1fde3be1dd5d048bb0d21bdb5b7f8.avif)<!-- screenshot -->
 
-Below the name, a read-only **Resources** panel carries a `Custom resources coming soon` badge. Resources are not
-configurable today: every endpoint runs as a single instance that scales to zero when idle.
+Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
+
+![Ultralytics Platform New Deployment dialog with custom CPU and memory controls, hourly uptime pricing, and deployment name](https://cdn.ul.run/i/62bd92169169dfd3eaea14e3240ca237.avif)
 
 !!! note "Auto-Generated Names"
 
@@ -185,8 +187,7 @@ configurable today: every endpoint runs as a single instance that scales to zero
 
 ### Deploy Tab (Quick Deploy)
 
-Deploying from the model's `Deploy` tab uses the same fixed resources and auto-generated name, with no dialog step. The
-deployment appears immediately in the **Active Deployments** list below the region table while it is created.
+Deploying from the model's `Deploy` tab opens the same dialog with the model and region preselected. Review the resource size, pricing, and auto-generated name before creating the endpoint. The deployment appears in the **Active Deployments** list while it is created.
 
 ## Manage Endpoints
 

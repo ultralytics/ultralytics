@@ -12,6 +12,10 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
 
+## Collect Images with Agents
+
+Use [Agents](../agents.md#collect-images-for-review) to add images to a dataset when a model detection meets a condition, such as confidence within a chosen range. Connect the condition to a **Dataset** block and select a destination you can edit. Images arrive unlabeled in the `train` split; existing copies are skipped. Review and label them with the existing [annotation editor](annotation.md).
+
 ## Upload Dataset
 
 Ultralytics Platform accepts multiple upload formats for flexibility.

@@ -139,6 +139,7 @@ nav:
           - Python: usage/python.md
           - Callbacks: usage/callbacks.md
           - Configuration: usage/cfg.md
+          - Settings: usage/settings.md
           - Simple Utilities: usage/simple-utilities.md
           - Advanced Customization: usage/engine.md
       - YOLO26 🚀: models/yolo26.md
@@ -601,6 +602,8 @@ nav:
   - Platform:
       - Platform: platform/index.md
       - Quickstart: platform/quickstart.md
+      - Agents: platform/agents.md
+      - Autotraining: platform/autotraining.md
       - Data:
           - platform/data/index.md
           - Datasets: platform/data/datasets.md

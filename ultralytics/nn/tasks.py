@@ -51,6 +51,7 @@ from ultralytics.nn.modules import (
     ConvTranspose,
     Detect,
     AnomalyDetect,
+    AnomalyMCDetect,
     DWConv,
     DWConvTranspose2d,
     Focus,
@@ -82,6 +83,7 @@ from ultralytics.nn.modules import (
 from ultralytics.utils import DEFAULT_CFG_DICT, LOGGER, WINDOWS, YAML, colorstr, emojis
 from ultralytics.utils.checks import check_requirements, check_suffix, check_yaml
 from ultralytics.utils.loss import (
+    AnomalyMCLoss,
     E2ELoss,
     PoseLoss26,
     v8ClassificationLoss,
@@ -542,6 +544,12 @@ class YOLOAnomalyModel(DetectionModel):
       - Inference: a non-empty memory bank is used as the heatmap prior; otherwise passthrough.
     """
 
+    def init_criterion(self):
+        """Use the decoupled binary-detect + type loss when the head is AnomalyMCDetect."""
+        if isinstance(self.model[-1], AnomalyMCDetect):
+            return E2ELoss(self, AnomalyMCLoss) if getattr(self, "end2end", False) else AnomalyMCLoss(self)
+        return super().init_criterion()
+
     def __init__(self, cfg="yolo26-anomaly.yaml", ch=3, nc=None, verbose=True, p_drop: float = 0.5):
         self.p_drop = p_drop
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
@@ -590,6 +598,12 @@ class YOLOAnomalyModel(DetectionModel):
             detect.fusion_feat_grad = bool(v2_cfg.get("fusion_feat_grad", False))
             # Heatmap gate blend: 1.0 (default) = gate off (deploy-friendly); <1.0 gates cls scores.
             detect.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
+            if isinstance(detect, AnomalyMCDetect):
+                # Small tau is safe; a LARGE tau flattens the type distribution until every channel
+                # carries P_anom -- the broadcast that filled 300 NMS-free slots with 6 unique boxes
+                # on the deleted objectness branch.
+                detect.type_tau = float(v2_cfg.get("type_tau", 1.0))
+                self.type_gain = float(v2_cfg.get("type_gain", 0.5))  # read by AnomalyMCLoss
 
             # Rebuild the fusion module ONLY when an architecture knob is specified, so YAMLs that
             # set none of these keep the head's original module (built from the head YAML args).
@@ -2094,6 +2108,7 @@ def parse_model(d, ch, verbose=True):
             {
                 Detect,
                 AnomalyDetect,
+                AnomalyMCDetect,
                 WorldDetect,
                 YOLOEDetect,
                 Segment,

@@ -78,6 +78,7 @@ from .conv import (
 )
 from .head import (
     AnomalyDetect,
+    AnomalyMCDetect,
     OBB,
     OBB26,
     Classify,
@@ -133,6 +134,7 @@ __all__ = (
     "Attention",
     "BNContrastiveHead",
     "AnomalyDetect",
+    "AnomalyMCDetect",
     "AnomalyMemoryBank",
     "BboxMaskRenderer",
     "Bottleneck",

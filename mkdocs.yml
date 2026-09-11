@@ -601,6 +601,7 @@ nav:
   - Platform:
       - Platform: platform/index.md
       - Quickstart: platform/quickstart.md
+      - Agents: platform/agents.md
       - Data:
           - platform/data/index.md
           - Datasets: platform/data/datasets.md

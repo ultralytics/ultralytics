@@ -155,9 +155,9 @@ python tools/predict.py --model "/absolute/path/to/runs/segment/train-2/weights/
 
 ```bash
 python tools/train.py --task detect --data coco8.yaml --epochs 100 --device 0 \
-    --optimizer AdamW --lr0 0.001 --lrf 0.01 --weight_decay 0.0005 \
-    --warmup_epochs 3 --cos_lr True --patience 30 --seed 42 \
-    --mosaic 1.0 --mixup 0.1 --close_mosaic 10 --amp True
+  --optimizer AdamW --lr0 0.001 --lrf 0.01 --weight_decay 0.0005 \
+  --warmup_epochs 3 --cos_lr True --patience 30 --seed 42 \
+  --mosaic 1.0 --mixup 0.1 --close_mosaic 10 --amp True
 ```
 
 希望手动控制学习率和动量时，应显式选择优化器；`--optimizer auto` 会由框架自动决定这些值。

@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Predict images, videos, or camera streams with any supported YOLO task."""
 
 import argparse

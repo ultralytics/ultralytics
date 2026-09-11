@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 set -euo pipefail
 
@@ -10,13 +11,13 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 # 基础
 TASK="detect"
-MODEL="" # 预训练权重或架构：.pt 检查点（如自己训出的 best.pt）或 .yaml；留空 "" 使用 TASK 对应的内置预训练模型
+MODEL=""          # 预训练权重或架构：.pt 检查点（如自己训出的 best.pt）或 .yaml；留空 "" 使用 TASK 对应的内置预训练模型
 DATA="coco8.yaml" # 需与 TASK 匹配，可改为自己的数据集 YAML 绝对路径
 EPOCHS=100
 BATCH=8
 DEVICE="cpu"
 PROJECT="fire-smoke" # 输出项目目录：留空 "" 放在框架默认 runs/<任务>/ 下；相对名追加在任务目录后；绝对路径直接作为项目目录
-NAME="test" # 输出子目录名：留空 "" 使用默认 train；与已有目录重名时自动递增（如 train-2）
+NAME="test"          # 输出子目录名：留空 "" 使用默认 train；与已有目录重名时自动递增（如 train-2）
 
 # 优化器与学习率
 OPTIMIZER="auto"
@@ -106,80 +107,80 @@ EXIST_OK=False
 # ==========================================================================================
 
 exec python "$SCRIPT_DIR/train.py" \
-    --task "$TASK" \
-    --model "$MODEL" \
-    --data "$DATA" \
-    --epochs "$EPOCHS" \
-    --batch "$BATCH" \
-    --device "$DEVICE" \
-    --project "$PROJECT" \
-    --name "$NAME" \
-    --optimizer "$OPTIMIZER" \
-    --lr0 "$LR0" \
-    --lrf "$LRF" \
-    --momentum "$MOMENTUM" \
-    --weight_decay "$WEIGHT_DECAY" \
-    --cos_lr "$COS_LR" \
-    --nbs "$NBS" \
-    --warmup_epochs "$WARMUP_EPOCHS" \
-    --warmup_momentum "$WARMUP_MOMENTUM" \
-    --warmup_bias_lr "$WARMUP_BIAS_LR" \
-    --patience "$PATIENCE" \
-    --time "$TIME" \
-    --seed "$SEED" \
-    --deterministic "$DETERMINISTIC" \
-    --amp "$AMP" \
-    --cache "$CACHE" \
-    --freeze "$FREEZE" \
-    --resume "$RESUME" \
-    --pretrained "$PRETRAINED" \
-    --fraction "$FRACTION" \
-    --rect "$RECT" \
-    --single_cls "$SINGLE_CLS" \
-    --classes "$CLASSES" \
-    --multi_scale "$MULTI_SCALE" \
-    --compile "$COMPILE" \
-    --channels_last "$CHANNELS_LAST" \
-    --cls_remap "$CLS_REMAP" \
-    --hsv_h "$HSV_H" \
-    --hsv_s "$HSV_S" \
-    --hsv_v "$HSV_V" \
-    --degrees "$DEGREES" \
-    --translate "$TRANSLATE" \
-    --scale "$SCALE" \
-    --shear "$SHEAR" \
-    --perspective "$PERSPECTIVE" \
-    --flipud "$FLIPUD" \
-    --fliplr "$FLIPLR" \
-    --bgr "$BGR" \
-    --mosaic "$MOSAIC" \
-    --mixup "$MIXUP" \
-    --cutmix "$CUTMIX" \
-    --copy_paste "$COPY_PASTE" \
-    --copy_paste_mode "$COPY_PASTE_MODE" \
-    --close_mosaic "$CLOSE_MOSAIC" \
-    --auto_augment "$AUTO_AUGMENT" \
-    --erasing "$ERASING" \
-    --dropout "$DROPOUT" \
-    --overlap_mask "$OVERLAP_MASK" \
-    --mask_ratio "$MASK_RATIO" \
-    --box "$BOX" \
-    --cls "$CLS" \
-    --cls_pw "$CLS_PW" \
-    --dfl "$DFL" \
-    --pose "$POSE" \
-    --kobj "$KOBJ" \
-    --rle "$RLE" \
-    --angle "$ANGLE" \
-    --dlog "$DLOG" \
-    --dgrad "$DGRAD" \
-    --dlam "$DLAM" \
-    --distill_model "$DISTILL_MODEL" \
-    --dis "$DIS" \
-    --verbose "$VERBOSE" \
-    --save "$SAVE" \
-    --save_period "$SAVE_PERIOD" \
-    --plots "$PLOTS" \
-    --val "$VAL" \
-    --exist_ok "$EXIST_OK" \
-    "$@"
+  --task "$TASK" \
+  --model "$MODEL" \
+  --data "$DATA" \
+  --epochs "$EPOCHS" \
+  --batch "$BATCH" \
+  --device "$DEVICE" \
+  --project "$PROJECT" \
+  --name "$NAME" \
+  --optimizer "$OPTIMIZER" \
+  --lr0 "$LR0" \
+  --lrf "$LRF" \
+  --momentum "$MOMENTUM" \
+  --weight_decay "$WEIGHT_DECAY" \
+  --cos_lr "$COS_LR" \
+  --nbs "$NBS" \
+  --warmup_epochs "$WARMUP_EPOCHS" \
+  --warmup_momentum "$WARMUP_MOMENTUM" \
+  --warmup_bias_lr "$WARMUP_BIAS_LR" \
+  --patience "$PATIENCE" \
+  --time "$TIME" \
+  --seed "$SEED" \
+  --deterministic "$DETERMINISTIC" \
+  --amp "$AMP" \
+  --cache "$CACHE" \
+  --freeze "$FREEZE" \
+  --resume "$RESUME" \
+  --pretrained "$PRETRAINED" \
+  --fraction "$FRACTION" \
+  --rect "$RECT" \
+  --single_cls "$SINGLE_CLS" \
+  --classes "$CLASSES" \
+  --multi_scale "$MULTI_SCALE" \
+  --compile "$COMPILE" \
+  --channels_last "$CHANNELS_LAST" \
+  --cls_remap "$CLS_REMAP" \
+  --hsv_h "$HSV_H" \
+  --hsv_s "$HSV_S" \
+  --hsv_v "$HSV_V" \
+  --degrees "$DEGREES" \
+  --translate "$TRANSLATE" \
+  --scale "$SCALE" \
+  --shear "$SHEAR" \
+  --perspective "$PERSPECTIVE" \
+  --flipud "$FLIPUD" \
+  --fliplr "$FLIPLR" \
+  --bgr "$BGR" \
+  --mosaic "$MOSAIC" \
+  --mixup "$MIXUP" \
+  --cutmix "$CUTMIX" \
+  --copy_paste "$COPY_PASTE" \
+  --copy_paste_mode "$COPY_PASTE_MODE" \
+  --close_mosaic "$CLOSE_MOSAIC" \
+  --auto_augment "$AUTO_AUGMENT" \
+  --erasing "$ERASING" \
+  --dropout "$DROPOUT" \
+  --overlap_mask "$OVERLAP_MASK" \
+  --mask_ratio "$MASK_RATIO" \
+  --box "$BOX" \
+  --cls "$CLS" \
+  --cls_pw "$CLS_PW" \
+  --dfl "$DFL" \
+  --pose "$POSE" \
+  --kobj "$KOBJ" \
+  --rle "$RLE" \
+  --angle "$ANGLE" \
+  --dlog "$DLOG" \
+  --dgrad "$DGRAD" \
+  --dlam "$DLAM" \
+  --distill_model "$DISTILL_MODEL" \
+  --dis "$DIS" \
+  --verbose "$VERBOSE" \
+  --save "$SAVE" \
+  --save_period "$SAVE_PERIOD" \
+  --plots "$PLOTS" \
+  --val "$VAL" \
+  --exist_ok "$EXIST_OK" \
+  "$@"

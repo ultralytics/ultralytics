@@ -1,3 +1,4 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 """Validate any supported YOLO task with command-line arguments."""
 
 import argparse

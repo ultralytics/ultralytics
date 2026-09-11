@@ -1,7 +1,7 @@
 ---
 comments: true
 description: Discover a variety of models supported by Ultralytics, including YOLO26 back to YOLOv3, NAS, SAM, and RT-DETR for detection, segmentation, semantic segmentation, depth estimation, and more.
-keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5, YOLOv4, YOLOv3, SAM3, SAM2, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, YOLOE, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
+keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5, YOLOv4, YOLOv3, SAM3.1, SAM3, SAM2, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, YOLOE, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics

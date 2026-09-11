@@ -1,6 +1,7 @@
 # 通用训练、验证与预测脚本
 
 三个独立 Python 脚本覆盖当前仓库支持的七类 YOLO 任务。通过 `--参数 值` 指定配置，无需修改脚本。
+同目录的 `train.sh`、`val.sh` 和 `detect.sh` 分别启动训练、验证和目标检测，并将收到的参数原样传给 Python 脚本。
 脚本直接调用仓库的 `YOLO` 接口，数据读取、任务识别、指标计算和可视化均由框架处理。
 
 ## 安装与运行
@@ -18,6 +19,18 @@ python tools/train.py --help
 python tools/val.py --help
 python tools/predict.py --help
 ```
+
+也可以通过 shell 脚本传入相同参数：
+
+```bash
+./tools/train.sh --task detect --epochs 1 --device cpu
+./tools/val.sh --task detect --device cpu
+./tools/detect.sh --source "ultralytics/assets/bus.jpg" --device cpu
+```
+
+`detect.sh` 调用 `predict.py` 并默认传入 `--task detect`；显式传入 `--task` 可覆盖该默认值。
+三个 shell 脚本可从任意目录运行，参数格式与对应 Python 脚本完全一致。若没有执行权限，也可使用
+`bash tools/train.sh ...`、`bash tools/val.sh ...` 或 `bash tools/detect.sh ...`。
 
 分别运行需要的步骤，例如使用示例数据进行一轮 CPU 训练：
 

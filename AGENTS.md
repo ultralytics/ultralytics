@@ -51,42 +51,15 @@ uv pip install -e ".[dev,export-base,export-openvino,solutions]"
 # All tests with coverage, matching ci.yml's Tests job (CI also sets YOLO_AUTOINSTALL=false and drops -n auto on ARM)
 pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
 
-# Single file / single test
-pytest tests/test_python.py
-pytest tests/test_python.py::test_predict_img -v
-
 # Include slow tests (excluded by default in tests/conftest.py)
 pytest --slow tests/
-
-# Format and lint (source of truth: [tool.ruff] in pyproject.toml, line length 120)
-ruff format . && ruff check --fix .
-
-# Regenerate docs/en/reference/ after adding/removing/renaming public APIs (docs.yml runs this)
-python docs/build_reference.py
-
-# Prepare the complete docs tree and validate it with Zensical strict mode
-python docs/build_docs.py
 
 # Fastest end-to-end smoke test (auto-downloads yolo26n.pt, runs on 2 local asset images)
 yolo predict model=yolo26n.pt
 ```
 
-- CI (`ci.yml`) runs tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, and ubuntu-24.04-arm, plus a floor job on Python 3.8 with torch 1.8.0.
 - `pyproject.toml` pytest `addopts` includes `--doctest-modules`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
 - `tests/test_exports.py` is partitioned by `--export-env` (env ids from `export_formats()`); omitting the flag runs ALL export formats. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
-
-## Architecture
-
-The user-facing `Model` facade in `ultralytics/engine/model.py` (`.train()`, `.val()`, `.predict()`, `.export()`, `.track()`) lazily dispatches to task-specific components through each model family's `task_map` property.
-
-- `ultralytics/engine/` — model-agnostic core: `BaseTrainer`, `BaseValidator`, `BasePredictor`, `Exporter`, and `Results`.
-- `ultralytics/models/` — families (yolo, rtdetr, sam, fastsam, nas) subclass the engine per task, e.g. `models/yolo/detect/{train,val,predict}.py`; `YOLO.__init__` morphs into `YOLOWorld`, `YOLOE`, or `RTDETR` based on the checkpoint/YAML filename.
-- `ultralytics/nn/` — `tasks.py` builds models from YAMLs (`parse_model`), `modules/` is the layer zoo referenced by name in YAMLs, `autobackend.py` gives unified inference across all export formats.
-- `ultralytics/cfg/` — `default.yaml` defines ALL train/val/predict/export args (the `overrides` dict flows through `get_cfg` everywhere), plus model/dataset/tracker YAMLs, the `yolo` CLI `entrypoint`, and arg deprecation via `_handle_deprecation`.
-- `ultralytics/data/`, `ultralytics/utils/`, `ultralytics/solutions/`, `ultralytics/trackers/` — datasets/augmentation, shared utilities and lifecycle `callbacks/` (integration loggers, excluded from coverage), end-user apps, and BoT-SORT/ByteTrack.
-- Keep export-format behavior in its module under `ultralytics/utils/export/`. Bind format-specific code onto the head at export time, as `tf_wrapper` does for `kpts_decode` and `_get_decode_boxes`, or set an attribute the head reads; do not add new `self.format` branches to `ultralytics/nn/modules/head.py`.
-
-Adding a task or family means a Trainer/Validator/Predictor triplet wired into `task_map`, a model class in `nn/tasks.py`, and a YAML in `cfg/models/`.
 
 ## Conventions
 
@@ -95,5 +68,5 @@ Adding a task or family means a Trainer/Validator/Predictor triplet wired into `
 - Google-style docstrings with types in parentheses (`arg1 (int): ...`); Ruff enforces `convention = "google"` and formats docstring code blocks; the Actions bot also runs docformatter, prettier (YAML/JSON/Markdown), and codespell — expect bot commits on PR branches. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (the documentation dialect requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
 - Tests hit the live network: weights (e.g. `yolo26n.pt`) and assets auto-download from GitHub releases; shared constants (`MODEL`, `CFG`, `SOURCE`) live in `tests/__init__.py`, with `MODEL` deliberately under a "path with spaces" directory.
 - Releases: bump `__version__` in `ultralytics/__init__.py`; on push to main, `publish.yml` detects the increment, then tags, creates the GitHub release, and publishes to PyPI (gated to the ultralytics repo and glenn-jocher).
-- Docs: `docs/build_docs.py` prepares macros, references, and comparison pages before running `zensical build --strict`. Its local output intentionally omits production-owned site chrome. Production is rendered by the centralized publisher, so relative `.md` cross-file links are the correct convention in `docs/en/`.
 - Tasks and modes are listed in one canonical order everywhere — tables, navs, prose, code, and the Ultralytics Platform: `detect, segment, semantic, depth, classify, pose, obb` and `train, val, predict, export, track, benchmark`. `TASKS` and `MODES` in `ultralytics/cfg/__init__.py` are ordered tuples that define it; never introduce a different ordering.
+- Keep export-format behavior in its module under `ultralytics/utils/export/`. Bind format-specific code onto the head at export time, as `tf_wrapper` does for `kpts_decode` and `_get_decode_boxes`, or set an attribute the head reads; do not add new `self.format` branches to `ultralytics/nn/modules/head.py`.

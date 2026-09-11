@@ -1,21 +1,23 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Use Ask AI to manage datasets, train and compare models, annotate images, export, and deploy on Ultralytics Platform.
+description: Use AutoTrain with Ask AI to run training experiments, compare results, and refine YOLO models on Ultralytics Platform.
 keywords: Ultralytics Platform, AutoTrain, Ask AI, Platform CLI, ul cloud, agent skills, Claude Code, Codex
 ---
 
 # AutoTrain with Ask AI
 
-**Ask AI turns your requests into actions across Ultralytics Platform.** Find datasets, train and compare models, annotate images, export, and deploy through a conversation.
+**AutoTrain uses Ask AI to help you train, compare, and improve models through a conversation.** Start with a baseline, review its results, and ask for the next experiment. Ask AI can also find datasets, annotate images, export models, and deploy them.
 
-Sign in to [Ultralytics Platform](https://platform.ultralytics.com) and click **Ask AI**. The AI agent works directly with your datasets and models, automating tasks such as annotation, training, export, and deployment.
+Sign in to [Ultralytics Platform](https://platform.ultralytics.com), open your dataset or project, and click **Ask AI**.
 
 To use Platform actions, first create an [Ultralytics API key](../account/api-keys.md) in your personal workspace's **Settings > API Keys**. Ask AI uses your existing personal key automatically; you do not need to paste it into the conversation. Include the project or dataset link when working with a team workspace.
 
 ![Ultralytics Platform PPE detection dataset with Ask AI reviewing classes, annotations, and training readiness](https://cdn.ul.run/i/94b13a80c2fb15e32ca6044d0ebe1d37.avif)
 
 ## Prompts to Try
+
+Include your target metric, model, epoch limit, and number of experiments in the request. For comparable results, keep the dataset, splits, and random seed fixed while changing one setting at a time. Cloud runs use your [training credits](cloud-training.md#billing).
 
 Open the relevant dataset or project and ask:
 
@@ -25,7 +27,7 @@ Open the relevant dataset or project and ask:
 | Compare resolutions   | Train three models on this dataset at image sizes 640, 800, and 960. Keep all other settings and dataset splits fixed.             |
 | Explore a dataset     | Find container ships, shipping containers, and cranes in xView. Is it a good starting point for port logistics?                    |
 | Create a baseline     | Train YOLO26n on this dataset and name the run "xview-baseline".                                                                   |
-| Compare models        | Compare the completed models. Which performed best, and why?                                                                       |
+| Compare models        | Compare the completed models by validation mAP50-95. Explain the differences and propose the next experiment.                      |
 | Deploy a model        | Deploy the completed model with the best validation mAP in this project. Give me its endpoint URL and status.                      |
 | Auto-annotate         | Use my best compatible model to annotate unlabeled images in this dataset. Preserve existing annotations.                          |
 | Review classification | Which model has the best classification accuracy? Which breeds remain confusing, and what should we try next?                      |
@@ -66,7 +68,7 @@ Then use prompts like the examples above, including the project or dataset link 
 
 ### Run Commands Directly
 
-Use your project and model URL slugs in commands:
+Use your project and model URL slugs in commands. These examples target your personal workspace; add `owner=TEAM` to target a team workspace you belong to:
 
 ```bash
 ul cloud datasets list

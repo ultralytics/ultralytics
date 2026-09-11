@@ -2180,7 +2180,7 @@ class Albumentations(BaseTransform):
             return labels
 
         im = labels["img"]
-        if im.shape[2] != 3:  # Only apply Albumentation on 3-channel images
+        if im.shape[2] not in {1, 3}:  # Albumentations supports grayscale and color images only
             return labels
 
         if self.contains_spatial:

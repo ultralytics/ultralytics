@@ -363,8 +363,9 @@ def safe_download(
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer

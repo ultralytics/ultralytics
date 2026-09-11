@@ -423,8 +423,7 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    # Temporarily disabled; remove "false &&" to re-enable.
-    if: false && github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     permissions:
       contents: read
       id-token: write
@@ -440,7 +439,7 @@ jobs:
       - name: Install requirements
         run: |
           # Install TensorRT into the job venv so uv can reuse the runner image cache.
-          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44" lap  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap --torch-backend cu132
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

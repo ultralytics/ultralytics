@@ -327,7 +327,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-Training metrics, plots, and checkpoints are always written to the run directory, and Ultralytics also streams them to any experiment tracker you have installed and enabled: [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), [TensorBoard](../integrations/tensorboard.md), [MLflow](../integrations/mlflow.md), [Weights & Biases](../integrations/weights-biases.md), and [DVCLive](../integrations/dvc.md). Each logger is toggled through the [Ultralytics settings](../quickstart.md#ultralytics-settings), for example `yolo settings tensorboard=True`. The three most common setups are shown below.
+Training metrics, plots, and checkpoints are always written to the run directory, and Ultralytics also streams them to any experiment tracker you have installed and enabled: [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), [TensorBoard](../integrations/tensorboard.md), [MLflow](../integrations/mlflow.md), [Weights & Biases](../integrations/weights-biases.md), and [DVCLive](../integrations/dvc.md). Each logger is toggled through the [Ultralytics settings](../usage/settings.md), for example `yolo settings tensorboard=True`. The three most common setups are shown below.
 
 ### Comet
 

@@ -74,15 +74,16 @@ python tools/train.py --task segment --data "/absolute/path/to/dataset.yaml" --e
 
 - `--epochs`：训练轮数，整数，默认 `100`。
 - `--imgsz`：输入尺寸，整数，默认 `640`；分类可按需改为 `224`。
-- `--batch`：训练和验证批次大小，整数，默认 `8`；内存不足时调小。
+- `--batch`：训练和验证默认 `8`；训练还支持 `-1` 自动估算或 `0.7` 等显存比例，验证仍使用整数。
 - `--workers`：训练和验证的数据加载进程数，整数，默认 `0`，可按运行环境增加。
 - `--device`：省略时由框架选择；可填写 `cpu`、`0`（CUDA）或 `mps`（Apple Silicon）。
 - `--project`：省略时沿用框架的输出目录设置；相对项目名自动放在对应任务目录下，绝对路径直接作为项目目录。
 - `--name`：本次输出子目录名，三个脚本分别默认为 `train`、`val`、`predict`。
 - `--split`：验证数据划分，默认 `val`，可选 `train`、`val`、`test`；数据集必须提供相应划分。
 
-布尔开关不需要附加 `True` 或 `False`：预测时使用 `--show` 开启窗口显示，使用 `--no-save` 关闭保存。
-未知参数、缺失参数值、非法整数和无效任务会在加载模型前由参数解析器报错。
+预测的布尔开关不需要附加 `True` 或 `False`：使用 `--show` 开启窗口显示，使用 `--no-save` 关闭保存。
+训练的新增布尔参数需要显式值，例如 `--amp False`、`--cos_lr True`。
+未知参数、缺失参数值和无效任务由参数解析器报错；训练超参数的类型和取值范围复用框架校验，在加载模型前检查。
 
 默认输出通常位于 `runs/<任务>/<模式>/`，实际根目录取决于 Ultralytics 的 `runs_dir` 设置。
 已有目录会自动递增，例如 `train-2`；以运行日志打印的实际路径为准。
@@ -97,6 +98,52 @@ python tools/predict.py --model "/absolute/path/to/runs/segment/train-2/weights/
 
 验证时传入训练使用的 `--data`。路径可以包含空格，按上例使用引号包裹；其他相对路径相对于运行命令的工作目录。
 验证输出 `metrics.results_dict`，由任务决定指标，例如检测 mAP、语义分割 mIoU、深度 delta1、分类准确率。
+
+## 训练超参数
+
+`train.py --help` 列出全部支持的选项。新增参数与框架配置使用相同的下划线名称，按需传入即可：
+
+| 类别           | 参数                                                                                                                                |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 优化器与学习率 | `--optimizer`、`--lr0`、`--lrf`、`--momentum`、`--weight_decay`、`--cos_lr`、`--nbs`                                                |
+| 预热           | `--warmup_epochs`、`--warmup_momentum`、`--warmup_bias_lr`                                                                          |
+| 训练控制       | `--patience`、`--time`、`--seed`、`--deterministic`、`--amp`、`--cache`、`--freeze`、`--resume`、`--pretrained`                     |
+| 数据与性能     | `--fraction`、`--rect`、`--single_cls`、`--classes`、`--multi_scale`、`--compile`、`--channels_last`、`--cls_remap`                 |
+| 色彩与几何增强 | `--hsv_h`、`--hsv_s`、`--hsv_v`、`--degrees`、`--translate`、`--scale`、`--shear`、`--perspective`、`--flipud`、`--fliplr`、`--bgr` |
+| 样本混合增强   | `--mosaic`、`--mixup`、`--cutmix`、`--copy_paste`、`--copy_paste_mode`、`--close_mosaic`                                            |
+| 分割与分类     | `--overlap_mask`、`--mask_ratio`、`--auto_augment`、`--erasing`、`--dropout`                                                        |
+| 损失权重       | `--box`、`--cls`、`--cls_pw`、`--dfl`、`--pose`、`--kobj`、`--rle`、`--angle`、`--dlog`、`--dgrad`、`--dlam`                        |
+| 蒸馏           | `--distill_model`、`--dis`                                                                                                          |
+| 保存与日志     | `--save`、`--save_period`、`--plots`、`--val`、`--verbose`、`--exist_ok`                                                            |
+
+数值支持小数和科学计数法；布尔值使用 `True` / `False`，大小写均可。
+列表和元组应使用引号，例如 `--freeze '[0,1,2]'`、`--classes '[0,2]'`、`--scale '(0.5,1.5)'`。
+混合类型参数沿用框架语义，例如 `--cache disk`、`--amp bf16`、`--pretrained False`。
+任务专属参数仅在对应任务中生效；设备相关功能也取决于框架和运行环境的支持。
+
+新增超参数未传入时不会作为命令行覆盖项传给模型；具体取值由框架默认配置、模型设置或续训检查点决定。
+帮助中的默认值来自 `ultralytics/cfg/default.yaml`；原有基础参数仍沿用脚本默认值。
+
+例如，手动指定优化器、学习率、增强和早停：
+
+```bash
+python tools/train.py --task detect --data coco8.yaml --epochs 100 --device 0 \
+    --optimizer AdamW --lr0 0.001 --lrf 0.01 --weight_decay 0.0005 \
+    --warmup_epochs 3 --cos_lr True --patience 30 --seed 42 \
+    --mosaic 1.0 --mixup 0.1 --close_mosaic 10 --amp True
+```
+
+希望手动控制学习率和动量时，应显式选择优化器；`--optimizer auto` 会由框架自动决定这些值。
+AutoBatch 依赖支持的训练设备；CPU、MPS 等环境可能回退到固定批次。
+
+对中断且仍保留优化器状态的训练，可使用原始 `last.pt` 续训：
+
+```bash
+python tools/train.py --model "/absolute/path/to/run/weights/last.pt" --resume True --device 0
+```
+
+续训由框架恢复原来的训练配置，部分命令行超参数不会覆盖检查点设置。
+训练已完成、被裁剪或没有优化器状态的权重不能按中断训练恢复；框架会提示并按其现有规则处理。
 
 ## 图片、视频与摄像头预测
 

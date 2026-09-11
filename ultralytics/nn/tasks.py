@@ -599,10 +599,6 @@ class YOLOAnomalyModel(DetectionModel):
             # Heatmap gate blend: 1.0 (default) = gate off (deploy-friendly); <1.0 gates cls scores.
             detect.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
             if isinstance(detect, AnomalyMCDetect):
-                # Small tau is safe; a LARGE tau flattens the type distribution until every channel
-                # carries P_anom -- the broadcast that filled 300 NMS-free slots with 6 unique boxes
-                # on the deleted objectness branch.
-                detect.type_tau = float(v2_cfg.get("type_tau", 1.0))
                 self.type_gain = float(v2_cfg.get("type_gain", 0.5))  # read by AnomalyMCLoss
 
             # Rebuild the fusion module ONLY when an architecture knob is specified, so YAMLs that

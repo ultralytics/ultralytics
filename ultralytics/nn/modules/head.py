@@ -492,23 +492,23 @@ class AnomalyMCDetect(AnomalyDetect):
     At inference the two fuse into an ordinary ``[4 + nc]`` tensor, so NMS, the validators and every
     export format are untouched::
 
-        conf_j = P_anom * softmax(type / tau)_j / max_k softmax(type / tau)_k
+        conf_j = P_anom if j == argmax(type_logits) else 0
 
-    The ``/ max`` pins the winning class to exactly ``P_anom``: **type confusion can no longer lower
-    a box's confidence**, which is the whole point when the type labels are the noisy part. Only
-    Softmax/ReduceMax/Div/Mul are added, all ONNX-native.
+    So ``max_j conf_j == P_anom`` exactly -- **type confusion can never lower a box's confidence** --
+    while the class is still reported, as the channel the score lands in. Only ArgMax and
+    ScatterElements are added, both ONNX-native.
 
-    ``type_tau`` interpolates: tau -> 0 approaches a hard one-hot (one channel carries P_anom, the
-    rest 0), while a LARGE tau flattens the distribution until every channel carries P_anom -- which
-    is the broadcast failure that made the deleted objectness branch fill 300 NMS-free slots with 6
-    unique boxes. Keep tau small; ``_fuse_mc`` is a separate method so an eval harness can swap the
-    fusion (sqrt, plain product, a weighted family) on trained weights without retraining.
+    Writing ONE channel per anchor is not just simpler than a soft distribution, it is the property
+    that makes this comparable to the binary detector: the NMS-free path ranks (anchor, class)
+    PAIRS, so a head that writes several channels per anchor spends its ``max_det`` slots on
+    duplicates of one box and can push a weaker anchor's only entry out of the budget entirely. The
+    deleted objectness branch hit the limit of that -- 6 unique boxes out of 300. One channel per
+    anchor makes the top-k see exactly what it sees at nc=1, so any remaining gap to the
+    ``single_cls`` result is the trunk, not the postprocessing.
 
-    Attributes:
-        type_tau (float): Softmax temperature for the inference-time type distribution.
+    ``_fuse_mc`` is a separate method so an eval harness can swap the fusion (sqrt, plain product,
+    a weighted family) on trained weights without retraining -- it never runs during training.
     """
-
-    type_tau = 1.0
 
     def __init__(
         self,
@@ -558,9 +558,9 @@ class AnomalyMCDetect(AnomalyDetect):
         return preds
 
     def _fuse_mc(self, p_anom: torch.Tensor, type_logits: torch.Tensor) -> torch.Tensor:
-        """Fuse (bs, 1, A) anomaly probability with (bs, nc, A) type logits into (bs, nc, A)."""
-        t = (type_logits / self.type_tau).softmax(1)
-        return p_anom * t / t.amax(1, keepdim=True).clamp_min(1e-9)
+        """Put (bs, 1, A) anomaly probability on the argmax type channel of a (bs, nc, A) zero map."""
+        top = type_logits.argmax(1, keepdim=True)
+        return torch.zeros_like(type_logits).scatter_(1, top, p_anom)
 
     def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
         """Decode boxes and fuse anomaly-ness with the type distribution into ``[4 + nc]``."""

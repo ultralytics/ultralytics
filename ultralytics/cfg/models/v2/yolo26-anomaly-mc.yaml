@@ -24,7 +24,6 @@ scales:
 
 anomaly:
   # AnomalyMCDetect: cv_anom drives detection, cv3 predicts type only.
-  type_tau: 1.0    # softmax temperature of the inference-time type distribution (small = safe)
   type_gain: 0.5   # weight of the type cross-entropy in the loss
   mask_size: 80
   mask_mode: gauss

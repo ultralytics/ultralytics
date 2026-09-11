@@ -152,6 +152,7 @@ Get started with cloud training in under a minute:
 - [**Projects**](projects.md): Organize your models and experiments
 - [**Models**](models.md): Manage trained checkpoints
 - [**Cloud Training**](cloud-training.md): Train on cloud GPUs
+- [**AutoTrain**](autotrain.md): Use Ask AI to run experiments and compare models
 
 ## FAQ
 

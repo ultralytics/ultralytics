@@ -603,7 +603,6 @@ nav:
       - Platform: platform/index.md
       - Quickstart: platform/quickstart.md
       - Agents: platform/agents.md
-      - Autotraining: platform/autotraining.md
       - Data:
           - platform/data/index.md
           - Datasets: platform/data/datasets.md
@@ -613,6 +612,7 @@ nav:
           - Projects: platform/train/projects.md
           - Models: platform/train/models.md
           - Cloud Training: platform/train/cloud-training.md
+          - AutoTrain: platform/train/autotrain.md
       - Deploy:
           - platform/deploy/index.md
           - Inference: platform/deploy/inference.md

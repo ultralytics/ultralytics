@@ -11,7 +11,9 @@ keywords: Ultralytics Platform, autotraining, Ask AI, Platform CLI, ul cloud, ag
 
 Sign in to [Ultralytics Platform](https://platform.ultralytics.com) and click **Ask AI**. The AI agent works directly with your datasets and models, automating tasks such as annotation, training, export, and deployment.
 
-<!-- Image placeholder: ![Ultralytics Platform dataset page with the Ask AI panel open beside the images](IMAGE_URL) -->
+To use Platform actions, first create an [Ultralytics API key](account/api-keys.md) in your personal workspace's **Settings > API Keys**. Ask AI uses your existing personal key automatically; you do not need to paste it into the conversation. Include the project or dataset link when working with a team workspace.
+
+![Ultralytics Platform PPE detection dataset with Ask AI reviewing classes, annotations, and training readiness](https://cdn.ul.run/i/94b13a80c2fb15e32ca6044d0ebe1d37.avif)
 
 ## Prompts to Try
 
@@ -29,7 +31,7 @@ Open the relevant dataset or project and ask:
 | Review classification | Which model has the best classification accuracy? Which breeds remain confusing, and what should we try next?                      |
 | Export a model        | Export this model to ONNX and give me the download link when it's ready.                                                           |
 
-<!-- Image placeholder: ![Ultralytics Platform project showing three completed resolution experiments beside an Ask AI comparison of their results](IMAGE_URL) -->
+![Ultralytics Platform logistics project with Ask AI comparing completed detection models and explaining validation differences](https://cdn.ul.run/i/33d99ff9fa815aa7ac82af74cdef637f.avif)
 
 ## Use Your Own Coding Agent
 
@@ -37,7 +39,7 @@ Ask AI uses the [Platform CLI](https://github.com/ultralytics/sdk), `ul cloud`, 
 
 ### Install and Connect
 
-Ask AI is ready to use in Platform. Follow the setup below to use the Platform CLI with your own coding agent.
+The setup below is for using the Platform CLI with your own coding agent outside Platform.
 
 The `ul` CLI comes with the Ultralytics package on **Python 3.11+**. Install or update it:
 

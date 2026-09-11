@@ -601,6 +601,7 @@ nav:
   - Platform:
       - Platform: platform/index.md
       - Quickstart: platform/quickstart.md
+      - Agents: platform/agents.md
       - Autotraining: platform/autotraining.md
       - Data:
           - platform/data/index.md

@@ -252,6 +252,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
+- [**Autotraining**](autotraining.md): Use Ask AI to manage datasets, run experiments, compare models, and deploy
 - [**Explore**](explore.md): Browse and clone public datasets and projects
 - [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data

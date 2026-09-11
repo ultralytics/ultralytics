@@ -110,6 +110,7 @@ from ultralytics.utils import (
     MACOS_VERSION,
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
+    ROCM_EP_PACKAGES,
     ROCM_EXTRA_INDEX,
     SETTINGS,
     TORCH_VERSION,
@@ -1067,15 +1068,15 @@ class Exporter:
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
-            # Install the MIGraphX build on ROCm so AMD GPU inference finds its EP instead of the stock CPU wheel.
-            # Elsewhere onnxruntime variants are interchangeable candidates so AutoUpdate keeps an installed build
-            # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
+            # On ROCm install the MIGraphX EP plugin plus migraphx-libs so AMD GPU inference finds its EP. Elsewhere the
+            # onnxruntime variants are interchangeable, so AutoUpdate keeps an installed build (e.g. onnxruntime-qnn).
             rocm = rocm_is_available()
-            ort = "onnxruntime-migraphx" if rocm else "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
-            check_requirements(
-                ort if rocm else [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-migraphx")],
-                cmds=ROCM_EXTRA_INDEX if rocm else "",
-            )
+            if rocm:
+                check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
+                check_requirements([("onnxruntime", "onnxruntime-gpu")])
+            else:
+                ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+                check_requirements([(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")])
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)

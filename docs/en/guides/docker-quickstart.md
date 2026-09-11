@@ -171,7 +171,7 @@ sudo docker run -it --ipc=host ultralytics/ultralytics:latest-cpu
     sudo docker run -it --ipc=host --device=/dev/kfd --device=/dev/dri --group-add video ultralytics/ultralytics:latest-amd
     ```
 
-    The `latest-amd` image targets the ROCm 7.2 / MIGraphX wheel stack (`rocm-rel-7.2`), validated by Ultralytics `Dockerfile-amd`. For a different ROCm minor, rebuild `Dockerfile-amd` against AMD's [matching wheel index](https://repo.radeon.com/rocm/manylinux/).
+    The `latest-amd` image bundles the ROCm 10 MIGraphX execution provider (`onnxruntime-ep-migraphx`, MIGraphX 2.17, onnxruntime 1.29), built by Ultralytics `Dockerfile-amd`. See the [AMD GPU guide](../integrations/amd.md#usage) for usage.
 
 The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. For NVIDIA GPUs, the `--device nvidia.com/gpu=...` flag grants access through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html). For AMD GPUs, the `--device` flags grant access to the GPU kernel driver (`/dev/kfd`) and display render nodes (`/dev/dri`).
 

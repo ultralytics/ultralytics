@@ -533,7 +533,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         >>> check_requirements(["numpy", "ultralytics"])
 
         Check with interchangeable packages
-        >>> check_requirements([("onnxruntime", "onnxruntime-gpu", "onnxruntime-migraphx"), "numpy"])
+        >>> check_requirements([("onnxruntime", "onnxruntime-gpu"), "numpy"])
     """
     prefix = colorstr("red", "bold", "requirements:")
 

@@ -64,9 +64,9 @@ pip install ultralytics
 yolo predict model=yolo26n.pt source='https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg'
 ```
 
-The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`.
+The model weights and the example image download automatically, and the annotated result is saved to the directory the command prints, `runs/detect/predict` on a first run.
 
-See the [Quickstart](quickstart.md) guide for the full installation and usage reference.
+See the [Quickstart](quickstart.md) guide for every installation method and your first prediction.
 
 ## What Do You Want to Do?
 

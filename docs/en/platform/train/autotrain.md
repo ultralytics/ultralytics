@@ -2,16 +2,16 @@
 plans: [free, pro, enterprise]
 comments: true
 description: Use Ask AI to manage datasets, train and compare models, annotate images, export, and deploy on Ultralytics Platform.
-keywords: Ultralytics Platform, autotraining, Ask AI, Platform CLI, ul cloud, agent skills, Claude Code, Codex
+keywords: Ultralytics Platform, AutoTrain, Ask AI, Platform CLI, ul cloud, agent skills, Claude Code, Codex
 ---
 
-# Autotraining with Ask AI
+# AutoTrain with Ask AI
 
 **Ask AI turns your requests into actions across Ultralytics Platform.** Find datasets, train and compare models, annotate images, export, and deploy through a conversation.
 
 Sign in to [Ultralytics Platform](https://platform.ultralytics.com) and click **Ask AI**. The AI agent works directly with your datasets and models, automating tasks such as annotation, training, export, and deployment.
 
-To use Platform actions, first create an [Ultralytics API key](account/api-keys.md) in your personal workspace's **Settings > API Keys**. Ask AI uses your existing personal key automatically; you do not need to paste it into the conversation. Include the project or dataset link when working with a team workspace.
+To use Platform actions, first create an [Ultralytics API key](../account/api-keys.md) in your personal workspace's **Settings > API Keys**. Ask AI uses your existing personal key automatically; you do not need to paste it into the conversation. Include the project or dataset link when working with a team workspace.
 
 ![Ultralytics Platform PPE detection dataset with Ask AI reviewing classes, annotations, and training readiness](https://cdn.ul.run/i/94b13a80c2fb15e32ca6044d0ebe1d37.avif)
 
@@ -47,7 +47,7 @@ The `ul` CLI comes with the Ultralytics package on **Python 3.11+**. Install or 
 pip install -U ultralytics
 ```
 
-Create a [Platform API key](account/api-keys.md) and set it in the terminal used by your agent. Check the connection with:
+Create a [Platform API key](../account/api-keys.md) and set it in the terminal used by your agent. Check the connection with:
 
 ```bash
 export ULTRALYTICS_API_KEY="YOUR_API_KEY"
@@ -56,7 +56,7 @@ ul cloud account summary
 
 ### Add the Skill
 
-Follow the [Agent Skills installation guide](../integrations/agent-skills.md#installation) for Claude Code and Codex plugins. For agents supported by the skills CLI, install the Platform skill with:
+Follow the [Agent Skills installation guide](../../integrations/agent-skills.md#installation) for Claude Code and Codex plugins. For agents supported by the skills CLI, install the Platform skill with:
 
 ```bash
 npx skills add ultralytics/skills --skill platform-cli
@@ -75,4 +75,4 @@ ul cloud models training project=license-plate model=baseline
 ul cloud training start --help
 ```
 
-Use `ul cloud --help` to discover commands and `ul cloud <resource> <operation> --help` for their arguments. See the [Platform API reference](api/index.md) for more details.
+Use `ul cloud --help` to discover commands and `ul cloud <resource> <operation> --help` for their arguments. See the [Platform API reference](../api/index.md) for more details.

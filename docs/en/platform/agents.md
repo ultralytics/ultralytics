@@ -12,12 +12,12 @@ keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filte
 
 Switch to your personal workspace using the sidebar workspace selector and enable **Early access** in **Settings > Profile**. Then open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Early access is a personal preference, including when you work in a team workspace.
 
-<!-- Image placeholder: ![Ultralytics Platform Agents canvas showing an image connected to YOLO, a condition, a vision-language model, and an output block](IMAGE_URL) -->
+![Ultralytics Platform Agents canvas showing an image connected to YOLO, a condition, a vision-language model, and an output block](https://cdn.ul.run/i/e551fa972ff3eb23ef89a46fa10afc9e.avif)
 
 ## Run Your First Workflow
 
-1. Open **Agents** and choose **YOLO → VLM Monitor** from the templates.
-2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person.
+1. Open **Agents**, click **Add block > Templates**, and choose **YOLO → VLM Monitor**.
+2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person. Use an image of up to 4 megapixels for the shared trial.
 3. Keep the default YOLO26 nano model. The condition passes when YOLO detects at least one person.
 4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
@@ -35,17 +35,17 @@ You can run a draft before saving it. Use **Save workflow** to name and save a w
 
 Templates are editable starting points. Select the images, deployment, destination dataset, and integrations for your workspace before running them. These workflows run when you click **Run**; the Monitor template analyzes the selected input image.
 
-<!-- Image placeholder: ![Ultralytics Platform Agents template picker with YOLO to VLM Monitor, Collect Uncertain Detections, and Capture and Alert](IMAGE_URL) -->
+![Ultralytics Platform Agents template picker with YOLO to VLM Monitor, Collect Uncertain Detections, and Capture and Alert](https://cdn.ul.run/i/a460b0cc6ba7cd54e8c5c92f1a1a4a15.avif)
 
 ## Choose Where to Run
 
 The execution selector next to **Run** chooses the hardware for the workflow.
 
-| Choice                            | Use it for                                          | Limits and pricing                                                                                                                                     |
-| --------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Shared trial · 60 seconds**     | Trying a small workflow                             | Up to 60 seconds, 20 total input images, and 20 model/provider calls; one local YOLO model, using an official YOLO26 nano model                        |
-| **Existing dedicated deployment** | Larger datasets, longer runs, or other local models | Uses that deployment's existing hardware and pricing, including an eligible free dedicated deployment; no overall workflow duration or image-count cap |
-| **New deployment…**               | Creating dedicated hardware from the builder        | Opens the existing deployment creation and pricing dialog; choose resources and wait until the deployment is ready                                     |
+| Choice                            | Use it for                                          | Limits and pricing                                                                                                                                         |
+| --------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Shared trial · 60 seconds**     | Trying a small workflow                             | Up to 60 seconds, 20 total input images of up to 4 megapixels each, and 20 model/provider calls; one local YOLO model, using an official YOLO26 nano model |
+| **Existing dedicated deployment** | Larger datasets, longer runs, or other local models | Uses that deployment's existing hardware and pricing, including an eligible free dedicated deployment; no overall workflow duration or image-count cap     |
+| **New deployment…**               | Creating dedicated hardware from the builder        | Opens the existing deployment creation and pricing dialog; choose resources and wait until the deployment is ready                                         |
 
 Shared trials allow two submissions per five minutes. Platform runs support up to 20 blocks. Model/provider calls include YOLO, vision-language models, deployment predictions, and Slack actions; branching can increase the number of calls per input image.
 
@@ -53,7 +53,7 @@ Dedicated runs continue in checkpointed requests on the selected deployment. Clo
 
 A **Deployment** block selects the endpoint used for a prediction step. The execution selector chooses where the workflow itself runs. You can choose the same dedicated deployment for both.
 
-<!-- Image placeholder: ![Ultralytics Platform Agents execution selector showing a shared 60-second trial, existing dedicated deployments, and New deployment](IMAGE_URL) -->
+![Ultralytics Platform Agents execution selector showing a shared 60-second trial, existing dedicated deployments, and New deployment](https://cdn.ul.run/i/39c7339f3027a3b50f93b95ea60b2f36.avif)
 
 ## Configure Blocks
 
@@ -84,7 +84,7 @@ Confidence filters examine individual detections. An image with scores of `0.3` 
 
 A condition that does not match completes with no downstream output. Its connected actions do not run for that image.
 
-<!-- Image placeholder: ![Ultralytics Platform Agents condition settings selecting any class and an inclusive detection confidence range from 0.25 to 0.5](IMAGE_URL) -->
+![Ultralytics Platform Agents condition settings selecting any class and an inclusive detection confidence range from 0.25 to 0.5](https://cdn.ul.run/i/820dc21a5445d5159e3f66ed05d061af.avif)
 
 ### Collect Images for Review
 
@@ -106,12 +106,12 @@ Active blocks show a green spinner. Completed blocks show a green check and gree
 
 Reloading the page restores the run's progress and selected execution deployment. Completed results remain visible for the matching workflow. Click **Stop** to cancel an active run; cancellation waits for the executing block to reach a cancellation point. Stopping or deleting its execution deployment also cancels the workflow.
 
-<!-- Image placeholder: ![Ultralytics Platform Agents completed workflow with green checks and outlines, processed image counts, and branches to a dataset and output](IMAGE_URL) -->
+![Ultralytics Platform Agents completed image to YOLO to Output workflow with green checks, processed image counts, and detection results](https://cdn.ul.run/i/8146d518bbcc1e9bee36204c7b00e259.avif)
 
 ## Troubleshooting
 
 - **Agents is missing from the sidebar:** enable **Early access** in your personal **Settings > Profile**.
-- **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the inputs and model/provider calls.
+- **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the image resolution, input count, and model/provider calls.
 - **The deployment is preparing or stopped:** wait for it to become ready or start it from [Deployments](deploy/index.md).
 - **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.
 - **No images reach the destination:** inspect the condition and prediction confidence cutoff. Empty detection results never satisfy a confidence range.

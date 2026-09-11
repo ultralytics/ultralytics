@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Deploy YOLO models to dedicated endpoints in 42 global regions with scale-to-zero behavior and monitoring on Ultralytics Platform.
+description: Deploy YOLO models to dedicated endpoints in 42 global regions with configurable resources and monitoring on Ultralytics Platform.
 keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling, global regions
 ---
 
@@ -21,7 +21,7 @@ Deploy a model from its `Deploy` tab:
 2. Click the **Deploy** tab
 3. Review the world map and the region table, which is sorted by measured latency from your location
 4. Click **Deploy** in the region row you want to use
-5. In the dialog, review the CPU, memory, pricing, and deployment name, then click **Deploy Model**
+5. In the dialog, review the CPU, memory, pricing, and deployment name, then click **Create Deployment**
 
 The suggested name combines the model name and region city (for example `yolo26n-iowa`) and can be edited before deployment. The model must have weights, or the tab shows an empty state instead of the region table.
 
@@ -33,9 +33,9 @@ Create a deployment from the global `Deploy` page in the sidebar:
 2. Select a model from the model selector, which lists your completed models
 3. Select a region from the mini map or the latency table
 4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
-5. Click **Deploy Model**
+5. Click **Create Deployment**
 
-![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/d0447123225bbac5c67ae7aee0f15da2.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/2ef1fde3be1dd5d048bb0d21bdb5b7f8.avif)<!-- screenshot -->
 
 ### Deployment Lifecycle
 
@@ -175,9 +175,11 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 | **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
-![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/574300ec688c813a92304f252b57476b.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/2ef1fde3be1dd5d048bb0d21bdb5b7f8.avif)<!-- screenshot -->
 
 Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
+
+![Ultralytics Platform New Deployment dialog with custom CPU and memory controls, hourly uptime pricing, and deployment name](https://cdn.ul.run/i/62bd92169169dfd3eaea14e3240ca237.avif)
 
 !!! note "Auto-Generated Names"
 

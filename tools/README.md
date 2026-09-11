@@ -1,7 +1,8 @@
 # 通用训练、验证与预测脚本
 
 三个独立 Python 脚本覆盖当前仓库支持的七类 YOLO 任务。通过 `--参数 值` 指定配置，无需修改脚本。
-同目录的 `train.sh`、`val.sh` 和 `detect.sh` 分别启动训练、验证和目标检测，并将收到的参数原样传给 Python 脚本。
+同目录的 `train.sh`、`val.sh` 和 `detect.sh` 分别启动训练、验证和目标检测：脚本顶部逐行列出默认配置，
+运行时与命令行参数合并透传给 Python 脚本，同名参数以命令行为准，其余参数继续使用配置值。
 脚本直接调用仓库的 `YOLO` 接口，数据读取、任务识别、指标计算和可视化均由框架处理。
 
 ## 安装与运行
@@ -20,17 +21,30 @@ python tools/val.py --help
 python tools/predict.py --help
 ```
 
-也可以通过 shell 脚本传入相同参数：
+也可以直接运行 shell 脚本，不带参数时完全使用脚本内的默认配置：
 
 ```bash
-./tools/train.sh --task detect --epochs 1 --device cpu
-./tools/val.sh --task detect --device cpu
-./tools/detect.sh --source "ultralytics/assets/bus.jpg" --device cpu
+./tools/train.sh
+./tools/val.sh
+./tools/detect.sh
 ```
 
-`detect.sh` 调用 `predict.py` 并默认传入 `--task detect`；显式传入 `--task` 可覆盖该默认值。
-三个 shell 脚本可从任意目录运行，参数格式与对应 Python 脚本完全一致。若没有执行权限，也可使用
-`bash tools/train.sh ...`、`bash tools/val.sh ...` 或 `bash tools/detect.sh ...`。
+命令行参数会追加在配置之后合并透传，同名参数以命令行为准，例如只改训练轮数或临时换输入：
+
+```bash
+./tools/train.sh --epochs 50
+./tools/val.sh --task segment --data "/absolute/path/to/dataset.yaml"
+./tools/detect.sh --source "/absolute/path/to/video.mp4"
+```
+
+长期使用的默认值直接编辑各 sh 脚本顶部的"默认配置"区，每行一个参数；三个脚本均含 `MODEL` 配置，留空 `""` 使用 `TASK`
+对应的内置预训练模型，填入 `.pt` 权重路径（如训练产出的 `best.pt`）即从该权重训练、验证或预测；均含 `PROJECT` 配置，
+留空 `""` 输出到框架默认 `runs/<任务>/`，相对名追加在任务目录后，绝对路径直接作为项目目录；`NAME` 留空 `""` 使用各脚本
+默认子目录名（`train`/`val`/`predict`），重名自动递增；`detect.sh` 的默认任务与输入源也在该区。
+`train.sh` 的配置区已按上文「训练超参数」表列出全部超参数，取值与 `ultralytics/cfg/default.yaml` 一致，
+修改后始终作为命令行覆盖项传入；设为 `None` 表示沿用框架可选默认，如 `TIME`、`FREEZE`、`CLASSES`。
+配置中的 `TASK` 与 `DATA` 需保持匹配。三个 shell 脚本可从任意目录运行，参数格式与对应 Python 脚本完全一致。
+若没有执行权限，也可使用 `bash tools/train.sh ...`、`bash tools/val.sh ...` 或 `bash tools/detect.sh ...`。
 
 分别运行需要的步骤，例如使用示例数据进行一轮 CPU 训练：
 

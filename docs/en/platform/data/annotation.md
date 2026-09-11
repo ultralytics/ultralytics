@@ -310,16 +310,15 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
 #### SAM Model Selection
 
-When Smart mode is active, a model picker appears in the toolbar. Six SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
+When Smart mode is active, a model picker appears in the toolbar. Five SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
-| Model             | Size    | Speed    | Notes                    |
-| ----------------- | ------- | -------- | ------------------------ |
-| **SAM 2.1 Tiny**  | 75 MB   | Fastest  |                          |
-| **SAM 2.1 Small** | 88 MB   | Fast     |                          |
-| **SAM 2.1 Base**  | 154 MB  | Moderate |                          |
-| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1 |
-| **SAM 3**         | 3.45 GB | Slowest  | Default                  |
-| **SAM 3.1**       | 3.50 GB | Slowest  | Latest generation        |
+| Model             | Size    | Speed    | Notes                      |
+| ----------------- | ------- | -------- | -------------------------- |
+| **SAM 2.1 Tiny**  | 75 MB   | Fastest  |                            |
+| **SAM 2.1 Small** | 88 MB   | Fast     |                            |
+| **SAM 2.1 Base**  | 154 MB  | Moderate |                            |
+| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
+| **SAM 3**         | 3.45 GB | Slowest  | Default, latest generation |
 
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/88703961af233af7fe5ddf35ff8a5f96.avif)<!-- screenshot -->
 
@@ -568,7 +567,7 @@ Yes, but for best results:
 
 ### Which SAM model should I use?
 
-**SAM 3** is the default — start there for the highest quality masks, or try **SAM 3.1**, the latest [SAM 3](../../models/sam-3.md#sam-31) checkpoint. Switch to **SAM 2.1 Small** for a faster interactive workflow on common objects, or **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects.
+**SAM 3** is the default and the latest generation model — start there for the highest quality masks. Switch to **SAM 2.1 Small** for a faster interactive workflow on common objects, or **SAM 2.1 Large** when you need higher mask precision on complex shapes. Use **SAM 2.1 Tiny** for maximum speed on simple, high-contrast objects.
 
 ### Which tasks support SAM smart annotation?
 

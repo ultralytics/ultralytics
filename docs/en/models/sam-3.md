@@ -68,7 +68,7 @@ For context on model metrics and trade-offs in production, see [model evaluation
 | YTVOS19 (val)                     | G      | 89.7  | 89.3    |
 | MOSEv2 (val)                      | J&Ḟ    | 60.3  | 62.3    |
 
-Ultralytics loads the SAM 3.1 checkpoint (`sam3.1_multiplex.pt`) into the SAM 3 image predictors: `SAM("sam3.1_multiplex.pt")` for point, box, and mask prompts, and `SAM3SemanticPredictor` for text and exemplar prompts. Object Multiplex video tracking is not supported yet, so keep using `sam3.pt` with `SAM3VideoPredictor` and `SAM3VideoSemanticPredictor`.
+Ultralytics loads the SAM 3.1 checkpoint (`sam3.1_multiplex.pt`) into the SAM 3 image predictors: `SAM("sam3.1_multiplex.pt")` for point and box prompts, and `SAM3SemanticPredictor` for text and exemplar prompts. Object Multiplex video tracking is not supported yet, so keep using `sam3.pt` with `SAM3VideoPredictor` and `SAM3VideoSemanticPredictor`.
 
 ## Architecture
 

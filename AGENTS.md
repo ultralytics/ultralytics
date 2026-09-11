@@ -85,6 +85,8 @@ yolo predict model=yolo26n.pt
 
 ## Where to look
 
+Package paths below are relative to `ultralytics/`; `docs/` and `tests/` paths are repository-relative.
+
 - Training loop, AMP, EMA, resume, DDP → `engine/trainer.py`, `utils/torch_utils.py`, `utils/dist.py`; losses → `utils/loss.py`, `utils/tal.py`, `models/utils/loss.py` (RT-DETR), the model's `init_criterion()` in `nn/tasks.py`.
 - Wrong mAP/metrics or val output → `engine/validator.py`, `models/yolo/<task>/val.py`, `utils/metrics.py`.
 - Predict results, plotting, saving → `engine/predictor.py`, `engine/results.py`, `utils/plotting.py`; source routing → `data/build.py` `check_source`/`load_inference_source`, `data/loaders.py`; NMS/postprocess → `utils/nms.py`.
@@ -98,3 +100,5 @@ yolo predict model=yolo26n.pt
 ## Extension boundaries
 
 Subclass the task-neutral engine and override hooks; do not fork training or prediction loops. Keep format-specific export behavior in `ultralytics/utils/export/` and bind it at export time; do not add `self.format` branches to `nn/modules/head.py`. Preserve lazy imports so importing Ultralytics does not eagerly load torchvision through SAM.
+
+Dataset cache hashes use label paths and total size rather than contents or mtimes. Same-size label edits can leave stale labels in training or validation; remove the affected `.cache` after such edits (`ultralytics/data/utils.py`).

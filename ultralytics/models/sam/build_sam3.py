@@ -354,6 +354,14 @@ def _load_checkpoint(model, checkpoint, interactive=False):
         ckpt = torch_load(f)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
+    # SAM 3.1 nests its point-prompt head as tracker.model.interactive_* beside the multiplex video tracker and renames
+    # its neck to interactive_convs, so map both onto the SAM 3 names (no-op for SAM 3 checkpoints)
+    ckpt = {
+        k.replace("tracker.model.interactive_", "tracker.")
+        .replace("tracker.model.interactivity_", "tracker.")
+        .replace("interactive_convs", "sam2_convs"): v
+        for k, v in ckpt.items()
+    }
     sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
     if interactive:
         sam3_image_ckpt.update(

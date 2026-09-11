@@ -323,24 +323,6 @@ class BaseModel(torch.nn.Module):
                 c1, c2 = min(c1, cc1), min(c2, cc2)
                 state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
                 len_updated_csd += 1
-        # cv3+1 objectness: the head's cv3 final conv is widened nc -> nc+1, so those tensors
-        # shape-mismatch the pretrained and intersect_dicts drops them. Backfill rows [0:nc]
-        # from pretrained so the cls rows keep their weights and only the obj row stays random
-        # (per-row analog of the first_conv multi-channel backfill above).
-        head = self.model[-1]
-        if getattr(head, "_cv3_obj", 0):
-            with torch.no_grad():
-                for prefix in ("cv3", "one2one_cv3"):
-                    for i, m in enumerate(getattr(head, prefix, ())):
-                        w_key = f"model.{head.i}.{prefix}.{i}.2.weight"
-                        b_key = f"model.{head.i}.{prefix}.{i}.2.bias"
-                        if w_key in csd and b_key in csd:
-                            # pretrained is nc=80 rows; copy its first head.nc rows into the cls rows.
-                            m[-1].weight[: head.nc].copy_(csd[w_key][: head.nc].to(m[-1].weight.device))
-                            m[-1].bias[: head.nc].copy_(csd[b_key][: head.nc].to(m[-1].bias.device))
-                            len_updated_csd += 2
-                        else:
-                            LOGGER.warning(f"cv3 obj backfill: pretrained key missing for {w_key}")
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")
 
@@ -612,8 +594,13 @@ class YOLOAnomalyModel(DetectionModel):
             # Rebuild the fusion module ONLY when an architecture knob is specified, so YAMLs that
             # set none of these keep the head's original module (built from the head YAML args).
             _arch_keys = (
-                "fusion_mid", "fusion_norm", "fusion_residual",
-                "fusion_feat", "fusion_feat_k", "fusion_per_scale", "fusion_depth",
+                "fusion_mid",
+                "fusion_norm",
+                "fusion_residual",
+                "fusion_feat",
+                "fusion_feat_k",
+                "fusion_per_scale",
+                "fusion_depth",
             )
             if any(k in v2_cfg for k in _arch_keys):
                 fusion_mid = int(v2_cfg.get("fusion_mid", 8))
@@ -625,9 +612,7 @@ class YOLOAnomalyModel(DetectionModel):
                 fusion_depth = int(v2_cfg.get("fusion_depth", 0))
                 detect._fusion_feat = fusion_feat
                 # Per-scale PAN channel counts recovered from the box head (cv2[i][0] first Conv).
-                pan_ch = (
-                    [detect.cv2[i][0].conv.in_channels for i in range(detect.nl)] if fusion_feat else None
-                )
+                pan_ch = [detect.cv2[i][0].conv.in_channels for i in range(detect.nl)] if fusion_feat else None
                 _ref = next(detect.heatmap_bias_fusion.parameters())
                 detect.heatmap_bias_fusion = HeatmapBiasFusion(
                     num_scales=detect.nl,
@@ -713,11 +698,15 @@ class YOLOAnomalyModel(DetectionModel):
         cur_v2 = (self.yaml or {}).get("anomaly", {})
         # Format check 1: structural YAML knobs (catches param-free diffs like fusion_norm). Skipped
         # for a plain state_dict donor (no yaml block) — the key/shape check below is authoritative.
-        cfg_diff = [
-            f"  {k}: ckpt={donor_v2.get(k, d)!r} vs model={cur_v2.get(k, d)!r}"
-            for k, d in self._FUSION_FORMAT_KEYS.items()
-            if donor_v2.get(k, d) != cur_v2.get(k, d)
-        ] if donor_v2 else []
+        cfg_diff = (
+            [
+                f"  {k}: ckpt={donor_v2.get(k, d)!r} vs model={cur_v2.get(k, d)!r}"
+                for k, d in self._FUSION_FORMAT_KEYS.items()
+                if donor_v2.get(k, d) != cur_v2.get(k, d)
+            ]
+            if donor_v2
+            else []
+        )
         # Format check 2: state-dict keys + shapes (catches donors older than the knobs above).
         cur_sd = cur_fusion.state_dict()
         missing = sorted(cur_sd.keys() - donor_sd.keys())
@@ -1978,7 +1967,6 @@ def parse_model(d, ch, verbose=True):
     max_channels = float("inf")
     nc, act, scales, end2end = (d.get(x) for x in ("nc", "activation", "scales", "end2end"))
     reg_max = d.get("reg_max", 16)
-    objectness = d.get("objectness", "none") or "none"  # YAML `objectness: null` must not crash set_objectness
     depth, width, kpt_shape = (d.get(x, 1.0) for x in ("depth_multiple", "width_multiple", "kpt_shape"))
     scale = d.get("scale")
     if scales:
@@ -2158,8 +2146,6 @@ def parse_model(d, ch, verbose=True):
             c2 = ch[f]
 
         m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-        if isinstance(m_, Detect) and objectness != "none":
-            m_.set_objectness(objectness)  # YOLOv5-style objectness branch (top-level YAML key)
         t = str(m)[8:-2].replace("__main__.", "")  # module type
         m_.np = sum(x.numel() for x in m_.parameters())  # number params
         m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type

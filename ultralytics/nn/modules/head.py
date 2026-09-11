@@ -119,112 +119,20 @@ class Detect(nn.Module):
             )
         )
         self.dfl = DFL(self.reg_max) if self.reg_max > 1 else nn.Identity()
-        self.objectness = "none"  # YOLOv5-style objectness branch, see set_objectness()
 
         if end2end:
             self.one2one_cv2 = copy.deepcopy(self.cv2)
             self.one2one_cv3 = copy.deepcopy(self.cv3)
 
-    def set_objectness(self, mode: str = "none") -> None:
-        """Attach a YOLOv5-style class-agnostic objectness branch to this head.
-
-        In YOLOv5 each anchor predicts ``[box, obj, cls]``: ``obj`` answers "is there an object here"
-        and ``cls`` only "which class", with ``conf = obj * cls`` at inference. YOLOv8/26 dropped
-        ``obj``, so the class logit doubles as the confidence and the object evidence is spread over
-        ``nc`` channels. With many classes that dilutes detection confidence, which this branch undoes.
-
-        The branch is a separate ``cv4`` ModuleList so ``cv2``/``cv3`` stay byte-identical and load the
-        same pretrained weights in every mode, keeping A/B comparisons clean.
-
-        Args:
-            mode (str): Ladder of increasingly faithful YOLOv5 behavior, each rung adding one change:
-                ``'none'`` no branch (default, unchanged model); ``'aux'`` branch trained on IoU soft
-                targets as auxiliary supervision, inference untouched; ``'mul'`` adds
-                ``conf = obj * cls``; ``'v5'`` additionally trains ``cls`` on positives only, so
-                background suppression rests entirely on ``obj``; ``'cv3'`` puts obj as an extra
-                channel of cv3's final conv (v5's own layout) instead of a separate branch.
-        """
-        if mode not in {"none", "aux", "mul", "v5", "cv3"}:
-            raise ValueError(f"objectness must be none/aux/mul/v5/cv3, got {mode!r}")
-        self.objectness = mode
-        if mode == "none":
-            return
-        if mode == "cv3":
-            # v5-faithful layout: obj is an extra channel of cv3's final conv, so box/obj/cls all
-            # come from one conv per scale (vs cv4's separate branch reading cls_x). The widened
-            # (nc+1)-row conv is backfilled row-wise from pretrained in tasks.py ``load``: cls rows
-            # keep pretrained weights and only the obj row is random -- same A/B cleanliness as cv4.
-            for i in range(self.nl):
-                last = self.cv3[i][-1]  # nn.Conv2d(c3, nc, 1) in both the legacy and DWConv layouts
-                wide = nn.Conv2d(last.in_channels, last.out_channels + 1, 1, stride=last.stride, padding=last.padding)
-                wide = wide.to(device=last.weight.device, dtype=last.weight.dtype)
-                self.cv3[i] = nn.Sequential(*self.cv3[i][:-1], wide)
-            self._cv3_obj = 1  # load-time marker consumed by tasks.py ``load``
-            if hasattr(self, "one2one_cv2"):
-                self.one2one_cv3 = copy.deepcopy(self.cv3)
-            return
-        ch = [m[0].conv.in_channels for m in self.cv2]  # PAN channels recovered from the box branch
-        c4 = max(16, ch[0] // 8)  # narrower than cv3: one binary score is easier than nc classes
-        ref = next(self.parameters())
-        self.cv4 = nn.ModuleList(nn.Sequential(DWConv(x, x, 3), Conv(x, c4, 1), nn.Conv2d(c4, 1, 1)) for x in ch).to(
-            device=ref.device, dtype=ref.dtype
-        )
-        if hasattr(self, "one2one_cv2"):
-            # Deepcopied, NOT shared. Sharing was tried (850a54af2) on the theory that the o2o
-            # obj field was collapsed and could borrow the o2m-trained one; the collapse turned
-            # out to be a postprocessing artifact, and once measured correctly sharing is worse
-            # on BOTH branches: o2o obj-only OOD mAP10_50 0.22 (dedicated) vs 0.03-0.09 (shared),
-            # and o2m OOD -0.03..-0.10 through ep9 of a matched A/B. A dedicated head can learn
-            # o2o's own anchor set; a shared one is pulled to o2m's ~10-positives-per-GT anchors
-            # and scores the o2o boxes, which sit elsewhere, badly.
-            self.one2one_cv4 = copy.deepcopy(self.cv4)
-
     @property
     def one2many(self):
         """Returns the one-to-many head components, here for v3/v5/v8/v9/v11 backward compatibility."""
-        heads = dict(box_head=self.cv2, cls_head=self.cv3)
-        if getattr(self, "objectness", "none") != "none" and hasattr(self, "cv4"):
-            heads["obj_head"] = self.cv4
-        return heads
+        return dict(box_head=self.cv2, cls_head=self.cv3)
 
     @property
     def one2one(self):
         """Returns the one-to-one head components."""
-        heads = dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
-        if getattr(self, "objectness", "none") != "none" and hasattr(self, "cv4"):
-            heads["obj_head"] = self.one2one_cv4
-        return heads
-
-    def _forward_obj(self, x: list[torch.Tensor], obj_head: torch.nn.Module) -> torch.Tensor:
-        """Concatenate the per-anchor objectness logits across scales into ``(bs, 1, A)``."""
-        bs = x[0].shape[0]
-        return torch.cat([obj_head[i](x[i]).view(bs, 1, -1) for i in range(self.nl)], dim=-1)
-
-    def _fuse_obj(self, scores: torch.Tensor, x: dict[str, torch.Tensor]) -> torch.Tensor:
-        """Apply the YOLOv5 ``conf = obj * cls`` fusion; identity unless objectness gates inference.
-
-        Fusing here keeps the head's output an ordinary ``[4 + nc]`` tensor, so NMS, the validators
-        and every export format stay unchanged.
-        """
-        if "obj" in x:
-            scoring = getattr(self, "scoring", "cls")
-            if scoring == "obj":
-                # Training-time OOD reference mode: conf = obj (broadcast to nc channels so the
-                # [4 + nc] output contract holds). Selected via the ``ood_scoring`` train arg,
-                # which AnomalyRNDTrainer._run_ood_eval applies to the head for OOD eval only.
-                return x["obj"].sigmoid().expand(-1, scores.shape[1], -1)
-            if scoring == "geo":
-                # Geometric mean of the two confidences. The plain product below scales every
-                # score down -- two 0.5s make 0.25 -- which pushed the whole distribution under
-                # the 0.25 deployment floor and is why obj*cls lost. sqrt is scale preserving
-                # (p * p -> p) and penalises only disagreement between the two heads. Unlike
-                # ``obj`` it also keeps the nc channels distinct, so the o2o two-stage topk in
-                # get_topk_index does not spend its 300 slots re-picking one anchor across nc
-                # identical broadcast channels.
-                return (scores * x["obj"].sigmoid()).sqrt()
-            if getattr(self, "objectness", "none") in {"mul", "v5"}:
-                scores = scores * x["obj"].sigmoid()
-        return scores
+        return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3)
 
     @property
     def end2end(self):
@@ -241,31 +149,14 @@ class Detect(nn.Module):
         x: list[torch.Tensor],
         box_head: torch.nn.Module = None,
         cls_head: torch.nn.Module = None,
-        obj_head: torch.nn.Module = None,
     ) -> dict[str, torch.Tensor]:
         """Concatenates and returns predicted bounding boxes and class probabilities."""
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
         bs = x[0].shape[0]  # batch size
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        # flatten(2) rather than view(bs, self.nc, -1): the cv3 layout widens cls to nc + 1.
         scores = torch.cat([cls_head[i](x[i]).flatten(2) for i in range(self.nl)], dim=-1)
-        preds = dict(boxes=boxes, scores=scores, feats=x)
-        if getattr(self, "objectness", "none") == "cv3":
-            self._split_obj(scores, preds)
-        elif obj_head is not None:
-            preds["obj"] = self._forward_obj(x, obj_head)
-        return preds
-
-    def _split_obj(self, scores: torch.Tensor, preds: dict) -> None:
-        """cv3 layout: peel the +1 obj channel off the (nc+1)-wide cls output.
-
-        ``scores`` arrives (bs, nc + 1, A); the dict keeps nc-wide ``scores`` and a (bs, 1, A)
-        ``obj`` so every downstream consumer (loss, fusion, NMS) sees the same contract as the
-        cv4 branch.
-        """
-        preds["obj"] = scores[:, -1:].contiguous()
-        preds["scores"] = scores[:, :-1]
+        return dict(boxes=boxes, scores=scores, feats=x)
 
     def forward(
         self, x: list[torch.Tensor]
@@ -294,7 +185,7 @@ class Detect(nn.Module):
         """
         # Inference path
         dbox = self._get_decode_boxes(x)
-        return torch.cat((dbox, self._fuse_obj(x["scores"].sigmoid(), x)), 1)
+        return torch.cat((dbox, x["scores"].sigmoid()), 1)
 
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
@@ -319,15 +210,6 @@ class Detect(nn.Module):
                 b[-1].bias.data[: self.nc] = math.log(
                     5 / self.nc / (640 / self.stride[i]) ** 2
                 )  # cls (.01 objects, 80 classes, 640 img)
-        if getattr(self, "objectness", "none") not in {"none", "cv3"}:
-            for heads in (self.one2many, self.one2one) if self.end2end else (self.one2many,):
-                for i, c in enumerate(heads["obj_head"]):
-                    c[-1].bias.data[:] = math.log(8 / (640 / self.stride[i]) ** 2)  # obj (v5 prior)
-        elif hasattr(self, "_cv3_obj"):
-            # cv3 layout: the obj row is the last bias of the widened cv3 final conv.
-            for heads in (self.one2many, self.one2one) if self.end2end else (self.one2many,):
-                for i, b in enumerate(heads["cls_head"]):
-                    b[-1].bias.data[-1:] = math.log(8 / (640 / self.stride[i]) ** 2)  # obj (v5 prior)
 
     def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
         """Decode bounding boxes from predictions."""
@@ -382,8 +264,6 @@ class Detect(nn.Module):
     def fuse(self) -> None:
         """Remove the one2many head for inference optimization."""
         self.cv2 = self.cv3 = None
-        if getattr(self, "objectness", "none") != "none":
-            self.cv4 = None
 
 
 class AnomalyDetect(Detect):
@@ -555,7 +435,6 @@ class AnomalyDetect(Detect):
         box_head: torch.nn.Module = None,
         cls_head: torch.nn.Module = None,
         cls_x: list[torch.Tensor] | None = None,
-        obj_head: torch.nn.Module = None,
     ) -> dict[str, torch.Tensor]:
         """Concatenate boxes/scores; ``cls_x`` supplies per-scale features to the cls branch only.
 
@@ -563,22 +442,14 @@ class AnomalyDetect(Detect):
         cls branch reads ``cls_x`` when provided, so box regression never conditions on the fusion
         prior. With ``cls_x=None`` this is identical to ``Detect.forward_head``.
 
-        The objectness branch reads ``cls_x`` too: it is a scoring branch, and the heatmap prior is
-        exactly anomaly evidence, so routing it with the box branch would starve it of the prior.
         """
         if box_head is None or cls_head is None:  # for fused inference
             return dict()
         bs = x[0].shape[0]  # batch size
         cx = x if cls_x is None else cls_x
         boxes = torch.cat([box_head[i](x[i]).view(bs, 4 * self.reg_max, -1) for i in range(self.nl)], dim=-1)
-        # flatten(2) rather than view(bs, self.nc, -1): the cv3 layout widens cls to nc + 1.
         scores = torch.cat([cls_head[i](cx[i]).flatten(2) for i in range(self.nl)], dim=-1)
-        preds = dict(boxes=boxes, scores=scores, feats=x)
-        if getattr(self, "objectness", "none") == "cv3":
-            self._split_obj(scores, preds)
-        elif obj_head is not None:
-            preds["obj"] = self._forward_obj(cx, obj_head)
-        return preds
+        return dict(boxes=boxes, scores=scores, feats=x)
 
     def _build_heatmap_gate(self, hm: torch.Tensor, feats: list[torch.Tensor]) -> torch.Tensor:
         """Resize the heatmap to each scale's grid and return a ``(bs, 1, A)`` gate tensor."""
@@ -602,7 +473,7 @@ class AnomalyDetect(Detect):
             b = float(self.hm_gate_blend)
             factor = (b + (1.0 - b) * gate).clamp(0.0, 1.0)
             scores = scores * factor
-        return torch.cat((dbox, self._fuse_obj(scores, x)), 1)
+        return torch.cat((dbox, scores), 1)
 
 
 class Segment(Detect):

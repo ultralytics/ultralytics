@@ -169,6 +169,12 @@ class Predictor(BasePredictor):
         letterbox = LetterBox(self.imgsz, auto=False, center=False)
         return [letterbox(image=x) for x in im]
 
+    @property
+    def src_shape(self):
+        """Return the source image (height, width): an HWC array from files and streams, or a CHW tensor source."""
+        im0 = self.batch[1][0]
+        return im0.shape[-2:] if isinstance(im0, torch.Tensor) else im0.shape[:2]
+
     def inference(self, im, bboxes=None, points=None, labels=None, masks=None, multimask_output=False, *args, **kwargs):
         """Perform image segmentation inference based on the given input cues, using the currently loaded image.
 
@@ -234,7 +240,7 @@ class Predictor(BasePredictor):
             >>> masks, scores = predictor.prompt_inference(im, bboxes=bboxes)
         """
         features = self.get_im_features(im) if self.features is None else self.features
-        prompts = self._prepare_prompts(im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks)
+        prompts = self._prepare_prompts(im.shape[2:], self.src_shape, bboxes, points, labels, masks)
         return self._inference_features(features, *prompts, multimask_output)
 
     def _inference_features(
@@ -341,6 +347,7 @@ class Predictor(BasePredictor):
         stability_score_thresh=0.95,
         stability_score_offset=0.95,
         crop_nms_thresh=0.7,
+        min_mask_region_area=0,
     ):
         """Perform image segmentation using the Segment Anything Model (SAM).
 
@@ -355,10 +362,14 @@ class Predictor(BasePredictor):
             point_grids (list[np.ndarray] | None): Custom grids for point sampling normalized to [0,1].
             points_stride (int): Number of points to sample along each side of the image.
             points_batch_size (int): Batch size for the number of points processed simultaneously.
-            conf_thres (float): Confidence threshold [0,1] for filtering based on mask quality prediction.
+            conf_thres (float): Confidence threshold [0,1] on the predicted mask quality; the predictor's conf also
+                applies after the cross-crop NMS.
             stability_score_thresh (float): Stability threshold [0,1] for mask filtering based on stability.
             stability_score_offset (float): Offset value for calculating stability score.
             crop_nms_thresh (float): IoU cutoff for NMS to remove duplicate masks between crops.
+            min_mask_region_area (int): If > 0, remove disconnected regions and holes smaller than this area in
+                original-image pixels (the largest region of a mask is always kept), then re-run NMS on the
+                cleaned masks.
 
         Returns:
             pred_masks (torch.Tensor): Segmented masks with shape (N, H, W).
@@ -382,14 +393,14 @@ class Predictor(BasePredictor):
             x1, y1, x2, y2 = crop_region
             w, h = x2 - x1, y2 - y1
             area = torch.tensor(w * h, device=im.device)
-            points_scale = np.array([[w, h]])  # w, h
+            points_scale = np.array([[iw, ih]])  # the crop is resized to the model input, so prompts live in that space
             # Crop image and interpolate to input size
             crop_im = F.interpolate(im[..., y1:y2, x1:x2], (ih, iw), mode="bilinear", align_corners=False)
             crop_features = self.get_im_features(crop_im)
             points_for_image = point_grids[layer_idx] * points_scale
             crop_masks, crop_scores, crop_bboxes = [], [], []
             for (points,) in batch_iterator(points_batch_size, points_for_image):
-                prompts = self._prepare_prompts(crop_im.shape[2:], self.batch[1][0].shape[:2], points=points)
+                prompts = self._prepare_prompts(crop_im.shape[2:], self.src_shape, points=points)
                 pred_mask, pred_score = self._inference_features(crop_features, *prompts, multimask_output=True)
                 # Interpolate predicted masks to input size
                 pred_mask = F.interpolate(pred_mask[None], (h, w), mode="bilinear", align_corners=False)[0]
@@ -437,6 +448,16 @@ class Predictor(BasePredictor):
             scores = 1 / region_areas
             keep = torchvision.ops.nms(pred_bboxes, scores, crop_nms_thresh)
             pred_masks, pred_bboxes, pred_scores = pred_masks[keep], pred_bboxes[keep], pred_scores[keep]
+
+        idx = pred_scores > self.args.conf  # postprocess applies conf too, so it must not decide the cleanup NMS
+        pred_masks, pred_scores, pred_bboxes = pred_masks[idx], pred_scores[idx], pred_bboxes[idx]
+
+        if min_mask_region_area > 0:
+            h0, w0 = self.src_shape
+            gain = min(ih / h0, iw / w0)  # masks are in letterboxed model space, the threshold is in original pixels
+            min_area = min_mask_region_area * gain * gain
+            pred_masks, keep = self.remove_small_regions(pred_masks, min_area, max(self.args.iou, crop_nms_thresh))
+            pred_scores, pred_bboxes = pred_scores[keep], batched_mask_to_box(pred_masks).float()
 
         return pred_masks, pred_scores, pred_bboxes
 
@@ -602,13 +623,13 @@ class Predictor(BasePredictor):
         Args:
             masks (torch.Tensor): Segmentation masks to be processed, with shape (N, H, W) where N is the number of
                 masks, H is height, and W is width.
-            min_area (int): Minimum area threshold for removing disconnected regions and holes. Regions smaller than
+            min_area (float): Minimum area threshold for removing disconnected regions and holes. Regions smaller than
                 this will be removed.
             nms_thresh (float): IoU threshold for the NMS algorithm to remove duplicate boxes.
 
         Returns:
             new_masks (torch.Tensor): Processed masks with small regions removed, shape (N, H, W).
-            keep (list[int]): Indices of remaining masks after NMS, for filtering corresponding boxes.
+            keep (torch.Tensor): Indices of remaining masks after NMS, for filtering corresponding boxes.
 
         Examples:
             >>> masks = torch.rand(5, 640, 640) > 0.5  # 5 random binary masks
@@ -619,7 +640,7 @@ class Predictor(BasePredictor):
         import torchvision  # scope for faster 'import ultralytics'
 
         if masks.shape[0] == 0:
-            return masks
+            return masks, torch.arange(0)
 
         # Filter small disconnected regions and holes
         new_masks = []
@@ -928,9 +949,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
-            points, labels, masks = self._prepare_prompts(
-                im.shape[2:], self.batch[1][0].shape[:2], bboxes, points, labels, masks
-            )
+            points, labels, masks = self._prepare_prompts(im.shape[2:], self.src_shape, bboxes, points, labels, masks)
             if points is not None:
                 for i in range(len(points)):
                     self.add_new_prompts(obj_id=i, points=points[[i]], labels=labels[[i]], frame_idx=frame)
@@ -1956,7 +1975,7 @@ class SAM2DynamicInteractivePredictor(SAM2Predictor):
         self.get_im_features(im)
         points, labels, masks = self._prepare_prompts(
             dst_shape=self.imgsz,
-            src_shape=self.batch[1][0].shape[:2],
+            src_shape=self.src_shape,
             points=points,
             bboxes=bboxes,
             labels=labels,
@@ -2352,7 +2371,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         labels = self.prompts.pop("labels", labels)
         text = self.prompts.pop("text", text)
         features = self.get_im_features(im) if self.features is None else self.features
-        prompts = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
+        prompts = self._prepare_geometric_prompts(self.src_shape, bboxes, labels)
         return self._inference_features(features, *prompts, text=text)
 
     @smart_inference_mode()
@@ -2781,7 +2800,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             self.model.set_classes(text=text)
 
         # 2) handle box prompt
-        bboxes, labels = self._prepare_geometric_prompts(self.batch[1][0].shape[:2], bboxes, labels)
+        bboxes, labels = self._prepare_geometric_prompts(self.src_shape, bboxes, labels)
         assert (bboxes is not None) == (labels is not None)
         geometric_prompt = self._get_dummy_prompt(num_prompts=n)
         if bboxes is not None:

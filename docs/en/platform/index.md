@@ -56,6 +56,7 @@ graph LR
 - **Train** models on cloud GPUs (24 on all plans, 26 with Pro or Enterprise for B200 and B300) with real-time metrics
 - **Export** to [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.)
 - **Deploy** to 42 global regions with one-click dedicated endpoints
+- **Build [Agents workflows](agents.md)** that connect models, conditions, dataset collection, and Slack alerts
 - **Monitor** training progress, deployment health, and usage metrics
 - **Connect** cloud storage, annotation tools, and Slack through [integrations](integrations/index.md)
 - **Collaborate** by making projects and datasets public for the community
@@ -251,6 +252,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
+- [**Autotraining**](autotraining.md): Use Ask AI to manage datasets, run experiments, compare models, and deploy
 - [**Explore**](explore.md): Browse and clone public datasets and projects
 - [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data

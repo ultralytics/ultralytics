@@ -69,6 +69,10 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 3. Wait for the **Saved** indicator next to the Profile heading. Changes save automatically about a second after you
    stop typing — there is no Save button.
 
+### Early Access
+
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to try experimental features, including [Agents](../agents.md) at [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). This preference belongs to your account and also controls Agents access when you switch to a team workspace.
+
 ### Social Links
 
 Connect your professional profiles:

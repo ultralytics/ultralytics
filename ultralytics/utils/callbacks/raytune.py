@@ -6,6 +6,7 @@ try:
     assert SETTINGS["raytune"] is True  # verify integration is enabled
     from ray import tune
 
+    assert hasattr(tune, "get_context")  # verify Ray>=2.41 Tune API, also required by tuner.run_ray_tune
 except (ImportError, AssertionError):
     tune = None
 
@@ -26,10 +27,8 @@ def on_fit_epoch_end(trainer):
     References:
         Ray Tune docs: https://docs.ray.io/en/latest/tune/index.html
     """
-    trial_id = tune.get_context().get_trial_id() if hasattr(tune, "get_context") else tune.get_trial_id()
-    if trial_id:  # check if Ray Tune session is active
-        metrics = trainer.metrics
-        tune.report({**metrics, "epoch": trainer.epoch + 1})
+    if tune.get_context().get_trial_id():  # check if Ray Tune session is active
+        tune.report({**trainer.metrics, "epoch": trainer.epoch + 1})
 
 
 callbacks = (

@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, deployment, endpoints, YOLO, production, scaling
 
 [Ultralytics Platform](https://platform.ultralytics.com) enables deployment of YOLO models to dedicated endpoints in 42 global regions. Each endpoint is a single-tenant service with a unique endpoint URL and independent monitoring. The default resource size scales to zero when idle; custom sizes keep a warm instance and are billed for uptime.
 
-![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.ul.run/i/176e99f44ab36318aec89d8a5309376f.avif)<!-- screenshot -->
+![Ultralytics Platform Model Deploy Tab With Region Map And Table](https://cdn.ul.run/i/6685f2d9d5c34b9d72f61263dcb6ad81.avif)<!-- screenshot -->
 
 ## Create Endpoint
 
@@ -35,7 +35,7 @@ Create a deployment from the global `Deploy` page in the sidebar:
 4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
 5. Click **Create Deployment**
 
-![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/2ef1fde3be1dd5d048bb0d21bdb5b7f8.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/822cadbbd00c655ec7ca476fcdedaddd.avif)<!-- screenshot -->
 
 ### Deployment Lifecycle
 
@@ -76,7 +76,7 @@ Choose from 42 regions worldwide. The interactive region map and table show:
 - **Deploying regions**: Animated pulse indicator on the pin and the table row
 - **Bidirectional highlighting**: Hover on the map highlights the table row, and vice versa
 
-![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.ul.run/i/b763bfb3b965aac1e274bfed782a82e8.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Tab Region Latency Table Sorted By Latency](https://cdn.ul.run/i/d7ec7f213efe99c8ea46653de6d3619b.avif)<!-- screenshot -->
 
 The region table on the model `Deploy` tab includes:
 
@@ -175,11 +175,11 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 | **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
-![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/2ef1fde3be1dd5d048bb0d21bdb5b7f8.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/6afe9718ada356b06cb87d2b4898c88e.avif)<!-- screenshot -->
 
 Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
 
-![Ultralytics Platform New Deployment dialog with custom CPU and memory controls, hourly uptime pricing, and deployment name](https://cdn.ul.run/i/62bd92169169dfd3eaea14e3240ca237.avif)
+![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/cb49ea5bbc304cf9f37a31b163781fc0.avif)<!-- screenshot -->
 
 !!! note "Auto-Generated Names"
 
@@ -195,23 +195,23 @@ Deploying from the model's `Deploy` tab opens the same dialog with the model and
 
 The deployments list supports three view modes:
 
-| Mode        | Description                                               |
-| ----------- | --------------------------------------------------------- |
-| **Cards**   | Full detail cards with logs, code examples, predict panel |
-| **Compact** | Grid of smaller cards with key metrics                    |
-| **Table**   | DataTable with sortable columns and search                |
+| Mode        | Description                                                              |
+| ----------- | ------------------------------------------------------------------------ |
+| **Cards**   | Full detail cards with logs, code, predict, and eligible monitoring tabs |
+| **Compact** | Grid of smaller cards with key metrics                                   |
+| **Table**   | DataTable with sortable columns and search                               |
 
-![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.ul.run/i/9e21cbf292ff0ff31f787bec8ce9f678.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.ul.run/i/df8afcdd198830c0324344e0a0769526.avif)<!-- screenshot -->
 
 ### Deployment Card (Cards View)
 
 Each deployment card in the cards view shows:
 
-- **Header**: Name, region flag, status badge, and the action buttons available for the current status — replace and stop when **Ready**, start when **Stopped**, delete at any time
+- **Header**: Name, region flag, status badge, and the action buttons available for the current status — update configuration, replace, and stop when **Ready**, start when **Stopped**, delete at any time
 - **Endpoint URL**: Copyable URL with a link to the endpoint's own API reference
 - **Metrics**: Request count (24h), P95 latency, error rate, or "No traffic yet"
 - **Health check**: Live health indicator with latency and manual refresh
-- **Tabs**: `Logs`, `Code`, and `Predict`
+- **Tabs**: `Logs`, `Code`, and `Predict`; paid endpoints also show `Monitoring`
 - **Footer**: The API key prefix bound to the deployment and the date it became ready
 - **Status message**: The failure reason, when a deployment failed
 
@@ -223,6 +223,21 @@ directly on the deployment.
 !!! note "Compact and Table Views"
 
     Compact cards show the flag, name, city, status, and the three metrics. The table view is sortable on Name, Region, Status, Requests, P95, and Errors, with search across name, region, and status. Both views keep the delete action; start, stop, and replace are available in the cards view.
+
+### Update CPU and Memory
+
+1. Open a **Ready** endpoint in **Cards** view.
+2. Click **Update deployment configuration**.
+3. Choose **CPU** and **Memory**, and review the displayed hourly cost.
+4. Click **Update Configuration**. The current configuration keeps serving until the new one is ready.
+
+![Ultralytics Platform Deployment Update CPU Memory Configuration](https://cdn.ul.run/i/7143e64cbefe46f24cd5f61c8100f1e1.avif)<!-- screenshot -->
+
+Custom resources use uptime billing and keep an instance warm. Returning to default resources restores scale-to-zero behavior and removes the paid Monitoring tab.
+
+!!! warning "Temporary Monitoring Data"
+
+    Monitoring charts and example images are lightweight, in-memory data. Stopping, restarting, redeploying, resizing, or replacing a model can clear them. Starting the endpoint again does not restore the history. Save useful examples to a dataset and wait for ingestion to finish before changing the endpoint. [Operational metrics and logs](monitoring.md) have separate history windows.
 
 ### Replace a Model
 
@@ -265,7 +280,7 @@ Each endpoint has a unique URL, for example:
 https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
-![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/4f02beb3dd4915d65c72051e0235b1ea.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/7d4ededac16d1c112f1a594fac5db495.avif)<!-- screenshot -->
 
 Click the copy button to copy the URL. Click the docs icon to open the endpoint's own API reference. The endpoint
 serves these paths:
@@ -308,7 +323,9 @@ Stop an endpoint when you do not want it to accept requests:
 
 Stopped endpoints:
 
-- Don't accept requests, and report no metrics or health status
+- Don't accept requests, and report no live metrics or health status
+- Stop accruing uptime charges
+- Lose temporary monitoring statistics and example images when the serving instance shuts down
 - Keep their URL, region, and bound API key, and can be restarted anytime
 - Still count against your plan's deployment quota — delete an endpoint to free its slot
 

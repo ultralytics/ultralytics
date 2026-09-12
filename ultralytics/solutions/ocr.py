@@ -41,8 +41,8 @@ class OCR(BaseSolution):
             im0 (np.ndarray): Input BGR image.
 
         Returns:
-            (SolutionResults): Results containing the annotated image and aligned ``ocr_texts``, ``boxes``,
-                ``classes``, and ``confidences`` lists.
+            (SolutionResults): Results containing the annotated image and aligned ``ocr_texts``, ``boxes``, ``classes``,
+                and ``confidences`` lists.
         """
         with self.profilers[0]:
             results = self.model.predict(

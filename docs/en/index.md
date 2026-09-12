@@ -48,6 +48,10 @@ Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package
 
 Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
 
+!!! info "YOLO27 is coming soon"
+
+    Explore the [YOLO27 preview](models/yolo27.md), including architecture details, preliminary benchmarks, and examples for use after release. Models are undergoing final R&D for an anticipated launch later this year; they are not yet available, and no launch date is set.
+
 !!! tip "🚀 New: Monocular Depth Estimation"
 
     Turn a single photo into a depth map, a distance in meters for every pixel.
@@ -146,7 +150,7 @@ See the [Quickstart](quickstart.md) guide for every installation method and your
 
     ***
 
-    Ultralytics' newest model family delivers optional NMS-free end-to-end inference and an improved accuracy-latency tradeoff over YOLO11
+    Ultralytics' latest released model family delivers optional NMS-free end-to-end inference and an improved accuracy-latency tradeoff over YOLO11
 
     ***
 

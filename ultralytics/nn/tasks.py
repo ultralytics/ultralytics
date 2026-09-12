@@ -9,6 +9,7 @@ import threading
 from copy import deepcopy
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -1672,7 +1673,25 @@ class _SafeLoad:
 
                 for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            if "ultralytics.nn.text_model.CLIP" in needed:
+                import clip
+
+                from ultralytics.nn.text_model import CLIP
+
+                for obj in (
+                    CLIP,
+                    clip.model.CLIP,
+                    clip.model.LayerNorm,
+                    clip.model.QuickGELU,
+                    clip.model.ResidualAttentionBlock,
+                    clip.model.Transformer,
+                    clip.model.VisionTransformer,
+                    clip.clip._convert_image_to_rgb,
+                ):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
             entries = [cls._registry[name] for name in needed if name in cls._registry]
+            if "numpy.dtype" in needed:
+                entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
         cls._local.active = True
@@ -1762,6 +1781,8 @@ class _SafeLoad:
             ]
 
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
+        scalar = np.float64(0).__reduce__()[0]
+        allow += [np.dtype, (scalar, "numpy.core.multiarray.scalar"), (scalar, "numpy._core.multiarray.scalar")]
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 

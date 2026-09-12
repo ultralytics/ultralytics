@@ -660,7 +660,8 @@ def check_dict_alignment(
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
-        raise SyntaxError(string + CLI_HELP_MSG) from e
+        LOGGER.info(CLI_HELP_MSG)
+        raise SyntaxError(string) from e
 
 
 def merge_equals_args(args: list[str]) -> list[str]:

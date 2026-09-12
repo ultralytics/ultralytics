@@ -1035,7 +1035,7 @@ class BaseTrainer:
         """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
         if ckpt.get("optimizer") is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])
-        if ckpt.get("scaler") is not None:
+        if ckpt.get("scaler"):
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
             self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated

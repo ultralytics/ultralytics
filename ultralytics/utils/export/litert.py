@@ -74,7 +74,11 @@ def torch2litert(
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
-    if task in {"detect", "segment", "pose", "obb"} and not meta.get("end2end", False):
+    if (
+        task in {"detect", "segment", "pose", "obb"}
+        and not meta.get("end2end", False)
+        and meta.get("head") != "RTDETRDecoder"
+    ):
         model = _NormalizeCoords(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )

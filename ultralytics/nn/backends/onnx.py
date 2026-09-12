@@ -266,6 +266,10 @@ class ONNXBackend(BaseBackend):
                         cuda = False
                 self.session = _create_session(onnxruntime, weight, session_options, providers)
 
+            if cuda and not rocm and "CUDAExecutionProvider" not in self.session.get_providers():
+                LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                self.device = torch.device("cpu")
+                cuda = False
             LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {self.session.get_providers()[0]}")
             self.output_names = [x.name for x in self.session.get_outputs()]
 

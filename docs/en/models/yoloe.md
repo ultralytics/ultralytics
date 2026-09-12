@@ -127,31 +127,31 @@ Zero-shot results on [LVIS](../datasets/detect/lvis.md) minival at 640 pixels, f
 
 Each accuracy and parameter cell reads **text prompt / visual prompt**; FLOPs are given once. Parameters and FLOPs are for the detection configuration the paper evaluates. Accuracy is the paper's Non-E2E figure, the only protocol it reports for every model in the comparison; the YOLOE-26 end-to-end head trails it by at most 1.1 AP under text prompts and 2.6 AP under visual prompts.
 
-| Model     | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| --------- | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
-| YOLOE-26n | 24.7 / 21.9         | 20.5 / 17.6     | 24.1 / 22.3     | 26.1 / 22.4     | 3.9 / 3.1                | 6.1                     |
-| YOLOE-26s | 30.8 / 28.6         | 23.9 / 25.1     | 29.6 / 27.8     | 33.0 / 29.9     | 10.7 / 11.0              | 21.9                    |
-| YOLOE-26m | 35.4 / 33.9         | 31.1 / 33.4     | 34.7 / 34.0     | 36.9 / 33.8     | 21.3 / 25.1              | 70.6                    |
-| YOLOE-26l | 37.8 / 36.3         | 35.1 / 37.6     | 37.6 / 36.2     | 38.5 / 36.1     | 25.5 / 29.3              | 89.0                    |
-| YOLOE-26x | 40.6 / 38.5         | 37.4 / 35.3     | 40.9 / 38.8     | 41.0 / 38.8     | 55.2 / 65.2              | 197.7                   |
-| YOLOE-11s | 27.5 / 26.3         | 21.4 / 22.5     | 26.8 / 27.1     | 29.3 / 26.4     | 10.7 / 10.9              | 22.7                    |
-| YOLOE-11m | 33.0 / 31.4         | 26.9 / 27.1     | 32.5 / 31.9     | 34.5 / 31.7     | 21.0 / 24.8              | 70.4                    |
-| YOLOE-11l | 35.2 / 33.7         | 29.1 / 28.1     | 35.0 / 34.6     | 36.5 / 33.8     | 26.0 / 29.8              | 89.5                    |
-| YOLOE-v8s | 27.9 / 26.2         | 22.3 / 21.3     | 27.8 / 27.7     | 29.0 / 25.7     | 12.3 / 12.6              | 29.8                    |
-| YOLOE-v8m | 32.6 / 31.0         | 26.9 / 27.0     | 31.9 / 31.7     | 34.4 / 31.1     | 26.4 / 28.4              | 80.7                    |
-| YOLOE-v8l | 35.9 / 34.2         | 33.2 / 33.2     | 34.8 / 34.6     | 37.3 / 34.1     | 43.5 / 47.3              | 167.6                   |
+| Model     | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub>     | mAP<sub>f</sub>     | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| --------- | ------------------- | --------------- | ------------------- | ------------------- | ------------------------ | ----------------------- |
+| YOLOE-26n | 24.7 / 21.9         | 20.5 / 17.6     | 24.1 / 22.3         | 26.1 / 22.4         | **3.9** / **3.1**        | **6.1**                 |
+| YOLOE-26s | 30.8 / 28.6         | 23.9 / 25.1     | 29.6 / 27.8         | 33.0 / 29.9         | 10.7 / 11.0              | 21.9                    |
+| YOLOE-26m | 35.4 / 33.9         | 31.1 / 33.4     | 34.7 / 34.0         | 36.9 / 33.8         | 21.3 / 25.1              | 70.6                    |
+| YOLOE-26l | 37.8 / 36.3         | 35.1 / **37.6** | 37.6 / 36.2         | 38.5 / 36.1         | 25.5 / 29.3              | 89.0                    |
+| YOLOE-26x | **40.6** / **38.5** | **37.4** / 35.3 | **40.9** / **38.8** | **41.0** / **38.8** | 55.2 / 65.2              | 197.7                   |
+| YOLOE-11s | 27.5 / 26.3         | 21.4 / 22.5     | 26.8 / 27.1         | 29.3 / 26.4         | 10.7 / 10.9              | 22.7                    |
+| YOLOE-11m | 33.0 / 31.4         | 26.9 / 27.1     | 32.5 / 31.9         | 34.5 / 31.7         | 21.0 / 24.8              | 70.4                    |
+| YOLOE-11l | 35.2 / 33.7         | 29.1 / 28.1     | 35.0 / 34.6         | 36.5 / 33.8         | 26.0 / 29.8              | 89.5                    |
+| YOLOE-v8s | 27.9 / 26.2         | 22.3 / 21.3     | 27.8 / 27.7         | 29.0 / 25.7         | 12.3 / 12.6              | 29.8                    |
+| YOLOE-v8m | 32.6 / 31.0         | 26.9 / 27.0     | 31.9 / 31.7         | 34.4 / 31.1         | 26.4 / 28.4              | 80.7                    |
+| YOLOE-v8l | 35.9 / 34.2         | 33.2 / 33.2     | 34.8 / 34.6         | 37.3 / 34.1         | 43.5 / 47.3              | 167.6                   |
 
 ### Prompt-free
 
 The prompt-free checkpoints answer from their built-in vocabulary with no prompt supplied. Each accuracy cell reads **end-to-end / Non-E2E**, the two protocols the paper scores YOLOE-26 under; the [YOLO26 page](yolo26.md#yoloe-26-open-vocabulary-detection-and-segmentation) quotes the Non-E2E column.
 
-| Model        | mAP<sub>50-95</sub> | mAP<sub>r</sub> | mAP<sub>c</sub> | mAP<sub>f</sub> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ------------ | ------------------- | --------------- | --------------- | --------------- | ------------------------ | ----------------------- |
-| YOLOE-26n-pf | 16.6 / 17.7         | 15.7 / 15.8     | 15.3 / 16.4     | 17.9 / 19.2     | 2.3                      | 5.3                     |
-| YOLOE-26s-pf | 21.4 / 22.6         | 16.2 / 20.2     | 20.1 / 20.9     | 23.5 / 24.5     | 9.0                      | 20.8                    |
-| YOLOE-26m-pf | 25.7 / 26.4         | 26.7 / 24.5     | 24.0 / 25.0     | 26.9 / 27.9     | 19.4                     | 68.4                    |
-| YOLOE-26l-pf | 27.2 / 28.0         | 26.3 / 25.7     | 25.7 / 26.8     | 28.7 / 29.5     | 23.6                     | 86.8                    |
-| YOLOE-26x-pf | 29.9 / 31.1         | 27.5 / 28.9     | 29.1 / 30.7     | 31.1 / 31.7     | 53.1                     | 194.4                   |
+| Model        | mAP<sub>50-95</sub> | mAP<sub>r</sub>     | mAP<sub>c</sub>     | mAP<sub>f</sub>     | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------ | ------------------- | ------------------- | ------------------- | ------------------- | ------------------------ | ----------------------- |
+| YOLOE-26n-pf | 16.6 / 17.7         | 15.7 / 15.8         | 15.3 / 16.4         | 17.9 / 19.2         | **2.3**                  | **5.3**                 |
+| YOLOE-26s-pf | 21.4 / 22.6         | 16.2 / 20.2         | 20.1 / 20.9         | 23.5 / 24.5         | 9.0                      | 20.8                    |
+| YOLOE-26m-pf | 25.7 / 26.4         | 26.7 / 24.5         | 24.0 / 25.0         | 26.9 / 27.9         | 19.4                     | 68.4                    |
+| YOLOE-26l-pf | 27.2 / 28.0         | 26.3 / 25.7         | 25.7 / 26.8         | 28.7 / 29.5         | 23.6                     | 86.8                    |
+| YOLOE-26x-pf | **29.9** / **31.1** | **27.5** / **28.9** | **29.1** / **30.7** | **31.1** / **31.7** | 53.1                     | 194.4                   |
 
 Under text and visual prompts the YOLOE-26 models lead their YOLOE-11 and YOLOE-v8 counterparts at every matching scale on mAP<sub>50-95</sub>, while staying below the v8 line on parameters and FLOPs. On the same split the paper reports YOLO-Worldv2 at 24.4 (S), 32.4 (M) and 35.5 (L), and the transformer-based detectors GLIP-T at 26.0, GDINO-T at 27.4 and DetCLIP-T at 34.4, each carrying 155 to 232 M parameters. The original YOLOE paper adds two results for the v8-scale models it introduced. On LVIS, YOLOE-v8s beats YOLO-Worldv2-S by **3.5 AP** at a third of the training cost and 1.4× the inference speed. Transferred to COCO, YOLOE-v8l gains **0.6 box AP** and **0.4 mask AP** over closed-set YOLOv8-L with nearly **4× less training time**.
 

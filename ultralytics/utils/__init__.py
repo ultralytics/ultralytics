@@ -1231,6 +1231,7 @@ def set_sentry():
     # If sentry_sdk package is not installed then return and do not use Sentry
     try:
         import sentry_sdk
+        from sentry_sdk.integrations.argv import ArgvIntegration
     except ImportError:
         return
 
@@ -1261,6 +1262,8 @@ def set_sentry():
         dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
         debug=False,
         auto_enabling_integrations=False,
+        disabled_integrations=[ArgvIntegration()],
+        include_local_variables=False,
         traces_sample_rate=1.0,
         release=__version__,
         environment="runpod" if is_runpod() else "production",

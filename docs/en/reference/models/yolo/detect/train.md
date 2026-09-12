@@ -14,4 +14,8 @@ keywords: Ultralytics, YOLO, DetectionTrainer, training, object detection, machi
 
 ## ::: ultralytics.models.yolo.detect.train.DetectionTrainer
 
+<br><br><hr><br>
+
+## ::: ultralytics.models.yolo.detect.train.RefineDetectionTrainer
+
 <br><br>

@@ -823,6 +823,10 @@ class SolutionResults:
         region_counts (dict[str, int]): The count of objects within a specific region.
         speed_dict (dict[str, float]): A dictionary containing speed information for tracked objects.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
+        ocr_texts (list[str]): Text recognized for each OCR detection, aligned with its boxes, classes, and confidences.
+        boxes (list[list[int]]): Pixel coordinates of detections returned by solutions that expose bounding boxes.
+        classes (list[int]): Class indices aligned with the exposed detection boxes.
+        confidences (list[float]): Confidence scores aligned with the exposed detection boxes.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
     """
 

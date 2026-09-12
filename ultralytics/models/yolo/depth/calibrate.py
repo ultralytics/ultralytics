@@ -152,6 +152,7 @@ def _collect_logpairs(
     a0, b0 = float(head.cal_a), float(head.cal_b)
     head.cal_a.fill_(1.0)
     head.cal_b.fill_(0.0)
+    model = model.to(device).eval()
     _rewind(dataloader)
     rng = np.random.default_rng(0)
     pairs = []
@@ -251,9 +252,7 @@ def _plot_calibrated_batches(
     model = model.to(device).eval()
     titles = ["RGB", "GT", "raw", f"calibrated ({name} x{np.exp(b):.2f})"]
     plot_dir = Path(plot_dir)
-    _rewind(dataloader)
     with torch.no_grad():
-        # zip stops on range exhaustion without pulling an extra batch from the stateful iterator
         for ni, batch in zip(range(max_batches), dataloader):
             img = batch["img"].to(device).float() / 255
             gt = batch["depth"].to(device).float()

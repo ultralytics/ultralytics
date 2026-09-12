@@ -40,6 +40,10 @@ keywords: Ultralytics, Data Builders, InfiniteDataLoader, YOLO dataset, build.py
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.build.close_dataloader
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.build.check_source
 
 <br><br><hr><br>

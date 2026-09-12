@@ -35,8 +35,8 @@ Experience the power of next-generation object detection with the pretrained YOL
         | ---------------- | ----- | ------------ |
         | YOLO-NAS S       | 47.5  | 3.21         |
         | YOLO-NAS M       | 51.55 | 5.85         |
-        | YOLO-NAS L       | 52.22 | 7.87         |
-        | YOLO-NAS S INT-8 | 47.03 | 2.36         |
+        | YOLO-NAS L       | **52.22** | 7.87         |
+        | YOLO-NAS S INT-8 | 47.03 | **2.36**     |
         | YOLO-NAS M INT-8 | 51.0  | 3.78         |
         | YOLO-NAS L INT-8 | 52.1  | 4.78         |
 

@@ -74,8 +74,8 @@ This section details the models available with their specific pretrained weights
         | yolov8m-worldv2 | 43.0 | 58.4  | 46.8  |
         | yolov8l-world   | 45.7 | 61.3  | 49.8  |
         | yolov8l-worldv2 | 45.8 | 61.3  | 49.8  |
-        | yolov8x-world   | 47.0 | 63.0  | 51.2  |
-        | yolov8x-worldv2 | 47.1 | 62.8  | 51.4  |
+        | yolov8x-world   | 47.0 | **63.0**  | 51.2  |
+        | yolov8x-worldv2 | **47.1** | 62.8  | **51.4**  |
 
 ## Usage Examples
 

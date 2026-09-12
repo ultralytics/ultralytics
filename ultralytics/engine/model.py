@@ -858,7 +858,7 @@ class Model(torch.nn.Module):
             return self.metrics
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                args["resume"] = self.ckpt_path
+                args["resume"], args["data"] = self.ckpt_path, kwargs.get("data") or overrides.get("data")
             else:
                 LOGGER.warning(
                     f"model '{self.ckpt_path}' is not a resumable training checkpoint "

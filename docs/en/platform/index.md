@@ -81,7 +81,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation tools for 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported task types](data/annotation.md#supported-task-types))
 - **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), [SAM 3.1](../models/sam-3.md#sam-31) (default), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
@@ -252,7 +252,6 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
-- [**Autotraining**](autotraining.md): Use Ask AI to manage datasets, run experiments, compare models, and deploy
 - [**Explore**](explore.md): Browse and clone public datasets and projects
 - [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data
@@ -436,7 +435,7 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) or [SAM 3](../models/sam-3.md) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
 | Shortcut               | Action                            |

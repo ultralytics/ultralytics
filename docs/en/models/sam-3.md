@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover SAM 3, Meta's Segment Anything Model with Promptable Concept Segmentation that detects every instance of a text or image-exemplar concept across images and videos.
-keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
+description: Discover SAM 3 and SAM 3.1, Meta's Segment Anything Models with Promptable Concept Segmentation that detect every instance of a text or image-exemplar concept across images and videos.
+keywords: SAM 3, SAM 3.1, Segment Anything 3, SAM3, SAM3.1, SAM-3, Object Multiplex, concept segmentation, text prompt segmentation, open-vocabulary segmentation, zero-shot segmentation, instance segmentation, real-time segmentation, video segmentation, image segmentation, SAM 3 vs YOLO, SAM 3 vs SAM 2, SA-Co dataset, Meta, Ultralytics
 ---
 
 # SAM 3: Segment Anything with Concepts
@@ -21,7 +21,7 @@ keywords: SAM 3, Segment Anything 3, SAM3, SAM-3, concept segmentation, text pro
   <strong>Watch:</strong> How to Use Meta Segment Anything 3 with Ultralytics | Text-Prompt Segmentation on Images & Videos
 </p>
 
-SAM 3 is fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking.
+SAM 3 is fully integrated into the `ultralytics` package, providing native support for concept segmentation with text prompts, image exemplar prompts, and video tracking. The newer [SAM 3.1](#sam-31) checkpoint is supported for image prediction.
 
 ## Overview
 
@@ -52,6 +52,23 @@ This differs from traditional visual prompts (points, boxes, masks) which segmen
 | **Human Performance Gap**      | Achieves **88%** of estimated lower bound on SA-Co/Gold  |
 
 For context on model metrics and trade-offs in production, see [model evaluation insights](../guides/model-evaluation-insights.md) and [YOLO performance metrics](../guides/yolo-performance-metrics.md).
+
+## SAM 3.1
+
+[SAM 3.1](https://github.com/facebookresearch/sam3/blob/main/RELEASE_SAM3p1.md), released by Meta on March 27, 2026, is a new SAM 3 checkpoint that adds **Object Multiplex**, a shared-memory approach to multi-object video tracking. Instead of processing every tracked object independently, SAM 3.1 groups objects into fixed-capacity buckets and processes them jointly, which Meta reports as a **~7× speedup** at 128 objects on a single H100 GPU. The image detector and the interactive point-prompt head keep the SAM 3 architecture.
+
+| Benchmark                         | Metric | SAM 3 | SAM 3.1 |
+| --------------------------------- | ------ | ----- | ------- |
+| SA-Co/VEval SA-V (test)           | cgF1   | 30.3  | 30.5    |
+| SA-Co/VEval YT-Temporal-1B (test) | cgF1   | 50.8  | 52.9    |
+| SA-Co/VEval SmartGlasses (test)   | cgF1   | 36.4  | 36.3    |
+| MOSEv1 (val)                      | J&F    | 78.4  | 79.6    |
+| DAVIS17 (val)                     | J&F    | 92.2  | 92.7    |
+| SA-V (test)                       | J&F    | 84.4  | 85.1    |
+| YTVOS19 (val)                     | G      | 89.7  | 89.3    |
+| MOSEv2 (val)                      | J&Ḟ    | 60.3  | 62.3    |
+
+Ultralytics loads the SAM 3.1 checkpoint (`sam3.1_multiplex.pt`) into the SAM 3 image predictors: `SAM("sam3.1_multiplex.pt")` for point and box prompts, and `SAM3SemanticPredictor` for text and exemplar prompts. Object Multiplex video tracking is not supported yet, so keep using `sam3.pt` with `SAM3VideoPredictor` and `SAM3VideoSemanticPredictor`.
 
 ## Architecture
 
@@ -124,6 +141,8 @@ pip install -U ultralytics
 !!! warning "SAM 3 Model Weights Required"
 
     Unlike other Ultralytics models, SAM 3 weights (`sam3.pt`) are **not automatically downloaded**. You must first request access for the model weights on the [SAM 3 model page on Hugging Face](https://huggingface.co/facebook/sam3) and then, once approved, download `sam3.pt` from that page. Place the downloaded `sam3.pt` file in your working directory or specify the full path when loading the model.
+
+    [SAM 3.1](#sam-31) weights (`sam3.1_multiplex.pt`) are gated the same way on the [SAM 3.1 model page](https://huggingface.co/facebook/sam3.1). Pass `sam3.1_multiplex.pt` anywhere the image examples below use `sam3.pt`.
 
 !!! warning "`TypeError: 'SimpleTokenizer' object is not callable`"
 
@@ -598,7 +617,11 @@ SAM 3 was released by Meta on **November 19, 2025** and is fully integrated into
 
 ### Is SAM 3 Integrated Into Ultralytics?
 
-Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 also powers the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where you can annotate images with just a few clicks.
+Yes! SAM 3 is fully integrated into the Ultralytics Python package, including concept segmentation, SAM 2–style visual prompts, and multi-object video tracking. SAM 3 and SAM 3.1 also power the [smart annotation](../platform/data/annotation.md) feature on [Ultralytics Platform](https://platform.ultralytics.com), where SAM 3.1 is the default model and you can annotate images with just a few clicks.
+
+### Does Ultralytics support SAM 3.1?
+
+Yes, for image prediction. Load `sam3.1_multiplex.pt` wherever the image examples on this page use `sam3.pt`: `SAM("sam3.1_multiplex.pt")` for point and box prompts, and `SAM3SemanticPredictor` for text and exemplar prompts. Object Multiplex video tracking is not supported yet, so keep using `sam3.pt` with the video predictors. See [SAM 3.1](#sam-31) for Meta's benchmarks.
 
 ### What Is Promptable Concept Segmentation (PCS)?
 

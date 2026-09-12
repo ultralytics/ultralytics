@@ -380,7 +380,7 @@ def run_ray_tune(
     """
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     try:
-        checks.check_requirements("ray[tune]>=2.41.0", constrain=["pydantic>=2.0,<2.12"])
+        checks.check_requirements(["ray>=2.41.0", "ray[tune]"], constrain=["pydantic>=2.0,<2.12"])
 
         import ray
         from ray import tune

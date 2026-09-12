@@ -364,6 +364,65 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results[0].show()
         ```
 
+### Memory Bank Predict Usage
+
+`predict_memory` extracts the prompt embeddings and stores them in a memory bank that updates the model's class embeddings. Once the memory bank is populated, later calls without prompts predict directly from the stored embeddings, so prompts collected from one image can be reused on any number of following images.
+
+Pass `class_mode` to control how the class embeddings are built from the memory bank:
+
+- `"prototype"`: each class gets one embedding, the mean of its visual prompt embeddings. For text-labeled classes, that prototype is blended with the text embedding using the per-class weight given in `vp_weight` (defaults to 1, i.e. visual only).
+- `"retrieval"`: each class keeps multiple embeddings (one text embedding plus every visual prompt embedding). At inference the highest similarity across a class's embeddings is used as its score. This is more accurate but the cost grows with the number of stored embeddings, and `vp_weight` is unused since the embeddings are never combined.
+
+!!! example
+
+    === "Memory Bank and Multi-image Prompt"
+
+        ```python
+        import numpy as np
+
+        from ultralytics import YOLOE
+        from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
+
+        model = YOLOE("yoloe-26l-seg.pt")
+
+        # Run inference on an image, using the provided visual prompts as guidance
+        results1 = model.predict_memory(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts={
+                "bboxes": np.array(
+                    [
+                        [221.52, 405.8, 344.98, 857.54],  # Box enclosing person
+                    ]
+                ),
+                # A string cls also pulls in the text embedding and blends it with the visual prompt embedding
+                "cls": ["person"],
+            },
+            vp_weight={"person": 0.5},  # weight of the visual prompt relative to the text embedding, per class
+            class_mode="prototype",  # the default, one mean embedding per class
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Add another visual prompt on the same image
+        results2 = model.predict_memory(
+            "ultralytics/assets/bus.jpg",
+            visual_prompts={
+                "bboxes": np.array(
+                    [
+                        [120, 425, 160, 445],  # Box enclosing glasses
+                    ]
+                ),
+                "cls": [0],  # an int cls stores a visual-only entry, detected as class "object0"
+            },
+            predictor=YOLOEVPSegPredictor,
+        )
+
+        # Predict on a new image with no prompts, reusing the stored text and visual prompt embeddings
+        results3 = model.predict_memory(
+            "ultralytics/assets/zidane.jpg",
+            conf=0.1,  # a lower confidence threshold helps when predicting across images
+        )
+        ```
+
 ### Val Usage
 
 Validation runs like any other model on a segmentation dataset:

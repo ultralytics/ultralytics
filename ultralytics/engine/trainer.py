@@ -1160,6 +1160,8 @@ class BaseTrainer:
 
         if name in {"Adam", "Adamax", "AdamW", "NAdam", "RAdam"}:
             optim_args = {"lr": lr, "betas": (momentum, 0.999), "weight_decay": 0.0}
+            if name in {"Adam", "AdamW"} and TORCH_2_0 and next(model.parameters()).is_cuda:
+                optim_args["fused"] = True  # one kernel per group, and GradScaler skips its host-side found_inf sync
         elif name == "RMSprop":
             optim_args = {"lr": lr, "momentum": momentum}
         elif name == "SGD" or name == "MuSGD":

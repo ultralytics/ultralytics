@@ -41,6 +41,23 @@ Here is an example of the YOLO dataset format for a single image with two object
     - The length of each row does **not** have to be equal.
     - Each segmentation label must have a **minimum of 3 `(x, y)` points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
 
+### RLE rows
+
+A polygon row holds one closed ring, so it cannot describe an object split into several pieces or one with a hole in it. For those objects a row may instead carry a run-length encoded mask:
+
+```text
+<class-index> rle <height> <width> <counts>
+```
+
+`<height>` and `<width>` are the pixel size of the mask, and `<counts>` is the [COCO](../detect/coco.md) compressed RLE string, the same value found in a COCO JSON `segmentation.counts` field. The literal `rle` keyword marks the row, so polygon rows and RLE rows can be mixed in one file and in one dataset.
+
+```text
+0 0.681 0.485 0.670 0.487 0.676 0.487
+1 rle 48 64 e7j0f000000000000000000000000000000ol0KVSO00000000000000000000000000000000000l6
+```
+
+[`convert_coco`](../../reference/data/converter.md) writes an RLE row whenever an annotation is an RLE mask or holds more than one polygon, which keeps disjoint pieces separate instead of joining them with a thin bridge.
+
 ### Dataset YAML format
 
 The Ultralytics framework uses a YAML file format to define the dataset and model configuration for training Segmentation Models. Here is an example of the YAML format used for defining a segmentation dataset:

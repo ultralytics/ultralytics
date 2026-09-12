@@ -1216,11 +1216,13 @@ class RandomPerspective(BaseTransform):
         keypoints = instances.keypoints
         # Update bboxes if there are segments.
         if len(segments):
-            bboxes, segments = self.apply_segments(segments, M, params["size"])
+            bboxes, segments = self.apply_segments(segments, M, params["size"], instances.seg_idx)
 
         if keypoints is not None:
             keypoints = self.apply_keypoints(keypoints, M, params["size"])
-        new_instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+        new_instances = Instances(
+            bboxes, segments, keypoints, bbox_format="xyxy", normalized=False, seg_idx=instances.seg_idx
+        )
         # Clip
         new_instances.clip(*params["size"], preserve_obb=self.preserve_obb)
 
@@ -1269,9 +1271,9 @@ class RandomPerspective(BaseTransform):
         return np.concatenate((x.min(1), y.min(1), x.max(1), y.max(1)), dtype=bboxes.dtype).reshape(4, n).T
 
     def apply_segments(
-        self, segments: np.ndarray, M: np.ndarray, size: tuple[int, int]
+        self, segments: np.ndarray, M: np.ndarray, size: tuple[int, int], seg_idx: np.ndarray | None = None
     ) -> tuple[np.ndarray, np.ndarray]:
-        """Transform segments and derive their bounding boxes."""
+        """Transform segment parts and derive one bounding box per instance from all of its parts."""
         n, num = segments.shape[:2]
         if n == 0:
             return [], segments
@@ -1282,10 +1284,21 @@ class RandomPerspective(BaseTransform):
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]
         segments = xy.reshape(n, -1, 2)
-        bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
+        if seg_idx is None:  # one part per instance, so a part is already the whole mask
+            bboxes = np.stack([segment2box(xy, size[0], size[1]) for xy in segments], 0)
+            box = bboxes
+        else:
+            bboxes = np.stack(
+                [
+                    segment2box(segments[seg_idx == i].reshape(-1, 2), size[0], size[1])
+                    for i in range(seg_idx.max() + 1)
+                ],
+                0,
+            )
+            box = bboxes[seg_idx]
         if not self.preserve_obb:
-            segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
-            segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
+            segments[..., 0] = segments[..., 0].clip(box[:, 0:1], box[:, 2:3])
+            segments[..., 1] = segments[..., 1].clip(box[:, 1:2], box[:, 3:4])
         return bboxes, segments
 
     def apply_keypoints(self, keypoints: np.ndarray, M: np.ndarray, size: tuple[int, int]) -> np.ndarray:
@@ -1987,8 +2000,9 @@ class CopyPaste(BaseMixTransform):
         selected = params["selected"]
         im_new = params["im_new"]
 
+        groups = instances2.segment_groups()
         for j in selected:
-            cv2.drawContours(im_new, instances2.segments[[j]].astype(np.int32), -1, 1, cv2.FILLED)
+            cv2.fillPoly(im_new, groups[j].astype(np.int32), 1)
 
         result = params.get("labels2_img")
         if result is None:
@@ -2222,7 +2236,13 @@ class Albumentations(BaseTransform):
                 if n:
                     segment_lost = lost[:n].reshape(segments.shape[:2])
                     segment_points = moved[:n].reshape(segments.shape)
-                    i = i[~segment_lost.all(1)[i]]
+                    part_kept = ~segment_lost.all(1)
+                    if instances.seg_idx is None:
+                        kept = part_kept
+                    else:  # an instance survives if any of its parts survives
+                        kept = np.zeros(len(cls), bool)
+                        np.logical_or.at(kept, instances.seg_idx, part_kept)
+                    i = i[kept[i]]
                     for segment, missing in zip(segment_points, segment_lost):
                         v = np.flatnonzero(~missing)
                         if len(v) and missing.any():
@@ -2241,11 +2261,26 @@ class Albumentations(BaseTransform):
                     if self.flip_idx and reflected:
                         keypoints = np.ascontiguousarray(keypoints[:, self.flip_idx])
                 if n:
-                    segments = moved[:n].reshape(segments.shape)[i]
-                    bboxes = np.array([segment2box(s, w, h) for s in segments], np.float32).reshape(-1, 4)
-                    segments[..., 0] = segments[..., 0].clip(bboxes[:, 0:1], bboxes[:, 2:3])
-                    segments[..., 1] = segments[..., 1].clip(bboxes[:, 1:2], bboxes[:, 3:4])
-                    instances = Instances(bboxes, segments, keypoints, bbox_format="xyxy", normalized=False)
+                    if instances.seg_idx is None:
+                        order, seg_idx = i, None
+                    else:  # drop lost parts, renumber the rest onto the kept instances
+                        new_id = np.full(len(cls), -1)
+                        new_id[i] = np.arange(len(i))
+                        mapped = np.where(~part_kept, -1, new_id[instances.seg_idx])
+                        order = np.argsort(mapped, kind="stable")
+                        order = order[mapped[order] >= 0]
+                        seg_idx = mapped[order]
+                    segments = moved[:n].reshape(segments.shape)[order]
+                    parts = (
+                        segments if seg_idx is None else [segments[seg_idx == k].reshape(-1, 2) for k in range(len(i))]
+                    )
+                    bboxes = np.array([segment2box(s, w, h) for s in parts], np.float32).reshape(-1, 4)
+                    box = bboxes if seg_idx is None else bboxes[seg_idx]
+                    segments[..., 0] = segments[..., 0].clip(box[:, 0:1], box[:, 2:3])
+                    segments[..., 1] = segments[..., 1].clip(box[:, 1:2], box[:, 3:4])
+                    instances = Instances(
+                        bboxes, segments, keypoints, bbox_format="xyxy", normalized=False, seg_idx=seg_idx
+                    )
                     instances.normalize(w, h)
                 else:
                     if keypoints is not None:
@@ -2485,7 +2520,7 @@ class Format(BaseTransform):
             - If self.mask_overlap is False, each mask is represented separately.
             - Masks are downsampled according to self.mask_ratio.
         """
-        segments = instances.segments
+        segments = instances.segment_groups()
         if self.mask_overlap:
             masks, sorted_idx = polygons2masks_overlap((h, w), segments, downsample_ratio=self.mask_ratio)
             masks = masks[None]  # (640, 640) -> (1, 640, 640)

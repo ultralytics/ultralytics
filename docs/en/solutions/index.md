@@ -35,6 +35,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Object Counting](../guides/object-counting.md): Learn to perform real-time object counting with YOLO26. Gain the expertise to accurately count objects in live video streams.
 - [Object Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO26 for accurate detection in varied areas.
 - [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO26 for precise extraction of objects from images and videos.
+- [Detection to OCR](../guides/object-ocr.md): Run a user-provided OCR callable on regions detected by a YOLO model.
 - [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
 - [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
 - [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.

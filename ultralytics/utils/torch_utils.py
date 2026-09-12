@@ -841,6 +841,7 @@ class ModelEMA:
         for p in self.ema.parameters():
             p.requires_grad_(False)
         self.enabled = True
+        self._pairs = None  # (ema tensors, model tensors) with floating dtype, built on the first update
 
     def update(self, model):
         """Update EMA parameters.
@@ -852,12 +853,15 @@ class ModelEMA:
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = unwrap_model(model).state_dict()  # model state_dict
-            ema_v, model_v = [], []
-            for k, v in self.ema.state_dict().items():
-                if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    ema_v.append(v)
-                    model_v.append(msd[k])
+            if self._pairs is None:  # the tensors are updated in place, so the lists are built once
+                msd = unwrap_model(model).state_dict()  # model state_dict
+                ema_v, model_v = [], []
+                for k, v in self.ema.state_dict().items():
+                    if v.dtype.is_floating_point:  # true for FP16 and FP32
+                        ema_v.append(v)
+                        model_v.append(msd[k])
+                self._pairs = ema_v, model_v
+            ema_v, model_v = self._pairs
             if (
                 ema_v and TORCH_2_0 and ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps")
             ):  # one kernel launch per op

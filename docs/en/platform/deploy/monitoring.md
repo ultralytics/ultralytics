@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Deployment Monitoring
 comments: true
-description: Monitor deployed YOLO models with live RTSP previews, captured predictions, performance charts, runtime metrics, and logs on Ultralytics Platform.
+description: Monitor deployed YOLO models with live prediction statistics, temporary examples, dataset saving, endpoint metrics, and logs on Ultralytics Platform.
 keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performance, YOLO, observability
 ---
 
 # Monitoring
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Review captured predictions, connect an RTSP camera for live inference, and track prediction quality and endpoint performance alongside logs and health checks.
+[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Paid dedicated endpoints also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
 
 ![Ultralytics Platform Deploy Page Overview Cards And World Map](https://cdn.ul.run/i/39e125429eb799c95eb006398e8ab6a4.avif)<!-- screenshot -->
 
@@ -23,7 +23,7 @@ graph TB
         Cards --- List[Deployments List]:::decide
     end
     subgraph "Per Ready Deployment"
-        Monitoring[Monitoring Tab]:::out
+        Monitoring[Monitoring Tab: Paid Endpoints]:::out
         Metrics[Metrics Row]:::out
         Health[Health Check]:::out
         Logs[Logs Tab]:::out
@@ -79,11 +79,11 @@ Click any region to open the `New Deployment` dialog. The map is hidden on small
 
 Below the overview cards, the deployments list shows all endpoints across your projects. Use the view mode toggle to switch between:
 
-| View        | Description                                                                  |
-| ----------- | ---------------------------------------------------------------------------- |
-| **Cards**   | Full detail cards with monitoring, logs, code, and predict tabs              |
-| **Compact** | Grid of smaller cards (1-4 columns) with key metrics                         |
-| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors |
+| View        | Description                                                                       |
+| ----------- | --------------------------------------------------------------------------------- |
+| **Cards**   | Full detail cards with metrics, logs, code, predict, and eligible monitoring tabs |
+| **Compact** | Grid of smaller cards (1-4 columns) with key metrics                              |
+| **Table**   | DataTable with sortable columns: Name, Region, Status, Requests, P95, Errors      |
 
 !!! tip "Real-Time Updates"
 
@@ -127,116 +127,72 @@ sending traffic.
 
 ## Monitoring Tab
 
-For paid endpoints, **Monitoring** is the first tab on a **Ready** deployment. It contains the camera preview, **Last Predictions**, and prediction and runtime charts, in that order. Free endpoints do not show this tab.
+Open **Deploy**, switch to **Cards** view, and select **Monitoring** on a **Ready**, paid dedicated endpoint. Send an image through its **Predict** tab or endpoint API to populate **Temporary Examples** and **Prediction Statistics**. Before the first processed image, the tab shows **No images processed**.
 
-Send an image through the endpoint's `Predict` tab or API to start collecting prediction data. You can also connect an RTSP camera to run continuous inference.
+!!! note "Endpoint Eligibility"
 
-!!! note "Paid Instances Required"
+    Monitoring requires a paid, uptime-billed endpoint running a monitoring-capable runtime. An included endpoint does not gain this tab from a paid workspace plan alone. See [Dedicated Endpoints](endpoints.md) for resource configuration. Existing endpoints are not automatically updated with every runtime release, so an older endpoint may show **Monitoring unavailable** until its runtime is updated.
 
-    The Monitoring tab, including camera previews, captured predictions, and charts, is available only on paid instances. A free instance does not show Monitoring, even if your workspace has a paid plan.
+<!-- Screenshot placeholder: Ready paid endpoint with Monitoring selected, Temporary Examples, and Prediction Statistics. -->
 
-### CPU and Memory Configuration
+!!! warning "Temporary Data"
 
-Choose **CPU** and **Memory** when creating an endpoint to provision a more powerful instance for larger models or higher inference throughput. Available options range from **1 to 8 vCPU** and **2 to 32 GiB** of memory; the dialog validates supported combinations and shows the estimated endpoint cost.
+    Examples and prediction statistics are held in the serving instance's memory. They reset when the instance restarts or is replaced, including during redeployment. This is temporary inspection history; save useful examples to a dataset to keep them.
 
-To resize an existing endpoint:
+### Temporary Examples
 
-1. Find the **Ready** deployment in cards view.
-2. Click its **Update configuration** icon.
-3. Select the CPU and memory allocation and review the cost estimate.
-4. Click **Update Configuration**. The endpoint keeps serving its current configuration until the new one is ready.
+The gallery contains a rolling sample of processed images with prediction overlays. Open an image to inspect its predictions in the full-screen viewer and use the visibility controls to adjust the overlays. The gallery initially shows up to 12 examples; **Show all** expands it.
 
-Use **CPU & RAM Usage**, **Prediction Latency**, and the camera's **Frame Rate** chart to assess the change. More CPU can improve inference throughput, while more memory provides room for larger workloads; a larger instance does not guarantee that inference FPS will match source FPS.
+- **Sampling:** Up to two examples initially, then up to one additional image per minute. Capture is best effort; inference does not wait for example encoding.
+- **Capacity:** At most 100 images within a shared 100 MiB memory budget for compressed images, prediction metadata, and associated assets. The interface labels this budget as **100 MB**.
+- **Replacement:** Older examples are replaced when either limit is reached. An example may become unavailable while you are viewing it.
+- **Storage:** Temporary examples remain in endpoint memory. Saving them to a dataset uses normal workspace storage and processing limits.
 
-### Live Camera Preview
+<!-- Screenshot placeholder: Temporary Examples gallery and an example open in the prediction viewer. -->
 
-Connect a camera from the top of the `Monitoring` tab:
+### Save Examples to a Dataset
 
-1. Click **Connect** to open the **Connect Camera** dialog.
-2. Enter the camera's **RTSP URL**, for example `rtsp://camera.example.com/stream`.
-3. Click **Connect**. The dialog closes after the request is accepted; the preview shows the connection status while the camera starts.
-4. Once frames arrive, use the **Annotations** toggle to switch between the original image and model predictions.
+Workspace members with content editing permission can save examples to a dataset in the endpoint's workspace:
 
-Hover over the preview to reveal the **Disconnect camera** stop button in the top-right corner. To change the camera URL, disconnect first, then click **Connect** again.
+1. Select individual examples using their checkboxes, or click **Select all**.
+2. Click **Save to dataset**.
+3. Choose an existing dataset with the same task as the deployed model. Connected-source datasets are excluded; create a compatible dataset first if none is available.
+4. Click the **Save** button, which shows the selected image count, then open the dataset to follow processing.
 
-!!! note "Camera Connectivity"
+Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training.
 
-    The camera must be reachable from the deployed endpoint, not just from your browser or local network. Include credentials in the RTSP URL if the camera requires authentication. A connecting state means the request was accepted, not that frames are already arriving.
+<!-- Screenshot placeholder: Selected temporary examples and the Save examples to dataset dialog with a compatible dataset. -->
 
-The preview displays the latest camera frames on the left and session statistics on the right. Statistics appear only after camera data arrives:
+To remove temporary examples, use an image's hover trash control or select examples and click the bulk trash button, then confirm **Delete**. Deleting examples leaves aggregate prediction statistics and images already saved to datasets unchanged.
 
-| Metric                | Description                                                                                  |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| **Session coverage**  | Percentage of received source frames processed by the model during this session              |
-| **Uptime / downtime** | Time the camera session has spent receiving frames versus waiting for frames                 |
-| **Last frame**        | Time of the most recently received frame                                                     |
-| **Frame Rate**        | Source and inference FPS, shown as rolling 5-second averages over the recent session history |
+### Prediction Statistics
 
-Source FPS measures incoming frames; inference FPS measures frames processed by the model. Inference FPS can be lower when the model cannot process every source frame. Compare them when choosing a model, image size, or endpoint resources.
+Statistics aggregate processed images independently of gallery sampling. Deleting or replacing an example does not subtract its contribution. The summary shows images, predictions, and images without predictions for the selected period; depth models show image counts.
 
-### Last Predictions
+The date picker defaults to the last **30 days** and accepts ranges up to **365 days**. Selected dates use **UTC** boundaries; chart timestamps display in local time. Recent ranges of up to three days use hourly history when the full range falls within the last 72 hours; other ranges use daily history. The date range filters statistics, while the gallery continues to show the current temporary examples.
 
-**Last Predictions** shows up to the latest **100 captured images**, retained for up to **30 days**. Use the view toggle to switch between cards, compact, and table views. Cards and compact views initially show three rows; click **Show all** to expand the gallery. Click an image to inspect its predictions in the full-screen viewer, and use the visibility controls to show or hide annotations and labels.
+History is bounded to **72 hourly buckets** and **365 daily buckets**, and is available only since the current instance started. A selected period with no processed images shows **No images processed in this period**.
 
-!!! info "Sampled Predictions"
+Available charts depend on the task and collected predictions:
 
-    Captures are best-effort samples, not a recording of every prediction or camera frame. Images count toward workspace storage. Inference continues when capture is busy or storage is full, so gallery counts can differ from request counts and live inference activity.
+| Chart                     | What it shows                                                                                                   |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Predictions over Time** | Processed image and prediction totals; depth models show **Images over Time**                                   |
+| **Inference Time**        | Mean model inference time in milliseconds, excluding network and request overhead                               |
+| **Top Classes**           | Prediction counts by class                                                                                      |
+| **Predictions per Image** | Distribution including images with no predictions and a final **100+** bin; hidden for classification and depth |
+| **Prediction Confidence** | Confidence distribution and mean, when confidence scores are available                                          |
+| **Confidence over Time**  | Mean prediction confidence for each time bucket                                                                 |
+| **Prediction Dimensions** | Prediction width and height relative to the input image, when box dimensions are available                      |
+| **Prediction Locations**  | Spatial heatmap of predictions, when location data is available                                                 |
 
-To reuse predictions for training:
+<!-- Screenshot placeholder: Prediction Statistics with the date picker, time series, confidence distribution, and spatial charts. -->
 
-1. Select images in **Last Predictions**.
-2. Click **Add to dataset**.
-3. Choose a dataset and split, then confirm.
+!!! tip "Interpreting Statistics"
 
-Selected images move into the dataset with their predictions as labels. Duplicate images remain in **Last Predictions**. Review the predicted labels before using them for training.
+    Confidence measures the model's certainty, not correctness. Inspect examples and compare against reviewed labels when assessing accuracy. **Inference Time** measures model execution; the deployment's **P95 Latency** includes request handling and can also reflect non-inference traffic such as health checks.
 
-### Chart Controls
-
-The grouping, interval, and date controls appear **below Last Predictions** and apply to the charts and metrics that follow. They do not filter the image gallery or camera preview.
-
-| Control        | Options                                              |
-| -------------- | ---------------------------------------------------- |
-| **Group by**   | **No grouping** or **Class**, for tasks with classes |
-| **Interval**   | **Hourly**, **Daily**, or **Monthly**                |
-| **Date range** | Defaults to today; select a range of up to 366 days  |
-
-Hourly intervals support up to 31 days. Selecting a longer range switches the interval to daily. Class grouping shows the top 20 classes in applicable charts.
-
-### Prediction Charts
-
-Prediction charts describe captured samples. Available charts depend on the model task and collected data:
-
-| Chart                                             | What it shows                                                                     |
-| ------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **Prediction Volume**                             | Captured images and predictions over time, or counts by class                     |
-| **Images by Predicted Class**                     | Percentage of images containing each class; one image can contain several classes |
-| **Predictions per Image**                         | Number of predictions per captured image                                          |
-| **Confidence over Time**                          | Mean prediction confidence over the selected period                               |
-| **Confidence Distribution / Confidence by Class** | Confidence in 5% bands and mean confidence for each top class                     |
-| **Prediction locations**                          | Heatmap of where predictions occur within images                                  |
-| **Image and bounding box dimensions**             | Width, height, aspect ratio, and bounding box area distributions                  |
-| **Prediction Latency**                            | Prediction call duration before capture, with approximate percentiles             |
-| **Latency Distribution**                          | Distribution of prediction call durations in milliseconds                         |
-
-!!! tip "Confidence Is Not Accuracy"
-
-    Confidence describes the model's predictions, not their correctness. Use changes in confidence or class distribution to identify samples worth reviewing, then validate accuracy against labeled data.
-
-### Runtime Metrics
-
-Runtime charts describe endpoint activity, including requests other than inference:
-
-| Chart                     | What it shows                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------- |
-| **Requests and Errors**   | All endpoint requests, responses with 4xx or 5xx status, and server errors separately |
-| **Observed Availability** | Percentage of requests without server errors; periods without requests are unobserved |
-| **CPU & RAM Usage**       | Mean resource utilization across serving instances                                    |
-
-Observed availability is request-based, while the camera's uptime and downtime describe its current stream session. Prediction latency measures prediction calls; runtime request metrics also include traffic such as health checks.
-
-!!! info "Automatic Updates"
-
-    Last Predictions and camera connection details refresh every 5 seconds. The live preview streams frames as they arrive. Prediction charts and runtime metrics refresh every 60 seconds while displayed; new data can take additional time to appear after collection.
+Monitoring refreshes about every **2 seconds** while its panel is open and visible. Polling pauses when the panel is offscreen or the browser tab is hidden. Successful inference through the deployment's **Predict** tab also triggers a statistics refresh.
 
 ## Logs
 
@@ -373,31 +329,13 @@ Returns the full metrics payload for a deployment: a `summary` block with total 
 average, P50, P95, and P99 latency, plus `timeSeries` arrays for requests, errors, P50 and P95 latency, CPU and memory
 utilization, and instance count.
 
-| Parameter    | Type   | Description                                                                 |
-| ------------ | ------ | --------------------------------------------------------------------------- |
-| `range`      | string | Time range: `1h`, `6h`, `24h`, `7d`, or `30d` (default `24h`)               |
-| `sparkline`  | bool   | Return the compact dashboard summary instead of the full payload            |
-| `from`, `to` | string | Optional ISO 8601 start and end timestamps; supply both to override `range` |
-| `interval`   | string | Bucket size for explicit dates: `hour`, `day`, or `month` (default `day`)   |
+| Parameter   | Type   | Description                                                      |
+| ----------- | ------ | ---------------------------------------------------------------- |
+| `range`     | string | Time range: `1h`, `6h`, `24h`, `7d`, or `30d` (default `24h`)    |
+| `sparkline` | bool   | Return the compact dashboard summary instead of the full payload |
 
 With `sparkline=true`, the response is the compact form the deployment cards use — 24 hourly request counts plus total
 requests, error rate, and average latency. This is the call that refreshes every 60 seconds.
-
-### Prediction Statistics
-
-```http
-GET /api/deployments/{owner}/{deployment}/statistics?from=2026-09-01T00:00:00Z&to=2026-09-02T00:00:00Z&interval=hour
-```
-
-Returns aggregated statistics for captured predictions, including volume, classes, confidence, dimensions, locations, and prediction latency. Supply `from` and `to` as ISO 8601 timestamps and an `interval` of `hour`, `day`, or `month`. Hourly queries support up to 31 days; daily and monthly queries support up to 366 days. The same limits apply to explicit date ranges on the metrics route.
-
-### Captured Images
-
-```http
-GET /api/deployments/{owner}/{deployment}/images
-```
-
-Returns the latest captured images and their prediction metadata, newest first. Add `?imageId=IMAGE_ID` to retrieve an individual capture with its labels for detailed inspection.
 
 ### Deployment Logs
 
@@ -479,11 +417,14 @@ Use monitoring data to optimize your deployments:
 
 ### How long is data retained?
 
-Captured images are retained for up to **30 days**, with the latest **100** available in Last Predictions. Move images you want to keep into a dataset before they expire.
+**Prediction statistics and temporary examples** last only for the serving instance's lifetime, within the bucket and gallery limits described above. Restarting or redeploying clears them. Only examples successfully saved to a dataset persist independently of the endpoint.
 
-The chart date picker supports queries of up to 366 days, depending on the selected interval and available history. The metrics API also supports preset windows from 1 hour through 30 days. A selectable range does not guarantee data exists for the whole period.
+**Operational metrics and logs** have separate history windows. The metrics API supports selectable windows from 1 hour through 30 days, sampled more coarsely as the window grows —
+1-minute buckets over 1 hour up to 4-hour buckets over 30 days. The deployment card shows the 20 most recent log
+entries; the logs API can return up to 200 entries per request and supports pagination.
 
-The deployment card shows the 20 most recent log entries; the logs API supports up to 200 entries per request and pagination. Deleting a deployment ends access to its monitoring history through the deployment routes.
+Metrics and logs are retained only while the deployment exists, so deleting a deployment also ends access to its history.
+Export anything you need to keep before deleting an endpoint.
 
 ### Can I monitor multiple endpoints together?
 

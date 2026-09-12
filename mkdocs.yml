@@ -176,6 +176,7 @@ nav:
       - OBB: tasks/obb.md
   - Models:
       - models/index.md
+      - YOLO27 (Coming Soon): models/yolo27.md
       - YOLO26 🚀: models/yolo26.md
       - YOLO12: models/yolo12.md
       - YOLO11: models/yolo11.md

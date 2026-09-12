@@ -1674,7 +1674,9 @@ class _SafeLoad:
                 for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
             if "ultralytics.nn.text_model.CLIP" in needed:
-                from ultralytics.nn.text_model import CLIP, clip
+                import clip
+
+                from ultralytics.nn.text_model import CLIP
 
                 for obj in (
                     CLIP,

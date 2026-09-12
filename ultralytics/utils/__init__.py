@@ -80,6 +80,15 @@ ARM64 = platform.machine() in {"arm64", "aarch64"}  # ARM64 booleans
 PYTHON_VERSION = platform.python_version()
 TORCH_VERSION = str(torch.__version__)  # Normalize torch.__version__ (PyTorch>1.9 returns TorchVersion objects)
 TORCHVISION_VERSION = importlib.metadata.version("torchvision")  # faster than importing torchvision
+# AMD ROCm wheel indexes for the MIGraphX EP plugin and its C library, release-coupled so they are pinned together
+# (ROCm 10 / MIGraphX 2.17 / onnxruntime 1.29).
+ROCM_EXTRA_INDEX = (
+    "--extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ "
+    "--extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/"
+)
+# The plugin declares only onnxruntime as a dependency, so migraphx-libs (libmigraphx_c.so) is named explicitly
+# (ROCm/AMDMIGraphX#5235). The migraphx Python bindings are not needed for the EP path.
+ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx", "migraphx-libs"]
 IS_VSCODE = os.environ.get("TERM_PROGRAM") == "vscode"
 RKNN_CHIPS = frozenset(
     {

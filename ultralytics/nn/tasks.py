@@ -1790,7 +1790,11 @@ class _SafeLoad:
         def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
-            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+            if isinstance(obj, nn.Module) and name in {"forward", "forward_fuse"}:
+                return getattr(type(obj), name).__get__(obj)
+            raise pickle.UnpicklingError(
+                f"unsafe getattr({type(obj).__name__}, {name!r}) blocked during restricted model load"
+            )
 
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e

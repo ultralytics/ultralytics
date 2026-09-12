@@ -394,8 +394,8 @@ download: |
   from ultralytics.utils.downloads import download
   from ultralytics.utils.ops import xyxy2xywhn
 
-  check_requirements("faster-coco-eval")
-  from faster_coco_eval import COCO
+  check_requirements("ultrafast-pycocotools>=0.1.7")
+  from ultrafast_pycocotools import COCO
 
   # Train, Val Splits
   dir = Path(yaml["path"])

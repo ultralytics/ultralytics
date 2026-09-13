@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, machine learning, model training, validation, pre
 
 Ultralytics YOLO26 is not just another object detection model; it's a versatile framework designed to cover the entire lifecycle of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models—from data ingestion and model training to validation, deployment, and real-world tracking. Each mode serves a specific purpose and is engineered to offer you the flexibility and efficiency required for different tasks and use cases.
 
+For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#usage-examples). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/j8uQc0qB91s?si=dhnGKgqvs7nPgeaM"

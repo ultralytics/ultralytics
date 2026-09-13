@@ -1,7 +1,7 @@
 ---
 comments: true
-description: Discover a variety of models supported by Ultralytics, including YOLO26 back to YOLOv3, NAS, SAM, and RT-DETR for detection, segmentation, semantic segmentation, depth estimation, and more.
-keywords: Ultralytics, supported models, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5, YOLOv4, YOLOv3, SAM3.1, SAM3, SAM2, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, YOLOE, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
+description: Discover a variety of models supported by Ultralytics, including YOLO26 back to YOLOv3, NAS, SAM, and RT-DETR, plus a preview of the upcoming YOLO27 for detection, segmentation, semantic segmentation, depth estimation, and more.
+keywords: Ultralytics, supported models, YOLO27, YOLO26, YOLO12, YOLO11, YOLOv10, YOLOv9, YOLOv8, YOLOv7, YOLOv6, YOLOv5, YOLOv4, YOLOv3, SAM3.1, SAM3, SAM2, SAM, MobileSAM, FastSAM, YOLO-NAS, RT-DETR, YOLO-World, YOLOE, object detection, image segmentation, semantic segmentation, depth estimation, classification, pose estimation, multi-object tracking
 ---
 
 # Models Supported by Ultralytics
@@ -14,7 +14,11 @@ Welcome to Ultralytics' model documentation! We offer support for a wide range o
 
 Start with [YOLO26](yolo26.md) for a new project: it is the latest Ultralytics release and the only one covering all seven tasks. [YOLO11](yolo11.md) is the mature alternative, with pretrained checkpoints for each of its five tasks. Pick a specialized family only when you need promptable segmentation ([SAM 3](sam-3.md)), open-vocabulary detection ([YOLOE](yoloe.md), [YOLO-World](yolo-world.md)), or a transformer detector ([RT-DETR](rtdetr.md)).
 
-The table lists every documented model with the tasks it covers, which of the [train, val, predict and export](../modes/index.md) modes Ultralytics supports for it, and when to choose it. [Track](../modes/track.md) is not listed separately: it runs on top of predict for Detect, Segment, Pose and OBB models, while SAM 2 and SAM 3 track through their own video predictors. [Benchmark](../modes/benchmark.md) is not listed either, because it wraps export and val across formats rather than adding support of its own.
+!!! info "YOLO27 — Coming Soon"
+
+    [YOLO27](yolo27.md) is undergoing final R&D for an anticipated launch later this year, with no set launch date. Preview its architecture, seven planned tasks, and preliminary benchmarks. Model weights and package support are not yet available; use YOLO26 for current projects.
+
+The table lists released models and architecture references with their tasks, supported [train, val, predict and export](../modes/index.md) modes, and recommended use cases. [Track](../modes/track.md) is not listed separately: it runs on top of predict for Detect, Segment, Pose and OBB models, while SAM 2 and SAM 3 track through their own video predictors. [Benchmark](../modes/benchmark.md) is not listed either, because it wraps export and val across formats rather than adding support of its own.
 
 | Model                           | Tasks                                                 | Modes                       | Choose it for                                                                                                                                                                                    |
 | ------------------------------- | ----------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -116,7 +120,9 @@ For detailed steps, consult our [Contributing Guide](../help/contributing.md).
 
 ### What is the latest Ultralytics YOLO model?
 
-The latest Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), classification, pose estimation, and OBB plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
+The latest released Ultralytics YOLO model is [YOLO26](yolo26.md), released in January 2026. YOLO26 features optional NMS-free end-to-end inference, optimized edge deployment, and supports detection, instance segmentation, [semantic segmentation](../tasks/semantic.md), [depth estimation](../tasks/depth.md), classification, pose estimation, and OBB plus open-vocabulary versions. For stable production workloads, both YOLO26 and [YOLO11](yolo11.md) are recommended choices.
+
+[YOLO27](yolo27.md) is the upcoming family, currently in final R&D. It is not yet available and has no set launch date.
 
 ### How can I train a YOLO model on custom data?
 

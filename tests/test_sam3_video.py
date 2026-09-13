@@ -1,5 +1,4 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
 """Tests for SAM3 video prediction via LoadNumpyFrames and the stream_inference lifecycle."""
 
 import cv2

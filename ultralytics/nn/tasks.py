@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import pickle
 import re
 import threading
 from copy import deepcopy
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -1665,6 +1667,20 @@ class _SafeLoad:
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
+            for name in needed:
+                module, _, attr = name.rpartition(".")
+                if name not in cls._registry and (
+                    module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
+                    or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
+                    or module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                ):
+                    obj = getattr(importlib.import_module(module), attr, None)
+                    if isinstance(obj, type) and (
+                        obj.__module__ == module
+                        if module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                        else issubclass(obj, nn.Module)
+                    ):
+                        cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):
                 # Classification preprocessing transforms; imported only for checkpoints that serialize them.
                 import torchvision.transforms.transforms as tvt
@@ -1672,7 +1688,25 @@ class _SafeLoad:
 
                 for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
-            entries = [cls._registry[name] for name in needed if name in cls._registry]
+            if "ultralytics.nn.text_model.CLIP" in needed:
+                import clip
+
+                from ultralytics.nn.text_model import CLIP
+
+                for obj in (
+                    CLIP,
+                    clip.model.CLIP,
+                    clip.model.LayerNorm,
+                    clip.model.QuickGELU,
+                    clip.model.ResidualAttentionBlock,
+                    clip.model.Transformer,
+                    clip.model.VisionTransformer,
+                    clip.clip._convert_image_to_rgb,
+                ):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            entries = [(cls._registry[name], name) for name in needed if name in cls._registry]
+            if "numpy.dtype" in needed:
+                entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
         cls._local.active = True
@@ -1713,55 +1747,17 @@ class _SafeLoad:
 
     @classmethod
     def _build(cls):
-        """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
-        every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
-        `head.RealNVP`), plus legacy aliases.
-
-        Returns:
-            (dict): `torch.serialization.add_safe_globals` entries — classes and `(obj, "module.Name")` aliases — keyed
-                by the pickled "module.Name" path each one serves.
-        """
+        """Build the known data globals and legacy aliases; model classes are resolved only when referenced."""
         import enum
-        import importlib
-        import inspect
         import pathlib
-        import pkgutil
 
-        import torch.nn.modules as torch_nn
-
-        import ultralytics.nn.modules as ul_nn
         import ultralytics.utils.loss as ul_loss
-        import ultralytics.utils.tal as ul_tal
-        from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
 
-        def _scan(pkg):
-            mods = [pkg]
-            if hasattr(pkg, "__path__"):  # package: include all submodules
-                for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
-                    try:
-                        mods.append(importlib.import_module(info.name))
-                    except Exception:  # noqa: S112  # optional/oddball submodule — skip
-                        continue
-            for mod in mods:
-                for name, klass in inspect.getmembers(mod, inspect.isclass):
-                    if issubclass(klass, nn.Module):
-                        # Register under the path the class is reachable from — matches how a checkpoint pickled it.
-                        allow.append((klass, f"{mod.__name__}.{name}"))
-
-        _scan(torch_nn)  # PyTorch nn modules
-        _scan(ul_nn)  # ultralytics block/conv/head/transformer
-        _scan(ul_tasks)  # ultralytics task models
-
-        # Criteria pickled inside pre-8.4.95 checkpoints (`ema.criterion` is stripped at save since then): the plain
-        # loss classes plus the nn.Module box losses and assigners they hold.
-        for mod in (ul_loss, ul_tal):
-            allow += [
-                klass for _, klass in inspect.getmembers(mod, inspect.isclass) if klass.__module__ == mod.__name__
-            ]
-
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
+        scalar = np.float64(0).__reduce__()[0]
+        allow += [np.dtype, (scalar, "numpy.core.multiarray.scalar"), (scalar, "numpy._core.multiarray.scalar")]
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
@@ -1769,7 +1765,11 @@ class _SafeLoad:
         def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
-            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+            if isinstance(obj, nn.Module) and name in {"forward", "forward_fuse"}:
+                return getattr(type(obj), name).__get__(obj)
+            raise pickle.UnpicklingError(
+                f"unsafe getattr({type(obj).__name__}, {name!r}) blocked during restricted model load"
+            )
 
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
@@ -1791,7 +1791,12 @@ class _SafeLoad:
                 (pathlib.PosixPath, "pathlib.WindowsPath"),
                 (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
             ]
-        return {(e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): e for e in allow}
+        return {
+            (e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): (
+                e[0] if isinstance(e, tuple) else e
+            )
+            for e in allow
+        }
 
 
 def torch_safe_load(weight, safe_only=None):

@@ -126,6 +126,8 @@ Persistent settings such as the datasets, weights, and runs directories, the [Ul
 
 Browse the [modes](modes/index.md) YOLO runs in and the [YOLO26](models/yolo26.md) model sizes, then [train on your own data](modes/train.md) after formatting it with the [Datasets guide](datasets/index.md).
 
+For a look ahead, explore [YOLO27 (Coming Soon)](models/yolo27.md). Its models are not yet available; the examples above use the released YOLO26 family.
+
 ## FAQ
 
 ### How do I install Ultralytics using pip?

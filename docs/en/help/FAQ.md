@@ -21,6 +21,10 @@ Ultralytics is a [computer vision](https://www.ultralytics.com/glossary/computer
 - Versatile [tools](../modes/index.md) for training, testing, and deploying models
 - [Extensive documentation](../index.md) and a supportive community
 
+### Is YOLO27 available yet?
+
+No. [YOLO27](../models/yolo27.md) is undergoing final R&D for an anticipated launch later this year, with no set launch date. The documentation previews its features, preliminary benchmarks, and examples for use after release. Continue using [YOLO26](../models/yolo26.md) for current projects.
+
 ### How do I install the Ultralytics package?
 
 Installing the Ultralytics package is straightforward using pip:

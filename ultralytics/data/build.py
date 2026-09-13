@@ -29,7 +29,6 @@ from ultralytics.data.dataset import (
 from ultralytics.data.loaders import (
     LOADERS,
     LoadImagesAndVideos,
-    LoadNumpyFrames,
     LoadPilAndNumpy,
     LoadScreenshots,
     LoadStreams,
@@ -474,10 +473,7 @@ def load_inference_source(
     elif screenshot:
         dataset = LoadScreenshots(source, channels=channels)
     elif from_img:
-        if isinstance(source, list) and all(isinstance(im, np.ndarray) for im in source):
-            dataset = LoadNumpyFrames(source, channels=channels)
-        else:
-            dataset = LoadPilAndNumpy(source, channels=channels)
+        dataset = LoadPilAndNumpy(source, channels=channels)
     else:
         dataset = LoadImagesAndVideos(source, batch=batch, vid_stride=vid_stride, channels=channels)
 

@@ -1,33 +1,30 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Ultralytics AGPL-3.0 License - https://ultralytics.com/license
+"""Tests for SAM3 video prediction via LoadNumpyFrames and the stream_inference lifecycle."""
 
-"""Tests for SAM3 video prediction via LoadNumpyFrames and stream_inference lifecycle."""
-
+import cv2
 import numpy as np
 import pytest
 
 from ultralytics.data.loaders import LoadNumpyFrames
+from ultralytics.utils import ASSETS, WEIGHTS_DIR
 
 
 def _sam3_available():
     """Check if sam3.pt weights are available."""
-    from pathlib import Path
-
-    from ultralytics.utils import SETTINGS
-
-    weights_dir = Path(SETTINGS["weights_dir"])
-    return (weights_dir / "sam3.pt").exists()
+    return (WEIGHTS_DIR / "sam3.pt").exists()
 
 
 def _distinct_frames(n=3, size=(64, 64)):
-    """Create n visually distinct BGR frames (different mean intensities)."""
-    return [np.full((*size, 3), fill_value=i * 50 + 10, dtype=np.uint8) for i in range(n)]
-
-
-# ---------------------------------------------------------------------------
-# LoadNumpyFrames unit tests
-# ---------------------------------------------------------------------------
+    """Create n distinct BGR frames from a real image with a moving marker, mimicking a short sequence."""
+    base = cv2.resize(cv2.imread(str(ASSETS / "bus.jpg")), size)
+    frames = []
+    for i in range(n):
+        frame = base.copy()
+        x = (i + 1) * size[1] // (n + 1)
+        cv2.rectangle(frame, (x - 5, 10), (x + 5, 30), (0, 0, 255), -1)
+        frames.append(frame)
+    return frames
 
 
 class TestLoadNumpyFrames:
@@ -85,11 +82,6 @@ class TestLoadNumpyFrames:
         assert not dataset.source_type.tensor
 
 
-# ---------------------------------------------------------------------------
-# Input validation (no model needed)
-# ---------------------------------------------------------------------------
-
-
 class TestPredictFramesValidation:
     """Input validation runs before any model setup."""
 
@@ -115,50 +107,35 @@ class TestPredictFramesValidation:
             predictor.predict_frames([np.zeros((8, 8, 3), dtype=np.uint8), "bad"])
 
 
-# ---------------------------------------------------------------------------
-# Real SAM3 end-to-end tests (skipped when weights unavailable)
-# ---------------------------------------------------------------------------
-
-
 @pytest.mark.skipif(not _sam3_available(), reason="sam3.pt weights not available offline")
 class TestPredictFramesEndToEnd:
     """Full-lifecycle tests using real SAM3 weights on short frame sequences."""
 
     @pytest.fixture
     def predictor(self):
-        from pathlib import Path
-
         from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
-        from ultralytics.utils import SETTINGS
 
-        weights_dir = Path(SETTINGS["weights_dir"])
-        return SAM3VideoSemanticPredictor(overrides={"model": str(weights_dir / "sam3.pt")})
+        return SAM3VideoSemanticPredictor(overrides={"model": str(WEIGHTS_DIR / "sam3.pt"), "vid_stride": 10})
 
     def test_returns_results_per_frame(self, predictor):
         frames = _distinct_frames(3)
-        results = predictor.predict_frames(frames, text=["object"])
+        results = predictor.predict_frames(frames, text=["bus"])
         assert len(results) == 3
 
     def test_temporal_continuity(self, predictor):
-        """Masks should evolve coherently across frames (not random per-frame)."""
+        """The tracker accumulates one state per frame, preserving memory across the sequence."""
         frames = _distinct_frames(4)
-        results = predictor.predict_frames(frames, text=["object"])
-        # Each result should have a valid mask attribute (non-None for video with text prompt)
-        for r in results:
-            assert hasattr(r, "masks")
+        predictor.predict_frames(frames, text=["bus"])
+        assert len(predictor.inference_state["tracker_inference_states"]) == len(frames)
 
     def test_clean_second_sequence(self, predictor):
-        """Second call must not leak state from the first."""
-        frames_a = _distinct_frames(3)
-        results_a = predictor.predict_frames(frames_a, text=["object"])
-        assert len(results_a) == 3
-
-        frames_b = _distinct_frames(2)
-        results_b = predictor.predict_frames(frames_b, text=["object"])
-        assert len(results_b) == 2
+        """A second call starts clean instead of leaking the first sequence's memory."""
+        predictor.predict_frames(_distinct_frames(3), text=["bus"])
+        predictor.predict_frames(_distinct_frames(2), text=["bus"])
+        assert len(predictor.inference_state["tracker_inference_states"]) == 2
 
     def test_callback_ordering(self, predictor):
-        """All standard lifecycle callbacks should fire."""
+        """All standard lifecycle callbacks fire in order through stream_inference."""
         fired = []
 
         def on_start(*a, **k):
@@ -178,11 +155,17 @@ class TestPredictFramesEndToEnd:
         predictor.add_callback("on_predict_batch_end", on_batch_end)
         predictor.add_callback("on_predict_end", on_end)
 
-        frames = _distinct_frames(2)
-        predictor.predict_frames(frames, text=["object"])
+        predictor.predict_frames(_distinct_frames(2), text=["bus"])
 
         assert "on_predict_start" in fired
         assert "on_predict_end" in fired
         assert fired.index("on_predict_start") < fired.index("on_predict_batch_start")
         assert fired.index("on_predict_batch_start") < fired.index("on_predict_batch_end")
         assert fired.index("on_predict_batch_end") < fired.index("on_predict_end")
+
+    def test_existing_video_input(self, predictor, solution_assets):
+        """The normal on-disk video path still drives the same lifecycle (no regression)."""
+        video = str(solution_assets("demo_video"))
+        results = predictor(video, text=["object"])
+        assert len(results) > 0
+        assert len(predictor.inference_state["tracker_inference_states"]) == len(results)

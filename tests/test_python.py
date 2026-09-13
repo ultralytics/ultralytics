@@ -239,16 +239,30 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
-def test_check_class_names_empty_warning(caplog):
+def test_check_class_names_empty_warning():
     """Verify empty class names warn with their indices instead of passing silently."""
     import logging
 
     from ultralytics.nn.autobackend import check_class_names
+    from ultralytics.utils import LOGGER
 
-    with caplog.at_level(logging.WARNING, logger="ultralytics"):
+    messages = []
+
+    class ListHandler(logging.Handler):
+        """Collect records directly; the ultralytics logger does not propagate, so caplog is unreliable."""
+
+        def emit(self, record):
+            messages.append(record.getMessage())
+
+    handler = ListHandler()
+    LOGGER.addHandler(handler)
+    try:
         assert check_class_names(["person", ""]) == {0: "person", 1: ""}
-    assert "Empty class name string(s) at class indices [1]" in caplog.text
-    assert check_class_names(["person", "car"]) == {0: "person", 1: "car"}  # valid names stay silent
+        assert any("Empty class name string(s) at class indices [1]" in m for m in messages)
+        assert check_class_names(["person", "car"]) == {0: "person", 1: "car"}  # valid names stay silent
+        assert not any("Empty class name" in m for m in messages)
+    finally:
+        LOGGER.removeHandler(handler)
 
 
 def test_restricted_load_threaded():

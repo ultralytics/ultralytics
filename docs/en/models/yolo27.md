@@ -5,11 +5,11 @@ description: Preview Ultralytics YOLO27 - four sizes, seven tasks, and NMS-free 
 keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI, real-time inference
 ---
 
+# Ultralytics YOLO27
+
 !!! info "YOLO27 is coming soon"
 
     YOLO27 models are undergoing final R&D, with a launch anticipated later this year. **The models are not yet available, and no launch date has been set.** This page previews the upcoming models; features and benchmarks may change before release. Code examples below are intended for use once the models and package support are released and will not work with the current public package. Model weights, configurations, and implementation code are not being released at this time.
-
-# Ultralytics YOLO27
 
 ## Overview
 

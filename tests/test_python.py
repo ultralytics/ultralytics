@@ -239,6 +239,18 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
+def test_check_class_names_empty_warning(caplog):
+    """Verify empty class names warn with their indices instead of passing silently."""
+    import logging
+
+    from ultralytics.nn.autobackend import check_class_names
+
+    with caplog.at_level(logging.WARNING, logger="ultralytics"):
+        assert check_class_names(["person", ""]) == {0: "person", 1: ""}
+    assert "Empty class name string(s) at class indices [1]" in caplog.text
+    assert check_class_names(["person", "car"]) == {0: "person", 1: "car"}  # valid names stay silent
+
+
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     import pathlib

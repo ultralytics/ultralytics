@@ -71,6 +71,8 @@ def check_class_names(names: list | dict) -> dict[int, str]:
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
             names = {k: names_map[v] for k, v in names.items()}
+        if empty := sorted(k for k, v in names.items() if not v.strip()):
+            LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
     return names
 
 

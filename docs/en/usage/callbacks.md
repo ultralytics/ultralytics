@@ -56,7 +56,7 @@ for result, frame in model.predict():  # or model.track()
 
 `model.train()` builds a training model from the model configuration and transfers the loaded weights into it. PyTorch
 hooks registered directly on `model.model` before this call are runtime state, so the rebuilt training model does not
-inherit them. Register hooks in `on_pretrain_routine_end`, after both the training model and its EMA copy exist:
+inherit them. Register training hooks in `on_pretrain_routine_end`, after model setup is complete:
 
 ```python
 from ultralytics import YOLO
@@ -69,21 +69,24 @@ def preprocess_input(module, inputs):
     return (images - images.mean(dim=(-2, -1), keepdim=True),)
 
 
-def register_forward_pre_hooks(trainer):
-    """Attach the same preprocessing to the training and validation models."""
+def register_forward_pre_hook(trainer):
+    """Attach preprocessing to the active training model."""
     train_model = unwrap_model(trainer.model)
     train_model.model[0].register_forward_pre_hook(preprocess_input)
-    trainer.ema.ema.model[0].register_forward_pre_hook(preprocess_input)
 
 
 model = YOLO("yolo26n.pt")
-model.add_callback("on_pretrain_routine_end", register_forward_pre_hooks)
+model.add_callback("on_pretrain_routine_end", register_forward_pre_hook)
 model.train(data="coco8.yaml", epochs=1)
 ```
 
-`unwrap_model()` handles both single-device and DistributedDataParallel training. The training hook applies during
-optimization, while the EMA hook applies during validation. Standalone `model.val()` and `model.predict()` calls do not
-rebuild the model, so hooks registered on the loaded `model.model` remain active for those calls.
+`unwrap_model()` handles both single-device and DistributedDataParallel training. Do not attach a locally defined hook
+to `trainer.ema.ema`, because training checkpoints serialize the EMA model and another process may not be able to import
+the callback when loading the checkpoint. If the same preprocessing must run during training validation, implement it
+as an importable model component instead of a runtime hook.
+
+Standalone `model.val()` and `model.predict()` calls do not rebuild the loaded model, so a hook registered directly on
+`model.model` remains active for that call. Register the hook again after loading a checkpoint in a new process.
 
 ### Access Model metrics using the `on_model_save` callback
 

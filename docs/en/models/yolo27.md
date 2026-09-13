@@ -5,18 +5,18 @@ description: Preview Ultralytics YOLO27 - four sizes, seven tasks, and NMS-free 
 keywords: YOLO27, Ultralytics YOLO, object detection, NMS-free, end-to-end detection, small object detection, computer vision, AI, real-time inference
 ---
 
+# Ultralytics YOLO27
+
 !!! info "YOLO27 is coming soon"
 
     YOLO27 models are undergoing final R&D, with a launch anticipated later this year. **The models are not yet available, and no launch date has been set.** This page previews the upcoming models; features and benchmarks may change before release. Code examples below are intended for use once the models and package support are released and will not work with the current public package. Model weights, configurations, and implementation code are not being released at this time.
-
-# Ultralytics YOLO27
 
 ## Overview
 
 [Ultralytics](https://www.ultralytics.com) YOLO27 is a family of real-time vision models whose detection models
 use two complementary designs: a streamlined CNN architecture for the compact N and S models, and a query-based,
-NMS-free architecture for the larger M and L models. Both designs are end-to-end and deploy through the same
-interface.
+NMS-free architecture for the larger M and L models. Both designs deploy through the same interface.
+N and S detection models default to the one-to-many head with NMS; use `nms=False` to select their NMS-free head.
 
 YOLO27 is the upcoming model family in the Ultralytics YOLO series, succeeding [YOLO26](yolo26.md). It comes in four
 sizes — N, S, M and L — and supports [object detection](../tasks/detect.md),
@@ -87,7 +87,7 @@ The following guidance is for choosing a model once YOLO27 is released. For proj
 - **YOLO27n / YOLO27s** — edge devices, drones, and real-time video: the fastest models in the family, with improved
   small-object detection from the dual-scale design. See [NVIDIA Jetson](../guides/nvidia-jetson.md) and
   [Raspberry Pi](../guides/raspberry-pi.md) for device-specific deployment.
-- **YOLO27m** — the accuracy-speed sweet spot on GPUs: improves on YOLO26m by 3.2 mAP at the same latency,
+- **YOLO27m** — the accuracy-speed sweet spot on GPUs: improves on YOLO26m accuracy at comparable latency,
   making it the default choice for production [GPU deployment](../guides/model-deployment-options.md).
 - **YOLO27l** — accuracy-critical applications: the first Ultralytics model above 60 mAP on COCO, reaching 61.2 mAP
   at a larger input size while staying real-time on GPU.
@@ -210,15 +210,11 @@ with `yolo val model=yolo27n.pt data=coco.yaml`.
         | YOLO27m-obb | 1024                        | 55.9                        | 82.6                     | 188.0 ± 0.7                          | 1.92 ± 0.00                                         | 22.8                     | 221.7                   |
         | YOLO27l-obb | 1024                        | **57.2**                    | **82.7**                 | 455.8 ± 1.1                          | 4.33 ± 0.00                                         | 68.7                     | 622.6                   |
 
-_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. Speed measurements select the NMS-free head with `nms=False`. Pretrained checkpoints retain the full training architecture and may show higher counts._
+_Params and FLOPs values are for the fused model after Conv/BatchNorm folding and removal of the unused detection branch. For detection, speed measurements select the NMS-free head with `nms=False`; N/S accuracy depends on the selected head. Pretrained checkpoints retain the full training architecture and may show higher counts._
 
 ---
 
 ## Usage Examples
-
-!!! info "For use after release"
-
-    These examples show the intended YOLO27 API once model weights and package support are released. They cannot be run with the current public `ultralytics` package.
 
 This section provides simple YOLO27 training and inference examples. For full documentation on these and other
 [modes](../modes/index.md), see the [Predict](../modes/predict.md), [Train](../modes/train.md),
@@ -259,8 +255,6 @@ detection](https://www.ultralytics.com/glossary/object-detection). For additiona
         # Load a COCO-pretrained YOLO27n model and train it on the COCO8 example dataset for 100 epochs
         yolo train model=yolo27n.pt data=coco8.yaml epochs=100 imgsz=640
         ```
-
-Only this documentation preview is available now. YOLO27 model weights, configurations, and implementation code remain unreleased. Release instructions will be added to this page when the models become available.
 
 ---
 
@@ -315,4 +309,4 @@ model = YOLO("yolo27n.pt")
 results = model("image.jpg")
 ```
 
-See the [Usage Examples](#usage-examples) section for training, validation, and export instructions.
+See [Usage Examples](#usage-examples) for training and inference examples, or the [Val](../modes/val.md) and [Export](../modes/export.md) guides for those modes.

@@ -240,7 +240,7 @@ def test_autobackend_memory_format(tmp_path):
 
 
 def test_check_class_names_empty_warning():
-    """Verify empty class names warn with their indices instead of passing silently."""
+    """Verify empty class names warn once per unique names mapping, with their indices, not pass silently."""
     import logging
 
     from ultralytics.nn.autobackend import check_class_names
@@ -259,6 +259,11 @@ def test_check_class_names_empty_warning():
     try:
         assert check_class_names(["person", ""]) == {0: "person", 1: ""}
         assert any("Empty class name string(s) at class indices [1]" in m for m in messages)
+        warned = len(messages)
+        assert check_class_names(["person", ""]) == {0: "person", 1: ""}  # repeated access stays silent
+        assert len(messages) == warned
+        assert check_class_names({"0": "person", "1": " "}) == {0: "person", 1: " "}  # new mapping warns again
+        assert len(messages) == warned + 1 and "class indices [1]" in messages[-1]
         warned = len(messages)
         assert check_class_names(["person", "car"]) == {0: "person", 1: "car"}  # valid names stay silent
         assert len(messages) == warned

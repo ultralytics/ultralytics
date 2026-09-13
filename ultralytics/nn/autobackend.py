@@ -40,6 +40,8 @@ from .backends import (
     TritonBackend,
 )
 
+_warned_names = set()  # class-names mappings already warned about for empty class name strings
+
 
 def check_class_names(names: list | dict) -> dict[int, str]:
     """Check class names and convert to dict format if needed.
@@ -71,7 +73,9 @@ def check_class_names(names: list | dict) -> dict[int, str]:
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
             names = {k: names_map[v] for k, v in names.items()}
-        if empty := sorted(k for k, v in names.items() if not v.strip()):
+        empty = sorted(k for k, v in names.items() if not v.strip())  # class indices that render as blank labels
+        if empty and (key := tuple(names.items())) not in _warned_names:  # warn once per unique names mapping
+            _warned_names.add(key)
             LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
     return names
 

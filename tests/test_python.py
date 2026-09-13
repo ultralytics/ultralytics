@@ -259,8 +259,9 @@ def test_check_class_names_empty_warning():
     try:
         assert check_class_names(["person", ""]) == {0: "person", 1: ""}
         assert any("Empty class name string(s) at class indices [1]" in m for m in messages)
+        warned = len(messages)
         assert check_class_names(["person", "car"]) == {0: "person", 1: "car"}  # valid names stay silent
-        assert not any("Empty class name" in m for m in messages)
+        assert len(messages) == warned
     finally:
         LOGGER.removeHandler(handler)
 

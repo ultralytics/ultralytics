@@ -85,8 +85,9 @@ to `trainer.ema.ema`, because training checkpoints serialize the EMA model and a
 the callback when loading the checkpoint. If the same preprocessing must run during training validation, implement it
 as an importable model component instead of a runtime hook.
 
-Standalone `model.val()` and `model.predict()` calls do not rebuild the loaded model, so a hook registered directly on
-`model.model` remains active for that call. Register the hook again after loading a checkpoint in a new process.
+Standalone `model.val()` copies the loaded model for each call. Prediction creates and caches a copy on its first call, so register
+hooks on `model.model` before the first `model.predict()` or `model.track()` call; hooks added afterward do not reach
+the cached predictor. Register runtime hooks again after loading a checkpoint in a new process.
 
 ### Access Model metrics using the `on_model_save` callback
 

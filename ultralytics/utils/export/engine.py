@@ -298,8 +298,8 @@ def onnx2engine(
 
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
-    if is_trt11 and (use_fp16 or calibrate):
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+    if is_trt11 and (use_fp16 or use_int8):
+        onnx_file = modelopt_quantize_onnx(onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -332,7 +332,7 @@ def onnx2engine(
     if use_int8 and not is_trt11:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
-    elif use_fp16 and not is_trt11:
+    if (use_fp16 or qdq) and not is_trt11:  # Q/DQ leaves its unquantized layers to the fastest precision allowed
         config.set_flag(trt.BuilderFlag.FP16)
 
     # Explicit Q/DQ graphs need neither calibration nor per-layer Sigmoid constraints.

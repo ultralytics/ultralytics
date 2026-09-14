@@ -530,19 +530,18 @@ class AnomalyMCLoss(v8DetectionLoss):
 
     def _type_loss(self, type_scores, batch, fg_mask, target_gt_idx):
         """Cross-entropy between predicted defect type and the matched GT type, foreground only."""
-        type_scores = type_scores.permute(0, 2, 1)  # (bs, A, K)
-        batch_idx = batch["batch_idx"].view(-1).to(type_scores.device).long()
-        gt_cls = batch["cls"].view(-1).to(type_scores.device).long()
-        preds_fg, targets_fg = [], []
-        for b in range(type_scores.shape[0]):
-            sel = fg_mask[b].bool()
-            gt_b = gt_cls[batch_idx == b]
-            if sel.any() and gt_b.numel():
-                preds_fg.append(type_scores[b][sel])
-                targets_fg.append(gt_b[target_gt_idx[b][sel]])
-        if not preds_fg:  # keep the type head in the graph with zero contribution
-            return type_scores.sum() * 0.0
-        return F.cross_entropy(torch.cat(preds_fg), torch.cat(targets_fg))
+        if not fg_mask.any():
+            return type_scores.sum() * 0.0  # keep the type head in the graph, zero contribution
+        bs, dev = type_scores.shape[0], type_scores.device
+        batch_idx = batch["batch_idx"].view(-1).to(dev).long()
+        gt_cls = batch["cls"].view(-1).to(dev).long()
+        # target_gt_idx indexes an image's OWN gt list, so shift by that image's start in the
+        # flat one -- the same offset trick TaskAlignedAssigner.get_targets uses.
+        starts = gt_cls.new_zeros(bs)
+        starts[1:] = torch.bincount(batch_idx, minlength=bs).cumsum(0)[:-1]
+        return F.cross_entropy(
+            type_scores.permute(0, 2, 1)[fg_mask], gt_cls[(target_gt_idx + starts[:, None])[fg_mask]]
+        )
 
 
 class v8SegmentationLoss(v8DetectionLoss):

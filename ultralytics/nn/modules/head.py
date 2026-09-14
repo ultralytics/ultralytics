@@ -460,6 +460,10 @@ class AnomalyDetect(Detect):
             gates.append(g.view(g.shape[0], 1, -1))
         return torch.cat(gates, dim=-1)  # (bs, 1, A)
 
+    def _scores(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Per-anchor class confidences, ``(bs, nc, A)``. The one place subclasses differ."""
+        return x["scores"].sigmoid()
+
     def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
         """Decode boxes + scores, with optional per-anchor heatmap confidence gating.
 
@@ -467,7 +471,7 @@ class AnomalyDetect(Detect):
         ``Detect._inference``; blend < 1 suppresses scores at low-heatmap cells.
         """
         dbox = self._get_decode_boxes(x)
-        scores = x["scores"].sigmoid()
+        scores = self._scores(x)
         if heatmap is not None and getattr(self, "hm_gate_blend", 1.0) < 1.0:
             gate = self._build_heatmap_gate(heatmap, x["feats"])
             b = float(self.hm_gate_blend)
@@ -562,15 +566,9 @@ class AnomalyMCDetect(AnomalyDetect):
         top = type_logits.argmax(1, keepdim=True)
         return torch.zeros_like(type_logits).scatter_(1, top, p_anom)
 
-    def _inference(self, x: dict[str, torch.Tensor], heatmap: torch.Tensor | None = None) -> torch.Tensor:
-        """Decode boxes and fuse anomaly-ness with the type distribution into ``[4 + nc]``."""
-        dbox = self._get_decode_boxes(x)
-        scores = self._fuse_mc(x["anom"].sigmoid(), x["scores"])
-        if heatmap is not None and getattr(self, "hm_gate_blend", 1.0) < 1.0:
-            gate = self._build_heatmap_gate(heatmap, x["feats"])
-            b = float(self.hm_gate_blend)
-            scores = scores * (b + (1.0 - b) * gate).clamp(0.0, 1.0)
-        return torch.cat((dbox, scores), 1)
+    def _scores(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
+        """Fuse anomaly-ness with the type distribution; the heatmap gate is inherited."""
+        return self._fuse_mc(x["anom"].sigmoid(), x["scores"])
 
     def bias_init(self):
         """Initialize the base biases, plus the anomaly branch as a single-class detector."""

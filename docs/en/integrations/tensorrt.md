@@ -181,7 +181,7 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 ### Exporting TensorRT with INT8 Quantization
 
-Exporting Ultralytics YOLO models using TensorRT with INT8 [precision](https://www.ultralytics.com/glossary/precision) executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process. A checkpoint fine-tuned with `quantize=8` through [quantization-aware training](../modes/export.md#quantization-aware-training) already carries its INT8 ranges, so its export emits them as Q/DQ nodes and skips calibration.
+Exporting Ultralytics YOLO models using TensorRT with INT8 [precision](https://www.ultralytics.com/glossary/precision) executes post-training quantization (PTQ). TensorRT uses calibration for PTQ, which measures the distribution of activations within each activation tensor as the YOLO model processes inference on representative input data, and then uses that distribution to estimate scale values for each tensor. Each activation tensor that is a candidate for quantization has an associated scale that is deduced by a calibration process. A checkpoint fine-tuned with `quantize=8` through [quantization-aware training](../modes/export.md#quantization-aware-training) already carries its INT8 ranges, so its export uses them and skips calibration.
 
 !!! note "TensorRT 11 quantization"
 

@@ -365,7 +365,8 @@ def safe_download(
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
                         # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
+                            ["curl", "-#", f"-{s}fL", "--http1.1", url, "-o", f, "--retry", "3", "-C", "-", *args],
+                            check=False,
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer

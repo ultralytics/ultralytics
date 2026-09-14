@@ -125,6 +125,22 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
         trainer_cls(overrides={**overrides, "resume": trainer.last}).train()
 
 
+def test_semantic_polygon_val_background():
+    """Test standalone semantic val adds the polygon background class instead of mislabeling it as the last class."""
+    from ultralytics.data.utils import check_det_dataset
+
+    cfg = get_cfg(DEFAULT_CFG)
+    cfg.data = "coco8-seg.yaml"
+    cfg.imgsz = 64
+    validator = semantic.SemanticSegmentationValidator(args=cfg)
+    validator.data = check_det_dataset(cfg.data)  # standalone val dataset setup (engine/validator.py)
+    validator.stride = 32  # normally set from the model during validation
+    validator.device = torch.device("cpu")  # normally set from the model during validation
+    dataset = validator.get_dataloader(validator.data["val"], 4).dataset
+    assert dataset.bg_class_idx == 80, "background class missing on standalone polygon val"
+    assert (dataset[0]["semantic_mask"] == 80).any(), "background pixels mislabeled on standalone polygon val"
+
+
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_resume_incomplete(task, weight, data, tmp_path):
     """Test training resumes from an incomplete checkpoint."""

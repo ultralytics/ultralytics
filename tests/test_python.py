@@ -239,34 +239,27 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
-def test_check_class_names_empty_warning():
-    """Verify empty class names warn once per unique names mapping, with their indices, not pass silently."""
+def test_autobackend_empty_names_warning():
+    """Warn at backend initialization without repeating warnings on model.names access."""
+    import io
     import logging
 
-    from ultralytics.nn.autobackend import check_class_names
-    from ultralytics.utils import LOGGER
+    from ultralytics.nn.autobackend import AutoBackend
 
-    messages = []
-
-    class ListHandler(logging.Handler):
-        """Collect records directly; the ultralytics logger does not propagate, so caplog is unreliable."""
-
-        def emit(self, record):
-            messages.append(record.getMessage())
-
-    handler = ListHandler()
+    messages = io.StringIO()
+    handler = logging.StreamHandler(messages)
+    model = YOLO("yolo26n.yaml")
+    model.model.names[1] = " "
     LOGGER.addHandler(handler)
     try:
-        assert check_class_names(["person", ""]) == {0: "person", 1: ""}
-        assert any("Empty class name string(s) at class indices [1]" in m for m in messages)
-        warned = len(messages)
-        assert check_class_names(["person", ""]) == {0: "person", 1: ""}  # repeated access stays silent
-        assert len(messages) == warned
-        assert check_class_names({"0": "person", "1": " "}) == {0: "person", 1: " "}  # new mapping warns again
-        assert len(messages) == warned + 1 and "class indices [1]" in messages[-1]
-        warned = len(messages)
-        assert check_class_names(["person", "car"]) == {0: "person", 1: "car"}  # valid names stay silent
-        assert len(messages) == warned
+        backend = AutoBackend(model.model, fuse=False, verbose=False)
+        assert "Empty class name string(s) at class indices [1]" in messages.getvalue()
+        warned = messages.getvalue()
+        assert model.names == model.names == backend.names
+        assert messages.getvalue() == warned
+        model.model.names[1] = "person"
+        AutoBackend(model.model, fuse=False, verbose=False)
+        assert messages.getvalue() == warned
     finally:
         LOGGER.removeHandler(handler)
 

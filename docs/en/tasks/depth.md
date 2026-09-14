@@ -13,6 +13,8 @@ Monocular depth estimation predicts a per-pixel depth map from a single RGB imag
 
 The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for 3D scene reconstruction, robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera.
 
+For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+
 !!! tip
 
     Use `task=depth` or the `yolo depth` CLI task for monocular depth estimation. YOLO26 depth model files use the `-depth` suffix, such as `yolo26n-depth.pt`.

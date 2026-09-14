@@ -12,6 +12,8 @@ keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine
 
 The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLO26 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
 
+For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#usage-examples). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/KGHYU-MKYeE"

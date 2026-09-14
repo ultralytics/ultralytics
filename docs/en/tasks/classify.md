@@ -13,6 +13,8 @@ model_name: yolo26n-cls
 
 The output of an image classifier is a single class label and a confidence score. Image classification is useful when you need to know only what class an image belongs to and don't need to know where objects of that class are located or what their exact shape is.
 
+For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/5BO0Il_YYAg"

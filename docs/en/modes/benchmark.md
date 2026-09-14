@@ -16,6 +16,8 @@ keywords: model benchmarking, YOLO26, Ultralytics, performance evaluation, expor
 
 Once your model is trained and validated, the next logical step is to evaluate its performance in various real-world scenarios. Benchmark mode in Ultralytics YOLO26 serves this purpose by providing a robust framework for assessing the speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) of your model across a range of export formats.
 
+For preliminary YOLO27 benchmarks, see the [YOLO27 preview](../models/yolo27.md#performance-metrics). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/UF7pYdLSMng"

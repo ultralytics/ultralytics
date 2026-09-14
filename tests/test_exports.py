@@ -63,6 +63,7 @@ def test_export_onnx(nms, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
 @pytest.mark.parametrize("conf, expected", [(None, 0.25), (0.0, 0.0), (0.12, 0.12)])
 def test_export_onnx_nms_conf(conf, expected, isolated_model):
     """Explicit conf values (including 0.0) bake into the nms=True graph instead of the 0.25 default."""

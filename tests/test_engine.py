@@ -161,6 +161,46 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
+def test_resume_explicit_data(tmp_path: Path):
+    """Test an explicit data= override wins on resume while the checkpoint dataset is kept without one."""
+    import shutil
+
+    import yaml
+
+    from ultralytics.data.utils import check_det_dataset
+
+    info = check_det_dataset("coco8.yaml")
+    cfg = {"path": str(info["path"]), "train": info["train"], "val": info["val"], "names": info["names"]}
+    data_a, data_b = tmp_path / "a.yaml", tmp_path / "b.yaml"
+    for data in (data_a, data_b):
+        data.write_text(yaml.safe_dump(cfg))
+
+    def stop_after_first_epoch(model):
+        model.add_callback("on_train_start", lambda t: setattr(t, "final_eval", lambda: None))
+        model.add_callback("on_train_epoch_end", lambda t: setattr(t, "stop", True))
+
+    train_args = {"epochs": 2, "imgsz": 32, "device": "cpu", "workers": 0, "plots": False, "exist_ok": True}
+
+    model = YOLO("yolo11n.pt")
+    stop_after_first_epoch(model)
+    model.train(data=str(data_a), project=tmp_path, name="base", val=False, verbose=False, **train_args)
+    last_path = str(model.trainer.last)
+    _, ckpt = load_checkpoint(last_path)
+    assert ckpt["epoch"] == 0, "checkpoint should be resumable"
+    pristine = str(tmp_path / "last-pristine.pt")  # resuming overwrites last.pt, so resume from a copy
+    shutil.copy(last_path, pristine)
+
+    resumed = YOLO(pristine)
+    stop_after_first_epoch(resumed)
+    resumed.train(resume=True, data=str(data_b), project=tmp_path, name="explicit", **train_args)
+    assert resumed.trainer.args.data == str(data_b), "explicit data= dropped on resume"
+
+    kept = YOLO(pristine)
+    stop_after_first_epoch(kept)
+    kept.train(resume=True, project=tmp_path, name="default", **train_args)
+    assert kept.trainer.args.data == str(data_a), "checkpoint dataset not kept on resume without data="
+
+
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {

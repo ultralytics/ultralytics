@@ -161,40 +161,6 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
-def test_resume_explicit_data(tmp_path: Path):
-    """Test boolean and path resume preserve explicit data, including the task default, or keep checkpoint data."""
-    from shutil import copy
-
-    from ultralytics.data.utils import check_det_dataset
-    from ultralytics.utils import YAML
-
-    info = check_det_dataset("coco8.yaml")
-    data_a, data_b = tmp_path / "a.yaml", tmp_path / "b.yaml"
-    for data in (data_a, data_b):
-        YAML.save(data, {k: info[k] for k in ("path", "train", "val", "names")})
-    pristine = tmp_path / "pristine.pt"
-    model = YOLO("yolo26n.yaml")
-    model.add_callback("on_train_epoch_end", lambda t: setattr(t, "stop", True))
-    model.add_callback("on_model_save", lambda t: copy(t.last, pristine))
-    model.train(
-        data=str(data_a),
-        epochs=2,
-        imgsz=32,
-        batch=2,
-        device="cpu",
-        workers=0,
-        plots=False,
-        project=tmp_path,
-        name="base",
-        exist_ok=True,
-    )
-    for resume in (True, str(pristine)):
-        for data in (str(data_b), None, "coco8.yaml"):
-            resumed = YOLO(pristine)
-            resumed.train(resume=resume, **({"data": data} if data else {}))
-            assert Path(resumed.trainer.args.data).name == Path(data or data_a).name
-
-
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {

@@ -13,8 +13,6 @@ Monocular depth estimation predicts a per-pixel depth map from a single RGB imag
 
 The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for 3D scene reconstruction, robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera.
 
-For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
-
 !!! tip
 
     Use `task=depth` or the `yolo depth` CLI task for monocular depth estimation. YOLO26 depth model files use the `-depth` suffix, such as `yolo26n-depth.pt`.
@@ -44,6 +42,8 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 - **rmse** is the root mean squared error in meters.
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
 - **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
+
+The [YOLO27 preview](../models/yolo27.md#performance-metrics) lists YOLO27-depth models evaluated on NYU Depth V2 with preliminary results. They are coming soon and not yet available, with no launch date set.
 
 ## Speed compared to Depth Anything V2
 

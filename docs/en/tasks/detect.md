@@ -12,8 +12,6 @@ keywords: object detection, Ultralytics YOLO, YOLO26, pretrained models, trainin
 
 The output of an object detector is a set of bounding boxes that enclose the objects in the image, along with class labels and confidence scores for each box. Object detection is a good choice when you need to identify objects of interest in a scene, but don't need to know exactly where the object is or its exact shape.
 
-For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
-
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/5ku7npMrW40?si=6HQO1dDXunV8gekh"
@@ -40,6 +38,8 @@ YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce by `yolo val detect data=coco.yaml device=0`. Add `nms=False` to reproduce the e2e column.
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
+
+The upcoming YOLO27 family previews Detect models in four scales, using a streamlined CNN design for N and S and a query-based NMS-free design for M and L; see its [preliminary COCO results](../models/yolo27.md#performance-metrics). YOLO27 is coming soon and not yet available, with no launch date set.
 
 ## Train
 

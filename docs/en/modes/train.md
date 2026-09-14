@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
-For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#usage-examples). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+The [YOLO27 preview](../models/yolo27.md#usage-examples) includes training examples intended for use after release through the same `YOLO` interface. YOLO27 is coming soon and not yet available, so the examples on this page train released YOLO26 models.
 
 <p align="center">
   <br>

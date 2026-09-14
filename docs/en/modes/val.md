@@ -12,7 +12,7 @@ keywords: Ultralytics, YOLO26, model validation, machine learning, object detect
 
 Validation is a critical step in the [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) pipeline, allowing you to assess the quality of your trained models. Val mode in Ultralytics YOLO26 provides a robust suite of tools and metrics for evaluating the performance of your [object detection](https://www.ultralytics.com/glossary/object-detection) models. This guide serves as a complete resource for understanding how to effectively use the Val mode to ensure that your models are both accurate and reliable.
 
-For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#usage-examples). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+The [YOLO27 preview](../models/yolo27.md#performance-metrics) reports preliminary validation results and the `yolo val` command that will reproduce them after release. YOLO27 is coming soon and not yet available, so the examples on this page validate released YOLO26 models.
 
 <p align="center">
   <br>

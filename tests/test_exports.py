@@ -63,6 +63,23 @@ def test_export_onnx(nms, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
+def test_export_onnx_nms_conf(isolated_model):
+    """Bake explicit zero confidence into the NMS graph instead of the 0.25 default."""
+    import onnx
+    from onnx import numpy_helper
+
+    path = YOLO(isolated_model).export(format="onnx", imgsz=32, nms=True, conf=0.0)
+    model = onnx.load(path)
+    initializers = {i.name: numpy_helper.to_array(i) for i in model.graph.initializer}
+    thresholds = {
+        initializers[n.input[1]].item()
+        for n in model.graph.node
+        if n.op_type == "Greater" and n.input[1] in initializers
+    }
+    assert 0.0 in thresholds
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):

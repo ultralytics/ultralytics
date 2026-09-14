@@ -17,6 +17,7 @@ from copy import copy
 from ultralytics.data import YOLOConcatDataset, build_yolo_dataset
 from ultralytics.data.augment import LoadAnomalyPriorMask
 from ultralytics.models import yolo
+from ultralytics.nn.modules.head import AnomalyMCDetect
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import YOLOAnomalyModel
 from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
@@ -137,7 +138,12 @@ class AnomalyTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return the anomaly validator."""
-        self.loss_names = ("box_loss", "cls_loss", "dfl_loss")
+        # AnomalyMCDetect returns a 4th term. label_loss_items zips names against values, and zip
+        # TRUNCATES to the shorter -- a 3-name tuple silently drops type_loss from results.csv and
+        # from wandb while the progress bar still prints it, so the one signal the type_gain sweep
+        # needs would never be recorded.
+        mc = isinstance(unwrap_model(self.model).model[-1], AnomalyMCDetect)
+        self.loss_names = ("box_loss", "cls_loss", "dfl_loss") + (("anom_loss",) if mc else ())
         return yolo.anomaly.YOLOAnomalyValidator(
             self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
         )

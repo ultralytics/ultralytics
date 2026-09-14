@@ -26,7 +26,6 @@ scales:
   x: [1.00, 1.50, 512]
 
 anomaly:
-  type_gain: 0.5   # AnomalyMCDetect: weight of the type cross-entropy (cv_anom drives detection)
   mask_size: 80
   mask_mode: gauss
   sigma_factor: [0.20, 0.40]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from copy import copy
 from typing import Any
 
 import torch
@@ -494,17 +495,25 @@ class AnomalyMCLoss(v8DetectionLoss):
     problem, which is the configuration that scores 0.3472 against nc=57's 0.2763. The type head
     (``preds["scores"]``, ``type_nc`` channels) gets its own cross-entropy on matched positives
     only, reusing the assigner's foreground mask, so a wrong type label can no longer move a box's
-    confidence. Loss vector: ``[box, anom, dfl, type]``.
+    confidence. Loss vector: ``[box, cls, dfl, anom]`` -- ``cls`` is the TYPE loss, keeping the
+    baseline's slot, and the binary logit is appended as ``anom``.
     """
 
     def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):
-        """Collapse the detection branch to a single class and read the type-loss gain."""
+        """Collapse the detection branch to a single class and split the two classification gains."""
         super().__init__(model, tal_topk, tal_topk2)
         self.type_nc = self.nc  # defect classes (cv3 output width)
         self.nc = 1  # detection matching/confidence is binary: anomaly vs background
         self.no = 1 + self.reg_max * 4
         self.assigner.num_classes = 1
-        self.type_gain = float(getattr(model, "type_gain", 0.5))
+        # `cls` means "classification", so it belongs to the TYPE head -- the only thing here
+        # that classifies. The binary logit merely OCCUPIES the cls slot of the inherited
+        # detection loss, so it takes its own gain: without this split, `cls=0.5` weights 73-way
+        # classification in the baseline arm and a 1-way binary logit here, and the two arms
+        # look comparable on the command line while meaning different things.
+        self.type_gain = float(getattr(self.hyp, "cls", 0.5))
+        self.hyp = copy(self.hyp)
+        self.hyp.cls = float(getattr(self.hyp, "anom", 0.5))  # the cls SLOT carries the anomaly logit
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the decoupled detection + type loss."""
@@ -513,7 +522,10 @@ class AnomalyMCLoss(v8DetectionLoss):
         det_batch = dict(batch, cls=torch.zeros_like(batch["cls"]))
         (fg_mask, target_gt_idx, *_), det_loss, _ = self.get_assigned_targets_and_loss(det_preds, det_batch)
         type_loss = self._type_loss(preds["scores"], batch, fg_mask, target_gt_idx) * self.type_gain
-        loss = torch.cat([det_loss, type_loss.reshape(1)])  # box, anom, dfl, type
+        # box/cls/dfl keep the baseline's slots so results.csv lines up column-for-column with a
+        # plain-head run, and `cls_loss` means the same thing in both: the multiclass loss. The
+        # binary logit is the NEW term, so it is appended rather than displacing cls.
+        loss = torch.stack([det_loss[0], type_loss, det_loss[2], det_loss[1]])  # box, cls, dfl, anom
         return loss * batch_size, loss.detach()
 
     def _type_loss(self, type_scores, batch, fg_mask, target_gt_idx):

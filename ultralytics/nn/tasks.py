@@ -598,8 +598,6 @@ class YOLOAnomalyModel(DetectionModel):
             detect.fusion_feat_grad = bool(v2_cfg.get("fusion_feat_grad", False))
             # Heatmap gate blend: 1.0 (default) = gate off (deploy-friendly); <1.0 gates cls scores.
             detect.hm_gate_blend = float(v2_cfg.get("hm_gate_blend", 1.0))
-            if isinstance(detect, AnomalyMCDetect):
-                self.type_gain = float(v2_cfg.get("type_gain", 0.5))  # read by AnomalyMCLoss
 
             # Rebuild the fusion module ONLY when an architecture knob is specified, so YAMLs that
             # set none of these keep the head's original module (built from the head YAML args).

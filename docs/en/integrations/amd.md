@@ -59,7 +59,7 @@ The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexe
 
         ```bash
         # Read the GPU architecture from the amdgpu driver, e.g. device-gfx1151
-        GPU_ARCH=$(awk '$1=="gfx_target_version" && $2 {printf "device-gfx%d%d%x\n", int($2/10000), int($2/100)%100, $2%100}' /sys/class/kfd/kfd/topology/nodes/*/properties 2>/dev/null | sort -u | paste -sd, -)
+        GPU_ARCH=$(awk '$1=="gfx_target_version" && $2 {printf "device-gfx%d%d%x\n", int($2/10000), int($2/100)%100, $2%100}' /sys/class/kfd/kfd/topology/nodes/*/properties 2> /dev/null | sort -u | paste -sd, -)
 
         # ROCm PyTorch + torchvision for the detected architecture
         pip install "torch[$GPU_ARCH]" "torchvision[$GPU_ARCH]" --index-url https://stable.repo.amd.com/rocm/whl-next/

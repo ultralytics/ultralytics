@@ -7,6 +7,7 @@
     "iou": ["float", "0.7", "Sets the [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU) threshold for filtering overlapping detections."],
     "classes": ["list", "None", "Filters results by class index. For example, `classes=[0, 2, 3]` only tracks the specified classes."],
     "device": ["str", "None", "Specifies the device for inference (e.g., `cpu`, `cuda:0` or `0`). Allows users to select between CPU, a specific GPU, or other compute devices for model execution."],
+    "imgsz": ["int or tuple", "640", "Target inference image size: an integer for a square or a `(height, width)` pair. Shapes are adjusted to the model stride."],
     "max_det": ["int", "300", "Maximum number of detections kept per frame before tracking, limiting the objects a solution processes in dense scenes."],
     "quantize": ["int or str", "None", "Inference precision: `16` (FP16) or `32`/unset (FP32) for PyTorch and TorchScript models; other formats compute at the precision their artifact and runtime select. Replaces the deprecated `half` flag."],
 } %}

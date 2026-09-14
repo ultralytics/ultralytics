@@ -997,10 +997,8 @@ class BaseTrainer:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
                 ckpt_args = load_checkpoint(last)[0].args
-                if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
+                if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
                     ckpt_args["data"] = self.args.data
-                elif self.args.data:
-                    ckpt_args["data"] = self.args.data  # an explicit data= override wins over the checkpoint dataset
 
                 resume = True
                 self.args = get_cfg(ckpt_args)

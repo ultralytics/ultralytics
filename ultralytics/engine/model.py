@@ -838,7 +838,9 @@ class Model(torch.nn.Module):
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": (overrides.get("data") if kwargs.get("cfg") else None)
             or DEFAULT_CFG_DICT["data"]
-            or TASK2DATA[self.task],
+            or (
+                None if isinstance(kwargs.get("resume", overrides.get("resume")), (str, Path)) else TASK2DATA[self.task]
+            ),
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
@@ -856,12 +858,6 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
-        if (
-            isinstance(args.get("resume"), (str, Path))
-            and kwargs.get("data") is None
-            and not (kwargs.get("cfg") and overrides.get("data"))
-        ):  # a path resume keeps the checkpoint dataset unless data= (or cfg data=) is explicit
-            args["data"] = None
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"], args["data"] = self.ckpt_path, kwargs.get("data") or overrides.get("data")

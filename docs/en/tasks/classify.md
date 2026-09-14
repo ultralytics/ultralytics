@@ -40,7 +40,7 @@ YOLO26 pretrained Classify models are shown here. Detect, Segment, and Pose mode
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
-The [YOLO27 preview](../models/yolo27.md#performance-metrics) also lists ImageNet-trained YOLO27-cls models with preliminary speed and size figures. They are coming soon and not yet available, with no launch date set.
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary classification speed and model sizes.
 
 ## Train
 

@@ -43,7 +43,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
 - **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
 
-The [YOLO27 preview](../models/yolo27.md#performance-metrics) lists YOLO27-depth models evaluated on NYU Depth V2 with preliminary results. They are coming soon and not yet available, with no launch date set.
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary NYU Depth V2 results.
 
 ## Speed compared to Depth Anything V2
 

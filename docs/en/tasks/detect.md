@@ -39,7 +39,7 @@ YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
-The upcoming YOLO27 family previews Detect models in four scales, using a streamlined CNN design for N and S and a query-based NMS-free design for M and L; see its [preliminary COCO results](../models/yolo27.md#performance-metrics). YOLO27 is coming soon and not yet available, with no launch date set.
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO detection results.
 
 ## Train
 

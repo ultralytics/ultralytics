@@ -42,7 +42,7 @@ YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 These checkpoints segment the 80 COCO classes. To segment categories outside that list without retraining, see [YOLOE](../models/yoloe.md), which takes the classes as a text prompt, a visual example, or a built-in vocabulary.
 
-YOLO27-seg models are previewed with [preliminary COCO box and mask results](../models/yolo27.md#performance-metrics). They are coming soon and not yet available, with no launch date set.
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO box and mask results.
 
 ## Train
 

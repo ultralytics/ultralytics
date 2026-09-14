@@ -46,7 +46,7 @@ YOLO26 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
-YOLO27-obb models, also pretrained on DOTAv1, are previewed with [preliminary results](../models/yolo27.md#performance-metrics). They are coming soon and not yet available, with no launch date set.
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary DOTAv1 results.
 
 ## Train
 

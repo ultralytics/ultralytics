@@ -105,6 +105,7 @@ cls: 0.5 # (float) classification loss gain
 cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency)
 dfl: 1.5 # (float) distribution focal loss gain
 anom: 0.5 # (float) gain on the binary anomaly logit (AnomalyMCDetect only); `cls` stays the multiclass type gain
+cls_softmax: True # (bool) AnomalyMCDetect type loss: True = softmax cross-entropy, False = v5-style per-class BCE against a one-hot
 o2o_topk2: 1 # (int) anchors kept per GT by the one2one assigner's second narrowing pass; 1 = NMS-free default
 ood_end2end: False # (bool) also evaluate the other head branch: adds ood/e2e_* (o2o) and metrics/o2m_* (in-domain), ~2x OOD eval time
 fitness_branch: o2m # (str) which branch best.pt is selected on: o2m (default, NMS) or o2o (NMS-free; needs ood_end2end=True)

@@ -512,6 +512,7 @@ class AnomalyMCLoss(v8DetectionLoss):
         # classification in the baseline arm and a 1-way binary logit here, and the two arms
         # look comparable on the command line while meaning different things.
         self.type_gain = float(getattr(self.hyp, "cls", 0.5))
+        self.cls_softmax = bool(getattr(self.hyp, "cls_softmax", True))
         self.hyp = copy(self.hyp)
         self.hyp.cls = float(getattr(self.hyp, "anom", 0.5))  # the cls SLOT carries the anomaly logit
 
@@ -539,9 +540,17 @@ class AnomalyMCLoss(v8DetectionLoss):
         # flat one -- the same offset trick TaskAlignedAssigner.get_targets uses.
         starts = gt_cls.new_zeros(bs)
         starts[1:] = torch.bincount(batch_idx, minlength=bs).cumsum(0)[:-1]
-        return F.cross_entropy(
-            type_scores.permute(0, 2, 1)[fg_mask], gt_cls[(target_gt_idx + starts[:, None])[fg_mask]]
-        )
+        logits = type_scores.permute(0, 2, 1)[fg_mask]  # (n_fg, K)
+        tgt = gt_cls[(target_gt_idx + starts[:, None])[fg_mask]]  # (n_fg,)
+        if self.cls_softmax:
+            return F.cross_entropy(logits, tgt)
+        # v5-style: independent per-class sigmoids against a one-hot. Summed over classes and
+        # averaged over anchors, so the term stays "one classification loss per positive anchor"
+        # like the CE branch -- but the two are different functions, so the same `cls` gain does
+        # NOT mean the same effective weight. Their magnitudes are reported by the smoke.
+        t = torch.zeros_like(logits)
+        t[torch.arange(len(tgt), device=logits.device), tgt] = 1.0
+        return F.binary_cross_entropy_with_logits(logits, t, reduction="sum") / len(tgt)
 
 
 class v8SegmentationLoss(v8DetectionLoss):

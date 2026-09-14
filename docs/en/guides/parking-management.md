@@ -130,7 +130,7 @@ Here's a table with the `ParkingManagement` arguments:
 The `ParkingManagement` solution allows the use of several [`track`](../modes/track.md) parameters:
 
 {% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{{ param_table() }}
 
 Moreover, the following visualization options are supported:
 

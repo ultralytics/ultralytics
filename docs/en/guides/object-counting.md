@@ -114,7 +114,7 @@ Here's a table with the `ObjectCounter` arguments:
 The `ObjectCounter` solution allows the use of several `track` arguments:
 
 {% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{{ param_table() }}
 
 Additionally, the visualization arguments listed below are supported:
 

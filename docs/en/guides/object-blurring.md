@@ -101,7 +101,7 @@ Here's a table with the `ObjectBlurrer` arguments:
 The `ObjectBlurrer` solution also supports a range of `track` arguments:
 
 {% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{{ param_table() }}
 
 Moreover, the following visualization arguments can be used:
 

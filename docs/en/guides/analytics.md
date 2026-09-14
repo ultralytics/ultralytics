@@ -113,7 +113,7 @@ Here's a table outlining the Analytics arguments:
 You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
 
 {% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{{ param_table() }}
 
 Additionally, the following visualization arguments are supported:
 

@@ -53,18 +53,32 @@ The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexe
 
 !!! tip "Installation"
 
-    ```bash
-    # ROCm PyTorch + torchvision; the [device-all] extra pulls the matching GPU kernels and ROCm runtime.
-    pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+    === "Auto-detect (recommended)"
 
-    # Ultralytics
-    pip install ultralytics
+        Detect your GPU architecture (for example `gfx1151` on Strix Halo) and install only the PyTorch kernels it needs:
 
-    # MIGraphX execution provider plugin (pulls stock onnxruntime) plus its C library.
-    pip install onnxruntime-ep-migraphx migraphx-libs \
-      --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
-      --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
-    ```
+        ```bash
+        # Read the GPU architecture from the amdgpu driver, e.g. device-gfx1151
+        GPU_ARCH=$(awk '$1=="gfx_target_version" && $2 {printf "device-gfx%d%d%x\n", int($2/10000), int($2/100)%100, $2%100}' /sys/class/kfd/kfd/topology/nodes/*/properties 2>/dev/null | sort -u | paste -sd, -)
+
+        # ROCm PyTorch + torchvision for the detected architecture
+        pip install "torch[$GPU_ARCH]" "torchvision[$GPU_ARCH]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+
+        # Ultralytics
+        pip install ultralytics
+        ```
+
+    === "All architectures"
+
+        Install PyTorch kernels for every supported AMD GPU architecture. Use this for container images or environments shared across different GPUs, since it is a much larger download.
+
+        ```bash
+        # ROCm PyTorch + torchvision with kernels for all supported architectures
+        pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/
+
+        # Ultralytics
+        pip install ultralytics
+        ```
 
 If `onnx` or the plugin are missing, Ultralytics installs them automatically on the first ONNX export or inference on a ROCm system. For detailed instructions and best practices, check our [YOLO26 Installation guide](../quickstart.md); if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md).
 

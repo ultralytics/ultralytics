@@ -545,8 +545,8 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     a buffer, not a learnable parameter), so training adapts the weights to them.
 
     BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
-    `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy
-    loss.
+    `fuse()` and leaves BN folding to the deployment backend. The head's output layers, the bare convolutions and
+    linears outside its `Conv` blocks, are left in float to limit INT8 accuracy loss.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.
@@ -561,10 +561,13 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
         check_requirements(MODELOPT_REQUIREMENTS)
         import modelopt.torch.quantization as mtq
 
+    calib = {}
+
     def forward_loop(m):
         """Calibrate through the task batch path."""
         for batch, _ in zip(dataloader, range(batches)):
-            m(preprocess(batch))
+            calib["batch"] = preprocess(batch)
+            m(calib["batch"])
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
     _register_qat_blocks(model)
@@ -572,9 +575,11 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     model.eval()  # freeze BatchNorm statistics
     with torch.no_grad():
         model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
-        # Keep the output head in float to limit INT8 accuracy loss.
-        mtq.disable_quantizer(model, f"*model.{len(model.model) - 1}.*")
-        _share_ranges(model, preprocess(next(iter(dataloader))))
+        # Keep the head's output layers, the bare convolutions and linears outside its Conv blocks, in float to limit
+        # INT8 accuracy loss.
+        head = f"model.{len(model.model) - 1}."
+        mtq.disable_quantizer(model, lambda name: name.startswith(head) and ".conv." not in name)
+        _share_ranges(model, calib["batch"])
     model.train(training)
     return model
 

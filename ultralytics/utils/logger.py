@@ -482,6 +482,9 @@ class SystemLogger:
         Collects comprehensive system metrics including CPU usage, RAM usage, disk usage, disk I/O statistics, network
         I/O statistics, and GPU metrics (if available).
 
+        On NVIDIA systems, also reports `driver_version` and `cuda_version` from NVML when available. CUDA is the
+        driver-supported version shown by nvidia-smi, not the installed toolkit or PyTorch build version.
+
         Example output (rates=False, default):
         ```python
         {
@@ -587,6 +590,12 @@ class SystemLogger:
         # Add GPU metrics (NVIDIA only)
         if self.nvidia_initialized:
             metrics["gpus"].update(self._get_nvidia_metrics())
+            try:
+                metrics["driver_version"] = self.pynvml.nvmlSystemGetDriverVersion()
+                cuda = self.pynvml.nvmlSystemGetCudaDriverVersion()
+                metrics["cuda_version"] = f"{cuda // 1000}.{cuda % 1000 // 10}"
+            except self.pynvml.NVMLError:
+                pass
 
         return metrics
 

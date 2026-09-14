@@ -541,8 +541,8 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, and the residual
     and concatenation blocks for equivalents that fake-quantize the inputs of the add and the concatenation, so training
     learns weights that survive INT8 export and `torch.onnx.export` emits those ranges as Q/DQ nodes. Activation and
-    weight ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax`
-    as a buffer, not a learnable parameter), so training adapts the weights to them.
+    weight ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as
+    a buffer, not a learnable parameter), so training adapts the weights to them.
 
     BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
     `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy

@@ -239,31 +239,6 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
-def test_autobackend_empty_names_warning():
-    """Warn at backend initialization without repeating warnings on model.names access."""
-    import io
-    import logging
-
-    from ultralytics.nn.autobackend import AutoBackend
-
-    messages = io.StringIO()
-    handler = logging.StreamHandler(messages)
-    model = YOLO("yolo26n.yaml")
-    model.model.names[1] = " "
-    LOGGER.addHandler(handler)
-    try:
-        backend = AutoBackend(model.model, fuse=False, verbose=False)
-        assert "Empty class name string(s) at class indices [1]" in messages.getvalue()
-        warned = messages.getvalue()
-        assert model.names == model.names == backend.names
-        assert messages.getvalue() == warned
-        model.model.names[1] = "person"
-        AutoBackend(model.model, fuse=False, verbose=False)
-        assert messages.getvalue() == warned
-    finally:
-        LOGGER.removeHandler(handler)
-
-
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     import pathlib

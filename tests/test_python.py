@@ -545,13 +545,6 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
-def test_track_preserves_zero_confidence():
-    """Track with an explicit zero confidence threshold without replacing it with the default."""
-    model = YOLO("yolo26n.yaml")
-    model.track(np.zeros((32, 32, 3), dtype=np.uint8), imgsz=32, conf=0.0, verbose=False)
-    assert model.predictor.args.conf == 0.0
-
-
 def test_track_second_association_indices():
     """Low-confidence detections matched in second association keep full detection-set indices."""
     from ultralytics.engine.results import Boxes

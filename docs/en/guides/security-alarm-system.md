@@ -107,8 +107,7 @@ Here's a table with the `SecurityAlarm` arguments:
 
 The `SecurityAlarm` solution supports a variety of `track` parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table() }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization settings are available:
 

@@ -110,8 +110,7 @@ Here's a table with the `RegionCounter` arguments:
 
 The `RegionCounter` solution enables the use of object tracking parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table() }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the following visualization settings are supported:
 

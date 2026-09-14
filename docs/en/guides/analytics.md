@@ -112,8 +112,7 @@ Here's a table outlining the Analytics arguments:
 
 You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table() }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the following visualization arguments are supported:
 

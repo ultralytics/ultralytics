@@ -53,8 +53,7 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
     Solutions forward the inference and tracking arguments below to `model.track()`.
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table() }}
+{% include "macros/solutions-track-args.md" %}
 
 !!! note "Visualization args"
 

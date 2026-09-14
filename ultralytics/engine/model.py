@@ -838,7 +838,9 @@ class Model(torch.nn.Module):
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": (overrides.get("data") if kwargs.get("cfg") else None)
             or DEFAULT_CFG_DICT["data"]
-            or TASK2DATA[self.task],
+            or (
+                None if isinstance(kwargs.get("resume", overrides.get("resume")), (str, Path)) else TASK2DATA[self.task]
+            ),
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults

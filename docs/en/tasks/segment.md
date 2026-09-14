@@ -42,6 +42,8 @@ YOLO26 pretrained Segment models are shown here. Detect, Segment and Pose models
 
 These checkpoints segment the 80 COCO classes. To segment categories outside that list without retraining, see [YOLOE](../models/yoloe.md), which takes the classes as a text prompt, a visual example, or a built-in vocabulary.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO box and mask results.
+
 ## Train
 
 Train YOLO26n-seg on the COCO8-seg dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.

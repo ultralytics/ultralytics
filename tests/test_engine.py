@@ -200,6 +200,11 @@ def test_resume_explicit_data(tmp_path: Path):
     kept.train(resume=True, project=tmp_path, name="default", **train_args)
     assert kept.trainer.args.data == str(data_a), "checkpoint dataset not kept on resume without data="
 
+    named = YOLO(pristine)
+    stop_after_first_epoch(named)
+    named.train(resume=True, data="coco8.yaml", project=tmp_path, name="default-named", **train_args)
+    assert Path(named.trainer.args.data).name == "coco8.yaml", "explicit data= equal to the task default still dropped"
+
 
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""

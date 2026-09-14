@@ -25,7 +25,7 @@ from torch import distributed as dist
 from torch import nn, optim
 
 from ultralytics import __version__
-from ultralytics.cfg import _YOLO_CLI_COMMAND, TASK2DATA, get_cfg, get_save_dir
+from ultralytics.cfg import _YOLO_CLI_COMMAND, get_cfg, get_save_dir
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, convert_ndjson_to_yolo_if_needed
 from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import load_checkpoint
@@ -999,7 +999,7 @@ class BaseTrainer:
                 ckpt_args = load_checkpoint(last)[0].args
                 if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
                     ckpt_args["data"] = self.args.data
-                elif self.args.data and self.args.data != TASK2DATA.get(self.args.task):
+                elif self.args.data:
                     ckpt_args["data"] = self.args.data  # an explicit data= override wins over the checkpoint dataset
 
                 resume = True

@@ -856,6 +856,12 @@ class Model(torch.nn.Module):
             )
             self.metrics = self.trainer.train()
             return self.metrics
+        if (
+            isinstance(args.get("resume"), (str, Path))
+            and kwargs.get("data") is None
+            and not (kwargs.get("cfg") and overrides.get("data"))
+        ):  # a path resume keeps the checkpoint dataset unless data= (or cfg data=) is explicit
+            args["data"] = None
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
                 args["resume"], args["data"] = self.ckpt_path, kwargs.get("data") or overrides.get("data")

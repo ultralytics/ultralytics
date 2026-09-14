@@ -55,7 +55,7 @@ Each item in `results` corresponds to one image, and iterating over a result yie
 
 The snippets in this section and the next run **inside** the detection loop below; the complete, copy-paste script is in [Full Example](#full-example).
 
-![Binary Mask Image](https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca){ width="240", align="right" }
+<img width="240" align="right" src="https://github.com/ultralytics/ultralytics/assets/62214284/59bce684-fdda-4b17-8104-0b4b51149aca" alt="Binary Mask Image">
 
 ```python
 from pathlib import Path
@@ -101,9 +101,9 @@ With the binary mask ready, combine it with the original image. There are two co
         isolated = cv2.bitwise_and(mask3ch, img)
         ```
 
-        <figure markdown>
-            ![Example Full size Isolated Object Image Black Background](https://cdn.ul.run/i/effd6d59c803d824cbef6fa60236addd.avif){ width=240 }
-            <figcaption>Full-size object on a black background</figcaption>
+        <figure style="text-align: center;">
+            <img width="240" src="https://cdn.ul.run/i/effd6d59c803d824cbef6fa60236addd.avif" alt="Example Full size Isolated Object Image Black Background">
+            <figcaption style="font-style: italic; color: gray;">Full-size object on a black background</figcaption>
         </figure>
 
     === "Transparent background"
@@ -115,9 +115,9 @@ With the binary mask ready, combine it with the original image. There are two co
         isolated = np.dstack([img, b_mask])
         ```
 
-        <figure markdown>
-            ![Example Full size Isolated Object Image No Background](https://cdn.ul.run/i/b4f15875131ff53de8dad501c13daec6.avif){ width=240 }
-            <figcaption>Full-size object with a transparent background</figcaption>
+        <figure style="text-align: center;">
+            <img width="240" src="https://cdn.ul.run/i/b4f15875131ff53de8dad501c13daec6.avif" alt="Example Full size Isolated Object Image No Background">
+            <figcaption style="font-style: italic; color: gray;">Full-size object with a transparent background</figcaption>
         </figure>
 
 !!! tip "Crop to the bounding box"
@@ -131,9 +131,9 @@ With the binary mask ready, combine it with the original image. There are two co
     iso_crop = isolated[y1:y2, x1:x2]
     ```
 
-    <figure markdown>
-        ![Example Crop Isolated Object Image Black Background](https://cdn.ul.run/i/8819942788c1d27de1178b97864cd17a.avif){ width=240 }
-        <figcaption>Object cropped to its bounding box</figcaption>
+    <figure style="text-align: center;">
+        <img width="240" src="https://cdn.ul.run/i/8819942788c1d27de1178b97864cd17a.avif" alt="Example Crop Isolated Object Image Black Background">
+        <figcaption style="font-style: italic; color: gray;">Object cropped to its bounding box</figcaption>
     </figure>
 
 !!! tip "Need the crop with its original background?"

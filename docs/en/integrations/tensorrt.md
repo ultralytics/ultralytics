@@ -240,7 +240,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         result = model.predict("https://ultralytics.com/images/bus.jpg")
         ```
 
-        1. Exports with dynamic axes, this will be enabled by default when exporting with `quantize=8` even when not explicitly set. See [export arguments](../modes/export.md#arguments) for additional information.
+        1. Exports with dynamic axes; `dynamic` stays `False` unless set explicitly. See [export arguments](../modes/export.md#arguments) for additional information.
         2. Sets max batch size of 8 for exported model and INT8 calibration.
         3. Allocates 4 GiB of memory instead of allocating the entire device for conversion process.
         4. Uses [COCO dataset](../datasets/detect/coco.md) for calibration, specifically the images used for [validation](../modes/val.md) (5,000 total).

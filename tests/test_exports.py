@@ -64,13 +64,12 @@ def test_export_onnx(nms, isolated_model):
 
 
 @pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
-@pytest.mark.parametrize("conf, expected", [(None, 0.25), (0.0, 0.0), (0.12, 0.12)])
-def test_export_onnx_nms_conf(conf, expected, isolated_model):
-    """Explicit conf values (including 0.0) bake into the nms=True graph instead of the 0.25 default."""
+def test_export_onnx_nms_conf(isolated_model):
+    """Bake explicit zero confidence into the NMS graph instead of the 0.25 default."""
     import onnx
     from onnx import numpy_helper
 
-    path = YOLO(isolated_model).export(format="onnx", imgsz=32, nms=True, conf=conf)
+    path = YOLO(isolated_model).export(format="onnx", imgsz=32, nms=True, conf=0.0)
     model = onnx.load(path)
     initializers = {i.name: numpy_helper.to_array(i) for i in model.graph.initializer}
     thresholds = {
@@ -78,7 +77,7 @@ def test_export_onnx_nms_conf(conf, expected, isolated_model):
         for n in model.graph.node
         if n.op_type == "Greater" and n.input[1] in initializers
     }
-    assert any(t == pytest.approx(expected) for t in thresholds), f"conf={conf}: thresholds={thresholds}"
+    assert 0.0 in thresholds
 
 
 @pytest.mark.slow

@@ -449,6 +449,14 @@ class SystemLogger:
 
         self.pynvml = None
         self.nvidia_initialized = self._init_nvidia()
+        self.nvidia_versions = {}
+        if self.nvidia_initialized:
+            try:
+                self.nvidia_versions["driver_version"] = self.pynvml.nvmlSystemGetDriverVersion()
+                cuda = self.pynvml.nvmlSystemGetCudaDriverVersion_v2()
+                self.nvidia_versions["cuda_version"] = f"{cuda // 1000}.{cuda % 1000 // 10}"
+            except self.pynvml.NVMLError:
+                pass
         self.net_start = psutil.net_io_counters()
         self.disk_start = psutil.disk_io_counters()
         self.mounts = _DriveInfo.mounts(psutil, all_drives)
@@ -482,7 +490,7 @@ class SystemLogger:
         Collects comprehensive system metrics including CPU usage, RAM usage, disk usage, disk I/O statistics, network
         I/O statistics, and GPU metrics (if available).
 
-        On NVIDIA systems, also reports `driver_version` and `cuda_version` from NVML when available. CUDA is the
+        On NVIDIA systems, also reports `driver_version` and `cuda_version` cached from NVML at initialization. CUDA is the
         driver-supported version shown by nvidia-smi, not the installed toolkit or PyTorch build version.
 
         Example output (rates=False, default):
@@ -564,6 +572,7 @@ class SystemLogger:
                 break
 
         metrics = {
+            **self.nvidia_versions,
             "cpu": round(psutil.cpu_percent(), 3),
             "ram": round(memory.percent, 3),
             "disk": disks,
@@ -590,12 +599,6 @@ class SystemLogger:
         # Add GPU metrics (NVIDIA only)
         if self.nvidia_initialized:
             metrics["gpus"].update(self._get_nvidia_metrics())
-            try:
-                metrics["driver_version"] = self.pynvml.nvmlSystemGetDriverVersion()
-                cuda = self.pynvml.nvmlSystemGetCudaDriverVersion()
-                metrics["cuda_version"] = f"{cuda // 1000}.{cuda % 1000 // 10}"
-            except self.pynvml.NVMLError:
-                pass
 
         return metrics
 

@@ -149,6 +149,7 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         try:
             rows = self._run_ood_eval(ema_eval, yamls, v2_cfg)
             if rows:
+                self._save_ood_percat(rows)
                 avg = _average_ood_rows(rows)
                 avg_metrics = {f"ood/{k}": v for k, v in avg.items()}
                 # Fitness keeps its historical definition -- mAP50 measured at conf>=0.25 -- so
@@ -202,6 +203,28 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             del ema_eval
 
         return metrics, fitness
+
+    def _save_ood_percat(self, rows: list[dict]) -> None:
+        """Append the per-category OOD rows to ``ood_percat.csv``, one line per category per epoch.
+
+        ``_average_ood_rows`` collapses 15 categories into the single ``ood/*`` number that goes into
+        results.csv, and the rows it averaged were then dropped — but that average hides a 2.6x
+        texture/object spread, and a checkpoint chosen on it can halve one category's recall while the
+        mean moves 0.0020. The rows already exist, so keeping them (plus ``save_period`` weights) makes
+        checkpoint selection re-decidable offline under a different aggregate, with no extra eval.
+
+        Long format — ``epoch, category, <metric>…`` — so the file stays readable when OOD eval is
+        gated by ``test_val_freq`` and only some epochs have rows.
+        """
+        keys = [k for k in rows[0] if k != "category"]
+        csv = self.save_dir / "ood_percat.csv"
+        header = "" if csv.exists() else "epoch,category," + ",".join(keys) + "\n"
+        with open(csv, "a", encoding="utf-8") as f:
+            f.write(header)
+            f.writelines(
+                f"{self.epoch + 1},{r['category']}," + ",".join(f"{r.get(k, math.nan):.6g}" for k in keys) + "\n"
+                for r in rows
+            )
 
     def _domain_other_branch(self) -> dict[str, float]:
         """Re-run in-domain val on whichever of o2m/o2o the main pass did not use.

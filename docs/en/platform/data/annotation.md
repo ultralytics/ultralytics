@@ -341,6 +341,23 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
     - The model picker only lists models that match the current dataset task.
     - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.
 
+### Batch Annotation
+
+Batch Annotation runs one YOLO model over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Inference All** action on the toast after a YOLO prediction in the editor. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
+
+1. Select a model from the picker (`Official` or `My Models`)
+2. Adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the **Test run** strip shows what the model finds on a few sample images as you move them
+3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
+4. Review the **Estimated Cost** and click **Start**
+
+By default only unlabeled images are annotated, and existing labels are never changed. If the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it before the run starts; on a dataset without classes it can create them. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
+
+The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added.
+
+!!! note "Batch Annotation Cost"
+
+    Batch Annotation costs $1.50 per 1,000 processed images, with a minimum of $0.01 per run. The estimate is held from your balance when the run starts and settled for the images actually processed; the charge appears on the [Billing tab](../account/billing.md#transaction-types) as **Auto-Annotation** once you dismiss the run summary.
+
 ## Class Sidebar
 
 The annotation editor includes a collapsible class sidebar on the right side of the canvas. The sidebar provides:

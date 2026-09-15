@@ -350,7 +350,7 @@ Batch Annotation runs one YOLO model over a whole dataset instead of the open im
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
 
-By default only unlabeled images are annotated, and existing labels are never changed. If the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it before the run starts; on a dataset without classes it adds the model's classes to the dataset first. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
+By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. If the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
 
 The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added.
 

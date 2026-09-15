@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
-description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent cloud training pricing.
+description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent compute pricing for cloud training, batch annotation, and endpoints.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
 ---
 
 # Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered cloud training. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, batch annotation, and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
@@ -89,9 +89,9 @@ View your balance in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/e7db27e18b14d2a8d2672966455c965f.avif)<!-- screenshot -->
 
-| Balance Type  | Description                          |
-| ------------- | ------------------------------------ |
-| **Available** | Credits available for cloud training |
+| Balance Type  | Description                           |
+| ------------- | ------------------------------------- |
+| **Available** | Credits available for compute charges |
 
 The balance is a single wallet per workspace. It can go negative if a training run's final settlement exceeds the
 credits on hand, and it is shown in red when it does.

@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, model training, deep learning, object detection, 
 
 Training a [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model involves feeding it data and adjusting its parameters so that it can make accurate predictions. Train mode in Ultralytics YOLO26 is engineered for effective and efficient training of object detection models, fully utilizing modern hardware capabilities. This guide aims to cover all the details you need to get started with training your own models using YOLO26's robust set of features. If you haven't installed Ultralytics yet, start with the [Quickstart guide](../quickstart.md).
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned training examples.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/LNwODJXcvt4?si=7n1UvGRLSd9p5wKs"
@@ -327,7 +329,7 @@ These settings can be adjusted to meet the specific requirements of the dataset 
 
 ## Logging
 
-Training metrics, plots, and checkpoints are always written to the run directory, and Ultralytics also streams them to any experiment tracker you have installed and enabled: [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), [TensorBoard](../integrations/tensorboard.md), [MLflow](../integrations/mlflow.md), [Weights & Biases](../integrations/weights-biases.md), and [DVCLive](../integrations/dvc.md). Each logger is toggled through the [Ultralytics settings](../quickstart.md#ultralytics-settings), for example `yolo settings tensorboard=True`. The three most common setups are shown below.
+Training metrics, plots, and checkpoints are always written to the run directory, and Ultralytics also streams them to any experiment tracker you have installed and enabled: [Comet](../integrations/comet.md), [ClearML](../integrations/clearml.md), [TensorBoard](../integrations/tensorboard.md), [MLflow](../integrations/mlflow.md), [Weights & Biases](../integrations/weights-biases.md), and [DVCLive](../integrations/dvc.md). Each logger is toggled through the [Ultralytics settings](../usage/settings.md), for example `yolo settings tensorboard=True`. The three most common setups are shown below.
 
 ### Comet
 

@@ -63,13 +63,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
-        if: matrix.os != 'cpu-latest'
         with:
           python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: ${{ matrix.os == 'cpu-latest' }}
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -77,17 +75,13 @@ jobs:
           retry_delay_seconds: 20
           timeout_minutes: 20
           run: |
-            uv_system_args=()
-            if [[ "${{ matrix.os }}" != "cpu-latest" ]]; then
-              uv_system_args=(--system)
-            fi
             # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
-            uv pip install "${uv_system_args[@]}" -e ".[export,export-executorch]" \
+            uv pip install --system -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
             if [[ "${{ matrix.os }}" == "macos-26" ]]; then
               # Exercise the Core AI benchmark rows on the Apple silicon macOS runner
-              uv pip install "${uv_system_args[@]}" -e ".[export-coreai]" --torch-backend cpu
+              uv pip install --system -e ".[export-coreai]" --torch-backend cpu
             fi
       - name: Check environment
         run: |
@@ -369,6 +363,8 @@ jobs:
     timeout-minutes: 360
     runs-on: ubuntu-latest
     steps:
+      - name: Cleanup disk space
+        uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
@@ -377,7 +373,12 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install export system dependencies
-        run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 3
+          retry_delay_seconds: 60
+          timeout_minutes: 10
+          run: sudo apt-get update && sudo apt-get install -y openjdk-21-jre flatbuffers-compiler
       - name: Cache uv wheels
         uses: actions/cache@v6
         with:
@@ -418,7 +419,7 @@ jobs:
         run: uv cache prune --ci
 
   GPU:
-    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && (github.event_name != 'workflow_dispatch' || github.event.inputs.gpu == 'true')
     permissions:
       contents: read
       id-token: write
@@ -434,7 +435,7 @@ jobs:
       - name: Install requirements
         run: |
           # Install TensorRT into the job venv so uv can reuse the runner image cache.
-          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu "torch<2.11" "tensorrt-cu12>=7.0.0,!=10.2.0" "nvidia-modelopt[onnx]>=0.44" lap  # TODO: remove torch pin after GPU runner driver update to CUDA 13.0
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap --torch-backend cu132
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

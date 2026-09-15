@@ -206,14 +206,14 @@ class AIFI(TransformerEncoderLayer):
             (torch.Tensor): Output tensor with shape [B, C, H, W].
         """
         c, h, w = x.shape[1:]
-        pos_embed = self.build_2d_sincos_position_embedding(w, h, c, device=x.device)
+        pos_embed = self.build_2d_sincos_position_embedding(w, h, c, like=x)
         # Flatten [B, C, H, W] to [B, HxW, C]
-        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(device=x.device, dtype=x.dtype))
+        x = super().forward(x.flatten(2).permute(0, 2, 1), pos=pos_embed.to(x.dtype))
         return x.permute(0, 2, 1).view([-1, c, h, w]).contiguous()
 
     @staticmethod
     def build_2d_sincos_position_embedding(
-        w: int, h: int, embed_dim: int = 256, temperature: float = 10000.0, device=None
+        w: int, h: int, embed_dim: int = 256, temperature: float = 10000.0, *, like: torch.Tensor
     ) -> torch.Tensor:
         """Build 2D sine-cosine position embedding.
 
@@ -222,19 +222,19 @@ class AIFI(TransformerEncoderLayer):
             h (int): Height of the feature map.
             embed_dim (int): Embedding dimension.
             temperature (float): Temperature for the sine/cosine functions.
-            device (torch.device, optional): Device on which to build the embedding grids.
+            like (torch.Tensor): Tensor whose device the embedding grids are built on.
 
         Returns:
             (torch.Tensor): Position embedding with shape [1, h*w, embed_dim].
         """
         assert embed_dim % 4 == 0, "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
-        # Build on the input's device so a traced graph doesn't bake a CPU `arange` that clashes with GPU activations
-        # (e.g. TorchScript export of RT-DETR: the traced `arange` is pinned to CPU and fails GPU inference).
-        grid_w = torch.arange(w, dtype=torch.float32, device=device)
-        grid_h = torch.arange(h, dtype=torch.float32, device=device)
+        # type_as inherits the runtime device in traces, unlike a device= literal; fp32 seed keeps sin/cos exact
+        like = like.new_zeros(1, dtype=torch.float32)
+        grid_w = torch.arange(w).type_as(like)
+        grid_h = torch.arange(h).type_as(like)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_w, grid_h)
         pos_dim = embed_dim // 4
-        omega = torch.arange(pos_dim, dtype=torch.float32, device=device) / pos_dim
+        omega = torch.arange(pos_dim).type_as(like) / pos_dim
         omega = 1.0 / (temperature**omega)
 
         # Pin matmul to fp32 for CoreML export: fp16 sin/cos on integer-derived positions accumulates visible error.

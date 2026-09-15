@@ -22,11 +22,11 @@ Welcome! We're thrilled that you're considering contributing to our [Ultralytics
   <strong>Watch:</strong> How to Contribute to Ultralytics Repository | Ultralytics Models, Datasets and Documentation 🚀
 </p>
 
-## 🤝 Code of Conduct
+## Code of Conduct
 
 To ensure a welcoming and inclusive environment for everyone, all contributors must adhere to our [Code of Conduct](code-of-conduct.md). **Respect**, **kindness**, and **professionalism** are at the heart of our community.
 
-## 🚀 Contributing via Pull Requests
+## Contributing via Pull Requests
 
 We greatly appreciate contributions in the form of [pull requests (PRs)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests). To make the review process as smooth as possible, please follow these steps:
 
@@ -37,7 +37,23 @@ We greatly appreciate contributions in the form of [pull requests (PRs)](https:/
 5. **[Commit your changes](https://docs.github.com/en/desktop/making-changes-in-a-branch/committing-and-reviewing-changes-to-your-project-in-github-desktop):** Commit your changes with concise and descriptive commit messages. If your changes address a specific issue, include the issue number (e.g., `Fix #123: Corrected calculation error.`).
 6. **[Create a pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request):** Submit a pull request from your branch to the `main` branch of the original Ultralytics repository. Provide a clear title and a detailed description explaining the purpose and scope of your changes.
 
-### 📚 Documentation Changes
+### Development Installation
+
+Clone your fork (or the main repository) and install it in editable mode (`-e`) so Python runs your local files and picks up every change without reinstalling:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/ultralytics.git
+cd ultralytics
+pip install -e .
+```
+
+To make another project depend on a fork instead of the PyPI package, point pip or `requirements.txt` at the fork's branch:
+
+```text title="requirements.txt"
+git+https://github.com/YOUR_USERNAME/ultralytics.git@my-custom-branch
+```
+
+### Documentation Changes
 
 Documentation source lives under `docs/en/`. From the repository root, install the development dependencies and run the complete strict validation before opening a PR:
 
@@ -48,7 +64,7 @@ python docs/build_docs.py
 
 The validation prepares generated references, macros, and comparison pages before running `zensical build --strict`. For a faster live preview of pages that do not use macros, run `zensical serve`.
 
-### 📝 CLA Signing
+### CLA Signing
 
 Before we can merge your pull request, you must sign our [Contributor License Agreement (CLA)](CLA.md). This legal agreement ensures that your contributions are properly licensed, allowing the project to continue being distributed under the [AGPL-3.0 license](https://www.ultralytics.com/legal/agpl-3-0-software-license).
 
@@ -58,7 +74,7 @@ After submitting your pull request, the CLA bot will guide you through the signi
 I have read the CLA Document and I sign the CLA
 ```
 
-### ✍️ Google-Style Docstrings
+### Google-Style Docstrings
 
 When adding new functions or classes, include [Google-style docstrings](https://google.github.io/styleguide/pyguide.html) for clear, standardized documentation. Always enclose both input and output `types` in parentheses (e.g., `(bool)`, `(np.ndarray)`).
 
@@ -180,11 +196,11 @@ When adding new functions or classes, include [Google-style docstrings](https://
             return arg1 == arg2
         ```
 
-### ✅ GitHub Actions CI Tests
+### GitHub Actions CI Tests
 
 All pull requests must pass the [GitHub Actions](https://github.com/features/actions) [Continuous Integration](CI.md) (CI) tests before they can be merged. These tests include linting, unit tests, and other checks to ensure that your changes meet the project's quality standards. Review the CI output and address any issues that arise.
 
-## ✨ Best Practices for Code Contributions
+## Best Practices for Code Contributions
 
 When contributing code to Ultralytics projects, keep these best practices in mind:
 
@@ -195,7 +211,7 @@ When contributing code to Ultralytics projects, keep these best practices in min
 - **Use consistent formatting:** Tools like [Ruff Formatter](https://github.com/astral-sh/ruff) can help maintain stylistic consistency.
 - **Add appropriate tests:** Include [tests](../guides/model-testing.md) for new features to ensure they work as expected.
 
-## 👀 Reviewing Pull Requests
+## Reviewing Pull Requests
 
 Reviewing pull requests is another valuable way to contribute. When reviewing PRs:
 
@@ -206,7 +222,7 @@ Reviewing pull requests is another valuable way to contribute. When reviewing PR
 - **Provide constructive feedback:** Offer specific, clear feedback about any issues or concerns.
 - **Recognize effort:** Acknowledge the author's work to maintain a positive collaborative atmosphere.
 
-## 🐞 Reporting Bugs
+## Reporting Bugs
 
 We highly value bug reports as they help us improve the quality and reliability of our projects. When reporting a bug via [GitHub Issues](https://github.com/ultralytics/ultralytics/issues):
 
@@ -215,13 +231,13 @@ We highly value bug reports as they help us improve the quality and reliability 
 - **Describe the environment:** Specify your operating system, Python version, relevant library versions (e.g., [`torch`](https://pytorch.org/), [`ultralytics`](https://github.com/ultralytics/ultralytics)), and hardware ([CPU](https://en.wikipedia.org/wiki/Central_processing_unit)/[GPU](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit)).
 - **Explain expected vs. actual behavior:** Clearly state what you expected to happen and what actually occurred. Include any error messages or tracebacks.
 
-## 📜 License
+## License
 
 Ultralytics uses the [GNU Affero General Public License v3.0 (AGPL-3.0)](https://www.ultralytics.com/legal/agpl-3-0-software-license) for its repositories. This license promotes [openness](https://en.wikipedia.org/wiki/Openness), [transparency](https://www.ultralytics.com/glossary/transparency-in-ai), and [collaborative improvement](https://en.wikipedia.org/wiki/Collaborative_software) in software development. It ensures that all users have the freedom to use, modify, and share the software, fostering a strong community of collaboration and innovation.
 
 We encourage all contributors to familiarize themselves with the terms of the [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) to contribute effectively and ethically to the Ultralytics open-source community.
 
-## 🌍 Open-Sourcing Your YOLO Project Under AGPL-3.0
+## Open-Sourcing Your YOLO Project Under AGPL-3.0
 
 Using Ultralytics YOLO models or code in your project? The [AGPL-3.0 license](https://opensource.org/license/agpl-3.0) requires that your entire derivative work also be open-sourced under AGPL-3.0. This ensures modifications and larger projects built upon open-source foundations remain open.
 

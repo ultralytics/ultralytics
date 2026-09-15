@@ -63,6 +63,23 @@ def test_export_onnx(nms, isolated_model):
     YOLO(file)(SOURCE, imgsz=32)  # exported model inference
 
 
+@pytest.mark.skipif(not TORCH_1_13, reason="ONNX export with NMS requires torch>=1.13")
+def test_export_onnx_nms_conf(isolated_model):
+    """Bake explicit zero confidence into the NMS graph instead of the 0.25 default."""
+    import onnx
+    from onnx import numpy_helper
+
+    path = YOLO(isolated_model).export(format="onnx", imgsz=32, nms=True, conf=0.0)
+    model = onnx.load(path)
+    initializers = {i.name: numpy_helper.to_array(i) for i in model.graph.initializer}
+    thresholds = {
+        initializers[n.input[1]].item()
+        for n in model.graph.node
+        if n.op_type == "Greater" and n.input[1] in initializers
+    }
+    assert 0.0 in thresholds
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):
@@ -532,11 +549,22 @@ def test_export_ncnn_matrix(task, quantize, batch):
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
 )
-def test_export_imx():
-    """Test YOLO export to IMX format."""
-    model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
-    file = model.export(format="imx", imgsz=32, data="coco8.yaml")
-    YOLO(file)(SOURCE, imgsz=32)
+@pytest.mark.parametrize("conf,expected", [(0.0, 0.0), (None, 0.25)])
+def test_export_imx(tmp_path, conf, expected):
+    """Test IMX export and inference, preserving zero confidence and the public export default."""
+    import onnx
+
+    model = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt"))
+    output_dir = model.export(format="imx", imgsz=32, data="coco8.yaml", conf=conf)
+    nodes = [
+        n
+        for n in onnx.load(str(Path(output_dir) / "model_imx.onnx")).graph.node
+        if n.op_type == "MultiClassNMSWithIndices"
+    ]
+    assert len(nodes) == 1, "MultiClassNMSWithIndices node missing from the exported ONNX"
+    attrs = {a.name: a.f for a in nodes[0].attribute}
+    assert attrs["score_threshold"] == pytest.approx(expected)
+    YOLO(output_dir)(SOURCE, imgsz=32)
 
 
 @pytest.mark.slow

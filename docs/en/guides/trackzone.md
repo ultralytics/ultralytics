@@ -113,8 +113,7 @@ Here's a table with the `TrackZone` arguments:
 
 The TrackZone solution includes support for `track` parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization options are available:
 

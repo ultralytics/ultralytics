@@ -2,13 +2,13 @@
 plans: [free, pro, enterprise]
 title: Billing & Credits
 comments: true
-description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent cloud training pricing.
+description: Manage credits, payments, and subscriptions on Ultralytics Platform with transparent compute pricing for cloud training, batch annotation, and endpoints.
 keywords: Ultralytics Platform, billing, credits, pricing, subscription, payments, training costs
 ---
 
 # Billing
 
-[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered cloud training. Add credits, track
+[Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, batch annotation, and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
@@ -32,7 +32,7 @@ Get started at no cost:
 - 3 cloud deployments
 - 100 GB storage · 10 GB dataset upload limit
 - Model export to all 20 formats
-- Manual, SAM3, and YOLO Smart annotation
+- Manual, SAM 3.1, and YOLO Smart annotation
 - 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
 - Community support
 
@@ -89,9 +89,9 @@ View your balance in `Settings > Billing`:
 
 ![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/e7db27e18b14d2a8d2672966455c965f.avif)<!-- screenshot -->
 
-| Balance Type  | Description                          |
-| ------------- | ------------------------------------ |
-| **Available** | Credits available for cloud training |
+| Balance Type  | Description                           |
+| ------------- | ------------------------------------- |
+| **Available** | Credits available for compute charges |
 
 The balance is a single wallet per workspace. It can go negative if a training run's final settlement exceeds the
 credits on hand, and it is shown in red when it does.
@@ -100,9 +100,11 @@ credits on hand, and it is shown in red when it does.
 
 Credits are consumed by:
 
-| Service            | Rate             |
-| ------------------ | ---------------- |
-| **Cloud Training** | GPU rate x hours |
+| Service              | Rate                                                  |
+| -------------------- | ----------------------------------------------------- |
+| **Cloud Training**   | GPU rate x hours                                      |
+| **Batch Annotation** | $1.50 per 1,000 images, minimum $0.01 per run         |
+| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only |
 
 !!! note "Monthly Credits Don't Roll Over"
 
@@ -325,8 +327,10 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Monthly Grant**      | $30/seat monthly Pro credit                                   |
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade |
 | **Training**           | Settled cost of one cloud training run                        |
+| **Auto-Annotation**    | Settled cost of one Batch Annotation run                      |
+| **Endpoint Uptime**    | Settled uptime of a custom-resource endpoint                  |
 | **Refund**             | Refunded charge                                               |
-| **Promo Bonus**        | Credit from a promotional code                                |
+| **Promo Bonus**        | Credit from a promotional code or a referral reward           |
 | **Adjustment**         | Manual correction applied by Ultralytics                      |
 
 ## FAQ

@@ -12,6 +12,8 @@ keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine
 
 The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLO26 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned export support.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/KGHYU-MKYeE"
@@ -177,7 +179,7 @@ QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-trai
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 
-The output head is deliberately left in float to limit INT8 accuracy loss. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+The output head is deliberately left in float to limit INT8 accuracy loss; TensorRT enables FP16 mixed precision for its unquantized layers. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

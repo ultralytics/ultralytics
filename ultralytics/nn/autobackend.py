@@ -270,6 +270,9 @@ class AutoBackend(nn.Module):
         if not self.backend.names:
             self.backend.names = default_class_names(data)
         self.backend.names = check_class_names(self.backend.names)
+        empty = [k for k, v in self.backend.names.items() if not v.strip()]
+        if empty:
+            LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
 
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the backend.

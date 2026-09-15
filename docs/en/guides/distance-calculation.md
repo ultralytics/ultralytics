@@ -99,8 +99,7 @@ Here's a table with the `DistanceCalculation` arguments:
 
 You can also make use of various `track` arguments in the `DistanceCalculation` solution.
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization arguments are available:
 

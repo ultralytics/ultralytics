@@ -86,8 +86,7 @@ Here's a table with the `VisionEye` arguments:
 
 You can also utilize various `track` arguments within the `VisionEye` solution:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Furthermore, some visualization arguments are supported, as listed below:
 

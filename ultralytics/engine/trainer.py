@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
+    WINDOWS,
     YAML,
     callbacks,
     clean_url,
@@ -324,8 +325,10 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU
-        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
+        channels_last = self.args.channels_last is True or (
+            self.args.channels_last is None and TORCH_1_11 and not WINDOWS
+        )
         if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
@@ -994,7 +997,7 @@ class BaseTrainer:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
                 ckpt_args = load_checkpoint(last)[0].args
-                if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
+                if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
                     ckpt_args["data"] = self.args.data
 
                 resume = True
@@ -1032,7 +1035,7 @@ class BaseTrainer:
         """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
         if ckpt.get("optimizer") is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])
-        if ckpt.get("scaler") is not None:
+        if ckpt.get("scaler"):
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
             self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated

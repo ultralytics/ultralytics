@@ -1,7 +1,7 @@
 ---
 title: utils.analysis API Reference
-description: Reference for `ultralytics.utils.analysis` in the Ultralytics package.
-keywords: Ultralytics, ultralytics.utils.analysis, API reference, YOLO, Python
+description: Image property extraction and per-image F1 correlation.
+keywords: Ultralytics, image property analysis, correlation, dataset quality, detection
 ---
 
 # Reference for `ultralytics/utils/analysis.py`
@@ -12,6 +12,18 @@ keywords: Ultralytics, ultralytics.utils.analysis, API reference, YOLO, Python
 
 <br>
 
+## ::: ultralytics.utils.analysis.AnalysisReport
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.analysis.ImagePropertyExtractor
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.analysis.analyze_correlations
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.analysis._rankdata
 
 <br><br>

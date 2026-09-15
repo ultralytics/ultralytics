@@ -330,7 +330,7 @@ def torch2imx(
     if model.task != "classify":
         quant_model = NMSWrapper(
             model=quant_model,
-            score_threshold=conf or 0.001,
+            score_threshold=0.001 if conf is None else conf,
             iou_threshold=iou,
             max_detections=max_det,
             task=model.task,

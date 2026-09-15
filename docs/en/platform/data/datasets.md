@@ -12,6 +12,10 @@ keywords: Ultralytics Platform, datasets, dataset management, dataset versioning
 
 A dataset is ready to train once processing has completed and it has at least one image in the `train` split, at least one image in either the `val` or `test` split, and at least one labeled image. The dataset header shows a `Ready` badge when all three conditions are met, and a `Not Ready` badge otherwise — click the badge to see exactly which condition is missing.
 
+## Collect Images with Agents
+
+Use [Agents](../agents.md#collect-images-for-review) to add images to a dataset when a model detection meets a condition, such as confidence within a chosen range. Connect the condition to a **Dataset** block and select a destination you can edit. Images arrive unlabeled in the `train` split; existing copies are skipped. Review and label them with the existing [annotation editor](annotation.md).
+
 ## Upload Dataset
 
 Ultralytics Platform accepts multiple upload formats for flexibility.
@@ -790,24 +794,33 @@ The Platform supports the following licenses for datasets:
 | CC0-1.0         | Public domain       |
 | PDM-1.0         | Public domain       |
 | CC-BY-2.5       | Permissive          |
+| CC-BY-3.0       | Permissive          |
 | CC-BY-4.0       | Permissive          |
 | CC-BY-NC-2.0    | Non-commercial      |
-| CC-BY-SA-4.0    | Copyleft            |
+| CC-BY-NC-3.0    | Non-commercial      |
 | CC-BY-NC-4.0    | Non-commercial      |
+| CC-BY-SA-3.0    | Copyleft            |
+| CC-BY-SA-4.0    | Copyleft            |
 | CC-BY-NC-SA-3.0 | Copyleft            |
 | CC-BY-NC-SA-4.0 | Copyleft            |
 | CC-BY-ND-4.0    | No derivatives      |
+| CC-BY-NC-ND-2.0 | Non-commercial      |
 | CC-BY-NC-ND-4.0 | Non-commercial      |
 | Apache-2.0      | Permissive          |
 | MIT             | Permissive          |
+| BSD-3-Clause    | Permissive          |
 | AGPL-3.0        | Copyleft            |
+| GPL-2.0         | Copyleft            |
 | GPL-3.0         | Copyleft            |
+| LGPL-3.0        | Copyleft            |
+| ODbL-1.0        | Copyleft            |
+| DbCL-1.0        | Requires ODbL       |
 | Research-Only   | Restricted          |
 | Other           | Custom              |
 
 !!! note "Copyleft Licenses"
 
-    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-3.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
+    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-2.0, GPL-3.0, LGPL-3.0, ODbL-1.0, CC-BY-SA-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-3.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
 
 ## Visibility Settings
 
@@ -976,12 +989,12 @@ Yes:
 
 Datasets that read from [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources keep their pixels outside Platform, so the features that need Platform-owned copies of the image bytes are unavailable:
 
-| Feature                                            | Cloud-connected | On Premise  |
-| -------------------------------------------------- | --------------- | ----------- |
-| [Smart annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
-| [Clustering analysis](#clustering)                 | Unavailable     | Unavailable |
-| [Cloning](#clone-dataset)                          | Unavailable     | Unavailable |
-| [Version snapshots](#versions-tab)                 | Unavailable     | Unavailable |
-| [NDJSON export](#export-dataset)                   | Available       | Unavailable |
+| Feature                                                      | Cloud-connected | On Premise  |
+| ------------------------------------------------------------ | --------------- | ----------- |
+| [Smart and Batch Annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
+| [Clustering analysis](#clustering)                           | Unavailable     | Unavailable |
+| [Cloning](#clone-dataset)                                    | Unavailable     | Unavailable |
+| [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
+| [NDJSON export](#export-dataset)                             | Available       | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

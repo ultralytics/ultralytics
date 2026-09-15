@@ -252,16 +252,27 @@ def test_restricted_load_threaded():
     assert pathlib.WindowsPath is windows_path
 
 
-def test_restricted_load_criterion(tmp_path):
-    """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
+@pytest.mark.parametrize("fused", [False, True])
+def test_restricted_load_criterion(tmp_path, fused):
+    """Legacy criterion metadata and fused forward bindings survive restricted checkpoint round trips."""
     from ultralytics.nn.tasks import DetectionModel, torch_safe_load
     from ultralytics.utils import DEFAULT_CFG
 
     model = DetectionModel(CFG, verbose=False)
     model.args = DEFAULT_CFG
     model.criterion = model.init_criterion()
-    torch.save({"model": model}, tmp_path / "legacy.pt")
-    assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None
+    model.eval()
+    if fused:
+        model.fuse(verbose=False)
+    image = torch.zeros(1, 3, 64, 64)
+    with torch.no_grad():
+        expected = model(image)[0]
+    torch.save({"model": model, "best_fitness": np.float64(0.5)}, tmp_path / "legacy.pt")
+    checkpoint = torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]
+    assert checkpoint["model"].criterion is not None
+    assert checkpoint["best_fitness"] == 0.5
+    with torch.no_grad():
+        assert torch.equal(checkpoint["model"](image)[0], expected)
 
 
 @pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])

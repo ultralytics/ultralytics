@@ -39,6 +39,8 @@ YOLO26 pretrained Detect models are shown here. Detect, Segment, and Pose models
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val detect data=coco.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO detection results.
+
 ## Train
 
 Train YOLO26n on the COCO8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 640. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.

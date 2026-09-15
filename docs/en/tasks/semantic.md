@@ -50,6 +50,8 @@ YOLO26 semantic segmentation models pretrained on the [ADE20K](https://github.co
 - **Speed** metrics are averaged over ADE20K validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml batch=1 device=0|cpu imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary Cityscapes mIoU results.
+
 ## Train
 
 Train YOLO26n-sem on the Cityscapes8 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 1024. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.

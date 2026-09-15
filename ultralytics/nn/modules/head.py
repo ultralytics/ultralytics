@@ -1006,7 +1006,7 @@ class LRPCHead(nn.Module):
             return (
                 loc_feat,
                 cls_feat.flatten(2),
-                torch.ones(cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool),
+                cls_feat.new_ones(cls_feat.shape[2] * cls_feat.shape[3], dtype=torch.bool),
             )
 
 
@@ -1584,7 +1584,7 @@ class RTDETRDecoder(nn.Module):
         dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
             batch,
             self.nc,
-            self.num_queries,
+            min(self.num_queries, feats.shape[1]),
             self.denoising_class_embed.weight,
             self.num_denoising,
             self.label_noise_ratio,
@@ -1627,6 +1627,11 @@ class RTDETRDecoder(nn.Module):
                 export, and last dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        k = (
+            (torch._shape_as_tensor(scores)[1] * self.nc).clamp(max=k)
+            if self.dynamic
+            else min(k, scores.shape[1] * self.nc)
+        )
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
@@ -1637,18 +1642,16 @@ class RTDETRDecoder(nn.Module):
     @staticmethod
     def _generate_anchors(
         shapes: list[list[int]],
+        feats: torch.Tensor,
         grid_size: float = 0.05,
-        dtype: torch.dtype = torch.float32,
-        device: str = "cpu",
         eps: float = 1e-2,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Generate anchor bounding boxes for given shapes with specific grid size and validate them.
 
         Args:
             shapes (list): List of feature map shapes.
+            feats (torch.Tensor): Tensor whose dtype and device the anchors inherit.
             grid_size (float, optional): Base size of grid cells.
-            dtype (torch.dtype, optional): Data type for tensors.
-            device (str, optional): Device to create tensors on.
             eps (float, optional): Small value for numerical stability.
 
         Returns:
@@ -1657,14 +1660,11 @@ class RTDETRDecoder(nn.Module):
         """
         anchors = []
         for i, (h, w) in enumerate(shapes):
-            sy = torch.arange(end=h, dtype=dtype, device=device)
-            sx = torch.arange(end=w, dtype=dtype, device=device)
+            sy = torch.arange(h).type_as(feats)  # type_as inherits the runtime device in traces, unlike device=
+            sx = torch.arange(w).type_as(feats)
             grid_y, grid_x = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
-            grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
-
-            valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
-            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
+            grid_xy = torch.stack([(grid_x + 0.5) / w, (grid_y + 0.5) / h], -1)[None]  # (1, h, w, 2)
+            wh = torch.full_like(grid_xy, grid_size * (2.0**i))
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
@@ -1722,7 +1722,7 @@ class RTDETRDecoder(nn.Module):
         """
         bs = feats.shape[0]
         if self.dynamic or self.shapes != shapes:
-            self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+            self.anchors, self.valid_mask = self._generate_anchors(shapes, feats)
             self.shapes = shapes
 
         # Prepare input for decoder
@@ -1732,14 +1732,19 @@ class RTDETRDecoder(nn.Module):
         # Query selection
         # (bs*num_queries,)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
+        k = (
+            torch._shape_as_tensor(enc_outputs_scores)[1].clamp(max=self.num_queries)
+            if self.dynamic
+            else min(self.num_queries, enc_outputs_scores.shape[1])
+        )
+        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, k, groups)[1].view(-1)
         # (bs*num_queries,)
-        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, k).view(-1)
 
         # (bs, num_queries, 256)
-        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        top_k_features = features[batch_ind, topk_ind].view(bs, k, -1)
         # (bs, num_queries, 4)
-        top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)
+        top_k_anchors = self.anchors[:, topk_ind].view(bs, k, -1)
 
         # Dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
@@ -1747,9 +1752,11 @@ class RTDETRDecoder(nn.Module):
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, k, -1)
 
-        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        embeddings = (
+            self.tgt_embed.weight[:k].unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        )
         if self.training:
             refer_bbox = refer_bbox.detach()
             if not self.learnt_init_query:

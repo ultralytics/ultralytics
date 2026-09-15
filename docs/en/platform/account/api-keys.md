@@ -96,7 +96,7 @@ Set your key as an environment variable:
 
 ### YOLO CLI
 
-Validate and save the key using the YOLO CLI:
+Validate and save the key using the YOLO CLI on Python>=3.11:
 
 ```bash
 yolo login YOUR_API_KEY
@@ -127,7 +127,7 @@ See the [REST API Reference](../api/index.md) for all available endpoints.
 
 Enable metric streaming with your key.
 
-Install or update the Ultralytics package before starting:
+Install or update the Ultralytics package on Python>=3.11 before starting:
 
 ```bash
 pip install -U ultralytics
@@ -229,7 +229,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.120`
+4. Ensure you're using Python>=3.11 and `ultralytics>=8.4.120`
 
 ### Permission Denied
 

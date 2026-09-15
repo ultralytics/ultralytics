@@ -11,7 +11,7 @@ from ultralytics.data import ClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
-from ultralytics.utils import DEFAULT_CFG, LOGGER, RANK
+from ultralytics.utils import DEFAULT_CFG, RANK
 from ultralytics.utils.plotting import plot_images
 from ultralytics.utils.torch_utils import is_parallel, torch_distributed_zero_first
 
@@ -143,23 +143,7 @@ class ClassificationTrainer(BaseTrainer):
                 f"See https://docs.ultralytics.com/datasets/classify for cls dataset format."
             )
 
-        # Filter out samples with class indices >= nc (prevents CUDA assertion errors)
-        nc = self.data.get("nc", 0)
-        dataset_nc = max(x[1] for x in dataset.samples) + 1
-        if nc and dataset_nc > nc:
-            extra_classes = dataset.base.classes[nc:]
-            original_count = len(dataset.samples)
-            dataset.samples = [s for s in dataset.samples if s[1] < nc]
-            skipped = original_count - len(dataset.samples)
-            LOGGER.warning(
-                f"{mode} split has {dataset_nc} classes but model expects {nc}. "
-                f"Skipping {skipped} samples from extra classes: {extra_classes}"
-            )
-            if not dataset.samples:
-                raise RuntimeError(
-                    f"All {original_count} samples in '{mode}' split filtered out: every sample had class index >= "
-                    f"model nc={nc}. Reset the model's class count or align dataset class indices."
-                )
+        dataset.filter_extra_classes(self.data["nc"])
         drop_last = self.args.compile and mode == "train"
         loader = build_dataloader(
             dataset, batch_size, self.args.workers, rank=rank, drop_last=drop_last, device=self.device

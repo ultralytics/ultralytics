@@ -512,8 +512,8 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     a buffer, not a learnable parameter), so training adapts the weights to them.
 
     Training keeps BatchNorm unfused; `fuse()` folds it at export and rescales the weight ranges along. The head's
-    output layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8
-    accuracy loss.
+    output layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8 accuracy
+    loss.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.

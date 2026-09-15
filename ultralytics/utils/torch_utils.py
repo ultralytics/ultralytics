@@ -443,6 +443,9 @@ def _register_qat_blocks() -> None:
             self._register_temp_attribute("y_input_quantizer", TensorQuantizer())
             self._register_temp_attribute("cat_input_quantizer", TensorQuantizer())
 
+        def modelopt_post_restore(self, prefix=""):
+            """Skip ModelOpt's device lookup, which warns for a parameter-less `Concat`; `restore_qat` moves the model."""
+
         def forward(self, x):
             held = {id(x): x}  # the block input and every residual sum, kept alive so that ids are not reused
 

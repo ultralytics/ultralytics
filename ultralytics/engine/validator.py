@@ -122,7 +122,6 @@ class BaseValidator:
         self.dataloader = dataloader
         self.stride = None
         self.data = None
-        self.model = None
         self.device = None
         self.batch_i = None
         self.training = True
@@ -223,7 +222,7 @@ class BaseValidator:
             if not (pt or (getattr(model, "dynamic", False) and fmt != "imx")):
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
-            self.model = model  # expose the loaded model to get_dataloader(), e.g. for class-count-aware filtering
+            self.names = model.names  # used in get_dataloader() to filter classification samples
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()

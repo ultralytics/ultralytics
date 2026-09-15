@@ -1217,30 +1217,21 @@ class ClassificationDataset:
             else classify_transforms(size=args.imgsz)
         )
 
-    def filter_extra_classes(self, nc: int, split: str = "") -> None:
-        """Drop samples whose class index is outside the model's classes (index >= nc).
-
-        Class indices come from this split's own folder scan and can exceed the number of classes the model was
-        trained on; keeping such samples causes index errors and CUDA assertion failures during training and
-        validation.
-
-        Args:
-            nc (int): Number of model classes; samples with class index >= nc are dropped.
-            split (str, optional): Split name used in log messages, e.g. 'train' or 'val'.
-        """
+    def filter_extra_classes(self, nc: int) -> None:
+        """Drop samples with class indices >= nc before constructing the dataloader."""
         dataset_nc = max((x[1] for x in self.samples), default=0) + 1
-        if not nc or dataset_nc <= nc:
+        if dataset_nc <= nc:
             return
         extra_classes = self.base.classes[nc:]
         original_count = len(self.samples)
         self.samples = [s for s in self.samples if s[1] < nc]
         LOGGER.warning(
-            f"{split} split has {dataset_nc} classes but model expects {nc}. "
+            f"{self.prefix}Split has {dataset_nc} classes but model expects {nc}. "
             f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra_classes}"
         )
         if not self.samples:
             raise RuntimeError(
-                f"All {original_count} samples in '{split}' split filtered out: every sample had class index >= "
+                f"{self.prefix}All {original_count} samples filtered out: every sample had class index >= "
                 f"model nc={nc}. Reset the model's class count or align dataset class indices."
             )
 

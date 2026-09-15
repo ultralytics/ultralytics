@@ -58,7 +58,7 @@ Account management is organized into nine tabs within `Settings` (in order):
 | `Plans`        | Compare Free, Pro, and Enterprise plans                                                   |
 | `Billing`      | Credit balance, top-up, auto top-up, payment methods, billing address, transactions       |
 | `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace             |
-| `Referrals`    | Personal referral link and the credits earned once referred friends top up their balance  |
+| `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10        |
 | `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                   |
 | `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and dataset imports |
 | `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                             |

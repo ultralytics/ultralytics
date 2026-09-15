@@ -2,7 +2,6 @@
 
 import contextlib
 import csv
-import logging
 import os
 import platform
 import shutil
@@ -1925,7 +1924,7 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
 
 
-def test_classify_val_extra_classes(tmp_path):
+def test_classify_val_extra_classes(tmp_path, caplog):
     """Standalone classify val() skips samples from classes beyond the model's nc instead of raising IndexError."""
     data = tmp_path / "data"
     for split, classes in {"train": "ab", "val": "abc"}.items():
@@ -1945,21 +1944,12 @@ def test_classify_val_extra_classes(tmp_path):
         exist_ok=True,
     )
 
-    class Probe(logging.Handler):  # ultralytics LOGGER does not propagate, so attach a handler directly
-        def __init__(self):
-            super().__init__()
-            self.messages = []
-
-        def emit(self, record):
-            self.messages.append(record.getMessage())
-
-    probe = Probe()
-    LOGGER.addHandler(probe)
+    LOGGER.addHandler(caplog.handler)  # LOGGER does not propagate to pytest's root handler
     try:
         metrics = YOLO(str(tmp_path / "t" / "weights" / "best.pt")).val(data=str(data), device="cpu")
     finally:
-        LOGGER.removeHandler(probe)
-    assert any("Skipping 2 samples from extra classes" in m for m in probe.messages)
+        LOGGER.removeHandler(caplog.handler)
+    assert "Skipping 2 samples from extra classes" in caplog.text
     assert 0.0 <= metrics.top1 <= 1.0
 
 

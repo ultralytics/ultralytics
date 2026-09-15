@@ -161,6 +161,7 @@ class ClassificationValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader object for the classification validation dataset.
         """
         dataset = self.build_dataset(dataset_path)
+        dataset.filter_extra_classes(self.data.get("nc", 0), self.args.split)
         return build_dataloader(dataset, batch_size, self.args.workers, rank=-1, device=self.device)
 
     def print_results(self) -> None:

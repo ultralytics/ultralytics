@@ -1,7 +1,7 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM and YOLO models for detect, segment, semantic, and OBB tasks.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks or YOLO models for those tasks and pose.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
@@ -127,14 +127,14 @@ graph LR
 
 ## Annotation Modes
 
-`Draw` is the default mode for spatial annotation tasks. For detect, segment, semantic, and OBB datasets, the toolbar also provides `Smart` mode when Smart annotation is available:
+`Draw` is the default mode for spatial annotation tasks. For detect, segment, semantic, pose, and OBB datasets, the toolbar also provides `Smart` mode when Smart annotation is available:
 
-| Mode      | Description                                                                 | Shortcut |
-| --------- | --------------------------------------------------------------------------- | -------- |
-| **Draw**  | Default manual mode with task-specific drawing tools                        | `V`      |
-| **Smart** | SAM or YOLO model-assisted annotation (detect, segment, semantic, OBB only) | `S`      |
+| Mode      | Description                                                                                                                       | Shortcut |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **Draw**  | Default manual mode with task-specific drawing tools                                                                              | `V`      |
+| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, or with YOLO models on those and pose datasets | `S`      |
 
-Pose annotation uses `Draw` with a skeleton template — the `Smart` button appears but is disabled and marked "Coming Soon". Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
+Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
 Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage.
 
@@ -242,7 +242,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. Smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -290,7 +290,7 @@ SAM smart annotation can generate:
 
 !!! warning "SAM Task Support"
 
-    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose and classification require manual annotation.
+    SAM smart annotation is only available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose datasets use [YOLO smart annotation](#yolo-smart-annotation) instead, and classification requires manual annotation.
 
 #### Auto-Apply Mode
 
@@ -338,7 +338,7 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 
 !!! tip "YOLO Model Notes"
 
-    - The model picker only lists models that match the current dataset task.
+    - The model picker only lists models that match the current dataset task, so a pose dataset offers pose models.
     - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.
 
 ## Class Sidebar
@@ -481,7 +481,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click inside mask`    | Subtract region from SAM mask (negative point)                                  |
     | `Click outside mask`   | Add to SAM mask (positive point)                                                |
     | `Shift (hold) + Click` | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on) |
-    | `A`                    | Toggle auto-apply (Smart mode)                                                  |
+    | `A`                    | Toggle auto-apply (SAM Smart mode)                                              |
     | `P`                    | Run YOLO prediction (Smart mode)                                                |
     | `Enter`                | Complete polygon / Save SAM annotation                                          |
     | `Escape`               | Complete polygon / Save SAM annotation / Deselect / Exit                        |
@@ -572,7 +572,7 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. Pose and classification use manual annotation only — on pose datasets the `Smart` button is visible but disabled and marked "Coming Soon". Smart annotation is also unavailable on connected cloud and On Premise datasets.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. Smart annotation is also unavailable on connected cloud and On Premise datasets.
 
 ### Can I create custom skeleton templates for pose annotation?
 

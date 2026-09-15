@@ -556,6 +556,28 @@ def test_export_imx():
     YOLO(file)(SOURCE, imgsz=32)
 
 
+@pytest.mark.skipif(not TORCH_2_9, reason="IMX export requires torch>=2.9.0")
+@pytest.mark.skipif(not checks.IS_PYTHON_MINIMUM_3_9, reason="IMX export requires Python>=3.9")
+@pytest.mark.skipif(not LINUX, reason="IMX export only supported on Linux")
+@pytest.mark.skipif(
+    IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
+)
+@pytest.mark.parametrize("conf,expected", [(0.0, 0.0), (None, 0.001)])
+def test_export_imx_conf(isolated_model, conf, expected):
+    """Bake the requested confidence into the IMX NMS score_threshold instead of the 0.001 default."""
+    import onnx
+
+    output_dir = YOLO(isolated_model).export(format="imx", imgsz=32, data="coco8.yaml", conf=conf)
+    nodes = [
+        n
+        for n in onnx.load(str(Path(output_dir) / "model_imx.onnx")).graph.node
+        if n.op_type == "MultiClassNMSWithIndices"
+    ]
+    assert len(nodes) == 1, "MultiClassNMSWithIndices node missing from the exported ONNX"
+    attrs = {a.name: a.f for a in nodes[0].attribute}
+    assert attrs["score_threshold"] == pytest.approx(expected)
+
+
 @pytest.mark.slow
 @pytest.mark.skipif(not LINUX or ARM64, reason="RKNN export only supported on non-aarch64 Linux")
 @pytest.mark.parametrize("quantize,batch", [(8, 8), (16, 1)])

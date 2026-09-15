@@ -100,10 +100,11 @@ credits on hand, and it is shown in red when it does.
 
 Credits are consumed by:
 
-| Service              | Rate                                          |
-| -------------------- | --------------------------------------------- |
-| **Cloud Training**   | GPU rate x hours                              |
-| **Batch Annotation** | $1.50 per 1,000 images, minimum $0.01 per run |
+| Service              | Rate                                                  |
+| -------------------- | ----------------------------------------------------- |
+| **Cloud Training**   | GPU rate x hours                                      |
+| **Batch Annotation** | $1.50 per 1,000 images, minimum $0.01 per run         |
+| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only |
 
 !!! note "Monthly Credits Don't Roll Over"
 
@@ -327,6 +328,7 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade |
 | **Training**           | Settled cost of one cloud training run                        |
 | **Auto-Annotation**    | Settled cost of one Batch Annotation run                      |
+| **Endpoint Uptime**    | Settled uptime of a custom-resource endpoint                  |
 | **Refund**             | Refunded charge                                               |
 | **Promo Bonus**        | Credit from a promotional code                                |
 | **Adjustment**         | Manual correction applied by Ultralytics                      |

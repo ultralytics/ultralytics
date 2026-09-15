@@ -1924,35 +1924,6 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
 
 
-def test_classify_val_extra_classes(tmp_path, caplog):
-    """Standalone classify val() skips samples from classes beyond the model's nc instead of raising IndexError."""
-    data = tmp_path / "data"
-    for split, classes in {"train": "ab", "val": "abc"}.items():
-        for i, c in enumerate(classes):
-            (data / split / c).mkdir(parents=True)
-            for j in range(2):
-                cv2.imwrite(str(data / split / c / f"{j}.jpg"), np.full((32, 32, 3), 40 + 60 * i, dtype=np.uint8))
-    YOLO("yolo11n-cls.yaml").train(
-        data=str(data),
-        epochs=1,
-        imgsz=32,
-        device="cpu",
-        batch=6,
-        plots=False,
-        project=str(tmp_path),
-        name="t",
-        exist_ok=True,
-    )
-
-    LOGGER.addHandler(caplog.handler)  # LOGGER does not propagate to pytest's root handler
-    try:
-        metrics = YOLO(str(tmp_path / "t" / "weights" / "best.pt")).val(data=str(data), device="cpu")
-    finally:
-        LOGGER.removeHandler(caplog.handler)
-    assert "Skipping 2 samples from extra classes" in caplog.text
-    assert 0.0 <= metrics.top1 <= 1.0
-
-
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

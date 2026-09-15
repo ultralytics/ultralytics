@@ -381,6 +381,9 @@ def fuse_conv_and_bn(conv, bn):
     conv.weight, conv.bias = fuse_conv_bn_weights(
         conv.weight, conv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
+    q = getattr(conv, "weight_quantizer", None)
+    if q is not None:  # QAT: the per-channel weight range scales with the folded BN, so the INT8 codes do not move
+        q.amax = q.amax * (bn.weight / torch.sqrt(bn.running_var + bn.eps)).abs().view_as(q.amax)
     return conv.requires_grad_(False)
 
 
@@ -466,20 +469,26 @@ def _register_qat_blocks() -> None:
 def _share_ranges(model: nn.Module, batch) -> None:
     """Give the quantizers that read the same tensor, or slices of it, one range so its producer can end in INT8.
 
-    A concatenation input is also read by the next block and a residual input by the first conv of its bottleneck.
-    TensorRT fuses the quantizer into the producing layer only when every reader agrees on the range.
+    A concatenation input is also read by the next block, a residual input by the first conv of its bottleneck, and an
+    upsampled tensor keeps its range. TensorRT fuses the quantizer into the producing layer only when every reader
+    agrees on the range.
     """
     from modelopt.torch.quantization.nn import TensorQuantizer
 
-    groups, tensors = {}, []  # tensors are held so that their storage is not reused during the forward
+    groups, alias, tensors = {}, {}, []  # tensors are held so that their storage is not reused during the forward
 
     def record(q, args):
         tensors.append(args[0])
-        groups.setdefault(args[0].untyped_storage().data_ptr(), []).append(q)  # slices of one tensor share a range
+        ptr = args[0].untyped_storage().data_ptr()  # slices of one tensor share a range
+        groups.setdefault(alias.get(ptr, ptr), []).append(q)
+
+    def upsampled(m, args, out):
+        tensors.extend((args[0], out))
+        alias[out.untyped_storage().data_ptr()] = args[0].untyped_storage().data_ptr()
 
     hooks = [
         m.register_forward_pre_hook(record) for m in model.modules() if isinstance(m, TensorQuantizer) and m.is_enabled
-    ]
+    ] + [m.register_forward_hook(upsampled) for m in model.modules() if isinstance(m, nn.Upsample)]
     model(batch)
     for h in hooks:
         h.remove()
@@ -502,9 +511,9 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     weight ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as
     a buffer, not a learnable parameter), so training adapts the weights to them.
 
-    BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
-    `fuse()` and leaves BN folding to the deployment backend. The head's output layers, the bare convolutions and
-    linears outside its `Conv` blocks, are left in float to limit INT8 accuracy loss.
+    Training keeps BatchNorm unfused; `fuse()` folds it at export and rescales the weight ranges along. The head's
+    output layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8
+    accuracy loss.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.

@@ -20,6 +20,7 @@ import torch
 import torch.nn.functional as F
 
 from ultralytics.data.augment import LetterBox
+from ultralytics.data.loaders import LoadNumpyFrames
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, LOGGER, ops
@@ -2626,6 +2627,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def setup_source(self, source):
         """Setup the source for the SAM3VideoSemanticPredictor model."""
+        self.inference_state = {}  # ensure init_state re-initializes for new sequences
         super().setup_source(source)
         self.tracker.imgsz = self.imgsz
         self.tracker.model.set_imgsz(self.imgsz)
@@ -2658,6 +2660,29 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             "per_frame_geometric_prompt": [None] * num_frames,
         }
         predictor.inference_state = inference_state
+
+    @smart_inference_mode()
+    def predict_frames(self, frames: list[np.ndarray], text: list[str] | None = None, **kwargs):
+        """Run video inference with temporal memory over in-memory NumPy frames.
+
+        Thin wrapper that routes ordered frames through the standard
+        ``stream_inference()`` lifecycle (callbacks, timing, write-results) so
+        no code is duplicated from the normal prediction path.
+
+        Args:
+            frames (list[np.ndarray]): Non-empty list of BGR uint8 frames with shape [(H, W, 3) x N].
+            text (list[str] | None): Text prompts applied to the sequence.
+            **kwargs: Additional keyword arguments forwarded to ``inference()``.
+
+        Returns:
+            (list[ultralytics.engine.results.Results]): One ``Results`` object per input frame.
+
+        Raises:
+            ValueError: If ``frames`` is not a non-empty list of NumPy arrays.
+        """
+        if not isinstance(frames, list) or not frames or any(not isinstance(f, np.ndarray) for f in frames):
+            raise ValueError("`frames` must be a non-empty list of NumPy arrays.")
+        return list(self.stream_inference(source=LoadNumpyFrames(frames), text=text, **kwargs))
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""

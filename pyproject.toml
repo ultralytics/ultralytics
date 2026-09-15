@@ -170,7 +170,7 @@ logging = [
 extra = [
     "ipython", # interactive notebook
     "albumentations>=1.4.6", # training augmentations
-    "faster-coco-eval>=1.6.7", # COCO mAP
+    "ultrafast-pycocotools>=0.1.7", # COCO mAP
 ]
 typing = [
     "types-pillow",

@@ -567,7 +567,7 @@ class DetectionValidator(BaseValidator):
         iou_types: str | list[str] = "bbox",
         suffix: str | list[str] = "Box",
     ) -> dict[str, Any]:
-        """Evaluate COCO/LVIS or custom COCO-format detection metrics using faster-coco-eval.
+        """Evaluate COCO/LVIS or custom COCO-format detection metrics using ultrafast-pycocotools.
 
         Args:
             stats (dict[str, Any]): Dictionary to store computed metrics and statistics.
@@ -580,22 +580,27 @@ class DetectionValidator(BaseValidator):
             (dict[str, Any]): Updated stats dictionary containing the computed COCO-format evaluation metrics.
         """
         if self.args.save_json and len(self.jdict) and (self.is_coco or self.is_lvis or self.gdict):
-            LOGGER.info("\nEvaluating faster-coco-eval mAP...")
+            LOGGER.info("\nEvaluating ultrafast-pycocotools mAP...")
             try:
                 for x in pred_json, anno_json:
                     if isinstance(x, (str, Path)):
                         assert Path(x).is_file(), f"{x} file not found"
                 iou_types = [iou_types] if isinstance(iou_types, str) else iou_types
                 suffix = [suffix] if isinstance(suffix, str) else suffix
-                check_requirements("faster-coco-eval>=1.6.7")
-                from faster_coco_eval import COCO, COCOeval_faster
+                check_requirements("ultrafast-pycocotools>=0.1.7")
+                from ultrafast_pycocotools import COCO, COCOeval
 
                 anno = getattr(self, "_coco_api", None) or COCO(anno_json)
                 self._coco_api = anno
                 pred = anno.loadRes(pred_json)
                 for i, iou_type in enumerate(iou_types):
-                    val = COCOeval_faster(
-                        anno, pred, iouType=iou_type, lvis_style=self.is_lvis, print_function=LOGGER.info
+                    val = COCOeval(
+                        anno,
+                        pred,
+                        iouType=iou_type,
+                        lvis_style=self.is_lvis,
+                        lvis_protocol="coco",
+                        print_function=LOGGER.info,
                     )
                     val.params.imgIds = (
                         anno.getImgIds()
@@ -610,9 +615,10 @@ class DetectionValidator(BaseValidator):
                         stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                         stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-                    stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
-                    stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
-                    stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
+                    if iou_type != "keypoints":
+                        stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
+                        stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
+                        stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
                     if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]
@@ -621,5 +627,5 @@ class DetectionValidator(BaseValidator):
                 if self.is_lvis:
                     stats["fitness"] = stats["metrics/mAP50-95(B)"]  # always use box mAP50-95 for fitness
             except Exception as e:
-                LOGGER.warning(f"faster-coco-eval unable to run: {e}")
+                LOGGER.warning(f"ultrafast-pycocotools unable to run: {e}")
         return stats

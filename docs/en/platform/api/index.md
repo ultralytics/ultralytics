@@ -2407,6 +2407,8 @@ real-time metric streaming automatically.
 
 ### Installation & Setup
 
+Platform integration requires **Python>=3.11** and **ultralytics>=8.4.120**:
+
 ```bash
 pip install "ultralytics>=8.4.120"
 ```

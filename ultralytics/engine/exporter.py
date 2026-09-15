@@ -792,7 +792,7 @@ class Exporter:
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=None'.")
                 self.args.nms = None
-            self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
+            self.args.conf = 0.25 if self.args.conf is None else self.args.conf  # set conf default for nms export
         if fmt == "mnn" and self.args.nms:
             if self.args.dynamic:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")

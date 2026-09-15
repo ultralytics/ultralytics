@@ -1068,7 +1068,7 @@ The body takes the same `modelId`, `confidence`, and `iou` fields as the single-
 (default `false`) to also annotate images that already have labels and an optional `classMapping` array giving the
 dataset class index for each model class, or `null` to skip it. Existing labels are never changed, and the run is billed
 for the images it actually processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not
-ready, has no images left to annotate, or already has a run in progress, and `422` that the dataset has no classes.
+ready, has no images left to annotate, or already has a run in progress, and `422` that the dataset has no classes — add them with the [classes endpoint](#manage-classes) first; the app's Map classes step does this for you.
 
 `GET` on the same path (`client.datasets.batch(owner, dataset)`) returns the in-flight run and its progress, or the last
 finished run until it is dismissed; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or

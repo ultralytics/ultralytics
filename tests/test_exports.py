@@ -549,11 +549,22 @@ def test_export_ncnn_matrix(task, quantize, batch):
 @pytest.mark.skipif(
     IS_RASPBERRYPI, reason="Test disabled as IMX export suffers from OOM (Out of Memory) on Raspberry Pi 5 16GB"
 )
-def test_export_imx():
-    """Test YOLO export to IMX format."""
-    model = YOLO("yolo11n.pt")  # IMX export only supports YOLO11
-    file = model.export(format="imx", imgsz=32, data="coco8.yaml")
-    YOLO(file)(SOURCE, imgsz=32)
+@pytest.mark.parametrize("conf,expected", [(0.0, 0.0), (None, 0.25)])
+def test_export_imx(tmp_path, conf, expected):
+    """Test IMX export and inference, preserving zero confidence and the public export default."""
+    import onnx
+
+    model = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo11n.pt"))
+    output_dir = model.export(format="imx", imgsz=32, data="coco8.yaml", conf=conf)
+    nodes = [
+        n
+        for n in onnx.load(str(Path(output_dir) / "model_imx.onnx")).graph.node
+        if n.op_type == "MultiClassNMSWithIndices"
+    ]
+    assert len(nodes) == 1, "MultiClassNMSWithIndices node missing from the exported ONNX"
+    attrs = {a.name: a.f for a in nodes[0].attribute}
+    assert attrs["score_threshold"] == pytest.approx(expected)
+    YOLO(output_dir)(SOURCE, imgsz=32)
 
 
 @pytest.mark.slow

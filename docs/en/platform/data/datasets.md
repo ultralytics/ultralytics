@@ -989,12 +989,12 @@ Yes:
 
 Datasets that read from [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources keep their pixels outside Platform, so the features that need Platform-owned copies of the image bytes are unavailable:
 
-| Feature                                            | Cloud-connected | On Premise  |
-| -------------------------------------------------- | --------------- | ----------- |
-| [Smart annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
-| [Clustering analysis](#clustering)                 | Unavailable     | Unavailable |
-| [Cloning](#clone-dataset)                          | Unavailable     | Unavailable |
-| [Version snapshots](#versions-tab)                 | Unavailable     | Unavailable |
-| [NDJSON export](#export-dataset)                   | Available       | Unavailable |
+| Feature                                                      | Cloud-connected | On Premise  |
+| ------------------------------------------------------------ | --------------- | ----------- |
+| [Smart and Batch Annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
+| [Clustering analysis](#clustering)                           | Unavailable     | Unavailable |
+| [Cloning](#clone-dataset)                                    | Unavailable     | Unavailable |
+| [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
+| [NDJSON export](#export-dataset)                             | Available       | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

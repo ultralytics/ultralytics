@@ -44,9 +44,9 @@ The following comparison highlights the differences between Meta's SAM variants,
 | Meta SAM2-t                                                                     | 78.1                    | 38.9                         | 23430                             |
 | MobileSAM                                                                       | 40.7                    | 10.1                         | 23802                             |
 | FastSAM-s with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.9                    | 11.8                         | 58.0                              |
-| Ultralytics YOLOv8n-seg                                                         | **7.1** (11.0x smaller) | **3.4** (11.4x less)         | **24.8** (945x faster)            |
-| Ultralytics YOLO11n-seg                                                         | **6.2** (12.6x smaller) | **2.9** (13.4x less)         | **24.3** (964x faster)            |
-| Ultralytics YOLO26n-seg                                                         | **6.7** (11.7x smaller) | **2.7** (14.4x less)         | **25.2** (930x faster)            |
+| Ultralytics YOLOv8n-seg                                                         | 7.1 (11.0x smaller)     | 3.4 (11.4x less)             | 24.8 (945x faster)                |
+| Ultralytics YOLO11n-seg                                                         | **6.2** (12.6x smaller) | 2.9 (13.4x less)             | **24.3** (964x faster)            |
+| Ultralytics YOLO26n-seg                                                         | 6.7 (11.7x smaller)     | **2.7** (14.4x less)         | 25.2 (930x faster)                |
 
 This comparison demonstrates the substantial differences in model size and speed between SAM variants and YOLO segmentation models. While SAM models offer unique automatic segmentation capabilities, YOLO models—especially YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg—are significantly smaller, faster, and more computationally efficient.
 
@@ -89,22 +89,22 @@ The key difference is the image encoder: MobileSAM replaces the original ViT-H e
 
 | Image Encoder | Original SAM | MobileSAM |
 | ------------- | ------------ | --------- |
-| Parameters    | 637M         | 5M        |
-| Speed         | 452ms        | 8ms       |
+| Parameters    | 637M         | **5M**    |
+| Speed         | 452ms        | **8ms**   |
 
 ### Prompt-Guided Mask Decoder
 
-| Mask Decoder | Original SAM | MobileSAM |
-| ------------ | ------------ | --------- |
-| Parameters   | 3.876M       | 3.876M    |
-| Speed        | 4ms          | 4ms       |
+| Mask Decoder | Original SAM | MobileSAM  |
+| ------------ | ------------ | ---------- |
+| Parameters   | **3.876M**   | **3.876M** |
+| Speed        | **4ms**      | **4ms**    |
 
 ### Whole Pipeline Comparison
 
 | Whole Pipeline (Enc+Dec) | Original SAM | MobileSAM |
 | ------------------------ | ------------ | --------- |
-| Parameters               | 641M         | 9.66M     |
-| Speed                    | 456ms        | 12ms      |
+| Parameters               | 641M         | **9.66M** |
+| Speed                    | 456ms        | **12ms**  |
 
 The performance of MobileSAM and the original SAM is illustrated below using both point and box prompts.
 

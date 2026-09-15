@@ -596,7 +596,7 @@ class Model(torch.nn.Module):
         from ultralytics.trackers import register_tracker
 
         register_tracker(self, persist)
-        kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
+        kwargs["conf"] = 0.1 if kwargs.get("conf") is None else kwargs["conf"]  # trackers need low-confidence input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
@@ -838,7 +838,9 @@ class Model(torch.nn.Module):
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": (overrides.get("data") if kwargs.get("cfg") else None)
             or DEFAULT_CFG_DICT["data"]
-            or TASK2DATA[self.task],
+            or (
+                None if isinstance(kwargs.get("resume", overrides.get("resume")), (str, Path)) else TASK2DATA[self.task]
+            ),
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
@@ -858,7 +860,7 @@ class Model(torch.nn.Module):
             return self.metrics
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                args["resume"] = self.ckpt_path
+                args["resume"], args["data"] = self.ckpt_path, kwargs.get("data") or overrides.get("data")
             else:
                 LOGGER.warning(
                     f"model '{self.ckpt_path}' is not a resumable training checkpoint "

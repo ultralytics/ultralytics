@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 
 <div align="center">
 <br><br>
-<a href="https://www.ultralytics.com/events/yolovision?utm_source=docs&utm_medium=referral&utm_campaign=yolovision26&utm_content=banner" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/yolo/yolo27" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
 <br><br>
 </div>
 
@@ -48,6 +48,10 @@ Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package
 
 Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
 
+!!! info "YOLO27 is coming soon"
+
+    Explore the [YOLO27 preview](models/yolo27.md), including architecture details, preliminary benchmarks, and examples for use after release. Models are undergoing final R&D for an anticipated launch later this year; they are not yet available, and no launch date is set.
+
 !!! tip "🚀 New: Monocular Depth Estimation"
 
     Turn a single photo into a depth map, a distance in meters for every pixel.
@@ -64,9 +68,9 @@ pip install ultralytics
 yolo predict model=yolo26n.pt source='https://github.com/ultralytics/assets/releases/download/v0.0.0/bus.jpg'
 ```
 
-The model weights and the example image download automatically, and the annotated result is saved to `runs/detect/predict`.
+The model weights and the example image download automatically, and the annotated result is saved to the directory the command prints, `runs/detect/predict` on a first run.
 
-See the [Quickstart](quickstart.md) guide for the full installation and usage reference.
+See the [Quickstart](quickstart.md) guide for every installation method and your first prediction.
 
 ## What Do You Want to Do?
 
@@ -146,7 +150,7 @@ See the [Quickstart](quickstart.md) guide for the full installation and usage re
 
     ***
 
-    Ultralytics' newest model family delivers optional NMS-free end-to-end inference and an improved accuracy-latency tradeoff over YOLO11
+    Ultralytics' latest released model family delivers optional NMS-free end-to-end inference and an improved accuracy-latency tradeoff over YOLO11
 
     ***
 

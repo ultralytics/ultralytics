@@ -10,11 +10,11 @@ title: Account Settings
 
 [Ultralytics Platform](https://platform.ultralytics.com) settings allow you to configure your profile, social links, workspace preferences, and manage your data with GDPR-compliant export and deletion options.
 
-Settings is organized into eight tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Usage`, `Teams`, `Integrations`, and `Trash`.
+Settings is organized into nine tabs (in order): `Profile`, `API Keys`, `Plans`, `Billing`, `Usage`, `Referrals`, `Teams`, `Integrations`, and `Trash`.
 
-Settings is workspace-aware. Switch workspaces in the sidebar and every tab — profile, keys, billing, usage, members,
-integrations, and trash — shows data for the workspace you're in. On extra-wide screens a sidebar next to the tabs lists
-your five most recent training charges and payments.
+Settings is workspace-aware. Switch workspaces in the sidebar and the profile, keys, billing, usage, members,
+integrations, and trash tabs show data for the workspace you're in; referrals stay tied to your personal account. On
+extra-wide screens a sidebar next to the tabs lists your five most recent training charges and payments.
 
 ## Profile Tab
 
@@ -305,6 +305,22 @@ The `Usage` tab charts credit spend and storage for the active workspace.
 - **Storage card**: the same storage breakdown shown on the **Home** page (see [Storage Usage](#storage-usage))
 
 Grouping by user or API key makes it easy to see which team member or automation is consuming a shared team balance.
+
+## Referrals Tab
+
+The `Referrals` tab holds your personal referral link under the heading **Give $10, get $10**. Click **Copy link** and
+share it anywhere — the code is applied automatically at signup.
+
+- A friend who signs up with your link gets $10 in credits on top of the usual [signup credit](billing.md#free-plan)
+- You get $10 once they top up $10 in credits on their personal account; Pro subscriptions and team payments do not
+  count
+- Rewards land in your Platform balance as [Promo Bonus](billing.md#transaction-types) transactions
+- Each link covers up to 100 friends ($1,000 in rewards); the tab counts signups, qualified referrals, earned credit,
+  and signups used
+
+Referral rewards apply to new users only, one code per person. You cannot refer yourself or accounts you control, and
+the rewards are Platform credits with no cash value that cannot be transferred. A refund that drops a friend's paid
+top-ups below $10 reverses your reward, and that friend cannot earn another one.
 
 ## Teams Tab
 

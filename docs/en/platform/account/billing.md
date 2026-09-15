@@ -326,7 +326,7 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade |
 | **Training**           | Settled cost of one cloud training run                        |
 | **Refund**             | Refunded charge                                               |
-| **Promo Bonus**        | Credit from a promotional code                                |
+| **Promo Bonus**        | Credit from a promotional code or a referral reward           |
 | **Adjustment**         | Manual correction applied by Ultralytics                      |
 
 ## FAQ

@@ -788,7 +788,9 @@ def init_seeds(seed=0, deterministic=False):
         if TORCH_2_0:
             torch.use_deterministic_algorithms(True, warn_only=True)  # warn if deterministic is not possible
             torch.backends.cudnn.deterministic = True
-            if TORCH_2_1:  # deterministic mode also NaN-fills every new tensor by default: one fill kernel per activation
+            if (
+                TORCH_2_1
+            ):  # deterministic mode also NaN-fills every new tensor by default: one fill kernel per activation
                 torch.utils.deterministic.fill_uninitialized_memory = False
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)

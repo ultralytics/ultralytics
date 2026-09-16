@@ -129,9 +129,7 @@ export-coreml = [
     "scikit-learn>=1.3.2; platform_system != 'Windows' and python_version <= '3.13'", # CoreML k-means quantization
 ]
 export-executorch = [
-    "executorch; platform_system != 'Linux' or platform_machine != 'aarch64'",
-    "executorch<1.5; platform_system == 'Linux' and platform_machine == 'aarch64'",  # 1.5 needs torch>=2.13, pinned below
-    "torch>=2.12.0,<2.13.0; platform_system == 'Linux' and platform_machine == 'aarch64'",
+    "executorch",
     "numpy<=2.3.5",
 ]
 export-deepx = [

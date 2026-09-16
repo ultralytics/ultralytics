@@ -425,8 +425,8 @@ def _register_qat_blocks() -> None:
 
     ModelOpt quantizes only Conv and Linear inputs. A tensor that also feeds a residual add or a concatenation stays
     float there, so TensorRT cannot fuse its quantizer into the producing conv and runs the whole block in FP16. The
-    blocks keep their own `forward`; while it runs, `torch.cat` fake-quantizes every input with one shared range and a
-    `+` whose operand is the block input, or an earlier residual sum, fake-quantizes both operands.
+    registered block repeats each `forward` with the operands of the add and the inputs of the concatenation
+    fake-quantized, the latter through one shared range so that the concatenation itself runs in INT8.
     """
     import modelopt.torch.quantization as mtq
     from modelopt.torch.quantization.nn import TensorQuantizer
@@ -434,8 +434,6 @@ def _register_qat_blocks() -> None:
 
     from ultralytics.nn.modules.block import C2PSA, C3, SPPF, Bottleneck, C2f, PSABlock
     from ultralytics.nn.modules.conv import Concat
-
-    cat, add = torch.cat, torch.Tensor.__add__
 
     class QuantBlock(QuantModule):
         def _setup(self):  # INT8_DEFAULT_CFG enables only quantizers named `*input_quantizer`
@@ -446,23 +444,34 @@ def _register_qat_blocks() -> None:
         def modelopt_post_restore(self, prefix=""):
             """Skip ModelOpt's device lookup, which warns for a parameter-less `Concat`; `restore_qat` moves the model."""
 
+        def residual(self, x, y):
+            return self.x_input_quantizer(x) + self.y_input_quantizer(y)
+
+        def cat(self, x, dim=1):
+            return torch.cat([self.cat_input_quantizer(t) for t in x], dim)
+
         def forward(self, x):
-            held = {id(x): x}  # the block input and every residual sum, kept alive so that ids are not reused
-
-            def residual(a, b):
-                if id(a) not in held and id(b) not in held:  # an add inside a child module
-                    return add(a, b)
-                y = add(self.x_input_quantizer(a), self.y_input_quantizer(b))
-                held[id(y)] = y
-                return y
-
-            prev = torch.Tensor.__add__, torch.cat
-            torch.Tensor.__add__ = residual
-            torch.cat = lambda t, *a, **k: cat([self.cat_input_quantizer(i) for i in t], *a, **k)
-            try:
-                return super().forward(x)
-            finally:
-                torch.Tensor.__add__, torch.cat = prev
+            if isinstance(self, Bottleneck):
+                y = self.cv2(self.cv1(x))
+                return self.residual(x, y) if self.add else y
+            if isinstance(self, PSABlock):
+                x = self.residual(x, self.attn(x)) if self.add else self.attn(x)
+                return self.residual(x, self.ffn(x)) if self.add else self.ffn(x)
+            if isinstance(self, SPPF):
+                y = [self.cv1(x)]
+                y.extend(self.m(y[-1]) for _ in range(self.n))
+                y = self.cv2(self.cat(y))
+                return self.residual(y, x) if self.add else y
+            if isinstance(self, C2f):
+                y = list(self.cv1(x).chunk(2, 1))
+                y.extend(m(y[-1]) for m in self.m)
+                return self.cv2(self.cat(y))
+            if isinstance(self, C3):
+                return self.cv3(self.cat((self.m(self.cv1(x)), self.cv2(x))))
+            if isinstance(self, C2PSA):
+                a, b = self.cv1(x).split((self.c, self.c), dim=1)
+                return self.cv2(self.cat((a, self.m(b))))
+            return self.cat(x, self.d)  # Concat
 
     for t in (Bottleneck, PSABlock, SPPF, C2f, C3, C2PSA, Concat):  # subclasses that inherit `forward` match too
         if t not in QuantModuleRegistry:
@@ -470,24 +479,23 @@ def _register_qat_blocks() -> None:
 
 
 def _share_ranges(model: nn.Module, batch) -> None:
-    """Give the quantizers that read the same tensor, or slices of it, one range so its producer can end in INT8.
+    """Give the quantizers that read the same tensor, or its upsampled copy, one range so its producer can end in INT8.
 
-    A concatenation input is also read by the next block, a residual input by the first conv of its bottleneck, and an
-    upsampled tensor keeps its range. TensorRT fuses the quantizer into the producing layer only when every reader
-    agrees on the range.
+    A concatenation input is also read by the next block and a residual input by the first conv of its bottleneck.
+    TensorRT fuses the quantizer into the producing layer only when every reader agrees on the range. Readers are
+    grouped by the tensor object they receive, held so that no id is reused during the forward.
     """
     from modelopt.torch.quantization.nn import TensorQuantizer
 
-    groups, alias, tensors = {}, {}, []  # tensors are held so that their storage is not reused during the forward
+    groups, alias, tensors = {}, {}, []
 
     def record(q, args):
         tensors.append(args[0])
-        ptr = args[0].untyped_storage().data_ptr()  # slices of one tensor share a range
-        groups.setdefault(alias.get(ptr, ptr), []).append(q)
+        groups.setdefault(alias.get(id(args[0]), id(args[0])), []).append(q)
 
     def upsampled(m, args, out):
         tensors.extend((args[0], out))
-        alias[out.untyped_storage().data_ptr()] = args[0].untyped_storage().data_ptr()
+        alias[id(out)] = alias.get(id(args[0]), id(args[0]))
 
     hooks = [
         m.register_forward_pre_hook(record) for m in model.modules() if isinstance(m, TensorQuantizer) and m.is_enabled
@@ -609,7 +617,8 @@ def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
     check_requirements(MODELOPT_REQUIREMENTS)
     import modelopt.torch.opt as mto
 
-    _register_qat_blocks()
+    if any("cat_input_quantizer" in k for k in state["ranges"]):  # trained with the block quantizers
+        _register_qat_blocks()
     mto.restore_from_modelopt_state(model, state["modelopt"])
     model.to(next(model.parameters()).device)
     model.load_state_dict(state["ranges"], strict=False)

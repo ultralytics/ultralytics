@@ -1242,12 +1242,13 @@ class Keypoints(BaseTensor):
             keypoints (torch.Tensor | np.ndarray): A tensor or array containing keypoint data. Shape can be either:
                 - (num_objects, num_keypoints, 2) for x, y coordinates only
                 - (num_objects, num_keypoints, 3) for x, y coordinates and confidence scores
+                - (num_objects, num_keypoints, 4) for x, y, confidence and depth (the pose3d task)
             orig_shape (tuple[int, int]): The original image dimensions (height, width).
         """
         if keypoints.ndim == 2:
             keypoints = keypoints[None, :]
         super().__init__(keypoints, orig_shape)
-        self.has_visible = self.data.shape[-1] == 3
+        self.has_visible = self.data.shape[-1] >= 3  # pose3d keypoints are (x, y, visible, z)
 
     @cached_property
     def xy(self) -> torch.Tensor | np.ndarray:

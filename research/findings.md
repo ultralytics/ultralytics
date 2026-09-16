@@ -53,6 +53,10 @@ Recorded from reading the code and from the s3d project's history, before they c
   recomputed explicitly in `Pose3DLoss`. This one fails silently — no crash, just worse training.
 - **`PoseTrainer.__init__` hard-sets `overrides["task"] = "pose"`**, so a subclass must restore its own task
   after `super().__init__` or checkpoints record the wrong task and reload with the wrong predictor.
+- **The plotting stack also keys off `ndim == 3`.** `Keypoints.has_visible`, `Annotator.kpts`'s confidence
+  filter and its skeleton branch all tested for exactly 3 channels, so with `plots=True` (the default) a 4-wide
+  keypoint silently lost visibility filtering and drew no skeleton. Nothing crashed — which is why it had to be
+  looked for rather than waited for.
 - **MPJPE cannot be the fitness metric.** The framework maximizes fitness and MPJPE is an error; `delta1(Z)` is
   the higher-is-better form, mirroring the depth task.
 - **From s3d (`~/ultralytics_3d_foundation/research/findings.md`): direct regression beat geometric decoding.**

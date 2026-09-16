@@ -564,7 +564,7 @@ class Annotator:
         """Plot keypoints on the image.
 
         Args:
-            kpts (torch.Tensor): Keypoints, shape [17, 3] (x, y, confidence).
+            kpts (torch.Tensor): Keypoints, shape [nkpt, 2-4] as (x, y[, confidence][, depth]).
             shape (tuple, optional): Image shape (h, w).
             radius (int, optional): Keypoint radius.
             kpt_line (bool, optional): Draw lines between keypoints.
@@ -582,12 +582,13 @@ class Annotator:
             # Convert to numpy first
             self.im = np.asarray(self.im).copy()
         nkpt, ndim = kpts.shape
-        is_pose = nkpt == 17 and ndim in {2, 3}
+        # 18 keypoints is the pose3d layout: COCO-17 plus a root joint, which the COCO skeleton never references.
+        is_pose = nkpt in {17, 18} and ndim in {2, 3, 4}
         kpt_line &= is_pose  # `kpt_line=True` for now only supports human pose plotting
         for i, k in enumerate(kpts):
-            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose else colors(i))
+            color_k = kpt_color or (self.kpt_color[i].tolist() if is_pose and i < len(self.kpt_color) else colors(i))
             x_coord, y_coord = k[0], k[1]
-            if len(k) == 3:
+            if len(k) >= 3:
                 if k[2] < conf_thres:
                     continue
             elif x_coord == 0 and y_coord == 0:  # (0, 0) marks a missing keypoint when there is no confidence channel
@@ -599,7 +600,7 @@ class Annotator:
             for i, sk in enumerate(self.skeleton):
                 pos1 = (int(kpts[(sk[0] - 1), 0]), int(kpts[(sk[0] - 1), 1]))
                 pos2 = (int(kpts[(sk[1] - 1), 0]), int(kpts[(sk[1] - 1), 1]))
-                if ndim == 3:
+                if ndim >= 3:
                     conf1 = kpts[(sk[0] - 1), 2]
                     conf2 = kpts[(sk[1] - 1), 2]
                     if conf1 < conf_thres or conf2 < conf_thres:

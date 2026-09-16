@@ -81,10 +81,11 @@ class Pose3DValidator(PoseValidator):
         keep = best_iou >= 0.5
         if not keep.any():
             return
-        # One prediction may not serve two ground truths; keep the higher-IoU claim on each.
+        # One prediction may not serve two ground truths; in a crowd the higher-IoU claim wins.
         gt_idx = torch.nonzero(keep).flatten()
-        _, first = np.unique(best_pred[keep].cpu().numpy(), return_index=True)
-        gt_idx, pred_idx = gt_idx[first], best_pred[keep][first]
+        order = torch.argsort(best_iou[keep], descending=True)
+        _, first = np.unique(best_pred[keep][order].cpu().numpy(), return_index=True)
+        gt_idx, pred_idx = gt_idx[order][first], best_pred[keep][order][first]
 
         g, p = gt_kpts[gt_idx].float(), pred_kpts[pred_idx].float()
         h, w = batch["imgsz"] if "imgsz" in batch else (self.args.imgsz, self.args.imgsz)

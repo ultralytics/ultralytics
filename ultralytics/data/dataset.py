@@ -1194,6 +1194,7 @@ class ClassificationDataset:
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.single_cls = args.single_cls  # name-based class filtering must not relabel single-class targets
         self.samples = self.verify_images()  # filter out bad images
+        self.sample_classes = [self.base.classes[t] for _, t in self.samples]  # class folder per sample
         if is_ndjson:
             self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
         if args.single_cls:
@@ -1234,8 +1235,9 @@ class ClassificationDataset:
         nc = len(names)
         original_count = len(self.samples)
         if not self.single_cls and set(classes) & set(lookup):  # reindex targets to the model's class order
-            keep = [i for i, s in enumerate(self.samples) if Path(s[0]).parent.name in lookup]
-            self.samples = [[f, lookup[Path(f).parent.name], *r] for f, _, *r in (self.samples[i] for i in keep)]
+            keep = [i for i, c in enumerate(self.sample_classes) if c in lookup]
+            kept = [self.samples[i] for i in keep]
+            self.samples = [[f, lookup[self.sample_classes[i]], *r] for i, (f, _, *r) in zip(keep, kept)]
             extra = [c for c in classes if c not in lookup]
         else:  # single-class or folder names carry no class meaning (e.g. ImageNet wnids): filter by index
             keep = [i for i, s in enumerate(self.samples) if s[1] < nc]

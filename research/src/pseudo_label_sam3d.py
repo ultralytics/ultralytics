@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import time
 from pathlib import Path
 
 import numpy as np
@@ -66,34 +67,60 @@ def person_to_label(out: dict, w: int, h: int, box: np.ndarray) -> str | None:
     return " ".join(f"{v:.6g}" for v in row)
 
 
-def main(images: Path, labels: Path, out: Path, device: str) -> None:
-    """Pseudo-label every image, writing one pose3d label file per image."""
+def main(images: Path, labels: Path, out: Path, device: str, shard: int = 0, shards: int = 1) -> None:
+    """Pseudo-label every image, writing one pose3d label file per image.
+
+    All of an image's people go through the estimator in one call: it accepts an (N, 4) box array and the crop
+    batch amortizes both the image decode and the backbone launch, which matters when the median COCO image has
+    several people in it.
+    """
     import cv2
-    from snowpose.model import BodyModel  # ~/snowboard
+    from snowpose.model import BodyModel  # ~/snowboard, or /data/rick/sam3d on ultra11
 
     model = BodyModel(device=device)
     out.mkdir(parents=True, exist_ok=True)
-    files = sorted(p for p in images.iterdir() if p.suffix.lower() in {".jpg", ".jpeg", ".png"})
-    for i, img_path in enumerate(files):
-        lb_path = labels / f"{img_path.stem}.txt"
-        if not lb_path.exists():
+    files = sorted(p for p in labels.glob("*.txt"))[shard::shards]
+    t0, done, npersons = time.time(), 0, 0
+    for lb_path in files:
+        img_path = images / f"{lb_path.stem}.jpg"
+        dst = out / f"{lb_path.stem}.txt"
+        if dst.exists() or not img_path.exists():
             continue
-        h, w = cv2.imread(str(img_path)).shape[:2]
-        rows = []
+        boxes = []
         for line in lb_path.read_text().strip().splitlines():
             v = np.array(line.split(), dtype=np.float32)
-            if int(v[0]) != 0:  # person class only
-                continue
-            cx, cy, bw, bh = v[1:5]
-            xyxy = np.array([(cx - bw / 2) * w, (cy - bh / 2) * h, (cx + bw / 2) * w, (cy + bh / 2) * h])
-            row = person_to_label(model.infer(img_path, xyxy), w, h, v[1:5])
-            if row:
-                rows.append(row)
+            if int(v[0]) == 0:  # person class only
+                boxes.append(v[1:5])
+        if not boxes:
+            continue
+        h, w = cv2.imread(str(img_path)).shape[:2]
+        cxcywh = np.stack(boxes)
+        xyxy = np.stack(
+            [
+                (cxcywh[:, 0] - cxcywh[:, 2] / 2) * w,
+                (cxcywh[:, 1] - cxcywh[:, 3] / 2) * h,
+                (cxcywh[:, 0] + cxcywh[:, 2] / 2) * w,
+                (cxcywh[:, 1] + cxcywh[:, 3] / 2) * h,
+            ],
+            axis=1,
+        ).astype(np.float32)
+        try:
+            outs = model.est.process_one_image(str(img_path), bboxes=xyxy)
+        except Exception as e:  # a single bad image must not end a multi-hour run
+            print(f"skip {img_path.name}: {e}", flush=True)
+            continue
+        rows = [r for o, b in zip(outs, cxcywh) if (r := person_to_label(o, w, h, b))]
         if rows:
-            (out / f"{img_path.stem}.txt").write_text("\n".join(rows) + "\n")
-        if i % 100 == 0:
-            print(f"{i}/{len(files)}", flush=True)
-    print(f"wrote {len(list(out.glob('*.txt')))} label files to {out}")
+            dst.write_text("\n".join(rows) + "\n")
+        done, npersons = done + 1, npersons + len(rows)
+        if done % 200 == 0:
+            el = time.time() - t0
+            print(
+                f"{done}/{len(files)} images, {npersons} persons, {el / done:.2f}s/img, "
+                f"eta {(len(files) - done) * el / done / 3600:.1f}h",
+                flush=True,
+            )
+    print(f"wrote {done} label files ({npersons} persons) to {out}")
 
 
 if __name__ == "__main__":
@@ -102,4 +129,6 @@ if __name__ == "__main__":
     parser.add_argument("--labels", type=Path, required=True, help="YOLO-format labels providing person boxes")
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--shard", type=int, default=0, help="this worker's index, for splitting a run")
+    parser.add_argument("--shards", type=int, default=1)
     main(**vars(parser.parse_args()))

@@ -40,6 +40,7 @@ Here is an example of the YOLO dataset format for a single image with two object
 
     - The length of each row does **not** have to be equal.
     - Each segmentation label must have a **minimum of 3 `(x, y)` points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
+    - Every object needs a polygon. Detect-format rows (`<class-index> <x_center> <y_center> <width> <height>`) carry none, and a segment dataset whose box and polygon counts differ is rejected with a `ValueError` when its labels load.
 
 ### Dataset YAML format
 

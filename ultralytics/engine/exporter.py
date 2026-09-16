@@ -1229,7 +1229,7 @@ class Exporter:
             dynamic=self.args.dynamic,
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
-            int8_detect=isinstance(self.model.model[-1], Detect),
+            int8_detect=isinstance(self.model.model[-1], (Detect, RTDETRDecoder)),
             prefix=prefix,
         )
 

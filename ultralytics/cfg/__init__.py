@@ -57,7 +57,7 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes, ordered as they appear across the docs and Ultralytics Platform
 MODES = ("train", "val", "predict", "export", "track", "benchmark")
-TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb")
+TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "pose3d", "obb")
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -65,6 +65,7 @@ TASK2DATA = {
     "depth": "depth8.yaml",
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
+    "pose3d": "coco8-pose3d.yaml",
     "obb": "dota8.yaml",
 }
 TASK2CALIBRATIONDATA = {
@@ -74,6 +75,7 @@ TASK2CALIBRATIONDATA = {
     "depth": "depth8.yaml",
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
+    "pose3d": "coco8-pose3d.yaml",
     "obb": "dota128.yaml",
 }
 TASK2MODEL = {
@@ -83,6 +85,7 @@ TASK2MODEL = {
     "depth": "yolo26n-depth.pt",
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
+    "pose3d": "yolo26n-pose3d.pt",
     "obb": "yolo26n-obb.pt",
 }
 TASK2METRIC = {
@@ -92,6 +95,7 @@ TASK2METRIC = {
     "depth": "metrics/delta1",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
+    "pose3d": "metrics/MPJPE",
     "obb": "metrics/mAP50-95(B)",
 }
 
@@ -207,6 +211,7 @@ CFG_FLOAT_KEYS = frozenset(
         "dfl",
         "pose",
         "kobj",
+        "kptz",
         "rle",
         "angle",
         "dlog",

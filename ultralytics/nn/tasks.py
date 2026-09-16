@@ -62,6 +62,7 @@ from ultralytics.nn.modules import (
     LRPCHead,
     Pose,
     Pose26,
+    Pose3D,
     RepC3,
     RepConv,
     RepNCSPELAN4,
@@ -94,6 +95,7 @@ from ultralytics.utils.checks import REMOTE_FILE_PREFIXES, check_file, check_req
 from ultralytics.utils.loss import (
     DepthLoss26,
     E2ELoss,
+    Pose3DLoss,
     PoseLoss26,
     SemanticSegmentationLoss,
     v8ClassificationLoss,
@@ -784,6 +786,29 @@ class PoseModel(DetectionModel):
         """Initialize the loss criterion for the PoseModel."""
         loss = PoseLoss26 if isinstance(self.model[-1], Pose26) else v8PoseLoss
         return E2ELoss(self, loss) if getattr(self.model[-1], "one2one_cv2", None) is not None else loss(self)
+
+
+class Pose3DModel(PoseModel):
+    """YOLO 3D pose model: 2D keypoints plus per-keypoint metric depth.
+
+    Identical plumbing to `PoseModel`; only the criterion differs, because the extra depth channel rides in the
+    keypoint tensor rather than in a separate head.
+
+    Examples:
+        >>> model = Pose3DModel("yolo26n-pose3d.yaml", ch=3, nc=1, data_kpt_shape=(18, 4))
+    """
+
+    def __init__(self, cfg="yolo26n-pose3d.yaml", ch=3, nc=None, data_kpt_shape=(None, None), verbose=True):
+        """Initialize the 3D pose model."""
+        super().__init__(cfg=cfg, ch=ch, nc=nc, data_kpt_shape=data_kpt_shape, verbose=verbose)
+
+    def init_criterion(self):
+        """Initialize the loss criterion for the Pose3DModel."""
+        return (
+            E2ELoss(self, Pose3DLoss)
+            if getattr(self.model[-1], "one2one_cv2", None) is not None
+            else Pose3DLoss(self)
+        )
 
 
 class DepthModel(DetectionModel):
@@ -2158,6 +2183,7 @@ def parse_model(d, ch, verbose=True):
                 YOLOESegment26,
                 Pose,
                 Pose26,
+                Pose3D,
                 OBB,
                 OBB26,
             }
@@ -2165,7 +2191,7 @@ def parse_model(d, ch, verbose=True):
             args.extend([reg_max, end2end, [ch[x] for x in f]])
             if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
                 args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
+            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, Pose3D, OBB, OBB26}:
                 m.legacy = legacy
         elif m is Depth:
             args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
@@ -2266,6 +2292,8 @@ def guess_model_task(model):
             return "semantic"
         if "segment" in m:
             return "segment"
+        if "pose3d" in m:
+            return "pose3d"
         if "pose" in m:
             return "pose"
         if "obb" in m:
@@ -2292,6 +2320,8 @@ def guess_model_task(model):
                 return "segment"
             elif isinstance(m, Classify):
                 return "classify"
+            elif isinstance(m, Pose3D):
+                return "pose3d"
             elif isinstance(m, Pose):
                 return "pose"
             elif isinstance(m, OBB):
@@ -2315,6 +2345,8 @@ def guess_model_task(model):
             return "segment"
         elif "-cls" in model.stem or "classify" in model.parts:
             return "classify"
+        elif "-pose3d" in model.stem or "pose3d" in model.parts:
+            return "pose3d"
         elif "-pose" in model.stem or "pose" in model.parts:
             return "pose"
         elif "-obb" in model.stem or "obb" in model.parts:

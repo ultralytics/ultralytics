@@ -820,6 +820,7 @@ class BaseTrainer:
                 "detect",
                 "segment",
                 "pose",
+                "pose3d",
                 "obb",
                 "semantic",
                 "depth",

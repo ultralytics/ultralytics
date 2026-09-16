@@ -1,0 +1,126 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+# Research State — YOLOPose-3D
+
+project:
+  title: "YOLOPose-3D — distilling SAM 3D Body into a single-shot YOLO task"
+  question: >
+    How much of SAM 3D Body's single-image 3D human capability survives compression into one YOLO forward
+    pass, and which part of it breaks first?
+  status: active
+  started: "2026-09-16"
+  domain: "monocular 3D human pose / mesh recovery, real-time detection"
+  repo: "/home/rick/ultralytics_pose3d (branch pose3d, forked from upstream main fa39b69cb, 8.4.153)"
+
+literature:
+  key_papers:
+    - id: "sam3dbody2026"
+      title: "SAM 3D Body: Robust Full-Body Human Mesh Recovery"
+      authors: "Meta Superintelligence Labs"
+      year: 2026
+      arxiv: "2602.15989"
+      relevance: "The teacher. MHR parametric rig, promptable, crop-based, one person at a time."
+    - id: "fastsam3dbody2026"
+      title: "Fast SAM 3D Body: Accelerating SAM 3D Body for Real-Time Full-Body Human Mesh Recovery"
+      year: 2026
+      arxiv: "2603.15603"
+      relevance: >
+        Closest prior art and the reason the gap is detector-shaped: training-free 10.9x speedup, but still
+        crop-based, so cost still scales with the number of people.
+    - id: "sathmr2025"
+      title: "SAT-HMR: Real-Time Multi-Person 3D Mesh Estimation via Scale-Adaptive Tokens"
+      year: 2025
+      arxiv: "2411.19824"
+      relevance: "One-stage real-time multi-person baseline to beat on throughput."
+    - id: "multihmr2_2026"
+      title: "Multi-HMR 2: Multi-Person Camera-Centric Human Detection, Mesh Recovery and Tracking"
+      year: 2026
+      arxiv: "2606.14841"
+      relevance: "Camera-centric output contract matches ours; reports a YOLO11m-Pose 2D front-end baseline."
+    - id: "anthropometric2026"
+      title: "Investigating Anthropometric Fidelity in SAM 3D Body"
+      year: 2026
+      arxiv: "2601.06035"
+      relevance: "Bounds the teacher: its bias becomes the student's ceiling."
+  open_problems:
+    - "No published detector-native (single-shot, anchor-free, edge-exportable) metric 3D human pose head."
+    - "Real-time 3D HMR work is either DETR/ViT one-stage at server cost or an acceleration of a crop model."
+  evidence_gaps:
+    - "Nobody has measured how much 3D accuracy is lost by moving from a per-crop ViT to a shared detector trunk."
+
+hypotheses:
+  - id: H0
+    statement: "A 4th keypoint channel can carry metric depth through YOLO's existing pose plumbing, train and export."
+    status: supported
+    motivation: "Cheapest possible wiring; if it needed a parallel head the whole premise gets more expensive."
+    evidence: "2026-09-16 smoke: trains, validates with 3D metrics, reloads as task=pose3d, exports to ONNX (1,77,2100)."
+    priority: done
+  - id: R0
+    statement: "Warm-starting from yolo26-pose (2D) beats training pose3d from scratch, as it did for s3d."
+    status: pending
+    motivation: "s3d saw 34.3 -> 52.0 AP3D from pretrained backbone + long schedule. Cheap to test, large prior."
+    priority: high
+  - id: H1
+    statement: >
+      A pose3d student distilled from SAM 3D Body reaches usable real-GT MPJPE at an order of magnitude more
+      throughput, and its error is dominated by root depth rather than by root-relative pose.
+    status: pending
+    motivation: "The core question. The split matters: relative pose is a shape problem, root depth is a scale problem."
+    priority: high
+  - id: H2
+    statement: "Scale-changing augmentation (mosaic, scale) degrades metric root depth; compensating the target fixes it."
+    status: pending
+    motivation: >
+      Apparent size is the monocular depth cue; resizing the crop changes the cue without changing the label.
+      The depth task hit this. Cheap A/B.
+    priority: high
+  - id: H3
+    statement: "Decoupling root depth from root-relative depth beats regressing absolute per-joint depth."
+    status: pending
+    motivation: >
+      One regressor would have to cover both a 1-40 m range and a +/-0.5 m range. Implemented as the decoupled
+      arm already; the absolute arm is the A/B.
+    priority: medium
+  - id: H4
+    statement: "Regressing MHR parameters (mesh) beats regressing joints, once joints work."
+    status: deferred
+    motivation: "It is what the teacher outputs, but it drags a gated rig asset into an AGPL inference path."
+    priority: low
+  - id: H5
+    statement: "Body-scale-normalized relative depth trains better than metres."
+    status: pending
+    motivation: "Children and adults differ; normalizing removes a nuisance variable and is trivially invertible."
+    priority: low
+
+experiments:
+  proxy_metric: >
+    Inner loop: MPJPE (mm) against held-out SAM 3D Body pseudo-labels (teacher agreement), minutes to compute.
+    Outer loop: MPJPE / PA-MPJPE on a real-GT benchmark, plus root AbsRel and ms/person.
+  baseline_value: null
+  best_value: null
+  total_runs: 0
+  trajectory: []
+
+open_tasks:
+  - id: T1
+    text: "Provision SAM 3D Body on an ultra host: gated HF checkpoints + its detectron2-pinned install."
+    blocking: "H1 — no teacher, no pseudo-labels. Not present on ultra1-8, ultra9, ultra10 or ultra13 as of 2026-09-16."
+  - id: T2
+    text: "Acquire one real-GT 3D benchmark (3DPW preferred, else EMDB/AGORA/BEDLAM)."
+    blocking: "Every number is teacher-agreement until this lands; nothing publishable without it."
+  - id: T3
+    text: "Pseudo-label a COCO person subset and build the first real pose3d dataset."
+    blocking: "T1"
+
+outer_loop:
+  cycle: 0
+  last_direction: null
+  last_reflection: ""
+
+workspace:
+  findings: "research/findings.md"
+  log: "research/research-log.md"
+  design: "research/design/pose3d-task-design.md"
+  literature_dir: "research/literature/"
+  experiments_dir: "research/experiments/"
+  src_dir: "research/src/"
+  to_human_dir: "research/to_human/"

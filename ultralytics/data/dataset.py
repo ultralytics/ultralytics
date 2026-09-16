@@ -95,7 +95,7 @@ class YOLODataset(BaseDataset):
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
         self.use_segments = task == "segment"
-        self.use_keypoints = task == "pose"
+        self.use_keypoints = task in {"pose", "pose3d"}
         self.use_obb = task == "obb"
         self.data = data
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
@@ -185,10 +185,11 @@ class YOLODataset(BaseDataset):
             (tuple): (verify function, zipped argument iterable) for ThreadPool.imap.
         """
         nkpt, ndim = self.data.get("kpt_shape", (0, 0))
-        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3, 4}):
             raise ValueError(
                 "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
-                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+                "keypoints, number of dims (2 for x,y, 3 for x,y,visible, or 4 for x,y,visible,depth)], "
+                "i.e. 'kpt_shape: [17, 3]'"
             )
         return verify_image_label, zip(
             self.im_files,

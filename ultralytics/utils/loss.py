@@ -823,6 +823,98 @@ class v8PoseLoss(v8DetectionLoss):
         return kpts_loss, kpts_obj_loss
 
 
+class Pose3DLoss(v8PoseLoss):
+    """Criterion for the 3D pose task: 2D pose losses plus depth regression.
+
+    Adds two terms to `v8PoseLoss`: an L1 on the root-relative depth of every visible joint, and an L1 on the
+    absolute depth of the root joint. Both are computed in the encoded [0, 1] space the labels are stored in, so
+    the gains below are in encoded units (1.0 = the full +/-2 m relative range, or the full 50 m root range).
+    """
+
+    def __init__(self, model: torch.nn.Module, tal_topk: int = 10, tal_topk2: int = 10):
+        """Initialize the 3D pose criterion and extend the loss names with the two depth terms."""
+        super().__init__(model, tal_topk, tal_topk2)
+        self.loss_names = ("box_loss", "pose_loss", "kobj_loss", "zrel_loss", "zroot_loss", *self.loss_names[3:])
+
+    def loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Calculate the total loss, with the two depth terms appended to the 2D pose losses."""
+        pred_kpts = preds["kpts"].permute(0, 2, 1).contiguous()
+        loss = torch.zeros(7, device=self.device)  # box, kpt_location, kpt_visibility, zrel, zroot, cls, dfl
+        (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor), det_loss, _ = (
+            self.get_assigned_targets_and_loss(preds, batch)
+        )
+        loss[0], loss[5], loss[6] = det_loss[0], det_loss[1], det_loss[2]
+
+        batch_size = pred_kpts.shape[0]
+        imgsz = torch.tensor(preds["feats"][0].shape[2:], device=self.device, dtype=pred_kpts.dtype) * self.stride[0]
+        pred_kpts = self.kpts_decode(anchor_points, pred_kpts.view(batch_size, -1, *self.kpt_shape))
+
+        if fg_mask.sum():
+            keypoints = batch["keypoints"].to(self.device).float().clone()
+            keypoints[..., 0] *= imgsz[1]
+            keypoints[..., 1] *= imgsz[0]
+            loss[1], loss[2], loss[3], loss[4] = self.calculate_keypoints_loss(
+                fg_mask,
+                target_gt_idx,
+                keypoints,
+                batch["batch_idx"].view(-1, 1),
+                stride_tensor,
+                target_bboxes,
+                pred_kpts,
+            )
+        else:
+            # WARNING: prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+            loss[1] += pred_kpts[..., :0].sum()
+
+        loss[1] *= self.hyp.pose
+        loss[2] *= self.hyp.kobj
+        loss[3] *= self.hyp.kptz
+        loss[4] *= self.hyp.kptz
+
+        return loss * batch_size, dict(zip(self.loss_names, loss.detach()))
+
+    def calculate_keypoints_loss(
+        self,
+        masks: torch.Tensor,
+        target_gt_idx: torch.Tensor,
+        keypoints: torch.Tensor,
+        batch_idx: torch.Tensor,
+        stride_tensor: torch.Tensor,
+        target_bboxes: torch.Tensor,
+        pred_kpts: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """Return the (location, visibility, relative-depth, root-depth) losses for the matched anchors.
+
+        Note the visibility mask: the parent keys it off `shape[-1] == 3`, which is False here and would silently
+        supervise invisible keypoints against zeroed targets, so it is recomputed from channel 2 directly.
+        """
+        selected_keypoints = self._select_target_keypoints(keypoints, batch_idx, target_gt_idx, masks)
+        kpts_loss = kpts_obj_loss = zrel_loss = zroot_loss = torch.zeros(1, device=self.device).squeeze()
+
+        if masks.any():
+            target_bboxes = target_bboxes / stride_tensor
+            gt_kpt = selected_keypoints[masks]
+            gt_kpt[..., :2] /= stride_tensor.view(1, -1).expand(masks.shape[0], -1)[masks][:, None, None]
+            area = xyxy2xywh(target_bboxes[masks])[:, 2:].prod(1, keepdim=True)
+            pred_kpt = pred_kpts[masks]
+            kpt_mask = gt_kpt[..., 2] != 0
+            kpts_loss = self.keypoint_loss(pred_kpt, gt_kpt, kpt_mask, area)
+            kpts_obj_loss = self.bce_pose(pred_kpt[..., 2], kpt_mask.float())
+
+            # Depth. The last keypoint is the root and carries absolute depth; the rest are relative to it.
+            pred_z, gt_z = pred_kpt[..., 3].sigmoid(), gt_kpt[..., 3]
+            rel_mask = kpt_mask[:, :-1]
+            if rel_mask.any():
+                zrel_loss = ((pred_z[:, :-1] - gt_z[:, :-1]).abs() * rel_mask).sum() / rel_mask.sum()
+            root_mask = kpt_mask[:, -1]
+            if root_mask.any():
+                zroot_loss = ((pred_z[:, -1] - gt_z[:, -1]).abs() * root_mask).sum() / root_mask.sum()
+
+        return kpts_loss, kpts_obj_loss, zrel_loss, zroot_loss
+
+
 class PoseLoss26(v8PoseLoss):
     """Criterion class for computing training losses for YOLO26 pose estimation with RLE loss support."""
 

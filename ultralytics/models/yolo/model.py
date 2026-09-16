@@ -19,6 +19,7 @@ from ultralytics.nn.tasks import (
     DepthModel,
     DetectionModel,
     OBBModel,
+    Pose3DModel,
     PoseModel,
     SegmentationModel,
     SemanticSegmentationModel,
@@ -122,6 +123,12 @@ class YOLO(Model):
                 "trainer": yolo.pose.PoseTrainer,
                 "validator": yolo.pose.PoseValidator,
                 "predictor": yolo.pose.PosePredictor,
+            },
+            "pose3d": {
+                "model": Pose3DModel,
+                "trainer": yolo.pose3d.Pose3DTrainer,
+                "validator": yolo.pose3d.Pose3DValidator,
+                "predictor": yolo.pose3d.Pose3DPredictor,
             },
             "obb": {
                 "model": OBBModel,

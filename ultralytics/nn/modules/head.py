@@ -26,6 +26,7 @@ __all__ = (
     "Depth",
     "Detect",
     "Pose",
+    "Pose3D",
     "RTDETRDecoder",
     "Segment",
     "SemanticSegment",
@@ -618,6 +619,48 @@ class Pose(Detect):
             y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
             y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
             return y
+
+
+class Pose3D(Pose):
+    """YOLO head for 3D pose: 2D keypoints plus per-keypoint metric depth.
+
+    Extends `Pose` with a fourth keypoint channel. The channel order is (x, y, visible, z) rather than the more
+    obvious (x, y, z, visible) because the whole augmentation pipeline reads index 2 as visibility; keeping z last
+    means the dataloader needs no changes beyond carrying the extra channel through.
+
+    Keypoint `nkpt - 1` is the root (mid-hip): its z channel is the absolute metric depth of the person, while
+    joints `0..nkpt-2` carry depth relative to that root. Both are stored encoded to [0, 1], see
+    `ultralytics.utils.pose3d`.
+
+    Examples:
+        >>> pose3d = Pose3D(nc=1, kpt_shape=(18, 4), ch=(256, 512, 1024))
+        >>> x = [torch.randn(1, 256, 80, 80), torch.randn(1, 512, 40, 40), torch.randn(1, 1024, 20, 20)]
+        >>> outputs = pose3d(x)
+    """
+
+    def __init__(self, nc: int = 1, kpt_shape: tuple = (18, 4), reg_max=16, end2end=False, ch: tuple = ()):
+        """Initialize the 3D pose head, which requires a 4-dim keypoint layout."""
+        assert kpt_shape[1] == 4, f"Pose3D requires kpt_shape (nkpt, 4) for (x, y, visible, z), got {kpt_shape}"
+        super().__init__(nc, kpt_shape, reg_max, end2end, ch)
+
+    def kpts_decode(self, kpts: torch.Tensor) -> torch.Tensor:
+        """Decode keypoints, applying the anchor offset to x/y, a sigmoid to visibility and to depth.
+
+        Depth is sigmoid-activated because the targets are encoded to [0, 1]; that keeps the metric range the
+        decoder later expands bounded, so an untrained head cannot emit a person a kilometre away.
+        """
+        ndim = self.kpt_shape[1]
+        bs = kpts.shape[0]
+        if self.export:
+            y = kpts.view(bs, *self.kpt_shape, -1)
+            a = (y[:, :, :2] * 2.0 + (self.anchors - 0.5)) * self.strides
+            return torch.cat((a, y[:, :, 2:4].sigmoid()), 2).view(bs, self.nk, -1)
+        y = kpts.clone()
+        y[:, 2::ndim] = y[:, 2::ndim].sigmoid()  # visibility
+        y[:, 3::ndim] = y[:, 3::ndim].sigmoid()  # encoded depth
+        y[:, 0::ndim] = (y[:, 0::ndim] * 2.0 + (self.anchors[0] - 0.5)) * self.strides
+        y[:, 1::ndim] = (y[:, 1::ndim] * 2.0 + (self.anchors[1] - 0.5)) * self.strides
+        return y
 
 
 class Pose26(Pose):

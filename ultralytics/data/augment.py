@@ -1314,13 +1314,14 @@ class RandomPerspective(BaseTransform):
         if n == 0:
             return keypoints
         xy = np.ones((n * nkpt, 3), dtype=keypoints.dtype)
-        visible = keypoints[..., 2].reshape(n * nkpt, 1)
+        # Channels past visibility (pose3d depth) are view-invariant, so they ride through the affine untouched.
+        tail = keypoints[..., 2:].reshape(n * nkpt, -1).copy()
         xy[:, :2] = keypoints[..., :2].reshape(n * nkpt, 2)
         xy = xy @ M.T  # transform
         xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
         out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > size[0]) | (xy[:, 1] > size[1])
-        visible[out_mask] = 0
-        return np.concatenate([xy, visible], axis=-1).reshape(n, nkpt, 3)
+        tail[out_mask, 0] = 0  # visibility
+        return np.concatenate([xy, tail], axis=-1).reshape(n, nkpt, keypoints.shape[-1])
 
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Apply affine transformation to semantic segmentation mask.

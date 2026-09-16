@@ -1566,6 +1566,63 @@ class PoseMetrics(DetMetrics):
         return summary
 
 
+class Pose3DMetrics(PoseMetrics):
+    """Detection and 2D pose metrics, plus the four 3D scalars the pose3d task is judged on.
+
+    The 3D scalars are accumulated per matched person (not per image), because a person is the unit the task
+    predicts and averaging per image would weight a crowd scene the same as a single subject:
+
+    - `MPJPE`: mean per-joint position error in mm after aligning the predicted and GT roots.
+    - `PA-MPJPE`: the same after a similarity (Procrustes) alignment, which removes global rotation and scale and
+      so isolates the error in the pose itself.
+    - `zroot_AbsRel`: relative error of the absolute root depth, the metric-placement half of the task.
+    - `delta1(Z)`: fraction of joints whose root-relative depth is within 100 mm of GT. Higher is better, which is
+      why this and not MPJPE feeds fitness.
+    """
+
+    def __init__(self, names: dict[int, str] | None = None) -> None:
+        """Initialize 2D pose metrics plus empty 3D accumulators."""
+        super().__init__(names)
+        self.clear_3d()
+
+    def clear_3d(self) -> None:
+        """Reset the per-person 3D accumulators."""
+        self._mpjpe: list[float] = []
+        self._pampjpe: list[float] = []
+        self._absrel: list[float] = []
+        self._delta1: list[float] = []
+
+    def update_3d(self, mpjpe, pampjpe, absrel, delta1) -> None:
+        """Append per-person 3D errors (mm, mm, ratio, ratio)."""
+        self._mpjpe += list(mpjpe)
+        self._pampjpe += list(pampjpe)
+        self._absrel += list(absrel)
+        self._delta1 += list(delta1)
+
+    @property
+    def results_3d(self) -> list[float]:
+        """Return [MPJPE, PA-MPJPE, zroot_AbsRel, delta1(Z)], zeros when nothing matched."""
+        return [float(np.mean(v)) if len(v) else 0.0 for v in (self._mpjpe, self._pampjpe, self._absrel, self._delta1)]
+
+    @property
+    def keys(self) -> list[str]:
+        """Return a list of evaluation metric keys."""
+        return [*PoseMetrics.keys.fget(self), "metrics/MPJPE", "metrics/PA-MPJPE", "metrics/AbsRel(Z)", "metrics/delta1(Z)"]
+
+    def mean_results(self) -> list[float]:
+        """Return the 2D means followed by the four 3D scalars."""
+        return PoseMetrics.mean_results(self) + self.results_3d
+
+    @property
+    def fitness(self) -> float:
+        """Return fitness weighting the 2D and 3D halves of the task equally.
+
+        MPJPE cannot be used directly: the framework maximizes fitness, and MPJPE is an error. `delta1(Z)` is the
+        higher-is-better form of the same signal, mirroring how the depth task uses delta1.
+        """
+        return 0.5 * PoseMetrics.fitness.fget(self) + 0.5 * self.results_3d[3]
+
+
 class ClassifyMetrics(SimpleClass, DataExportMixin):
     """Class for computing classification metrics including top-1 and top-5 accuracy.
 

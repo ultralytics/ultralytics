@@ -776,6 +776,20 @@ def test_val_save_txt_pose(tmp_path):
                 assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
 
 
+def test_pose_val_cached_missing_kpt_shape(tmp_path):
+    """Test that standalone pose val on a cached dataset yaml missing `kpt_shape` raises the trainer's KeyError."""
+    # The labels cache (hash covers label and image files only) short-circuits the rescan, so the dataset-level
+    # `verify_args` check never runs and only the guard in PoseValidator.init_metrics catches the missing key.
+    data = check_det_dataset("coco8-pose.yaml")
+    fields = [f"path: {data['path']}", f"train: {data['train']}", f"val: {data['val']}", f"names: {data['names']}"]
+    (tmp_path / "pose_kpt.yaml").write_text("\n".join(fields + ["kpt_shape: [17, 3]"]) + "\n")
+    (tmp_path / "pose_nokpt.yaml").write_text("\n".join(fields) + "\n")
+    model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")
+    model.val(data=str(tmp_path / "pose_kpt.yaml"), imgsz=32)  # populate the labels cache
+    with pytest.raises(KeyError, match="No `kpt_shape` in the"):
+        model.val(data=str(tmp_path / "pose_nokpt.yaml"), imgsz=32)
+
+
 def test_pose_metrics_curves():
     """Test that pose curve labels contain four unique box and pose series."""
     from ultralytics.utils.metrics import PoseMetrics

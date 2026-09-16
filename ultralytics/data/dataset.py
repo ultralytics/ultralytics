@@ -1155,6 +1155,7 @@ class ClassificationDataset:
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
+        filter_extra_classes: Drop samples whose class index is outside the model's classes.
         verify_images: Verify all images in dataset.
         cache_images: Decode images into one contiguous RAM cache.
     """
@@ -1215,6 +1216,24 @@ class ClassificationDataset:
             if augment
             else classify_transforms(size=args.imgsz)
         )
+
+    def filter_extra_classes(self, nc: int) -> None:
+        """Drop samples with class indices >= nc before constructing the dataloader."""
+        dataset_nc = max((x[1] for x in self.samples), default=0) + 1
+        if dataset_nc <= nc:
+            return
+        extra_classes = self.base.classes[nc:]
+        original_count = len(self.samples)
+        self.samples = [s for s in self.samples if s[1] < nc]
+        LOGGER.warning(
+            f"{self.prefix}Split has {dataset_nc} classes but model expects {nc}. "
+            f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra_classes}"
+        )
+        if not self.samples:
+            raise RuntimeError(
+                f"{self.prefix}All {original_count} samples filtered out: every sample had class index >= "
+                f"model nc={nc}. Reset the model's class count or align dataset class indices."
+            )
 
     def __getitem__(self, i: int) -> dict:
         """Return transformed image and class index for the given sample index.

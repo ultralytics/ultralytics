@@ -2238,7 +2238,8 @@ class SAM3Predictor(SAM2Predictor):
         """Retrieve and initialize the Segment Anything Model 3 (SAM3) for image segmentation tasks."""
         from .build_sam3 import build_interactive_sam3  # slow import
 
-        return build_interactive_sam3(self.args.model, compile=self.args.compile)
+        compile_mode = "default" if self.args.compile is True else self.args.compile or None
+        return build_interactive_sam3(self.args.model, compile=compile_mode)
 
 
 class SAM3SemanticPredictor(SAM3Predictor):

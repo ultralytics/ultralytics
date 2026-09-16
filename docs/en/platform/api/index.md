@@ -1055,6 +1055,25 @@ Runs YOLO inference on the image and returns predicted annotations. It does not 
 **Response:** `success`, `predictions` (annotation objects), `modelUsed`, and `inferenceTime`. A model whose classes do
 not match the dataset returns `422`.
 
+### Auto-Annotate a Dataset
+
+```http
+POST /api/datasets/{owner}/{dataset}/predict/batch
+```
+
+**Python SDK:** `client.datasets.create_batch(owner, dataset, model_id=...)`
+
+Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
+The body takes the same `modelId`, `confidence`, and `iou` fields as the single-image endpoint, plus `includeAnnotated`
+(default `false`) to also annotate images that already have labels and an optional `classMapping` array giving the
+dataset class index for each model class, or `null` to skip it. Existing labels are never changed, and the run is billed
+for the images it actually processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not
+ready, has no images left to annotate, or already has a run in progress, and `422` that the dataset has no classes: create them with the [classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it starts a run.
+
+`GET` on the same path (`client.datasets.batch(owner, dataset)`) returns the in-flight run and its progress, or the last
+finished run until it is dismissed; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
+settles billing and dismisses the finished summary.
+
 ### Bulk Move Images
 
 ```http

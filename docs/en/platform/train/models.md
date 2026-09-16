@@ -201,7 +201,7 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
 - **Classes associated with failures**, ranking which classes appear most often in the weakest images
-- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and own the dataset
+- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace
 
 !!! note "Requirements"
 
@@ -342,13 +342,13 @@ Some export formats have architecture or task restrictions:
 
 ## Move Models Between Projects
 
-Move completed models you own into another project of the same workspace without copying them:
+Move models you can edit into another project of the same workspace without copying them:
 
 1. Open the source project and select one or more models in the model list
 2. Right-click and choose **Cut** (`Cmd/Ctrl+X`)
 3. Open the destination project, right-click the model list, and choose **Paste** (`Cmd/Ctrl+V`), or drag the selected models onto the destination project in the sidebar
 
-Moved models keep their weights, metrics, exports, and deployments and take the destination project's URL. A model whose name already exists in the destination is renamed on arrival, models that are still training cannot be moved, and `Esc` cancels a pending cut. To copy a model into a project instead, or to take a model you do not own, use **Clone Model**.
+Moved models keep their weights, metrics, exports, and deployments and take the destination project's URL. A model whose URL name is already used in the destination is renamed on arrival, models that are still training cannot be moved, and `Esc` cancels a pending cut. To copy a model you do not own into one of your projects, use **Clone Model**.
 
 ## Clone Model
 

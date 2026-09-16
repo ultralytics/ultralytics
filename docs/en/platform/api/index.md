@@ -1333,7 +1333,7 @@ PATCH /api/models/{owner}/{project}/{model}
 Accepted fields include `name`, `description`, `color`, `metadata`, `status`, `license`, `datasetSlug`, `trainArgs`,
 `trainResults`, `epochs`, `bestEpoch`, `bestFitness`, `version`, `trainingError`, and `starred`. Passing `projectId`
 moves the model into another project of the same owner; the response returns the model's `slug` in the destination,
-`renamed: true` when the name was taken there, and `409` while the model is still training.
+`renamed: true` when that slug was already taken there, and `409` while the model is still training.
 
 ```json
 {
@@ -2048,8 +2048,9 @@ POST /api/upload/complete
 dataset archives, call [ingest](#ingest-dataset-data) next to start processing.
 
 When `md5` is supplied it is checked against the stored object. A mismatch returns `400`, deletes the uploaded file,
-and leaves the session incomplete, so request a new signed URL and upload again. Completing the same session twice
-returns the original result; competing completions with different digests return `409`.
+and leaves the session incomplete, so request a new signed URL and upload again. A completed dataset session can be
+completed again while its archive exists, but competing completions with different digests return `409`; model
+sessions are removed on completion. `checksum` is stored as model file metadata and is not verified.
 
 ---
 

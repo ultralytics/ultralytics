@@ -204,7 +204,8 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 === "Semantic Masks"
 
     Semantic archives keep images and grayscale PNG masks in parallel `images/` and `masks/` folders, where each mask
-    pixel is a class ID and `255` marks ignored pixels. Platform converts every mask into polygon labels at import, so
+    pixel is a class ID (`1` for the class and `0` for background in a single-class dataset) and `255` marks ignored
+    pixels. Platform converts every mask into polygon labels at import, so
     the dataset behaves like any other semantic dataset in the editor, exports, and training.
 
     ```text
@@ -224,8 +225,8 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Masks pair with images by relative path and stem and must match the image size. Pixel values not listed in
     `label_mapping` are kept as class IDs, and `255` or values mapped to `ignore_label` receive no polygon. Images
-    without a matching mask are skipped and counted as `invalid semantic mask` in the import summary. Masks are used only when the dataset task is semantic, so an archive that also
-    carries YOLO `.txt` or COCO labels for another task imports those instead. Connected cloud storage does not accept
+    without a matching mask are skipped and counted as `invalid semantic mask` in the import summary. Masks take precedence in a semantic dataset; when a new dataset's archive also
+    carries YOLO `.txt` or COCO labels for another task, those labels set the task and the masks are ignored. Connected cloud storage does not accept
     this layout. See the [PNG mask format](../../datasets/semantic/index.md#png-mask-format).
 
 === "NDJSON"
@@ -502,11 +503,9 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ### Find Similar Images
 
-The same embeddings power similarity search across public datasets. In a dataset you own, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+The same embeddings power similarity search across public datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
-A dataset that has not been analyzed yet shows `Analyze this dataset in Clustering to find similar images`. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). The same search runs from a model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics), seeded by its worst-performing images.
-
-**Generate similar images** in the same menu creates four AI-generated variations of the selected image; the ones you keep are uploaded as new unlabeled images.
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — shows `Analyze this dataset in Clustering to find similar images`. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
 
 ## Dataset Tabs
 
@@ -727,7 +726,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | --------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | **Move to Split**           | Reassign the image to Train, Val, or Test split                                                             |
 | **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images)) |
-| **Generate Similar Images** | Create four AI-generated variations of the image and add the ones you keep                                  |
+| **Generate Similar Images** | Create four AI-generated variations of the image and add the ones you keep as unlabeled images              |
 | **Download**                | Download the original image file                                                                            |
 | **Delete**                  | Delete the image from the dataset                                                                           |
 
@@ -990,12 +989,13 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
     | -------- | -------------------------------- | ----------------------------------- |
     | Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
     | Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
-    | Semantic | Polygon labels, or a PNG mask per image (see [Semantic Masks](#preparing-your-dataset)) | `masks/train/scene.png` |
+    | Semantic | `class x1 y1 x2 y2 ...` | `0 0.1 0.1 0.9 0.1 0.9 0.9` |
     | Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
     | OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
     | Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
 
-    Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.
+    Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible. Semantic datasets also accept
+    PNG masks instead of polygon files (see [Semantic Masks](#preparing-your-dataset)).
 
 === "COCO Format"
 

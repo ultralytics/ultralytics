@@ -1886,6 +1886,17 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
 
 
+def test_classification_split_class_alignment(tmp_path):
+    """Align a split's class folders to the model's class order by name and drop classes the model lacks."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
+        (tmp_path / name).mkdir()
+        cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+    assert sorted(sample[1] for sample in samples) == [1, 2]
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

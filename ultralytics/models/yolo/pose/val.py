@@ -97,13 +97,8 @@ class PoseValidator(DetectionValidator):
 
         Args:
             model (torch.nn.Module): Model to validate.
-
-        Raises:
-            KeyError: If the `kpt_shape` key is not present in the dataset.
         """
         super().init_metrics(model)
-        if "kpt_shape" not in self.data:
-            raise KeyError(f"No `kpt_shape` in the {self.args.data}. See https://docs.ultralytics.com/datasets/pose")
         self.kpt_shape = self.data["kpt_shape"]
         is_pose = self.kpt_shape == [17, 3]
         nkpt = self.kpt_shape[0]

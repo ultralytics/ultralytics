@@ -98,6 +98,12 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
+        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):  # checked before the label cache is consulted
+            raise ValueError(
+                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+            )
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -185,11 +191,6 @@ class YOLODataset(BaseDataset):
             (tuple): (verify function, zipped argument iterable) for ThreadPool.imap.
         """
         nkpt, ndim = self.data.get("kpt_shape", (0, 0))
-        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
-            raise ValueError(
-                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
-                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
-            )
         return verify_image_label, zip(
             self.im_files,
             self.label_files,

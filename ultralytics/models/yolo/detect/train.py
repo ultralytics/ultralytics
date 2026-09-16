@@ -160,10 +160,18 @@ class DetectionTrainer(BaseTrainer):
             return
         classes = np.concatenate([lb["cls"].flatten() for lb in self.train_loader.dataset.labels], 0)
         class_counts = np.bincount(classes.astype(int), minlength=self.data["nc"]).astype(np.float32)
-        class_counts = np.where(class_counts == 0, 1.0, class_counts)
 
-        weights = (1.0 / class_counts) ** self.args.cls_pw  # apply power directly
-        weights = weights / weights.mean()  # normalize so mean equals 1.0
+        # A class with ZERO instances has no signal to balance -- the old `where(count == 0, 1.0)`
+        # mapped it to the smallest possible count, i.e. the LARGEST weight, and since that count
+        # also entered the normalizer, every present class was scaled below 1. On a 101-class
+        # taxonomy where 45 classes have no instances at all, 83% of the weight mass went to
+        # channels that never fire while the effective `cls` gain dropped ~3.3x silently. Zero
+        # instance -> weight 1.0 (neutral: the same as cls_pw=0), and the normalizer runs over
+        # PRESENT classes only, so present-class weights keep mean 1.0 and the gain is untouched.
+        present = class_counts > 0
+        weights = np.ones_like(class_counts)
+        weights[present] = (1.0 / class_counts[present]) ** self.args.cls_pw  # apply power directly
+        weights[present] /= weights[present].mean()  # normalize so PRESENT-class mean equals 1.0
         # unwrap: BaseTrainer calls this AFTER DDP wrapping, and the criterion is built lazily on
         # the inner module (tasks.py `loss`), so setting the attribute on the DDP wrapper leaves
         # `getattr(model, "class_weights")` None for the training loss. Under DDP that made cls_pw

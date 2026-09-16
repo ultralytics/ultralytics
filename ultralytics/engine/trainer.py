@@ -352,7 +352,9 @@ class BaseTrainer:
         if self.world_size > 1:
             if self.args.sync_bn:
                 self.model = nn.SyncBatchNorm.convert_sync_batchnorm(self.model)
-            self.model = nn.parallel.DistributedDataParallel(self.model, device_ids=[RANK], find_unused_parameters=True)
+            self.model = nn.parallel.DistributedDataParallel(
+                self.model, device_ids=[RANK], broadcast_buffers=False, find_unused_parameters=True
+            )
 
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
@@ -588,6 +590,9 @@ class BaseTrainer:
                 self.plot_metrics()
             self.run_callbacks("on_train_end")
         self._clear_memory()
+        for loader in (self.train_loader, self.test_loader):
+            if hasattr(loader, "close"):
+                loader.close()  # shut down persistent dataloader workers so none survive to interpreter exit
         unset_deterministic()
         self.run_callbacks("teardown")
 
@@ -992,6 +997,7 @@ class BaseTrainer:
         self.start_epoch = start_epoch
         if start_epoch > (self.epochs - self.args.close_mosaic):
             self._close_dataloader_mosaic()
+            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""

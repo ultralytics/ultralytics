@@ -762,6 +762,9 @@ class v8DetectionLoss:
                 imgsz,
                 stride_tensor,
             )
+        # WARNING: line below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
+        else:
+            loss[0] += pred_distri[..., :0].sum()
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

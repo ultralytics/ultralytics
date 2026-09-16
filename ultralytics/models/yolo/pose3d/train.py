@@ -31,7 +31,6 @@ class Pose3DTrainer(yolo.pose.PoseTrainer):
             overrides = {}
         overrides["task"] = "pose3d"
         super().__init__(cfg, overrides, _callbacks)
-        self.args.task = "pose3d"  # PoseTrainer forces "pose"; restore it so checkpoints record the real task
         if self.args.scale or self.args.mosaic:
             LOGGER.warning(
                 "pose3d: scale/mosaic augmentation changes apparent object size without changing the metric depth "

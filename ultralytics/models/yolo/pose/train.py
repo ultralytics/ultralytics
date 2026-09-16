@@ -51,7 +51,8 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
         """
         if overrides is None:
             overrides = {}
-        overrides["task"] = "pose"
+        if overrides.get("task") != "pose3d":  # Pose3DTrainer subclasses this and owns its own task
+            overrides["task"] = "pose"
         super().__init__(cfg, overrides, _callbacks)
 
     def get_model(

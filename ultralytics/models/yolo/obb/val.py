@@ -131,7 +131,7 @@ class OBBValidator(DetectionValidator):
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if cls.shape[0]:
-            bbox[..., :4].mul_(torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]])  # target boxes
+            bbox[..., :4].mul_(torch.tensor(imgsz, device=bbox.device)[[1, 0, 1, 0]])  # target boxes
         return {
             "cls": cls,
             "bboxes": bbox,

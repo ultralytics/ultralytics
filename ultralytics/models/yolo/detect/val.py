@@ -152,16 +152,18 @@ class DetectionValidator(BaseValidator):
         """Return a formatted string summarizing class metrics of YOLO model."""
         return ("%22s" + "%11s" * 6) % ("Class", "Images", "Instances", "Box(P", "R", "mAP50", "mAP50-95)")
 
-    def postprocess(self, preds: torch.Tensor) -> list[dict[str, torch.Tensor]]:
+    def postprocess(self, preds: torch.Tensor | list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
         """Apply Non-maximum suppression to prediction outputs.
 
         Args:
-            preds (torch.Tensor): Raw predictions from the model.
+            preds (torch.Tensor | list[torch.Tensor]): Raw predictions from the model, or (inference, loss) outputs.
 
         Returns:
             (list[dict[str, torch.Tensor]]): Processed predictions after NMS, where each dict contains 'bboxes', 'conf',
                 'cls', and 'extra' tensors.
         """
+        if self.device.type == "mps":  # MPS: variable-shape NMS ops pollute the graph cache, run on CPU instead
+            preds = (preds[0] if isinstance(preds, (list, tuple)) else preds).float().cpu()
         outputs = nms.non_max_suppression(
             preds,
             self.args.conf,
@@ -192,7 +194,7 @@ class DetectionValidator(BaseValidator):
         imgsz = batch["img"].shape[2:]
         ratio_pad = batch["ratio_pad"][si]
         if cls.shape[0]:
-            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=self.device)[[1, 0, 1, 0]]  # target boxes
+            bbox = ops.xywh2xyxy(bbox) * torch.tensor(imgsz, device=bbox.device)[[1, 0, 1, 0]]  # target boxes
         return {
             "cls": cls,
             "bboxes": bbox,
@@ -222,6 +224,8 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
+        if self.device.type == "mps":  # postprocess runs NMS on CPU for MPS, move the batch there to match
+            batch.update({k: v.cpu() for k, v in batch.items() if torch.is_tensor(v)})
         for si, pred in enumerate(preds):
             self.seen += 1
             pbatch = self._prepare_batch(si, batch)

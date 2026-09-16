@@ -500,6 +500,14 @@ If your dataset changes after analysis — new images arrive, or the analyzed co
 
 Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
+### Find Similar Images
+
+The same embeddings power similarity search across public datasets. In a dataset you own, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+
+A dataset that has not been analyzed yet shows `Analyze this dataset in Clustering to find similar images`. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). The same search runs from a model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics), seeded by its worst-performing images.
+
+**Generate similar images** in the same menu creates four AI-generated variations of the selected image; the ones you keep are uploaded as new unlabeled images.
+
 ## Dataset Tabs
 
 Each dataset page can show up to six tabs, depending on the dataset state and your permissions:
@@ -717,9 +725,11 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 
 | Action            | Description                                     |
 | ----------------- | ----------------------------------------------- |
-| **Move to Split** | Reassign the image to Train, Val, or Test split |
-| **Download**      | Download the original image file                |
-| **Delete**        | Delete the image from the dataset               |
+| **Move to Split**            | Reassign the image to Train, Val, or Test split                                              |
+| **Find Similar Images**      | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images)) |
+| **Generate Similar Images**  | Create four AI-generated variations of the image and add the ones you keep                  |
+| **Download**                 | Download the original image file                                                             |
+| **Delete**                   | Delete the image from the dataset                                                            |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/a5dd2918d992405d4f2fe7e6b51a76cc.avif)<!-- screenshot -->
 

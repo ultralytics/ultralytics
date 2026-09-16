@@ -51,10 +51,9 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 
 !!! note "Track args"
 
-    Solutions forward some of their arguments to `track`, namely `tracker`, `conf`, `iou`, `classes` and `device`.
+    Solutions forward the inference and tracking arguments below to `model.track()`.
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 !!! note "Visualization args"
 

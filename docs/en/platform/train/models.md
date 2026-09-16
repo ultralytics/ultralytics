@@ -260,7 +260,7 @@ The Platform supports export to [20 deployment formats](../../modes/export.md#ex
 
 ### NVIDIA Jetson TensorRT Targets
 
-Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. As of July 2026, Jetson TensorRT exports are built with JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11.
+Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. The July 2026 validation measurements below used JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11. They describe that tested environment; verify the current worker and deployment-device runtimes before reusing an exported engine.
 
 | Target selection           | API `gpuType`          | Memory | GPU architecture   | Python | CUDA | TensorRT   | Measured YOLO26n FP16 export | Physical build/load validation                |
 | -------------------------- | ---------------------- | -----: | ------------------ | ------ | ---- | ---------- | ---------------------------: | --------------------------------------------- |
@@ -277,7 +277,7 @@ The timings are single observed end-to-end production routing tests from July 20
 
 !!! warning "Match the TensorRT engine build environment"
 
-    Downloaded engines are tied to their build platform, GPU family, TensorRT version, and a compatible CUDA runtime. For Jetson targets, the software versions are shown in the table above. Validate each engine and its memory fit on the deployment device, and perform INT8 calibration there for best results. If the environments do not match, export the engine locally instead. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
+    Downloaded engines are tied to their build platform, GPU family, TensorRT version, and a compatible CUDA runtime. The table above records the measured deployment environment, which can differ from newer `latest-nvidia-arm64` Docker images. Check the actual target runtime before reusing an engine. Validate each engine and its memory fit on the deployment device, and perform INT8 calibration there for best results. If the environments do not match, export the engine locally instead. See the [NVIDIA Jetson guide](../../guides/nvidia-jetson.md) and [TensorRT integration guide](../../integrations/tensorrt.md) for local deployment details.
 
 ### RKNN Chip Support
 

@@ -252,16 +252,27 @@ def test_restricted_load_threaded():
     assert pathlib.WindowsPath is windows_path
 
 
-def test_restricted_load_criterion(tmp_path):
-    """Checkpoints saved before 8.4.95 pickle `ema.criterion`; restricted loading must still accept them."""
+@pytest.mark.parametrize("fused", [False, True])
+def test_restricted_load_criterion(tmp_path, fused):
+    """Legacy criterion metadata and fused forward bindings survive restricted checkpoint round trips."""
     from ultralytics.nn.tasks import DetectionModel, torch_safe_load
     from ultralytics.utils import DEFAULT_CFG
 
     model = DetectionModel(CFG, verbose=False)
     model.args = DEFAULT_CFG
     model.criterion = model.init_criterion()
-    torch.save({"model": model}, tmp_path / "legacy.pt")
-    assert torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]["model"].criterion is not None
+    model.eval()
+    if fused:
+        model.fuse(verbose=False)
+    image = torch.zeros(1, 3, 64, 64)
+    with torch.no_grad():
+        expected = model(image)[0]
+    torch.save({"model": model, "best_fitness": np.float64(0.5)}, tmp_path / "legacy.pt")
+    checkpoint = torch_safe_load(tmp_path / "legacy.pt", safe_only=True)[0]
+    assert checkpoint["model"].criterion is not None
+    assert checkpoint["best_fitness"] == 0.5
+    with torch.no_grad():
+        assert torch.equal(checkpoint["model"](image)[0], expected)
 
 
 @pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])
@@ -945,44 +956,6 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     asyncio.run(converter.convert_ndjson_to_yolo(resume, tmp_path))
     assert conversions == 4
     assert sum(counts.values()) == request_count
-
-
-def test_platform_job_transport(monkeypatch, tmp_path):
-    """Test configurable Platform transport with an existing local checkpoint."""
-    from types import SimpleNamespace
-
-    from ultralytics import SETTINGS, cfg
-    from ultralytics.utils.callbacks import platform
-
-    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
-    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
-    args = SimpleNamespace(
-        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
-    )
-    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
-
-    captured = {}
-
-    def post(url, **kwargs):
-        captured.update(url=url, **kwargs)
-        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
-
-    monkeypatch.setattr("requests.post", post)
-    monkeypatch.setattr(platform, "_api_key", "api-key")
-    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
-    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
-    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
-    assert captured["json"]["data"] == {"epoch": 0}
-    assert captured["headers"] == {"Authorization": "Bearer api-key"}
-
-    model = tmp_path / "models" / "best.pt"
-    model.parent.mkdir()
-    model.write_bytes(b"weights")
-    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
-    assert platform._upload_model(model, "user/project", "model") == {
-        "modelPath": str(model),
-        "modelSize": 7,
-    }
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

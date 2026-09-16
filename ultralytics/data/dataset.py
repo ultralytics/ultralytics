@@ -888,6 +888,7 @@ class SemanticDataset(YOLODataset):
         data (dict): Dataset configuration from YAML.
         mask_files (list[str]): List of mask file paths corresponding to images.
         include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
+        masks (dict[int, np.ndarray]): Resized masks of the images in the mosaic buffer, evicted with them.
     """
 
     format_class = SemanticFormat
@@ -905,6 +906,7 @@ class SemanticDataset(YOLODataset):
         self.label_lut, self.inverse_lut = self._build_label_luts()
         self.mask_files = []
         self.include_class = None
+        self.masks = {}  # masks of the buffered images, evicted with the image buffer
         super().__init__(*args, data=data, **kwargs)
 
     def update_labels(self, include_class: list[int] | None) -> None:
@@ -1053,8 +1055,7 @@ class SemanticDataset(YOLODataset):
     def get_image_and_label(self, index):
         """Get image, label and semantic mask for the given index.
 
-        Overrides parent to include semantic mask so that Mosaic/CopyPaste mix images
-        also have their masks loaded.
+        Overrides parent to include the semantic mask, served from RAM for the images Mosaic draws from the buffer.
 
         Args:
             index (int): Dataset index.
@@ -1064,12 +1065,17 @@ class SemanticDataset(YOLODataset):
         """
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
-        mask = self.load_mask(index, image_shape=(h, w))
-        if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
-            mask[~np.isin(mask, self.include_class)] = 255
-        # Resize mask to match the resized image dimensions
-        if mask.shape[:2] != (h, w):
-            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+        mask = self.masks.get(index)
+        if mask is None:
+            mask = self.load_mask(index, image_shape=(h, w))
+            if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
+                mask[~np.isin(mask, self.include_class)] = 255
+            if mask.shape[:2] != (h, w):
+                mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+            if index in self.buffer:  # image is RAM-resident for mosaic reuse, keep its mask with it
+                self.masks[index] = mask
+                if len(self.masks) > len(self.buffer):
+                    self.masks = {i: self.masks[i] for i in self.buffer if i in self.masks}
         label["semantic_mask"] = mask
         return label
 
@@ -1149,6 +1155,7 @@ class ClassificationDataset:
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
+        filter_extra_classes: Drop samples whose class index is outside the model's classes.
         verify_images: Verify all images in dataset.
         cache_images: Decode images into one contiguous RAM cache.
     """
@@ -1209,6 +1216,24 @@ class ClassificationDataset:
             if augment
             else classify_transforms(size=args.imgsz)
         )
+
+    def filter_extra_classes(self, nc: int) -> None:
+        """Drop samples with class indices >= nc before constructing the dataloader."""
+        dataset_nc = max((x[1] for x in self.samples), default=0) + 1
+        if dataset_nc <= nc:
+            return
+        extra_classes = self.base.classes[nc:]
+        original_count = len(self.samples)
+        self.samples = [s for s in self.samples if s[1] < nc]
+        LOGGER.warning(
+            f"{self.prefix}Split has {dataset_nc} classes but model expects {nc}. "
+            f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra_classes}"
+        )
+        if not self.samples:
+            raise RuntimeError(
+                f"{self.prefix}All {original_count} samples filtered out: every sample had class index >= "
+                f"model nc={nc}. Reset the model's class count or align dataset class indices."
+            )
 
     def __getitem__(self, i: int) -> dict:
         """Return transformed image and class index for the given sample index.

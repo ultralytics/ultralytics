@@ -9,7 +9,7 @@
 # └── datasets
 #     └── coco-pose3d ← images/ symlink COCO, labels/ are generated
 
-path: /data/rick/coco-pose3d # dataset root dir (ultra11, where the teacher runs)
+path: /home/rick/coco-pose3d # dataset root; same path on every Shenzhen box (ultra11 symlinks it to /data/rick)
 train: train2017.txt # image list, only images that actually carry a pseudo-label
 val: val2017.txt
 test:

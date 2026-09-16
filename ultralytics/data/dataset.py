@@ -1289,7 +1289,7 @@ class ClassificationDataset:
             check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
+            assert cache["hash"] == get_hash([x[0] for x in self.samples] + self.base.classes)  # files and classes
             nf, nc, n, samples = cache.pop("results")  # found, corrupt, total, samples
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
@@ -1316,7 +1316,7 @@ class ClassificationDataset:
                 pbar.close()
             if msgs:
                 LOGGER.info("\n".join(msgs))
-            x["hash"] = get_hash([x[0] for x in self.samples])
+            x["hash"] = get_hash([x[0] for x in self.samples] + self.base.classes)
             x["results"] = nf, nc, len(samples), samples
             x["msgs"] = msgs  # warnings
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)

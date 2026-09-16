@@ -1607,7 +1607,13 @@ class Pose3DMetrics(PoseMetrics):
     @property
     def keys(self) -> list[str]:
         """Return a list of evaluation metric keys."""
-        return [*PoseMetrics.keys.fget(self), "metrics/MPJPE", "metrics/PA-MPJPE", "metrics/AbsRel(Z)", "metrics/delta1(Z)"]
+        return [
+            *PoseMetrics.keys.fget(self),
+            "metrics/MPJPE",
+            "metrics/PA-MPJPE",
+            "metrics/AbsRel(Z)",
+            "metrics/delta1(Z)",
+        ]
 
     def mean_results(self) -> list[float]:
         """Return the 2D means followed by the four 3D scalars."""

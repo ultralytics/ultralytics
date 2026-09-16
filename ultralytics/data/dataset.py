@@ -1155,12 +1155,11 @@ class ClassificationDataset:
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
-        filter_extra_classes: Drop samples from classes outside the model's names, aligning indices by name.
         verify_images: Verify all images in dataset.
         cache_images: Decode images into one contiguous RAM cache.
     """
 
-    def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
+    def __init__(self, root: str, args, augment: bool = False, prefix: str = "", names: dict[int, str] | None = None):
         """Initialize YOLO classification dataset with root directory, arguments, augmentations, and cache settings.
 
         Args:
@@ -1169,6 +1168,8 @@ class ClassificationDataset:
                 parameters, and cache settings.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
+            names (dict[int, str], optional): Model class names; class folders are aligned to this order by name and
+                folders the model lacks are dropped, since each split's ImageFolder scan is indexed on its own.
         """
         import torchvision  # scope for faster 'import ultralytics'
 
@@ -1192,13 +1193,27 @@ class ClassificationDataset:
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
-        self.single_cls = args.single_cls  # name-based class filtering must not relabel single-class targets
         self.samples = self.verify_images()  # filter out bad images
-        self.sample_classes = [self.base.classes[t] for _, t in self.samples]  # class folder per sample
-        if is_ndjson:
-            self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
+        classes = self.base.classes  # this split's class folders, sorted, indexed by the ImageFolder target
         if args.single_cls:
-            self.samples = [(f, 0) for f, _ in self.samples]
+            index = dict.fromkeys(classes, 0)
+        elif is_ndjson:  # folders are the class ids
+            index = {c: int(c) for c in classes}
+        elif names and not set(classes).isdisjoint(names.values()):  # align to the model's class order by name
+            index = {n: i for i, n in names.items()}
+        else:  # folder names carry no class meaning, e.g. ImageNet wnids under humanized names
+            index = {c: i for i, c in enumerate(classes)}
+        extra = [c for c in classes if index.get(c, len(names)) >= len(names)] if names else []  # not in the model
+        n = len(self.samples)
+        self.samples = [(f, index[classes[t]]) for f, t in self.samples if classes[t] not in set(extra)]
+        if n and not self.samples:
+            raise RuntimeError(
+                f"{self.prefix}All {n} samples are from classes outside the model's {len(names)}: {extra}"
+            )
+        if extra:
+            LOGGER.warning(
+                f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {extra}"
+            )
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()
@@ -1218,43 +1233,6 @@ class ClassificationDataset:
             if augment
             else classify_transforms(size=args.imgsz)
         )
-
-    def filter_extra_classes(self, names: dict[int, str] | list[str]) -> None:
-        """Drop samples from classes missing from `names` and align the rest to the `names` class order.
-
-        Each split's folder scan assigns its own sorted class indices, so a split whose folders differ from the model's
-        classes (e.g. a val subset missing the first class) would otherwise score every sample against the wrong class.
-
-        Args:
-            names (dict | list): Model class names keyed by class index.
-        """
-        if not isinstance(names, dict):
-            names = dict(enumerate(names))
-        lookup = {name: index for index, name in names.items()}
-        classes = self.base.classes
-        nc = len(names)
-        original_count = len(self.samples)
-        if not self.single_cls and set(classes) & set(lookup):  # reindex targets to the model's class order
-            keep = [i for i, c in enumerate(self.sample_classes) if c in lookup]
-            kept = [self.samples[i] for i in keep]
-            self.samples = [[f, lookup[self.sample_classes[i]], *r] for i, (f, _, *r) in zip(keep, kept)]
-            extra = [c for c in classes if c not in lookup]
-        else:  # single-class or folder names carry no class meaning (e.g. ImageNet wnids): filter by index
-            keep = [i for i, s in enumerate(self.samples) if s[1] < nc]
-            self.samples = [self.samples[i] for i in keep]
-            extra = classes[nc:]
-        if self.cache_ram and 0 < len(keep) < original_count:  # keep the RAM cache aligned with the surviving samples
-            self.img_cache = BaseDataset._ImageCache([self.img_cache[i] for i in keep])
-        if len(self.samples) < original_count:
-            LOGGER.warning(
-                f"{self.prefix}Split has {len(classes)} classes but model expects {nc}. "
-                f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra}"
-            )
-        if original_count and not self.samples:
-            raise RuntimeError(
-                f"{self.prefix}All {original_count} samples filtered out: no sample class is among the model's "
-                f"{nc} classes. Reset the model's class count or align dataset class names."
-            )
 
     def __getitem__(self, i: int) -> dict:
         """Return transformed image and class index for the given sample index.

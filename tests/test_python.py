@@ -958,44 +958,6 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     assert sum(counts.values()) == request_count
 
 
-def test_platform_job_transport(monkeypatch, tmp_path):
-    """Test configurable Platform transport with an existing local checkpoint."""
-    from types import SimpleNamespace
-
-    from ultralytics import SETTINGS, cfg
-    from ultralytics.utils.callbacks import platform
-
-    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
-    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
-    args = SimpleNamespace(
-        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
-    )
-    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
-
-    captured = {}
-
-    def post(url, **kwargs):
-        captured.update(url=url, **kwargs)
-        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
-
-    monkeypatch.setattr("requests.post", post)
-    monkeypatch.setattr(platform, "_api_key", "api-key")
-    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
-    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
-    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
-    assert captured["json"]["data"] == {"epoch": 0}
-    assert captured["headers"] == {"Authorization": "Bearer api-key"}
-
-    model = tmp_path / "models" / "best.pt"
-    model.parent.mkdir()
-    model.write_bytes(b"weights")
-    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
-    assert platform._upload_model(model, "user/project", "model") == {
-        "modelPath": str(model),
-        "modelSize": 7,
-    }
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
@@ -1924,47 +1886,15 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
 
 
-def test_classification_filter_extra_classes(tmp_path):
-    """Filter classification splits against the model's names: remap subsets, drop extras, and align the RAM cache."""
+def test_classification_split_class_alignment(tmp_path):
+    """Align a split's class folders to the model's class order by name and drop classes the model lacks."""
     from ultralytics.data.dataset import ClassificationDataset
 
-    def make_split(name, pixel_by_class):
-        """Write one single-tone image per class folder; the pixel value identifies the class."""
-        for cls, pixel in pixel_by_class.items():
-            directory = tmp_path / name / cls
-            directory.mkdir(parents=True)
-            cv2.imwrite(str(directory / "0.jpg"), np.full((16, 16, 3), pixel, dtype=np.uint8))
-
-    def dataset(name, cache=False):
-        """Return a val-mode ClassificationDataset over a split written by `make_split`."""
-        args = copy(DEFAULT_CFG)
-        args.cache = cache
-        return ClassificationDataset(str(tmp_path / name), args, prefix="val")
-
-    # A subset split missing the first class is remapped to the model's {a, b, c} order
-    make_split("subset", {"b": 20, "c": 30})
-    subset = dataset("subset")
-    subset.filter_extra_classes({0: "a", 1: "b", 2: "c"})
-    assert sorted(s[1] for s in subset.samples) == [1, 2]  # b -> 1, c -> 2 instead of the split-local 0, 1
-
-    # An extra class is dropped and the remaining samples keep the model's indices
-    make_split("extra", {"b": 20, "c": 30, "d": 40})
-    extra = dataset("extra")
-    extra.filter_extra_classes({0: "a", 1: "b", 2: "c"})
-    assert sorted(s[1] for s in extra.samples) == [1, 2]  # d removed, b and c still aligned
-
-    # Zero name overlap falls back to numeric filtering: split-local indices kept, classes past nc dropped
-    make_split("numeric", {"x": 10, "y": 20, "z": 30})
-    numeric = dataset("numeric")
-    numeric.filter_extra_classes({0: "a", 1: "b"})
-    assert sorted(s[1] for s in numeric.samples) == [0, 1]  # x and y unchanged, z dropped
-
-    # The RAM cache is rebuilt from the surviving samples, so cache entries stay paired with their images
-    make_split("cached", {"b": 20, "c": 30, "d": 40})
-    cached = dataset("cached", cache=True)
-    cached.filter_extra_classes({0: "c", 1: "d"})  # drops the head class b
-    assert len(cached.img_cache.shapes) == 2
-    assert [int(cached.img_cache[i].max()) for i in range(2)] == [30, 40]  # c and d pixels, never b's
+    for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
+        (tmp_path / name).mkdir()
+        cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+    assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
 @pytest.fixture

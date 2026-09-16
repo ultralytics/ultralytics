@@ -205,8 +205,8 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Semantic archives keep images and grayscale PNG masks in parallel `images/` and `masks/` folders, where each mask
     pixel is a class ID (`1` for the class and `0` for background in a single-class dataset) and `255` marks ignored
-    pixels. Platform converts every mask into polygon labels at import, so
-    the dataset behaves like any other semantic dataset in the editor, exports, and training.
+    pixels. Platform converts every mask into polygon labels at import, so the dataset behaves like any other semantic
+    dataset in the editor, exports, and training.
 
     ```text
     my-semantic-dataset/
@@ -225,9 +225,10 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Masks pair with images by relative path and stem and must match the image size. Pixel values not listed in
     `label_mapping` are kept as class IDs, and `255` or values mapped to `ignore_label` receive no polygon. Images
-    without a matching mask are skipped and counted as `invalid semantic mask` in the import summary. Masks take precedence in a semantic dataset; when a new dataset's archive also
-    carries YOLO `.txt` or COCO labels for another task, those labels set the task and the masks are ignored. Connected cloud storage does not accept
-    this layout. See the [PNG mask format](../../datasets/semantic/index.md#png-mask-format).
+    without a matching mask are skipped and counted as `invalid semantic mask` in the import summary. Masks take
+    precedence in a semantic dataset; when a new dataset's archive also carries YOLO `.txt` or COCO labels for another
+    task, those labels set the task and the masks are ignored. Connected cloud storage does not accept this layout. See
+    the [PNG mask format](../../datasets/semantic/index.md#png-mask-format).
 
 === "NDJSON"
 

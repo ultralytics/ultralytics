@@ -45,6 +45,7 @@ TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
 TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
+TORCH_2_2 = check_version(TORCH_VERSION, "2.2.0")
 TORCH_2_3 = check_version(TORCH_VERSION, "2.3.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_5 = check_version(TORCH_VERSION, "2.5.0")
@@ -788,9 +789,7 @@ def init_seeds(seed=0, deterministic=False):
         if TORCH_2_0:
             torch.use_deterministic_algorithms(True, warn_only=True)  # warn if deterministic is not possible
             torch.backends.cudnn.deterministic = True
-            if (
-                TORCH_2_1
-            ):  # deterministic mode also NaN-fills every new tensor by default: one fill kernel per activation
+            if TORCH_2_2:  # skip deterministic mode's NaN fill of every new tensor, one fill kernel per allocation
                 torch.utils.deterministic.fill_uninitialized_memory = False
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)
@@ -804,7 +803,7 @@ def unset_deterministic():
     """Unset all the configurations applied for deterministic training."""
     torch.use_deterministic_algorithms(False)
     torch.backends.cudnn.deterministic = False
-    if TORCH_2_1:
+    if TORCH_2_2:
         torch.utils.deterministic.fill_uninitialized_memory = True
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
     os.environ.pop("PYTHONHASHSEED", None)

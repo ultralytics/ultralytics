@@ -176,17 +176,17 @@ Resources are addressed by the same human-readable names that appear in Platform
 The API enforces sliding-window limits per API key. Each route falls into one category, and each category
 has an independent counter, so 20 predict requests do not consume your default allowance.
 
-| Category       | Limit            | Applies To                                                                                |
-| -------------- | ---------------- | ----------------------------------------------------------------------------------------- |
-| **Default**    | 100 requests/min | Every route not listed below                                                              |
-| **Training**   | 10 requests/min  | `POST /api/training/start`                                                                |
-| **Upload**     | 10 requests/min  | Signed upload URLs, upload completion, and dataset ingest                                 |
-| **Predict**    | 20 requests/min  | Model and deployment inference through Platform API routes                                |
+| Category       | Limit            | Applies To                                                                                                            |
+| -------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Default**    | 100 requests/min | Every route not listed below                                                                                          |
+| **Training**   | 10 requests/min  | `POST /api/training/start`                                                                                            |
+| **Upload**     | 10 requests/min  | Signed upload URLs, upload completion, and dataset ingest                                                             |
+| **Predict**    | 20 requests/min  | Model and deployment inference through Platform API routes                                                            |
 | **Export**     | 20 requests/min  | Model export routes and dataset export/version `POST` routes; reading a dataset export (`GET`) uses the default limit |
-| **Download**   | 30 requests/min  | Model file downloads                                                                      |
-| **Mutation**   | 10 requests/min  | Listing API keys, connecting or discovering cloud storage, and deployment `PATCH` actions |
-| **Hydrate**    | 20 requests/min  | `POST /api/datasets/{owner}/{dataset}/images` (fetching a selected set of images)         |
-| **Clustering** | 10 requests/min  | `GET /api/datasets/{owner}/{dataset}/images/clustering`                                   |
+| **Download**   | 30 requests/min  | Model file downloads                                                                                                  |
+| **Mutation**   | 10 requests/min  | Listing API keys, connecting or discovering cloud storage, and deployment `PATCH` actions                             |
+| **Hydrate**    | 20 requests/min  | `POST /api/datasets/{owner}/{dataset}/images` (fetching a selected set of images)                                     |
+| **Clustering** | 10 requests/min  | `GET /api/datasets/{owner}/{dataset}/images/clustering`                                                               |
 
 Browser-only Platform routes, such as billing checkout and team management, have their own limits that do not apply to
 API-key traffic.
@@ -379,20 +379,20 @@ POST /api/datasets
 }
 ```
 
-| Field         | Type   | Required | Description                                                               |
-| ------------- | ------ | -------- | ------------------------------------------------------------------------- |
-| `dataset`     | string | Yes      | Dataset name used in Platform URLs (lowercase, hyphenated, max 128 chars) |
-| `name`        | string | Yes      | Display name (max 100 chars)                                              |
-| `description` | string | No       | Description (max 1000 chars)                                              |
-| `task`        | string | No       | Task type (default: `detect`)                                             |
-| `classNames`  | array  | No       | Class names in index order (max 25,000)                                   |
-| `format`      | string | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`              |
-| `visibility`  | string | No       | `public` or `private`                                                     |
-| `tags`        | array  | No       | Up to 50 tags of 50 characters each                                       |
-| `license`     | string | No       | Dataset license identifier                                                |
-| `metadata`    | object | No       | Custom JSON metadata                                                      |
-| `owner`       | string | No       | Team workspace handle; defaults to your personal workspace                |
-| `requireExactSlug` | boolean | No | Return `409` when `dataset` is already taken instead of creating a suffixed name such as `warehouse-2` (default `false`) |
+| Field              | Type    | Required | Description                                                                                                              |
+| ------------------ | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `dataset`          | string  | Yes      | Dataset name used in Platform URLs (lowercase, hyphenated, max 128 chars)                                                |
+| `name`             | string  | Yes      | Display name (max 100 chars)                                                                                             |
+| `description`      | string  | No       | Description (max 1000 chars)                                                                                             |
+| `task`             | string  | No       | Task type (default: `detect`)                                                                                            |
+| `classNames`       | array   | No       | Class names in index order (max 25,000)                                                                                  |
+| `format`           | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                                             |
+| `visibility`       | string  | No       | `public` or `private`                                                                                                    |
+| `tags`             | array   | No       | Up to 50 tags of 50 characters each                                                                                      |
+| `license`          | string  | No       | Dataset license identifier                                                                                               |
+| `metadata`         | object  | No       | Custom JSON metadata                                                                                                     |
+| `owner`            | string  | No       | Team workspace handle; defaults to your personal workspace                                                               |
+| `requireExactSlug` | boolean | No       | Return `409` when `dataset` is already taken instead of creating a suffixed name such as `warehouse-2` (default `false`) |
 
 The response returns the `dataset` slug that was actually created, so read it back before uploading unless you set `requireExactSlug`.
 

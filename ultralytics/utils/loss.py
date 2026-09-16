@@ -515,6 +515,24 @@ class AnomalyMCLoss(v8DetectionLoss):
         self.cls_softmax = bool(getattr(self.hyp, "cls_softmax", True))
         self.hyp = copy(self.hyp)
         self.hyp.cls = float(getattr(self.hyp, "anom", 0.5))  # the cls SLOT carries the anomaly logit
+        # `cls_pw` balances the MULTICLASS loss, which here is the type head -- so the weights move
+        # to `_type_loss` and come off the detection branch, whose BCE the base class would apply
+        # them to. That branch is now nc=1: a `(1, 1, type_nc)` vector against a `(bs, A, 1)` loss
+        # is an in-place broadcast error (it raised on the first step), and even with matching
+        # shapes a single-class weight is just a rescale of `anom`, which the `anom` gain already is.
+        self.type_weights = self.class_weights  # (1, 1, type_nc) or None
+        self.class_weights = None
+        if self.type_weights is not None and self.cls_softmax:
+            # Refused, not silently ignored. Detect weights PER CHANNEL, over positives, siblings
+            # and background alike; softmax CE has no per-channel hook at all -- only `weight[target]`,
+            # which is a different scheme. Supporting both under one knob is how `cls=0.5` came to
+            # mean two things; the BCE branch can mirror Detect, so that is where `cls_pw` lives.
+            raise ValueError(
+                "cls_pw is only supported on AnomalyMCDetect with cls_softmax=False (v5-style per-class "
+                "BCE), whose per-channel weighting mirrors Detect's. Softmax cross-entropy can only "
+                "weight by target class, which is a different quantity and would not be comparable. "
+                "Set cls_softmax=False, or cls_pw=0.0."
+            )
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the decoupled detection + type loss."""
@@ -550,7 +568,16 @@ class AnomalyMCLoss(v8DetectionLoss):
         # NOT mean the same effective weight. Their magnitudes are reported by the smoke.
         t = torch.zeros_like(logits)
         t[torch.arange(len(tgt), device=logits.device), tgt] = 1.0
-        return F.binary_cross_entropy_with_logits(logits, t, reduction="sum") / len(tgt)
+        bce = F.binary_cross_entropy_with_logits(logits, t, reduction="none")
+        if self.type_weights is not None:
+            # Per CHANNEL, exactly as `Detect` does it (`bce_loss *= self.class_weights`): a rare
+            # class's column is scaled both where it is the target and where it is a sibling being
+            # pushed down. The one property that cannot carry over is the background bucket -- the
+            # type head only ever sees foreground anchors. The normaliser stays `len(tgt)`, so it
+            # is weight-independent like Detect's `target_scores_sum`; `set_class_weights`
+            # normalises the vector to mean 1.0, which is what keeps the term's scale put.
+            bce = bce * self.type_weights.view(1, -1)
+        return bce.sum() / len(tgt)
 
 
 class v8SegmentationLoss(v8DetectionLoss):

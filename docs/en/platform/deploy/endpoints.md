@@ -371,7 +371,7 @@ Send production requests directly to the URL shown on the deployment card. These
 Platform API rate limiter, so the 20 requests/minute predict limit does not apply. The endpoint still has its own
 capacity ceiling:
 
-- One instance serves each endpoint by default, processing a limited number of requests at once
+- A single instance serves each endpoint, processing a limited number of requests at once
 - Requests that cannot be served promptly return `429` with a `Retry-After` header
 - A single request may run for up to 1 hour, which allows video inference to complete
 - Responses larger than 1 KB are gzip-compressed, and cross-origin browser requests are allowed

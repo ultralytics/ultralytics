@@ -722,13 +722,13 @@ See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md
 
 Right-click any image in **Grid** or **Compact** view to access quick actions:
 
-| Action                      | Description                                                                                                 |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Move to Split**           | Reassign the image to Train, Val, or Test split                                                             |
-| **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images)) |
-| **Generate Similar Images** | Create four AI-generated variations of the image and add the ones you keep as unlabeled images              |
-| **Download**                | Download the original image file                                                                            |
-| **Delete**                  | Delete the image from the dataset                                                                           |
+| Action                      | Description                                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
+| **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images))          |
+| **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
+| **Download**                | Download the original image file                                                                                     |
+| **Delete**                  | Delete the image from the dataset                                                                                    |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/a5dd2918d992405d4f2fe7e6b51a76cc.avif)<!-- screenshot -->
 

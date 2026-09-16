@@ -47,7 +47,7 @@ graph LR
 | **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, or YOLO models for those tasks and pose (see [supported task types](data/annotation.md#supported-task-types)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                                                    |
 | **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                |
-| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (one instance by default), and monitoring                                                                                                                                                                |
+| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (one instance by default), and monitoring                                                                                                                                                               |
 
 **What you can do:**
 

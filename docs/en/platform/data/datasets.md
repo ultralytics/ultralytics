@@ -990,7 +990,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
     | -------- | -------------------------------- | ----------------------------------- |
     | Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
     | Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
-    | Semantic | `class x1 y1 x2 y2 ...` | `0 0.1 0.1 0.9 0.1 0.9 0.9` |
+    | Semantic | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
     | Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
     | OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
     | Classify | Directory structure              | `train/cats/`, `train/dogs/`        |

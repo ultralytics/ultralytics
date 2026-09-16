@@ -153,14 +153,14 @@ The INT8 exports above are post-training quantization (PTQ): ranges are observed
             cos_lr=True,
             mosaic=0.0,
         )
-        model.export(format="engine", quantize=8)  # calibrates on the training data
+        model.export(format="engine", quantize=8)  # ranges travel with the checkpoint, no calibration data needed
         ```
 
     === "CLI"
 
         ```bash
         yolo train model=yolo26n.pt data=coco.yaml quantize=8 epochs=5 batch=64 optimizer=AdamW lr0=0.00001 lrf=0.1 warmup_epochs=0.5 cos_lr=True mosaic=0
-        yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8 data=coco.yaml
+        yolo export model=runs/detect/train/weights/best.pt format=engine quantize=8
         ```
 
 Use a small learning rate when fine-tuning a pretrained checkpoint. QAT can initially reduce accuracy, and its benefit over post-training quantization depends on the model, dataset, and training budget. Validate the exported model against both the original checkpoint and a post-training quantized export; fake-quantization scores during training do not establish deployment accuracy.
@@ -179,7 +179,7 @@ QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-trai
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 
-QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Export drops the fake-quantization and quantizes the trained weights like any INT8 export, so it calibrates on `data` and supports every INT8 format. Training and the TensorRT export keep the head's output convolutions and DFL in float to limit INT8 accuracy loss.
+The head's final output convolutions are deliberately left in float to limit INT8 accuracy loss; TensorRT enables FP16 mixed precision for its unquantized layers. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

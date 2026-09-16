@@ -64,6 +64,14 @@ keywords: Ultralytics, torch utils, model optimization, device selection, infere
 
 <br><br><hr><br>
 
+## ::: ultralytics.utils.torch_utils._register_qat_blocks
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.torch_utils._share_ranges
+
+<br><br><hr><br>
+
 ## ::: ultralytics.utils.torch_utils.prepare_qat
 
 <br><br><hr><br>

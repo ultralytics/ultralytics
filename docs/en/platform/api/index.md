@@ -1328,7 +1328,9 @@ PATCH /api/models/{owner}/{project}/{model}
 **Python SDK:** `client.models.update(owner, project, model)`
 
 Accepted fields include `name`, `description`, `color`, `metadata`, `status`, `license`, `datasetSlug`, `trainArgs`,
-`trainResults`, `epochs`, `bestEpoch`, `bestFitness`, `version`, `trainingError`, and `starred`.
+`trainResults`, `epochs`, `bestEpoch`, `bestFitness`, `version`, `trainingError`, and `starred`. Passing `projectId`
+moves the model into another project of the same owner; the response returns the model's `slug` in the destination,
+`renamed: true` when the name was taken there, and `409` while the model is still training.
 
 ```json
 {

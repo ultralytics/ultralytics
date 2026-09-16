@@ -88,7 +88,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [semantic PNG masks](../../datasets/semantic/index.md#png-mask-format), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -200,6 +200,33 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Files pair by stem. Depth maps may use a smaller resolution than their RGB images when the aspect ratio matches.
     See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
+
+=== "Semantic Masks"
+
+    Semantic archives keep images and grayscale PNG masks in parallel `images/` and `masks/` folders, where each mask
+    pixel is a class ID and `255` marks ignored pixels. Platform converts every mask into polygon labels at import, so
+    the dataset behaves like any other semantic dataset in the editor, exports, and training.
+
+    ```text
+    my-semantic-dataset/
+    ├── data.yaml
+    ├── images/{train,val}/scene.png
+    └── masks/{train,val}/scene.png
+    ```
+
+    ```yaml
+    train: images/train
+    val: images/val
+    masks_dir: masks # optional when the folder is named masks/
+    names: {0: road, 1: car}
+    label_mapping: {7: 0, 26: 1} # optional: source pixel IDs to class IDs
+    ```
+
+    Masks pair with images by relative path and stem and must match the image size. Pixel values not listed in
+    `label_mapping` are kept as class IDs, and `255` or values mapped to `ignore_label` receive no polygon. Images
+    without a matching mask are skipped and counted as `invalid semantic mask` in the import summary. Masks are used only when the dataset task is semantic, so an archive that also
+    carries YOLO `.txt` or COCO labels for another task imports those instead. Connected cloud storage does not accept
+    this layout. See the [PNG mask format](../../datasets/semantic/index.md#png-mask-format).
 
 === "NDJSON"
 
@@ -953,6 +980,7 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
     | -------- | -------------------------------- | ----------------------------------- |
     | Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
     | Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
+    | Semantic | Polygon labels, or a PNG mask per image (see [Semantic Masks](#preparing-your-dataset)) | `masks/train/scene.png` |
     | Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
     | OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
     | Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
@@ -996,5 +1024,6 @@ Datasets that read from [cloud storage](../integrations/index.md) or [On Premise
 | [Cloning](#clone-dataset)                                    | Unavailable     | Unavailable |
 | [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
 | [NDJSON export](#export-dataset)                             | Available       | Unavailable |
+| [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable     | Available   |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

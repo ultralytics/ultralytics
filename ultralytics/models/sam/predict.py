@@ -41,6 +41,9 @@ from .amg import (
 if TYPE_CHECKING:
     from .sam3.geometry_encoders import Prompt
 
+# Upscaling all masks at once allocates an N*H*W float32 intermediate; chunk it under this element budget.
+MAX_UPSCALE_ELEMENTS = 2**29  # ~2 GB of float32
+
 
 class Predictor(BasePredictor):
     """Predictor class for SAM, enabling real-time image segmentation with promptable capabilities.
@@ -2337,7 +2340,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
             Masks are upscaled in chunks so the float32 buffer stays bounded regardless of the instance count.
         """
         out = masks.new_empty((masks.shape[0], *shape), dtype=torch.bool)
-        chunk = max(1, 2**29 // (shape[0] * shape[1]))  # cap the float32 buffer at ~2 GB
+        chunk = max(1, MAX_UPSCALE_ELEMENTS // (shape[0] * shape[1]))
         for i in range(0, masks.shape[0], chunk):
             out[i : i + chunk] = (
                 F.interpolate(masks[i : i + chunk][None].float(), shape, mode="bilinear")[0] > self.model.mask_threshold

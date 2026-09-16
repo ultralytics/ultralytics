@@ -2027,6 +2027,32 @@ def test_process_mask_native_chunked():
     assert torch.equal(out, ref)
 
 
+def test_sam3_upscale_masks_chunked(monkeypatch):
+    """Chunked SAM3 mask upscaling is identical to upscaling all masks at once."""
+    from types import SimpleNamespace
+
+    from ultralytics.models.sam import predict as sam_predict
+
+    torch.manual_seed(0)
+    masks, shape = torch.randn(7, 16, 16), (64, 64)
+    predictor = SimpleNamespace(model=SimpleNamespace(mask_threshold=0.0))
+    ref = torch.nn.functional.interpolate(masks[None].float(), shape, mode="bilinear")[0] > 0.0
+
+    interpolate, calls = sam_predict.F.interpolate, []
+
+    def counting_interpolate(*args, **kwargs):
+        """Record each upscale so the test can assert the masks are processed in more than one chunk."""
+        calls.append(1)
+        return interpolate(*args, **kwargs)
+
+    monkeypatch.setattr(sam_predict, "MAX_UPSCALE_ELEMENTS", 2 * shape[0] * shape[1])  # force chunks of 2
+    monkeypatch.setattr(sam_predict.F, "interpolate", counting_interpolate)
+    out = sam_predict.SAM3SemanticPredictor._upscale_masks(predictor, masks, shape)
+    assert len(calls) == 4  # ceil(7 / 2) chunks, i.e. not a single upscale of all masks
+    assert out.dtype == torch.bool
+    assert torch.equal(out, ref)
+
+
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,

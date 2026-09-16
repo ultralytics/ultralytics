@@ -782,7 +782,7 @@ def test_pose_val_cached_missing_kpt_shape(tmp_path):
     # `verify_args` check never runs and only the guard in PoseValidator.init_metrics catches the missing key.
     data = check_det_dataset("coco8-pose.yaml")
     fields = [f"path: {data['path']}", f"train: {data['train']}", f"val: {data['val']}", f"names: {data['names']}"]
-    (tmp_path / "pose_kpt.yaml").write_text("\n".join(fields + ["kpt_shape: [17, 3]"]) + "\n")
+    (tmp_path / "pose_kpt.yaml").write_text("\n".join([*fields, "kpt_shape: [17, 3]"]) + "\n")
     (tmp_path / "pose_nokpt.yaml").write_text("\n".join(fields) + "\n")
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")
     model.val(data=str(tmp_path / "pose_kpt.yaml"), imgsz=32)  # populate the labels cache

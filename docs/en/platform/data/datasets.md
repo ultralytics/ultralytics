@@ -204,9 +204,8 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 === "Semantic Masks"
 
     Semantic archives keep images and grayscale PNG masks in parallel `images/` and `masks/` folders, where each mask
-    pixel is a class ID and `255` marks ignored pixels; a single-class dataset (`nc: 1`) instead uses `1` for the class
-    and `0` for background. Platform converts every mask into polygon labels at import, so the dataset behaves like any
-    other semantic dataset in the editor, exports, and training.
+    pixel is a class ID and `255` marks ignored pixels. Platform converts every mask into polygon labels at import, so
+    the dataset behaves like any other semantic dataset in the editor, exports, and training.
 
     ```text
     my-semantic-dataset/

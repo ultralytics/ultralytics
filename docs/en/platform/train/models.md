@@ -201,6 +201,7 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
 - **Classes associated with failures**, ranking which classes appear most often in the weakest images
+- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and own the dataset
 
 !!! note "Requirements"
 

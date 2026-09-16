@@ -1161,7 +1161,7 @@ class YOLOEDetect(Detect):
         bs = x[0].shape[0]
         cv2 = self.one2one_cv2 if self.end2end else self.cv2
         cv3 = self.one2one_cv3 if self.end2end else self.cv3
-        lrpc = self.one2one_lrpc if self.end2end else self.lrpc
+        lrpc = self.one2one_lrpc if self.end2end and hasattr(self, "one2one_lrpc") else self.lrpc
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
@@ -1308,7 +1308,7 @@ class YOLOESegment(YOLOEDetect):
         cv2 = self.one2one_cv2 if self.end2end else self.cv2
         cv3 = self.one2one_cv3 if self.end2end else self.cv3
         cv5 = self.one2one_cv5 if self.end2end else self.cv5
-        lrpc = self.one2one_lrpc if self.end2end else self.lrpc
+        lrpc = self.one2one_lrpc if self.end2end and hasattr(self, "one2one_lrpc") else self.lrpc
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])

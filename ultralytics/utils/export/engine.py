@@ -168,6 +168,9 @@ def modelopt_quantize_onnx(
             # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
+            # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
             output_path=out_file,
             **kwargs,
         )

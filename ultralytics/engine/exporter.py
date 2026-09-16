@@ -142,6 +142,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_9,
     is_qat,
     select_device,
+    strip_qat,
 )
 
 
@@ -825,18 +826,10 @@ class Exporter:
             elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
                 LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
                 self.args.batch = 1
-        self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
-        if self.qat:
-            assert fmt in {"onnx", "engine"}, (
-                f"format='{fmt}' cannot export a QAT model: its Q/DQ ranges are only read by the 'onnx' and "
-                f"'engine' backends. Export a non-QAT checkpoint to this format instead."
-            )
-            assert self.args.quantize in {None, 8}, (
-                f"a QAT model exports INT8, but got quantize={self.args.quantize}. Export a non-QAT checkpoint for "
-                f"other precisions."
-            )
-            self.args.quantize = 8  # the graph carries Q/DQ nodes whether or not INT8 was requested
-        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat:
+        if is_qat(model):  # trained for INT8: export quantizes the trained weights like any INT8 export
+            strip_qat(model)
+            self.args.quantize = self.args.quantize or 8
+        if self.args.quantize in {8, "w8a16"} and not self.args.data:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."
@@ -1064,7 +1057,7 @@ class Exporter:
     def export_onnx(self, prefix=colorstr("ONNX:")):  # noqa: B008
         """Export YOLO model to ONNX format."""
         requirements = ["onnx>=1.16.1,<1.19.0" if self.args.format == "rknn" else "onnx>=1.12.0,<2.0.0"]
-        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
+        if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
@@ -1121,8 +1114,8 @@ class Exporter:
 
         with arange_patch(dynamic=bool(dynamic), quantize=self.args.quantize, fmt=self.args.format):
             torch2onnx(
-                model.cpu() if self.qat else model,
-                self.im.cpu() if self.qat else self.im,
+                model,
+                self.im,
                 f,
                 opset=opset,
                 input_names=["images"],
@@ -1177,7 +1170,7 @@ class Exporter:
 
         onnx.save(model_onnx, f)
         del model_onnx
-        if self.args.quantize == 8 and self.args.format == "onnx" and not self.qat:  # QAT exports Q/DQ directly
+        if self.args.quantize == 8 and self.args.format == "onnx":
             from ultralytics.utils.export.onnx import onnx_int8_quantize
 
             source = Path(f)
@@ -1409,7 +1402,7 @@ class Exporter:
             self.args.dynamic,
             self.im.shape,
             dla=self.dla,
-            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 and not self.qat else None,
+            dataset=self.get_int8_calibration_dataloader(prefix) if self.args.quantize == 8 else None,
             metadata=self.metadata,
             verbose=self.args.verbose,
             prefix=prefix,

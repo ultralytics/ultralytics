@@ -420,103 +420,16 @@ def fuse_deconv_and_bn(deconv, bn):
 MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
 
 
-def _register_qat_blocks() -> None:
-    """Register fake-quantization for the residual adds and concatenations of the model zoo blocks.
-
-    ModelOpt quantizes only Conv and Linear inputs. A tensor that also feeds a residual add or a concatenation stays
-    float there, so TensorRT cannot fuse its quantizer into the producing conv and runs the whole block in FP16. The
-    blocks keep their own `forward`; while it runs, `torch.cat` fake-quantizes every input with one shared range and a
-    `+` whose operand is the block input, or an earlier residual sum, fake-quantizes both operands.
-    """
-    import modelopt.torch.quantization as mtq
-    from modelopt.torch.quantization.nn import TensorQuantizer
-    from modelopt.torch.quantization.nn.modules.quant_module import QuantModule, QuantModuleRegistry
-
-    from ultralytics.nn.modules.block import C2PSA, C3, SPPF, Bottleneck, C2f, PSABlock
-    from ultralytics.nn.modules.conv import Concat
-
-    cat, add = torch.cat, torch.Tensor.__add__
-
-    class QuantBlock(QuantModule):
-        def _setup(self):  # INT8_DEFAULT_CFG enables only quantizers named `*input_quantizer`
-            self._register_temp_attribute("x_input_quantizer", TensorQuantizer())
-            self._register_temp_attribute("y_input_quantizer", TensorQuantizer())
-            self._register_temp_attribute("cat_input_quantizer", TensorQuantizer())
-
-        def modelopt_post_restore(self, prefix=""):
-            """Skip ModelOpt's device lookup, which warns for a parameter-less `Concat`; `restore_qat` moves the model."""
-
-        def forward(self, x):
-            held = {id(x): x}  # the block input and every residual sum, kept alive so that ids are not reused
-
-            def residual(a, b):
-                if id(a) not in held and id(b) not in held:  # an add inside a child module
-                    return add(a, b)
-                y = add(self.x_input_quantizer(a), self.y_input_quantizer(b))
-                held[id(y)] = y
-                return y
-
-            prev = torch.Tensor.__add__, torch.cat
-            torch.Tensor.__add__ = residual
-            torch.cat = lambda t, *a, **k: cat([self.cat_input_quantizer(i) for i in t], *a, **k)
-            try:
-                return super().forward(x)
-            finally:
-                torch.Tensor.__add__, torch.cat = prev
-
-    for t in (Bottleneck, PSABlock, SPPF, C2f, C3, C2PSA, Concat):  # subclasses that inherit `forward` match too
-        if t not in QuantModuleRegistry:
-            mtq.register(original_cls=t, quantized_cls=QuantBlock)
-
-
-def _share_ranges(model: nn.Module, batch) -> None:
-    """Give the quantizers that read the same tensor, or slices of it, one range so its producer can end in INT8.
-
-    A concatenation input is also read by the next block, a residual input by the first conv of its bottleneck, and an
-    upsampled tensor keeps its range. TensorRT fuses the quantizer into the producing layer only when every reader
-    agrees on the range.
-    """
-    from modelopt.torch.quantization.nn import TensorQuantizer
-
-    groups, alias, tensors = {}, {}, []  # tensors are held so that their storage is not reused during the forward
-
-    def record(q, args):
-        tensors.append(args[0])
-        ptr = args[0].untyped_storage().data_ptr()  # slices of one tensor share a range
-        groups.setdefault(alias.get(ptr, ptr), []).append(q)
-
-    def upsampled(m, args, out):
-        tensors.extend((args[0], out))
-        alias[out.untyped_storage().data_ptr()] = args[0].untyped_storage().data_ptr()
-
-    hooks = [
-        m.register_forward_pre_hook(record) for m in model.modules() if isinstance(m, TensorQuantizer) and m.is_enabled
-    ] + [m.register_forward_hook(upsampled) for m in model.modules() if isinstance(m, nn.Upsample)]
-    model(batch)
-    for h in hooks:
-        h.remove()
-    changed = True
-    while changed:  # a quantizer read from two tensors links their groups, so iterate to a fixed point
-        changed = False
-        for qs in groups.values():
-            amax = max(q.amax for q in qs)
-            for q in qs:
-                if len(qs) > 1 and q.amax != amax:
-                    q.amax, changed = amax, True
-
-
 def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
     """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
 
-    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, and the residual
-    and concatenation blocks for equivalents that fake-quantize the inputs of the add and the concatenation, so training
-    learns weights that survive INT8 export and `torch.onnx.export` emits those ranges as Q/DQ nodes. Activation and
-    weight ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as
-    a buffer, not a learnable parameter), so training adapts the weights to them.
+    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training learns
+    weights that survive INT8 quantization. Activation and weight ranges are calibrated once from `batches` batches and
+    then held fixed (ModelOpt's INT8 config keeps `amax` as a buffer, not a learnable parameter), so training adapts the
+    weights to them. Export strips the fake-quantization and quantizes the trained weights like any INT8 export.
 
-    Training keeps BatchNorm unfused; `fuse()` folds it at export and rescales the weight ranges along. The head's
-    output layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8 accuracy
-    loss.
+    Training keeps BatchNorm unfused; `fuse()` folds it at load and rescales the weight ranges along. The head's output
+    layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8 accuracy loss.
 
     Args:
         model (nn.Module): Model to prepare, modified in place.
@@ -537,7 +450,6 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
             m(preprocess(batch))
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
-    _register_qat_blocks()
     training = model.training
     model.eval()  # freeze BatchNorm statistics
     with torch.no_grad():
@@ -546,7 +458,6 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
         # INT8 accuracy loss. DFL's fixed conv is left in float too.
         head = f"model.{len(model.model) - 1}."
         mtq.disable_quantizer(model, lambda n: n.startswith(head) and (".conv." not in n or ".dfl." in n))
-        _share_ranges(model, preprocess(next(iter(dataloader))))
     model.train(training)
     return model
 
@@ -609,7 +520,6 @@ def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
     check_requirements(MODELOPT_REQUIREMENTS)
     import modelopt.torch.opt as mto
 
-    _register_qat_blocks()
     mto.restore_from_modelopt_state(model, state["modelopt"])
     model.to(next(model.parameters()).device)
     model.load_state_dict(state["ranges"], strict=False)

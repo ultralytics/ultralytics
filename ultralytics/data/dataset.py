@@ -1155,7 +1155,7 @@ class ClassificationDataset:
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
-        filter_extra_classes: Drop samples whose class index is outside the model's classes.
+        filter_extra_classes: Drop samples from classes outside the model's names, aligning indices by name.
         verify_images: Verify all images in dataset.
         cache_images: Decode images into one contiguous RAM cache.
     """
@@ -1192,6 +1192,7 @@ class ClassificationDataset:
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
+        self.single_cls = args.single_cls  # name-based class filtering must not relabel single-class targets
         self.samples = self.verify_images()  # filter out bad images
         if is_ndjson:
             self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
@@ -1217,22 +1218,40 @@ class ClassificationDataset:
             else classify_transforms(size=args.imgsz)
         )
 
-    def filter_extra_classes(self, nc: int) -> None:
-        """Drop samples with class indices >= nc before constructing the dataloader."""
-        dataset_nc = max((x[1] for x in self.samples), default=0) + 1
-        if dataset_nc <= nc:
-            return
-        extra_classes = self.base.classes[nc:]
+    def filter_extra_classes(self, names: dict[int, str] | list[str]) -> None:
+        """Drop samples from classes missing from `names` and align the rest to the `names` class order.
+
+        Each split's folder scan assigns its own sorted class indices, so a split whose folders differ from the model's
+        classes (e.g. a val subset missing the first class) would otherwise score every sample against the wrong class.
+
+        Args:
+            names (dict | list): Model class names keyed by class index.
+        """
+        if not isinstance(names, dict):
+            names = dict(enumerate(names))
+        lookup = {name: index for index, name in names.items()}
+        classes = self.base.classes
+        nc = len(names)
         original_count = len(self.samples)
-        self.samples = [s for s in self.samples if s[1] < nc]
-        LOGGER.warning(
-            f"{self.prefix}Split has {dataset_nc} classes but model expects {nc}. "
-            f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra_classes}"
-        )
-        if not self.samples:
+        if not self.single_cls and set(classes) & set(lookup):  # reindex targets to the model's class order
+            keep = [i for i, s in enumerate(self.samples) if Path(s[0]).parent.name in lookup]
+            self.samples = [[f, lookup[Path(f).parent.name], *r] for f, _, *r in (self.samples[i] for i in keep)]
+            extra = [c for c in classes if c not in lookup]
+        else:  # single-class or folder names carry no class meaning (e.g. ImageNet wnids): filter by index
+            keep = [i for i, s in enumerate(self.samples) if s[1] < nc]
+            self.samples = [self.samples[i] for i in keep]
+            extra = classes[nc:]
+        if self.cache_ram and 0 < len(keep) < original_count:  # keep the RAM cache aligned with the surviving samples
+            self.img_cache = BaseDataset._ImageCache([self.img_cache[i] for i in keep])
+        if len(self.samples) < original_count:
+            LOGGER.warning(
+                f"{self.prefix}Split has {len(classes)} classes but model expects {nc}. "
+                f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra}"
+            )
+        if original_count and not self.samples:
             raise RuntimeError(
-                f"{self.prefix}All {original_count} samples filtered out: every sample had class index >= "
-                f"model nc={nc}. Reset the model's class count or align dataset class indices."
+                f"{self.prefix}All {original_count} samples filtered out: no sample class is among the model's "
+                f"{nc} classes. Reset the model's class count or align dataset class names."
             )
 
     def __getitem__(self, i: int) -> dict:

@@ -143,7 +143,7 @@ class ClassificationTrainer(BaseTrainer):
                 f"See https://docs.ultralytics.com/datasets/classify for cls dataset format."
             )
 
-        dataset.filter_extra_classes(self.data["nc"])
+        dataset.filter_extra_classes(self.data["names"])
         drop_last = self.args.compile and mode == "train"
         loader = build_dataloader(
             dataset, batch_size, self.args.workers, rank=rank, drop_last=drop_last, device=self.device

@@ -160,9 +160,10 @@ class ClassificationValidator(BaseValidator):
         Returns:
             (torch.utils.data.DataLoader): DataLoader object for the classification validation dataset.
         """
-        return build_dataloader(
-            self.build_dataset(dataset_path), batch_size, self.args.workers, rank=-1, device=self.device
-        )
+        dataset = self.build_dataset(dataset_path)
+        if not dataset.samples:
+            raise FileNotFoundError(f"No images from the model's classes found in {dataset_path}")
+        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1, device=self.device)
 
     def print_results(self) -> None:
         """Print evaluation metrics for the classification model."""

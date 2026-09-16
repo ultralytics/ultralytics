@@ -32,6 +32,7 @@ import argparse
 import json
 import re
 import shutil
+import sys
 import warnings
 from pathlib import Path
 
@@ -56,6 +57,7 @@ def _stub(*a, **kw):
 
 def install_pickle_shims() -> None:
     """Register dummy stubs at import paths the source pickle references but the clean code no longer defines."""
+    import ultralytics.nn.modules.head as head
     import ultralytics.nn.modules.utils as utm
 
     def _stub(*a, **kw):
@@ -64,6 +66,21 @@ def install_pickle_shims() -> None:
     for name in ("deformable_attention_core_func_v2", "MSDeformAttnFunction", "dab_sine_embedding"):
         if not hasattr(utm, name):
             setattr(utm, name, _stub)
+
+    try:
+        import ultralytics.nn.modules.deim_transformer as deim
+    except ImportError:
+        return
+    for old, new in {
+        "DeimGate": "DEIMGate",
+        "DeimTransformerDecoder": "DEIMTransformerDecoder",
+        "DeimTransformerDecoderLayer": "DEIMTransformerDecoderLayer",
+    }.items():
+        if not hasattr(deim, old):
+            setattr(deim, old, getattr(deim, new))
+    sys.modules.setdefault("ultralytics.nn.modules.dfine_transformer", deim)
+    if not hasattr(head, "DeimDecoder"):
+        head.DeimDecoder = head.DEIMDecoder
 
 
 def load_source(src: Path) -> dict:
@@ -92,6 +109,45 @@ def load_dataset_meta(data_yaml: Path) -> tuple[int, dict]:
     return nc, names
 
 
+def migrate_deim_state(model, source: dict) -> dict:
+    """Migrate the verified legacy DEIM state delta used by the current decoder implementation."""
+    target = model.state_dict()
+    head_prefix = f"model.{len(model.model) - 1}."
+    obsolete = {f"{head_prefix}decoder.up", f"{head_prefix}decoder.reg_scale"}
+    dfl_key = f"{head_prefix}dfl.conv.weight"
+    extra = set(source) - set(target)
+    missing = set(target) - set(source)
+    if missing != {dfl_key} or not obsolete.issubset(extra):
+        return source
+
+    shape_diff = {
+        key: (tuple(source[key].shape), tuple(target[key].shape))
+        for key in set(source) & set(target)
+        if source[key].shape != target[key].shape
+    }
+    if shape_diff:
+        raise AssertionError(f"unexpected DEIM migration shape changes: {shape_diff}")
+
+    for name in ("up", "reg_scale"):
+        duplicate = source[f"{head_prefix}decoder.{name}"]
+        canonical = source[f"{head_prefix}{name}"]
+        if not torch.equal(duplicate, canonical):
+            raise AssertionError(f"legacy decoder.{name} does not equal the canonical head {name}")
+
+    from ultralytics.nn.modules.utils import weighting_function
+
+    expected = weighting_function(32, source[f"{head_prefix}up"].float(), source[f"{head_prefix}reg_scale"].float())
+    if not torch.allclose(target[dfl_key].reshape(-1), expected, atol=1e-6, rtol=0):
+        raise AssertionError("new DFL projection does not match the legacy weighting function")
+
+    migrated = dict(source)
+    for key in obsolete:
+        migrated.pop(key)
+    migrated[dfl_key] = target[dfl_key]
+    print(f"  migrated legacy DEIM state: dropped {sorted(obsolete)}, initialized {dfl_key}")
+    return migrated
+
+
 def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torch.dtype, allow_truncation: bool = False):
     """Construct a clean-branch ``YOLODETRDetectionModel``, load source state_dict, and propagate metadata.
 
@@ -109,7 +165,7 @@ def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torc
     from ultralytics.nn.tasks import YOLODETRDetectionModel
 
     m = YOLODETRDetectionModel(str(yaml_path), ch=3, nc=nc, verbose=False)
-    src_sd = source_model.state_dict()
+    src_sd = migrate_deim_state(m, source_model.state_dict())
     tgt_keys = set(m.state_dict())
     extra = sorted(set(src_sd) - tgt_keys)
     if extra:
@@ -117,6 +173,9 @@ def build_clean_model(yaml_path: Path, source_model, nc: int | None, dtype: torc
             raise AssertionError(f"unexpected source keys (pass --allow-truncation to drop): {extra[:5]}")
         print(f"  dropping {len(extra)} source key(s) not present in target (truncation); sample: {extra[:3]}")
         src_sd = {k: v for k, v in src_sd.items() if k in tgt_keys}
+    missing = sorted(tgt_keys - set(src_sd))
+    if missing:
+        raise AssertionError(f"missing target keys: {missing[:5]}")
     m.load_state_dict(src_sd, strict=True)
     m.to(dtype).eval()
     m.task = "detect"

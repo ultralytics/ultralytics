@@ -299,4 +299,4 @@ Example using CLI:
 yolo val model=yolo26n.pt save_json=True
 ```
 
-This functionality is particularly useful for further analysis or integration with other tools. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for more details.
+On detection datasets, `save_json=True` also reports small-, medium-, and large-object mAP through `faster-coco-eval`. Check the [Arguments for YOLO Model Validation](#arguments-for-yolo-model-validation) for more details.

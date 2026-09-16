@@ -179,7 +179,7 @@ QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-trai
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 
-QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Export drops the fake-quantization and quantizes the trained weights like any INT8 export, so it calibrates on `data` and supports every INT8 format. Training and the TensorRT 11 export keep the head's output convolutions and DFL in float to limit INT8 accuracy loss.
+QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Export drops the fake-quantization and quantizes the trained weights like any INT8 export, so it calibrates on `data` and supports every INT8 format. Training and the TensorRT export keep the head's output convolutions and DFL in float to limit INT8 accuracy loss.
 
 ## What's Next
 

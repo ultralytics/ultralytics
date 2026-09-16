@@ -2323,6 +2323,27 @@ class SAM3SemanticPredictor(SAM3Predictor):
         )
         return outputs
 
+    def _upscale_masks(self, masks: torch.Tensor, shape: tuple[int, int]) -> torch.Tensor:
+        """Upscale (N, h, w) mask logits to a boolean (N, *shape) mask in memory-bounded chunks.
+
+        Args:
+            masks (torch.Tensor): Low resolution mask logits with shape (N, h, w).
+            shape (tuple[int, int]): Target height and width.
+
+        Returns:
+            (torch.Tensor): Binary masks with shape (N, *shape).
+        """
+        MAX_CHUNK_MEM = 2048  # MB
+        upscaled = masks.new_empty((masks.shape[0], *shape), dtype=torch.bool)
+        chunk = max(1, MAX_CHUNK_MEM * 2**20 // (4 * shape[0] * shape[1]))
+        for i in range(0, masks.shape[0], chunk):
+            torch.gt(
+                F.interpolate(masks[i : i + chunk].float()[None], shape, mode="bilinear")[0],
+                self.model.mask_threshold,
+                out=upscaled[i : i + chunk],
+            )
+        return upscaled
+
     def postprocess(self, preds, img, orig_imgs):
         """Post-process the predictions to apply non-overlapping constraints if required."""
         import torchvision
@@ -2357,10 +2378,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                masks = (
-                    F.interpolate(masks.float()[None], orig_img.shape[:2], mode="bilinear")[0]
-                    > self.model.mask_threshold
-                )
+                masks = self._upscale_masks(masks, orig_img.shape[:2])
                 boxes[..., [0, 2]] *= orig_img.shape[1]
                 boxes[..., [1, 3]] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2430,9 +2448,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if pred_masks.shape[0] == 0:
             pred_masks, pred_boxes = None, torch.zeros((0, 6), device=pred_masks.device)
         else:
-            pred_masks = (
-                F.interpolate(pred_masks.float()[None], src_shape[:2], mode="bilinear")[0] > self.model.mask_threshold
-            )
+            pred_masks = self._upscale_masks(pred_masks, src_shape[:2])
             pred_boxes[..., 0] *= src_shape[1]
             pred_boxes[..., 1] *= src_shape[0]
             pred_boxes[..., 2] *= src_shape[1]
@@ -2680,10 +2696,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
             pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
-            pred_masks = (
-                F.interpolate(pred_masks.float()[None], orig_imgs[0].shape[:2], mode="bilinear")[0]
-                > self.model.mask_threshold
-            )
+            pred_masks = self._upscale_masks(pred_masks, orig_imgs[0].shape[:2])
             pred_ids = torch.tensor(curr_obj_ids, dtype=torch.int32, device=pred_masks.device)
             pred_scores = torch.tensor(
                 [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device

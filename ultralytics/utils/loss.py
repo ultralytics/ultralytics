@@ -129,6 +129,7 @@ class BboxLoss(nn.Module):
         stride: torch.Tensor,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute IoU and DFL losses for bounding boxes."""
+        fg_mask = fg_mask.nonzero(as_tuple=True)  # index once; long-index gathers and their backward do not sync
         weight = target_scores[fg_mask].sum(-1, keepdim=True)
         iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=False, CIoU=True)
         loss_iou = ((1.0 - iou) * weight).sum() / target_scores_sum
@@ -432,7 +433,7 @@ class v8DetectionLoss:
             mask_gt,
         )
 
-        target_scores_sum = max(target_scores.sum(), 1)
+        target_scores_sum = target_scores.sum().clamp_(min=1)  # on the device: no host sync
 
         # Cls loss with optional class weighting
         bce_loss = self.bce(pred_scores, target_scores.to(dtype))  # (bs, num_anchors, nc)
@@ -440,22 +441,18 @@ class v8DetectionLoss:
             bce_loss *= self.class_weights
         loss[1] = bce_loss.sum() / target_scores_sum  # BCE
 
-        # Bbox loss
-        if fg_mask.sum():
-            loss[0], loss[2] = self.bbox_loss(
-                pred_distri,
-                pred_bboxes,
-                anchor_points,
-                target_bboxes / stride_tensor,
-                target_scores,
-                target_scores_sum,
-                fg_mask,
-                imgsz,
-                stride_tensor,
-            )
-        # WARNING: line below prevents Multi-GPU DDP 'unused gradient' PyTorch errors, do not remove
-        else:
-            loss[0] += pred_distri[..., :0].sum()
+        # Bbox loss: zero on an empty foreground, and pred_distri stays in the graph either way
+        loss[0], loss[2] = self.bbox_loss(
+            pred_distri,
+            pred_bboxes,
+            anchor_points,
+            target_bboxes / stride_tensor,
+            target_scores,
+            target_scores_sum,
+            fg_mask,
+            imgsz,
+            stride_tensor,
+        )
 
         loss[0] *= self.hyp.box  # box gain
         loss[1] *= self.hyp.cls  # cls gain

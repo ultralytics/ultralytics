@@ -34,9 +34,19 @@ No accuracy claim attaches to any of this: the smoke set's depth channel is synt
 root depth from a box-height heuristic), so its `d1(Z)=0.888` is an artefact of an untrained sigmoid sitting at
 0.5, which decodes to exactly the 0 m the synthetic labels contain.
 
+**The teacher is good enough to distil from (2026-09-16).** On COCO val2017, SAM 3D Body's *2D reprojection*
+agrees with human annotation at **OKS mean 0.805 / median 0.893** (90.6% of 6,352 persons above 0.5, 79.6% above
+0.75). That is a necessary condition, not a sufficient one — a reconstruction that reprojects correctly can still
+be wrong in depth — but the failure mode where the teacher simply does not find the person is ruled out.
+
+The depth distributions are well inside the chosen encoding: root depth median 5.00 m (p95 13.54, max 23.33
+against a 50 m cap), relative depth p1 −0.53 / p99 +0.40 m (absmax 0.95 against a ±2 m range), and **not one
+value in 120k landed on an encoding bound**. The relative range is about twice as wide as the data needs, which
+costs nothing in float32 but would matter if the channel were ever quantized.
+
 ## Patterns and Insights
 
-_(empty — no experiments yet)_
+_(empty — no training experiments yet)_
 
 ## Lessons and Constraints
 
@@ -69,9 +79,11 @@ Recorded from reading the code and from the s3d project's history, before they c
 
 1. Does the student's error concentrate in root depth (scale) or in relative pose (shape)?
 2. Does scale-changing augmentation have to be disabled for metric depth, or can the target be compensated?
-3. How much does the teacher's own bias cap the student — i.e. how far apart are teacher-agreement MPJPE and
+3. Mosaic scaling is visibly the H2 hazard: the dataloader check shows the depth channel passing through the
+   affine untouched, so a person scaled to half size keeps the same metric depth label. Compensate, or disable?
+4. How much does the teacher's own bias cap the student — i.e. how far apart are teacher-agreement MPJPE and
    real-GT MPJPE?
-4. Does the flat-in-person-count claim actually hold end to end, including NMS and postprocess?
+5. Does the flat-in-person-count claim actually hold end to end, including NMS and postprocess?
 
 ## Optimization Trajectory
 

@@ -1203,16 +1203,12 @@ class ClassificationDataset:
             index = {n: i for i, n in names.items()}
         else:  # folder names carry no class meaning, e.g. ImageNet wnids under humanized names
             index = {c: i for i, c in enumerate(classes)}
-        extra = [c for c in classes if index.get(c, len(names)) >= len(names)] if names else []  # not in the model
+        extra = {c for c in classes if index.get(c, len(names)) >= len(names)} if names else set()  # not in the model
         n = len(self.samples)
-        self.samples = [(f, index[classes[t]]) for f, t in self.samples if classes[t] not in set(extra)]
-        if n and not self.samples:
-            raise RuntimeError(
-                f"{self.prefix}All {n} samples are from classes outside the model's {len(names)}: {extra}"
-            )
+        self.samples = [(f, index[classes[t]]) for f, t in self.samples if classes[t] not in extra]
         if extra:
             LOGGER.warning(
-                f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {extra}"
+                f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {sorted(extra)}"
             )
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:

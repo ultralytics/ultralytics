@@ -139,7 +139,7 @@ Endpoints currently behave as follows:
 
 - **Default resources**: idle endpoints scale down to zero and cold-start on the next request
 - **Custom resources**: one instance stays warm and accrues uptime charges until stopped
-- **Single active instance**: each endpoint currently serves from one instance on all plans
+- **One instance by default**: each endpoint serves from a single instance
 - **Load shedding**: requests receive `429` responses when the endpoint is temporarily at capacity — see [Direct Endpoint Requests](endpoints.md#direct-endpoint-requests)
 - **Request timeout**: direct endpoint requests have a maximum duration of 1 hour; see [Inference](inference.md) for supported inputs
 

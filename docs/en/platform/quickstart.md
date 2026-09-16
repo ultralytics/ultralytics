@@ -386,7 +386,7 @@ graph LR
 Once provisioning completes, your endpoint provides:
 
 - **Unique URL**: HTTPS endpoint for API calls
-- **Scale-to-zero behavior**: Idle endpoints scale to zero (deployments currently run a single active instance)
+- **Scale-to-zero behavior**: Idle endpoints scale to zero (one instance per deployment by default)
 - **Monitoring**: Request metrics and logs
 
 !!! info "Deployment Lifecycle"

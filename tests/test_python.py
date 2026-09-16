@@ -1924,6 +1924,49 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
 
 
+def test_classification_filter_extra_classes(tmp_path):
+    """Filter classification splits against the model's names: remap subsets, drop extras, and align the RAM cache."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    def make_split(name, pixel_by_class):
+        """Write one single-tone image per class folder; the pixel value identifies the class."""
+        for cls, pixel in pixel_by_class.items():
+            directory = tmp_path / name / cls
+            directory.mkdir(parents=True)
+            cv2.imwrite(str(directory / "0.jpg"), np.full((16, 16, 3), pixel, dtype=np.uint8))
+
+    def dataset(name, cache=False):
+        """Return a val-mode ClassificationDataset over a split written by `make_split`."""
+        args = copy(DEFAULT_CFG)
+        args.cache = cache
+        return ClassificationDataset(str(tmp_path / name), args, prefix="val")
+
+    # A subset split missing the first class is remapped to the model's {a, b, c} order
+    make_split("subset", {"b": 20, "c": 30})
+    subset = dataset("subset")
+    subset.filter_extra_classes({0: "a", 1: "b", 2: "c"})
+    assert sorted(s[1] for s in subset.samples) == [1, 2]  # b -> 1, c -> 2 instead of the split-local 0, 1
+
+    # An extra class is dropped and the remaining samples keep the model's indices
+    make_split("extra", {"b": 20, "c": 30, "d": 40})
+    extra = dataset("extra")
+    extra.filter_extra_classes({0: "a", 1: "b", 2: "c"})
+    assert sorted(s[1] for s in extra.samples) == [1, 2]  # d removed, b and c still aligned
+
+    # Zero name overlap falls back to numeric filtering: split-local indices kept, classes past nc dropped
+    make_split("numeric", {"x": 10, "y": 20, "z": 30})
+    numeric = dataset("numeric")
+    numeric.filter_extra_classes({0: "a", 1: "b"})
+    assert sorted(s[1] for s in numeric.samples) == [0, 1]  # x and y unchanged, z dropped
+
+    # The RAM cache is rebuilt from the surviving samples, so cache entries stay paired with their images
+    make_split("cached", {"b": 20, "c": 30, "d": 40})
+    cached = dataset("cached", cache=True)
+    cached.filter_extra_classes({0: "c", 1: "d"})  # drops the head class b
+    assert len(cached.img_cache.shapes) == 2
+    assert [int(cached.img_cache[i].max()) for i in range(2)] == [30, 40]  # c and d pixels, never b's
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

@@ -163,12 +163,13 @@ class YOLODataset(BaseDataset):
         return self.label_files
 
     def get_cache_hash(self) -> str:
-        """Return the hash used to validate a label cache against the current dataset files.
+        """Return the hash used to validate a label cache against the current dataset files and scan settings.
 
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.label_files + self.im_files)
+        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of scan counters for progress bars and cache logs.

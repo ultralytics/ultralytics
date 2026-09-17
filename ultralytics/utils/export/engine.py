@@ -143,7 +143,8 @@ def modelopt_quantize_onnx(
     check_requirements("nvidia-modelopt[onnx]>=0.44")
     import onnx
 
-    input_name = onnx.load(onnx_file, load_external_data=False).graph.input[0].name
+    graph = onnx.load(onnx_file, load_external_data=False).graph
+    input_name = graph.input[0].name
     if quantize == 8:
         from modelopt.onnx.quantization import quantize as modelopt_quantize
 
@@ -159,6 +160,8 @@ def modelopt_quantize_onnx(
         calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
+        indices = [int(m.group(1)) for n in graph.node if (m := re.match(r"/model\.(\d+)/", n.name))]
+        head = f"/model.{max(indices)}/" if indices else "/"
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -168,9 +171,9 @@ def modelopt_quantize_onnx(
             # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
-            # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
-            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
-            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
+            # The head's output layers, the bare convolutions and linears outside its `Conv` blocks, and DFL's fixed
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT
+            nodes_to_exclude=[rf"{head}(?!.*/conv/).*/(Conv|Gemm|MatMul)", rf"{head}dfl/"],
             output_path=out_file,
             **kwargs,
         )
@@ -416,8 +419,8 @@ def onnx2engine(
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve
         # confidence-score calibration, mirroring the OpenVINO IgnoredScope
-        # https://github.com/ultralytics/ultralytics/issues/24668, and the head's output convolutions and DFL in FP16
-        # as `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
+        # https://github.com/ultralytics/ultralytics/issues/24668, and the head's output layers and DFL in FP16 as
+        # `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
         # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
         indices = [int(m.group(1)) for n in names if (m := re.match(r"/model\.(\d+)/", n))]
@@ -429,7 +432,9 @@ def onnx2engine(
                 continue
             if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
                 dtype = trt.float32
-            elif layer.type == trt.LayerType.CONVOLUTION and (layer.name.endswith(".2/Conv") or "/dfl/" in layer.name):
+            elif layer.name.endswith(("/Conv", "/ConvTranspose", "/Gemm", "/MatMul")) and (
+                "/conv/" not in layer.name or "/dfl/" in layer.name
+            ):
                 dtype = trt.float16
             else:
                 continue

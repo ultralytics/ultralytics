@@ -1,99 +1,56 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-name: Diagnose OpenVINO pooling
+name: Validate Windows OpenVINO fix
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  diagnose:
+  validate:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: windows-latest
-            attempt: 1
-          - os: windows-latest
-            attempt: 2
-          - os: windows-latest
-            attempt: 3
-          - os: windows-latest
-            attempt: 4
-          - os: windows-latest
-            attempt: 5
-          - os: windows-latest
-            attempt: 6
-    runs-on: ${{ matrix.os }}
+        attempt: [1, 2, 3]
+    runs-on: windows-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: 43944221c
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
-      - run: uv pip install --system -e . openvino==2026.4.0 --torch-backend cpu
-      - name: Diagnose pooling precision and shape
+      - run: uv pip install --system -e . openvino==2026.4.0 pytest pytest-cov pytest-xdist --torch-backend cpu
+      - name: Run existing OpenVINO regression tests and native backend smoke
         shell: python
         run: |
           import os
-          import platform
-          import shutil
           import subprocess
           import sys
-          import numpy as np
-          import openvino as ov
-          from openvino import opset13 as ops
-          core = ov.Core()
-          print(platform.platform(), ov.__version__, core.get_property("CPU", "FULL_DEVICE_NAME"), flush=True)
-          print("Default precision:", core.get_property("CPU", "INFERENCE_PRECISION_HINT"), flush=True)
-          configs = {
-              "default": {"PERFORMANCE_HINT": "LATENCY"},
-              "f32": {"PERFORMANCE_HINT": "LATENCY", "INFERENCE_PRECISION_HINT": ov.Type.f32},
-              "accuracy": {"PERFORMANCE_HINT": "LATENCY", "EXECUTION_MODE_HINT": "ACCURACY", "INFERENCE_PRECISION_HINT": ov.Type.f32},
-          }
-          for size in [1, 2, 3, 4, 20]:
-              p = ops.parameter([1, 128, size, size], ov.Type.f32)
-              pool = ops.max_pool(p, strides=[1, 1], dilations=[1, 1], pads_begin=[2, 2], pads_end=[2, 2], kernel_shape=[5, 5])
-              model = ov.Model([pool.output(0)], [p])
-              for name, config in configs.items():
-                  try:
-                      compiled = core.compile_model(model, "CPU", config)
-                      compiled(np.ones([1, 128, size, size], dtype=np.float32))
-                      print("POOL PASS", size, name, flush=True)
-                  except Exception as error:
-                      print("POOL FAIL", size, name, str(error), flush=True)
-          from ultralytics import YOLO
+          import tempfile
           from pathlib import Path
-          YOLO("yolo26n.pt")
-          for nms in [None, False]:
-              weight = f"yolo26n-{nms}.pt"
-              shutil.copyfile("yolo26n.pt", weight)
-              path = YOLO(weight).export(format="openvino", imgsz=32, nms=nms)
-              model = core.read_model(next(Path(path).glob("*.xml")))
-              for op in model.get_ops():
-                  if op.get_type_name() == "MaxPool":
-                      print("YOLO POOL", op.get_friendly_name(), op.input(0).get_partial_shape(), op.input(0).get_element_type(), op.get_attributes(), flush=True)
-              for name in ["f32", "accuracy", "default"]:
-                  code = """
-          import sys
-          import numpy as np
           import openvino as ov
-          from pathlib import Path
-          core = ov.Core()
-          config = {"PERFORMANCE_HINT": "LATENCY"}
-          if sys.argv[2] != "default":
-              config["INFERENCE_PRECISION_HINT"] = ov.Type.f32
-          if sys.argv[2] == "accuracy":
-              config["EXECUTION_MODE_HINT"] = "ACCURACY"
-          compiled = core.compile_model(next(Path(sys.argv[1]).glob("*.xml")), "CPU", config)
-          compiled(np.ones([1, 3, 32, 32], dtype=np.float32))
-          print("YOLO PASS", sys.argv[2], compiled.get_property("INFERENCE_PRECISION_HINT"), flush=True)
-          """
-                  for isa in ["AVX2", "native"]:
-                      env = dict(os.environ)
-                      if isa == "AVX2":
-                          env["ONEDNN_MAX_CPU_ISA"] = "AVX2"
-                      print("YOLO START", nms, name, isa, flush=True)
-                      result = subprocess.run([sys.executable, "-c", code, str(path), name], env=env)
-                      print("YOLO RESULT", nms, name, isa, result.returncode, flush=True)
+          from ultralytics import YOLO, settings
+          repo = Path.cwd()
+          print("CPU:", ov.Core().get_property("CPU", "FULL_DEVICE_NAME"), flush=True)
+          assert "ONEDNN_MAX_CPU_ISA" not in os.environ
+          with tempfile.TemporaryDirectory() as directory:
+              settings.update({"weights_dir": str(Path(directory, "weights"))})
+              subprocess.run([sys.executable, "-m", "pytest", "-q", str(repo / "tests/test_exports.py") + "::test_export_openvino", "--export-env", "base"], cwd=directory, check=True)
+              os.chdir(directory)
+              for dynamic in [False, True]:
+                  for quantize in [None, 16]:
+                      for nms in [None, False]:
+                          # Fresh export directories keep Windows compiled-model file locks isolated.
+                          subdir = Path(directory, f"{dynamic}-{quantize}-{nms}")
+                          subdir.mkdir()
+                          os.chdir(subdir)
+                          path = YOLO("yolo26n.pt").export(format="openvino", imgsz=32, dynamic=dynamic, quantize=quantize, nms=nms)
+                          model = YOLO(path)
+                          model(str(repo / "ultralytics/assets/bus.jpg"), imgsz=64 if dynamic else 32)
+                          backend = model.predictor.model.backend
+                          assert backend.ov_compiled_model.get_property("INFERENCE_PRECISION_HINT") == ov.Type.f32
+                          print("BACKEND PASS", dynamic, quantize, nms, flush=True)
+                          del model

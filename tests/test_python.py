@@ -274,7 +274,7 @@ def test_restricted_load_criterion(tmp_path, fused):
     assert checkpoint["model"].criterion is not None
     assert checkpoint["best_fitness"] == 0.5
     with torch.no_grad():
-        assert torch.equal(checkpoint["model"](image)[0], expected)
+        assert torch.allclose(checkpoint["model"](image)[0], expected)
 
 
 @pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])

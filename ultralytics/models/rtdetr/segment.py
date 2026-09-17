@@ -155,9 +155,11 @@ class RTDETRDEIMSegmentationValidator(SegmentationValidator):
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
         """Map predictions from square imgsz space back to the original image size.
 
-        RT-DETR stretches each image to a square, so width and height use different ratios. ``ops.scale_boxes`` and
-        ``ops.scale_masks`` assume one uniform gain plus letterbox padding and cannot express that.
+        Letterboxed inputs carry padding and a single gain, which the parent handles. Stretched inputs scale width
+        and height independently, which ``ops.scale_boxes`` and ``ops.scale_masks`` cannot express.
         """
+        if self.args.rtdetr_letterbox:
+            return super().scale_preds(predn, pbatch)
         img_h, img_w = pbatch["imgsz"]
         ori_h, ori_w = pbatch["ori_shape"]
         bboxes = predn["bboxes"].clone()

@@ -91,6 +91,8 @@ jobs:
                   print(f"Mirrored {name}", flush=True)
               except Exception as error:
                   failures.append(name)
+                  if isinstance(error, urllib.error.HTTPError):
+                      print(error.read().decode("utf-8", errors="replace"), flush=True)
                   print(f"::error::Failed to mirror {name}: {error}", flush=True)
               finally:
                   print("::endgroup::", flush=True)

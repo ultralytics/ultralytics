@@ -1314,43 +1314,30 @@ class YOLOEModel(DetectionModel):
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
-        for v in (vocab, one2one_vocab):
-            assert v is None or len(v) == head.nl, (
-                f"Expected one vocabulary item per detection level ({head.nl}), got {len(v)}."
-            )
-
         # Cache anchors for head
         with torch.no_grad():  # a tracked warmup would build a graph through the backbone
             self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
-        if one2one_vocab is not None:
-            assert vocab is not None and getattr(head, "one2one_cv2", None) is not None, (
-                "Both vocabularies require a dual-head model; provide the one-to-many vocabulary too."
-            )
-            head.lrpc = nn.ModuleList(
-                LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
-                for i, (cls, pf, loc) in enumerate(zip(vocab, head.cv3, head.cv2))
-            )
-            head.one2one_lrpc = nn.ModuleList(
-                LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2)
-                for i, (cls, pf, loc) in enumerate(zip(one2one_vocab, head.one2one_cv3, head.one2one_cv2))
-            )
-            branches = ((head.cv2, head.cv3), (head.one2one_cv2, head.one2one_cv3))
+        # re-parameterization for prompt-free model, one LRPC head per (vocabulary, loc branch, cls branch)
+        if one2one_vocab is None:  # single vocabulary for the branch end2end selects
+            e2e = "one2one_" if head.end2end else ""
+            branches = {"lrpc": (vocab, getattr(head, f"{e2e}cv2"), getattr(head, f"{e2e}cv3"))}
         else:
-            cv3 = head.one2one_cv3 if head.end2end else head.cv3
-            cv2 = head.one2one_cv2 if head.end2end else head.cv2
-            head.lrpc = nn.ModuleList(
-                LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
-            )
-            branches = ((cv2, cv3),)
-            head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
-
-        for cv2, cv3 in branches:  # the branches lrpc was built from
+            branches = {
+                "lrpc": (vocab, head.cv2, head.cv3),
+                "one2one_lrpc": (one2one_vocab, head.one2one_cv2, head.one2one_cv3),
+            }
+        for name, (v, cv2, cv3) in branches.items():
+            assert len(v) == head.nl, f"Expected one vocabulary item per detection level ({head.nl}), got {len(v)}."
+            lrpc = (LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(v, cv3, cv2)))
+            setattr(head, name, nn.ModuleList(lrpc))
             for loc_head, cls_head in zip(cv2, cv3):
                 assert isinstance(loc_head, nn.Sequential)
                 assert isinstance(cls_head, nn.Sequential)
                 del loc_head[-1]
                 del cls_head[-1]
+        if one2one_vocab is None:
+            head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
         self.model[-1].nc = len(names)
         self.names = names
 

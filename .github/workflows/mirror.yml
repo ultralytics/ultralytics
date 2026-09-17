@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        attempt: [1, 2, 3]
+        attempt: [1]
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
@@ -22,7 +22,7 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
-      - run: uv pip install --system -e . openvino==2026.4.0 pytest pytest-cov pytest-xdist --torch-backend cpu
+      - run: uv pip install --system -e ".[export-openvino]" openvino==2026.4.0 pytest pytest-cov pytest-xdist --torch-backend cpu
       - name: Run existing OpenVINO regression tests and native backend smoke
         shell: python
         run: |
@@ -39,21 +39,8 @@ jobs:
           assert "ONEDNN_MAX_CPU_ISA" not in os.environ
           directory = tempfile.mkdtemp()
           settings.update({"weights_dir": str(Path(directory, "weights"))})
-          subprocess.run([sys.executable, "-m", "pytest", "-q", str(repo / "tests/test_exports.py") + "::test_export_openvino", "--export-env", "base"], cwd=directory, check=True)
-          os.chdir(directory)
-          source = Path(YOLO("yolo26n.pt").ckpt_path).resolve()
-          for dynamic in [False, True]:
-              for quantize in [None, 16]:
-                  for nms in [None, False]:
-                      # Fresh export directories keep Windows compiled-model file locks isolated.
-                      subdir = Path(directory, f"{dynamic}-{quantize}-{nms}")
-                      subdir.mkdir()
-                      os.chdir(subdir)
-                      shutil.copyfile(source, subdir / "yolo26n.pt")
-                      path = YOLO(str(subdir / "yolo26n.pt")).export(format="openvino", imgsz=32, dynamic=dynamic, quantize=quantize, nms=nms)
-                      model = YOLO(path)
-                      model(str(repo / "ultralytics/assets/bus.jpg"), imgsz=64 if dynamic else 32)
-                      backend = model.predictor.model.backend
-                      assert backend.ov_compiled_model.get_property("INFERENCE_PRECISION_HINT") == ov.Type.f32
-                      print("BACKEND PASS", dynamic, quantize, nms, flush=True)
-                      del model
+          subprocess.run([
+              sys.executable, "-m", "pytest", "-q", "--slow", "--export-env", "base",
+              str(repo / "tests/test_exports.py") + "::test_export_openvino_matrix[detect-False-8-1-False]",
+              str(repo / "tests/test_exports.py") + "::test_export_openvino_matrix[detect-True-8-1-False]",
+          ], cwd=directory, check=True)

@@ -212,7 +212,7 @@ class Detect(nn.Module):
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
-        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
+        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0), x.get("angle")) * self.strides
         return dbox
 
     def bias_init(self):
@@ -229,14 +229,11 @@ class Detect(nn.Module):
                     5 / self.nc / (640 / self.stride[i]) ** 2
                 )  # cls (.01 objects, 80 classes, 640 img)
 
-    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
-        """Decode bounding boxes from predictions."""
-        return dist2bbox(
-            bboxes,
-            anchors,
-            xywh=xywh and not self.end2end and not self.xyxy,
-            dim=1,
-        )
+    def decode_bboxes(
+        self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Decode bounding boxes from predictions, angle is only used by the OBB head."""
+        return dist2bbox(bboxes, anchors, xywh=not self.end2end and not self.xyxy, dim=1)
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """Post-processes YOLO model predictions.
@@ -435,7 +432,6 @@ class OBB(Detect):
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
-        angle (torch.Tensor): Predicted rotation angles.
 
     Methods:
         forward: Concatenate and return predicted bounding boxes and class probabilities.
@@ -478,8 +474,6 @@ class OBB(Detect):
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with rotation angles."""
-        # For decode_bboxes convenience
-        self.angle = x["angle"]
         preds = super()._inference(x)
         return torch.cat([preds, x["angle"]], dim=1)
 
@@ -497,9 +491,9 @@ class OBB(Detect):
             preds["angle"] = angle
         return preds
 
-    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor) -> torch.Tensor:
+    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:
         """Decode rotated bounding boxes."""
-        return dist2rbox(bboxes, self.angle, anchors, dim=1)
+        return dist2rbox(bboxes, angle, anchors, dim=1)
 
 
 class OBB26(OBB):
@@ -510,7 +504,6 @@ class OBB26(OBB):
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
-        angle (torch.Tensor): Predicted rotation angles.
 
     Methods:
         forward_head: Concatenate and return predicted bounding boxes, class probabilities, and raw angles.

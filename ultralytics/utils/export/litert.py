@@ -92,7 +92,7 @@ def torch2litert(
     litert_torch.fx_infra.decomp.add_pre_lower_decomp(
         torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
     )
-    edge_model = litert_torch.convert(model, (im,))
+    edge_model = litert_torch.convert(model.eval(), (im,))  # export wrappers default to training mode
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)
 

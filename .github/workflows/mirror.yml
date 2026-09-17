@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Restore GitLab profile README banner
+      - name: Refresh GitLab group and prepare profile README
         env:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         shell: python
@@ -40,23 +40,15 @@ jobs:
                   return None if response.status == 204 else json.load(response)
 
 
-          import base64
-          import re
-          source = urllib.request.urlopen("https://raw.githubusercontent.com/ultralytics/ultralytics/main/README.md", timeout=60).read().decode()
-          banner = re.search(r'<a href="([^"]+)"[^>]*>\s*(<img[^>]+alt="Ultralytics YOLO banner"[^>]*>)', source)
-          assert banner, "Source banner not found"
-          endpoint = "projects/54400893"
-          project = gitlab(endpoint)
-          file = gitlab(f"{endpoint}/repository/files/README.md?ref={project['default_branch']}")
-          before = base64.b64decode(file["content"]).decode()
-          assert before.startswith('<p align="center">')
-          header = f'<p align="center">\n  <a href="{banner[1]}">\n    {banner[2]}\n  </a>\n</p>'
-          after = header + before[before.index("</p>") + len("</p>"):]
-          branch = "automation/restore-profile-banner"
-          commit = gitlab(f"{endpoint}/repository/commits", "POST", branch=branch, start_branch=project["default_branch"],
-              commit_message="Restore Ultralytics README banner on GitLab profile",
-              actions=[{"action":"update", "file_path":"README.md", "content":after, "last_commit_id":file["last_commit_id"]}])
-          mr = gitlab(f"{endpoint}/merge_requests", "POST", source_branch=branch, target_branch=project["default_branch"],
-              title="Restore Ultralytics README banner on GitLab profile",
-              description="Use the same banner image, destination link, and full-width presentation as the current Ultralytics README. Preserve the refreshed profile text and links.", remove_source_branch=True)
-          print("Review:", mr["web_url"], "head:", commit["id"])
+          endpoint = "projects/54400893/merge_requests/2"
+          expected = "9c966e3e421f53a73feb77f0b9226d7a35ab3eeb"
+          mr = gitlab(endpoint)
+          assert mr["sha"] == expected
+          assert mr["detailed_merge_status"] == "mergeable"
+          assert mr["blocking_discussions_resolved"]
+          assert not mr.get("head_pipeline") or mr["head_pipeline"]["status"] == "success"
+          approvals = gitlab(f"{endpoint}/approvals")
+          assert approvals["approvals_left"] == 0
+          result = gitlab(f"{endpoint}/merge", "PUT", sha=expected, should_remove_source_branch=True)
+          assert result["state"] == "merged"
+          print("Merged reviewed profile README:", result["web_url"])

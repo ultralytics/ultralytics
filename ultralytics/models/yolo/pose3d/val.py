@@ -101,7 +101,7 @@ class Pose3DValidator(PoseValidator):
         err = (pr - gr).norm(dim=-1) * 1000.0  # mm
         mpjpe = (err * vis).sum(1) / vis.sum(1).clamp_min(1)
 
-        pa = procrustes_align(pr, gr)
+        pa = procrustes_align(pr, gr, vis.to(pr.dtype))
         pa_err = (pa - gr).norm(dim=-1) * 1000.0
         pampjpe = (pa_err * vis).sum(1) / vis.sum(1).clamp_min(1)
 

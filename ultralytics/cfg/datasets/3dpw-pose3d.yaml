@@ -7,7 +7,7 @@
 # the separately gated SMPL body model). Test split, every 5th frame.
 # Example usage: yolo val task=pose3d data=3dpw-pose3d.yaml
 
-path: /data/rick/3dpw-pose3d # dataset root (ultra11; the converter writes images/ as symlinks into 3dpw)
+path: /home/rick/3dpw-pose3d # dataset root; same path on every Shenzhen box (ultra11 symlinks it to /data/rick)
 train: test.txt # no training on this set — it is the held-out real-GT benchmark
 val: test.txt
 test:

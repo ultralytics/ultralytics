@@ -1,7 +1,8 @@
 # Findings — YOLOPose-3D
 
 _Can SAM 3D Body's capability be compressed into a single YOLO forward pass? Repo `~/ultralytics_pose3d`,
-branch `pose3d`. Last updated 2026-09-16. Status: **task wired and smoke-verified; no scientific result yet.**_
+branch `pose3d`. Last updated 2026-09-17. Status: **first real-GT result — 113.2 mm MPJPE on 3DPW from a
+3.4M-parameter single-shot model.**_
 
 ## Research Question
 
@@ -46,7 +47,20 @@ costs nothing in float32 but would matter if the channel were ever quantized.
 
 ## Patterns and Insights
 
-_(empty — no training experiments yet)_
+**A pretrained trunk is the cheapest large win, again.** R0 repeats the s3d result in a new task: warm-starting
+from `yolo26n-pose` beats scratch on every metric on both datasets (3DPW MPJPE 126.9 -> 113.2 mm), even though
+only 720 of 792 tensors transfer and the keypoint head cannot.
+
+**The two halves of the task really do fail separately, and they disagree about augmentation.** Disabling
+mosaic and scale improves every *relative* depth measure on both datasets (3DPW delta1(Z) 0.732 -> 0.749) and
+cuts root-depth error 24% against the teacher — then makes root depth 39% *worse* on real 3DPW. Scale
+augmentation corrupts the metric depth target and simultaneously teaches the scale robustness that absolute
+depth depends on. The design's split of root depth from relative depth is what made this visible at all; a
+single MPJPE number would have shown C as simply worse and hidden the mechanism.
+
+**Teacher agreement and accuracy can point in opposite directions.** On the pseudo-labels C looks like a clean
+win; on real ground truth it is a regression on the headline depth metric. The inner-loop metric is a cheap
+proxy and nothing more — no direction should be committed to on it alone.
 
 ## Lessons and Constraints
 

@@ -59,20 +59,26 @@ def keypoints_to_camera(kpts, focal: float, cx: float, cy: float):
     return torch.stack([x, y, z], dim=-1)
 
 
-def procrustes_align(pred: torch.Tensor, gt: torch.Tensor) -> torch.Tensor:
+def procrustes_align(pred: torch.Tensor, gt: torch.Tensor, weights: torch.Tensor | None = None) -> torch.Tensor:
     """Similarity-align `pred` onto `gt` (rotation, scale, translation), the standard PA-MPJPE transform.
 
     Args:
         pred (torch.Tensor): Predicted joints, shape (N, J, 3).
         gt (torch.Tensor): Ground-truth joints, shape (N, J, 3).
+        weights (torch.Tensor, optional): Per-joint weights, shape (N, J). Joints with weight 0 are excluded
+            from the fit. Pass the visibility mask: a benchmark that only annotates some joints leaves the rest
+            at the origin, and fitting through those placeholder points destroys the transform — PA-MPJPE then
+            comes out several times larger than plain MPJPE, which is impossible by construction.
 
     Returns:
         (torch.Tensor): `pred` mapped onto `gt`, shape (N, J, 3).
     """
-    mu_p, mu_g = pred.mean(1, keepdim=True), gt.mean(1, keepdim=True)
+    w = (torch.ones_like(pred[..., 0]) if weights is None else weights).double().unsqueeze(-1)
+    sw = w.sum(1, keepdim=True).clamp_min(1e-12)
+    mu_p, mu_g = (w * pred).sum(1, keepdim=True) / sw, (w * gt).sum(1, keepdim=True) / sw
     p, g = (pred - mu_p).double(), (gt - mu_g).double()
-    var_p = (p**2).sum((1, 2)).clamp_min(1e-12)  # (N,)
-    k = p.transpose(1, 2) @ g  # (N, 3, 3)
+    var_p = (w * p**2).sum((1, 2)).clamp_min(1e-12)  # (N,)
+    k = (p * w).transpose(1, 2) @ g  # (N, 3, 3)
     u, _, vh = torch.linalg.svd(k)
     v = vh.transpose(1, 2)
     # Reflection guard: force det(R) = +1 so a mirrored pose is not scored as a perfect fit.

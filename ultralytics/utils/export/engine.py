@@ -160,8 +160,8 @@ def modelopt_quantize_onnx(
         calib = torch.cat(images).to(torch.float32) / 255.0
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
-        indices = [int(m.group(1)) for n in graph.node if (m := re.match(r"/model\.(\d+)/", n.name))]
-        head = f"/model.{max(indices)}/" if indices else "/"
+        heads = {int(m.group(1)): m.group(0) for n in graph.node if (m := re.match(r".*?/model\.(\d+)/", n.name))}
+        head = heads[max(heads)] if heads else "/"  # `nms=True` wraps the model, so the prefix is `/model/model.N/`
         modelopt_quantize(
             onnx_file,
             quantize_mode="int8",
@@ -237,7 +237,7 @@ def onnx2engine(
         enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
         precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
         `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve
-        confidence-score calibration (see #24668) and the head's output convolutions in FP16 for accuracy. Metadata is
+        confidence-score calibration (see #24668) and the head's output layers in FP16 for accuracy. Metadata is
         serialized and written to the engine file if provided.
     """
     import onnx
@@ -423,8 +423,8 @@ def onnx2engine(
         # `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
         # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
-        indices = [int(m.group(1)) for n in names if (m := re.match(r"/model\.(\d+)/", n))]
-        head = f"/model.{max(indices)}/" if indices else "/"
+        heads = {int(m.group(1)): m.group(0) for n in names if (m := re.match(r".*?/model\.(\d+)/", n))}
+        head = heads[max(heads)] if heads else "/"  # `nms=True` wraps the model, so the prefix is `/model/model.N/`
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)

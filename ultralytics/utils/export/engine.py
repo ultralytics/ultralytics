@@ -7,9 +7,11 @@ import re
 import types
 from pathlib import Path
 
+import cv2
+import numpy as np
 import torch
 
-from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
+from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -180,12 +182,16 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
+    # AutoCast keeps a node in FP32 when its calibration range exceeds the FP16 threshold, so calibrate on a real
+    # image: unstructured noise inflates the early activations and strands the first convolutions in FP32
+    im = cv2.resize(cv2.imread(str(ASSETS / "bus.jpg")), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)
+    im = np.resize(im, (shape[1], *shape[2:]))  # repeat or drop channels for models that are not 3-channel
     onnx.save(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
             keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            calibration_data={input_name: np.broadcast_to(im / 255.0, shape).astype(np.float32)},
         ),
         out_file,
     )

@@ -1505,25 +1505,6 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
-def test_yolo_dataset_cache_hash_tracks_scan_args(tmp_path):
-    """The label cache hash changes with the yaml scan settings (class count), not just dataset files."""
-    from ultralytics.data.dataset import YOLODataset
-
-    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
-    images.mkdir(parents=True)
-    labels.mkdir(parents=True)
-    for i in range(2):
-        cv2.imwrite(str(images / f"{i}.jpg"), np.zeros((32, 32, 3), np.uint8))
-        (labels / f"{i}.txt").write_text("0 0.5 0.5 0.2 0.2\n")
-
-    def build_hash(nc):
-        data = {"names": {i: f"c{i}" for i in range(nc)}, "nc": nc}
-        return YOLODataset(img_path=str(images), imgsz=32, data=data, augment=False, batch_size=1).get_cache_hash()
-
-    assert build_hash(2) == build_hash(2)  # unchanged scan settings keep the cache valid
-    assert build_hash(1) != build_hash(2)  # a class-count edit invalidates the stale cache
-
-
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

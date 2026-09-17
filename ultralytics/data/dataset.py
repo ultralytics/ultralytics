@@ -168,9 +168,8 @@ class YOLODataset(BaseDataset):
         Returns:
             (str): Dataset cache hash.
         """
-        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
-        scan_args = str((self.use_keypoints, len(self.data["names"]), nkpt, ndim, self.single_cls))
-        return get_hash(self.label_files + self.im_files + [scan_args])
+        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of scan counters for progress bars and cache logs.

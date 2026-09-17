@@ -35,6 +35,7 @@ jobs:
           import tempfile
           import time
           import urllib.error
+          import urllib.parse
           import urllib.request
           from pathlib import Path
 
@@ -50,7 +51,15 @@ jobs:
                   method=method,
               )
               with urllib.request.urlopen(request, timeout=60) as response:
-                  return json.load(response)
+                  return None if response.status == 204 else json.load(response)
+
+          def unprotect(project):
+              for kind in ("branches", "tags"):
+                  endpoint = f"projects/{project['id']}/protected_{kind}"
+                  while rules := gitlab(f"{endpoint}?per_page=100"):
+                      for rule in rules:
+                          gitlab(f"{endpoint}/{urllib.parse.quote(rule['name'], safe='')}", "DELETE")
+                          print(f"Removed {kind} protection: {rule['name']}", flush=True)
 
           repositories = json.loads(subprocess.check_output([
               "gh", "api", "--paginate", "--slurp", "orgs/ultralytics/repos?type=public&per_page=100"
@@ -100,12 +109,14 @@ jobs:
                               ["git", "-C", directory, "lfs", "push", "--object-id", "--stdin", "gitlab"],
                               input="\n".join(objects), text=True, check=True, timeout=3600,
                           )
+                      unprotect(project)
                       # Create the source default branch before selecting it, so pruning can delete an old default.
                       default = repo["default_branch"]
                       if subprocess.check_output(["git", "-C", directory, "for-each-ref", "refs/heads/"]).strip():
                           git("push", "gitlab", f"+refs/heads/{default}:refs/heads/{default}")
                           if project["default_branch"] != default:
                               gitlab(f"projects/{project['id']}", "PUT", default_branch=default)
+                      unprotect(project)  # The first push to an empty project can protect its default branch
                       git("push", "--atomic", "--prune", "gitlab", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
                   print(f"Mirrored {name}", flush=True)
               except Exception as error:

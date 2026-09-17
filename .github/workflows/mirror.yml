@@ -16,6 +16,12 @@ jobs:
             attempt: 2
           - os: windows-latest
             attempt: 3
+          - os: windows-latest
+            attempt: 4
+          - os: windows-latest
+            attempt: 5
+          - os: windows-latest
+            attempt: 6
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -30,6 +36,7 @@ jobs:
       - name: Diagnose pooling precision and shape
         shell: python
         run: |
+          import os
           import platform
           import shutil
           import subprocess
@@ -83,5 +90,10 @@ jobs:
           compiled(np.ones([1, 3, 32, 32], dtype=np.float32))
           print("YOLO PASS", sys.argv[2], compiled.get_property("INFERENCE_PRECISION_HINT"), flush=True)
           """
-                  result = subprocess.run([sys.executable, "-c", code, str(path), name])
-                  print("YOLO RESULT", nms, name, result.returncode, flush=True)
+                  for isa in ["AVX2", "native"]:
+                      env = dict(os.environ)
+                      if isa == "AVX2":
+                          env["ONEDNN_MAX_CPU_ISA"] = "AVX2"
+                      print("YOLO START", nms, name, isa, flush=True)
+                      result = subprocess.run([sys.executable, "-c", code, str(path), name], env=env)
+                      print("YOLO RESULT", nms, name, isa, result.returncode, flush=True)

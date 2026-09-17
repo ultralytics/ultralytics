@@ -17,6 +17,7 @@ from ultralytics.data.utils import polygons2masks, polygons2masks_overlap
 from ultralytics.utils import LOGGER, IterableSimpleNamespace, colorstr, deprecation_warn
 from ultralytics.utils.checks import check_version
 from ultralytics.utils.instance import Instances
+from ultralytics.utils.pose3d import rescale_encoded_z
 from ultralytics.utils.metrics import bbox_ioa
 from ultralytics.utils.ops import segment2box, xywh2xyxy, xyxyxyxy2xywhr
 from ultralytics.utils.torch_utils import TORCHVISION_0_10, TORCHVISION_0_11, TORCHVISION_0_13
@@ -1321,7 +1322,10 @@ class RandomPerspective(BaseTransform):
         xy = xy[:, :2] / xy[:, 2:3]  # perspective rescale or affine
         out_mask = (xy[:, 0] < 0) | (xy[:, 1] < 0) | (xy[:, 0] > size[0]) | (xy[:, 1] > size[1])
         tail[out_mask, 0] = 0  # visibility
-        return np.concatenate([xy, tail], axis=-1).reshape(n, nkpt, keypoints.shape[-1])
+        out = np.concatenate([xy, tail], axis=-1).reshape(n, nkpt, keypoints.shape[-1])
+        if keypoints.shape[-1] == 4:  # pose3d: metric depth must follow the resize, see utils/pose3d.py
+            rescale_encoded_z(out, float(np.sqrt(abs(np.linalg.det(M[:2, :2])))))
+        return out
 
     def apply_semantic(self, labels: dict[str, Any], params: dict[str, Any] | None = None) -> dict[str, Any]:
         """Apply affine transformation to semantic segmentation mask.

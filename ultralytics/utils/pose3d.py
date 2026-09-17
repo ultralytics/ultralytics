@@ -39,6 +39,33 @@ def decode_z(z_rel, z_root):
     return z_rel * (2 * Z_REL_RANGE) - Z_REL_RANGE, z_root * Z_ROOT_MAX
 
 
+def rescale_encoded_z(kpts, scale: float):
+    """Compensate the encoded depth channels for an image resize, in place.
+
+    Scaling an image by `s` about its centre maps a point at (X, Y, Z) onto exactly the pixels that (X, Y, Z/s)
+    would produce under the same focal length, so the depth consistent with the resized image is `Z/s` — for
+    the root and, because joint differences scale with it, for the root-relative channels too. Augmentation
+    that resizes without this correction hands the network a person of half the apparent size still labelled at
+    the original distance, which is the corrupt target hypothesis H2 identified.
+
+    The root channel is encoded linearly through the origin, so it scales directly; the relative channel is
+    offset to put zero at 0.5, so it scales about that midpoint.
+
+    Args:
+        kpts (np.ndarray): Keypoints of shape (N, K, 4); channel 3 is encoded depth and the last keypoint is
+            the root. Modified in place.
+        scale (float): Linear scale factor applied to the image.
+
+    Returns:
+        (np.ndarray): The same array, for chaining.
+    """
+    if scale <= 0 or abs(scale - 1.0) < 1e-6 or kpts.shape[-1] != 4:
+        return kpts
+    kpts[:, :-1, 3] = np.clip((kpts[:, :-1, 3] - 0.5) / scale + 0.5, 0.0, 1.0)
+    kpts[:, -1, 3] = np.clip(kpts[:, -1, 3] / scale, 0.0, 1.0)
+    return kpts
+
+
 def keypoints_to_camera(kpts, focal: float, cx: float, cy: float):
     """Lift decoded keypoints to metric camera coordinates.
 

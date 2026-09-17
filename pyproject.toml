@@ -179,6 +179,19 @@ typing = [
     "types-shapely",
 ]
 
+[tool.uv]
+# Extras that pin mutually exclusive dependency sets and are never installed together.
+conflicts = [
+    [{ extra = "export" }, { extra = "export-executorch" }],
+    [{ extra = "export" }, { extra = "export-legacy-torch" }],
+    [{ extra = "export-deepx" }, { extra = "export-executorch" }],
+    [{ extra = "export-deepx" }, { extra = "export-tensorflow" }],
+    [{ extra = "export-executorch" }, { extra = "export-legacy-torch" }],
+    [{ extra = "export-executorch" }, { extra = "export-tensorflow" }],
+    [{ extra = "export-legacy-torch" }, { extra = "export-openvino" }],
+    [{ extra = "export-legacy-torch" }, { extra = "export-tensorflow" }],
+]
+
 [project.urls]
 "Homepage" = "https://ultralytics.com"
 "Source" = "https://github.com/ultralytics/ultralytics"

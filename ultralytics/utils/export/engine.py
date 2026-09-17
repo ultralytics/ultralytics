@@ -182,16 +182,18 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
-    # AutoCast keeps a node in FP32 when its calibration range exceeds the FP16 threshold, so calibrate on a real
-    # image: unstructured noise inflates the early activations and strands the first convolutions in FP32
+    # AutoCast keeps nodes in FP32 when their observed activation range exceeds the FP16 threshold. Calibrate on a
+    # real image because unstructured noise inflates early activations and strands the first convolutions in FP32.
     im = cv2.resize(cv2.imread(str(ASSETS / "bus.jpg")), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)
     im = np.resize(im, (shape[1], *shape[2:]))  # repeat or drop channels for models that are not 3-channel
+    im = np.broadcast_to(im, shape).astype(np.float32, order="C")
+    im /= 255.0
     onnx.save(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
             keep_io_types=True,
-            calibration_data={input_name: np.broadcast_to(im / 255.0, shape).astype(np.float32)},
+            calibration_data={input_name: im},
         ),
         out_file,
     )

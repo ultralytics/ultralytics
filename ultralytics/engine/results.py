@@ -120,7 +120,8 @@ class BaseTensor(SimpleClass):
             >>> print(gpu_tensor.data.device)
             cuda:0
         """
-        return self.__class__(torch.as_tensor(self.data).cuda(), self.orig_shape)
+        device = str(torch.accelerator.current_accelerator()) if hasattr(torch, "accelerator") else "cuda"
+        return self.__class__(torch.as_tensor(self.data).to(device), self.orig_shape)
 
     def to(self, *args, **kwargs):
         """Return a copy of the tensor with the specified device and dtype.
@@ -448,7 +449,8 @@ class Results(SimpleClass, DataExportMixin):
             >>> for result in results:
             ...     result_cuda = result.cuda()  # Move each result to GPU
         """
-        return self._apply("cuda")
+        device = str(torch.accelerator.current_accelerator()) if hasattr(torch, "accelerator") else "cuda"
+        return self._apply("to", device=device)
 
     def to(self, *args, **kwargs):
         """Move all tensors in the Results object to the specified device and dtype.

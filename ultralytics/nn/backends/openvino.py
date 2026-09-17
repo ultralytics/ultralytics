@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LINUX, LOGGER
+from ultralytics.utils import ARM64, LINUX, LOGGER, WINDOWS
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -32,6 +32,8 @@ class OpenVINOBackend(BaseBackend):
         import openvino as ov
 
         core = ov.Core()
+        if WINDOWS:  # Avoid reduced-precision CPU kernel failures without restricting native FP32 instructions
+            core.set_property("CPU", {"INFERENCE_PRECISION_HINT": ov.Type.f32})
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
         device_name = fallback_device
 

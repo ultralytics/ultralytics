@@ -268,8 +268,8 @@ def select_device(device="", newline=False, verbose=True):
         the current device untouched.
     """
     if isinstance(device, torch.device):
-        if device.type not in {"cuda", "npu", "xpu"}:
-            return device  # other torch.device inputs pass through; accelerator inputs canonicalize and validate below
+        if device.type not in {"cpu", "mps", "cuda", "npu", "xpu"}:
+            return device  # other torch.device inputs pass through; cpu, mps and accelerator inputs canonicalize below
     elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 

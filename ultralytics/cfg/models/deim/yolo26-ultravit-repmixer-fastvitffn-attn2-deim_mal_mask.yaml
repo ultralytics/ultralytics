@@ -55,10 +55,11 @@ head:
   # Args: [nc, hd, nq, ndp, nh, ndl, d_ffn, dropout, act, eval_idx, nd, label_noise_ratio, box_noise_scale,
   #        learnt_init_query, enable_cuda_acceleration, one_to_many_groups, dab_sine_embedding,
   #        efficient_msdeformable_attn, query_select_method, reg_max, reg_scale, layer_scale, mlp_act,
-  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head]
+  #        o2m_topk_mode, use_gateway, share_bbox_head, share_score_head, use_rmsnorm, mask_interaction_dim]
+  # mask_interaction_dim is the query-pixel correlation width; default is mask_dim // 4 (64).
   # Detection arguments exactly match yolo26-ultravit-repmixer-fastvitffn-attn2-deim_mal.yaml;
   # only the module adds the mask branch.
-  - [[14, 17, 20], 1, DeimSegmentDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False]]
+  - [[14, 17, 20], 1, DeimSegmentDecoder, [nc, 256, 300, [3, 6, 3], 8, 6, 2048, 0.0, "silu", -1, 100, 0.5, 1.0, False, False, 0, False, False, "default", 32, 4.0, 1.0, "silu", "unshared", True, False, False, True, 256]]
 
 loss:
   gamma: 1.5

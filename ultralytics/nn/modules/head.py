@@ -2599,6 +2599,9 @@ class _DEIMMaskQueryBlock(nn.Module):
         return x + self.fc2(self.act(self.fc1(x)))
 
 
+_DEIM_DECODER_NARGS = DeimDecoder.__init__.__code__.co_argcount - 1  # positional args the detection decoder takes
+
+
 class DeimSegmentDecoder(DeimDecoder):
     """DEIM decoder with a deployment-friendly query-to-pixel instance mask head.
 
@@ -2608,7 +2611,10 @@ class DeimSegmentDecoder(DeimDecoder):
     matched queries inside the loss. Evaluation materializes only the selected decoder exit's dense mask tensor.
     """
 
-    def __init__(self, *args, mask_dim: int | None = None, **kwargs):
+    def __init__(self, *args, mask_dim: int | None = None, mask_interaction_dim: int | None = None, **kwargs):
+        # YAML passes decoder args positionally, so a trailing entry beyond the detection args is the mask width.
+        if len(args) > _DEIM_DECODER_NARGS:
+            *args, mask_interaction_dim = args
         super().__init__(*args, **kwargs)
         mask_dim = self.hidden_dim if mask_dim is None else mask_dim
         if mask_dim <= 0:
@@ -2616,7 +2622,9 @@ class DeimSegmentDecoder(DeimDecoder):
         if self.layer_scale != 1.0:
             raise ValueError("DeimSegmentDecoder currently requires layer_scale=1.0 for shared query mask projection.")
         self.mask_dim = mask_dim
-        self.mask_interaction_dim = max(mask_dim // 4, 16)
+        self.mask_interaction_dim = max(mask_dim // 4, 16) if mask_interaction_dim is None else int(mask_interaction_dim)
+        if self.mask_interaction_dim <= 0:
+            raise ValueError(f"mask_interaction_dim must be positive, got {self.mask_interaction_dim}.")
         in_channels = (
             self.input_proj[0][0].in_channels
             if isinstance(self.input_proj[0], nn.Sequential)

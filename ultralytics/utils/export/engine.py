@@ -172,8 +172,9 @@ def modelopt_quantize_onnx(
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
             # The head's output layers, the bare convolutions and linears outside its `Conv` blocks, and DFL's fixed
-            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT
-            nodes_to_exclude=[rf"{head}(?!.*/conv/).*/(Conv|Gemm|MatMul)", rf"{head}dfl/"],
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float as in QAT.
+            # `Classify.linear` exports as `Gemm` and loses nothing in INT8, so it is not matched
+            nodes_to_exclude=[rf"{head}(?!.*/conv/).*/(Conv|MatMul)", rf"{head}dfl/"],
             output_path=out_file,
             **kwargs,
         )
@@ -432,7 +433,7 @@ def onnx2engine(
                 continue
             if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
                 dtype = trt.float32
-            elif layer.name.endswith(("/Conv", "/ConvTranspose", "/Gemm", "/MatMul")) and (
+            elif layer.name.endswith(("/Conv", "/ConvTranspose", "/MatMul")) and (
                 "/conv/" not in layer.name or "/dfl/" in layer.name
             ):
                 dtype = trt.float16

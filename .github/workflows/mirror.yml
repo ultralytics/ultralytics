@@ -40,22 +40,15 @@ jobs:
                   return None if response.status == 204 else json.load(response)
 
 
-          user = gitlab("user")
-          assert user["username"] == "glenn-jocher", "Unexpected token owner"
-          print("Current public profile:", json.dumps({key: user.get(key) for key in ["username", "name", "bio", "website_url", "organization", "job_title", "github", "web_url"]}))
-          description = 'Ultralytics makes vision AI accessible with open-source YOLO models and tools for training, validation, and deployment.\n\n[Website](https://www.ultralytics.com/) · [Docs](https://docs.ultralytics.com/) · [Platform](https://platform.ultralytics.com/)\n\nOfficial GitLab mirrors. Development, issues, and pull requests: [GitHub](https://github.com/ultralytics).'
-          gitlab("groups/ultralytics", "PUT", description=description)
-          assert gitlab("groups/ultralytics")["description"] == description
-          print("Group description updated and verified")
-          project = gitlab("projects/ultralytics%2Fgitlab-profile")
-          endpoint = f"projects/{project['id']}"
-          readme = '<p align="center">\n  <a href="https://www.ultralytics.com/">\n    <img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics-logomark-color.png" width="120" alt="Ultralytics">\n  </a>\n</p>\n\n# Ultralytics\n\nWe make vision AI accessible with open-source YOLO models and tools for training, validation, and deployment. Build computer vision applications with [Ultralytics YOLO](https://docs.ultralytics.com/) and manage datasets, training, and deployment with [Ultralytics Platform](https://platform.ultralytics.com/).\n\n## Get started\n\n- [Documentation](https://docs.ultralytics.com/) — installation, tutorials, models, and integrations.\n- [Ultralytics Platform](https://platform.ultralytics.com/) — annotate, train, and deploy.\n- [GitHub](https://github.com/ultralytics) — source repositories and development.\n- [Community](https://community.ultralytics.com/) — questions, ideas, and shared projects.\n- [Website](https://www.ultralytics.com/) — products, solutions, and company information.\n- [Licensing](https://www.ultralytics.com/license) — open-source and enterprise licensing options.\n\n## Contribute\n\nThese are official GitLab mirrors of our public GitHub repositories. GitHub is the source of truth for branches and tags. Please open issues and pull requests in the corresponding [GitHub repository](https://github.com/ultralytics); see our [contributing guide](https://docs.ultralytics.com/help/contributing/) to get involved.\n'
-          branch = "automation/evergreen-profile-20260917"
-          commit = gitlab(f"{endpoint}/repository/commits", "POST", branch=branch,
-                         start_branch=project["default_branch"], commit_message="Refresh evergreen Ultralytics GitLab profile",
-                         actions=[{"action": "update", "file_path": "README.md", "content": readme}])
-          mr = gitlab(f"{endpoint}/merge_requests", "POST", source_branch=branch,
-                      target_branch=project["default_branch"], title="Refresh evergreen Ultralytics GitLab profile",
-                      description="Replace dated GitHub-specific copy with evergreen Ultralytics messaging, the U logomark, current product and community links, and clear GitHub contribution routing.",
-                      remove_source_branch=True)
-          print("Profile README review:", mr["web_url"], "head:", commit["id"])
+          endpoint = "projects/54400893/merge_requests/1"
+          expected = "42a02804ad65cd42f0c61c9ee3d96d3170e61f97"
+          mr = gitlab(endpoint)
+          assert mr["sha"] == expected
+          assert mr["detailed_merge_status"] == "mergeable"
+          assert mr["blocking_discussions_resolved"]
+          assert not mr.get("head_pipeline") or mr["head_pipeline"]["status"] == "success"
+          approvals = gitlab(f"{endpoint}/approvals")
+          assert approvals["approvals_left"] == 0
+          result = gitlab(f"{endpoint}/merge", "PUT", sha=expected, should_remove_source_branch=True)
+          assert result["state"] == "merged"
+          print("Merged reviewed profile README:", result["web_url"])

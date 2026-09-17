@@ -1,54 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# This action mirrors the Ultralytics repository to other platforms like GitLab.
-# GitLab sync runs daily for all public Ultralytics repositories.
-# Additional platforms can be added by uncommenting the relevant sections.
+# Mirror all public Ultralytics repositories to GitLab daily or on manual dispatch.
 
-name: Mirror Repository
+name: Mirror Repositories to GitLab
 
 permissions:
   contents: read
 
 on:
-  # push:
-  #   branches:
-  #     - main
   workflow_dispatch:
   schedule:
     - cron: "17 2 * * *" # Daily at 02:17 UTC
 
 jobs:
-  mirror:
-    runs-on: ubuntu-latest
-    if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'glenn-jocher'
-    steps:
-      - name: Checkout Source Repository (${{ github.repository }})
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # Fetch all history for mirroring
-      - name: Run Git Config
-        run: |
-          git config --global user.name "UltralyticsAssistant"
-          git config --global user.email "web@ultralytics.com"
-      - name: Push to DagsHub
-        env:
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          git remote add dagshub "https://glenn-jocher:${DAGSHUB_TOKEN}@dagshub.com/Ultralytics/ultralytics.git"
-          git push dagshub main --force
-      # - name: Push to Gitee
-      #   run: |
-      #     git remote add gitee https://ultralytics:${{ secrets.GITEE_TOKEN }}@gitee.com/ultralytics/ultralytics.git
-      #     git push gitee main --force
-      # - name: Push to GitCode
-      #   run: |
-      #     git remote add gitcode https://ultralytics:${{ secrets.GITCODE_TOKEN }}@gitcode.net/ultralytics/ultralytics.git
-      #     git push gitcode main --force
-      # - name: Push to Bitbucket
-      #   run: |
-      #     git remote add bitbucket https://ultralytics:${{ secrets.BITBUCKET_APP_PASSWORD }}@bitbucket.org/ultralytics/ultralytics.git
-      #     git push bitbucket main --force
-
   gitlab:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest

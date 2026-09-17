@@ -259,7 +259,10 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         ).returncode
         != 0
     ):
-        assert AUTOINSTALL, f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
+        if not AUTOINSTALL:
+            raise FileNotFoundError(
+                f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
+            )
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
         sudo = "sudo " if is_sudo_available() else ""
         for c in (

@@ -33,6 +33,7 @@ jobs:
           import os
           import subprocess
           import tempfile
+          import time
           import urllib.error
           import urllib.request
           from pathlib import Path
@@ -70,7 +71,19 @@ jobs:
                                        visibility="public", builds_access_level="disabled")
                   with tempfile.TemporaryDirectory() as directory:
                       def git(*args):
-                          subprocess.run(["git", "-C", directory, *args], check=True, timeout=3600)
+                          for attempt in range(3):
+                              result = subprocess.run(
+                                  ["git", "-C", directory, *args], stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, text=True, timeout=3600,
+                              )
+                              print(result.stdout, end="", flush=True)
+                              # GitLab can briefly fail to resolve a newly created project during a push.
+                              if (not result.returncode or args[0] != "push" or attempt == 2
+                                  or "Could not create project:" not in result.stdout
+                                  or "has already been taken" not in result.stdout):
+                                  break
+                              time.sleep(2 ** (attempt + 1))
+                          result.check_returncode()
 
                       git("init", "--bare")
                       git("remote", "add", "origin", repo["clone_url"])

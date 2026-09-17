@@ -40,9 +40,9 @@ jobs:
           if not token:
               raise SystemExit("Set the GITLAB_TOKEN Actions secret with GitLab api scope and project creation access.")
 
-          def gitlab(path, method="GET", **data):
+          def gitlab(endpoint, method="GET", **data):
               request = urllib.request.Request(
-                  f"https://gitlab.com/api/v4/{path}",
+                  f"https://gitlab.com/api/v4/{endpoint}",
                   data=json.dumps(data).encode() if data else None,
                   headers={"PRIVATE-TOKEN": token, "Content-Type": "application/json"},
                   method=method,

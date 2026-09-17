@@ -265,6 +265,7 @@ CFG_INT_KEYS = frozenset(
     }
 )
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+    "epochs": 1,
     "nbs": 1,
     "max_det": 1,
     "mask_ratio": 1,

@@ -48,6 +48,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
         __len__: Return the length of the batch sampler's sampler.
         __iter__: Yield batches from the underlying iterator.
         __del__: Ensure workers are properly terminated.
+        close: Gracefully shut down persistent workers when the DataLoader is no longer needed.
         reset: Reset the iterator, useful when modifying dataset settings during training.
 
     Examples:
@@ -78,17 +79,21 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def __del__(self):
         """Ensure that workers are properly terminated when the DataLoader is deleted."""
         try:
-            if not hasattr(self.iterator, "_workers"):
-                return
-            for w in self.iterator._workers:  # force terminate
+            for w in getattr(self.iterator, "_workers", ()):  # force terminate
                 if w.is_alive():
                     w.terminate()
-            self.iterator._shutdown_workers()  # cleanup
+            self.close()
         except Exception:
             pass
 
+    def close(self):
+        """Shut down persistent workers, unregistering them from torch's SIGCHLD watchdog before interpreter exit."""
+        if hasattr(self.iterator, "_workers"):
+            self.iterator._shutdown_workers()  # joins workers and calls torch._C._remove_worker_pids
+
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
+        self.close()  # free old worker pipes before creating new iterator
         self.iterator = self._get_iterator()
 
 
@@ -183,7 +188,7 @@ class ContiguousDistributedSampler(torch.utils.data.Sampler):
         end_batch = start_batch + batches_for_this_rank
 
         # Convert batch indices to sample indices
-        start_idx = start_batch * self.batch_size
+        start_idx = min(start_batch * self.batch_size, self.total_size)
         end_idx = min(end_batch * self.batch_size, self.total_size)
 
         return start_idx, end_idx
@@ -329,7 +334,7 @@ def build_dataloader(
         shuffle=shuffle and sampler is None,
         num_workers=nw,
         sampler=sampler,
-        prefetch_factor=4 if nw > 0 else None,  # increase over default 2
+        prefetch_factor=(4 if shuffle else 2) if nw > 0 else None,  # validation holds fewer batches between passes
         pin_memory=nd > 0 and pin_memory,
         collate_fn=getattr(dataset, "collate_fn", None),
         worker_init_fn=seed_worker,

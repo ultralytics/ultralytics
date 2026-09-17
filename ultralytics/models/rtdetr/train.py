@@ -119,7 +119,13 @@ class RTDETRTrainer(DetectionTrainer):
             src_names = resolve_names(getattr(weights, "names", None), src_data_yaml)
             dst_names = resolve_names(self.data.get("names"), getattr(self.args, "data", None))
             load_verbose = RANK in {-1, 0}
-            model.load(weights, verbose=load_verbose, src_names=src_names, dst_names=dst_names)
+            model.load(
+                weights,
+                verbose=load_verbose,
+                src_names=src_names,
+                dst_names=dst_names,
+                dn_cls_transfer=self.args.dn_cls_transfer,
+            )
         freeze_bn = str(getattr(self.args, "freeze_bn", "none")).lower().replace("+", "_")
         if freeze_bn in {"backbone", "backbone_neck"}:
             from ultralytics.nn.modules.utils import freeze_norm_layers

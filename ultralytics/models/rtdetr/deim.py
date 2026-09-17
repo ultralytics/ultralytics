@@ -13,7 +13,7 @@ from torch import distributed as dist
 from torch import optim
 
 from ultralytics.data import YOLODataset
-from ultralytics.data.augment import Compose, Format, v8_transforms
+from ultralytics.data.augment import Compose, Format, LetterBox, v8_transforms
 from ultralytics.nn.tasks import load_checkpoint
 from ultralytics.utils import LOGGER, RANK, colorstr
 from ultralytics.utils.torch_utils import one_cycle, strip_optimizer, unwrap_model
@@ -420,9 +420,11 @@ class RTDETRDEIMDataset(RTDETRDataset):
                     mosaic_prob=self.mosaic_prob,
                 )
             else:
-                transforms = v8_transforms(self, self.imgsz, hyp, stretch=True)
+                # letterbox vs stretch is decided by load_image's rect_mode; the affine always outputs imgsz
+                transforms = v8_transforms(self, self.imgsz, hyp)
         else:
-            transforms = Compose([])
+            lb = LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)
+            transforms = Compose([lb] if self.letterbox else [])
 
         transforms.append(
             Format(

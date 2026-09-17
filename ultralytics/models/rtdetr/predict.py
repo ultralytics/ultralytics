@@ -39,8 +39,8 @@ class RTDETRPredictor(BasePredictor):
         predictions (already top-k selected by the decoder head) to Results objects with properly scaled bounding boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape
-                (bs, num_queries, 6) with format [cx, cy, w, h, score, class].
+            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape (bs,
+                num_queries, 6) with format [cx, cy, w, h, score, class].
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 
@@ -64,15 +64,20 @@ class RTDETRPredictor(BasePredictor):
                 idx = (label.squeeze(-1) == torch.tensor(self.args.classes, device=label.device)).any(1) & idx
             pred = torch.cat([bbox, score, label], dim=-1)[idx]
             oh, ow = orig_img.shape[:2]
-            pred[..., [0, 2]] *= ow  # scale x coordinates to original width
-            pred[..., [1, 3]] *= oh  # scale y coordinates to original height
+            if self.args.rtdetr_letterbox:  # undo the pad before scaling, boxes are normalized to the padded canvas
+                pred[..., :4] *= torch.tensor(img.shape[2:], device=pred.device)[[1, 0, 1, 0]]
+                pred[..., :4] = ops.scale_boxes(img.shape[2:], pred[..., :4], (oh, ow))
+            else:
+                pred[..., [0, 2]] *= ow  # scale x coordinates to original width
+                pred[..., [1, 3]] *= oh  # scale y coordinates to original height
             results.append(Results(orig_img, path=img_path, names=self.model.names, boxes=pred))
         return results
 
     def pre_transform(self, im):
         """Pre-transform input images before feeding them into the model for inference.
 
-        The input images are letterboxed to ensure a square aspect ratio and scale-filled.
+        The input images are resized to a square, either stretched to fill it or letterboxed with an aspect-preserving
+        pad when `rtdetr_letterbox` is set. This must match the resize used during training.
 
         Args:
             im (list[np.ndarray]): Input images of shape [(H, W, 3) x N].
@@ -80,5 +85,5 @@ class RTDETRPredictor(BasePredictor):
         Returns:
             (list): List of pre-transformed images ready for model inference.
         """
-        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
+        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=not self.args.rtdetr_letterbox)
         return [letterbox(image=x) for x in im]

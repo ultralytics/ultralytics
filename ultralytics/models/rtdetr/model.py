@@ -92,7 +92,7 @@ class RTDETRDEIMPredictor(RTDETRPredictor):
 class RTDETRDEIM(RTDETR):
     """RT-DETR interface that routes training/validation through isolated DEIM classes."""
 
-    _EXTRA_CKPT_ARGS = {"rtdetr_input_normalize"}
+    _EXTRA_CKPT_ARGS = {"rtdetr_input_normalize", "rtdetr_letterbox"}
 
     def __init__(self, model: str = "rtdetr-l.pt") -> None:
         """Initialize DEIM and infer detect versus segment from its decoder head."""

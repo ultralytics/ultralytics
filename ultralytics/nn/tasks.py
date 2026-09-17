@@ -783,7 +783,7 @@ class RTDETRDetectionModel(DetectionModel):
         """Return True if names look like default numeric placeholders: {0:'0', 1:'1', ...}."""
         return is_default_numeric_names(names)
 
-    def load(self, weights, verbose=True, src_names=None, dst_names=None):
+    def load(self, weights, verbose=True, src_names=None, dst_names=None, dn_cls_transfer=False):
         """Load weights with optional RT-DETR class-row remapping for cross-dataset transfer."""
         model = weights["model"] if isinstance(weights, dict) else weights
         csd = model.float().state_dict()
@@ -797,10 +797,18 @@ class RTDETRDetectionModel(DetectionModel):
         if dst_names is None:
             dst_names = getattr(self, "names", None)
 
-        # Discard denoising_class_embed when class count changes (following DEIM approach).
-        # A partially-remapped embedding is worse than fresh random initialization.
+        # Discard denoising_class_embed when class count changes (following DEIM approach), unless
+        # dn_cls_transfer keeps it so the class remapping below transfers its matched rows by name.
         # Must run BEFORE class remapping, which would resize the tensor and mask the mismatch.
-        dn_discard = [k for k in csd if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape]
+        dn_discard = (
+            []
+            if dn_cls_transfer
+            else [
+                k
+                for k in csd
+                if "denoising_class_embed" in k and k in state_dict and csd[k].shape != state_dict[k].shape
+            ]
+        )
         for k in dn_discard:
             del csd[k]
             if verbose:
@@ -1018,9 +1026,10 @@ class RTDETRDetectionModel(DetectionModel):
         loss_cfg = self.yaml.get("loss", {})
         loss_gain = loss_cfg.get("loss_gain", {}) if isinstance(loss_cfg, dict) else {}
         has_dfine_gain = any(k in loss_gain for k in ("fgl", "ddf"))
-        if has_dfine_gain:
-            return DfineLoss(nc=self.nc, **loss_cfg)
-        return RTDETRDetectionLoss(nc=self.nc, **loss_cfg)
+        criterion = (DfineLoss if has_dfine_gain else RTDETRDetectionLoss)(nc=self.nc, **loss_cfg)
+        if criterion.use_class_weights:
+            criterion.class_weights = getattr(self, "class_weights", None)
+        return criterion
 
     @staticmethod
     def _cast_floating_loss_inputs_fp32(value):

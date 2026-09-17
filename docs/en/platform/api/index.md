@@ -25,7 +25,7 @@ integrations_path: ../../integrations
     === "Python SDK"
 
         ```bash
-        pip install "ultralytics-platform>=0.1.32" # Python 3.11+
+        pip install "ultralytics-platform>=0.1.45" # Python 3.11+
         ```
 
         ```python
@@ -2417,7 +2417,7 @@ OpenAPI contract, with one method per endpoint (`client.datasets.list`, `client.
 and optional per-request `timeout` and `extra_headers`.
 
 ```bash
-pip install "ultralytics-platform>=0.1.32" # Python 3.11+
+pip install "ultralytics-platform>=0.1.45" # Python 3.11+
 ```
 
 ```python
@@ -2436,7 +2436,11 @@ with Platform() as client:  # reads ULTRALYTICS_API_KEY or the key saved by yolo
 ## Python Integration
 
 For training and inference workflows, use the Ultralytics Python package, which handles authentication, uploads, and
-real-time metric streaming automatically.
+real-time metric streaming automatically. On Python 3.11+, `pip install ultralytics` also installs the
+`ultralytics-platform` SDK. When `model.train(project=...)` targets Platform, the training callbacks stream events
+through the SDK's `client.training.metrics()` and request checkpoint upload URLs through
+`client.models.upload_checkpoint()`, the `POST /api/webhooks/training/metrics` and `POST /api/webhooks/models/upload`
+operations in the OpenAPI document, so there is nothing to call yourself.
 
 ### Installation & Setup
 
@@ -2525,6 +2529,7 @@ model.train(
 - Validation plots
 - Console output
 - System metrics
+- Training arguments and host environment (hostname, OS, Python, hardware, git commit, command line)
 
 ### API Examples
 

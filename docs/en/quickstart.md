@@ -78,14 +78,6 @@ Install the `ultralytics` package with pip, conda, or Docker, or from source, th
 
     [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA version. To use a specific build, install PyTorch first by following the [PyTorch installation instructions](https://pytorch.org/get-started/locally/), then install `ultralytics`.
 
-!!! note "Automatic installation of optional dependencies"
-
-    Some features, such as [export](modes/export.md) to formats like ONNX, TensorRT, or Edge TPU, need packages that are not installed with `ultralytics`. When one is missing, Ultralytics installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Ultralytics then still checks for the missing packages and reports them, but leaves the environment unchanged and the feature fails until the package is installed.
-
-    ```bash
-    export YOLO_AUTOINSTALL=False
-    ```
-
 ## Use Ultralytics with CLI
 
 Run your first prediction from the terminal with the `yolo` command:

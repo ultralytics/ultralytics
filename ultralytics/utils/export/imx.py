@@ -256,10 +256,8 @@ def torch2imx(
         assert java_version >= 17, "Java version too old"
     except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
         if IS_UBUNTU or IS_DEBIAN_TRIXIE:
-            LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
             check_apt_requirements(["openjdk-21-jre"])
         elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
-            LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
             check_apt_requirements(["openjdk-17-jre"])
 
     check_requirements(

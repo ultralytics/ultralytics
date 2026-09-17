@@ -45,7 +45,7 @@ def _tf_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
     grid_h, grid_w = shape[2:4]
     grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=boxes.device).reshape(1, 4, 1)
     norm = self.strides / (self.stride[0] * grid_size)
-    dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+    dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2], x.get("angle"))
     return dbox
 
 

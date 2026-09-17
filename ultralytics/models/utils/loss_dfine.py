@@ -59,6 +59,7 @@ class DfineLoss(nn.Module):
         mask_num_points: int = 12544,
         mask_oversample_ratio: float = 3.0,
         mask_importance_sample_ratio: float = 0.75,
+        mask_aux_loss: bool = True,
         use_class_weights: bool = False,
     ):
         super().__init__()
@@ -111,6 +112,7 @@ class DfineLoss(nn.Module):
         self.mask_num_points = int(mask_num_points)
         self.mask_oversample_ratio = float(mask_oversample_ratio)
         self.mask_importance_sample_ratio = float(mask_importance_sample_ratio)
+        self.mask_aux_loss = mask_aux_loss
         if self.mask_num_points <= 0:
             raise ValueError(f"mask_num_points must be positive, got {self.mask_num_points}.")
         if self.mask_oversample_ratio < 1.0:
@@ -805,7 +807,7 @@ class DfineLoss(nn.Module):
             if pred_masks is not None
             else 0
         )
-        aux_pred_masks = pred_masks if mask_layers == pred_bboxes.shape[0] else None
+        aux_pred_masks = pred_masks if self.mask_aux_loss and mask_layers == pred_bboxes.shape[0] else None
         main_indices = self._match(
             pred_bboxes[-1],
             pred_scores[-1],
@@ -909,7 +911,9 @@ class DfineLoss(nn.Module):
                 if dn_pred_masks is not None
                 else 0
             )
-            dn_aux_pred_masks = dn_pred_masks if dn_mask_layers == dn_bboxes.shape[0] else None
+            dn_aux_pred_masks = (
+                dn_pred_masks if self.mask_aux_loss and dn_mask_layers == dn_bboxes.shape[0] else None
+            )
 
             total_loss.update(
                 self._compute_layer_losses(

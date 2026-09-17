@@ -43,11 +43,20 @@ jobs:
           if not token:
               raise SystemExit("Set the GITLAB_TOKEN Actions secret with GitLab api scope and project creation access.")
 
-          def gitlab(endpoint, method="GET", **data):
+          def gitlab(endpoint, method="GET", avatar=None, **data):
+              body = json.dumps(data).encode() if data else None
+              content_type = "application/json"
+              if avatar is not None:
+                  boundary = "ultralytics-avatar"
+                  content_type = f"multipart/form-data; boundary={boundary}"
+                  body = (
+                      f'--{boundary}\r\nContent-Disposition: form-data; name="avatar"; filename="logo.png"\r\n'
+                      'Content-Type: image/png\r\n\r\n'
+                  ).encode() + avatar + f"\r\n--{boundary}--\r\n".encode()
               request = urllib.request.Request(
                   f"https://gitlab.com/api/v4/{endpoint}",
-                  data=json.dumps(data).encode() if data else None,
-                  headers={"PRIVATE-TOKEN": token, "Content-Type": "application/json"},
+                  data=body,
+                  headers={"PRIVATE-TOKEN": token, "Content-Type": content_type},
                   method=method,
               )
               with urllib.request.urlopen(request, timeout=60) as response:
@@ -65,6 +74,7 @@ jobs:
               "gh", "api", "--paginate", "--slurp", "orgs/ultralytics/repos?type=public&per_page=100"
           ]))
           group = gitlab("groups/ultralytics")["id"]
+          avatar = None
           failures = []
           for repo in (repo for page in repositories for repo in page):
               name = repo["name"]
@@ -78,6 +88,23 @@ jobs:
                           raise
                       project = gitlab("projects", "POST", name=slug, path=slug, namespace_id=group,
                                        visibility="public", builds_access_level="disabled")
+                  # GitLab has no homepage field; keep the source and website links in its description.
+                  description = "\n\n".join(filter(None, [
+                      repo["description"], f"GitHub: {repo['html_url']}", repo["homepage"]
+                  ]))
+                  metadata = {"description": description, "topics": sorted(repo["topics"])}
+                  if project["description"] != description or sorted(project["topics"]) != metadata["topics"]:
+                      gitlab(f"projects/{project['id']}", "PUT", **metadata)
+                      print("Updated description, links, and topics", flush=True)
+                  if not project["avatar_url"]:
+                      if avatar is None:
+                          with urllib.request.urlopen(
+                              "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics-logomark-color.png",
+                              timeout=60,
+                          ) as response:
+                              avatar = response.read()
+                      gitlab(f"projects/{project['id']}", "PUT", avatar=avatar)
+                      print("Added Ultralytics U logo", flush=True)
                   with tempfile.TemporaryDirectory() as directory:
                       def git(*args):
                           for attempt in range(3):

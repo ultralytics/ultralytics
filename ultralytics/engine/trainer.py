@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_13,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
@@ -421,10 +422,10 @@ class BaseTrainer:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
             ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
+            ddp_kwargs["forward_sync_buffers" if TORCH_2_13 else "broadcast_buffers"] = False
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
                 **ddp_kwargs,
             )

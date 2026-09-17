@@ -239,6 +239,29 @@ def apply_coco_metrics(train_metrics: dict, coco: dict) -> None:
         train_metrics["fitness"] = float(coco["mAP50_95"])
 
 
+def apply_release_metadata(train_args: dict, yaml_path: Path) -> dict:
+    """Normalize public checkpoint metadata while retaining full training provenance in ``model.args``."""
+    model_name = yaml_path.name
+    model_stem = yaml_path.stem
+    family = re.match(r"yolo\d+", model_stem, flags=re.IGNORECASE)
+    if family is None:
+        raise ValueError(f"cannot derive release project from model YAML {model_name!r}")
+    data = train_args.get("data") or "coco.yaml"
+    pretrained = train_args.get("pretrained")
+
+    updates = {
+        "model": model_name,
+        "data": Path(data).name if isinstance(data, (str, Path)) else data,
+        "cfg": None,
+        "project": family.group().upper(),
+        "name": model_stem,
+        "pretrained": Path(pretrained).name if isinstance(pretrained, (str, Path)) else pretrained,
+    }
+    changed = {key: value for key, value in updates.items() if train_args.get(key) != value}
+    train_args.update(updates)
+    return changed
+
+
 def save_clean(src_ckpt: dict, model, out: Path) -> None:
     """Save the rebuilt model in a checkpoint dict that mirrors the source shape."""
     new_ckpt = {**src_ckpt, "model": model}
@@ -301,6 +324,11 @@ def parse_args() -> argparse.Namespace:
         "--clean-args",
         action="store_true",
         help="filter train_args to current-branch default.yaml keys, drop distillation cfg keys, strip ConvNeXt tokens from experiment name",
+    )
+    p.add_argument(
+        "--release-metadata",
+        action="store_true",
+        help="normalize public train_args model/data/cfg/project/name/pretrained fields from the target YAML",
     )
     return p.parse_args()
 
@@ -369,6 +397,14 @@ def main() -> None:
                 print(f"  clean-args (model.args): dropped {len(m_dropped)} key(s)")
             if m_old is not None:
                 print(f"  clean-args (model.args): renamed to {m_dict['name']!r}")
+
+    model.yaml["yaml_file"] = args.yaml.name
+    if args.release_metadata:
+        ta = src.get("train_args")
+        if not isinstance(ta, dict):
+            raise TypeError("--release-metadata requires a train_args dictionary")
+        changed = apply_release_metadata(ta, args.yaml)
+        print(f"  release-metadata: {changed}")
 
     print(f"saving: {out}")
     save_clean(src, model, out)

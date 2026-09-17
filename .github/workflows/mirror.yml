@@ -93,7 +93,8 @@ jobs:
                       repo["description"], f"GitHub: {repo['html_url']}", repo["homepage"]
                   ]))
                   metadata = {"description": description, "topics": sorted(repo["topics"])}
-                  if project["description"] != description or sorted(project["topics"]) != metadata["topics"]:
+                  topics = sorted(topic.lower() for topic in project["topics"])
+                  if project["description"] != description or topics != metadata["topics"]:
                       gitlab(f"projects/{project['id']}", "PUT", **metadata)
                       print("Updated description, links, and topics", flush=True)
                   if not project["avatar_url"]:

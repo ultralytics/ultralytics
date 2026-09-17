@@ -383,6 +383,9 @@ def fuse_conv_and_bn(conv, bn):
     conv.weight, conv.bias = fuse_conv_bn_weights(
         conv.weight, conv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
+    q = getattr(conv, "weight_quantizer", None)
+    if q is not None:  # QAT: the per-channel weight range scales with the folded BN, so the INT8 codes do not move
+        q.amax = q.amax * (bn.weight / torch.sqrt(bn.running_var + bn.eps)).abs().view_as(q.amax)
     return conv.requires_grad_(False)
 
 
@@ -427,8 +430,8 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
     ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as a
     buffer, not a learnable parameter), so training adapts the weights to them.
 
-    BatchNorm is deliberately left unfused: the calibrated weight ranges describe unfused weights, so export skips
-    `fuse()` and leaves BN folding to the deployment backend. The output head is left in float to limit INT8 accuracy
+    Training keeps BatchNorm unfused; `fuse()` folds it at export and rescales the weight ranges along. The head's
+    output layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8 accuracy
     loss.
 
     Args:
@@ -445,18 +448,20 @@ def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> n
         import modelopt.torch.quantization as mtq
 
     def forward_loop(m):
-        """Calibrate through the task batch path, with BatchNorm statistics frozen."""
-        training = m.training
-        m.eval()
-        with torch.no_grad():
-            for batch, _ in zip(dataloader, range(batches)):
-                m(preprocess(batch))
-        m.train(training)
+        """Calibrate through the task batch path."""
+        for batch, _ in zip(dataloader, range(batches)):
+            m(preprocess(batch))
 
     LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
-    model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
-    # Keep the output head in float to limit INT8 accuracy loss.
-    mtq.disable_quantizer(model, f"*model.{len(model.model) - 1}.*")
+    training = model.training
+    model.eval()  # freeze BatchNorm statistics
+    with torch.no_grad():
+        model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
+        # Keep the head's output layers, the bare convolutions and linears outside its Conv blocks, in float to limit
+        # INT8 accuracy loss. DFL's fixed conv is left in float too.
+        head = f"model.{len(model.model) - 1}."
+        mtq.disable_quantizer(model, lambda n: n.startswith(head) and (".conv." not in n or ".dfl." in n))
+    model.train(training)
     return model
 
 

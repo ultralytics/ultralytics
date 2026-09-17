@@ -20,7 +20,7 @@ on:
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.actor == 'glenn-jocher'
+    if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'glenn-jocher'
     steps:
       - name: Checkout Source Repository (${{ github.repository }})
         uses: actions/checkout@v7

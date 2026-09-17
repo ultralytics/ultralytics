@@ -1,7 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # This action mirrors the Ultralytics repository to other platforms like GitLab.
-# It runs on manual workflow dispatch by the repository owner.
+# GitLab sync runs daily for all public Ultralytics repositories.
 # Additional platforms can be added by uncommenting the relevant sections.
 
 name: Mirror Repository
@@ -14,11 +14,13 @@ on:
   #   branches:
   #     - main
   workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * *" # Daily at 02:17 UTC
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+    if: github.repository == 'ultralytics/ultralytics' && github.event_name == 'workflow_dispatch' && github.actor == 'glenn-jocher'
     steps:
       - name: Checkout Source Repository (${{ github.repository }})
         uses: actions/checkout@v7
@@ -46,3 +48,89 @@ jobs:
       #   run: |
       #     git remote add bitbucket https://ultralytics:${{ secrets.BITBUCKET_APP_PASSWORD }}@bitbucket.org/ultralytics/ultralytics.git
       #     git push bitbucket main --force
+
+  gitlab:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    concurrency:
+      group: gitlab-mirror
+      cancel-in-progress: false
+    steps:
+      - name: Mirror public repositories to GitLab
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }} # GitLab api scope; Maintainer access to destination projects
+          GIT_TERMINAL_PROMPT: "0"
+        shell: python
+        run: |
+          import json
+          import os
+          import subprocess
+          import tempfile
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          token = os.environ["GITLAB_TOKEN"]
+          if not token:
+              raise SystemExit("Set the GITLAB_TOKEN Actions secret with GitLab api scope and project creation access.")
+
+          def gitlab(path, method="GET", **data):
+              request = urllib.request.Request(
+                  f"https://gitlab.com/api/v4/{path}",
+                  data=json.dumps(data).encode() if data else None,
+                  headers={"PRIVATE-TOKEN": token, "Content-Type": "application/json"},
+                  method=method,
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return json.load(response)
+
+          repositories = json.loads(subprocess.check_output([
+              "gh", "api", "--paginate", "--slurp", "orgs/ultralytics/repos?type=public&per_page=100"
+          ]))
+          group = gitlab("groups/ultralytics")["id"]
+          failures = []
+          for repo in (repo for page in repositories for repo in page):
+              name = repo["name"]
+              slug = "github" if name == ".github" else name
+              print(f"::group::{name}", flush=True)
+              try:
+                  try:
+                      project = gitlab(f"projects/ultralytics%2F{slug}")
+                  except urllib.error.HTTPError as error:
+                      if error.code != 404:
+                          raise
+                      project = gitlab("projects", "POST", name=slug, path=slug, namespace_id=group,
+                                       visibility="public", builds_access_level="disabled")
+                  with tempfile.TemporaryDirectory() as directory:
+                      def git(*args):
+                          subprocess.run(["git", "-C", directory, *args], check=True, timeout=3600)
+
+                      git("init", "--bare")
+                      git("remote", "add", "origin", repo["clone_url"])
+                      git("fetch", "origin", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
+                      git("remote", "add", "gitlab", f"https://gitlab.com/ultralytics/{slug}.git")
+                      git("config", "credential.https://gitlab.com.helper",
+                          '!f() { echo username=oauth2; echo "password=$GITLAB_TOKEN"; }; f')
+                      git("lfs", "fetch", "--all", "origin")
+                      git("lfs", "push", "--all", "gitlab")
+                      # Create the source default branch before selecting it, so pruning can delete an old default.
+                      default = repo["default_branch"]
+                      if subprocess.check_output(["git", "-C", directory, "for-each-ref", "refs/heads/"]).strip():
+                          git("push", "gitlab", f"+refs/heads/{default}:refs/heads/{default}")
+                          if project["default_branch"] != default:
+                              gitlab(f"projects/{project['id']}", "PUT", default_branch=default)
+                      git("push", "--atomic", "--prune", "gitlab", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
+                  print(f"Mirrored {name}", flush=True)
+              except Exception as error:
+                  failures.append(name)
+                  print(f"::error::Failed to mirror {name}: {error}", flush=True)
+              finally:
+                  print("::endgroup::", flush=True)
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
+              f"GitLab mirror: {sum(map(len, repositories)) - len(failures)} succeeded; {len(failures)} failed.\n"
+              + "".join(f"- Failed: {name}\n" for name in failures)
+          )
+          if failures:
+              raise SystemExit("Some mirrors failed; inspect their logs, including GitLab branch/tag protection rules.")

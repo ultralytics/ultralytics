@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import LINUX, LOGGER, MACOS
+from ultralytics.utils import AUTOINSTALL, LINUX, LOGGER, MACOS
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_13,
     check_apt_requirements,
@@ -259,6 +259,7 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         ).returncode
         != 0
     ):
+        assert AUTOINSTALL, f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
         sudo = "sudo " if is_sudo_available() else ""
         for c in (

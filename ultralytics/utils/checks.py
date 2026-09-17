@@ -491,6 +491,12 @@ def check_apt_requirements(requirements):
 
     # Install missing packages if any
     if missing_packages:
+        if not AUTOINSTALL:  # check environment variable
+            LOGGER.warning(
+                f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, "
+                f"AutoUpdate disabled by YOLO_AUTOINSTALL=False. Install with 'sudo apt install {' '.join(missing_packages)}'"
+            )
+            return
         LOGGER.info(
             f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
         )
@@ -622,6 +628,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 LOGGER.warning(msg)
                 return False
         else:
+            if install:  # AutoUpdate disabled by environment variable
+                LOGGER.warning(
+                    f"{prefix} Ultralytics requirement{'s' * (len(pkgs) > 1)} {pkgs} not found, AutoUpdate disabled by YOLO_AUTOINSTALL=False"
+                )
             return False
 
     return True

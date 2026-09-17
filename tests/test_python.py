@@ -119,6 +119,8 @@ def test_cfg_rejects_fuzzed_values():
     for key, value in (
         ("split", []),
         ("split", -0.0),
+        ("epochs", 0),
+        ("epochs", -1),
         ("optimizer", []),
         ("copy_paste_mode", {}),
         ("optimizer", None),

@@ -123,10 +123,10 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
 def test_export_engine_fp16_parity():
     """FP16 engine scores must track PyTorch, guarding the SiLU rewrite `fuse_silu` applies at export.
 
-    TensorRT miscompiles a fused convolution, activation and residual add whose shortcut aliases a concatenation
-    buffer (NVIDIA/TensorRT#4854), which silently costs accuracy rather than raising. Rewriting the shortcut
-    bottlenecks too takes the error below from 0.003 to 0.289. The test needs a full-size image: at the imgsz=32 of
-    the export matrix above, P5 is 1x1 and the bad fusion never forms.
+    TensorRT miscompiles a fused convolution, activation and residual add whose shortcut aliases a concatenation buffer
+    (NVIDIA/TensorRT#4854), which silently costs accuracy rather than raising. Rewriting the shortcut bottlenecks too
+    takes the error below from 0.003 to 0.289. The test needs a full-size image: at the imgsz=32 of the export matrix
+    above, P5 is 1x1 and the bad fusion never forms.
     """
     check_tensorrt()
     from ultralytics.nn.autobackend import AutoBackend

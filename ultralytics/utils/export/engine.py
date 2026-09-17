@@ -28,9 +28,9 @@ def fuse_silu(model: torch.nn.Module) -> None:
     """Rewrite SiLU through tanh in place so TensorRT fuses it into the preceding convolution.
 
     TensorRT has no SiLU activation and leaves `sigmoid(x) * x` as a separate memory-bound kernel after every
-    convolution, which costs 20% of FP16 engine time. It does fuse tanh, so the mathematically equal tanh form runs
-    in the convolution epilogue instead. Bottlenecks that add a shortcut keep SiLU: TensorRT 11.2 miscompiles the
-    fused convolution/activation/add when the shortcut aliases a strided view of a later concatenation buffer.
+    convolution, which costs 20% of FP16 engine time. It does fuse tanh, so the mathematically equal tanh form runs in
+    the convolution epilogue instead. Bottlenecks that add a shortcut keep SiLU: TensorRT 11.2 miscompiles the fused
+    convolution/activation/add when the shortcut aliases a strided view of a later concatenation buffer.
 
     Args:
         model (torch.nn.Module): Model to rewrite, modified in place.

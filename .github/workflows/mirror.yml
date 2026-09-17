@@ -113,6 +113,8 @@ jobs:
                       git("remote", "add", "gitlab", f"https://gitlab.com/ultralytics/{slug}.git")
                       git("config", "credential.https://gitlab.com.helper",
                           '!f() { echo username=oauth2; echo "password=$GITLAB_TOKEN"; }; f')
+                      git("config", "lfs.url", f"{repo['clone_url']}/info/lfs")
+                      git("config", "lfs.pushurl", f"https://gitlab.com/ultralytics/{slug}.git/info/lfs")
                       git("lfs", "fetch", "--all", "origin")
                       git("lfs", "push", "--all", "gitlab")
                       # Create the source default branch before selecting it, so pruning can delete an old default.

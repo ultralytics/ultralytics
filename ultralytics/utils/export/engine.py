@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 import torch
 
-from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
+from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -214,7 +214,7 @@ def modelopt_quantize_onnx(
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
     # AutoCast keeps nodes in FP32 when their observed activation range exceeds the FP16 threshold. Calibrate on a
     # real image because unstructured noise inflates early activations and strands the first convolutions in FP32.
-    im = cv2.resize(cv2.imread(str(ASSETS / "bus.jpg")), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)
+    im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)
     im = np.resize(im, (shape[1], *shape[2:]))  # repeat or drop channels for models that are not 3-channel
     im = np.broadcast_to(im, shape).astype(np.float32, order="C")
     im /= 255.0

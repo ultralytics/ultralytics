@@ -1,48 +1,25 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-
-# Mirror all public Ultralytics repositories to GitLab daily or on manual dispatch.
-
-name: Mirror Repositories to GitLab
-
+name: Refresh GitLab profiles (one time)
 permissions:
   contents: read
-
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 2 * * *" # Daily at 02:17 UTC
-
 jobs:
-  gitlab:
+  profiles:
     if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-    concurrency:
-      group: gitlab-mirror
-      cancel-in-progress: false
+    timeout-minutes: 10
     steps:
-      - name: Mirror public repositories to GitLab
+      - name: Refresh GitLab group and prepare profile README
         env:
-          GH_TOKEN: ${{ github.token }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }} # GitLab api scope; Maintainer access to destination projects
-          GIT_TERMINAL_PROMPT: "0"
-          GIT_LFS_SKIP_PUSH: "1" # LFS objects are uploaded explicitly before pushing refs
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         shell: python
         run: |
           import json
           import os
-          import subprocess
-          import tempfile
-          import time
-          import urllib.error
-          import urllib.parse
           import urllib.request
-          from pathlib import Path
-
+          import urllib.parse
           token = os.environ["GITLAB_TOKEN"]
-          if not token:
-              raise SystemExit("Set the GITLAB_TOKEN Actions secret with GitLab api scope and project creation access.")
-
           def gitlab(endpoint, method="GET", avatar=None, **data):
               body = json.dumps(data).encode() if data else None
               content_type = "application/json"
@@ -62,110 +39,23 @@ jobs:
               with urllib.request.urlopen(request, timeout=60) as response:
                   return None if response.status == 204 else json.load(response)
 
-          def unprotect(project):
-              for kind in ("branches", "tags"):
-                  endpoint = f"projects/{project['id']}/protected_{kind}"
-                  while rules := gitlab(f"{endpoint}?per_page=100"):
-                      for rule in rules:
-                          gitlab(f"{endpoint}/{urllib.parse.quote(rule['name'], safe='')}", "DELETE")
-                          print(f"Removed {kind} protection: {rule['name']}", flush=True)
 
-          repositories = json.loads(subprocess.check_output([
-              "gh", "api", "--paginate", "--slurp", "orgs/ultralytics/repos?type=public&per_page=100"
-          ]))
-          group = gitlab("groups/ultralytics")["id"]
-          avatar = None
-          failures = []
-          for repo in (repo for page in repositories for repo in page):
-              name = repo["name"]
-              slug = "github" if name == ".github" else name
-              print(f"::group::{name}", flush=True)
-              try:
-                  try:
-                      project = gitlab(f"projects/ultralytics%2F{slug}")
-                  except urllib.error.HTTPError as error:
-                      if error.code != 404:
-                          raise
-                      project = gitlab("projects", "POST", name=slug, path=slug, namespace_id=group,
-                                       visibility="public", builds_access_level="disabled")
-                  # GitLab has no homepage field; keep the source and website links in its description.
-                  description = "\n\n".join(filter(None, [
-                      repo["description"], f"GitHub: {repo['html_url']}", repo["homepage"]
-                  ]))
-                  metadata = {"description": description, "topics": sorted(repo["topics"])}
-                  topics = sorted(topic.lower() for topic in project["topics"])
-                  if project["description"] != description or topics != metadata["topics"]:
-                      gitlab(f"projects/{project['id']}", "PUT", **metadata)
-                      print("Updated description, links, and topics", flush=True)
-                  if not project["avatar_url"]:
-                      if avatar is None:
-                          with urllib.request.urlopen(
-                              "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics-logomark-color.png",
-                              timeout=60,
-                          ) as response:
-                              avatar = response.read()
-                      gitlab(f"projects/{project['id']}", "PUT", avatar=avatar)
-                      print("Added Ultralytics U logo", flush=True)
-                  with tempfile.TemporaryDirectory() as directory:
-                      def git(*args):
-                          for attempt in range(3):
-                              result = subprocess.run(
-                                  ["git", "-C", directory, *args], stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT, text=True, timeout=3600,
-                              )
-                              print(result.stdout, end="", flush=True)
-                              # GitLab can briefly fail to resolve a newly created project during a push.
-                              if (not result.returncode or args[0] != "push" or attempt == 2
-                                  or "Could not create project:" not in result.stdout
-                                  or "has already been taken" not in result.stdout):
-                                  break
-                              time.sleep(2 ** (attempt + 1))
-                          result.check_returncode()
-
-                      git("init", "--bare")
-                      git("remote", "add", "origin", repo["clone_url"])
-                      git("fetch", "origin", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
-                      git("remote", "add", "gitlab", f"https://gitlab.com/ultralytics/{slug}.git")
-                      git("config", "credential.https://gitlab.com.helper",
-                          '!f() { echo username=oauth2; echo "password=$GITLAB_TOKEN"; }; f')
-                      git("config", "lfs.url", f"{repo['clone_url']}/info/lfs")
-                      git("config", "lfs.pushurl", f"https://gitlab.com/ultralytics/{slug}.git/info/lfs")
-                      git("lfs", "fetch", "--all", "origin")
-                      objects = [p.name for p in Path(directory, "lfs/objects").glob("*/*/*")]
-                      if objects:
-                          subprocess.run(
-                              ["git", "-C", directory, "lfs", "push", "--object-id", "--stdin", "gitlab"],
-                              input="\n".join(objects), text=True, check=True, timeout=3600,
-                          )
-                      unprotect(project)
-                      # Create the source default branch before selecting it, so pruning can delete an old default.
-                      default = repo["default_branch"]
-                      if subprocess.check_output(["git", "-C", directory, "for-each-ref", "refs/heads/"]).strip():
-                          git("push", "gitlab", f"+refs/heads/{default}:refs/heads/{default}")
-                          if project["default_branch"] != default:
-                              gitlab(f"projects/{project['id']}", "PUT", default_branch=default)
-                      unprotect(project)  # The first push to an empty project can protect its default branch
-                      git("push", "--atomic", "--prune", "gitlab", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
-                  print(f"Mirrored {name}", flush=True)
-              except Exception as error:
-                  failures.append(name)
-                  if isinstance(error, urllib.error.HTTPError):
-                      print(error.read().decode("utf-8", errors="replace"), flush=True)
-                  print(f"::error::Failed to mirror {name}: {error}", flush=True)
-              finally:
-                  print("::endgroup::", flush=True)
-          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
-              f"GitLab mirror: {sum(map(len, repositories)) - len(failures)} succeeded; {len(failures)} failed.\n"
-              + "".join(f"- Failed: {name}\n" for name in failures)
-          )
-          if failures:
-              raise SystemExit("Some mirrors failed; inspect their logs, including GitLab branch/tag protection rules.")
-      # Future mirrors: add a source checkout before enabling these placeholders.
-      # - name: Push to Gitee
-      #   run: |
-      #     git remote add gitee https://ultralytics:${{ secrets.GITEE_TOKEN }}@gitee.com/ultralytics/ultralytics.git
-      #     git push gitee main --force
-      # - name: Push to GitCode
-      #   run: |
-      #     git remote add gitcode https://ultralytics:${{ secrets.GITCODE_TOKEN }}@gitcode.net/ultralytics/ultralytics.git
-      #     git push gitcode main --force
+          user = gitlab("user")
+          assert user["username"] == "glenn-jocher", "Unexpected token owner"
+          print("Current public profile:", json.dumps({key: user.get(key) for key in ["username", "name", "bio", "website_url", "organization", "job_title", "github", "web_url"]}))
+          description = 'Ultralytics makes vision AI accessible with open-source YOLO models and tools for training, validation, and deployment.\n\n[Website](https://www.ultralytics.com/) · [Docs](https://docs.ultralytics.com/) · [Platform](https://platform.ultralytics.com/)\n\nOfficial GitLab mirrors. Development, issues, and pull requests: [GitHub](https://github.com/ultralytics).'
+          gitlab("groups/ultralytics", "PUT", description=description)
+          assert gitlab("groups/ultralytics")["description"] == description
+          print("Group description updated and verified")
+          project = gitlab("projects/ultralytics%2Fgitlab-profile")
+          endpoint = f"projects/{project['id']}"
+          readme = '<p align="center">\n  <a href="https://www.ultralytics.com/">\n    <img src="https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics-logomark-color.png" width="120" alt="Ultralytics">\n  </a>\n</p>\n\n# Ultralytics\n\nWe make vision AI accessible with open-source YOLO models and tools for training, validation, and deployment. Build computer vision applications with [Ultralytics YOLO](https://docs.ultralytics.com/) and manage datasets, training, and deployment with [Ultralytics Platform](https://platform.ultralytics.com/).\n\n## Get started\n\n- [Documentation](https://docs.ultralytics.com/) — installation, tutorials, models, and integrations.\n- [Ultralytics Platform](https://platform.ultralytics.com/) — annotate, train, and deploy.\n- [GitHub](https://github.com/ultralytics) — source repositories and development.\n- [Community](https://community.ultralytics.com/) — questions, ideas, and shared projects.\n- [Website](https://www.ultralytics.com/) — products, solutions, and company information.\n- [Licensing](https://www.ultralytics.com/license) — open-source and enterprise licensing options.\n\n## Contribute\n\nThese are official GitLab mirrors of our public GitHub repositories. GitHub is the source of truth for branches and tags. Please open issues and pull requests in the corresponding [GitHub repository](https://github.com/ultralytics); see our [contributing guide](https://docs.ultralytics.com/help/contributing/) to get involved.\n'
+          branch = "automation/evergreen-profile-20260917"
+          commit = gitlab(f"{endpoint}/repository/commits", "POST", branch=branch,
+                         start_branch=project["default_branch"], commit_message="Refresh evergreen Ultralytics GitLab profile",
+                         actions=[{"action": "update", "file_path": "README.md", "content": readme}])
+          mr = gitlab(f"{endpoint}/merge_requests", "POST", source_branch=branch,
+                      target_branch=project["default_branch"], title="Refresh evergreen Ultralytics GitLab profile",
+                      description="Replace dated GitHub-specific copy with evergreen Ultralytics messaging, the U logomark, current product and community links, and clear GitHub contribution routing.",
+                      remove_source_branch=True)
+          print("Profile README review:", mr["web_url"], "head:", commit["id"])

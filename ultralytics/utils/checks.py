@@ -633,7 +633,10 @@ def check_executorch_requirements():
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")
 
-    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # executorch>=1.5 no longer declares its torch floor and its runtime fails below torch 2.13 with "tensor does not
+    # have a device", so cap it where pip can no longer pair the two itself
+    executorch = "executorch" if check_version(TORCH_VERSION, "2.13.0") else "executorch<1.5"
+    check_requirements(executorch, cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
 
 
 def check_tensorrt(min_version: str = "7.0.0"):

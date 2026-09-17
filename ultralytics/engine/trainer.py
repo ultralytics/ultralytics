@@ -54,6 +54,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_13,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
@@ -421,10 +422,10 @@ class BaseTrainer:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
             ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
+            ddp_kwargs["forward_sync_buffers" if TORCH_2_13 else "broadcast_buffers"] = False
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
                 **ddp_kwargs,
             )
@@ -1194,7 +1195,10 @@ class BaseTrainer:
                     (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
+        # fused=True must go to the constructor: that is where Adam registers _step_supports_amp_scaling, which lets
+        # GradScaler pass found_inf to the kernel instead of reading it back on the host
+        fused = {"fused": True} if name in {"Adam", "AdamW"} and TORCH_2_0 and next(model.parameters()).is_cuda else {}
+        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g, **fused)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "

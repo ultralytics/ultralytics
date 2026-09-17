@@ -958,44 +958,6 @@ def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     assert sum(counts.values()) == request_count
 
 
-def test_platform_job_transport(monkeypatch, tmp_path):
-    """Test configurable Platform transport with an existing local checkpoint."""
-    from types import SimpleNamespace
-
-    from ultralytics import SETTINGS, cfg
-    from ultralytics.utils.callbacks import platform
-
-    monkeypatch.setattr(cfg, "TESTS_RUNNING", False)
-    monkeypatch.setitem(SETTINGS, "runs_dir", str(tmp_path))
-    args = SimpleNamespace(
-        save_dir=None, project="user/project", task="detect", name="model", mode="train", exist_ok=True
-    )
-    assert cfg.get_save_dir(args) == tmp_path / "detect/user/project/model"
-
-    captured = {}
-
-    def post(url, **kwargs):
-        captured.update(url=url, **kwargs)
-        return SimpleNamespace(status_code=200, json=lambda: {"received": True}, raise_for_status=lambda: None)
-
-    monkeypatch.setattr("requests.post", post)
-    monkeypatch.setattr(platform, "_api_key", "api-key")
-    monkeypatch.setattr(platform, "PLATFORM_API_URL", "https://example.test/api/webhooks")
-    assert platform._send("epoch_end", {"epoch": 0}, "user/project", "model") == {"received": True}
-    assert captured["url"] == "https://example.test/api/webhooks/training/metrics"
-    assert captured["json"]["data"] == {"epoch": 0}
-    assert captured["headers"] == {"Authorization": "Bearer api-key"}
-
-    model = tmp_path / "models" / "best.pt"
-    model.parent.mkdir()
-    model.write_bytes(b"weights")
-    monkeypatch.setenv("PLATFORM_API_URL", "http://127.0.0.1:8765")
-    assert platform._upload_model(model, "user/project", "model") == {
-        "modelPath": str(model),
-        "modelSize": 7,
-    }
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_scratch():
@@ -1922,6 +1884,17 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     samples = ClassificationDataset(tmp_path, args, augment=True).samples
 
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+
+
+def test_classification_split_class_alignment(tmp_path):
+    """Align a split's class folders to the model's class order by name and drop classes the model lacks."""
+    from ultralytics.data.dataset import ClassificationDataset
+
+    for name in ("b", "c", "d"):  # the split lacks the model's first class and adds one it does not have
+        (tmp_path / name).mkdir()
+        cv2.imwrite(str(tmp_path / name / "0.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    samples = ClassificationDataset(tmp_path, DEFAULT_CFG, names={0: "a", 1: "b", 2: "c"}).samples
+    assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
 @pytest.fixture

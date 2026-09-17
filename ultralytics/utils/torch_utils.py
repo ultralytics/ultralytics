@@ -45,6 +45,7 @@ TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
 TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
+TORCH_2_2 = check_version(TORCH_VERSION, "2.2.0")
 TORCH_2_3 = check_version(TORCH_VERSION, "2.3.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_5 = check_version(TORCH_VERSION, "2.5.0")
@@ -53,6 +54,7 @@ TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCH_2_10 = check_version(TORCH_VERSION, "2.10.0")
 TORCH_2_12 = check_version(TORCH_VERSION, "2.12.0")
+TORCH_2_13 = check_version(TORCH_VERSION, "2.13.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
@@ -679,8 +681,6 @@ def initialize_weights(model):
         elif t is nn.BatchNorm2d:
             m.eps = 1e-3
             m.momentum = 0.03
-        elif t in {nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU}:
-            m.inplace = True
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
@@ -795,6 +795,8 @@ def init_seeds(seed=0, deterministic=False):
         if TORCH_2_0:
             torch.use_deterministic_algorithms(True, warn_only=True)  # warn if deterministic is not possible
             torch.backends.cudnn.deterministic = True
+            if TORCH_2_2:  # skip deterministic mode's NaN fill of every new tensor, one fill kernel per allocation
+                torch.utils.deterministic.fill_uninitialized_memory = False
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)
         else:
@@ -807,6 +809,8 @@ def unset_deterministic():
     """Unset all the configurations applied for deterministic training."""
     torch.use_deterministic_algorithms(False)
     torch.backends.cudnn.deterministic = False
+    if TORCH_2_2:
+        torch.utils.deterministic.fill_uninitialized_memory = True
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
     os.environ.pop("PYTHONHASHSEED", None)
 
@@ -848,6 +852,7 @@ class ModelEMA:
         for p in self.ema.parameters():
             p.requires_grad_(False)
         self.enabled = True
+        self._pairs = None  # (ema tensors, model tensors) with floating dtype, built on the first update
 
     def update(self, model):
         """Update EMA parameters.
@@ -859,12 +864,15 @@ class ModelEMA:
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = unwrap_model(model).state_dict()  # model state_dict
-            ema_v, model_v = [], []
-            for k, v in self.ema.state_dict().items():
-                if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    ema_v.append(v)
-                    model_v.append(msd[k])
+            if self._pairs is None:  # the tensors are updated in place, so the lists are built once
+                msd = unwrap_model(model).state_dict()  # model state_dict
+                ema_v, model_v = [], []
+                for k, v in self.ema.state_dict().items():
+                    if v.dtype.is_floating_point:  # true for FP16 and FP32
+                        ema_v.append(v)
+                        model_v.append(msd[k])
+                self._pairs = ema_v, model_v
+            ema_v, model_v = self._pairs
             if (
                 ema_v and TORCH_2_0 and ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps")
             ):  # one kernel launch per op

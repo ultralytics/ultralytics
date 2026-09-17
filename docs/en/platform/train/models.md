@@ -201,6 +201,7 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
 - **Classes associated with failures**, ranking which classes appear most often in the weakest images
+- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace
 
 !!! note "Requirements"
 
@@ -339,6 +340,16 @@ Some export formats have architecture or task restrictions:
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.
 
+## Move Models Between Projects
+
+Move models you can edit into another project of the same workspace without copying them:
+
+1. Open the source project and select one or more models in the model list
+2. Right-click and choose **Cut** (`Cmd/Ctrl+X`)
+3. Open the destination project, right-click the model list, and choose **Paste** (`Cmd/Ctrl+V`), or drag the selected models onto the destination project in the sidebar
+
+Moved models keep their weights, metrics, exports, and deployments and take the destination project's URL. A model whose URL name is already used in the destination is renamed on arrival, models that are still training cannot be moved, and `Esc` cancels a pending cut. To copy a model you do not own into one of your projects, use **Clone Model**.
+
 ## Clone Model
 
 Clone a model to a different project:
@@ -441,9 +452,9 @@ Yes, download your model weights from the model page:
 
 ### How do I compare models across projects?
 
-Currently, model comparison is within projects. To compare across projects:
+Model comparison works within a project. To compare across projects:
 
-1. Clone models to a single project, or
+1. [Move](#move-models-between-projects) or [clone](#clone-model) the models into a single project, or
 2. Export metrics and compare externally
 
 ### What's the maximum model size?

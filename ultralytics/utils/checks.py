@@ -440,8 +440,8 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts
-    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    # Check system fonts using matplotlib's cached list, findSystemFonts() rescans the OS in every process
+    matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
     if any(matches):
         return matches[0]
 

@@ -9,7 +9,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        include:
+          - os: windows-latest
+            attempt: 1
+          - os: windows-latest
+            attempt: 2
+          - os: windows-latest
+            attempt: 3
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -25,6 +31,7 @@ jobs:
         shell: python
         run: |
           import platform
+          import shutil
           import numpy as np
           import openvino as ov
           from openvino import opset13 as ops
@@ -49,8 +56,11 @@ jobs:
                       print("POOL FAIL", size, name, str(error), flush=True)
           from ultralytics import YOLO
           from pathlib import Path
+          YOLO("yolo26n.pt")
           for nms in [None, False]:
-              path = YOLO("yolo26n.pt").export(format="openvino", imgsz=32, nms=nms)
+              weight = f"yolo26n-{nms}.pt"
+              shutil.copyfile("yolo26n.pt", weight)
+              path = YOLO(weight).export(format="openvino", imgsz=32, nms=nms)
               model = core.read_model(next(Path(path).glob("*.xml")))
               for op in model.get_ops():
                   if op.get_type_name() == "MaxPool":
@@ -59,6 +69,6 @@ jobs:
                   try:
                       compiled = core.compile_model(model, "CPU", config)
                       compiled(np.ones([1, 3, 32, 32], dtype=np.float32))
-                      print("YOLO PASS", nms, name, flush=True)
+                      print("YOLO PASS", nms, name, compiled.get_property("INFERENCE_PRECISION_HINT"), flush=True)
                   except Exception as error:
                       print("YOLO FAIL", nms, name, str(error), flush=True)

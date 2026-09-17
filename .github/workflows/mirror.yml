@@ -1,39 +1,166 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# This action mirrors the Ultralytics repository to other platforms like GitLab.
-# It runs on manual workflow dispatch by the repository owner.
-# Additional platforms can be added by uncommenting the relevant sections.
+# Mirror all public Ultralytics repositories to GitLab daily or on manual dispatch.
 
-name: Mirror Repository
+name: Mirror Repositories to GitLab
 
 permissions:
   contents: read
 
 on:
-  # push:
-  #   branches:
-  #     - main
   workflow_dispatch:
+  schedule:
+    - cron: "17 2 * * *" # Daily at 02:17 UTC
 
 jobs:
-  mirror:
+  gitlab:
+    if: github.repository == 'ultralytics/ultralytics'
     runs-on: ubuntu-latest
-    if: github.repository == 'ultralytics/ultralytics' && github.actor == 'glenn-jocher'
+    timeout-minutes: 360
+    concurrency:
+      group: gitlab-mirror
+      cancel-in-progress: false
     steps:
-      - name: Checkout Source Repository (${{ github.repository }})
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # Fetch all history for mirroring
-      - name: Run Git Config
-        run: |
-          git config --global user.name "UltralyticsAssistant"
-          git config --global user.email "web@ultralytics.com"
-      - name: Push to DagsHub
+      - name: Mirror public repositories to GitLab
         env:
-          DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }} # GitLab api scope; Maintainer access to destination projects
+          GIT_TERMINAL_PROMPT: "0"
+          GIT_LFS_SKIP_PUSH: "1" # LFS objects are uploaded explicitly before pushing refs
+        shell: python
         run: |
-          git remote add dagshub "https://glenn-jocher:${DAGSHUB_TOKEN}@dagshub.com/Ultralytics/ultralytics.git"
-          git push dagshub main --force
+          import json
+          import os
+          import subprocess
+          import tempfile
+          import time
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+          from pathlib import Path
+
+          token = os.environ["GITLAB_TOKEN"]
+          if not token:
+              raise SystemExit("Set the GITLAB_TOKEN Actions secret with GitLab api scope and project creation access.")
+
+          def gitlab(endpoint, method="GET", avatar=None, **data):
+              body = json.dumps(data).encode() if data else None
+              content_type = "application/json"
+              if avatar is not None:
+                  boundary = "ultralytics-avatar"
+                  content_type = f"multipart/form-data; boundary={boundary}"
+                  body = (
+                      f'--{boundary}\r\nContent-Disposition: form-data; name="avatar"; filename="logo.png"\r\n'
+                      'Content-Type: image/png\r\n\r\n'
+                  ).encode() + avatar + f"\r\n--{boundary}--\r\n".encode()
+              request = urllib.request.Request(
+                  f"https://gitlab.com/api/v4/{endpoint}",
+                  data=body,
+                  headers={"PRIVATE-TOKEN": token, "Content-Type": content_type},
+                  method=method,
+              )
+              with urllib.request.urlopen(request, timeout=60) as response:
+                  return None if response.status == 204 else json.load(response)
+
+          def unprotect(project):
+              for kind in ("branches", "tags"):
+                  endpoint = f"projects/{project['id']}/protected_{kind}"
+                  while rules := gitlab(f"{endpoint}?per_page=100"):
+                      for rule in rules:
+                          gitlab(f"{endpoint}/{urllib.parse.quote(rule['name'], safe='')}", "DELETE")
+                          print(f"Removed {kind} protection: {rule['name']}", flush=True)
+
+          repositories = json.loads(subprocess.check_output([
+              "gh", "api", "--paginate", "--slurp", "orgs/ultralytics/repos?type=public&per_page=100"
+          ]))
+          group = gitlab("groups/ultralytics")["id"]
+          avatar = None
+          failures = []
+          for repo in (repo for page in repositories for repo in page):
+              name = repo["name"]
+              slug = "github" if name == ".github" else name
+              print(f"::group::{name}", flush=True)
+              try:
+                  try:
+                      project = gitlab(f"projects/ultralytics%2F{slug}")
+                  except urllib.error.HTTPError as error:
+                      if error.code != 404:
+                          raise
+                      project = gitlab("projects", "POST", name=slug, path=slug, namespace_id=group,
+                                       visibility="public", builds_access_level="disabled")
+                  # GitLab has no homepage field; keep the source and website links in its description.
+                  description = "\n\n".join(filter(None, [
+                      repo["description"], f"GitHub: {repo['html_url']}", repo["homepage"]
+                  ]))
+                  metadata = {"description": description, "topics": sorted(repo["topics"])}
+                  topics = sorted(topic.lower() for topic in project["topics"])
+                  if project["description"] != description or topics != metadata["topics"]:
+                      gitlab(f"projects/{project['id']}", "PUT", **metadata)
+                      print("Updated description, links, and topics", flush=True)
+                  if not project["avatar_url"]:
+                      if avatar is None:
+                          with urllib.request.urlopen(
+                              "https://raw.githubusercontent.com/ultralytics/assets/main/logo/Ultralytics-logomark-color.png",
+                              timeout=60,
+                          ) as response:
+                              avatar = response.read()
+                      gitlab(f"projects/{project['id']}", "PUT", avatar=avatar)
+                      print("Added Ultralytics U logo", flush=True)
+                  with tempfile.TemporaryDirectory() as directory:
+                      def git(*args):
+                          for attempt in range(3):
+                              result = subprocess.run(
+                                  ["git", "-C", directory, *args], stdout=subprocess.PIPE,
+                                  stderr=subprocess.STDOUT, text=True, timeout=3600,
+                              )
+                              print(result.stdout, end="", flush=True)
+                              # GitLab can briefly fail to resolve a newly created project during a push.
+                              if (not result.returncode or args[0] != "push" or attempt == 2
+                                  or "Could not create project:" not in result.stdout
+                                  or "has already been taken" not in result.stdout):
+                                  break
+                              time.sleep(2 ** (attempt + 1))
+                          result.check_returncode()
+
+                      git("init", "--bare")
+                      git("remote", "add", "origin", repo["clone_url"])
+                      git("fetch", "origin", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
+                      git("remote", "add", "gitlab", f"https://gitlab.com/ultralytics/{slug}.git")
+                      git("config", "credential.https://gitlab.com.helper",
+                          '!f() { echo username=oauth2; echo "password=$GITLAB_TOKEN"; }; f')
+                      git("config", "lfs.url", f"{repo['clone_url']}/info/lfs")
+                      git("config", "lfs.pushurl", f"https://gitlab.com/ultralytics/{slug}.git/info/lfs")
+                      git("lfs", "fetch", "--all", "origin")
+                      objects = [p.name for p in Path(directory, "lfs/objects").glob("*/*/*")]
+                      if objects:
+                          subprocess.run(
+                              ["git", "-C", directory, "lfs", "push", "--object-id", "--stdin", "gitlab"],
+                              input="\n".join(objects), text=True, check=True, timeout=3600,
+                          )
+                      unprotect(project)
+                      # Create the source default branch before selecting it, so pruning can delete an old default.
+                      default = repo["default_branch"]
+                      if subprocess.check_output(["git", "-C", directory, "for-each-ref", "refs/heads/"]).strip():
+                          git("push", "gitlab", f"+refs/heads/{default}:refs/heads/{default}")
+                          if project["default_branch"] != default:
+                              gitlab(f"projects/{project['id']}", "PUT", default_branch=default)
+                      unprotect(project)  # The first push to an empty project can protect its default branch
+                      git("push", "--atomic", "--prune", "gitlab", "+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*")
+                  print(f"Mirrored {name}", flush=True)
+              except Exception as error:
+                  failures.append(name)
+                  if isinstance(error, urllib.error.HTTPError):
+                      print(error.read().decode("utf-8", errors="replace"), flush=True)
+                  print(f"::error::Failed to mirror {name}: {error}", flush=True)
+              finally:
+                  print("::endgroup::", flush=True)
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text(
+              f"GitLab mirror: {sum(map(len, repositories)) - len(failures)} succeeded; {len(failures)} failed.\n"
+              + "".join(f"- Failed: {name}\n" for name in failures)
+          )
+          if failures:
+              raise SystemExit("Some mirrors failed; inspect their logs, including GitLab branch/tag protection rules.")
+      # Future mirrors: add a source checkout before enabling these placeholders.
       # - name: Push to Gitee
       #   run: |
       #     git remote add gitee https://ultralytics:${{ secrets.GITEE_TOKEN }}@gitee.com/ultralytics/ultralytics.git
@@ -42,7 +169,3 @@ jobs:
       #   run: |
       #     git remote add gitcode https://ultralytics:${{ secrets.GITCODE_TOKEN }}@gitcode.net/ultralytics/ultralytics.git
       #     git push gitcode main --force
-      # - name: Push to Bitbucket
-      #   run: |
-      #     git remote add bitbucket https://ultralytics:${{ secrets.BITBUCKET_APP_PASSWORD }}@bitbucket.org/ultralytics/ultralytics.git
-      #     git push bitbucket main --force

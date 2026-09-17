@@ -469,7 +469,7 @@ class BaseTrainer:
             f"Starting training for " + (f"{self.args.time} hours..." if self.args.time else f"{self.epochs} epochs...")
         )
         if self.args.close_mosaic:
-            base_idx = (self.epochs - self.args.close_mosaic) * nb
+            base_idx = max(self.epochs - self.args.close_mosaic, 0) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
@@ -486,7 +486,7 @@ class BaseTrainer:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
-            if epoch == (self.epochs - self.args.close_mosaic):
+            if epoch == max(self.epochs - self.args.close_mosaic, 0):  # shorter runs close from epoch 0
                 self._close_dataloader_mosaic()
                 self.train_loader.reset()
 
@@ -1104,7 +1104,7 @@ class BaseTrainer:
             model.criterion.updates = start_epoch - 1
             model.criterion.update()
         self.start_epoch = start_epoch
-        if start_epoch > (self.epochs - self.args.close_mosaic):
+        if start_epoch > max(self.epochs - self.args.close_mosaic, 0):
             self._close_dataloader_mosaic()
             self.train_loader.reset()
 

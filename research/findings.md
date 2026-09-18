@@ -1,8 +1,8 @@
 # Findings — YOLOPose-3D
 
 _Can SAM 3D Body's capability be compressed into a single YOLO forward pass? Repo `~/ultralytics_pose3d`,
-branch `pose3d`. Last updated 2026-09-17. Status: **first real-GT result — 113.2 mm MPJPE on 3DPW from a
-3.4M-parameter single-shot model.**_
+branch `pose3d`. Last updated 2026-09-17. Status: **106.6 mm MPJPE on 3DPW from a 3.4M-parameter
+single-shot model, once the teacher's focal convention was measured rather than assumed.**_
 
 ## Research Question
 
@@ -57,6 +57,13 @@ cuts root-depth error 24% against the teacher — then makes root depth 39% *wor
 augmentation corrupts the metric depth target and simultaneously teaches the scale robustness that absolute
 depth depends on. The design's split of root depth from relative depth is what made this visible at all; a
 single MPJPE number would have shown C as simply worse and hidden the mechanism.
+
+**Metric depth is meaningless without the focal that defines it, and ours was never declared.** The teacher
+keys focal to the image diagonal, exactly; the COCO YAML claimed 1.1x the long side; 3DPW's real cameras are
+1.0239. Three conventions in one pipeline. Correcting only the evaluation cut 3DPW AbsRel ~3x for the
+best arms and inverted the ranking of the whole H2 family — the arm that looked best on depth was the one
+that had learned apparent size least well, so it inherited the unit error least. **Any absolute-depth number
+should now be treated as untrustworthy until the convention it is expressed in is written down.**
 
 **Teacher agreement and accuracy can point in opposite directions.** On the pseudo-labels C looks like a clean
 win; on real ground truth it is a regression on the headline depth metric. The inner-loop metric is a cheap

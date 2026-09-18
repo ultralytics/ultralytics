@@ -40,20 +40,26 @@ def camera_joints(joints_world: np.ndarray, cam_pose: np.ndarray) -> np.ndarray:
     return joints_world @ cam_pose[:3, :3].T + cam_pose[:3, 3]
 
 
-def frame_rows(j_cam: np.ndarray, k: np.ndarray, w: int, h: int) -> str | None:
-    """Build one pose3d label row from a person's camera-space SMPL joints, or None if unusable."""
+def frame_rows(j_cam: np.ndarray, k: np.ndarray, w: int, h: int, conv: float = 1.0) -> str | None:
+    """Build one pose3d label row from a person's camera-space SMPL joints, or None if unusable.
+
+    `conv` rescales the depths into the teacher's focal convention. The projection still uses the true depths,
+    because where a joint lands on the sensor is a fact about the real camera and does not move.
+    """
     root = j_cam[list(SMPL_HIPS)].mean(0)
-    z_root = float(root[2])
-    if not (0.3 < z_root < 40.0):  # behind the camera, or absurdly far: the sequence is mistracked here
+    if not (0.3 < float(root[2]) < 40.0):  # behind the camera, or absurdly far: the sequence is mistracked
         return None
 
-    uv = (j_cam / j_cam[:, 2:3]) @ k.T  # pinhole projection, (24, 3) homogeneous -> pixels
+    uv = (j_cam / j_cam[:, 2:3]) @ k.T  # pinhole projection with the TRUE depths, (24, 3) -> pixels
+    root_uv = ((root / root[2]) @ k.T)[:2]
+    j_cam = j_cam * (1.0, 1.0, conv)  # only the stored depths move into the teacher's convention
+    root = j_cam[list(SMPL_HIPS)].mean(0)
+    z_root = float(root[2])
     kpts = np.zeros((18, 4), dtype=np.float64)
     for coco_i, smpl_i in COCO_FROM_SMPL.items():
         kpts[coco_i, :2] = uv[smpl_i, :2] / (w, h)
         kpts[coco_i, 2] = 2.0
         kpts[coco_i, 3] = j_cam[smpl_i, 2] - z_root
-    root_uv = ((root / root[2]) @ k.T)[:2]
     kpts[17, :2] = root_uv / (w, h)
     kpts[17, 2] = 2.0
     kpts[17, 3] = z_root
@@ -75,7 +81,7 @@ def frame_rows(j_cam: np.ndarray, k: np.ndarray, w: int, h: int) -> str | None:
     return " ".join(f"{v:.6g}" for v in [0.0, cx, cy, bw, bh, *kpts.reshape(-1)])
 
 
-def main(root: Path, split: str, out: Path, stride: int) -> None:
+def main(root: Path, split: str, out: Path, stride: int, teacher_convention: bool) -> None:
     """Write pose3d labels, an image list and the measured focal ratio for one 3DPW split."""
     seqs = sorted((root / "sequenceFiles" / split).glob("*.pkl"))
     if not seqs:
@@ -84,6 +90,7 @@ def main(root: Path, split: str, out: Path, stride: int) -> None:
     (out / "images").mkdir(parents=True, exist_ok=True)
 
     listing, ratios, n_rows, n_dropped = [], [], 0, 0
+    conv_factors = []
     for pkl in seqs:
         with open(pkl, "rb") as fh:
             s = pickle.load(fh, encoding="latin1")
@@ -105,14 +112,23 @@ def main(root: Path, split: str, out: Path, stride: int) -> None:
         # same physical camera, and fx/width then splits into two clusters (1.03 vs 1.82) that are the same
         # camera seen twice. The validator scales its assumed focal by max(h, w) of the letterboxed image, so
         # fx/max(w, h) is the quantity that stays constant across both orientations.
-        ratios.append(float(k[0, 0]) / max(w, h))
+        #
+        # SAM 3D Body runs with no FOV estimator and defaults to focal = the image diagonal (measured
+        # f/diagonal = 1.0000, sd 0.0000, across 18 image shapes), so every pseudo-label depth is expressed in
+        # that convention and a model trained on them predicts depth-under-a-diagonal-focal, not metric depth.
+        # By default this converts 3DPW's true metric GT into the same convention, which is the only way the
+        # two are comparable. --true-metric writes the unconverted depths instead.
+        diag = float(np.hypot(w, h))
+        conv = diag / float(k[0, 0]) if teacher_convention else 1.0
+        conv_factors.append(conv)
+        ratios.append((diag if teacher_convention else float(k[0, 0])) / max(w, h))
 
         for f in range(0, len(cam_poses), stride):
             rows = []
             for person, ok in zip(people, valid):
                 if f >= len(person) or not ok[f]:
                     continue
-                row = frame_rows(camera_joints(person[f], cam_poses[f]), k, w, h)
+                row = frame_rows(camera_joints(person[f], cam_poses[f]), k, w, h, conv)
                 if row:
                     rows.append(row)
                 else:
@@ -131,7 +147,9 @@ def main(root: Path, split: str, out: Path, stride: int) -> None:
     (out / f"{split}.txt").write_text("\n".join(listing) + "\n")
     ratios = np.array(ratios)
     print(f"{split}: {len(seqs)} sequences -> {len(listing)} frames, {n_rows} persons, {n_dropped} dropped")
-    print(f"focal_ratio fx/max(w,h): mean {ratios.mean():.4f}  min {ratios.min():.4f}  max {ratios.max():.4f}")
+    cf = np.array(conv_factors)
+    print(f"focal_ratio for the yaml: mean {ratios.mean():.4f}  min {ratios.min():.4f}  max {ratios.max():.4f}")
+    print(f"depth convention factor diag/f_true: mean {cf.mean():.4f}  min {cf.min():.4f}  max {cf.max():.4f}")
 
 
 if __name__ == "__main__":
@@ -142,4 +160,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--stride", type=int, default=5, help="keep every Nth frame; 3DPW is 30 fps and highly redundant"
     )
+    parser.add_argument(
+        "--true-metric",
+        dest="teacher_convention",
+        action="store_false",
+        help="store true metric depth instead of the teacher's diagonal-focal convention",
+    )
+    parser.set_defaults(teacher_convention=True)
     main(**vars(parser.parse_args()))

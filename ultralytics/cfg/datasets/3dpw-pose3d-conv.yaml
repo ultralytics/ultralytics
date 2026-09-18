@@ -1,0 +1,51 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# 3DPW-pose3d: the real-ground-truth benchmark, converted from 3DPW by research/src/convert_3dpw.py.
+# Nothing here is pseudo-labelled — the 3D comes from 3DPW's IMU+video ground truth. Evaluation only.
+# Only the 12 joints SMPL-24 shares with COCO-17 carry ground truth; the five face joints are written with
+# visibility 0 so MPJPE skips them (SMPL-24 has no nose/eyes/ears, and the usual 14-joint protocol would need
+# the separately gated SMPL body model). Test split, every 5th frame.
+# Example usage: yolo val task=pose3d data=3dpw-pose3d.yaml
+
+path: /home/rick/3dpw-pose3d-conv # dataset root (convention-corrected GT)
+train: test.txt # no training on this set — it is the held-out real-GT benchmark
+val: test.txt
+test:
+
+# Keypoints. Joints 0-16 are COCO-17 carrying root-relative depth; joint 17 is the root (mid-hip) and its depth
+# channel holds the person's absolute depth. Both depth channels are encoded to [0, 1], see utils/pose3d.py.
+kpt_shape: [18, 4] # number of keypoints, number of dims (x, y, visible, z)
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 17]
+kpt_oks_sigmas: [0.026, 0.025, 0.025, 0.035, 0.035, 0.079, 0.079, 0.072, 0.072, 0.062, 0.062, 0.107, 0.107, 0.087, 0.087, 0.089, 0.089, 0.107]
+
+# 1.1473 = diagonal / max(w, h), because the depths in this copy are expressed in the teacher's convention:
+# SAM 3D Body defaults to focal = the image diagonal (measured f/diagonal = 1.0000, sd 0.0000). 3DPW's true
+# metric GT has been multiplied by diag/f_true = 1.1206 so it is comparable with a model trained on labels in
+# that convention. Use 3dpw-pose3d.yaml for true metric depth instead.
+focal_ratio: 1.1473
+
+# Classes
+names:
+  0: person
+
+# Keypoint names per class
+kpt_names:
+  0:
+    - nose
+    - left_eye
+    - right_eye
+    - left_ear
+    - right_ear
+    - left_shoulder
+    - right_shoulder
+    - left_elbow
+    - right_elbow
+    - left_wrist
+    - right_wrist
+    - left_hip
+    - right_hip
+    - left_knee
+    - right_knee
+    - left_ankle
+    - right_ankle
+    - root

@@ -567,12 +567,12 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
-            for i, d in enumerate(reversed(pred_boxes)):
+            coords = pred_boxes.xyxyxyxy if is_obb else pred_boxes.xyxy
+            for i, (d, box) in enumerate(zip(reversed(pred_boxes), reversed(coords))):
                 c = int(d.cls.item())  # .item() works for torch and numpy alike; int()/float() need 0-d since numpy 2.4
                 d_conf, id = float(d.conf.item()) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else (f"{d_conf:.2f}" if conf else None)
-                box = d.xyxyxyxy.squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,
                     label,

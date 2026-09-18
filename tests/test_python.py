@@ -128,6 +128,7 @@ def test_cfg_rejects_fuzzed_values():
         ("copy_paste_mode", None),
         ("batch", 0),
         ("batch", -2),
+        ("batch", 1.5),
         ("batch", float("nan")),
         ("patience", -1),
         ("workers", -2),
@@ -140,6 +141,7 @@ def test_cfg_rejects_fuzzed_values():
             get_cfg(overrides={key: value})
     assert get_cfg(overrides={"batch": -1}).batch == -1
     assert get_cfg(overrides={"batch": 0.5}).batch == 0.5
+    assert get_cfg(overrides={"batch": 1.0}).batch == 1.0
     assert get_cfg(overrides={"batch": 16}).batch == 16
     assert get_cfg(overrides={"patience": 0}).patience == 0
     assert get_cfg(overrides={"workers": 0}).workers == 0

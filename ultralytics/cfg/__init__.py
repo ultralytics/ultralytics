@@ -439,7 +439,7 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                     cfg[k] = v = float(v)
                 if not math.isfinite(v):
                     raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be finite.")
-                if k == "batch" and not (v == -1 or 0 < v < 1 or v >= 1):
+                if k == "batch" and not (v == -1 or 0 < v < 1 or (v >= 1 and v == int(v))):
                     raise ValueError(
                         f"'{k}={v}' is an invalid value. "
                         f"Use -1 for AutoBatch, a fraction in (0, 1) of GPU memory, or an integer >= 1."

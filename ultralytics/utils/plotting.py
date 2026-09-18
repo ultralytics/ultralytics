@@ -494,12 +494,12 @@ class Annotator:
             colors = colors[:, None, None] * alpha  # shape(n,1,1,3), premultiplied by alpha
             masks = masks.unsqueeze(3)  # shape(n,h,w,1)
             mcs = torch.empty((*masks.shape[1:3], 3), device=device, dtype=torch.float32)  # shape(h,w,3)
-            inv_alpha_masks = torch.empty((*masks.shape[1:3], 1), device=device, dtype=torch.float32)  # shape(h,w,1)
-            # Reduce in row bands so the (n,h,w,*) intermediates never span the full height
+            # (1 - alpha) ** overlap count; prod and pow compile per input shape on MPS, xlogy keeps alpha=1 finite
+            inv_alpha_masks = torch.exp(torch.xlogy(masks.sum(0, dtype=torch.float32), 1 - alpha))  # shape(h,w,1)
+            # Reduce in row bands so the (n,h,w,3) intermediate never spans the full height
             bands = max(1, masks.numel() * 12 // 2**23)  # 12 bytes per mask element downstream, 8 MB per band
-            for m, mcs_band, inv_band in zip(masks.chunk(bands, 1), mcs.chunk(bands), inv_alpha_masks.chunk(bands)):
+            for m, mcs_band in zip(masks.chunk(bands, 1), mcs.chunk(bands)):
                 torch.amax(m * colors, 0, out=mcs_band)
-                torch.prod(1 - m * alpha, 0, out=inv_band)
             im = (self.im if tensor_image else torch.from_numpy(self.im)).to(device).float() / 255.0
             im = ((im * inv_alpha_masks + mcs) * 255).byte()
             self.im[:] = im if tensor_image else im.cpu().numpy()

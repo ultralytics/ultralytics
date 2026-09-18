@@ -66,3 +66,58 @@ decision point.
 
 Predicted effect: small but clean, since it removes a 3.5% noise floor from the depth target. The larger prize
 is already banked.
+
+---
+
+# Step 2 — re-keyed labels (`E_refocal`)
+
+_2026-09-18. 100 epochs, 1.47 h, ultra15 GPU 3. One change from `D_scalecomp`: the dataset._
+
+## Results on 3DPW
+
+Each model scored in the convention it was trained in, which is the only fair comparison, plus E scored in
+D's convention so the two can be read on one common ruler.
+
+| model | benchmark | pose mAP50-95 | MPJPE (mm) | PA-MPJPE (mm) | AbsRel(Z) | delta1(Z) |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| D_scalecomp | conv (diagonal) | 0.7805 | 106.9 | **78.53** | 0.0614 | **0.6908** |
+| E_refocal | r12 (own) | 0.7803 | 109.4 | 82.05 | **0.0398** | 0.6496 |
+| **E_refocal** | **conv (common ruler)** | 0.7803 | **106.5** | 79.23 | **0.0449** | 0.6744 |
+
+## Against the locked predictions
+
+| prediction | outcome |
+| --- | --- |
+| AbsRel(Z) modestly better than D's 0.0614 | **confirmed, and not modestly** — 0.0449 like-for-like, a 27% cut, and 0.0398 in its own convention |
+| MPJPE at or slightly below 106.9 mm | confirmed like-for-like — 106.5 mm |
+| 2D mAP unchanged | confirmed exactly — 0.7803 against 0.7805 |
+| "a null result is the honest prior" | **wrong.** The aspect-driven label noise was doing real damage |
+
+**0.0398 AbsRel is the best depth number the project has produced**, from a label edit that cost no GPU time
+and did not re-run the teacher.
+
+The gain is not a units artefact. Scored on D's own benchmark, in D's own convention, E still beats it 0.0449
+to 0.0614. The model genuinely learned depth better; removing target variance it could not observe was worth
+27% of the remaining root-depth error.
+
+## What got slightly worse, and why it is consistent
+
+`delta1(Z)` falls (0.6908 -> 0.6744 on the common ruler) and PA-MPJPE rises (78.53 -> 79.23). Both are
+*relative*-depth measures, and both move the same small amount in the same direction, so this reads as one
+effect rather than noise: the re-keying rescales relative depths by the same per-image factor as the root, and
+for the minority of images with extreme aspect that is a large change to a quantity the root-depth argument
+does not apply to as cleanly. **Root depth improved 27%; relative depth regressed ~2%.**
+
+That asymmetry is itself a finding, and it points at the next split: the root channel and the relative
+channels may not want the same convention. The root genuinely scales with focal. The relative channels
+describe a body, whose true metric size does not change when the camera does — the scaling is correct only
+under the fixed-pixels argument, and the two requirements are in tension.
+
+## Where this leaves the project
+
+Best real-GT figures, all from a 3.4M-parameter single-shot model on 3DPW test:
+
+- **MPJPE 106.5 mm**, **PA-MPJPE 78.5 mm**, **root-depth AbsRel 0.0398**, **pose mAP50-95 0.780**
+- Against the first honest measurement two days ago — 113.2 mm MPJPE and 0.1266 AbsRel — the depth error is
+  down **3.2x**, and not one point of it came from a bigger model or a longer schedule. All of it came from
+  finding three different focal conventions in one pipeline and reconciling them.

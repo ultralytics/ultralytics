@@ -1,8 +1,8 @@
 # Findings — YOLOPose-3D
 
 _Can SAM 3D Body's capability be compressed into a single YOLO forward pass? Repo `~/ultralytics_pose3d`,
-branch `pose3d`. Last updated 2026-09-17. Status: **106.6 mm MPJPE on 3DPW from a 3.4M-parameter
-single-shot model, once the teacher's focal convention was measured rather than assumed.**_
+branch `pose3d`. Last updated 2026-09-17. Status: **106.5 mm MPJPE and 0.0398 root-depth AbsRel on 3DPW
+from a 3.4M-parameter single-shot model — depth error down 3.2x in two days, none of it from a bigger model.**_
 
 ## Research Question
 

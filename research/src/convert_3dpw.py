@@ -81,7 +81,7 @@ def frame_rows(j_cam: np.ndarray, k: np.ndarray, w: int, h: int, conv: float = 1
     return " ".join(f"{v:.6g}" for v in [0.0, cx, cy, bw, bh, *kpts.reshape(-1)])
 
 
-def main(root: Path, split: str, out: Path, stride: int, teacher_convention: bool) -> None:
+def main(root: Path, split: str, out: Path, stride: int, teacher_convention: bool, focal_ratio: float | None) -> None:
     """Write pose3d labels, an image list and the measured focal ratio for one 3DPW split."""
     seqs = sorted((root / "sequenceFiles" / split).glob("*.pkl"))
     if not seqs:
@@ -119,9 +119,12 @@ def main(root: Path, split: str, out: Path, stride: int, teacher_convention: boo
         # By default this converts 3DPW's true metric GT into the same convention, which is the only way the
         # two are comparable. --true-metric writes the unconverted depths instead.
         diag = float(np.hypot(w, h))
-        conv = diag / float(k[0, 0]) if teacher_convention else 1.0
+        # focal_ratio None means the teacher's raw diagonal convention; a number means the declared
+        # `ratio * max(w, h)` convention that refocal_labels.py re-keys the training labels onto.
+        f_conv = diag if focal_ratio is None else focal_ratio * max(w, h)
+        conv = f_conv / float(k[0, 0]) if teacher_convention else 1.0
         conv_factors.append(conv)
-        ratios.append((diag if teacher_convention else float(k[0, 0])) / max(w, h))
+        ratios.append((f_conv if teacher_convention else float(k[0, 0])) / max(w, h))
 
         for f in range(0, len(cam_poses), stride):
             rows = []
@@ -165,6 +168,12 @@ if __name__ == "__main__":
         dest="teacher_convention",
         action="store_false",
         help="store true metric depth instead of the teacher's diagonal-focal convention",
+    )
+    parser.add_argument(
+        "--focal-ratio",
+        type=float,
+        default=None,
+        help="declared focal as a multiple of max(w, h); omit for the teacher's raw diagonal convention",
     )
     parser.set_defaults(teacher_convention=True)
     main(**vars(parser.parse_args()))

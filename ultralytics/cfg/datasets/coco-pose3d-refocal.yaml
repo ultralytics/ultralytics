@@ -1,0 +1,53 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# COCO-pose3d: COCO person images with real boxes and SAM 3D Body pseudo-labelled 3D keypoints.
+# Boxes and the set of people come from COCO's own annotations, so detection supervision is real ground truth;
+# only the 3D is distilled. Built by research/src/pseudo_label_sam3d.py, audited by check_pseudo_labels.py.
+# Example usage: yolo train task=pose3d data=coco-pose3d.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── coco-pose3d ← images/ symlink COCO, labels/ are generated
+
+path: /home/rick/coco-pose3d-refocal # depths re-keyed to focal = 1.2 * max(w, h); see research/src/refocal_labels.py
+train: train2017.txt # image list, only images that actually carry a pseudo-label
+val: val2017.txt
+test:
+
+# Keypoints. Joints 0-16 are COCO-17 carrying root-relative depth; joint 17 is the root (mid-hip) and its depth
+# channel holds the person's absolute depth. Both depth channels are encoded to [0, 1], see utils/pose3d.py.
+kpt_shape: [18, 4] # number of keypoints, number of dims (x, y, visible, z)
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 17]
+kpt_oks_sigmas: [0.026, 0.025, 0.025, 0.035, 0.035, 0.079, 0.079, 0.072, 0.072, 0.062, 0.062, 0.107, 0.107, 0.087, 0.087, 0.089, 0.089, 0.107]
+
+# Declared, not assumed. SAM 3D Body keys its focal to the image DIAGONAL (measured f/diagonal = 1.0000,
+# sd 0.0000), which makes diagonal/max(w, h) — and therefore the depth target — vary 1.147-1.414 with aspect
+# ratio alone, noise the network cannot see after letterboxing. refocal_labels.py rescales every depth onto
+# this single declared ratio so the target is a function of the image the network actually receives.
+focal_ratio: 1.2
+
+# Classes
+names:
+  0: person
+
+# Keypoint names per class
+kpt_names:
+  0:
+    - nose
+    - left_eye
+    - right_eye
+    - left_ear
+    - right_ear
+    - left_shoulder
+    - right_shoulder
+    - left_elbow
+    - right_elbow
+    - left_wrist
+    - right_wrist
+    - left_hip
+    - right_hip
+    - left_knee
+    - right_knee
+    - left_ankle
+    - right_ankle
+    - root

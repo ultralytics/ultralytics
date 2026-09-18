@@ -10,6 +10,7 @@ import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, PYTHON_VERSION
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
+from ultralytics.utils.torch_utils import TORCH_1_10
 
 from .base import BaseBackend
 
@@ -105,7 +106,7 @@ class TensorRTBackend(BaseBackend):
             self.bindings[name] = Binding(name, dtype, shape, im)
 
         nms = metadata.get("args", {}).get("nms", False)  # an embedded NMS runs on the host, so it cannot be captured
-        self.graph = self.capture() if self.is_trt10 and not self.dynamic and not nms else None
+        self.graph = self.capture() if TORCH_1_10 and self.is_trt10 and not self.dynamic and not nms else None
         self.model = engine
 
     def forward(self, im: torch.Tensor) -> list[torch.Tensor]:

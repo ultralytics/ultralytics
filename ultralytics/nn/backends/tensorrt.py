@@ -50,17 +50,17 @@ class TensorRTBackend(BaseBackend):
 
         # Read engine file
         offset, metadata = self.engine_header(weight)
-        with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
+        with open(weight, "rb") as f, trt.Runtime(logger) as runtime, torch.cuda.device(self.device):
             f.seek(offset)  # skip the metadata header, if any, that precedes the engine
             if (dla := metadata.get("dla")) is not None:
                 runtime.DLA_core = int(dla)
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
-        try:
-            self.context = engine.create_execution_context()
-        except Exception:
-            LOGGER.error("TensorRT model exported with a different version than expected\n")
-            raise
+            try:
+                self.context = engine.create_execution_context()  # TensorRT binds this to the current device
+            except Exception:
+                LOGGER.error("TensorRT model exported with a different version than expected\n")
+                raise
 
         # Setup bindings
         self.bindings = OrderedDict()

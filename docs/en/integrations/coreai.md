@@ -144,7 +144,7 @@ Core AI is not currently a replacement for the production Core ML path:
 - **Beta software:** Apple's Core AI framework and parts of its Python toolchain are still preliminary and may change before their stable releases.
 - **Narrower export environment:** `coreai-torch` currently requires Python 3.11 or newer but below 3.14, plus recent PyTorch versions, which is much narrower than Ultralytics' supported Python and PyTorch range.
 - **Export runs on macOS only:** `coreai-core` publishes `macosx_26_0_arm64` wheels only, so `format=coreai` needs an Apple silicon Mac on macOS 26 or later.
-- **Slower end-to-end head on the Neural Engine:** With `nms=False`, the recipe the Ultralytics apps ship, YOLO26n measures 3.06 ms on Core AI against 1.53 ms on Core ML on an iPhone 17 Pro; the raw head is at parity. See [Choosing the head](#choosing-the-head).
+- **Slower end-to-end head on the Neural Engine:** With `nms=False`, YOLO26n measures 3.06 ms on Core AI against 1.53 ms on Core ML on an iPhone 17 Pro, and the FP16 end-to-end pose model returns no detections under Core AI's default placement on iOS 27.0 ([apple/coreai-torch#115](https://github.com/apple/coreai-torch/issues/115)). The raw head (`nms=None`, the default) avoids both, which is why the Ultralytics iOS SDK and Flutter plugin ship raw-head Core AI models and run NMS in Swift. See [Choosing the head](#choosing-the-head).
 - **No iOS Simulator runtime:** The iOS Simulator SDK does not include Core AI, so the Ultralytics SDKs run Core ML there.
 - **Application migration required:** A `.aimodel` cannot be substituted for an `.mlpackage`; model loading, preprocessing, inference calls, metadata handling, and output decoding need a Core AI implementation.
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
@@ -157,7 +157,7 @@ Core AI is not currently a replacement for the production Core ML path:
 Use **Core ML today** when you need:
 
 - Deployment across current and older Apple operating systems
-- The lowest measured latency with YOLO26's end-to-end head
+- YOLO26's end-to-end head without a separate NMS step
 - Vision framework image handling
 - Tested FP16 and INT8 YOLO deployment
 - Embedded NMS for compatible legacy detection models

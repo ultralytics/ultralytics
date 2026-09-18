@@ -84,7 +84,39 @@ def draw_view(canvas: np.ndarray, org: tuple[int, int], joints: np.ndarray, vis:
             cv2.circle(canvas, (px[j], py[j]), int(5 - 2 * depth), (245, 245, 245), -1, cv2.LINE_AA)
 
 
-def render(img: np.ndarray, kpts: np.ndarray, focal: float, max_people: int = 3) -> np.ndarray:
+def gt_depths(lb: Path, boxes: np.ndarray, shape: tuple[int, int]) -> list[float | None]:
+    """Return each prediction's ground-truth root depth by box IoU, or None where nothing matches."""
+    if not lb.exists():
+        return [None] * len(boxes)
+    g = np.array([x.split() for x in lb.read_text().strip().splitlines()], dtype=np.float32)
+    h, w = shape
+    gb = np.stack(
+        [
+            (g[:, 1] - g[:, 3] / 2) * w,
+            (g[:, 2] - g[:, 4] / 2) * h,
+            (g[:, 1] + g[:, 3] / 2) * w,
+            (g[:, 2] + g[:, 4] / 2) * h,
+        ],
+        1,
+    )
+    gz = decode_z(g[:, 5:].reshape(len(g), -1, 4)[:, :17, 3], g[:, 5:].reshape(len(g), -1, 4)[:, 17, 3])[1]
+    out = []
+    for b in boxes:
+        x1 = np.maximum(gb[:, 0], b[0])
+        y1 = np.maximum(gb[:, 1], b[1])
+        x2 = np.minimum(gb[:, 2], b[2])
+        y2 = np.minimum(gb[:, 3], b[3])
+        inter = np.clip(x2 - x1, 0, None) * np.clip(y2 - y1, 0, None)
+        union = (gb[:, 2] - gb[:, 0]) * (gb[:, 3] - gb[:, 1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+        iou = inter / np.clip(union, 1e-9, None)
+        j = int(iou.argmax())
+        out.append(float(gz[j]) if iou[j] >= 0.5 else None)
+    return out
+
+
+def render(
+    img: np.ndarray, kpts: np.ndarray, focal: float, max_people: int = 3, gt: list[float | None] | None = None
+) -> np.ndarray:
     """Return the image with its 2D overlay beside a rotation strip per person."""
     h, w = img.shape[:2]
     people = list(kpts)[:max_people]
@@ -104,13 +136,17 @@ def render(img: np.ndarray, kpts: np.ndarray, focal: float, max_people: int = 3)
         y0 = 10 + i * row_h
         j = to_camera(person, focal, w / 2, h / 2)
         _, z_root = decode_z(person[:17, 3], person[17, 3])
+        label = f"person {i + 1}   predicted {float(z_root):.2f} m"
+        g = None if gt is None else gt[i]
+        if g is not None:
+            label += f"   ground truth {g:.2f} m   error {100 * abs(float(z_root) - g) / g:.1f}%"
         cv2.putText(
             canvas,
-            f"person {i + 1}   root {float(z_root):.1f} m",
+            label,
             (w + 12, y0 + 16),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
-            (210, 214, 222),
+            (210, 214, 222) if g is None else (150, 235, 150),
             1,
             cv2.LINE_AA,
         )
@@ -119,7 +155,7 @@ def render(img: np.ndarray, kpts: np.ndarray, focal: float, max_people: int = 3)
     return canvas
 
 
-def main(model: str, images: list[str], out: Path, focal_ratio: float, conf: float) -> None:
+def main(model: str, images: list[str], out: Path, focal_ratio: float, conf: float, gt_labels: Path | None) -> None:
     """Predict on each image and write the rotation-strip render."""
     out.mkdir(parents=True, exist_ok=True)
     m = YOLO(model)
@@ -129,7 +165,10 @@ def main(model: str, images: list[str], out: Path, focal_ratio: float, conf: flo
             print(f"no detections: {path}")
             continue
         img = r.orig_img.copy()
-        canvas = render(img, r.keypoints.data.cpu().numpy(), focal_ratio * max(img.shape[:2]))
+        g = None
+        if gt_labels is not None:
+            g = gt_depths(gt_labels / f"{Path(path).stem}.txt", r.boxes.xyxy.cpu().numpy(), img.shape[:2])
+        canvas = render(img, r.keypoints.data.cpu().numpy(), focal_ratio * max(img.shape[:2]), gt=g)
         dst = out / f"{Path(path).stem}.jpg"
         cv2.imwrite(str(dst), canvas)
         print(f"{dst}  {len(r.keypoints.data)} people")
@@ -142,4 +181,11 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--focal-ratio", type=float, default=1.0239, dest="focal_ratio")
     parser.add_argument("--conf", type=float, default=0.4)
+    parser.add_argument(
+        "--gt-labels",
+        type=Path,
+        default=None,
+        dest="gt_labels",
+        help="pose3d label dir in the SAME convention as the model, to print true distances",
+    )
     main(**vars(parser.parse_args()))

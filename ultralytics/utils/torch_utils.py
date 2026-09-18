@@ -1038,8 +1038,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         thop = None  # conda support without 'ultralytics-thop' installed
 
     results = []
-    if not isinstance(device, torch.device):
-        device = select_device(device)
+    device = select_device(device, verbose=False)
     LOGGER.info(
         f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"

@@ -900,9 +900,10 @@ class Results(SimpleClass, DataExportMixin):
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
+        coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist() if data else []
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
-            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            box = coords[i]
             xy = {}
             for j, b in enumerate(box):
                 xy[f"x{j + 1}"] = round(b[0] / w, decimals)

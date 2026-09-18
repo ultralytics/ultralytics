@@ -759,7 +759,12 @@ class Results(SimpleClass, DataExportMixin):
             # Detect/segment/pose
             boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
             coords = (boxes.xyxyxyxyn if is_obb else boxes.xywhn).reshape(len(boxes), -1).tolist()
-            kpts = kpts.cpu() if kpts is not None else None
+            if kpts is not None:
+                kpts = kpts.cpu()
+                keypoints = kpts.xyn
+                if kpts.has_visible:
+                    keypoints = torch.cat((torch.as_tensor(keypoints), torch.as_tensor(kpts.conf)[..., None]), 2)
+                keypoints = keypoints.reshape(len(kpts), -1).tolist()
             segments = masks.xyn if masks else None
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
@@ -770,10 +775,7 @@ class Results(SimpleClass, DataExportMixin):
                         continue
                     line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
                 if kpts is not None:
-                    kpt = kpts[j].xyn
-                    if kpts[j].has_visible:
-                        kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].conf)[..., None]), 2)
-                    line += (*kpt.reshape(-1).tolist(),)
+                    line += (*keypoints[j],)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 

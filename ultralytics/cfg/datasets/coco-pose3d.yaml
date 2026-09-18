@@ -2,7 +2,7 @@
 
 # COCO-pose3d: COCO person images with real boxes and SAM 3D Body pseudo-labelled 3D keypoints.
 # Boxes and the set of people come from COCO's own annotations, so detection supervision is real ground truth;
-# only the 3D is distilled. Built by research/src/pseudo_label_sam3d.py, audited by check_pseudo_labels.py.
+# only the 3D is distilled. Built by the pose3d-research branch, research/src/pseudo_label_sam3d.py, audited by check_pseudo_labels.py.
 # Example usage: yolo train task=pose3d data=coco-pose3d.yaml
 # parent
 # ├── ultralytics

@@ -2,14 +2,14 @@
 
 # COCO-pose3d: COCO person images with real boxes and SAM 3D Body pseudo-labelled 3D keypoints.
 # Boxes and the set of people come from COCO's own annotations, so detection supervision is real ground truth;
-# only the 3D is distilled. Built by research/src/pseudo_label_sam3d.py, audited by check_pseudo_labels.py.
+# only the 3D is distilled. Built by the pose3d-research branch, research/src/pseudo_label_sam3d.py, audited by check_pseudo_labels.py.
 # Example usage: yolo train task=pose3d data=coco-pose3d.yaml
 # parent
 # ├── ultralytics
 # └── datasets
 #     └── coco-pose3d ← images/ symlink COCO, labels/ are generated
 
-path: /home/rick/coco-pose3d-refocal # depths re-keyed to focal = 1.2 * max(w, h); see research/src/refocal_labels.py
+path: /home/rick/coco-pose3d-refocal # depths re-keyed to focal = 1.2 * max(w, h); see the pose3d-research branch, research/src/refocal_labels.py
 train: train2017.txt # image list, only images that actually carry a pseudo-label
 val: val2017.txt
 test:

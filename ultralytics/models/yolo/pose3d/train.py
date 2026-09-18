@@ -34,7 +34,7 @@ class Pose3DTrainer(yolo.pose.PoseTrainer):
         if self.args.scale or self.args.mosaic:
             LOGGER.warning(
                 "pose3d: scale/mosaic augmentation changes apparent object size without changing the metric depth "
-                "target. Root-depth accuracy may suffer; see research/design/pose3d-task-design.md (H2)."
+                "target. Root-depth accuracy may suffer; see the pose3d-research branch, research/design/pose3d-task-design.md (H2)."
             )
 
     def get_model(

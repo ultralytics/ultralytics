@@ -3,7 +3,7 @@
 # COCO8-pose3d: the 8 COCO8-pose images relabelled for the pose3d task.
 # WARNING: the depth channel in this set is SYNTHETIC, not pseudo-labelled. It exists to exercise the plumbing
 # (label parsing, augmentation, loss, metrics), not to train anything. Build it with
-# `python research/src/make_coco8_pose3d.py`, and see research/design/pose3d-task-design.md for the real pipeline.
+# `python the pose3d-research branch, research/src/make_coco8_pose3d.py`, and see the pose3d-research branch, research/design/pose3d-task-design.md for the real pipeline.
 # Example usage: yolo train task=pose3d data=coco8-pose3d.yaml
 # parent
 # ├── ultralytics

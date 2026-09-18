@@ -410,12 +410,13 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         ab = b - a
         ad = d - a
 
-        # (b, n_boxes, h*w, 2)
-        ap = xy_centers - a
+        # (b, n_boxes, h*w) per coordinate
+        apx = xy_centers[:, 0] - a[..., 0]
+        apy = xy_centers[:, 1] - a[..., 1]
         norm_ab = (ab * ab).sum(dim=-1)
         norm_ad = (ad * ad).sum(dim=-1)
-        ap_dot_ab = (ap * ab).sum(dim=-1)
-        ap_dot_ad = (ap * ad).sum(dim=-1)
+        ap_dot_ab = apx * ab[..., 0] + apy * ab[..., 1]
+        ap_dot_ad = apx * ad[..., 0] + apy * ad[..., 1]
         return (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)  # is_in_box
 
 

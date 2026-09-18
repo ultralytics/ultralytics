@@ -758,11 +758,12 @@ class Results(SimpleClass, DataExportMixin):
         elif boxes:
             # Detect/segment/pose
             boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
+            coords = (boxes.xyxyxyxyn if is_obb else boxes.xywhn).reshape(len(boxes), -1).tolist()
             kpts = kpts.cpu() if kpts is not None else None
             segments = masks.xyn if masks else None
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
-                line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
+                line = (c, *coords[j])
                 if segments is not None:
                     seg = segments[j]
                     if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts

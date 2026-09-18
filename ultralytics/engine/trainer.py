@@ -1025,6 +1025,8 @@ class BaseTrainer:
                     if k in overrides:
                         setattr(self.args, k, overrides[k])
 
+            except (ValueError, TypeError):
+                raise
             except Exception as e:
                 raise FileNotFoundError(
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "

@@ -141,6 +141,20 @@ def test_semantic_polygon_val_background():
     assert (dataset[0]["semantic_mask"] == 80).any(), "background pixels mislabeled on standalone polygon val"
 
 
+def test_check_resume_preserves_cfg_errors(monkeypatch, tmp_path):
+    """Config ValueError/TypeError from resume must not become FileNotFoundError."""
+    ckpt = tmp_path / "last.pt"
+    ckpt.write_bytes(b"x")  # path exists so missing-file wrapping is not the cause
+
+    fake = SimpleNamespace(args={"epochs": 0})
+    monkeypatch.setattr("ultralytics.engine.trainer.load_checkpoint", lambda *_a, **_k: (fake, {}))
+
+    with pytest.raises(ValueError, match="epochs"):
+        detect.DetectionTrainer(
+            overrides={"model": "yolo26n.yaml", "data": "coco8.yaml", "resume": str(ckpt)},
+        )
+
+
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_resume_incomplete(task, weight, data, tmp_path):
     """Test training resumes from an incomplete checkpoint."""

@@ -370,7 +370,7 @@ def build_dataloader(
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
     loader = InfiniteDataLoader if shuffle else dataloader.DataLoader
-    return loader(
+    kwargs = dict(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,
@@ -384,6 +384,9 @@ def build_dataloader(
         drop_last=drop_last,
         **({"pin_memory_device": pin_memory_device} if pin_memory_device else {}),
     )
+    if not TORCH_2_0 and not shuffle:
+        kwargs.pop("prefetch_factor", None)
+    return loader(**kwargs)
 
 
 def check_source(

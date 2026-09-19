@@ -417,6 +417,17 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        if self.names:  # standalone val: drop labels of classes the model lacks, as ClassificationDataset does
+            nc = len(self.names)
+            cls = np.concatenate([label["cls"] for label in dataset.labels]) if dataset.labels else np.zeros(0)
+            extra = cls[cls >= nc].astype(int)
+            if extra.size:
+                names = (self.data or {}).get("names", {})
+                LOGGER.warning(
+                    f"Split has classes {sorted({names.get(c, c) for c in extra.tolist()})} that the model (nc={nc}) "
+                    f"cannot predict. Skipping {extra.size} labels for these classes."
+                )
+                dataset.update_labels(list(range(nc)))
         return build_dataloader(
             dataset,
             batch_size,

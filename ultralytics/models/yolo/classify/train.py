@@ -7,7 +7,7 @@ from typing import Any
 
 import torch
 
-from ultralytics.data import ClassificationDataset, build_dataloader
+from ultralytics.data import ClassificationDataset, MultiLabelClassificationDataset, build_dataloader
 from ultralytics.engine.trainer import BaseTrainer
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import ClassificationModel
@@ -87,6 +87,12 @@ class ClassificationTrainer(BaseTrainer):
                 m.reset_parameters()
             if isinstance(m, torch.nn.Dropout) and self.args.dropout:
                 m.p = self.args.dropout  # set dropout
+        if getattr(self.args, "multi_label", False):
+            from ultralytics.nn.modules.head import Classify
+
+            for m in model.modules():
+                if isinstance(m, Classify):
+                    m.multi_label = True
         for p in model.parameters():
             p.requires_grad = True  # for training
         return model
@@ -118,8 +124,18 @@ class ClassificationTrainer(BaseTrainer):
             batch (Any, optional): Batch information (unused in this implementation).
 
         Returns:
-            (ClassificationDataset): Dataset for the specified mode.
+            (ClassificationDataset | MultiLabelClassificationDataset): Dataset for the specified mode.
         """
+        if getattr(self.args, "multi_label", False):
+            labels_file = self.data.get(f"{mode}_labels_file", self.data.get("train_labels_file", ""))
+            return MultiLabelClassificationDataset(
+                root=img_path,
+                args=self.args,
+                augment=mode == "train",
+                prefix=mode,
+                nc=self.data["nc"],
+                labels_file=labels_file,
+            )
         return ClassificationDataset(
             img_path, self.args, augment=mode == "train", prefix=mode, names=self.data["names"]
         )
@@ -186,9 +202,10 @@ class ClassificationTrainer(BaseTrainer):
             batch (dict[str, torch.Tensor]): Batch containing images and class labels.
             ni (int): Batch index used for naming the output file.
         """
-        batch["batch_idx"] = torch.arange(batch["img"].shape[0])  # add batch index for plotting
+        plot_batch = {**batch}  # shallow copy so plot_images does not overwrite multi-hot 'cls' in place
+        plot_batch["batch_idx"] = torch.arange(batch["img"].shape[0])
         plot_images(
-            labels=batch,
+            labels=plot_batch,
             fname=self.save_dir / f"train_batch{ni}.jpg",
             on_plot=self.on_plot,
         )

@@ -255,6 +255,11 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
             f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'"
         )
 
+    if any(x <= 0 for x in imgsz):
+        raise ValueError(
+            f"'imgsz={imgsz}' is not a valid image size. Valid imgsz values are positive, i.e. 'imgsz=640'"
+        )
+
     # Apply max_dim
     if len(imgsz) > max_dim:
         msg = (

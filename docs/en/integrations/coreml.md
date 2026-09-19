@@ -19,7 +19,7 @@ Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhon
 
 !!! note "Apple's new Core AI format"
 
-    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, and Ultralytics exports it with `format="coreai"`. CoreML remains the recommended format for the Ultralytics iOS and Flutter SDKs and broader Apple device compatibility.
+    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, and Ultralytics exports it with `format="coreai"`. The Ultralytics iOS and Flutter SDKs load Core AI on iOS 27 and later and CoreML everywhere else, so CoreML remains the format for iOS 26 and earlier, the iOS Simulator, and the broadest Apple device compatibility. From `ultralytics` 8.4.156 the `format="ios"` and `format="apple"` aliases export Core AI; use `format="coreml"` for CoreML.
 
 <p align="center">
   <br>

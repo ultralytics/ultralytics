@@ -129,7 +129,13 @@ class BaseDataset(Dataset):
         self.augment = augment
         self.single_cls = single_cls
         self.prefix = prefix
-        self.fraction = get_split_fraction(fraction, "train")
+        # Resolve raw lists by their 'train' entry; scalars arrive already split-resolved by callers (i.e. a resolved
+        # 'test' fraction of 0.0), so re-resolving them against a hardcoded 'train' split misfires
+        self.fraction = get_split_fraction(fraction, "train") if isinstance(fraction, list) else fraction
+        if self.fraction in {0, 1}:  # normalize 0/1 to float so integer-count fractions (i.e. 7) keep count semantics
+            self.fraction = float(self.fraction)
+        if not self.fraction:  # a resolved 0 ('none') fraction can't build a dataset; fail on the real fraction value
+            raise ValueError(f"{self.prefix}fraction={self.fraction} must select at least one image")
         self.channels = channels
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR
         self.im_files = self.get_img_files(self.img_path)

@@ -752,6 +752,20 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
+def test_val_test_split_zero_test_fraction(tmp_path):
+    """Test split=test with fraction=[train, val, 0] fails on the test fraction itself, not a 'train fraction' error."""
+    data = check_det_dataset("coco8.yaml")
+    (yaml_file := tmp_path / "coco8-test.yaml").write_text(
+        f"path: {data['path']}\ntrain: {data['train']}\nval: {data['val']}\ntest: {data['val']}\nnames: {data['names']}\n"
+    )
+    model = YOLO(MODEL)
+    args = {"data": str(yaml_file), "split": "test", "imgsz": 32, "batch": 1, "workers": 0, "device": "cpu"}
+    metrics = model.val(fraction=[1, 1, 0.5], plots=False, verbose=False, **args)  # positive test entry still validates
+    assert isinstance(metrics.box.map, float)
+    with pytest.raises(ValueError, match="fraction=0.0 must select"):  # 'none' (0) can't build a dataset
+        model.val(fraction=[1, 1, 0], plots=False, verbose=False, **args)
+
+
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

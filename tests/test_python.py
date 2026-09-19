@@ -410,6 +410,14 @@ def test_predict_img(model_name):
     assert len(model(batch, imgsz=32, classes=0)) == len(batch)  # multiple sources in a batch
 
 
+def test_predict_reuse_keeps_fixed_export_imgsz(isolated_model):
+    """Test repeated predict() calls with a user imgsz keep a fixed-shape export's metadata size."""
+    onnx = YOLO(isolated_model).export(format="onnx", imgsz=32, device="cpu")  # fixed shape (dynamic=False)
+    model = YOLO(onnx)
+    for _ in range(3):  # calls 2+ reuse the predictor; user imgsz must not defeat the export metadata imgsz
+        assert len(model.predict(SOURCE, imgsz=64, verbose=False)) == 1
+
+
 @pytest.mark.parametrize(("model_name", "bgr"), [("yolo11n.pt", [0, 127, 255]), ("yolo11n-grayscale.pt", [127])])
 def test_preprocess_values(model_name, bgr):
     """Check predictor channel order and normalization with known pixel values."""

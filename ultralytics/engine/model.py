@@ -548,9 +548,9 @@ class Model(torch.nn.Module):
                 **self.overrides,
                 **{k: getattr(self.predictor.args, k) for k in setup_keys},
             }
-            if hasattr(self.predictor.model, "imgsz") and not self.predictor.model.dynamic:
-                base_args["imgsz"] = self.predictor.args.imgsz
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
+            if hasattr(self.predictor.model, "imgsz") and not self.predictor.model.dynamic:
+                self.predictor.args.imgsz = self.predictor.model.imgsz  # reuse imgsz from export metadata
             if self.predictor.args.show:
                 self.predictor.args.show = checks.check_imshow(warn=True)
             if prev_save_args != tuple(getattr(self.predictor.args, k, None) for k in save_keys):

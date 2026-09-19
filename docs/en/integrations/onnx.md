@@ -207,6 +207,10 @@ Once you've successfully exported your Ultralytics YOLO26 models to ONNX format,
 
 - **[Triton Inference Server](../guides/triton-inference-server.md)**: Learn how to deploy your ONNX models with NVIDIA's Triton Inference Server for high-performance, scalable deployments.
 
+## AMD GPU Inference with MIGraphX
+
+Ultralytics runs exported ONNX models on AMD GPUs through the ONNX Runtime [MIGraphX execution provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html). On a ROCm (HIP) system with the `onnxruntime-ep-migraphx` plugin installed, the ONNX backend selects `MIGraphXExecutionProvider` automatically with no code changes, and all YOLO26 tasks are supported. See the [AMD GPU inference guide](amd.md) for prerequisites, installation, usage, and the compiled-program cache.
+
 ## Summary
 
 In this guide, you've learned how to export Ultralytics YOLO26 models to ONNX format to increase their interoperability and performance across various platforms. You were also introduced to the ONNX Runtime and ONNX deployment options.
@@ -271,7 +275,8 @@ Learn more by checking the [ONNX Runtime documentation](https://onnxruntime.ai/d
 YOLO26 models exported to ONNX can be deployed on various platforms including:
 
 - **CPUs**: Utilizing ONNX Runtime for optimized CPU inference.
-- **GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
+- **NVIDIA GPUs**: Leveraging NVIDIA CUDA for high-performance GPU acceleration.
+- **AMD GPUs**: Using AMD ROCm and MIGraphX Execution Provider for high-performance GPU acceleration on Linux.
 - **Edge devices**: Running lightweight models on edge and mobile devices for real-time, on-device inference.
 - **Web browsers**: Executing models directly within web browsers for interactive web-based applications.
 - **Cloud services**: Deploying on cloud platforms that support ONNX format for scalable inference.

@@ -324,7 +324,7 @@ def build_dataloader(
     drop_last: bool = False,
     pin_memory: bool = True,
     device: torch.device | str = "cuda",
-) -> InfiniteDataLoader:
+):
     """Create and return an InfiniteDataLoader for training or validation.
 
     Args:
@@ -369,7 +369,8 @@ def build_dataloader(
     pin_memory_device = (
         device_type if pin_memory and device_type in {"npu", "xpu"} and TORCH_1_13 and not TORCH_2_7 else None
     )
-    return InfiniteDataLoader(
+    loader = InfiniteDataLoader if shuffle else dataloader.DataLoader
+    return loader(
         dataset=dataset,
         batch_size=batch,
         shuffle=shuffle and sampler is None,

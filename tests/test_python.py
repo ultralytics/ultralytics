@@ -1313,6 +1313,28 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
     assert (extracted / "safe.txt").is_file()
 
 
+def test_safe_download_tar_returns_top_level_dir(tmp_path):
+    """Test safe_download() returns a tar's single top-level directory like zip extraction does."""
+    (ds := tmp_path / "tartest8").mkdir()
+    (ds / "data.yaml").write_text("path: .\ntrain: images\nval: images\nnames: {0: person}\n")
+    (ds / "images").mkdir()
+    (ds / "images" / "im0.jpg").write_bytes(b"jpg")
+    archive = tmp_path / "tartest8.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(ds, arcname="tartest8")
+
+    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
+
+    assert extracted == tmp_path / "datasets" / "tartest8"  # dataset root, not the extraction root
+    assert (extracted / "data.yaml").is_file()
+
+    (top := tmp_path / "top.txt").write_text("x")  # multiple top-level entries still return the extraction root
+    with tarfile.open(multi := tmp_path / "multi.tar", "w") as tar:
+        tar.add(ds, arcname="tartest8")
+        tar.add(top, arcname="top.txt")
+    assert safe_download(multi, dir=tmp_path / "datasets2", unzip=True, progress=False) == tmp_path / "datasets2"
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_converter(tmp_path):
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""

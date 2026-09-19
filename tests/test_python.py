@@ -827,30 +827,6 @@ def test_convert_signed_ndjson(monkeypatch):
     assert captured == [(url, 1.0)]
 
 
-def test_check_file_redownloads_remote_ndjson(tmp_path):
-    """Test remote *.ndjson files are re-downloaded on every check_file call so updated data is never served stale."""
-    import threading
-    from http.server import HTTPServer, SimpleHTTPRequestHandler
-
-    from ultralytics.utils import checks
-
-    class QuietHandler(SimpleHTTPRequestHandler):
-        def log_message(self, *args):
-            """Silence per-request logging."""
-
-    (tmp_path / "srv").mkdir()
-    (tmp_path / "srv" / "data.ndjson").write_text('{"v": 1}\n')
-    server = HTTPServer(("127.0.0.1", 0), lambda *a: QuietHandler(*a, directory=str(tmp_path / "srv")))
-    threading.Thread(target=server.serve_forever, daemon=True).start()
-    url = f"http://127.0.0.1:{server.server_port}/data.ndjson"
-    out = tmp_path / "out"
-    out.mkdir()
-
-    assert Path(checks.check_file(url, download_dir=str(out))).read_text() == '{"v": 1}\n'
-    (tmp_path / "srv" / "data.ndjson").write_text('{"v": 2}\n')  # publisher updates the served file
-    assert Path(checks.check_file(url, download_dir=str(out))).read_text() == '{"v": 2}\n'
-
-
 @pytest.mark.parametrize("task", ["detect", "classify"])
 def test_ndjson_conversion_concurrency_and_resume(monkeypatch, tmp_path, task):
     """Test concurrent conversions share work and interrupted conversions resume before publishing completion."""

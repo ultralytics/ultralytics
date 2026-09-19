@@ -118,10 +118,10 @@ def autobatch(
             fit_x, fit_y = zip(*xy)
             p = np.polyfit(fit_x, fit_y, deg=1)  # first-degree (linear) polynomial fit
             b = int((round(f * fraction) - p[1]) / p[0])  # y intercept (optimal batch size)
-            if None in results:  # some sizes failed
-                i = results.index(None)  # first fail index
-                if b >= batch_sizes[i]:  # y intercept above failure point
-                    b = batch_sizes[max(i - 1, 0)]  # select prior safe point
+            oom = next((i for i, r in enumerate(results) if not r and batch_sizes[i] > fit_x[0]), None)  # first OOM
+            if oom is not None and b >= batch_sizes[oom]:  # y intercept above failure point
+                b = batch_sizes[oom - 1]  # select prior safe point
+            b = max(b, fit_x[0])  # failures below the first successful probe are not memory ceilings
             if b < 1 or b > 1024:  # b outside of safe range
                 LOGGER.warning(f"{prefix}batch={b} outside safe range, using default batch-size {batch_size}.")
                 b = batch_size

@@ -1,15 +1,18 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import contextlib
+import copy
+import json
 import subprocess
 import time
 from pathlib import Path
 
+import numpy as np
 import pytest
 
 from tests import SOURCE
-from ultralytics import YOLO, download
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, SETTINGS
+from ultralytics import YOLO
+from ultralytics.utils import SETTINGS
 from ultralytics.utils.checks import check_requirements
 
 
@@ -126,30 +129,126 @@ def test_triton(tmp_path, isolated_model):
     subprocess.call(f"docker kill {container_id}", shell=True)
 
 
-@pytest.mark.skipif(not check_requirements("faster-coco-eval", install=False), reason="faster-coco-eval not installed")
-def test_faster_coco_eval():
-    """Validate YOLO model predictions on COCO dataset using faster-coco-eval."""
+@pytest.mark.skipif(
+    not check_requirements("ultrafast-pycocotools", install=False), reason="ultrafast-pycocotools not installed"
+)
+@pytest.mark.parametrize(
+    "task,suffix,iou_type", [("detect", "", "bbox"), ("segment", "-seg", "segm"), ("pose", "-pose", "keypoints")]
+)
+def test_ultrafast_pycocotools(task, suffix, iou_type, caplog, tmp_path):
+    """Compare real YOLO predictions against independent official COCO annotations."""
+    faster = pytest.importorskip("faster_coco_eval")  # Reference only; not a runtime dependency.
+    from ultralytics.data.converter import coco80_to_coco91_class
     from ultralytics.models.yolo.detect import DetectionValidator
     from ultralytics.models.yolo.pose import PoseValidator
     from ultralytics.models.yolo.segment import SegmentationValidator
 
-    args = {"model": "yolo26n.pt", "data": "coco8.yaml", "save_json": True, "imgsz": 64}
-    validator = DetectionValidator(args=args)
+    cls = {"detect": DetectionValidator, "segment": SegmentationValidator, "pose": PoseValidator}[task]
+    validator = cls(
+        args={"model": f"yolo26n{suffix}.pt", "data": f"coco8{suffix}.yaml", "save_json": True, "imgsz": 320},
+        save_dir=tmp_path,
+    )
     validator()
-    validator.is_coco = True
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8/annotations")
-    _ = validator.eval_json(validator.stats)
+    assert validator.jdict
+    # Original train2017 annotations for the eight COCO8/COCO8-pose validation images.
+    data = json.loads((Path(__file__).parent / "fixtures/coco8-annotations.json").read_text())
+    image_ids = {int(Path(path).stem) for path in validator.dataloader.dataset.im_files}
+    data["images"] = [im for im in data["images"] if im["id"] in image_ids]
+    data["annotations"] = [ann for ann in data["annotations"] if ann["image_id"] in image_ids]
+    if task == "pose":
+        data["categories"] = [cat for cat in data["categories"] if cat["id"] == 1]
+        data["annotations"] = [ann for ann in data["annotations"] if ann["category_id"] == 1]
+    else:
+        for prediction in validator.jdict:
+            prediction["category_id"] = coco80_to_coco91_class()[prediction["category_id"] - 1]
+    validator.gdict, validator.is_coco, validator._coco_api = data, True, None
+    types = ["bbox"] if task == "detect" else ["bbox", iou_type]
+    suffixes = ["Box"] if task == "detect" else ["Box", "Mask" if task == "segment" else "Pose"]
+    stats = validator.coco_evaluate({}, validator.jdict, data, types, suffix=suffixes)
+    for name, kind in zip(suffixes, types):
+        gt = faster.COCO(copy.deepcopy(data))
+        reference = faster.COCOeval_faster(gt, gt.loadRes(copy.deepcopy(validator.jdict)), kind)
+        reference.evaluate()
+        reference.accumulate()
+        reference.summarize()
+        for metric, key in [("mAP50", "AP_50"), ("mAP50-95", "AP_all")]:
+            assert stats[f"metrics/{metric}({name[0]})"] == pytest.approx(
+                reference.stats_as_dict[key], rel=0, abs=1e-12
+            )
+    assert stats["fitness"] == pytest.approx(
+        0.9 * reference.stats_as_dict["AP_all"] + 0.1 * reference.stats_as_dict["AP_50"], rel=0, abs=1e-12
+    )
+    cached_gt = validator._coco_api
+    assert validator.coco_evaluate({}, validator.jdict, data, types, suffix=suffixes) == stats
+    assert validator._coco_api is cached_gt
+    assert "unable to run" not in caplog.text
 
-    args = {"model": "yolo26n-seg.pt", "data": "coco8-seg.yaml", "save_json": True, "imgsz": 64}
-    validator = SegmentationValidator(args=args)
-    validator()
-    validator.is_coco = True
-    download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "coco8-seg/annotations")
-    _ = validator.eval_json(validator.stats)
 
-    args = {"model": "yolo26n-pose.pt", "data": "coco8-pose.yaml", "save_json": True, "imgsz": 64}
-    validator = PoseValidator(args=args)
-    validator()
-    validator.is_coco = True
-    download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
-    _ = validator.eval_json(validator.stats)
+@pytest.mark.parametrize(
+    "iou_type,lvis", [("bbox", False), ("segm", False), ("keypoints", False), ("bbox", True), ("segm", True)]
+)
+def test_coco_evaluator_parity(iou_type, lvis, tmp_path):
+    """Compare complete arrays and validator metrics against the previous COCO backend."""
+    faster = pytest.importorskip("faster_coco_eval")  # Reference only; not a runtime dependency.
+    from ultrafast_pycocotools import COCO, COCOeval
+
+    from ultralytics.models.yolo.detect import DetectionValidator
+
+    data = {
+        "images": [
+            {"id": 1, "height": 128, "width": 128, "neg_category_ids": [1, 2, 3], "not_exhaustive_category_ids": [2]}
+        ],
+        "categories": [{"id": i, "name": str(i), "frequency": f} for i, f in enumerate("rcf", 1)],
+        "annotations": [
+            {
+                "id": i,
+                "image_id": 1,
+                "category_id": i,
+                "bbox": [10, 10, 40, 40],
+                "area": 1600,
+                "iscrowd": int(i == 3),
+                "ignore": int(i == 2),
+                "num_keypoints": 17,
+                "keypoints": [20, 20, 2] * 17,
+                "segmentation": [[10, 10, 50, 10, 50, 50, 10, 50]],
+            }
+            for i in range(1, 4)
+        ],
+    }
+    predictions = [dict(a, score=0.8) for a in data["annotations"]]
+    predictions = [
+        dict(
+            predictions[0],
+            bbox=[80, 80, 20, 20],
+            keypoints=[90, 90, 2] * 17,
+            segmentation=[[80, 80, 100, 80, 100, 100, 80, 100]],
+            score=0.9,
+        )
+    ] * (301 if lvis else 2) + predictions
+    evaluators = []
+    for coco, evaluator in [(faster.COCO, faster.COCOeval_faster), (COCO, COCOeval)]:
+        gt = coco(copy.deepcopy(data))
+        kwargs = {"lvis_protocol": "coco"} if evaluator is COCOeval else {}
+        ev = evaluator(gt, gt.loadRes(copy.deepcopy(predictions)), iou_type, lvis_style=lvis, **kwargs)
+        ev.evaluate()
+        ev.accumulate()
+        ev.summarize()
+        evaluators.append(ev)
+    reference, actual = evaluators
+    for key in ("precision", "recall", "scores"):
+        np.testing.assert_allclose(actual.eval[key], reference.eval[key], rtol=0, atol=1e-12)
+    np.testing.assert_allclose(actual.stats, reference.stats, rtol=0, atol=1e-12)
+
+    validator = DetectionValidator(args={"save_json": True}, save_dir=tmp_path)
+    validator.is_lvis, validator.is_coco = lvis, not lvis
+    validator.gdict, validator.jdict, validator.training = data, predictions, False
+    stats = validator.coco_evaluate({}, predictions, data, iou_type)
+    for name, key in [("mAP50", "AP_50"), ("mAP50-95", "AP_all")]:
+        assert stats[f"metrics/{name}(B)"] == pytest.approx(reference.stats_as_dict[key], rel=0, abs=1e-12)
+    if lvis:
+        for key in ("APr", "APc", "APf"):
+            assert stats[f"metrics/{key}(B)"] == pytest.approx(reference.stats_as_dict[key], rel=0, abs=1e-12)
+    expected = reference.stats_as_dict["AP_all"]
+    if not lvis:
+        expected = 0.9 * expected + 0.1 * reference.stats_as_dict["AP_50"]
+    assert stats["fitness"] == pytest.approx(expected, rel=0, abs=1e-12)

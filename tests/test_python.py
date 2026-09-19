@@ -21,6 +21,7 @@ import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
 from ultralytics import RTDETR, YOLO
 from ultralytics.cfg import get_cfg
+from ultralytics.data.augment import Compose, Mosaic
 from ultralytics.data.build import build_dataloader, load_inference_source
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
 from ultralytics.utils import (
@@ -990,6 +991,64 @@ def test_train_pretrained(scls):
         data="coco8-seg.yaml", epochs=1, imgsz=32, cache="ram", copy_paste=0.5, mixup=0.5, name=0, single_cls=scls
     )
     model(SOURCE)
+
+
+def _mosaic_probability(transforms):
+    """Return the highest mosaic probability in a (possibly nested) transforms pipeline."""
+    probs = [t.p for t in transforms if isinstance(t, Mosaic)]
+    for t in transforms:
+        if isinstance(t, Compose):
+            probs.append(_mosaic_probability(t.transforms))
+    return max(probs, default=0.0)
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_close_mosaic_short_runs(tmp_path):
+    """Test that runs shorter than close_mosaic close mosaic and close_mosaic=0 keeps it enabled."""
+    for epochs, close_mosaic, closed in ((2, 10, True), (3, 1, True), (2, 0, False)):
+        model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+        model.train(
+            data="coco8.yaml",
+            epochs=epochs,
+            close_mosaic=close_mosaic,
+            imgsz=32,
+            plots=False,
+            project=tmp_path,
+            name=f"cm-short-{epochs}-{close_mosaic}",
+        )
+        p = _mosaic_probability(model.trainer.train_loader.dataset.transforms.transforms)
+        assert p == (0.0 if closed else DEFAULT_CFG.mosaic)  # closing rebuilds the pipeline with p=0
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_close_mosaic_resume(tmp_path):
+    """Test that a short run interrupted before its close epoch resumes with mosaic already closed."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+
+    def interrupt(trainer):
+        """Stop after the first epoch so the remaining epochs run from a resumed checkpoint."""
+        trainer.stop = True
+
+    model.add_callback("on_fit_epoch_end", interrupt)
+    model.train(data="coco8.yaml", epochs=3, close_mosaic=10, imgsz=32, plots=False, project=tmp_path, name="cm-resume")
+    assert _mosaic_probability(model.trainer.train_loader.dataset.transforms.transforms) == 0.0  # closed in epoch 0
+    resumed = YOLO(tmp_path / "cm-resume" / "weights" / "last.pt")
+    resumed.train(resume=True)
+    assert _mosaic_probability(resumed.trainer.train_loader.dataset.transforms.transforms) == 0.0  # stays closed
+
+
+@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_close_mosaic_time_epoch_estimate(tmp_path):
+    """Test that mosaic still closes when a time-limited run's epoch estimate drops below close_mosaic."""
+    model = YOLO(WEIGHTS_DIR / "yolo26n.pt")
+
+    def reestimate(trainer):
+        """Mirror the per-epoch self.epochs re-estimate that args.time performs."""
+        trainer.epochs = trainer.args.epochs = 4
+
+    model.add_callback("on_fit_epoch_end", reestimate)
+    model.train(data="coco8.yaml", epochs=20, close_mosaic=10, imgsz=32, plots=False, project=tmp_path, name="cm-time")
+    assert _mosaic_probability(model.trainer.train_loader.dataset.transforms.transforms) == 0.0
 
 
 def test_all_model_yamls():

@@ -752,6 +752,26 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
+@pytest.mark.parametrize("plots", (True, False))
+def test_val_skips_classes_the_model_lacks(tmp_path, plots):
+    """Test that standalone val drops labels with class index >= model nc instead of crashing or diluting mAP."""
+    data = check_det_dataset("coco8.yaml")
+    root = shutil.copytree(data["path"], tmp_path / "coco8", ignore=shutil.ignore_patterns("*.npy", "*.cache"))
+    labels = sorted((root / "labels" / "val").glob("*.txt"))
+    rows = labels[0].read_text().splitlines()
+    rows[0] = "85 " + rows[0].split(maxsplit=1)[1]  # one label of a class the 80-class COCO model cannot predict
+    labels[0].write_text("\n".join(rows) + "\n")
+    names = [f"class{i}" for i in range(90)]
+    data_yaml = tmp_path / "coco8-extra.yaml"
+    YAML.save(data_yaml, {"path": str(root), "train": "images/train", "val": "images/val", "names": names})
+
+    metrics = YOLO(MODEL).val(data=data_yaml, imgsz=32, plots=plots, verbose=True)  # main: IndexError or KeyError
+    # The confusion matrix, per-class table and Instances count only cover the 80 classes the model can score
+    assert metrics.confusion_matrix.matrix.shape == (81, 81)
+    assert max(metrics.box.ap_class_index) < 80
+    assert metrics.nt_per_class.sum() == sum(len(f.read_text().splitlines()) for f in labels) - 1
+
+
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

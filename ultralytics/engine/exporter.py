@@ -874,6 +874,10 @@ class Exporter:
             from ultralytics.utils.export.executorch import executorch_wrapper
 
             model = executorch_wrapper(model)
+        if fmt == "engine" and self.args.quantize == 16:
+            from ultralytics.utils.export.engine import fuse_silu
+
+            fuse_silu(model)
         for m in model.modules():
             if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
                 m.format = fmt

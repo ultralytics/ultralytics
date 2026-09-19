@@ -4,6 +4,7 @@
 # Includes all solutions except DistanceCalculation and the Security Alarm System.
 
 import os
+from typing import ClassVar
 from unittest.mock import patch
 
 import cv2
@@ -13,6 +14,7 @@ import torch
 
 from tests import MODEL
 from ultralytics import solutions
+from ultralytics.solutions import solutions as solutions_module
 from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION, checks
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
@@ -40,6 +42,73 @@ def process_video(solution, video_path: str, needs_frame_count: bool = False):
         _ = solution(*args)
 
     cap.release()
+
+
+def test_ocr_static_solution(monkeypatch):
+    """OCR should predict once per detection and return aligned text and detection metadata."""
+    image = np.zeros((20, 30, 3), dtype=np.uint8)
+    seen = []
+
+    class Boxes:
+        xyxy = torch.tensor([[2.0, 3.0, 10.0, 12.0]])
+        cls = torch.tensor([0.0])
+        conf = torch.tensor([0.9])
+
+    class Prediction:
+        boxes = Boxes()
+
+    class Model:
+        names: ClassVar = {0: "text"}
+
+        def predict(self, *args, **kwargs):
+            return [Prediction()]
+
+    def recognizer(crop):
+        seen.append(crop.shape)
+        return "AB123CD"
+
+    monkeypatch.setattr(solutions_module, "YOLO", lambda _: Model())
+    ocr = solutions.OCR(recognizer=recognizer, model="text_detector.pt", show=False, verbose=False)
+    result = ocr(image)
+
+    assert seen == [(9, 8, 3)]
+    assert result.ocr_texts == ["AB123CD"]
+    assert result.boxes == [[2, 3, 10, 12]]
+    assert result.classes == [0]
+    assert result.confidences == [pytest.approx(0.9)]
+
+
+def test_ocr_requires_callable():
+    """OCR should reject a non-callable recognizer."""
+    with pytest.raises(TypeError, match="recognizer must be callable"):
+        solutions.OCR(recognizer=None, model="text_detector.pt")
+
+
+def test_ocr_without_detections(monkeypatch):
+    """OCR should return empty aligned outputs when the detector finds nothing."""
+
+    class Boxes:
+        xyxy = torch.empty((0, 4))
+        cls = torch.empty(0)
+        conf = torch.empty(0)
+
+    class Prediction:
+        boxes = Boxes()
+
+    class Model:
+        names: ClassVar = {0: "text"}
+
+        def predict(self, *args, **kwargs):
+            return [Prediction()]
+
+    monkeypatch.setattr(solutions_module, "YOLO", lambda _: Model())
+    ocr = solutions.OCR(recognizer=lambda crop: "unreachable", model="text_detector.pt", show=False, verbose=False)
+    result = ocr(np.zeros((20, 30, 3), dtype=np.uint8))
+
+    assert result.ocr_texts == []
+    assert result.boxes == []
+    assert result.classes == []
+    assert result.confidences == []
 
 
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled for testing due to --slow test errors after YOLOE PR.")

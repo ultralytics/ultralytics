@@ -6,11 +6,26 @@
 
 from __future__ import annotations
 
+import contextlib
 from copy import copy
 
 import torch
 from torch import nn
-from torch.nn.attention import SDPBackend, sdpa_kernel
+
+try:
+    from torch.nn.attention import SDPBackend, sdpa_kernel
+except ImportError:
+    # torch.nn.attention is only available in PyTorch >= 2.0; fall back to a no-op
+    # context manager so the module can still be imported on older versions.
+    def sdpa_kernel(backends):
+        """No-op context manager for PyTorch < 2.0."""
+        return contextlib.nullcontext()
+
+    class SDPBackend:  # type: ignore[no-redef]
+        """Stub for SDPBackend on PyTorch < 2.0."""
+
+        MATH = EFFICIENT_ATTENTION = FLASH_ATTENTION = None
+
 
 from .necks import Sam3DualViTDetNeck
 

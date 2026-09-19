@@ -800,6 +800,9 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
+        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
+        if file.suffix == ".ndjson":
+            file.unlink(missing_ok=True)
         if file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
         else:

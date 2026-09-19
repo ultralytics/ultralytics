@@ -244,6 +244,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
         try:
             imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+            imgsz = [imgsz] if isinstance(imgsz, (int, float)) else imgsz  # '-64' / '6.5' literal_eval to bare scalars
         except (ValueError, SyntaxError):
             raise ValueError(
                 f"'imgsz={imgsz}' is not a valid image size. "
@@ -255,7 +256,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
             f"Valid imgsz types are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'"
         )
 
-    if any(x <= 0 for x in imgsz):
+    if not all(isinstance(x, (int, float)) and x > 0 for x in imgsz):
         raise ValueError(
             f"'imgsz={imgsz}' is not a valid image size. Valid imgsz values are positive, i.e. 'imgsz=640'"
         )

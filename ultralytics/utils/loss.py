@@ -1473,7 +1473,9 @@ class SemanticSegmentationLoss(nn.Module):
         intersection = torch.zeros(self.nc, device=preds.device, dtype=torch.float32)
         intersection.scatter_add_(0, target, flat_pred.gather(1, target[:, None]).squeeze(1))
         pred_sum = flat_pred.sum(dim=0)
-        target_sum = torch.bincount(target, minlength=self.nc).to(device=preds.device, dtype=torch.float32)
+        target_sum = torch.zeros_like(intersection).scatter_add_(
+            0, target, torch.ones_like(target, dtype=torch.float32)
+        )
         cardinality = pred_sum + target_sum
         return (1.0 - (2.0 * intersection + 1.0) / (cardinality + 1.0)).mean()
 

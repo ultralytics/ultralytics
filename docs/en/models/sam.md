@@ -172,9 +172,9 @@ Here we compare Meta's SAM-b model with Ultralytics segmentation models includin
 | [Meta SAM-b](sam.md)                                                                           | 375                     | 93.7                         | 41703                             |
 | [MobileSAM](mobile-sam.md)                                                                     | 40.7                    | 10.1                         | 23802                             |
 | [FastSAM-s](fast-sam.md) with YOLOv8 [backbone](https://www.ultralytics.com/glossary/backbone) | 23.9                    | 11.8                         | 58.0                              |
-| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | **7.1** (52.8x smaller) | **3.4** (27.6x less)         | **24.8** (1682x faster)           |
-| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **6.2** (60.5x smaller) | **2.9** (32.3x less)         | **24.3** (1716x faster)           |
-| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | **6.7** (56.0x smaller) | **2.7** (34.7x less)         | **25.2** (1655x faster)           |
+| Ultralytics [YOLOv8n-seg](yolov8.md)                                                           | 7.1 (52.8x smaller)     | 3.4 (27.6x less)             | 24.8 (1682x faster)               |
+| Ultralytics [YOLO11n-seg](yolo11.md)                                                           | **6.2** (60.5x smaller) | 2.9 (32.3x less)             | **24.3** (1716x faster)           |
+| Ultralytics [YOLO26n-seg](yolo26.md)                                                           | 6.7 (56.0x smaller)     | **2.7** (34.7x less)         | 25.2 (1655x faster)               |
 
 This comparison demonstrates the substantial differences in model sizes and speeds between SAM variants and YOLO segmentation models. While SAM provides unique automatic segmentation capabilities, YOLO models, particularly YOLOv8n-seg, YOLO11n-seg and YOLO26n-seg, are significantly smaller, faster, and more computationally efficient.
 

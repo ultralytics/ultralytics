@@ -567,12 +567,12 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Detect results
         if pred_boxes is not None and show_boxes:
-            for i, d in enumerate(reversed(pred_boxes)):
+            coords = pred_boxes.xyxyxyxy if is_obb else pred_boxes.xyxy
+            for i, (d, box) in enumerate(zip(reversed(pred_boxes), reversed(coords))):
                 c = int(d.cls.item())  # .item() works for torch and numpy alike; int()/float() need 0-d since numpy 2.4
                 d_conf, id = float(d.conf.item()) if conf else None, int(d.id.item()) if d.is_track else None
                 name = ("" if id is None else f"id:{id} ") + names[c]
                 label = (f"{name} {d_conf:.2f}" if conf else name) if labels else (f"{d_conf:.2f}" if conf else None)
-                box = d.xyxyxyxy.squeeze() if is_obb else d.xyxy.squeeze()
                 annotator.box_label(
                     box,
                     label,
@@ -758,21 +758,24 @@ class Results(SimpleClass, DataExportMixin):
         elif boxes:
             # Detect/segment/pose
             boxes = boxes.cpu()  # one host transfer avoids per-box GPU syncs in the loop below
-            kpts = kpts.cpu() if kpts is not None else None
+            coords = (boxes.xyxyxyxyn if is_obb else boxes.xywhn).reshape(len(boxes), -1).tolist()
+            if kpts is not None:
+                kpts = kpts.cpu()
+                keypoints = kpts.xyn
+                if kpts.has_visible:
+                    keypoints = torch.cat((torch.as_tensor(keypoints), torch.as_tensor(kpts.conf)[..., None]), 2)
+                keypoints = keypoints.reshape(len(kpts), -1).tolist()
             segments = masks.xyn if masks else None
             for j, d in enumerate(boxes):
                 c, conf, id = int(d.cls.item()), float(d.conf.item()), int(d.id.item()) if d.is_track else None
-                line = (c, *(d.xyxyxyxyn.reshape(-1) if is_obb else d.xywhn.reshape(-1)))
+                line = (c, *coords[j])
                 if segments is not None:
                     seg = segments[j]
                     if len(seg) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                         continue
                     line = (c, *seg.copy().reshape(-1))  # reversed mask.xyn, (n,2) to (n*2)
                 if kpts is not None:
-                    kpt = kpts[j].xyn
-                    if kpts[j].has_visible:
-                        kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].conf)[..., None]), 2)
-                    line += (*kpt.reshape(-1).tolist(),)
+                    line += (*keypoints[j],)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
 
@@ -893,13 +896,14 @@ class Results(SimpleClass, DataExportMixin):
         data = self.obb if is_obb else self.boxes
         if data:
             data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+            coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
         kpts = self.keypoints
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
-            box = (row.xyxyxyxy if is_obb else row.xyxy).squeeze().reshape(-1, 2).tolist()
+            box = coords[i]
             xy = {}
             for j, b in enumerate(box):
                 xy[f"x{j + 1}"] = round(b[0] / w, decimals)

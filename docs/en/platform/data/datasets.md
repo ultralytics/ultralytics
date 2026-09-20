@@ -88,7 +88,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [semantic PNG masks](../../datasets/semantic/index.md#png-mask-format), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -200,6 +200,34 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Files pair by stem. Depth maps may use a smaller resolution than their RGB images when the aspect ratio matches.
     See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
+
+=== "Semantic Masks"
+
+    Semantic archives keep images and grayscale PNG masks in parallel `images/` and `masks/` folders, where each mask
+    pixel is a class ID and `255` marks ignored pixels. Platform converts every mask into polygon labels at import, so
+    the dataset behaves like any other semantic dataset in the editor, exports, and training.
+
+    ```text
+    my-semantic-dataset/
+    ├── data.yaml
+    ├── images/{train,val}/scene.png
+    └── masks/{train,val}/scene.png
+    ```
+
+    ```yaml
+    train: images/train
+    val: images/val
+    masks_dir: masks # optional when the folder is named masks/
+    names: {0: road, 1: car}
+    label_mapping: {7: 0, 26: 1} # optional: source pixel IDs to class IDs
+    ```
+
+    Masks pair with images by relative path and stem and must match the image size. Pixel values not listed in
+    `label_mapping` are kept as class IDs, and `255` or values mapped to `ignore_label` receive no polygon. Images
+    without a matching mask are skipped and counted as `invalid semantic mask` in the import summary. Masks take
+    precedence in a semantic dataset; when a new dataset's archive also carries YOLO `.txt` or COCO labels for another
+    task, those labels set the task and the masks are ignored. Connected cloud storage does not accept this layout. See
+    the [PNG mask format](../../datasets/semantic/index.md#png-mask-format).
 
 === "NDJSON"
 
@@ -473,6 +501,12 @@ If your dataset changes after analysis — new images arrive, or the analyzed co
 
 Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
+### Find Similar Images
+
+The same embeddings power similarity search across public datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — shows `Analyze this dataset in Clustering to find similar images`. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
+
 ## Dataset Tabs
 
 Each dataset page can show up to six tabs, depending on the dataset state and your permissions:
@@ -688,11 +722,13 @@ See the [Ultralytics NDJSON format documentation](../../datasets/detect/index.md
 
 Right-click any image in **Grid** or **Compact** view to access quick actions:
 
-| Action            | Description                                     |
-| ----------------- | ----------------------------------------------- |
-| **Move to Split** | Reassign the image to Train, Val, or Test split |
-| **Download**      | Download the original image file                |
-| **Delete**        | Delete the image from the dataset               |
+| Action                      | Description                                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
+| **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images))          |
+| **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
+| **Download**                | Download the original image file                                                                                     |
+| **Delete**                  | Delete the image from the dataset                                                                                    |
 
 ![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/a5dd2918d992405d4f2fe7e6b51a76cc.avif)<!-- screenshot -->
 
@@ -794,24 +830,33 @@ The Platform supports the following licenses for datasets:
 | CC0-1.0         | Public domain       |
 | PDM-1.0         | Public domain       |
 | CC-BY-2.5       | Permissive          |
+| CC-BY-3.0       | Permissive          |
 | CC-BY-4.0       | Permissive          |
 | CC-BY-NC-2.0    | Non-commercial      |
-| CC-BY-SA-4.0    | Copyleft            |
+| CC-BY-NC-3.0    | Non-commercial      |
 | CC-BY-NC-4.0    | Non-commercial      |
+| CC-BY-SA-3.0    | Copyleft            |
+| CC-BY-SA-4.0    | Copyleft            |
 | CC-BY-NC-SA-3.0 | Copyleft            |
 | CC-BY-NC-SA-4.0 | Copyleft            |
 | CC-BY-ND-4.0    | No derivatives      |
+| CC-BY-NC-ND-2.0 | Non-commercial      |
 | CC-BY-NC-ND-4.0 | Non-commercial      |
 | Apache-2.0      | Permissive          |
 | MIT             | Permissive          |
+| BSD-3-Clause    | Permissive          |
 | AGPL-3.0        | Copyleft            |
+| GPL-2.0         | Copyleft            |
 | GPL-3.0         | Copyleft            |
+| LGPL-3.0        | Copyleft            |
+| ODbL-1.0        | Copyleft            |
+| DbCL-1.0        | Requires ODbL       |
 | Research-Only   | Restricted          |
 | Other           | Custom              |
 
 !!! note "Copyleft Licenses"
 
-    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-3.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
+    When cloning a dataset with a copyleft license (AGPL-3.0, GPL-2.0, GPL-3.0, LGPL-3.0, ODbL-1.0, CC-BY-SA-3.0, CC-BY-SA-4.0, CC-BY-NC-SA-3.0, CC-BY-NC-SA-4.0), the clone inherits the license and the license selector is locked.
 
 ## Visibility Settings
 
@@ -944,11 +989,13 @@ Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and ra
     | -------- | -------------------------------- | ----------------------------------- |
     | Detect   | `class cx cy w h`                | `0 0.5 0.5 0.2 0.3`                 |
     | Segment  | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
+    | Semantic | `class x1 y1 x2 y2 ...`          | `0 0.1 0.1 0.9 0.1 0.9 0.9`         |
     | Pose     | `class cx cy w h kx1 ky1 v1 ...` | `0 0.5 0.5 0.2 0.3 0.6 0.7 2`       |
     | OBB      | `class x1 y1 x2 y2 x3 y3 x4 y4`  | `0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9` |
     | Classify | Directory structure              | `train/cats/`, `train/dogs/`        |
 
-    Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible.
+    Pose visibility flags: 0=not labeled, 1=labeled but occluded, 2=labeled and visible. Semantic datasets also accept
+    PNG masks instead of polygon files (see [Semantic Masks](#preparing-your-dataset)).
 
 === "COCO Format"
 
@@ -980,12 +1027,13 @@ Yes:
 
 Datasets that read from [cloud storage](../integrations/index.md) or [On Premise](../integrations/on-premise.md) sources keep their pixels outside Platform, so the features that need Platform-owned copies of the image bytes are unavailable:
 
-| Feature                                            | Cloud-connected | On Premise  |
-| -------------------------------------------------- | --------------- | ----------- |
-| [Smart annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
-| [Clustering analysis](#clustering)                 | Unavailable     | Unavailable |
-| [Cloning](#clone-dataset)                          | Unavailable     | Unavailable |
-| [Version snapshots](#versions-tab)                 | Unavailable     | Unavailable |
-| [NDJSON export](#export-dataset)                   | Available       | Unavailable |
+| Feature                                                      | Cloud-connected | On Premise  |
+| ------------------------------------------------------------ | --------------- | ----------- |
+| [Smart and Batch Annotation](annotation.md#smart-annotation) | Unavailable     | Unavailable |
+| [Clustering analysis](#clustering)                           | Unavailable     | Unavailable |
+| [Cloning](#clone-dataset)                                    | Unavailable     | Unavailable |
+| [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
+| [NDJSON export](#export-dataset)                             | Available       | Unavailable |
+| [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable     | Available   |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

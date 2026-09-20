@@ -548,8 +548,6 @@ class Model(torch.nn.Module):
                 **self.overrides,
                 **{k: getattr(self.predictor.args, k) for k in setup_keys},
             }
-            if hasattr(self.predictor.model, "imgsz") and not self.predictor.model.dynamic:
-                base_args["imgsz"] = self.predictor.args.imgsz
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
             if self.predictor.args.show:
                 self.predictor.args.show = checks.check_imshow(warn=True)
@@ -596,7 +594,7 @@ class Model(torch.nn.Module):
         from ultralytics.trackers import register_tracker
 
         register_tracker(self, persist)
-        kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
+        kwargs["conf"] = 0.1 if kwargs.get("conf") is None else kwargs["conf"]  # trackers need low-confidence input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
@@ -838,7 +836,9 @@ class Model(torch.nn.Module):
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": (overrides.get("data") if kwargs.get("cfg") else None)
             or DEFAULT_CFG_DICT["data"]
-            or TASK2DATA[self.task],
+            or (
+                None if isinstance(kwargs.get("resume", overrides.get("resume")), (str, Path)) else TASK2DATA[self.task]
+            ),
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults

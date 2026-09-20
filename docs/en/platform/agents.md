@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filte
 
 [Agents](https://platform.ultralytics.com/agents) connects images, models, conditions, and actions in a visual workflow. Use YOLO to decide which images need a closer look, ask a vision-language model to explain them, or collect selected images in a dataset for review.
 
-Switch to your personal workspace using the sidebar workspace selector and enable **Early access** in **Settings > Profile**. Then open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Early access is a personal preference, including when you work in a team workspace.
+Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https://platform.ultralytics.com/agents). Agents appears in the sidebar for every signed-in user, in personal and team workspaces, with no Early access setting to enable.
 
 ![Ultralytics Platform Agents canvas showing an image connected to YOLO, a condition, a vision-language model, and an output block](https://cdn.ul.run/i/e551fa972ff3eb23ef89a46fa10afc9e.avif)
 
@@ -110,7 +110,6 @@ Reloading the page restores the run's progress and selected execution deployment
 
 ## Troubleshooting
 
-- **Agents is missing from the sidebar:** enable **Early access** in your personal **Settings > Profile**.
 - **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the image resolution, input count, and model/provider calls.
 - **The deployment is preparing or stopped:** wait for it to become ready or start it from [Deployments](deploy/index.md).
 - **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.

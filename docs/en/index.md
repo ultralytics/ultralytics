@@ -7,7 +7,7 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 
 <div align="center">
 <br><br>
-<a href="https://www.ultralytics.com/events/yolovision?utm_source=docs&utm_medium=referral&utm_campaign=yolovision26&utm_content=banner" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
+<a href="https://www.ultralytics.com/yolo/yolo27" target="_blank"><img width="100%" src="https://raw.githubusercontent.com/ultralytics/assets/main/yolov8/banner-yolov8.png" alt="Ultralytics YOLO banner"></a>
 <br><br>
 </div>
 
@@ -47,6 +47,10 @@ keywords: Ultralytics, YOLO, YOLO26, YOLO11, object detection, image segmentatio
 Explore the Ultralytics Docs, a comprehensive resource covering the YOLO package and CLI as well as the [Ultralytics Platform](platform/index.md), which adds data annotation, cloud training, and deployment on top of the same models. Whether you are a seasoned machine learning practitioner or new to the field, these resources help you get the most out of YOLO in your projects.
 
 Request an Enterprise License for commercial use at [Ultralytics Licensing](https://www.ultralytics.com/license?utm_source=docs.ultralytics.com&utm_medium=referral&utm_content=license_inline_link).
+
+!!! info "YOLO27 is coming soon"
+
+    Explore the [YOLO27 preview](models/yolo27.md), including architecture details, preliminary benchmarks, and examples for use after release. Models are undergoing final R&D for an anticipated launch later this year; they are not yet available, and no launch date is set.
 
 !!! tip "🚀 New: Monocular Depth Estimation"
 
@@ -146,7 +150,7 @@ See the [Quickstart](quickstart.md) guide for every installation method and your
 
     ***
 
-    Ultralytics' newest model family delivers optional NMS-free end-to-end inference and an improved accuracy-latency tradeoff over YOLO11
+    Ultralytics' latest released model family delivers optional NMS-free end-to-end inference and an improved accuracy-latency tradeoff over YOLO11
 
     ***
 

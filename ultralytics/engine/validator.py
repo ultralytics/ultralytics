@@ -222,6 +222,7 @@ class BaseValidator:
             if not (pt or (getattr(model, "dynamic", False) and fmt != "imx")):
                 self.args.rect = False
             self.stride = model.stride  # used in get_dataloader() for padding
+            self.names = model.names  # used in get_dataloader() to filter classification samples
             self.dataloader = self.dataloader or self.get_dataloader(self.data.get(self.args.split), self.args.batch)
 
             model.eval()

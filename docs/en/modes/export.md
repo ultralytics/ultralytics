@@ -12,6 +12,8 @@ keywords: YOLO26, Model Export, ONNX, TensorRT, CoreML, Ultralytics, AI, Machine
 
 The ultimate goal of training a model is to deploy it for real-world applications. Export mode in Ultralytics YOLO26 offers a versatile range of options for exporting your trained model to different formats, making it deployable across various platforms and devices. This comprehensive guide aims to walk you through the nuances of model exporting, showcasing how to achieve maximum compatibility and performance.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned export support.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/KGHYU-MKYeE"
@@ -83,6 +85,14 @@ Adjusting these parameters allows for customization of the export process to fit
 Available YOLO26 export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n.onnx`. Usage examples are shown for your model after export completes. Models can also be exported directly from the browser on [Ultralytics Platform](../platform/train/models.md#export-model) without any local setup.
 
 {% include "macros/export-table.md" %}
+
+!!! note "Automatic installation of export dependencies"
+
+    Most formats need packages that are not installed with `ultralytics`. When one is missing, export installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages such as the Edge TPU compiler or Java for IMX. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Export then still checks for the missing packages and reports them, but leaves the environment unchanged and fails until they are installed.
+
+    ```bash
+    export YOLO_AUTOINSTALL=False
+    ```
 
 ## Quantization Options
 
@@ -177,7 +187,7 @@ QAT costs 0.008 to 0.017 mAP50-95 against FP32 across the range, while post-trai
 
 QAT models require `compile=False`; ModelOpt's quantized modules do not support `torch.compile`.
 
-The output head is deliberately left in float to limit INT8 accuracy loss. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
+The head's final output convolutions are deliberately left in float to limit INT8 accuracy loss; TensorRT enables FP16 mixed precision for its unquantized layers. QAT runs through [NVIDIA TensorRT Model Optimizer](https://github.com/NVIDIA/TensorRT-Model-Optimizer), installed automatically on first use, and the resulting checkpoint needs it installed to load. Those ranges travel with the checkpoint and `onnx` and `engine` exports emit them as Q/DQ nodes; other formats read calibration instead and reject a QAT checkpoint.
 
 ## What's Next
 

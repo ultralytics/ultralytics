@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO26 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned inference examples.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YKbBXWBJloY"

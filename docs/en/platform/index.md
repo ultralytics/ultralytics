@@ -41,13 +41,13 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Features                                                                                                                                                                                                                                     |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                  |
-| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM and YOLO models for detect, segment, semantic, and OBB (see [supported task types](data/annotation.md#supported-task-types)) |
-| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                    |
-| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                |
-| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                |
+| Stage        | Features                                                                                                                                                                                                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                                                  |
+| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, or YOLO models for those tasks and pose (see [supported task types](data/annotation.md#supported-task-types)) |
+| **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                                                    |
+| **Export**   | [20 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                |
+| **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                                                |
 
 **What you can do:**
 
@@ -81,7 +81,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation tools for 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported task types](data/annotation.md#supported-task-types))
 - **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), [SAM 3.1](../models/sam-3.md#sam-31) (default), pretrained Ultralytics YOLO models, or your own fine-tuned YOLO models from the annotation toolbar for detect, segment, semantic, and OBB tasks
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, or pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
@@ -435,23 +435,23 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for detect, segment, semantic, and OBB
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation on detect, segment, semantic, and OBB datasets, or run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for those tasks and pose
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
-| Shortcut               | Action                            |
-| ---------------------- | --------------------------------- |
-| `V`                    | Manual (draw) mode                |
-| `S`                    | Smart mode (SAM or YOLO model)    |
-| `P`                    | Predict (in Smart mode)           |
-| `A`                    | Toggle auto-apply (in Smart mode) |
-| `1` - `9`              | Select class by number            |
-| `H`                    | Toggle annotation visibility      |
-| `Space` + drag         | Pan the canvas                    |
-| `Delete` / `Backspace` | Delete selected annotation        |
-| `Ctrl+S`               | Save annotations                  |
-| `Ctrl+Z`               | Undo                              |
-| `Ctrl+Y`               | Redo                              |
-| `Escape`               | Save / deselect / exit            |
+| Shortcut               | Action                             |
+| ---------------------- | ---------------------------------- |
+| `V`                    | Manual (draw) mode                 |
+| `S`                    | Smart mode (SAM or YOLO model)     |
+| `P`                    | Predict (in Smart mode)            |
+| `A`                    | Toggle auto-apply (SAM Smart mode) |
+| `1` - `9`              | Select class by number             |
+| `H`                    | Toggle annotation visibility       |
+| `Space` + drag         | Pan the canvas                     |
+| `Delete` / `Backspace` | Delete selected annotation         |
+| `Ctrl+S`               | Save annotations                   |
+| `Ctrl+Z`               | Undo                               |
+| `Ctrl+Y`               | Redo                               |
+| `Escape`               | Save / deselect / exit             |
 
 See [Annotation](data/annotation.md) for the complete guide.
 

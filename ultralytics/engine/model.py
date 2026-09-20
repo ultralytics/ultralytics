@@ -548,8 +548,6 @@ class Model(torch.nn.Module):
                 **self.overrides,
                 **{k: getattr(self.predictor.args, k) for k in setup_keys},
             }
-            if hasattr(self.predictor.model, "imgsz") and not self.predictor.model.dynamic:
-                base_args["imgsz"] = self.predictor.args.imgsz
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
             if self.predictor.args.show:
                 self.predictor.args.show = checks.check_imshow(warn=True)
@@ -596,7 +594,7 @@ class Model(torch.nn.Module):
         from ultralytics.trackers import register_tracker
 
         register_tracker(self, persist)
-        kwargs["conf"] = kwargs.get("conf") or 0.1  # trackers need low-confidence predictions as input
+        kwargs["conf"] = 0.1 if kwargs.get("conf") is None else kwargs["conf"]  # trackers need low-confidence input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
@@ -838,7 +836,9 @@ class Model(torch.nn.Module):
             # NOTE: handle the case when 'cfg' includes 'data'.
             "data": (overrides.get("data") if kwargs.get("cfg") else None)
             or DEFAULT_CFG_DICT["data"]
-            or TASK2DATA[self.task],
+            or (
+                None if isinstance(kwargs.get("resume", overrides.get("resume")), (str, Path)) else TASK2DATA[self.task]
+            ),
             "model": self.overrides["model"],
             "task": self.task,
         }  # method defaults
@@ -858,7 +858,7 @@ class Model(torch.nn.Module):
             return self.metrics
         if args.get("resume") is True:  # resume=True (boolean) uses current model as checkpoint
             if self.ckpt and self.ckpt.get("epoch", -1) >= 0 and self.ckpt.get("optimizer") is not None:
-                args["resume"] = self.ckpt_path
+                args["resume"], args["data"] = self.ckpt_path, kwargs.get("data") or overrides.get("data")
             else:
                 LOGGER.warning(
                     f"model '{self.ckpt_path}' is not a resumable training checkpoint "
@@ -947,9 +947,9 @@ class Model(torch.nn.Module):
     def _apply(self, fn) -> Model:
         """Apply a function to model parameters, buffers, and tensors.
 
-        This method extends the functionality of the parent class's _apply method by additionally resetting the
-        predictor and updating the device in the model's overrides. It's typically used for operations like moving the
-        model to a different device or changing its precision.
+        This method extends the functionality of the parent class's _apply method by additionally updating the device
+        in the model's overrides and dropping the cached predictor when a model tensor is converted. No-op tensor
+        conversions preserve the predictor.
 
         Args:
             fn (Callable): A function to be applied to the model's tensors. This is typically a method like to(), cpu(),
@@ -966,8 +966,14 @@ class Model(torch.nn.Module):
             >>> model = model._apply(lambda t: t.cuda())  # Move model to GPU
         """
         self._check_is_pytorch_model()
-        super()._apply(fn)
-        self.predictor = None  # reset predictor as device may have changed
+
+        def apply(t):
+            converted = fn(t)
+            if converted is not t:
+                self.predictor = None  # predictor owns a copy, including buffers and detection-head tensors
+            return converted
+
+        super()._apply(apply)
         self.overrides["device"] = self.device  # was str(self.device) i.e. device(type='cuda', index=0) -> 'cuda:0'
         return self
 

@@ -11,6 +11,8 @@ keywords: multi-object tracking, Ultralytics YOLO, video analytics, real-time tr
 
 Object tracking in the realm of video analytics is a critical task that not only identifies the location and class of objects within the frame but also maintains a unique ID for each detected object as the video progresses. The applications are limitless—ranging from surveillance and security to real-time sports analytics.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes) for planned tracking support.
+
 !!! tip "🚀 New Trackers: OC-SORT, Deep OC-SORT, FastTracker, TrackTrack"
 
     Starting with `ultralytics` 8.4.63, [OC-SORT](#oc-sort), [Deep OC-SORT](#deep-oc-sort), [FastTracker](#fasttracker), and [TrackTrack](#tracktrack) are available alongside BoT-SORT and ByteTrack.
@@ -290,6 +292,17 @@ Once exported, point to the TensorRT model path in your tracker config.
 ## Tracker Details
 
 The sections below describe each tracker's design, specific parameters, and tuning tips.
+
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ZsxHIN2PoiY"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> Which Object Tracker Performs Better? | Speed, FPS & ID Stability | Ultralytics YOLO26 📊
+</p>
 
 ### BoT-SORT
 

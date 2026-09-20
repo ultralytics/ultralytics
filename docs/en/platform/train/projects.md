@@ -254,4 +254,4 @@ Yes, deleted projects go to Trash and can be restored within 30 days:
 
 ### Can I transfer models between projects?
 
-Yes, you can clone a model to a different project using the clone model dialog from the [model page](models.md#clone-model).
+Yes. Cut and paste or drag models between projects in the same workspace; see [Move Models Between Projects](models.md#move-models-between-projects). [Clone Model](models.md#clone-model) copies a completed model you do not own into your project instead.

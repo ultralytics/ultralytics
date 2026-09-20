@@ -342,8 +342,11 @@ class BaseDataset(Dataset):
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
-    def check_cache_disk(self) -> bool:
-        """Check if there's enough disk space for caching images, keeping 1GB free.
+    def check_cache_disk(self, safety_margin: float = 0.1) -> bool:
+        """Check if there's enough disk space for caching images.
+
+        Args:
+            safety_margin (float): Safety margin factor for disk space calculation.
 
         Returns:
             (bool): True if there's enough disk space, False otherwise.
@@ -360,13 +363,14 @@ class BaseDataset(Dataset):
                 self.cache = None
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
-        disk_required = b * self.ni / n + gb  # bytes to cache dataset to disk, keeping 1GB free
+        disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
         total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(
-                f"{self.prefix}{disk_required / gb:.1f}GB disk space required to cache images with a 1GB "
-                f"reserve but only {free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk"
+                f"{self.prefix}{disk_required / gb:.1f}GB disk space required, "
+                f"with {int(safety_margin * 100)}% safety margin but only "
+                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk"
             )
             return False
         return True

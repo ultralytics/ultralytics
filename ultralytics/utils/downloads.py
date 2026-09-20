@@ -422,8 +422,11 @@ def safe_download(
                                 decoded = f.with_name(f"{f.name}.decoded")
                                 try:
                                     with open(f, "rb") as src, open(decoded, "wb") as dst:
-                                        # 47 detects a gzip or zlib header; some servers send 'deflate' without one
-                                        wbits = 47 if encoding != "deflate" or src.read(1) == b"\x78" else -15
+                                        wbits = 47  # detects a gzip or zlib header
+                                        try:
+                                            zlib.decompressobj(wbits).decompress(src.read(1024))
+                                        except zlib.error:  # some servers send 'deflate' as raw DEFLATE without one
+                                            wbits = -15
                                         src.seek(0)
                                         d = zlib.decompressobj(wbits)
                                         for chunk in iter(lambda: src.read(1048576), b""):

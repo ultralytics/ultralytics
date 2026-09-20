@@ -17,7 +17,7 @@ keywords: Ultralytics Platform, account, settings, API keys, billing, security, 
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch: </strong> Get Started with Ultralytics Platform - Account
+  <strong>Watch:</strong> Get Started with Ultralytics Platform - Account
 </p>
 
 ## Overview
@@ -49,7 +49,7 @@ The Account section helps you:
 
 ## Settings Tabs
 
-Account management is organized into eight tabs within `Settings` (in order):
+Account management is organized into nine tabs within `Settings` (in order):
 
 | Tab            | Description                                                                               |
 | -------------- | ----------------------------------------------------------------------------------------- |
@@ -58,6 +58,7 @@ Account management is organized into eight tabs within `Settings` (in order):
 | `Plans`        | Compare Free, Pro, and Enterprise plans                                                   |
 | `Billing`      | Credit balance, top-up, auto top-up, payment methods, billing address, transactions       |
 | `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace             |
+| `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10       |
 | `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                   |
 | `Integrations` | Connect cloud or On Premise storage and compute, Slack notifications, and dataset imports |
 | `Trash`        | Soft-deleted projects, datasets, and models (30-day recovery)                             |

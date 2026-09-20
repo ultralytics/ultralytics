@@ -404,9 +404,11 @@ class TRACKTRACK:
 
         Recovered (loose-NMS) detections are box-only and have no row in the post-NMS Results, so on segment/pose
         tasks they cannot carry mask/keypoint data and would mis-index downstream; skip recovery (and its
-        per-frame overhead) for those tasks.
+        per-frame overhead) for those tasks and RT-DETR predictors, which do not suppress boxes with NMS.
         """
-        if predictor.args.task in {"detect", "obb"}:
+        from ultralytics.models.yolo.detect import DetectionPredictor
+
+        if predictor.args.task in {"detect", "obb"} and isinstance(predictor, DetectionPredictor):
             attach_raw_preds_hook(predictor)
 
     @classmethod

@@ -76,12 +76,9 @@ Then, you can import the needed packages.
     === "Python"
 
         ```python
-        # Import ultralytics
         import ultralytics
 
         ultralytics.checks()
-
-        # Import packages to retrieve and display image files
         ```
 
 ### Step 3: Load the Data
@@ -245,13 +242,13 @@ Run the following command-line code to fine tune a pretrained default YOLO26 mod
     === "CLI"
 
         ```bash
-        !yolo task=detect mode=train data={work_dir}/trash_ICRA19/config.yaml model=yolo26n.pt epochs=2 batch=32 lr0=.04 plots=True
+        !yolo detect train data={work_dir}/trash_ICRA19/config.yaml model=yolo26n.pt epochs=2 batch=32 lr0=.04 plots=True
         ```
 
 Here's a closer look at the parameters in the model training command:
 
-- **task**: It specifies the [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) task for which you are using the specified YOLO model and data set.
-- **mode**: Denotes the purpose for which you are loading the specified model and data. Since we are training a model, it is set to "train." Later, when we test our model's performance, we will set it to "predict."
+- **detect**: The [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) task for which you are using the specified YOLO model and data set.
+- **train**: The mode, which denotes the purpose for which you are loading the specified model and data. Later, when we test our model's performance, we will use `predict`.
 - **epochs**: This delimits the number of times YOLO26 will pass through our entire data set.
 - **batch**: The numerical value stipulates the training [batch sizes](https://www.ultralytics.com/glossary/batch-size). Batches are the number of images a model processes before it updates its parameters.
 - **lr0**: Specifies the model's initial [learning rate](https://www.ultralytics.com/glossary/learning-rate).
@@ -268,7 +265,7 @@ We can now run inference to test the performance of our fine-tuned model:
     === "CLI"
 
         ```bash
-        !yolo task=detect mode=predict source={work_dir}/trash_ICRA19/dataset/test/images model={work_dir}/runs/detect/train/weights/best.pt conf=0.5 iou=.5 save=True save_txt=True
+        !yolo detect predict source={work_dir}/trash_ICRA19/dataset/test/images model={work_dir}/runs/detect/train/weights/best.pt conf=0.5 iou=.5 save=True save_txt=True
         ```
 
 This brief script generates predicted labels for each image in our test set, as well as new output image files that overlay the predicted [bounding box](https://www.ultralytics.com/glossary/bounding-box) atop the original image.

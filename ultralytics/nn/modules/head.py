@@ -1884,20 +1884,9 @@ class RefineDetect(Detect):
         preds["scores"], preds["boxes"] = scores, boxes
         return preds
 
-    def fuse(self) -> None:
-        """Remove the one2many head and its refinement branches for inference optimization."""
-        super().fuse()
-        self.refine = None
-
 
 class RefineYOLOEDetect(RefineDetect, YOLOEDetect):
     """RefineDetect for a YOLOE head whose classes are already fused into the classification branch."""
-
-    def fuse(self, txt_feats: torch.Tensor = None) -> None:
-        """Remove the one2many head and its refinement branches for inference optimization."""
-        YOLOEDetect.fuse(self, txt_feats)
-        if txt_feats is None:
-            self.refine = None
 
 
 class SemanticSegment(nn.Module):

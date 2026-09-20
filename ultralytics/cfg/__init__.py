@@ -267,7 +267,6 @@ CFG_INT_KEYS = frozenset(
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, divisors, sizes or seeds
     "epochs": 1,
     "patience": 0,  # 0 disables early stopping
-    "workers": 0,  # 0 loads in-process
     "nbs": 1,
     "max_det": 1,
     "mask_ratio": 1,
@@ -428,8 +427,6 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         ):
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
-            if k == "batch" and isinstance(v, float) and v.is_integer():
-                cfg[k] = v = int(v)  # dataloaders and exporters need an int; AutoBatch fractions are never integral
             if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
                 if hard:
                     raise TypeError(

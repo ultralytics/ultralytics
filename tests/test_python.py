@@ -127,12 +127,9 @@ def test_cfg_rejects_fuzzed_values():
         ("split", None),
         ("copy_paste_mode", None),
         ("patience", -1),
-        ("workers", -1),
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
-    assert type(get_cfg(overrides={"batch": 16.0}).batch) is int  # dataloaders and exporters reject float batch sizes
-    assert get_cfg(overrides={"batch": 0.5}).batch == 0.5  # AutoBatch memory fractions stay float
     assert get_cfg(overrides={"fraction": 1}).fraction == 1.0
     assert get_cfg(overrides={"fraction": [1000, 1, 0]}).fraction == [1000, 1.0, 0.0]
     assert type(get_split_fraction([1, 1, 0], "train")) is float

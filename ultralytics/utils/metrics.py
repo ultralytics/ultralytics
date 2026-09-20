@@ -1720,7 +1720,9 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
 
         valid = (targets != 255) & (preds >= 0) & (preds < self.cm_nc) & (targets >= 0) & (targets < self.cm_nc)
         idx = (self.cm_nc * targets[valid] + preds[valid]).long()
-        self.matrix.view(-1).scatter_add_(0, idx, torch.ones_like(idx, dtype=self.matrix.dtype))
+        # Count per batch: adding 1.0 straight into self.matrix silently stops counting past float32's 2**24.
+        hist = torch.zeros(self.cm_nc**2, device=preds.device, dtype=self.matrix.dtype)
+        self.matrix += hist.scatter_add_(0, idx, torch.ones_like(idx, dtype=hist.dtype)).view(self.cm_nc, self.cm_nc)
 
         present = torch.zeros((targets.shape[0], self.cm_nc), dtype=torch.bool, device=targets.device)
         batch_idx = torch.arange(targets.shape[0], device=targets.device).view(-1, 1, 1).expand_as(targets)

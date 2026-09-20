@@ -41,7 +41,7 @@ Ultralytics Platform offers multiple deployment paths:
 | **[Predict Tab](inference.md)**               | Browser-based inference with image, webcam, and examples | Development, validation |
 | **Shared Inference**                          | Multi-tenant service across 3 data regions               | Light usage, testing    |
 | **[Dedicated Endpoints](endpoints.md)**       | Single-tenant services across 42 regions                 | Production, low latency |
-| **[Export](../train/models.md#export-model)** | Download weights in 20 formats for local or edge runtime | Offline, on-device      |
+| **[Export](../train/models.md#export-model)** | Download weights in 21 formats for local or edge runtime | Offline, on-device      |
 
 ## Workflow
 

@@ -136,7 +136,7 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        self.check_resume(overrides)
+        self.check_resume(overrides or {})
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
@@ -472,6 +472,7 @@ class BaseTrainer:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
+        mosaic_closed = not self.args.close_mosaic  # close once when the run enters its final close_mosaic epochs
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
         self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
@@ -486,7 +487,8 @@ class BaseTrainer:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
-            if epoch == (self.epochs - self.args.close_mosaic):
+            if not mosaic_closed and epoch >= self.epochs - self.args.close_mosaic:
+                mosaic_closed = True
                 self._close_dataloader_mosaic()
                 self.train_loader.reset()
 
@@ -998,38 +1000,37 @@ class BaseTrainer:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
                 ckpt_args = load_checkpoint(last)[0].args
-                if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
-                    ckpt_args["data"] = self.args.data
-
-                resume = True
-                self.args = get_cfg(ckpt_args)
-                self.args.model = self.args.resume = str(last)  # reinstate model
-                for k in (
-                    "imgsz",
-                    "batch",
-                    "device",
-                    "close_mosaic",
-                    "augmentations",
-                    "save_period",
-                    "workers",
-                    "cache",
-                    "patience",
-                    "time",
-                    "freeze",
-                    "val",
-                    "plots",
-                    "channels_last",
-                    "distill_model",
-                    "save_dir",
-                ):  # allow arg updates to reduce memory or update device on resume
-                    if k in overrides:
-                        setattr(self.args, k, overrides[k])
-
             except Exception as e:
                 raise FileNotFoundError(
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
                     "i.e. 'yolo train resume model=path/to/last.pt'"
                 ) from e
+            if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
+                ckpt_args["data"] = self.args.data
+
+            resume = True
+            self.args = get_cfg(ckpt_args)
+            self.args.model = self.args.resume = str(last)  # reinstate model
+            for k in (
+                "imgsz",
+                "batch",
+                "device",
+                "close_mosaic",
+                "augmentations",
+                "save_period",
+                "workers",
+                "cache",
+                "patience",
+                "time",
+                "freeze",
+                "val",
+                "plots",
+                "channels_last",
+                "distill_model",
+                "save_dir",
+            ):  # allow arg updates to reduce memory or update device on resume
+                if k in overrides:
+                    setattr(self.args, k, overrides[k])
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
@@ -1104,9 +1105,6 @@ class BaseTrainer:
             model.criterion.updates = start_epoch - 1
             model.criterion.update()
         self.start_epoch = start_epoch
-        if start_epoch > (self.epochs - self.args.close_mosaic):
-            self._close_dataloader_mosaic()
-            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""

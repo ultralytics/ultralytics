@@ -896,11 +896,11 @@ class Results(SimpleClass, DataExportMixin):
         data = self.obb if is_obb else self.boxes
         if data:
             data = data.cpu()  # one host transfer avoids per-row GPU syncs in the loop below
+            coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist()
         kpts = self.keypoints
         if kpts is not None:
             kpts = kpts.cpu()  # ditto for the per-row keypoints sync below
         h, w = self.orig_shape if normalize else (1, 1)
-        coords = (data.xyxyxyxy if is_obb else data.xyxy).reshape(len(data), -1, 2).tolist() if data else []
         for i, row in enumerate(data):  # xyxy, track_id if tracking, conf, class_id
             class_id, conf = int(row.cls.item()), round(row.conf.item(), decimals)
             box = coords[i]

@@ -98,6 +98,12 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
+        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):  # checked before the label cache is consulted
+            raise ValueError(
+                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+            )
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -157,12 +163,13 @@ class YOLODataset(BaseDataset):
         return self.label_files
 
     def get_cache_hash(self) -> str:
-        """Return the hash used to validate a label cache against the current dataset files.
+        """Return the hash used to validate a label cache against the current dataset files and scan settings.
 
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.label_files + self.im_files)
+        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of scan counters for progress bars and cache logs.
@@ -185,11 +192,6 @@ class YOLODataset(BaseDataset):
             (tuple): (verify function, zipped argument iterable) for ThreadPool.imap.
         """
         nkpt, ndim = self.data.get("kpt_shape", (0, 0))
-        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
-            raise ValueError(
-                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
-                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
-            )
         return verify_image_label, zip(
             self.im_files,
             self.label_files,
@@ -975,7 +977,7 @@ class SemanticDataset(YOLODataset):
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", "mask_bit_depth"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -983,12 +985,7 @@ class SemanticDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the mask verification function and its argument iterable."""
-        return verify_image_mask, zip(
-            self.im_files,
-            self.mask_files,
-            repeat(self.prefix),
-            repeat(int(self.data.get("nc", 0)) == 1),
-        )
+        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix))
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
@@ -1155,12 +1152,11 @@ class ClassificationDataset:
     Methods:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
-        filter_extra_classes: Drop samples whose class index is outside the model's classes.
         verify_images: Verify all images in dataset.
         cache_images: Decode images into one contiguous RAM cache.
     """
 
-    def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
+    def __init__(self, root: str, args, augment: bool = False, prefix: str = "", names: dict[int, str] | None = None):
         """Initialize YOLO classification dataset with root directory, arguments, augmentations, and cache settings.
 
         Args:
@@ -1169,6 +1165,8 @@ class ClassificationDataset:
                 parameters, and cache settings.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
+            names (dict[int, str], optional): Model class names; class folders are aligned to this order by name and
+                folders the model lacks are dropped, since each split's ImageFolder scan is indexed on its own.
         """
         import torchvision  # scope for faster 'import ultralytics'
 
@@ -1193,10 +1191,22 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
-        if is_ndjson:
-            self.samples = [(f, int(Path(f).parent.name)) for f, _ in self.samples]
+        classes = self.base.classes  # this split's class folders, sorted, indexed by the ImageFolder target
         if args.single_cls:
-            self.samples = [(f, 0) for f, _ in self.samples]
+            index = dict.fromkeys(classes, 0)
+        elif is_ndjson:  # folders are the class ids
+            index = {c: int(c) for c in classes}
+        elif names and not set(classes).isdisjoint(names.values()):  # align to the model's class order by name
+            index = {n: i for i, n in names.items()}
+        else:  # folder names carry no class meaning, e.g. ImageNet wnids under humanized names
+            index = {c: i for i, c in enumerate(classes)}
+        extra = {c for c in classes if index.get(c, len(names)) >= len(names)} if names else set()  # not in the model
+        n = len(self.samples)
+        self.samples = [(f, index[classes[t]]) for f, t in self.samples if classes[t] not in extra]
+        if extra:
+            LOGGER.warning(
+                f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {sorted(extra)}"
+            )
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()
@@ -1216,24 +1226,6 @@ class ClassificationDataset:
             if augment
             else classify_transforms(size=args.imgsz)
         )
-
-    def filter_extra_classes(self, nc: int) -> None:
-        """Drop samples with class indices >= nc before constructing the dataloader."""
-        dataset_nc = max((x[1] for x in self.samples), default=0) + 1
-        if dataset_nc <= nc:
-            return
-        extra_classes = self.base.classes[nc:]
-        original_count = len(self.samples)
-        self.samples = [s for s in self.samples if s[1] < nc]
-        LOGGER.warning(
-            f"{self.prefix}Split has {dataset_nc} classes but model expects {nc}. "
-            f"Skipping {original_count - len(self.samples)} samples from extra classes: {extra_classes}"
-        )
-        if not self.samples:
-            raise RuntimeError(
-                f"{self.prefix}All {original_count} samples filtered out: every sample had class index >= "
-                f"model nc={nc}. Reset the model's class count or align dataset class indices."
-            )
 
     def __getitem__(self, i: int) -> dict:
         """Return transformed image and class index for the given sample index.
@@ -1266,7 +1258,7 @@ class ClassificationDataset:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
 
         A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
-        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared buffer is read-only across
         workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
         """
         with ThreadPool(NUM_THREADS) as pool:
@@ -1293,7 +1285,7 @@ class ClassificationDataset:
             check_file_speeds([file for (file, _) in self.samples[:5]], prefix=self.prefix)  # check image read speeds
             cache = load_dataset_cache_file(path)  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
-            assert cache["hash"] == get_hash([x[0] for x in self.samples])  # identical hash
+            assert cache["hash"] == get_hash([x[0] for x in self.samples] + self.base.classes)  # files and classes
             nf, nc, n, samples = cache.pop("results")  # found, corrupt, total, samples
             if LOCAL_RANK in {-1, 0}:
                 d = f"{desc} {nf} images, {nc} corrupt"
@@ -1320,7 +1312,7 @@ class ClassificationDataset:
                 pbar.close()
             if msgs:
                 LOGGER.info("\n".join(msgs))
-            x["hash"] = get_hash([x[0] for x in self.samples])
+            x["hash"] = get_hash([x[0] for x in self.samples] + self.base.classes)
             x["results"] = nf, nc, len(samples), samples
             x["msgs"] = msgs  # warnings
             save_dataset_cache_file(self.prefix, path, x, DATASET_CACHE_VERSION)

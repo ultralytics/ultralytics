@@ -173,3 +173,21 @@ Ultralytics provides a range of ready-to-use environments, each pre-installed wi
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 CI"></a>
 
 This badge indicates that all [YOLOv5 GitHub Actions](https://github.com/ultralytics/yolov5/actions) Continuous Integration (CI) tests are successfully passing. These CI tests rigorously check the functionality and performance of YOLOv5 across various key aspects: [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py). They ensure consistent and reliable operation on macOS, Windows, and Ubuntu, with tests conducted every 24 hours and upon each new commit.
+
+## FAQ
+
+### What does TTA actually do?
+
+Each image is run at three scales and with a left-right flip, and the predictions are merged before NMS. The extra views improve recall, especially on small objects, at the cost of more compute.
+
+### How much slower is inference with TTA?
+
+Expect roughly 2-3x the normal inference time. Part of the cost is the larger `--img` size, so make sure your GPU has enough memory before increasing it.
+
+### Why increase `--img` when using TTA?
+
+Running at about 30% larger resolution, for example 832 instead of 640, gives the multi-scale passes more detail to work with and produced the best results in the benchmarks above.
+
+### Does TTA work with exported models?
+
+No. The augmented forward pass lives in the PyTorch `DetectionModel`, so `--augment` only affects `.pt` checkpoints. Exported ONNX, TensorRT, and other formats ignore it.

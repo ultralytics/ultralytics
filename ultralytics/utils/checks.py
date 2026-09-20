@@ -266,7 +266,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
-    sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
+    sz = [max(math.ceil(x / stride) * stride, floor, stride) for x in imgsz]  # at least one stride, i.e. imgsz=0
 
     # Print warning message if image size was updated
     if sz != imgsz:

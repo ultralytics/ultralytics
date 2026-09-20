@@ -472,6 +472,7 @@ class BaseTrainer:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
+        mosaic_closed = not self.args.close_mosaic  # close once when the run enters its final close_mosaic epochs
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
         self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
@@ -486,7 +487,8 @@ class BaseTrainer:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
-            if epoch == (self.epochs - self.args.close_mosaic):
+            if not mosaic_closed and epoch >= self.epochs - self.args.close_mosaic:
+                mosaic_closed = True
                 self._close_dataloader_mosaic()
                 self.train_loader.reset()
 
@@ -1103,9 +1105,6 @@ class BaseTrainer:
             model.criterion.updates = start_epoch - 1
             model.criterion.update()
         self.start_epoch = start_epoch
-        if start_epoch > (self.epochs - self.args.close_mosaic):
-            self._close_dataloader_mosaic()
-            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""

@@ -163,10 +163,12 @@ For more details about the export process, visit the [Ultralytics documentation 
 
 After a successful export, a model directory is created with the following layout:
 
-    yolo26n_deepx_model/
-    ├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
-    ├── config.json      # Calibration and preprocessing configuration
-    └── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+```text
+yolo26n_deepx_model/
+├── yolo26n.dxnn     # Compiled DEEPX model binary (NPU executable)
+├── config.json      # Calibration and preprocessing configuration
+└── metadata.yaml    # Model metadata (classes, image size, task, etc.)
+```
 
 The `.dxnn` file is the compiled model binary that the `dx_engine` runtime loads directly on the NPU. The `metadata.yaml` contains class names, image size, and other information used by the Ultralytics inference pipeline.
 
@@ -267,7 +269,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
     !!! note
 
-        Validation for the above benchmarks were done using coco128 for detection, coco128-seg for segmentation, coco8-pose for pose estimation, imagenet100 for classification and dota128 for OBB models. Inference time does not include pre/ post-processing.
+        Validation for the above benchmarks was done using COCO128 for detection, COCO128-seg for segmentation, COCO8-pose for pose estimation, ImageNet100 for classification and DOTA128 for OBB models. Inference time does not include pre/post-processing.
 
 !!! tip "Performance Optimization Tips"
 

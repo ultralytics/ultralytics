@@ -32,7 +32,7 @@ Format with 2D keypoints
 Format with keypoint visibility (includes visibility per point)
 
 ```text
-<class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> <pxn> <pyn> <pn-visibility>
+<class-index> <x> <y> <width> <height> <px1> <py1> <p1-visibility> <px2> <py2> <p2-visibility> ... <pxn> <pyn> <pn-visibility>
 ```
 
 In this format, `<class-index>` is the index of the class for the object, `<x> <y> <width> <height>` are the normalized coordinates of the [bounding box](https://www.ultralytics.com/glossary/bounding-box), and `<px1> <py1> <px2> <py2> ... <pxn> <pyn>` are the normalized keypoint coordinates. The visibility channel is optional but useful for datasets that annotate occlusion.
@@ -73,7 +73,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 (Optional) `flip_idx` maps each keypoint to its mirror image, so horizontal-flip augmentation keeps left and right consistent on symmetric skeletons such as a human body or face. For five facial landmarks indexed as [left eye, right eye, nose, left mouth, right mouth] = [0, 1, 2, 3, 4], `flip_idx` is [1, 0, 2, 4, 3]: the left-right pairs 0-1 and 3-4 swap, and the nose keeps its own index.
 
-(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](https://docs.ultralytics.com/guides/yolo-performance-metrics) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
+(Optional) `kpt_oks_sigmas` sets custom per-keypoint [OKS](../../guides/yolo-performance-metrics.md) sigmas used during training and validation, e.g. `[0.26, 0.25, 0.25, ...]`. The list length must equal the number of keypoints `N` from `kpt_shape`, and every value must be positive. When omitted, the COCO 17-keypoint sigmas are used for `kpt_shape: [17, 3]` and a uniform `1/N` otherwise.
 
 ## Usage
 
@@ -100,7 +100,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 ## Supported Datasets
 
-This section outlines the datasets that are compatible with Ultralytics YOLO format and can be used for training [pose estimation](../../tasks/pose.md) models:
+This section outlines the datasets that are compatible with Ultralytics YOLO format and can be used for training [pose estimation](../../tasks/pose.md) models. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 ### COCO-Pose
 

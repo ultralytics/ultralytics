@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import LINUX, LOGGER, MACOS
+from ultralytics.utils import AUTOINSTALL, LINUX, LOGGER, MACOS
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_13,
     check_apt_requirements,
@@ -45,7 +45,7 @@ def _tf_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
     grid_h, grid_w = shape[2:4]
     grid_size = torch.tensor([grid_w, grid_h, grid_w, grid_h], device=boxes.device).reshape(1, 4, 1)
     norm = self.strides / (self.stride[0] * grid_size)
-    dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2])
+    dbox = self.decode_bboxes(self.dfl(boxes) * norm, self.anchors.unsqueeze(0) * norm[:, :2], x.get("angle"))
     return dbox
 
 
@@ -259,6 +259,10 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         ).returncode
         != 0
     ):
+        if not AUTOINSTALL:
+            raise FileNotFoundError(
+                f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
+            )
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
         sudo = "sudo " if is_sudo_available() else ""
         for c in (

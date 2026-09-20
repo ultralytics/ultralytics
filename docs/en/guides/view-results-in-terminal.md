@@ -135,8 +135,6 @@ w.draw(mem_file)
 2. Only the object at index `1` that is returned is needed.
 3. See [plot method parameters](../modes/predict.md#plot-method-parameters) to see possible arguments to use.
 
----
-
 !!! tip "Clearing the image"
 
     You may need to use `clear` to "erase" the view of the image in the terminal.

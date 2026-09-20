@@ -380,7 +380,7 @@ def run_ray_tune(
     """
     LOGGER.info("💡 Learn about RayTune at https://docs.ultralytics.com/integrations/ray-tune")
     try:
-        checks.check_requirements("ray[tune]", constrain=["pydantic>=2.0,<2.12"])
+        checks.check_requirements(["ray>=2.41.0", "ray[tune]"], constrain=["pydantic>=2.0,<2.12"])
 
         import ray
         from ray import tune
@@ -389,7 +389,6 @@ def run_ray_tune(
     except ImportError:
         raise ModuleNotFoundError('Ray Tune required but not found. To install run: pip install "ray[tune]"')
 
-    checks.check_version(ray.__version__, ">=2.0.0", "ray")
     default_space = {
         # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
         "lr0": tune.uniform(1e-5, 1e-2),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
@@ -435,10 +434,7 @@ def run_ray_tune(
 
         # Set trial-specific name for W&B logging
         try:
-            if hasattr(tune, "get_context"):
-                trial_id = tune.get_context().get_trial_id()  # Ray ≥2.7, get current trial ID (e.g., "tune_c1c1ce99")
-            else:
-                trial_id = tune.get_trial_id()  # Ray <2.7
+            trial_id = tune.get_context().get_trial_id()
             trial_suffix = trial_id.split("_")[-1] if "_" in trial_id else trial_id
             config["name"] = f"{base_name}_{trial_suffix}"
         except Exception:
@@ -455,9 +451,10 @@ def run_ray_tune(
         return results.results_dict
 
     # Get search space
-    if not space and not train_args.get("resume"):
+    if not space:
         space = default_space
-        LOGGER.warning("Search space not provided, using default search space.")
+        if not train_args.get("resume"):
+            LOGGER.warning("Search space not provided, using default search space.")
 
     # Get dataset
     data = train_args.get("data", TASK2DATA[task])

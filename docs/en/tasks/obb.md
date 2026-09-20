@@ -5,7 +5,7 @@ keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLO26, Ultralytics, D
 model_name: yolo26n-obb
 ---
 
-# Oriented Bounding Boxes [Object Detection](https://www.ultralytics.com/glossary/object-detection)
+# Oriented Bounding Box Detection with Ultralytics YOLO {#oriented-bounding-boxes-object-detection}
 
 <img width="1024" src="https://cdn.ul.run/i/5358256c7e6abec4c69ca11be99143ba.avif" alt="Ultralytics YOLO oriented bounding box detection of boats in aerial imagery">
 
@@ -45,6 +45,8 @@ YOLO26 pretrained OBB models are shown here, which are pretrained on the [DOTAv1
 - **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test nms=False` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
 - **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
+
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary DOTAv1 results.
 
 ## Train
 
@@ -120,7 +122,7 @@ Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossa
         model = YOLO("path/to/best.pt")  # load a custom model
 
         # Validate the model
-        metrics = model.val(data="dota8.yaml")  # no arguments needed, dataset and settings remembered
+        metrics = model.val(data="dota8.yaml")  # validate on the DOTA8 dataset
         metrics.box.map  # map50-95(B)
         metrics.box.map50  # map50(B)
         metrics.box.map75  # map75(B)

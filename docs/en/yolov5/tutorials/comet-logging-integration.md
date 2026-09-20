@@ -255,3 +255,21 @@ python utils/loggers/comet/hpo.py \
 Comet provides a number of ways to visualize the results of your sweep. Take a look at a [project with a completed sweep here](https://www.comet.com/examples/comet-example-yolov5/view/PrlArHGuuhDTKC1UuBmTtOSXD/panels?utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github).
 
 ![Comet Hyperparameter Visualization](https://cdn.ul.run/i/9d78fed3421a57006224ecd94dcd5696.avif)
+
+## FAQ
+
+### Where do I find my Comet API key?
+
+Create a free account at [comet.com](https://www.comet.com/site/), open your account settings, and copy the API key. Export it as `COMET_API_KEY` or store it in a `.comet.config` file next to `train.py`.
+
+### Can I log runs without an internet connection?
+
+Yes. Set `COMET_MODE=offline` to write the experiment to a local archive, then upload it later with `comet upload path/to/archive.zip`.
+
+### Why are no model checkpoints appearing in Comet?
+
+Checkpoint logging is off by default. Pass `--save-period 1` (or another interval) to `train.py` and each saved checkpoint is uploaded to the experiment.
+
+### How do I resume an interrupted run?
+
+Copy the run path from the Comet UI and start training with `python train.py --resume "comet://WORKSPACE/PROJECT/EXPERIMENT_ID"`. YOLOv5 restores the checkpoint, hyperparameters, and any Comet dataset artifact, and continues logging to the same experiment.

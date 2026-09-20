@@ -610,10 +610,9 @@ class DetectionValidator(BaseValidator):
                         stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                         stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-                    for size in "small", "medium", "large":
-                        ap = val.stats_as_dict.get(f"AP_{size}")  # keypoints report no small range
-                        if ap is not None:
-                            stats[f"metrics/mAP_{size}({suffix[i][0]})"] = ap
+                    for x in "small", "medium", "large":
+                        if f"AP_{x}" in val.stats_as_dict:  # COCO keypoint evaluation has no small area range
+                            stats[f"metrics/mAP_{x}({suffix[i][0]})"] = val.stats_as_dict[f"AP_{x}"]
                     if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]

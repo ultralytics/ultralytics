@@ -133,3 +133,21 @@ Platform.
 For the complete local workflow, see LabelMe's
 [YOLO training guide](https://labelme.io/blog/yolo-training-with-labelme) and
 [`export-to-yolo` reference](https://labelme.io/docs/export-to-yolo).
+
+## FAQ
+
+### Do I need a LabelMe account or API key in Platform?
+
+No. LabelMe and the export run locally, and only the ZIP you upload is sent to Platform. The `export-to-yolo` command is part of the LabelMe Pro Toolkit, which is a LabelMe requirement, but the resulting ZIP uploads on any Platform plan.
+
+### Can I export polygons for segmentation?
+
+Not with this workflow. LabelMe Toolkit reduces polygons and masks to their axis-aligned bounding boxes, so the result is always a detection dataset. Draw rectangles when preparing data for this export.
+
+### Why are my classes named `class0`, `class1`, and so on?
+
+Platform reads class names from `classes.txt` at the root of the ZIP. Compress the contents of the export folder, not the folder itself, so `classes.txt`, `images/`, and `labels/` are the top-level entries.
+
+### Which labels end up in the export?
+
+Only the labels passed to `--class-names`, in the order you list them. Run `labelmetk list-labels` first and include every label you want to keep.

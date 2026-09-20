@@ -70,7 +70,6 @@ ASSETS_BASE_URL = os.getenv("ULTRALYTICS_ASSETS_URL", "https://github.com/ultral
 ASSETS_URL = f"{ASSETS_BASE_URL}/v0.0.0"  # assets release URL
 # Configurable Platform URL for debugging (e.g. ULTRALYTICS_PLATFORM_URL=http://localhost:3000)
 PLATFORM_URL = os.getenv("ULTRALYTICS_PLATFORM_URL", "https://platform.ultralytics.com").rstrip("/")
-PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", f"{PLATFORM_URL}/api/webhooks")
 DEFAULT_CFG_PATH = ROOT / "cfg/default.yaml"
 NUM_THREADS = min(8, max(1, os.cpu_count() - 1))  # number of YOLO multiprocessing threads
 AUTOINSTALL = env_bool("YOLO_AUTOINSTALL", True)  # global auto-install mode
@@ -1253,6 +1252,7 @@ def set_sentry():
             if exc_type in {KeyboardInterrupt, FileNotFoundError} or "out of memory" in str(exc_value):
                 return None  # do not send event
 
+        event.get("extra", {}).pop("sys.argv", None)
         event["tags"] = {
             "sys_argv": ARGV[0],
             "sys_argv_name": Path(ARGV[0]).name,
@@ -1265,6 +1265,7 @@ def set_sentry():
         dsn="https://888e5a0778212e1d0314c37d4b9aae5d@o4504521589325824.ingest.us.sentry.io/4504521592406016",
         debug=False,
         auto_enabling_integrations=False,
+        include_local_variables=False,
         traces_sample_rate=1.0,
         release=__version__,
         environment="runpod" if is_runpod() else "production",
@@ -1428,7 +1429,7 @@ class SettingsManager(JSONDict):
         self.help_msg = (
             f"\nView Ultralytics Settings with 'yolo settings' or at '{self.file}'"
             "\nUpdate Settings with 'yolo settings key=value', i.e. 'yolo settings runs_dir=path/to/dir'. "
-            "For help see https://docs.ultralytics.com/quickstart#ultralytics-settings."
+            "For help see https://docs.ultralytics.com/usage/settings."
         )
 
         with torch_distributed_zero_first(LOCAL_RANK):

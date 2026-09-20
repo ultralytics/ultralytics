@@ -107,18 +107,18 @@ The fastest way to get started with Ultralytics YOLO26 on NVIDIA Jetson is to ru
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-=== "JetPack 7.0 (Thor/DGX Spark)"
+=== "JetPack 7.1 (Thor, PyTorch only)"
 
     ```bash
     t=ultralytics/ultralytics:latest-nvidia-arm64
     sudo docker pull $t && sudo docker run -it --ipc=host --runtime=nvidia $t
     ```
 
-!!! note "JetPack 7 Docker scope"
+!!! warning "JetPack 7 Docker and TensorRT support"
 
-    The public `latest-nvidia-arm64` image currently owns only the JetPack 7.0 Thor/DGX Spark path. For JetPack 7.2 on Thor or Orin, use the native installation below until the public image is explicitly validated and updated for those combinations.
+    The `latest-nvidia-arm64` image uses [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), including CUDA 13.4 and TensorRT 11.2. NVIDIA lists JetPack 7.1 for PyTorch in its [compatibility table](https://docs.nvidia.com/deeplearning/frameworks/install-pytorch-jetson-platform-release-notes/pytorch-jetson-rel.html#compatibility), but [TensorRT 11.2.1 does not support JetPack](https://docs.nvidia.com/deeplearning/tensorrt/latest/api/migration/tensorrt-10x-to-11x-jetson.html), including Thor. Use this image only for PyTorch workloads on a supported host. For Jetson TensorRT exports, use the native installation below with the TensorRT 10.x runtime supported by your JetPack release. JetPack 7.2 on Thor or Orin requires separate container validation. Rebuild engines for the target GPU and TensorRT version.
 
-After this is done, skip to [Use TensorRT on NVIDIA Jetson section](#use-tensorrt-on-nvidia-jetson).
+For JetPack 4, 5, and 6 images, continue to [Use TensorRT on NVIDIA Jetson](#use-tensorrt-on-nvidia-jetson). The JetPack 7.1 image above is for PyTorch workloads only.
 
 ## Start with Native Installation
 
@@ -162,7 +162,7 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 
 #### Install `onnxruntime-gpu`
 
-The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
+Use an ONNX Runtime GPU wheel matched to your JetPack, Python, and CUDA versions. Current PyPI releases include ARM64 wheels, but they do not replace the device-specific packages for every JetPack release.
 
 Here we will download and install `onnxruntime-gpu 1.24.0` with `Python3.12` support.
 
@@ -223,7 +223,7 @@ sudo apt-get -y install cudss
 
 #### Install `onnxruntime-gpu`
 
-The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
+Use an ONNX Runtime GPU wheel matched to your JetPack, Python, and CUDA versions. Current PyPI releases include ARM64 wheels, but they do not replace the device-specific packages for every JetPack release.
 
 You can find all available `onnxruntime-gpu` packages—organized by JetPack version, Python version, and other compatibility details—in the [Jetson Zoo ONNX Runtime compatibility matrix](https://elinux.org/Jetson_Zoo#ONNX_Runtime).
 
@@ -288,7 +288,7 @@ The above ultralytics installation will install Torch and Torchvision. However, 
 
 #### Install `onnxruntime-gpu`
 
-The [onnxruntime-gpu](https://pypi.org/project/onnxruntime-gpu/) package hosted in PyPI does not have `aarch64` binaries for the Jetson. So we need to manually install this package. This package is needed for some of the exports.
+Use an ONNX Runtime GPU wheel matched to your JetPack, Python, and CUDA versions. Current PyPI releases include ARM64 wheels, but they do not replace the device-specific packages for every JetPack release.
 
 You can find all available `onnxruntime-gpu` packages—organized by JetPack version, Python version, and other compatibility details—in the [Jetson Zoo ONNX Runtime compatibility matrix](https://elinux.org/Jetson_Zoo#ONNX_Runtime). Here we will download and install `onnxruntime-gpu 1.17.0` with `Python3.8` support.
 
@@ -305,7 +305,7 @@ pip install onnxruntime_gpu-1.17.0-cp38-cp38-linux_aarch64.whl
 
 ## Use TensorRT on NVIDIA Jetson
 
-Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
+Among all the model export formats supported by Ultralytics, TensorRT offers the highest inference performance on NVIDIA Jetson devices, making it our top recommendation for Jetson deployments. Before exporting, install the TensorRT Python bindings supplied for your JetPack release and verify them with `python3 -c "import tensorrt; print(tensorrt.__version__)"`. Keep the supported TensorRT 10.x runtime on JetPack 6/7; do not replace it with TensorRT 11.2.1. For setup instructions and advanced usage, see our [dedicated TensorRT integration guide](../integrations/tensorrt.md).
 
 You can also export from the browser without configuring the build environment locally. In the [Ultralytics Platform model Export tab](../platform/train/models.md#nvidia-jetson-tensorrt-targets), select TensorRT and the intended Jetson target. Thor selections are validated on physical Thor hardware. The six Orin selections currently produce AGX-Orin-built candidate engines; validate them on the intended Orin SKU before deployment.
 
@@ -355,9 +355,9 @@ The YOLO26n model in PyTorch format is converted to TensorRT to run inference wi
 
 [NVIDIA Deep Learning Accelerator (DLA)](https://developer.nvidia.com/deep-learning-accelerator) is a specialized hardware component built into NVIDIA Jetson devices that optimizes deep learning inference for energy efficiency and performance. By offloading tasks from the GPU (freeing it up for more intensive processes), DLA enables models to run with lower power consumption while maintaining high throughput, ideal for embedded systems and real-time AI applications.
 
-!!! warning "TensorRT 11.0 and DLA"
+!!! warning "TensorRT and DLA compatibility"
 
-    DLA is not supported in TensorRT 11.0 and is planned to return in a later release, so DLA export requires TensorRT 10.x. On JetPack 6.x/7.x, export with a TensorRT 10.x build to use DLA, or use the GPU for TensorRT 11.0 engines.
+    NVIDIA lists TensorRT 10.7 as the last release with [DLA support](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/work-with-dla.html); TensorRT 11.0, 11.1, and 11.2 do not support DLA. Use a DLA-capable TensorRT release supported by your JetPack version. TensorRT 11.2.1 does not support JetPack, including GPU-only exports.
 
 The following Jetson devices are equipped with DLA hardware:
 
@@ -404,9 +404,9 @@ The following Jetson devices are equipped with DLA hardware:
 
     When using DLA exports, some layers may not be supported to run on DLA and will fall back to the GPU for execution. This fallback can introduce additional latency and impact the overall inference performance. Therefore, DLA is not primarily designed to reduce inference latency compared to TensorRT running entirely on the GPU. Instead, its primary purpose is to increase throughput and improve energy efficiency.
 
-## NVIDIA Jetson YOLO11/ YOLO26 Benchmarks
+## NVIDIA Jetson YOLO26 Benchmarks
 
-YOLO11/ YOLO26 benchmarks were run by the Ultralytics team on 11 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on NVIDIA Jetson AGX Thor Developer Kit, NVIDIA Jetson AGX Orin Developer Kit (64GB), NVIDIA Jetson Orin Nano Super Developer Kit and Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 benchmarks were run by the Ultralytics team on 11 different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch. Benchmarks were run on NVIDIA Jetson AGX Thor Developer Kit, NVIDIA Jetson AGX Orin Developer Kit (64GB), NVIDIA Jetson Orin Nano Super Developer Kit and Seeed Studio reComputer J4012 powered by Jetson Orin NX 16GB device at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Charts
 
@@ -442,7 +442,7 @@ Even though all model exports work on NVIDIA Jetson, we have only included **PyT
 
 ### Detailed Comparison Tables
 
-The below table represents the benchmark results for five different models (YOLO11n, YOLO11s, YOLO11m, YOLO11l, YOLO11x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for five different models (YOLO26n, YOLO26s, YOLO26m, YOLO26l, YOLO26x) across 11 different formats (PyTorch, TorchScript, ONNX, OpenVINO, TensorRT, TF SavedModel, TF GraphDef, TF Lite, MNN, NCNN, ExecuTorch), giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 #### NVIDIA Jetson AGX Thor Developer Kit
 
@@ -532,7 +532,7 @@ The below table represents the benchmark results for five different models (YOLO
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 #### NVIDIA Jetson AGX Orin Developer Kit (64GB)
 
@@ -554,7 +554,6 @@ The below table represents the benchmark results for five different models (YOLO
         | TF Lite         | ✅     | 9.9               | 0.4760      | 227.94                 |
         | MNN             | ✅     | 9.4               | 0.4760      | 32.46                  |
         | NCNN            | ✅     | 9.3               | 0.4810      | 29.93                  |
-
 
     === "YOLO26s"
 
@@ -628,7 +627,7 @@ The below table represents the benchmark results for five different models (YOLO
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 #### NVIDIA Jetson Orin Nano Super Developer Kit
 
@@ -723,7 +722,7 @@ The below table represents the benchmark results for five different models (YOLO
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 #### NVIDIA Jetson Orin NX 16GB
 
@@ -818,7 +817,7 @@ The below table represents the benchmark results for five different models (YOLO
 
     !!! note
 
-        Inference time does not include pre/ post-processing.
+        Inference time does not include pre/post-processing.
 
 [Explore more benchmarking efforts by Seeed Studio](https://www.seeedstudio.com/blog/2023/03/30/yolov8-performance-benchmarks-on-nvidia-jetson-devices/) running on different versions of NVIDIA Jetson hardware.
 
@@ -833,18 +832,18 @@ To reproduce the above Ultralytics benchmarks on all export [formats](../modes/e
         ```python
         from ultralytics import YOLO
 
-        # Load a YOLO11n PyTorch model
-        model = YOLO("yolo11n.pt")
+        # Load a YOLO26n PyTorch model
+        model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
+        # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
         results = model.benchmark(data="coco128.yaml", imgsz=640)
         ```
 
     === "CLI"
 
         ```bash
-        # Benchmark YOLO11n speed and accuracy on the COCO128 dataset for all export formats
-        yolo benchmark model=yolo11n.pt data=coco128.yaml imgsz=640
+        # Benchmark YOLO26n speed and accuracy on the COCO128 dataset for all export formats
+        yolo benchmark model=yolo26n.pt data=coco128.yaml imgsz=640
         ```
 
     Note that benchmarking results might vary based on the exact hardware and software configuration of a system, as well as the current workload of the system at the time the benchmarks are run. For the most reliable results, use a dataset with a large number of images, e.g., `data='coco.yaml'` (5000 val images).
@@ -941,7 +940,7 @@ For inference pipelines that have no live-preview requirement, disabling display
         ```python
         from ultralytics import YOLO
 
-        model = YOLO("yolo11n.engine")
+        model = YOLO("yolo26n.engine")
 
         # show=False prevents any display window; save=True writes annotated output to disk
         results = model.predict(source="video.mp4", show=False, save=True)
@@ -950,7 +949,7 @@ For inference pipelines that have no live-preview requirement, disabling display
     === "CLI"
 
         ```bash
-        yolo predict model=yolo11n.engine source=video.mp4 show=False save=True
+        yolo predict model=yolo26n.engine source=video.mp4 show=False save=True
         ```
 
 ### Cumulative Impact
@@ -974,9 +973,9 @@ For further learning and support, see the [Ultralytics YOLO26 Docs](../index.md)
 
 Deploying Ultralytics YOLO26 on NVIDIA Jetson devices is a straightforward process. First, flash your Jetson device with the NVIDIA JetPack SDK. Then, either use a pre-built Docker image for quick setup or manually install the required packages. Detailed steps for each approach can be found in sections [Quick Start with Docker](#quick-start-with-docker) and [Start with Native Installation](#start-with-native-installation).
 
-### What performance benchmarks can I expect from YOLO11 models on NVIDIA Jetson devices?
+### What performance benchmarks can I expect from YOLO26 models on NVIDIA Jetson devices?
 
-YOLO11 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Tables](#detailed-comparison-tables) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
+YOLO26 models have been benchmarked on various NVIDIA Jetson devices showing significant performance improvements. For example, the TensorRT format delivers the best inference performance. The table in the [Detailed Comparison Tables](#detailed-comparison-tables) section provides a comprehensive view of performance metrics like mAP50-95 and inference time across different model formats.
 
 ### Why should I use TensorRT for deploying YOLO26 on NVIDIA Jetson?
 

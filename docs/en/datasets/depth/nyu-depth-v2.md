@@ -41,7 +41,7 @@ The table below reports the `delta1` accuracy (percentage of pixels within a 1.2
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
 
 !!! example "ultralytics/cfg/datasets/nyu-depth.yaml"
 
@@ -96,3 +96,21 @@ If you use the NYU Depth V2 dataset in your research or development work, please
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### Why is NYU Depth V2 the primary YOLO26-Depth benchmark?
+
+NYU Depth V2 is the standard indoor monocular depth benchmark, with Kinect v1 RGB-D captures of homes, offices, and classrooms up to roughly 10 m and a widely used 654-image Eigen test split. The headline YOLO26-Depth metrics on the [Depth Estimation task page](../../tasks/depth.md) are reported on it.
+
+### Are the YOLO26-Depth models trained on NYU Depth V2?
+
+No. The released models are evaluated zero-shot, so the NYU training split is left unused and only held-out test results are reported. The published numbers use multi-scale and flip test-time augmentation followed by log-least-squares scale alignment.
+
+### How do I validate a model on NYU Depth V2?
+
+Run `yolo depth val data=nyu-depth.yaml model=yolo26x-depth.pt`, or use the Python example in the [Usage](#usage) section. The built-in validator uses single-scale inference with median alignment, so its scores are lower than the TTA numbers in [Results](#results); see the [task page](../../tasks/depth.md#models) for the reproducible values.
+
+### Where can I browse NYU Depth V2 online?
+
+Explore [NYU Depth V2 on Ultralytics Platform](https://platform.ultralytics.com/ultralytics/datasets/nyu-depth) to preview RGB-depth pairs, inspect dataset statistics, and clone the dataset for cloud training.

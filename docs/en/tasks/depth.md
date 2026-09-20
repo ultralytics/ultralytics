@@ -5,7 +5,7 @@ keywords: monocular depth estimation, YOLO26, depth map, per-pixel depth, NYU De
 model_name: yolo26n-depth
 ---
 
-# Monocular Depth Estimation
+# Monocular Depth Estimation with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.ul.run/i/7a53b502cdffcaa1bbf61ca1690a2dde.avif" alt="Monocular depth estimation examples">
 
@@ -42,6 +42,8 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 - **rmse** is the root mean squared error in meters.
 - **Speed** is inference-only latency (pre/post-processing excluded) at `imgsz=768`, `batch=1`, reported as mean ± std over timed runs after warmup. **CPU ONNX** is ONNX Runtime fp32 on a 32-core Intel Xeon (Skylake); **T4 TensorRT10** is TensorRT fp16 on a Tesla T4.
 - **params** and **FLOPs** are measured at 768×768, the training resolution of the released weights.
+
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary NYU Depth V2 results.
 
 ## Speed compared to Depth Anything V2
 

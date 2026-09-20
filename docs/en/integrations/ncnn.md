@@ -124,14 +124,14 @@ The NCNN format supports the [Export](../modes/export.md), [Predict](../modes/pr
         model = YOLO("yolo26n.pt")
 
         # Export the model to NCNN format
-        model.export(format="ncnn")  # creates '/yolo26n_ncnn_model'
+        model.export(format="ncnn")  # creates 'yolo26n_ncnn_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to NCNN format
-        yolo export model=yolo26n.pt format=ncnn # creates '/yolo26n_ncnn_model'
+        yolo export model=yolo26n.pt format=ncnn # creates 'yolo26n_ncnn_model'
         ```
 
 !!! example "Predict"
@@ -221,13 +221,13 @@ To export your Ultralytics YOLO26 model to NCNN format:
     model = YOLO("yolo26n.pt")
 
     # Export to NCNN format
-    model.export(format="ncnn")  # creates '/yolo26n_ncnn_model'
+    model.export(format="ncnn")  # creates 'yolo26n_ncnn_model'
     ```
 
 - **CLI**: Use the `yolo export` command.
 
     ```bash
-    yolo export model=yolo26n.pt format=ncnn # creates '/yolo26n_ncnn_model'
+    yolo export model=yolo26n.pt format=ncnn # creates 'yolo26n_ncnn_model'
     ```
 
 For detailed export options, see the [Export](../modes/export.md) documentation.

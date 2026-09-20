@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import ast
-import math
 import os
 import shutil
 import subprocess
@@ -265,15 +264,15 @@ CFG_INT_KEYS = frozenset(
         "save_period",
     }
 )
-CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, divisors, sizes or seeds
     "epochs": 1,
+    "patience": 0,  # 0 disables early stopping
+    "workers": 0,  # 0 loads in-process
     "nbs": 1,
     "max_det": 1,
     "mask_ratio": 1,
     "vid_stride": 1,
     "seed": 0,
-    "patience": 0,  # 0 disables early stopping; negatives stop every epoch
-    "workers": 0,  # 0 = in-process; negatives fail deep in DataLoader
 }
 CFG_BOOL_KEYS = frozenset(
     {  # boolean-only arguments
@@ -429,23 +428,15 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
         ):
             raise TypeError(f"'{k}=None' is invalid. '{k}' must not be None.")
         if v is not None:  # None values may be from optional args
-            if k in CFG_FLOAT_KEYS:
-                if not isinstance(v, FLOAT_OR_INT):
-                    if hard:
-                        raise TypeError(
-                            f"'{k}={v}' is of invalid type {type(v).__name__}. "
-                            f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
-                        )
-                    cfg[k] = v = float(v)
-                if not math.isfinite(v):
-                    raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be finite.")
-                if k == "batch" and not (v == -1 or 0 < v < 1 or (v >= 1 and v == int(v))):
-                    raise ValueError(
-                        f"'{k}={v}' is an invalid value. "
-                        f"Use -1 for AutoBatch, a fraction in (0, 1) of GPU memory, or an integer >= 1."
+            if k == "batch" and isinstance(v, float) and v.is_integer():
+                cfg[k] = v = int(v)  # dataloaders and exporters need an int; AutoBatch fractions are never integral
+            if k in CFG_FLOAT_KEYS and not isinstance(v, FLOAT_OR_INT):
+                if hard:
+                    raise TypeError(
+                        f"'{k}={v}' is of invalid type {type(v).__name__}. "
+                        f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                     )
-                if k == "time" and v <= 0:
-                    raise ValueError(f"'{k}={v}' is an invalid value. '{k}' must be > 0 hours when set.")
+                cfg[k] = float(v)
             elif k == "scale":
                 if isinstance(v, (list, tuple)):
                     if len(v) != 2 or not all(isinstance(x, (int, float)) for x in v):

@@ -374,7 +374,8 @@ def safe_download(
                             check=False,
                             stdout=subprocess.PIPE,
                         )
-                        assert r.returncode == 0, f"Curl return value {r.returncode}"
+                        if r.returncode:
+                            raise ConnectionError(f"Curl return value {r.returncode}")
                         # Final response, after any redirect, proxy or retry blocks and before any trailer block
                         final_headers = [h for h in r.stdout.split(b"\r\n\r\n") if h.startswith(b"HTTP/")][-1]
                         encoding = (
@@ -438,7 +439,8 @@ def safe_download(
                                                     d = zlib.decompressobj(wbits)
                                                 dst.write(d.decompress(chunk))
                                                 chunk = d.unused_data
-                                    assert d.eof, "Encoded body ended before its end-of-stream marker"
+                                    if not d.eof:  # not an assert, which `python -O` removes
+                                        raise ConnectionError("Encoded body ended before its end-of-stream marker")
                                     # A gzip encoding under a gzip name means the gzip is the file itself, e.g. a
                                     # .tar.gz object stored with a gzip Content-Encoding, so keep its verified bytes
                                     if encoding != "gzip" or target.suffix not in {".gz", ".tgz"}:

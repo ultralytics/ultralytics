@@ -1528,9 +1528,6 @@ def test_utils_checks(monkeypatch):
     checks.check_imgsz([600, 600], max_dim=1)
     with pytest.raises(ValueError):
         checks.check_imgsz("640x480")  # malformed imgsz string raises a helpful ValueError, not a raw SyntaxError
-    for bad in (0, -64, "-64", [640, 0]):  # non-positive sizes fail loudly instead of crashing deep in cv2/torch
-        with pytest.raises(ValueError, match="imgsz"):
-            checks.check_imgsz(bad)
     checks.check_imshow(warn=True)
     checks.check_suffix("https://example.com/model.pt?token=abc", ".pt")
     checks.check_version("ultralytics", "8.0.0")

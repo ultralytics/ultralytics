@@ -177,6 +177,15 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
 
 
+def test_resume_invalid_checkpoint_args(tmp_path):
+    """Test resuming a checkpoint with invalid train args raises the real error, not a missing-checkpoint error."""
+    _, ckpt = load_checkpoint(MODEL)
+    ckpt["train_args"]["epochs"] = 0  # ultralytics <= 8.4.154 stored epochs < 1 without validating it
+    torch.save(ckpt, last := tmp_path / "last.pt")
+    with pytest.raises(ValueError, match="epochs"):
+        detect.DetectionTrainer(overrides={"model": MODEL, "data": "coco8.yaml", "resume": str(last)})
+
+
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {

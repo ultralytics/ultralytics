@@ -136,7 +136,7 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        self.check_resume(overrides)
+        self.check_resume(overrides or {})
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
@@ -998,38 +998,37 @@ class BaseTrainer:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
                 ckpt_args = load_checkpoint(last)[0].args
-                if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
-                    ckpt_args["data"] = self.args.data
-
-                resume = True
-                self.args = get_cfg(ckpt_args)
-                self.args.model = self.args.resume = str(last)  # reinstate model
-                for k in (
-                    "imgsz",
-                    "batch",
-                    "device",
-                    "close_mosaic",
-                    "augmentations",
-                    "save_period",
-                    "workers",
-                    "cache",
-                    "patience",
-                    "time",
-                    "freeze",
-                    "val",
-                    "plots",
-                    "channels_last",
-                    "distill_model",
-                    "save_dir",
-                ):  # allow arg updates to reduce memory or update device on resume
-                    if k in overrides:
-                        setattr(self.args, k, overrides[k])
-
             except Exception as e:
                 raise FileNotFoundError(
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
                     "i.e. 'yolo train resume model=path/to/last.pt'"
                 ) from e
+            if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
+                ckpt_args["data"] = self.args.data
+
+            resume = True
+            self.args = get_cfg(ckpt_args)
+            self.args.model = self.args.resume = str(last)  # reinstate model
+            for k in (
+                "imgsz",
+                "batch",
+                "device",
+                "close_mosaic",
+                "augmentations",
+                "save_period",
+                "workers",
+                "cache",
+                "patience",
+                "time",
+                "freeze",
+                "val",
+                "plots",
+                "channels_last",
+                "distill_model",
+                "save_dir",
+            ):  # allow arg updates to reduce memory or update device on resume
+                if k in overrides:
+                    setattr(self.args, k, overrides[k])
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):

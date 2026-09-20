@@ -19,7 +19,7 @@ The dataset label format used for training YOLO segmentation models is as follow
 2. One row per object: Each row in the text file corresponds to one object instance in the image.
 3. Object information per row: Each row contains the following information about the object instance:
     - Object class index: An integer representing the class of the object (e.g., 0 for person, 1 for car, etc.).
-    - Object bounding coordinates: The bounding coordinates around the mask area, normalized to be between 0 and 1.
+    - Object polygon coordinates: The `(x, y)` points outlining the object's mask, normalized to be between 0 and 1.
 
 The format for a single row in the segmentation dataset file is as follows:
 
@@ -40,6 +40,7 @@ Here is an example of the YOLO dataset format for a single image with two object
 
     - The length of each row does **not** have to be equal.
     - Each segmentation label must have a **minimum of 3 `(x, y)` points**: `<class-index> <x1> <y1> <x2> <y2> <x3> <y3>`
+    - Every object needs a polygon. Detect-format rows (`<class-index> <x_center> <y_center> <width> <height>`) carry none, and a segment dataset whose box and polygon counts differ is rejected with a `ValueError` when its labels load.
 
 ### Dataset YAML format
 
@@ -100,7 +101,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
 
 ## Supported Datasets
 
-Ultralytics YOLO supports various datasets for instance segmentation tasks. Here's a list of the most commonly used ones:
+Ultralytics YOLO supports various datasets for instance segmentation tasks. Here's a list of the most commonly used ones. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [Carparts-seg](carparts-seg.md): A specialized dataset focused on the segmentation of car parts, ideal for automotive applications. It includes a variety of vehicles with detailed annotations of individual car components.
 - [COCO](coco.md): A comprehensive dataset for [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning, featuring over 200K labeled images across a wide range of categories.

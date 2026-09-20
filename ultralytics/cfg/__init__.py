@@ -265,7 +265,9 @@ CFG_INT_KEYS = frozenset(
         "val_period",
     }
 )
-CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, divisors, sizes or seeds
+    "epochs": 1,
+    "patience": 0,  # 0 disables early stopping
     "nbs": 1,
     "max_det": 1,
     "mask_ratio": 1,
@@ -662,7 +664,8 @@ def check_dict_alignment(
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
-        raise SyntaxError(string + CLI_HELP_MSG) from e
+        LOGGER.info(CLI_HELP_MSG)
+        raise SyntaxError(string) from e
 
 
 def merge_equals_args(args: list[str]) -> list[str]:
@@ -736,23 +739,19 @@ def handle_yolo_login(args: list[str]) -> None:
         LOGGER.info(f"Get an API key from {api_key_url} and then run 'yolo login API_KEY'.")
         return
 
-    import requests  # scoped as slow import
+    from ultralytics import APIConnectionError, APIError, Platform
 
     try:
-        response = requests.get(
-            f"{PLATFORM_URL}/api/settings",
-            headers={"Authorization": f"Bearer {args[1]}"},
-            timeout=30,
-        )
-        if response.status_code == 200:
-            SETTINGS["api_key"] = args[1]
-            LOGGER.info("New authentication successful ✅")
-        elif response.status_code == 401:
-            LOGGER.warning("Invalid API key")
-        else:
-            response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        LOGGER.warning(f"Authentication request failed, check your connection: {e}")
+        with Platform(api_key=args[1], base_url=PLATFORM_URL, timeout=30) as client:
+            client.account.summary()
+        SETTINGS["api_key"] = args[1]
+        LOGGER.info("New authentication successful ✅")
+    except APIError as error:
+        raise SystemExit(
+            "Invalid API key" if error.status_code == 401 else f"Authentication failed (HTTP {error.status_code})"
+        ) from None
+    except APIConnectionError as error:
+        raise SystemExit(f"Authentication request failed, check your connection: {error}") from None
 
 
 def handle_yolo_settings(args: list[str]) -> None:
@@ -775,9 +774,9 @@ def handle_yolo_settings(args: list[str]) -> None:
         - The function will check for alignment between the provided settings and the existing ones.
         - After processing, the updated settings will be displayed.
         - For more information on handling YOLO settings, visit:
-          https://docs.ultralytics.com/quickstart#ultralytics-settings
+          https://docs.ultralytics.com/usage/settings
     """
-    url = "https://docs.ultralytics.com/quickstart#ultralytics-settings"  # help URL
+    url = "https://docs.ultralytics.com/usage/settings"  # help URL
     try:
         if any(args):
             if args[0] == "reset":
@@ -1049,7 +1048,10 @@ def entrypoint(debug: str = "") -> None:
                 k, v = parse_key_value_pair(a)
                 if k == "cfg" and v is not None:  # custom.yaml passed
                     LOGGER.info(f"Overriding {DEFAULT_CFG_PATH} with {v}")
-                    overrides = {k: val for k, val in YAML.load(checks.check_yaml(v)).items() if k != "cfg"}
+                    overrides = {
+                        **{k: val for k, val in YAML.load(checks.check_yaml(v)).items() if k != "cfg"},
+                        **overrides,
+                    }
                 else:
                     overrides[k] = v
             except (NameError, SyntaxError, ValueError, AssertionError) as e:
@@ -1142,7 +1144,7 @@ def entrypoint(debug: str = "") -> None:
         )
         LOGGER.warning(f"'source' argument is missing. Using default 'source={overrides['source']}'.")
     elif mode in {"train", "val"}:
-        if "data" not in overrides and "resume" not in overrides:
+        if overrides.get("data") is None and not overrides.get("resume"):
             overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"'data' argument is missing. Using default 'data={overrides['data']}'.")
     elif mode == "export":

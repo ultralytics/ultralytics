@@ -356,15 +356,12 @@ class TaskAlignedAssigner(nn.Module):
         """
         # Convert (b, n_max_boxes, h*w) -> (b, h*w)
         fg_mask = mask_pos.sum(-2)
-        if fg_mask.max() > 1:  # one anchor is assigned to multiple gt_bboxes
-            mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
-
-            max_overlaps_idx = overlaps.argmax(1)  # (b, h*w)
-            is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
-            is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
-            mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos)  # (b, n_max_boxes, h*w)
-
-            fg_mask = mask_pos.sum(-2)
+        # Anchors assigned to multiple gt_bboxes keep the highest overlap; a no-op when there are none, without a sync
+        mask_multi_gts = (fg_mask.unsqueeze(1) > 1).expand(-1, n_max_boxes, -1)  # (b, n_max_boxes, h*w)
+        max_overlaps_idx = overlaps.max(1).indices  # (b, h*w)
+        is_max_overlaps = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)
+        is_max_overlaps.scatter_(1, max_overlaps_idx.unsqueeze(1), 1)
+        mask_pos = torch.where(mask_multi_gts, is_max_overlaps, mask_pos)  # (b, n_max_boxes, h*w)
 
         if self.topk2 != self.topk:
             align_metric = align_metric * mask_pos  # update overlaps
@@ -373,9 +370,8 @@ class TaskAlignedAssigner(nn.Module):
             topk_idx = torch.zeros(mask_pos.shape, dtype=mask_pos.dtype, device=mask_pos.device)  # update mask_pos
             topk_idx.scatter_(-1, max_overlaps_idx, 1.0)
             mask_pos *= topk_idx
-            fg_mask = mask_pos.sum(-2)
-        # Find each grid serve which gt(index)
-        target_gt_idx = mask_pos.argmax(-2)  # (b, h*w)
+        # Each anchor now serves at most one gt, so the column max is both its foreground flag and its gt index
+        fg_mask, target_gt_idx = mask_pos.max(-2)  # (b, h*w)
         return target_gt_idx, fg_mask, mask_pos
 
 
@@ -412,12 +408,13 @@ class RotatedTaskAlignedAssigner(TaskAlignedAssigner):
         ab = b - a
         ad = d - a
 
-        # (b, n_boxes, h*w, 2)
-        ap = xy_centers - a
+        # (b, n_boxes, h*w) per coordinate
+        apx = xy_centers[:, 0] - a[..., 0]
+        apy = xy_centers[:, 1] - a[..., 1]
         norm_ab = (ab * ab).sum(dim=-1)
         norm_ad = (ad * ad).sum(dim=-1)
-        ap_dot_ab = (ap * ab).sum(dim=-1)
-        ap_dot_ad = (ap * ad).sum(dim=-1)
+        ap_dot_ab = apx * ab[..., 0] + apy * ab[..., 1]
+        ap_dot_ad = apx * ad[..., 0] + apy * ad[..., 1]
         return (ap_dot_ab >= 0) & (ap_dot_ab <= norm_ab) & (ap_dot_ad >= 0) & (ap_dot_ad <= norm_ad)  # is_in_box
 
 
@@ -429,9 +426,9 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
     for i in range(len(feats)):  # use len(feats) to avoid TracerWarning from iterating over strides tensor
         stride = strides[i]
         h, w = feats[i].shape[2:] if isinstance(feats, list) else (int(feats[i][0]), int(feats[i][1]))
-        # arange(out=new_*) avoids nondeterministic CUDA cumsum while preserving runtime device inheritance in traces
-        sx = torch.arange(w, out=feats[0].new_full((w,), 0, dtype=dtype)) + grid_cell_offset  # shift x
-        sy = torch.arange(h, out=feats[0].new_full((h,), 0, dtype=dtype)) + grid_cell_offset  # shift y
+        # no cumsum (nondeterministic on CUDA), no device= (baked into traces), no out= (does not convert to CoreML)
+        sx = torch.arange(w).type_as(feats[0]) + grid_cell_offset  # shift x
+        sy = torch.arange(h).type_as(feats[0]) + grid_cell_offset  # shift y
         sy, sx = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
         anchor_points.append(torch.stack((sx, sy), -1).view(-1, 2))
         stride_tensor.append(feats[0].new_full((h * w, 1), stride, dtype=dtype))

@@ -30,6 +30,7 @@ class TestLoadNumpyFrames:
     """Validate the loader interface contract required by the predictor lifecycle."""
 
     def test_video_mode_and_attributes(self):
+        """Check the loader reports video mode and one-frame batching attributes."""
         frames = _distinct_frames(5)
         loader = LoadNumpyFrames(frames)
         assert loader.mode == "video"
@@ -39,6 +40,7 @@ class TestLoadNumpyFrames:
         assert loader.fps == 30
 
     def test_one_based_frame_counter(self):
+        """Check the frame counter is 1-based across iteration."""
         frames = _distinct_frames(3)
         loader = LoadNumpyFrames(frames)
         seen = []
@@ -48,6 +50,7 @@ class TestLoadNumpyFrames:
         assert seen == [1, 2, 3]
 
     def test_yields_one_frame_at_a_time(self):
+        """Check each iteration yields exactly one frame in input order."""
         frames = _distinct_frames(4)
         loader = LoadNumpyFrames(frames)
         batch_count = 0
@@ -58,6 +61,7 @@ class TestLoadNumpyFrames:
         assert batch_count == 4
 
     def test_reset_iterator(self):
+        """Check re-iterating the loader restarts from the first frame."""
         frames = _distinct_frames(2)
         loader = LoadNumpyFrames(frames)
         first_pass = [loader.frame for _, _, _ in loader]
@@ -65,10 +69,12 @@ class TestLoadNumpyFrames:
         assert first_pass == second_pass == [1, 2]
 
     def test_empty_frames_raises(self):
+        """Check an empty frame list is rejected."""
         with pytest.raises(FileNotFoundError):
             LoadNumpyFrames([])
 
     def test_routes_through_load_inference_source(self):
+        """Check the loader passes through load_inference_source() unchanged with in-memory source types."""
         from ultralytics.data.build import load_inference_source
 
         loader = LoadNumpyFrames(_distinct_frames(3))
@@ -85,6 +91,7 @@ class TestPredictFramesValidation:
     """Input validation runs before any model setup."""
 
     def test_rejects_empty_list(self):
+        """Check an empty list is rejected before any model setup."""
         from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
 
         predictor = SAM3VideoSemanticPredictor.__new__(SAM3VideoSemanticPredictor)
@@ -92,6 +99,7 @@ class TestPredictFramesValidation:
             predictor.predict_frames([])
 
     def test_rejects_non_list(self):
+        """Check a non-list source is rejected before any model setup."""
         from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
 
         predictor = SAM3VideoSemanticPredictor.__new__(SAM3VideoSemanticPredictor)
@@ -99,6 +107,7 @@ class TestPredictFramesValidation:
             predictor.predict_frames("not-a-list")
 
     def test_rejects_mixed_types(self):
+        """Check a list holding non-array items is rejected before any model setup."""
         from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
 
         predictor = SAM3VideoSemanticPredictor.__new__(SAM3VideoSemanticPredictor)
@@ -112,11 +121,13 @@ class TestPredictFramesEndToEnd:
 
     @pytest.fixture
     def predictor(self):
+        """Return a SAM3 video semantic predictor built from local weights."""
         from ultralytics.models.sam.predict import SAM3VideoSemanticPredictor
 
         return SAM3VideoSemanticPredictor(overrides={"model": str(WEIGHTS_DIR / "sam3.pt"), "vid_stride": 10})
 
     def test_returns_results_per_frame(self, predictor):
+        """Check one Results object is returned per input frame."""
         frames = _distinct_frames(3)
         results = predictor.predict_frames(frames, text=["bus"])
         assert len(results) == 3

@@ -721,11 +721,6 @@ class Exporter:
         if fmt == "axelera" and min(self.imgsz) < 64:
             raise ValueError(f"Axelera export requires imgsz>=64, but got imgsz={self.imgsz}.")
         if fmt == "rknn":
-            if self.args.quantize == 8 and model.task != "detect":
-                raise ValueError(
-                    "Rockchip RKNN INT8 export is only supported for detection models. "
-                    "Use FP16 (quantize=16) for other tasks."
-                )
             if not self.args.name:
                 LOGGER.warning(
                     "Rockchip RKNN export requires a missing 'name' arg for processor type. "
@@ -746,6 +741,8 @@ class Exporter:
                 self.args.quantize = 8
             elif self.args.quantize is None:
                 self.args.quantize = 16
+            if self.args.quantize == 8 and model.task != "detect":
+                raise ValueError("Rockchip RKNN INT8 export is only supported for detection models.")
         if fmt == "ascend":
             # No SoC allowlist: valid --soc_version values depend on which Ascend-cann-kernels-* packages are
             # installed, so a hardcoded list would reject valid targets. ATC reports an unknown SoC itself.
@@ -792,7 +789,7 @@ class Exporter:
             if getattr(model, "end2end", False) or isinstance(model.model[-1], RTDETRDecoder):
                 LOGGER.warning("'nms=True' is not available for end2end models. Forcing 'nms=None'.")
                 self.args.nms = None
-            self.args.conf = self.args.conf or 0.25  # set conf default value for nms export
+            self.args.conf = 0.25 if self.args.conf is None else self.args.conf  # set conf default for nms export
         if fmt == "mnn" and self.args.nms:
             if self.args.dynamic:
                 raise ValueError("Alibaba MNN export does not support combining 'dynamic=True' with 'nms=True'.")
@@ -863,7 +860,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse(imgsz=self.imgsz)  # BaseModel.fuse() leaves a QAT model alone, fusing would drop its ranges
+        model = model.fuse(imgsz=self.imgsz)
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel
@@ -1232,7 +1229,7 @@ class Exporter:
             dynamic=self.args.dynamic,
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
-            int8_detect=isinstance(self.model.model[-1], Detect),
+            int8_detect=isinstance(self.model.model[-1], (Detect, RTDETRDecoder)),
             prefix=prefix,
         )
 

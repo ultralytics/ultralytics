@@ -61,6 +61,8 @@ Ultralytics YOLO26 pretrained Pose models are shown here. Detect, Segment and Po
 - **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val pose data=coco-pose.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO keypoint results.
+
 ## Train
 
 Train a YOLO26-pose model on the COCO8-pose dataset. The [COCO8-pose dataset](../datasets/pose/coco8-pose.md) is a small sample dataset that's perfect for testing and debugging your pose estimation models.

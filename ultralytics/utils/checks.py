@@ -266,7 +266,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
-    sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
+    sz = [max(math.ceil(x / stride) * stride, floor, stride) for x in imgsz]  # at least one stride, i.e. imgsz=0
 
     # Print warning message if image size was updated
     if sz != imgsz:
@@ -440,8 +440,8 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts
-    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
+    matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
     if any(matches):
         return matches[0]
 
@@ -491,6 +491,12 @@ def check_apt_requirements(requirements):
 
     # Install missing packages if any
     if missing_packages:
+        if not AUTOINSTALL:  # check environment variable
+            LOGGER.warning(
+                f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, "
+                f"AutoUpdate disabled by YOLO_AUTOINSTALL=False. Install with 'apt install {' '.join(missing_packages)}'"
+            )
+            return
         LOGGER.info(
             f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
         )
@@ -622,6 +628,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 LOGGER.warning(msg)
                 return False
         else:
+            if install:  # AutoUpdate disabled by environment variable
+                LOGGER.warning(
+                    f"{prefix} Ultralytics requirement{'s' * (len(pkgs) > 1)} {pkgs} not found, AutoUpdate disabled by YOLO_AUTOINSTALL=False"
+                )
             return False
 
     return True
@@ -633,7 +643,10 @@ def check_executorch_requirements():
     if LINUX and ARM64 and IS_DOCKER:
         check_requirements("packaging>=22.0")
 
-    check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
+    # executorch>=1.5 no longer declares its torch floor and its runtime fails below torch 2.13 with "tensor does not
+    # have a device", so cap it where pip can no longer pair the two itself
+    executorch = "executorch" if check_version(TORCH_VERSION, "2.13.0") else "executorch<1.5"
+    check_requirements(executorch, cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
 
 
 def check_tensorrt(min_version: str = "7.0.0"):
@@ -773,9 +786,6 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if uri_path.is_absolute() or ".." in uri_path.parts:
             raise ValueError(f"Unsafe Ultralytics Platform URI path: {file}")
         local_file = Path(download_dir) / uri_path / url2file(url)
-        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
-        if local_file.suffix == ".ndjson":
-            local_file.unlink(missing_ok=True)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:

@@ -264,8 +264,9 @@ CFG_INT_KEYS = frozenset(
         "save_period",
     }
 )
-CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, divisors, sizes or seeds
     "epochs": 1,
+    "patience": 0,  # 0 disables early stopping
     "nbs": 1,
     "max_det": 1,
     "mask_ratio": 1,

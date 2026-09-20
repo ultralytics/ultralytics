@@ -49,7 +49,10 @@ def skip_rpi_semantic(task):
 def test_export_torchscript(nms, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
     file = YOLO(isolated_model).export(format="torchscript", imgsz=32, nms=nms)
-    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    model = YOLO(file)
+    model(SOURCE, imgsz=32)  # exported model inference
+    model(SOURCE, imgsz=64)  # predictor reuse must keep the fixed export imgsz
+    assert model.predictor.imgsz == [32, 32]
 
 
 @pytest.mark.parametrize("nms", [None, False])

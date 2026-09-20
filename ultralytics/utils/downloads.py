@@ -429,6 +429,7 @@ def safe_download(
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
+            top_level_dirs = set()
             with tarfile.open(f, "r:*") as tar:
                 for m in tar:
                     if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
@@ -443,12 +444,15 @@ def safe_download(
                     ):
                         LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
                         continue
+                    top_level_dirs.update(m_path.parts[:1])  # slice as './' root entries have no parts
                     if m.isdir():
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+            if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
+                unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

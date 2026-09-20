@@ -1266,7 +1266,7 @@ def test_data_utils(tmp_path):
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
-    """Test safe_download() unzips local archive paths without treating them like remote URLs."""
+    """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"
     archive = tmp_path / "coco8 local.zip"
     (dataset_dir / "images" / "train").mkdir(parents=True)
@@ -1284,6 +1284,11 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
     assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
+
+    with tarfile.open(tar_archive := tmp_path / "coco8 local.tar", "w") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
+    assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):

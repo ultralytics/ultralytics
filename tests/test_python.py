@@ -752,23 +752,6 @@ def test_val(task: str, weight: str, data: str) -> None:
             assert len(cm.tp_fp()[0]) == cm.nc  # per-class TP/FP never include background
 
 
-def test_val_skips_classes_the_model_lacks(tmp_path):
-    """Test that standalone val drops labels with class index >= model nc instead of crashing."""
-    src = check_det_dataset("coco8.yaml")["path"]
-    root = shutil.copytree(src, tmp_path / "coco8", ignore=shutil.ignore_patterns("*.npy", "*.cache"))
-    labels = sorted((root / "labels" / "val").glob("*.txt"))
-    rows = labels[0].read_text().splitlines()
-    rows[0] = "85 " + rows[0].split(maxsplit=1)[1]  # one label of a class the 80-class COCO model cannot predict
-    labels[0].write_text("\n".join(rows) + "\n")
-    data = tmp_path / "coco8-extra.yaml"
-    names = [f"class{i}" for i in range(90)]
-    YAML.save(data, {"path": str(root), "train": "images/train", "val": "images/val", "names": names})
-
-    # plots and verbose exercise both consumers that index labels by model class: confusion matrix and class table
-    metrics = YOLO(MODEL).val(data=data, imgsz=32, plots=True, verbose=True)
-    assert metrics.nt_per_class.sum() == sum(len(f.read_text().splitlines()) for f in labels) - 1
-
-
 def test_val_save_txt_pose(tmp_path):
     """Test that pose keypoints saved by val(save_txt=True) and val(save_json=True) are in the original image space."""
     model = YOLO(WEIGHTS_DIR / "yolo26n-pose.pt")

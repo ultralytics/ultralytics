@@ -73,7 +73,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
             kwargs.pop("prefetch_factor", None)  # not supported by earlier versions
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
-        self.iterator = super().__iter__()
+        self.iterator = None  # fork workers on first iteration, not while another loader's pin-memory thread starts up
 
     def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
@@ -81,6 +81,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def __iter__(self) -> Iterator:
         """Yield one epoch of batches from the persistent iterator."""
+        if self.iterator is None:
+            self.iterator = self._get_iterator()
         for _ in range(len(self)):
             yield next(self.iterator)
 
@@ -102,7 +104,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
         self.close()  # free old worker pipes before creating new iterator
-        self.iterator = self._get_iterator()
+        self.iterator = None
 
 
 class _RepeatSampler:

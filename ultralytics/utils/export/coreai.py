@@ -72,6 +72,7 @@ def torch2coreai(
     asset_metadata = AIModelAssetMetadata()
     asset_metadata.author = "Ultralytics"
     asset_metadata.license = "AGPL-3.0 License (https://ultralytics.com/license)"
+    asset_metadata.model_description = (metadata or {}).get("description", "")
     for k, v in (metadata or {}).items():
         asset_metadata.set_custom(k, str(v))  # matches the CoreML exporter; set_custom rejects nested dicts
 

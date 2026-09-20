@@ -364,6 +364,8 @@ The text-prompt call is the one shown in [Quick Start](#quick-start). The remain
         results[0].show()
         ```
 
+        The `yoloe-26*-seg-pf.pt` checkpoints keep both detection branches, so `nms` selects between them as on any other YOLOE-26 model: the default runs the one-to-many head with NMS, and `nms=False` runs the NMS-free head. The YOLOE-11 and YOLOE-v8 prompt-free checkpoints carry the one-to-many head only.
+
 ### Val Usage
 
 Validation runs like any other model on a segmentation dataset:
@@ -578,6 +580,15 @@ vocab = text_model.get_vocab(names)
 
 model.set_vocab(vocab, names)
 model.save("yoloe-26l-seg-pf-custom.pt")  # never overwrite the released checkpoint
+```
+
+`get_vocab` returns the branch that the model's `end2end` flag selects, and `set_vocab` re-parameterizes that one branch. The released YOLOE-26 files instead carry a vocabulary per branch, which is what keeps `nms` selecting between them; reproduce that by taking the second vocabulary from another copy of the text-prompt model. YOLOE-11 and YOLOE-v8 have a single branch, so they take the call above unchanged.
+
+```python
+one2one_model = YOLOE("runs/segment/train/weights/best.pt")  # get_vocab fuses the head it reads, so load a second copy
+one2one_model.model.end2end = True  # read the NMS-free branch
+
+model.set_vocab(vocab, names, one2one_vocab=one2one_model.get_vocab(names))
 ```
 
 ## Citations and Acknowledgments

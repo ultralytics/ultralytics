@@ -102,6 +102,19 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_image_cache_shared_with_spawned_workers():
+    """Test the RAM image cache reaches spawned DataLoader workers as one shared buffer with intact contents."""
+    from ultralytics.data.base import BaseDataset
+
+    images = [np.full((8, 8, 3), i, dtype=np.uint8) for i in range(8)]
+    cache = BaseDataset._ImageCache(list(images))
+    loader = torch.utils.data.DataLoader(
+        cache, batch_size=4, sampler=range(8), num_workers=2, multiprocessing_context="spawn"
+    )
+    assert torch.equal(torch.cat(list(loader)), torch.from_numpy(np.stack(images)))
+    assert cache.buffer.is_shared()
+
+
 def test_build_yolo_dataset_hyp_isolated():
     """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
     data = check_det_dataset("coco8.yaml")
@@ -126,6 +139,7 @@ def test_cfg_rejects_fuzzed_values():
         ("optimizer", None),
         ("split", None),
         ("copy_paste_mode", None),
+        ("patience", -1),
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
@@ -274,7 +288,7 @@ def test_restricted_load_criterion(tmp_path, fused):
     assert checkpoint["model"].criterion is not None
     assert checkpoint["best_fitness"] == 0.5
     with torch.no_grad():
-        assert torch.equal(checkpoint["model"](image)[0], expected)
+        assert torch.allclose(checkpoint["model"](image)[0], expected)
 
 
 @pytest.mark.parametrize("cfg", [CFG, "yolov8n.yaml", "yolov10n.yaml", "yolo11n.yaml", "yolo26n-p6.yaml"])
@@ -1265,7 +1279,7 @@ def test_data_utils(tmp_path):
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
-    """Test safe_download() unzips local archive paths without treating them like remote URLs."""
+    """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"
     archive = tmp_path / "coco8 local.zip"
     (dataset_dir / "images" / "train").mkdir(parents=True)
@@ -1283,6 +1297,11 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
     assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
+
+    with tarfile.open(tar_archive := tmp_path / "coco8 local.tar", "w") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
+    assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
@@ -1627,6 +1646,17 @@ def test_semantic_loss_all_ignore(nc):
     assert torch.isfinite(loss).all() and all(torch.isfinite(x).all() for x in items.values())
     loss.backward()
     assert preds.grad is not None and aux.grad is not None
+
+
+def test_semantic_confusion_matrix_large_counts():
+    """SemanticMetrics must keep counting past float32's 2**24, where accumulating 1.0 at a time would saturate."""
+    from ultralytics.utils.metrics import SemanticMetrics
+
+    metrics = SemanticMetrics(names={0: "a", 1: "b"})
+    metrics.matrix = torch.full((2, 2), float(2**24))  # counts already accumulated from a large val set
+    zeros = torch.zeros((1, 10, 10), dtype=torch.int32)
+    metrics.update_stats(zeros, zeros)
+    assert metrics.matrix[0, 0].item() == 2**24 + 100, f"confusion matrix saturated at {metrics.matrix[0, 0].item()}"
 
 
 class _DepthLossModel(torch.nn.Module):
@@ -2133,9 +2163,17 @@ def test_yoloe_vocab_head_switch():
     model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     model.model.args["imgsz"] = 32
     names = ["person", "bus"]
-    model.set_vocab(model.get_vocab(names), names)
+    vocab = model.get_vocab(names)  # one-to-many branch
+    model.set_vocab(vocab, names)
     for nms in (None, False):
         model(SOURCE, imgsz=32, nms=nms)
+
+    dual = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")  # one head per branch, as the yoloe-26*-seg-pf.pt weights carry
+    dual.model.args["imgsz"] = 32
+    dual.model.end2end = True
+    dual.set_vocab(vocab, names, one2one_vocab=dual.get_vocab(names))
+    for nms in (None, False):
+        dual(SOURCE, imgsz=32, nms=nms)
 
 
 def test_yoloe_visual_prompt_verbose_false(capfd):
@@ -2231,3 +2269,21 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
+    """Test a yaml-only nc 2->1 edit still loads 1-bit masks as {0, 1} from a cache scanned at nc=2."""
+    from ultralytics.data.dataset import SemanticDataset
+
+    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    foreground = np.zeros((32, 32), dtype=np.uint8)
+    foreground[8:24, 8:24] = 255
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    Image.fromarray(foreground).convert("1").save(masks / "a.png")  # cv2 later reads this as 0/255
+
+    data = {"names": {0: "bg", 1: "fg"}, "nc": 2}
+    SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
+    assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255

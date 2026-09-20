@@ -355,7 +355,7 @@ def safe_download(
             target = f
             f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
-            expected_size = None  # set from Content-Length; reused to validate curl retries
+            expected_size = 0  # total bytes from Content-Length, kept across retries to validate them
             for i in range(retry + 1):
                 try:
                     resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
@@ -379,7 +379,7 @@ def safe_download(
                             response.raise_for_status()
                             if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
                                 resume = 0
-                                expected_size = int(response.headers.get("Content-Length", 0))
+                                expected_size = int(response.headers.get("Content-Length", 0)) or expected_size
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192

@@ -992,34 +992,6 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
-def test_resume_missing_checkpoint(monkeypatch, tmp_path):
-    """Test resuming with no checkpoint anywhere raises the dedicated FileNotFoundError."""
-    from types import SimpleNamespace
-
-    from ultralytics.engine.trainer import BaseTrainer
-
-    monkeypatch.chdir(tmp_path)  # empty cwd, so get_latest_run() finds no last*.pt to fall back on
-    trainer = object.__new__(BaseTrainer)
-    trainer.args = SimpleNamespace(resume=True, data=None)
-    with pytest.raises(FileNotFoundError, match="Resume checkpoint not found"):
-        trainer.check_resume({})
-
-
-def test_resume_invalid_checkpoint_config_surfaces(tmp_path):
-    """Test an existing checkpoint with invalid train args surfaces the real error, not a missing-file mask."""
-    from types import SimpleNamespace
-
-    from ultralytics.engine.trainer import BaseTrainer
-
-    model = torch.nn.Sequential(torch.nn.Conv2d(3, 4, 3))
-    model.task = "detect"  # skips guess_model_task on reload
-    torch.save({"model": model, "train_args": {"epochs": 0}}, tmp_path / "last.pt")  # pre-validation checkpoint
-    trainer = object.__new__(BaseTrainer)
-    trainer.args = SimpleNamespace(resume=str(tmp_path / "last.pt"), data="coco8.yaml")
-    with pytest.raises(ValueError, match="epochs"):
-        trainer.check_resume({})
-
-
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):

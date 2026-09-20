@@ -428,9 +428,9 @@ def safe_download(
                                                 dst.write(d.decompress(chunk))
                                                 chunk = d.unused_data
                                     assert d.eof, "Encoded body ended before its end-of-stream marker"
-                                    # A gzip name means the gzip is the file itself, e.g. a .tar.gz object stored with
-                                    # a gzip Content-Encoding, so keep its now verified bytes
-                                    if target.suffix not in {".gz", ".tgz"}:
+                                    # A gzip encoding under a gzip name means the gzip is the file itself, e.g. a
+                                    # .tar.gz object stored with a gzip Content-Encoding, so keep its verified bytes
+                                    if encoding != "gzip" or target.suffix not in {".gz", ".tgz"}:
                                         decoded.replace(f)
                                 finally:
                                     decoded.unlink(missing_ok=True)

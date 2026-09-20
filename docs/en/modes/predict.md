@@ -12,6 +12,8 @@ keywords: Ultralytics, YOLO26, model prediction, inference, predict mode, real-t
 
 In the world of [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) and [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv), the process of making sense of visual data is often called inference or prediction. Ultralytics YOLO26 offers a powerful feature known as **predict mode**, tailored for high-performance, real-time inference across a wide range of data sources.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#usage-examples) for planned inference examples.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/YKbBXWBJloY"
@@ -530,8 +532,8 @@ All Ultralytics `predict()` calls will return a list of `Results` objects:
 ### Results by Task
 
 Which fields below populate depends on your model's task — [compare detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB](../tasks/index.md) if you haven't picked one yet. Each prediction returns one `Results` object per image or frame. The common fields above are always available, while the
-task-specific prediction data is stored in the fields below. Coordinate, confidence, and probability tensors are
-`torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
+task-specific prediction data is stored in the fields below. YOLO coordinate and confidence tensors are
+`torch.float32`; probability tensors are `torch.float32` unless half precision is used, then `torch.float16`. After `result.numpy()`, tensors become NumPy arrays with matching NumPy dtypes.
 Instance masks are `torch.uint8` binary tensors, while semantic masks use the smallest practical integer dtype for class
 IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 

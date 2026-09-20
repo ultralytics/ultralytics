@@ -214,7 +214,7 @@ class AutoBackend(nn.Module):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
         # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
+        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
 
         # Set device
         if (
@@ -270,6 +270,9 @@ class AutoBackend(nn.Module):
         if not self.backend.names:
             self.backend.names = default_class_names(data)
         self.backend.names = check_class_names(self.backend.names)
+        empty = [k for k, v in self.backend.names.items() if not v.strip()]
+        if empty:
+            LOGGER.warning(f"Empty class name string(s) at class indices {empty} will display as blank labels.")
 
     def __getattr__(self, name: str) -> Any:
         """Delegate attribute access to the backend.

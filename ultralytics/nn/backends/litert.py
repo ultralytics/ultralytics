@@ -84,7 +84,7 @@ class LiteRTBackend(BaseBackend):
             # Denormalize xywh (and pose keypoints) by image size. litert-torch end2end output is already post-NMS
             # pixel coordinates (batch, max_det, 6+), so it is left as-is; legacy onnx2tf TFLite normalizes even the
             # end2end output, so it is denormalized on the last axis.
-            if x.ndim == 3 and not self.end2end:
+            if x.ndim == 3 and not self.end2end and getattr(self, "head", None) != "RTDETRDecoder":
                 x[:, [0, 2]] *= w
                 x[:, [1, 3]] *= h
                 if self.task == "pose":

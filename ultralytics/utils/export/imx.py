@@ -256,10 +256,8 @@ def torch2imx(
         assert java_version >= 17, "Java version too old"
     except (FileNotFoundError, subprocess.CalledProcessError, AssertionError):
         if IS_UBUNTU or IS_DEBIAN_TRIXIE:
-            LOGGER.info(f"\n{prefix} installing Java 21 for Ubuntu...")
             check_apt_requirements(["openjdk-21-jre"])
         elif IS_RASPBERRYPI or IS_DEBIAN_BOOKWORM:
-            LOGGER.info(f"\n{prefix} installing Java 17 for Raspberry Pi or Debian ...")
             check_apt_requirements(["openjdk-17-jre"])
 
     check_requirements(
@@ -330,7 +328,7 @@ def torch2imx(
     if model.task != "classify":
         quant_model = NMSWrapper(
             model=quant_model,
-            score_threshold=conf or 0.001,
+            score_threshold=0.001 if conf is None else conf,
             iou_threshold=iou,
             max_detections=max_det,
             task=model.task,

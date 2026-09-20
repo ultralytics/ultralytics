@@ -7,9 +7,11 @@ import re
 import types
 from pathlib import Path
 
+import cv2
+import numpy as np
 import torch
 
-from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
+from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -168,6 +170,9 @@ def modelopt_quantize_onnx(
             # onnxruntime-gpu's cuDNN vs the installed torch's) and the TensorRT EP aborts on RTX cards (NvTensorRTRTX);
             # scales are EP-independent, so the INT8 engine is equivalent and only this one-time step is slower.
             calibration_eps=["cpu"],
+            # The head's output convolutions, the bare `nn.Conv2d` after each pair of `Conv` blocks, and DFL's fixed
+            # conv cost most of the INT8 accuracy for a small share of the runtime, so they stay in float
+            nodes_to_exclude=[r".*\.2/Conv$", r".*/dfl/"],
             output_path=out_file,
             **kwargs,
         )
@@ -177,12 +182,17 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
+    # AutoCast keeps a node in FP32 when its observed activation range exceeds `data_max`, so calibrate it on a real
+    # image: unstructured noise inflates the early activations and strands the first convolutions of most models.
+    im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)  # BGR HWC to RGB CHW
+    im = np.resize(im, shape[1:])  # repeat or drop channels for models that are not 3-channel
+    im = np.broadcast_to(im, shape).astype(np.float32, order="C") / 255
     onnx.save(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
             keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            calibration_data={input_name: im},
         ),
         out_file,
     )
@@ -230,8 +240,9 @@ def onnx2engine(
         calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
         enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
         precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the Sigmoid layers at higher precision to preserve
-        confidence-score calibration (see #24668). Metadata is serialized and written to the engine file if provided.
+        `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve
+        confidence-score calibration (see #24668) and the head's output convolutions in FP16 for accuracy. Metadata is
+        serialized and written to the engine file if provided.
     """
     import onnx
 
@@ -298,8 +309,8 @@ def onnx2engine(
 
     # TensorRT 11 is strongly-typed and removed the FP16/INT8 builder flags and INT8 calibrator, so reduced
     # precision must be baked into the ONNX graph with NVIDIA ModelOpt before parsing (FP16 AutoCast, INT8 Q/DQ)
-    if is_trt11 and (use_fp16 or calibrate):
-        onnx_file = modelopt_quantize_onnx(onnx_file, quantize, dataset, shape, dynamic, prefix)
+    if is_trt11 and (use_fp16 or use_int8):
+        onnx_file = modelopt_quantize_onnx(onnx_file, 16 if qdq else quantize, dataset, shape, dynamic, prefix)
 
     # Read ONNX file
     parser = trt.OnnxParser(network, logger)
@@ -332,7 +343,7 @@ def onnx2engine(
     if use_int8 and not is_trt11:
         config.set_flag(trt.BuilderFlag.INT8)
         config.profiling_verbosity = trt.ProfilingVerbosity.DETAILED
-    elif use_fp16 and not is_trt11:
+    if (use_fp16 or use_int8 or qdq) and not is_trt11:  # unquantized layers take the fastest precision allowed
         config.set_flag(trt.BuilderFlag.FP16)
 
     # Explicit Q/DQ graphs need neither calibration nor per-layer Sigmoid constraints.
@@ -412,23 +423,27 @@ def onnx2engine(
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve
         # confidence-score calibration, mirroring the OpenVINO IgnoredScope
-        # https://github.com/ultralytics/ultralytics/issues/24668. Scope this to the head: every SiLU activation is
-        # also a Sigmoid, and constraining all of them costs INT8 speed across backbone and neck.
+        # https://github.com/ultralytics/ultralytics/issues/24668, and the head's output convolutions and DFL in FP16
+        # as `modelopt_quantize_onnx` does. Scope this to the head: every SiLU activation is also a Sigmoid, and
+        # constraining all of them costs INT8 speed across backbone and neck.
         names = [network.get_layer(i).name for i in range(network.num_layers)]
         indices = [int(m.group(1)) for n in names if (m := re.match(r"/model\.(\d+)/", n))]
         head = f"/model.{max(indices)}/" if indices else "/"
         count = 0
         for i in range(network.num_layers):
             layer = network.get_layer(i)
-            if (
-                layer.type == trt.LayerType.ACTIVATION
-                and "sigmoid" in layer.name.lower()
-                and layer.name.startswith(head)
-            ):
-                layer.precision = trt.float32
-                for j in range(layer.num_outputs):
-                    layer.set_output_type(j, trt.float32)
-                count += 1
+            if not layer.name.startswith(head):
+                continue
+            if layer.type == trt.LayerType.ACTIVATION and "sigmoid" in layer.name.lower():
+                dtype = trt.float32
+            elif layer.type == trt.LayerType.CONVOLUTION and (layer.name.endswith(".2/Conv") or "/dfl/" in layer.name):
+                dtype = trt.float16
+            else:
+                continue
+            layer.precision = dtype
+            for j in range(layer.num_outputs):
+                layer.set_output_type(j, dtype)
+            count += 1
         if count:
             flag = (
                 trt.BuilderFlag.OBEY_PRECISION_CONSTRAINTS
@@ -436,7 +451,7 @@ def onnx2engine(
                 else trt.BuilderFlag.STRICT_TYPES
             )
             config.set_flag(flag)  # OBEY_PRECISION_CONSTRAINTS replaced STRICT_TYPES in TensorRT 8.2
-            LOGGER.info(f"{prefix} keeping {count} head Sigmoid layers in FP32 for INT8 accuracy")
+            LOGGER.info(f"{prefix} keeping {count} head layers out of INT8 for accuracy")
 
     # Write file
     if hasattr(builder, "build_serialized_network"):

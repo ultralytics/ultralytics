@@ -105,8 +105,22 @@ class TensorRTBackend(BaseBackend):
             im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(self.device)
             self.bindings[name] = Binding(name, dtype, shape, im)
 
-        host = dla is not None or metadata.get("args", {}).get("nms", False)  # DLA and embedded NMS leave the stream
-        self.graph = self.capture() if TORCH_1_10 and self.is_trt10 and not self.dynamic and not host else None
+        # Replay the engine from one captured CUDA graph instead of relaunching every kernel, worth ~50 us per call.
+        # A dynamic engine would recapture on every shape change, and DLA or an embedded NMS does host work mid-stream
+        # that cannot be captured, so both keep `execute_v2`.
+        host = dla is not None or metadata.get("args", {}).get("nms", False)
+        self.graph = None
+        if TORCH_1_10 and self.is_trt10 and not self.dynamic and not host:
+            for name, binding in self.bindings.items():
+                self.context.set_tensor_address(name, binding.data.data_ptr())
+            stream = torch.cuda.Stream(self.device)
+            self.graph = torch.cuda.CUDAGraph()
+            with torch.cuda.stream(stream):  # selects the engine's device as well, which the capture records on
+                self.context.execute_async_v3(stream.cuda_stream)  # TensorRT allocates on its first run
+                stream.synchronize()
+                with torch.cuda.graph(self.graph, stream=stream):
+                    self.context.execute_async_v3(stream.cuda_stream)
+
         self.model = engine
 
     def forward(self, im: torch.Tensor) -> list[torch.Tensor]:
@@ -142,32 +156,3 @@ class TensorRTBackend(BaseBackend):
             self.bindings["images"].data.copy_(im)  # the capture reads this address, so the input must land in it
             self.graph.replay()
         return [self.bindings[x].data for x in sorted(self.output_names)]
-
-    def capture(self) -> torch.cuda.CUDAGraph | None:
-        """Capture engine execution as a CUDA graph, so each call replays one graph instead of every kernel launch.
-
-        A failed capture leaves the CUDA generator stuck in capture mode, so callers screen out engines known to do
-        host work per call rather than relying on the fallback here.
-
-        Returns:
-            (torch.cuda.CUDAGraph | None): Graph replaying the engine over the binding buffers, or None if TensorRT
-                refused the capture.
-        """
-        for name, binding in self.bindings.items():
-            self.context.set_tensor_address(name, binding.data.data_ptr())
-        graph = torch.cuda.CUDAGraph()
-        try:
-            with torch.cuda.device(self.device):  # the capture must record on the engine's own device
-                stream = torch.cuda.Stream()
-                with torch.cuda.stream(stream):  # a failed capture_end skips the restore inside torch.cuda.graph
-                    ok = self.context.execute_async_v3(stream.cuda_stream)  # TensorRT allocates on its first run
-                    stream.synchronize()
-                    if ok:
-                        with torch.cuda.graph(graph, stream=stream):
-                            ok = self.context.execute_async_v3(stream.cuda_stream)
-                    if not ok:  # a refused enqueue records nothing, leaving a graph that replays into stale buffers
-                        raise RuntimeError("the engine could not be enqueued")
-        except RuntimeError as e:
-            LOGGER.warning(f"TensorRT engine cannot be captured as a CUDA graph, running it per call instead. {e}")
-            return None
-        return graph

@@ -11,6 +11,7 @@ import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import cv2
 import numpy as np
@@ -863,7 +864,10 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
-        result = await _convert_ndjson_to_yolo(Path(check_file(source)), output_path, local, fraction)
+        with TemporaryDirectory() as download_dir:
+            result = await _convert_ndjson_to_yolo(
+                Path(check_file(source, download_dir=download_dir)), output_path, local, fraction
+            )
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 

@@ -55,11 +55,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 1.  Install Ultralytics with necessary dependencies
 
     ```bash
-    cd ~
-    pip install -U pip
-    git clone https://github.com/ultralytics/ultralytics
-    cd ultralytics
-    pip install -e . onnx onnxslim
+    pip install ultralytics onnx onnxslim
     ```
 
 2.  Clone the DeepStream-Yolo repository
@@ -69,14 +65,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     git clone https://github.com/marcoslucianops/DeepStream-Yolo
     ```
 
-3.  Copy the `export_yolo26.py` file from `DeepStream-Yolo/utils` directory to the `ultralytics` folder
-
-    ```bash
-    cp ~/DeepStream-Yolo/utils/export_yolo26.py ~/ultralytics
-    cd ultralytics
-    ```
-
-4.  Download an Ultralytics YOLO26 detection model (.pt) of your choice from the [YOLO26 project](https://platform.ultralytics.com/ultralytics/yolo26). Here we use [yolo26s.pt](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s).
+3.  Download an Ultralytics YOLO26 detection model (.pt) of your choice from the [YOLO26 project](https://platform.ultralytics.com/ultralytics/yolo26). Here we use [yolo26s.pt](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s).
 
     ```bash
     wget https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s.pt
@@ -86,63 +75,29 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
 
         You can also use a [custom-trained YOLO26 model](../modes/train.md).
 
-5.  Convert model to ONNX
+4.  Convert the model to ONNX and write the `labels.txt` file DeepStream reads the class names from
 
-    ```bash
-    python3 export_yolo26.py -w yolo26s.pt
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26s.pt")
+    model.export(format="onnx", nms=False, agnostic_nms=True)  # creates 'yolo26s.onnx'
+    with open("labels.txt", "w") as f:
+        f.write("\n".join(model.names.values()))
     ```
 
-    !!! note "Pass the below arguments to the above command"
+    !!! note "Export arguments"
 
-        For DeepStream 5.1, remove the `--dynamic` arg and use `opset` 12 or lower. The default `opset` is 17.
+        `nms=False` exports the NMS-free head, and `agnostic_nms=True` keeps a single class per detection so that `cluster-mode=4` (no clustering) in the DeepStream config does not draw a box twice. Add `imgsz=1280` to change the inference size (default: 640), `batch=4` for a batch size of 4 (the exported batch is static, so it must match `batch-size` in the DeepStream config), and `opset=12` for TensorRT 8.2 or older (DeepStream 6.0.1 and earlier). See the [export arguments](../modes/export.md#arguments) for the full list.
 
-        ```bash
-        --opset 12
-        ```
-
-        To change the inference size (default: 640)
-
-        ```bash
-        -s SIZE
-        --size SIZE
-        -s HEIGHT WIDTH
-        --size HEIGHT WIDTH
-        ```
-
-        Example for 1280:
-
-        ```bash
-        -s 1280
-        or
-        -s 1280 1280
-        ```
-
-        To simplify the ONNX model (DeepStream >= 6.0)
-
-        ```bash
-        --simplify
-        ```
-
-        To use dynamic batch-size (DeepStream >= 6.1)
-
-        ```bash
-        --dynamic
-        ```
-
-        To use static batch-size (example for batch-size = 4)
-
-        ```bash
-        --batch 4
-        ```
-
-6.  Copy the generated `.onnx` model file and `labels.txt` file to the `DeepStream-Yolo` folder
+5.  Copy the generated `.onnx` model file and `labels.txt` file to the `DeepStream-Yolo` folder
 
     ```bash
     cp yolo26s.onnx labels.txt ~/DeepStream-Yolo
     cd ~/DeepStream-Yolo
     ```
 
-7.  Set the CUDA version according to the JetPack version installed
+6.  Set the CUDA version according to the JetPack version installed
 
     For JetPack 4.6.4:
 
@@ -168,13 +123,13 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     export CUDA_VER=13.0
     ```
 
-8.  Compile the library
+7.  Compile the library
 
     ```bash
     make -C nvdsinfer_custom_impl_Yolo clean && make -C nvdsinfer_custom_impl_Yolo
     ```
 
-9.  Edit the `config_infer_primary_yolo26.txt` file according to your model (for YOLO26s with 80 classes)
+8.  Edit the `config_infer_primary_yolo26.txt` file according to your model (for YOLO26s with 80 classes)
 
     ```bash
     [property]
@@ -200,7 +155,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
         ...
         ```
 
-10. Edit the `deepstream_app_config` file
+9.  Edit the `deepstream_app_config` file
 
     ```bash
     ...
@@ -209,7 +164,7 @@ Here we are using [marcoslucianops/DeepStream-Yolo](https://github.com/marcosluc
     config-file=config_infer_primary_yolo26.txt
     ```
 
-11. You can also change the video source in `deepstream_app_config` file. Here, a default video file is loaded
+10. You can also change the video source in `deepstream_app_config` file. Here, a default video file is loaded
 
     ```bash
     ...
@@ -456,15 +411,18 @@ Yes, the guide for deploying Ultralytics YOLO26 with the DeepStream SDK and Tens
 
 ### How can I convert a YOLO26 model to ONNX for DeepStream?
 
-To convert a YOLO26 model to ONNX format for deployment with DeepStream, use the `utils/export_yolo26.py` script from the [DeepStream-Yolo](https://github.com/marcoslucianops/DeepStream-Yolo) repository.
+Export the model with the NMS-free head using the Ultralytics exporter, and write the `labels.txt` file DeepStream reads the class names from:
 
-Here's an example command:
+```python
+from ultralytics import YOLO
 
-```bash
-python3 utils/export_yolo26.py -w yolo26s.pt --opset 12 --simplify
+model = YOLO("yolo26s.pt")
+model.export(format="onnx", nms=False, agnostic_nms=True)  # creates 'yolo26s.onnx'
+with open("labels.txt", "w") as f:
+    f.write("\n".join(model.names.values()))
 ```
 
-For more details on model conversion, check out our [model export section](../modes/export.md).
+Add `opset=12` for TensorRT 8.2 or older (DeepStream 6.0.1 and earlier). For more details on model conversion, check out our [model export section](../modes/export.md).
 
 ### How do I run INT8 inference with YOLO26 on DeepStream?
 

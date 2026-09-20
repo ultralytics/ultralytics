@@ -150,7 +150,7 @@ Press `Cmd+K` (Mac) or `Ctrl+K` (Windows/Linux) to open the search bar. Search a
 
 ### AI Chat Assistant
 
-A floating chat widget is available on every page. Click it to ask questions about YOLO training, annotation, deployment, or any Platform feature. The assistant provides context-aware help based on the current page.
+Click **Ask AI** to work with an AI agent that automates tasks across Ultralytics Platform. It works directly with your datasets and models to annotate images, run training experiments, compare results, and export or deploy models. See [AutoTrain with Ask AI](train/autotrain.md) for example prompts and setup for your own coding agent.
 
 ### Onboarding Tours
 
@@ -417,7 +417,7 @@ yolo train model=yolo26n.pt data=coco.yaml epochs=100 project=username/my-projec
 
 !!! note "Requirements"
 
-    Local training with metric streaming requires **ultralytics>=8.4.120**. API keys start with `ul_` followed by 40 hex characters (43 characters total) and are full-access tokens scoped to your workspace.
+    Local training with metric streaming requires **Python>=3.11** and **ultralytics>=8.4.120**. API keys start with `ul_` followed by 40 hex characters (43 characters total) and are full-access tokens scoped to your workspace.
 
 Read more about [API keys](account/api-keys.md), [dataset URIs](data/datasets.md#dataset-uri), and [remote training](train/cloud-training.md#remote-training).
 

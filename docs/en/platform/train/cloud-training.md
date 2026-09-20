@@ -31,6 +31,8 @@ Start training from the platform UI by clicking **New Model** on any project or 
 
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/16e56d74f0d7ed2cdc07ff5d8767b0df.avif)<!-- screenshot -->
 
+The dialog remembers the base model and any non-default parameters it held when you last closed it, per dataset task and workspace in the current browser, and restores them the next time you open it for that task. The GPU selection is not remembered, and **Retry** on a failed run restores that run's own arguments instead.
+
 ### Step 1: Select Base Model
 
 Choose an official Ultralytics model or one of your own completed models:
@@ -248,7 +250,7 @@ Train on your own hardware while streaming metrics to the platform.
 
 !!! warning "Package Version Requirement"
 
-    Platform integration requires **ultralytics>=8.4.120**. Lower versions will not work with Platform.
+    Platform integration requires **Python>=3.11** and **ultralytics>=8.4.120**. Lower versions will not work with Platform.
 
     ```bash
     pip install -U ultralytics

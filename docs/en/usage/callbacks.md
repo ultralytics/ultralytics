@@ -52,6 +52,43 @@ for result, frame in model.predict():  # or model.track()
     pass
 ```
 
+### Registering PyTorch Forward Hooks Before Training
+
+`model.train()` builds a training model from the model configuration and transfers the loaded weights into it. PyTorch
+hooks registered directly on `model.model` before this call are runtime state, so the rebuilt training model does not
+inherit them. Register training hooks in `on_pretrain_routine_end`, after model setup is complete:
+
+```python
+from ultralytics import YOLO
+from ultralytics.utils.torch_utils import unwrap_model
+
+
+def preprocess_input(module, inputs):
+    """Center each input channel before the first model layer."""
+    images = inputs[0]
+    return (images - images.mean(dim=(-2, -1), keepdim=True),)
+
+
+def register_forward_pre_hook(trainer):
+    """Attach preprocessing to the active training model."""
+    train_model = unwrap_model(trainer.model)
+    train_model.model[0].register_forward_pre_hook(preprocess_input)
+
+
+model = YOLO("yolo26n.pt")
+model.add_callback("on_pretrain_routine_end", register_forward_pre_hook)
+model.train(data="coco8.yaml", epochs=1)
+```
+
+`unwrap_model()` handles both single-device and DistributedDataParallel training. Do not attach a locally defined hook
+to `trainer.ema.ema`, because training checkpoints serialize the EMA model and another process may not be able to import
+the callback when loading the checkpoint. If the same preprocessing must run during training validation, implement it
+as an importable model component instead of a runtime hook.
+
+Standalone `model.val()` copies the loaded model for each call. Prediction creates and caches a copy on its first call, so register
+hooks on `model.model` before the first `model.predict()` or `model.track()` call; hooks added afterward do not reach
+the cached predictor. Register runtime hooks again after loading a checkpoint in a new process.
+
 ### Access Model metrics using the `on_model_save` callback
 
 This example shows how to retrieve training details, such as the best_fitness score, total_loss, and other metrics after a checkpoint is saved using the `on_model_save` callback.

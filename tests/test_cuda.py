@@ -215,7 +215,8 @@ def test_autobatch():
     """Check optimal batch size for YOLO model training using autobatch utility."""
     from ultralytics.utils.autobatch import check_train_batch_size
 
-    check_train_batch_size(YOLO(MODEL).model.to(f"cuda:{DEVICES[0]}"), imgsz=64, amp=True)
+    # imgsz < 2 * stride fails the batch-1 probe in train-mode BatchNorm, which is not a memory ceiling
+    assert check_train_batch_size(YOLO(MODEL).model.to(f"cuda:{DEVICES[0]}"), imgsz=32, amp=True) > 1
 
 
 @pytest.mark.slow

@@ -125,6 +125,22 @@ def test_task(trainer_cls, validator_cls, predictor_cls, data, model, weights):
         trainer_cls(overrides={**overrides, "resume": trainer.last}).train()
 
 
+def test_semantic_polygon_val_background():
+    """Test standalone semantic val adds the polygon background class instead of mislabeling it as the last class."""
+    from ultralytics.data.utils import check_det_dataset
+
+    cfg = get_cfg(DEFAULT_CFG)
+    cfg.data = "coco8-seg.yaml"
+    cfg.imgsz = 64
+    validator = semantic.SemanticSegmentationValidator(args=cfg)
+    validator.data = check_det_dataset(cfg.data)  # standalone val dataset setup (engine/validator.py)
+    validator.stride = 32  # normally set from the model during validation
+    validator.device = torch.device("cpu")  # normally set from the model during validation
+    dataset = validator.get_dataloader(validator.data["val"], 4).dataset
+    assert dataset.bg_class_idx == 80, "background class missing on standalone polygon val"
+    assert (dataset[0]["semantic_mask"] == 80).any(), "background pixels mislabeled on standalone polygon val"
+
+
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_resume_incomplete(task, weight, data, tmp_path):
     """Test training resumes from an incomplete checkpoint."""
@@ -159,6 +175,15 @@ def test_resume_incomplete(task, weight, data, tmp_path):
     resume_model = YOLO(last_path)
     resume_model.train(resume=True, **train_args)
     assert resume_model.trainer.start_epoch == resume_model.trainer.epoch == 1, "resume test failed"
+
+
+def test_resume_invalid_checkpoint_args(tmp_path):
+    """Test resuming a checkpoint with invalid train args raises the real error, not a missing-checkpoint error."""
+    _, ckpt = load_checkpoint(MODEL)
+    ckpt["train_args"]["epochs"] = 0  # ultralytics <= 8.4.154 stored epochs < 1 without validating it
+    torch.save(ckpt, last := tmp_path / "last.pt")
+    with pytest.raises(ValueError, match="epochs"):
+        detect.DetectionTrainer(overrides={"model": MODEL, "data": "coco8.yaml", "resume": str(last)})
 
 
 def test_distill_resume(tmp_path: Path):

@@ -43,6 +43,10 @@ Platform posts a confirmation in the selected channel as soon as the connection 
 
 Each message says what finished and links straight to the related model or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments page](../deploy/index.md#deployments-page).
 
+## Agents Workflow Messages
+
+Use a **Slack** block in [Agents](../agents.md#send-conditional-slack-alerts) to send a message when a workflow condition matches. It uses the same connected channel. Configure the message in the block and include `{output}` for the upstream result. These messages are separate from the job notification choices above.
+
 ## Change or Disconnect Slack
 
 To change which results are posted, check or uncheck alerts and click **Save alerts**. At least one alert must remain selected.

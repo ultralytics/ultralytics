@@ -358,21 +358,14 @@ def _load_checkpoint(model, checkpoint, interactive=False):
         ckpt = torch_load(f)
     if "model" in ckpt and isinstance(ckpt["model"], dict):
         ckpt = ckpt["model"]
-    # SAM 3.1 renamed the second FPN neck and dropped its unused fourth level, which scalp discarded anyway.
-    # The rename is a no op on SAM 3.0 checkpoints, which already use the sam2_convs name.
-    ckpt = {k.replace("interactive_convs", "sam2_convs"): v for k, v in ckpt.items()}
-    # SAM 3.1 nests the tracker one level deeper and keeps a 16 slot multiplex video head beside the
-    # interactive one. Map only the modules the image point path uses, because the multiplex video
-    # modules have incompatible shapes. Every rename below is a no op on SAM 3.0 checkpoints.
-    # no_mem_embed matters most: the mask decoder adds it to the image embedding, so leaving it
-    # randomly initialized makes point prompts differ from one process to the next.
-    for src, dst in (
-        ("tracker.model.interactive_sam_", "tracker.sam_"),
-        ("tracker.model.interactivity_no_mem_embed", "tracker.no_mem_embed"),
-        ("tracker.model.interactive_mask_downsample", "tracker.mask_downsample"),
-        ("tracker.model.obj_ptr_proj", "tracker.obj_ptr_proj"),
-    ):
-        ckpt.update({k.replace(src, dst): v for k, v in ckpt.items() if src in k})
+    # SAM 3.1 nests its point-prompt head as tracker.model.interactive_* beside the multiplex video tracker and renames
+    # its neck to interactive_convs, so map both onto the SAM 3 names (no-op for SAM 3 checkpoints)
+    ckpt = {
+        k.replace("tracker.model.interactive_", "tracker.")
+        .replace("tracker.model.interactivity_", "tracker.")
+        .replace("interactive_convs", "sam2_convs"): v
+        for k, v in ckpt.items()
+    }
     sam3_image_ckpt = {k.replace("detector.", ""): v for k, v in ckpt.items() if "detector" in k}
     if interactive:
         sam3_image_ckpt.update(

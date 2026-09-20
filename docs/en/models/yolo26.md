@@ -12,6 +12,8 @@ keywords: YOLO26, Ultralytics YOLO, object detection, end-to-end NMS-free, YOLOE
 
 Across its five detection scales, YOLO26 reaches **40.9-57.5 mAP on COCO** at **1.7-11.8 ms T4 TensorRT latency**. The paper also reports **up to 43% faster CPU ONNX inference** for YOLO26n compared with YOLO11n on an Intel Xeon CPU @ 2.00 GHz.
 
+See the [unreleased YOLO27 preview](yolo27.md) for planned architecture, tasks, and preliminary benchmarks.
+
 ![Ultralytics YOLO26 Comparison Plots](https://cdn.ul.run/i/1b042c1a3e984e8d2eb58c2af3c53965.avif)
 
 <p align="center">

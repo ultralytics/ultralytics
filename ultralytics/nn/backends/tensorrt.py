@@ -113,13 +113,13 @@ class TensorRTBackend(BaseBackend):
         if TORCH_1_10 and self.is_trt10 and not self.dynamic and not host:
             for name, binding in self.bindings.items():
                 self.context.set_tensor_address(name, binding.data.data_ptr())
-            stream = torch.cuda.Stream(self.device)
-            self.graph = torch.cuda.CUDAGraph()
+            stream, graph = torch.cuda.Stream(self.device), torch.cuda.CUDAGraph()
             with torch.cuda.stream(stream):  # selects the engine's device as well, which the capture records on
-                self.context.execute_async_v3(stream.cuda_stream)  # TensorRT allocates on its first run
+                ok = self.context.execute_async_v3(stream.cuda_stream)  # TensorRT allocates on its first run
                 stream.synchronize()
-                with torch.cuda.graph(self.graph, stream=stream):
-                    self.context.execute_async_v3(stream.cuda_stream)
+                with torch.cuda.graph(graph, stream=stream):
+                    ok &= self.context.execute_async_v3(stream.cuda_stream)
+            self.graph = graph if ok else None  # a refused enqueue records nothing and would replay stale outputs
 
         self.model = engine
 

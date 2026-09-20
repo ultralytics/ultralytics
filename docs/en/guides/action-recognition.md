@@ -96,8 +96,7 @@ Here's a table with the `ActionRecognition` arguments:
 
 The `ActionRecognition` solution also supports `track` arguments:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization options are available:
 

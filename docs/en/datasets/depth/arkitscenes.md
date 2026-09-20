@@ -68,7 +68,7 @@ ARKitScenes is a **training** source in the Ultralytics YOLO26-Depth multi-datas
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information.
 
 !!! example "ultralytics/cfg/datasets/depth-arkitscenes.yaml"
 
@@ -123,3 +123,17 @@ If you use the ARKitScenes dataset in your research or development work, please 
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What role does ARKitScenes play in YOLO26-Depth?
+
+ARKitScenes is the single largest real-world source in the roughly 2.19M-image YOLO26-Depth pretraining mix, contributing 676,080 training and 21,559 validation images captured with the LiDAR scanner of Apple iPad Pro devices. Its dense indoor depth anchors the short-range accuracy of the released models, which are then evaluated on [NYU Depth V2](nyu-depth-v2.md), [KITTI](kitti.md), [ETH3D](eth3d.md), [Make3D](make3d.md), and [iBims-1](ibims-1.md).
+
+### How do I download ARKitScenes for Ultralytics training?
+
+ARKitScenes has no automatic download. Accept the license terms in the [ARKitScenes repository](https://github.com/apple/ARKitScenes), download the depth-upsampling subset with the official `download_data.py` script, and pair each depth frame with its nearest-timestamp RGB frame using the conversion script in [Obtain the Data](#obtain-the-data). The result follows the standard [Ultralytics depth layout](index.md) with uint16 millimeter PNGs.
+
+### What depth range does ARKitScenes cover?
+
+ARKitScenes is a handheld indoor dataset with depths of roughly 0.5 to 6 m and a median maximum depth around 2.4 m, so it complements longer-range sources such as [KITTI](kitti.md) and [TartanAir](tartanair.md) in the training mix.

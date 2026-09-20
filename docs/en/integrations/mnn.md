@@ -179,14 +179,12 @@ A function that relies solely on MNN for YOLO26 inference and preprocessing is i
             w = output_var[2]
             h = output_var[3]
             probs = output_var[4:]
-            # [cx, cy, w, h] -> [y0, x0, y1, x1]
+            # [cx, cy, w, h] -> [x0, y0, x1, y1]
             x0 = cx - w * 0.5
             y0 = cy - h * 0.5
             x1 = cx + w * 0.5
             y1 = cy + h * 0.5
             boxes = np.stack([x0, y0, x1, y1], axis=1)
-            # ensure ratio is within the valid range [0.0, 1.0]
-            boxes = np.clip(boxes, 0, 1)
             # get max prob and idx
             scores = np.max(probs, 0)
             class_ids = np.argmax(probs, 0)
@@ -299,15 +297,12 @@ A function that relies solely on MNN for YOLO26 inference and preprocessing is i
             std::vector<int> sizevals { -1, -1 };
             auto size = _Const(static_cast<void*>(sizevals.data()), {2}, NCHW, halide_type_of<int>());
             auto probs = _Slice(output, start, size);
-            // [cx, cy, w, h] -> [y0, x0, y1, x1]
+            // [cx, cy, w, h] -> [x0, y0, x1, y1]
             auto x0 = cx - w * _Const(0.5);
             auto y0 = cy - h * _Const(0.5);
             auto x1 = cx + w * _Const(0.5);
             auto y1 = cy + h * _Const(0.5);
             auto boxes = _Stack({x0, y0, x1, y1}, 1);
-            // ensure ratio is within the valid range [0.0, 1.0]
-            boxes = _Maximum(boxes, _Scalar<float>(0.0f));
-            boxes = _Minimum(boxes, _Scalar<float>(1.0f));
             auto scores = _ReduceMax(probs, {0});
             auto ids = _ArgMax(probs, 0);
             auto result_ids = _Nms(boxes, scores, 100, 0.45, 0.25);

@@ -75,7 +75,7 @@ TrackZone specializes in monitoring objects within designated areas of a frame i
         trackzone = solutions.TrackZone(
             show=True,  # display the output
             region=region_points,  # pass region points
-            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., YOLOv9, YOLOv10
+            model="yolo26n.pt",  # use any model that Ultralytics supports, e.g., yolo26s.pt
             # line_width=2,  # adjust the line width for bounding boxes and text display
         )
 
@@ -113,8 +113,7 @@ Here's a table with the `TrackZone` arguments:
 
 The TrackZone solution includes support for `track` parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization options are available:
 

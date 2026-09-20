@@ -3,7 +3,7 @@ comments: true
 license:
     name: CC-BY-NC-SA-3.0
     url: https://creativecommons.org/licenses/by-nc-sa/3.0/
-description: Explore the Virtual KITTI 2 depth dataset for monocular depth estimation, a photorealistic synthetic recreation of KITTI driving scenes with dense per-pixel ground truth used to train Ultralytics YOLO26-Depth models.
+description: Explore the Virtual KITTI 2 depth dataset, a photorealistic synthetic recreation of KITTI driving scenes with dense per-pixel ground truth for training Ultralytics YOLO26-Depth models.
 keywords: Ultralytics, YOLO, depth estimation, Virtual KITTI 2, vKITTI2, synthetic driving dataset, dense depth, monocular depth, autonomous driving
 ---
 
@@ -39,7 +39,7 @@ There is no standalone held-out vKITTI2 benchmark in this setup. Instead, the re
 
 ## Dataset YAML
 
-A YAML (Yet Another Markup Language) file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For Virtual KITTI 2, the `depth-vkitti2.yaml` file defines the paths and the single `depth` class.
+A YAML file is used to define the dataset configuration. It contains information about the dataset's paths, classes, and other relevant information. For Virtual KITTI 2, the `depth-vkitti2.yaml` file defines the paths and the single `depth` class.
 
 !!! example "ultralytics/cfg/datasets/depth-vkitti2.yaml"
 
@@ -94,3 +94,17 @@ If you use the Virtual KITTI 2 dataset in your research or development work, ple
         ```
 
 We would like to acknowledge the creators of Virtual KITTI 2 for making this synthetic driving dataset available to the computer vision community.
+
+## FAQ
+
+### What is the Virtual KITTI 2 dataset?
+
+Virtual KITTI 2 (vKITTI2) is a photorealistic synthetic recreation of five KITTI driving sequences, re-rendered under varied weather and lighting. It contributes 42,520 images (25,780 train, 16,740 val) with dense per-pixel depth to roughly 80 m to the YOLO26-Depth training mix.
+
+### How does Virtual KITTI 2 complement the real KITTI dataset?
+
+Real [KITTI](kitti.md) LiDAR depth is sparse, with only about 16 to 20% of pixels labeled, while vKITTI2 provides a dense depth value for every pixel of the same kind of driving scene. Together they give the model both real sensor statistics and complete outdoor geometry.
+
+### How do I train a YOLO26 depth model on Virtual KITTI 2?
+
+Run `yolo depth train data=depth-vkitti2.yaml model=yolo26n-depth.pt epochs=100 imgsz=640`, or use the Python example in the [Usage](#usage) section. Depth PNGs use centimeters (`depth_scale: 100`), which the bundled YAML already sets.

@@ -102,6 +102,19 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+def test_image_cache_shared_with_spawned_workers():
+    """Test the RAM image cache reaches spawned DataLoader workers as one shared buffer with intact contents."""
+    from ultralytics.data.base import BaseDataset
+
+    images = [np.full((8, 8, 3), i, dtype=np.uint8) for i in range(8)]
+    cache = BaseDataset._ImageCache(list(images))
+    loader = torch.utils.data.DataLoader(
+        cache, batch_size=4, sampler=range(8), num_workers=2, multiprocessing_context="spawn"
+    )
+    assert torch.equal(torch.cat(list(loader)), torch.from_numpy(np.stack(images)))
+    assert cache.buffer.is_shared()
+
+
 def test_build_yolo_dataset_hyp_isolated():
     """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
     data = check_det_dataset("coco8.yaml")

@@ -1067,7 +1067,7 @@ class Metric(SimpleClass):
                 >= 0.5) is used.
             target_cls (np.ndarray): Ground truth class labels for the image.
             pred_cls (np.ndarray): Predicted class labels for the image.
-            im_name (str): The image filename used as the per-image key.
+            im_name (str): The absolute image path used as the per-image key.
         """
         # Use the default IoU=0.5 column to match the validator's image-level matching policy.
         tp = int(tp[:, 0].sum())

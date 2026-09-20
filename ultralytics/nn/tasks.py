@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import contextlib
+import importlib
 import pickle
 import re
 import threading
 from copy import deepcopy
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch import nn
 
@@ -245,10 +247,13 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if is_qat(self):  # fusing rewrites conv weights, invalidating the ranges calibrated for the unfused ones
-            return self
+        # BN folds into a QAT conv exactly, its per-channel weight range scales along; merged branches and transposed
+        # convs have no such rescale for their ranges, so they stay as trained
+        skip = (Conv2, ConvTranspose, RepConv, RepVGGDW) if is_qat(self) else ()
         if not self.is_fused():
             for m in self.model.modules():
+                if isinstance(m, skip):
+                    continue
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
                         m.fuse_convs()
@@ -1165,7 +1170,7 @@ class WorldModel(DetectionModel):
         Returns:
             (torch.Tensor): Model's output tensor.
         """
-        txt_feats = (self.txt_feats if txt_feats is None else txt_feats).to(device=x.device, dtype=x.dtype)
+        txt_feats = (self.txt_feats if txt_feats is None else txt_feats).type_as(x)
         if txt_feats.shape[0] != x.shape[0] or self.model[-1].export:
             txt_feats = txt_feats.expand(x.shape[0], -1, -1)
         ori_txt_feats = txt_feats.clone()
@@ -1298,36 +1303,44 @@ class YOLOEModel(DetectionModel):
         """
         return self(img, vpe=visual, return_vpe=True)
 
-    def set_vocab(self, vocab, names):
+    def set_vocab(self, vocab, names, one2one_vocab=None):
         """Set vocabulary for the prompt-free model.
 
         Args:
-            vocab (nn.ModuleList): List of vocabulary items.
+            vocab (nn.ModuleList): One-to-many vocabulary items returned by ``get_vocab`` for ``names``.
             names (list[str]): List of class names.
+            one2one_vocab (nn.ModuleList | None): One-to-one vocabulary items. When provided, both the one-to-many and
+                one-to-one prompt-free heads are built, so the ``nms`` argument keeps selecting between them at
+                inference. When omitted, only the branch selected by ``end2end`` is built, as before.
         """
         assert not self.training
         head = self.model[-1]
         assert isinstance(head, YOLOEDetect)
         names = check_class_names(names)  # validate before the re-parameterization below, which cannot be undone
-        assert len(vocab) == head.nl, f"Expected one vocabulary item per detection level ({head.nl}), got {len(vocab)}."
-
         # Cache anchors for head
         with torch.no_grad():  # a tracked warmup would build a graph through the backbone
             self(next(self.parameters()).new_empty(1, 3, self.args["imgsz"], self.args["imgsz"]))  # warmup
 
-        cv3 = head.one2one_cv3 if head.end2end else head.cv3
-        cv2 = head.one2one_cv2 if head.end2end else head.cv2
-
-        # re-parameterization for prompt-free model
-        self.model[-1].lrpc = nn.ModuleList(
-            LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(vocab, cv3, cv2))
-        )
-        for loc_head, cls_head in zip(cv2, cv3):  # the branches lrpc was built from, one2one when end2end
-            assert isinstance(loc_head, nn.Sequential)
-            assert isinstance(cls_head, nn.Sequential)
-            del loc_head[-1]
-            del cls_head[-1]
-        head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
+        # re-parameterization for prompt-free model, one LRPC head per (vocabulary, loc branch, cls branch)
+        if one2one_vocab is None:  # single vocabulary for the branch end2end selects
+            e2e = "one2one_" if head.end2end else ""
+            branches = {"lrpc": (vocab, getattr(head, f"{e2e}cv2"), getattr(head, f"{e2e}cv3"))}
+        else:
+            branches = {
+                "lrpc": (vocab, head.cv2, head.cv3),
+                "one2one_lrpc": (one2one_vocab, head.one2one_cv2, head.one2one_cv3),
+            }
+        assert all(len(v) == head.nl for v, _, _ in branches.values()), f"Each vocabulary needs {head.nl} items."
+        for name, (v, cv2, cv3) in branches.items():
+            lrpc = (LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(v, cv3, cv2)))
+            setattr(head, name, nn.ModuleList(lrpc))
+            for loc_head, cls_head in zip(cv2, cv3):
+                assert isinstance(loc_head, nn.Sequential)
+                assert isinstance(cls_head, nn.Sequential)
+                del loc_head[-1]
+                del cls_head[-1]
+        if one2one_vocab is None:
+            head.fuse()  # LRPC is built for one branch; discard the other before inference can select it.
         self.model[-1].nc = len(names)
         self.names = names
 
@@ -1424,7 +1437,7 @@ class YOLOEModel(DetectionModel):
                     assert vpe is not None
                     assert not self.training
                     return vpe
-                cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).to(device=x[0].device, dtype=x[0].dtype)
+                cls_pe = self.get_cls_pe(m.get_tpe(tpe), vpe).type_as(x[0])
                 if cls_pe.shape[0] != b or m.export:
                     cls_pe = cls_pe.expand(b, -1, -1)
                 x.append(cls_pe)  # adding cls embedding
@@ -1665,6 +1678,20 @@ class _SafeLoad:
         with cls._lock:
             if cls._registry is None:
                 cls._registry = cls._build()
+            for name in needed:
+                module, _, attr = name.rpartition(".")
+                if name not in cls._registry and (
+                    module in {"torch.nn.modules", "ultralytics.nn.modules", "ultralytics.nn.tasks"}
+                    or module.rpartition(".")[0] in {"torch.nn.modules", "ultralytics.nn.modules"}
+                    or module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                ):
+                    obj = getattr(importlib.import_module(module), attr, None)
+                    if isinstance(obj, type) and (
+                        obj.__module__ == module
+                        if module in {"ultralytics.utils.loss", "ultralytics.utils.tal"}
+                        else issubclass(obj, nn.Module)
+                    ):
+                        cls._registry[name] = obj
             if any(name.startswith("torchvision.transforms.") for name in needed):
                 # Classification preprocessing transforms; imported only for checkpoints that serialize them.
                 import torchvision.transforms.transforms as tvt
@@ -1672,7 +1699,25 @@ class _SafeLoad:
 
                 for obj in (tvt.Compose, tvt.Normalize, tvt.Resize, tvt.CenterCrop, tvt.ToTensor, InterpolationMode):
                     cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
-            entries = [cls._registry[name] for name in needed if name in cls._registry]
+            if "ultralytics.nn.text_model.CLIP" in needed:
+                import clip
+
+                from ultralytics.nn.text_model import CLIP
+
+                for obj in (
+                    CLIP,
+                    clip.model.CLIP,
+                    clip.model.LayerNorm,
+                    clip.model.QuickGELU,
+                    clip.model.ResidualAttentionBlock,
+                    clip.model.Transformer,
+                    clip.model.VisionTransformer,
+                    clip.clip._convert_image_to_rgb,
+                ):
+                    cls._registry[f"{obj.__module__}.{obj.__qualname__}"] = obj
+            entries = [(cls._registry[name], name) for name in needed if name in cls._registry]
+            if "numpy.dtype" in needed:
+                entries.append(type(np.dtype(np.float64)))  # Built dynamically, absent from the checkpoint global scan.
             if entries:
                 torch.serialization.add_safe_globals(entries)
         cls._local.active = True
@@ -1713,55 +1758,17 @@ class _SafeLoad:
 
     @classmethod
     def _build(cls):
-        """Auto-discover `nn.Module` subclasses across `torch.nn` and the ultralytics model families, registered under
-        every namespace path they are reachable from (covering re-exports such as `block.RealNVP` as
-        `head.RealNVP`), plus legacy aliases.
-
-        Returns:
-            (dict): `torch.serialization.add_safe_globals` entries — classes and `(obj, "module.Name")` aliases — keyed
-                by the pickled "module.Name" path each one serves.
-        """
+        """Build the known data globals and legacy aliases; model classes are resolved only when referenced."""
         import enum
-        import importlib
-        import inspect
         import pathlib
-        import pkgutil
 
-        import torch.nn.modules as torch_nn
-
-        import ultralytics.nn.modules as ul_nn
         import ultralytics.utils.loss as ul_loss
-        import ultralytics.utils.tal as ul_tal
-        from ultralytics.nn import tasks as ul_tasks  # noqa: PLW0406
 
         allow = []
 
-        def _scan(pkg):
-            mods = [pkg]
-            if hasattr(pkg, "__path__"):  # package: include all submodules
-                for info in pkgutil.iter_modules(pkg.__path__, f"{pkg.__name__}."):
-                    try:
-                        mods.append(importlib.import_module(info.name))
-                    except Exception:  # noqa: S112  # optional/oddball submodule — skip
-                        continue
-            for mod in mods:
-                for name, klass in inspect.getmembers(mod, inspect.isclass):
-                    if issubclass(klass, nn.Module):
-                        # Register under the path the class is reachable from — matches how a checkpoint pickled it.
-                        allow.append((klass, f"{mod.__name__}.{name}"))
-
-        _scan(torch_nn)  # PyTorch nn modules
-        _scan(ul_nn)  # ultralytics block/conv/head/transformer
-        _scan(ul_tasks)  # ultralytics task models
-
-        # Criteria pickled inside pre-8.4.95 checkpoints (`ema.criterion` is stripped at save since then): the plain
-        # loss classes plus the nn.Module box losses and assigners they hold.
-        for mod in (ul_loss, ul_tal):
-            allow += [
-                klass for _, klass in inspect.getmembers(mod, inspect.isclass) if klass.__module__ == mod.__name__
-            ]
-
         # Non-nn.Module data globals in official checkpoints, incl. the pre-8.0.44 `ultralytics.yolo.utils` path.
+        scalar = np.float64(0).__reduce__()[0]
+        allow += [np.dtype, (scalar, "numpy.core.multiarray.scalar"), (scalar, "numpy._core.multiarray.scalar")]
         allow.append(IterableSimpleNamespace)
         allow.append((IterableSimpleNamespace, "ultralytics.yolo.utils.IterableSimpleNamespace"))
 
@@ -1769,7 +1776,11 @@ class _SafeLoad:
         def _getattr(obj, name):  # ckpts pickle `Detect.forward` and `InterpolationMode.BILINEAR` via getattr
             if isinstance(obj, type) and not name.startswith("__") and issubclass(obj, (nn.Module, enum.Enum)):
                 return getattr(obj, name)
-            raise pickle.UnpicklingError(f"unsafe getattr({obj!r}, {name!r}) blocked during restricted model load")
+            if isinstance(obj, nn.Module) and name in {"forward", "forward_fuse"}:
+                return getattr(type(obj), name).__get__(obj)
+            raise pickle.UnpicklingError(
+                f"unsafe getattr({type(obj).__name__}, {name!r}) blocked during restricted model load"
+            )
 
         allow += [
             (nn.Identity, "ultralytics.nn.modules.block.Silence"),  # YOLOv9e
@@ -1791,7 +1802,12 @@ class _SafeLoad:
                 (pathlib.PosixPath, "pathlib.WindowsPath"),
                 (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
             ]
-        return {(e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): e for e in allow}
+        return {
+            (e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): (
+                e[0] if isinstance(e, tuple) else e
+            )
+            for e in allow
+        }
 
 
 def torch_safe_load(weight, safe_only=None):

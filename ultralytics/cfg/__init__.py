@@ -264,7 +264,9 @@ CFG_INT_KEYS = frozenset(
         "save_period",
     }
 )
-CFG_INT_MIN = {  # minimum valid values for integer arguments used as divisors, sizes or seeds
+CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, divisors, sizes or seeds
+    "epochs": 1,
+    "patience": 0,  # 0 disables early stopping
     "nbs": 1,
     "max_det": 1,
     "mask_ratio": 1,
@@ -660,7 +662,8 @@ def check_dict_alignment(
             matches = [f"{k}={base[k]}" if base.get(k) is not None else k for k in matches]
             match_str = f"Similar arguments are i.e. {matches}." if matches else ""
             string += f"'{colorstr('red', 'bold', x)}' is not a valid YOLO argument. {match_str}\n"
-        raise SyntaxError(string + CLI_HELP_MSG) from e
+        LOGGER.info(CLI_HELP_MSG)
+        raise SyntaxError(string) from e
 
 
 def merge_equals_args(args: list[str]) -> list[str]:
@@ -742,11 +745,11 @@ def handle_yolo_login(args: list[str]) -> None:
         SETTINGS["api_key"] = args[1]
         LOGGER.info("New authentication successful ✅")
     except APIError as error:
-        LOGGER.warning(
+        raise SystemExit(
             "Invalid API key" if error.status_code == 401 else f"Authentication failed (HTTP {error.status_code})"
-        )
+        ) from None
     except APIConnectionError as error:
-        LOGGER.warning(f"Authentication request failed, check your connection: {error}")
+        raise SystemExit(f"Authentication request failed, check your connection: {error}") from None
 
 
 def handle_yolo_settings(args: list[str]) -> None:
@@ -769,9 +772,9 @@ def handle_yolo_settings(args: list[str]) -> None:
         - The function will check for alignment between the provided settings and the existing ones.
         - After processing, the updated settings will be displayed.
         - For more information on handling YOLO settings, visit:
-          https://docs.ultralytics.com/quickstart#ultralytics-settings
+          https://docs.ultralytics.com/usage/settings
     """
-    url = "https://docs.ultralytics.com/quickstart#ultralytics-settings"  # help URL
+    url = "https://docs.ultralytics.com/usage/settings"  # help URL
     try:
         if any(args):
             if args[0] == "reset":

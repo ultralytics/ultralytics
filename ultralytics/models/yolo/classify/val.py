@@ -148,7 +148,7 @@ class ClassificationValidator(BaseValidator):
 
     def build_dataset(self, img_path: str) -> ClassificationDataset:
         """Create a ClassificationDataset instance for validation."""
-        return ClassificationDataset(root=img_path, args=self.args, augment=False, prefix=self.args.split)
+        return ClassificationDataset(img_path, self.args, augment=False, prefix=self.args.split, names=self.names)
 
     def get_dataloader(self, dataset_path: Path | str, batch_size: int) -> torch.utils.data.DataLoader:
         """Build and return a data loader for classification validation.
@@ -161,6 +161,8 @@ class ClassificationValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader object for the classification validation dataset.
         """
         dataset = self.build_dataset(dataset_path)
+        if not dataset.samples:
+            raise FileNotFoundError(f"No images from the model's classes found in {dataset_path}")
         return build_dataloader(dataset, batch_size, self.args.workers, rank=-1, device=self.device)
 
     def print_results(self) -> None:

@@ -1330,8 +1330,8 @@ class YOLOEModel(DetectionModel):
                 "lrpc": (vocab, head.cv2, head.cv3),
                 "one2one_lrpc": (one2one_vocab, head.one2one_cv2, head.one2one_cv3),
             }
+        assert all(len(v) == head.nl for v, _, _ in branches.values()), f"Each vocabulary needs {head.nl} items."
         for name, (v, cv2, cv3) in branches.items():
-            assert len(v) == head.nl, f"Expected one vocabulary item per detection level ({head.nl}), got {len(v)}."
             lrpc = (LRPCHead(cls, pf[-1], loc[-1], enabled=i != 2) for i, (cls, pf, loc) in enumerate(zip(v, cv3, cv2)))
             setattr(head, name, nn.ModuleList(lrpc))
             for loc_head, cls_head in zip(cv2, cv3):

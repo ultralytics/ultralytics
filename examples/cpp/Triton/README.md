@@ -31,7 +31,7 @@ For more information on Triton, see the [NVIDIA Triton Inference Server document
 Export any model and task, then add it to a Triton [model repository](https://github.com/triton-inference-server/server/blob/main/docs/user_guide/model_repository.md). ONNX is a convenient serving format and keeps the `output0` (and `output1` for segmentation) tensor names this client expects.
 
 ```bash
-yolo export model=yolo26n.pt format=onnx opset=12              # detect   (end2end)
+yolo export model=yolo26n.pt format=onnx opset=12              # detect   (add nms=False for NMS-free output)
 yolo export model=yolo26n-seg.pt format=onnx opset=12          # segment
 yolo export model=yolo26n-pose.pt format=onnx opset=12         # pose
 yolo export model=yolo26n-obb.pt format=onnx opset=12          # obb
@@ -94,18 +94,18 @@ Start your Triton server with a deployed Ultralytics YOLO model, then run the cl
 
 ```bash
 # Defaults: --url localhost:8001 --model yolo26n --source bus.jpg --conf 0.25 --iou 0.45 --out result.jpg
-./yolo_triton --model yolo26n --source bus.jpg                     # detect   (auto)
-./yolo_triton --model yolo26n-seg --source bus.jpg --out seg.jpg   # segment  (auto)
-./yolo_triton --model yolo26n-pose --source bus.jpg --out pose.jpg # pose     (auto, end2end)
-./yolo_triton --model yolo26n-obb --source boats.jpg --out obb.jpg # obb      (auto, end2end)
-./yolo_triton --model yolo26n-cls --source bus.jpg --out cls.jpg   # classify (auto)
-./yolo_triton --model yolo26n-sem --source bus.jpg --out sem.jpg   # semantic (auto)
-./yolo_triton --model yolo11n-pose --source bus.jpg --task pose    # legacy grid pose: needs --task
+./yolo_triton --model yolo26n --source bus.jpg                                 # detect   (auto)
+./yolo_triton --model yolo26n-seg --source bus.jpg --out seg.jpg               # segment  (auto)
+./yolo_triton --model yolo26n-pose --source bus.jpg --out pose.jpg --task pose # pose (grid export: needs --task)
+./yolo_triton --model yolo26n-obb --source boats.jpg --out obb.jpg --task obb  # obb  (grid export: needs --task)
+./yolo_triton --model yolo26n-cls --source bus.jpg --out cls.jpg               # classify (auto)
+./yolo_triton --model yolo26n-sem --source bus.jpg --out sem.jpg               # semantic (auto)
+./yolo_triton --model yolo11n-pose --source bus.jpg --task pose                # legacy grid pose: needs --task
 ./yolo_triton --url 192.168.1.10:8001 --model yolo26n --source street.jpg --show
 ```
 
 > [!NOTE]
-> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With **YOLO26** (end-to-end) models every task — including pose and OBB — is detected automatically. Only the legacy **grid** YOLOv8/11 **pose** `[1, 56, 8400]` and **obb** `[1, 20, 8400]` outputs are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
+> Triton exposes no task or class-name metadata, so the task is inferred from the output shapes. With NMS-free **YOLO26** exports (`nms=False`) every task — including pose and OBB — is detected automatically. Only **grid** **pose** `[1, 56, 8400]` and **obb** `[1, 20, 21504]` outputs (YOLOv8/11, or a default YOLO26 export, at 640 and 1024 px) are ambiguous with detection (they differ only by the class count, which Triton does not expose), so for those pass `--task pose` or `--task obb`. Class names fall back to COCO, so a non-COCO model (1000-class classify, DOTA obb) prints class indices rather than names.
 
 | Argument    | Default          | Description                                                    |
 | :---------- | :--------------- | :------------------------------------------------------------- |

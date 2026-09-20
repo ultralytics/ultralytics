@@ -231,11 +231,11 @@ results = model.train(
 
 When using custom Albumentations transforms, keep these points in mind:
 
-- **Python API Only**: Custom transforms can only be passed through the Python API, not via CLI or YAML configuration files.
+- **Configuration**: Build custom transform objects through the Python API. Serialized transforms can also be passed through CLI or YAML configuration files, including when resuming training.
 - **Replaces Defaults**: Your custom transforms will completely replace the default Albumentations transforms. Other YOLO augmentations remain active.
-- **Bounding Box Handling**: Ultralytics automatically handles bounding box adjustments for most transforms, but complex spatial transforms may require additional testing.
+- **Label Handling**: Spatial transforms, including ones nested in `A.OneOf` or `A.Compose`, move bounding boxes, polygons, keypoints, and depth or semantic masks together with the image. `A.RandomGridShuffle` cannot preserve polygon or keypoint topology and raises on segmentation, pose, and OBB samples.
 - **Performance**: Some transforms are computationally expensive. Monitor training speed and adjust accordingly.
-- **Task Compatibility**: Custom Albumentations transforms work with detection and segmentation tasks but not with classification (which uses a different augmentation pipeline).
+- **Task Compatibility**: Custom Albumentations transforms work with detection, segmentation, semantic segmentation, depth, pose, and OBB training but not with classification (which uses a different augmentation pipeline).
 
 ### Use Cases for Custom Transforms
 

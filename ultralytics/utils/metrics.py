@@ -22,7 +22,9 @@ OKS_SIGMA = (
     )
     / 10.0
 )
-RLE_WEIGHT = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5])
+RLE_WEIGHT = np.array(
+    [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5, 1.0, 1.0, 1.2, 1.2, 1.5, 1.5], dtype=np.float32
+)
 CITYSCAPES_WEIGHT = np.array(
     [
         0.8373,
@@ -94,12 +96,12 @@ def box_iou(box1: torch.Tensor, box2: torch.Tensor, eps: float = 1e-7) -> torch.
         https://github.com/pytorch/vision/blob/main/torchvision/ops/boxes.py
     """
     # NOTE: Need .float() to get accurate iou values
-    # inter(N,M) = (rb(N,M,2) - lt(N,M,2)).clamp(0).prod(2)
     (a1, a2), (b1, b2) = box1.float().unsqueeze(1).chunk(2, 2), box2.float().unsqueeze(0).chunk(2, 2)
-    inter = (torch.min(a2, b2) - torch.max(a1, b1)).clamp_(0).prod(2)
+    wh, wh1, wh2 = (torch.min(a2, b2) - torch.max(a1, b1)).clamp_(0), a2 - a1, b2 - b1
+    inter = wh[..., 0] * wh[..., 1]  # slice products, not prod(2): MPS compiles a reduction graph per input shape
 
     # IoU = inter / (area1 + area2 - inter)
-    return inter / ((a2 - a1).prod(2) + (b2 - b1).prod(2) - inter + eps)
+    return inter / (wh1[..., 0] * wh1[..., 1] + wh2[..., 0] * wh2[..., 1] - inter + eps)
 
 
 def bbox_iou(
@@ -163,7 +165,7 @@ def bbox_iou(
             if CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
                 v = (4 / math.pi**2) * ((w2 / h2).atan() - (w1 / h1).atan()).pow(2)
                 with torch.no_grad():
-                    alpha = v / (v - iou + (1 + eps))
+                    alpha = v / (1 - iou + v + eps)
                 return iou - (rho2 / c2 + v * alpha)  # CIoU
             return iou - rho2 / c2  # DIoU
         c_area = cw * ch + eps  # convex area
@@ -1258,6 +1260,7 @@ class DetMetrics(SimpleClass, DataExportMixin):
                 "Instances": self.nt_per_class[self.ap_class_index[i]],
                 **{k: round(v[i], decimals) for k, v in per_class.items()},
                 "mAP50": round(self.class_result(i)[2], decimals),
+                "mAP75": round(self.box.all_ap[i, 5], decimals),
                 "mAP50-95": round(self.class_result(i)[3], decimals),
             }
             for i in range(len(per_class["Box-P"]))
@@ -1716,10 +1719,10 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self.matrix = torch.zeros((self.cm_nc, self.cm_nc), device=preds.device, dtype=torch.float32)
 
         valid = (targets != 255) & (preds >= 0) & (preds < self.cm_nc) & (targets >= 0) & (targets < self.cm_nc)
-        hist = torch.bincount(self.cm_nc * targets[valid] + preds[valid], minlength=self.cm_nc**2).reshape(
-            self.cm_nc, self.cm_nc
-        )
-        self.matrix += hist.to(self.matrix.dtype)
+        idx = (self.cm_nc * targets[valid] + preds[valid]).long()
+        for i in idx.split(1 << 24):  # float32 counts are exact up to 2**24 per chunk; bincount is very slow on MPS
+            hist = torch.zeros(self.cm_nc**2, device=i.device, dtype=self.matrix.dtype)
+            self.matrix += hist.scatter_add_(0, i, torch.ones_like(i, dtype=hist.dtype)).view_as(self.matrix)
 
         present = torch.zeros((targets.shape[0], self.cm_nc), dtype=torch.bool, device=targets.device)
         batch_idx = torch.arange(targets.shape[0], device=targets.device).view(-1, 1, 1).expand_as(targets)

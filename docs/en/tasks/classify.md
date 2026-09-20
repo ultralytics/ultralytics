@@ -40,6 +40,8 @@ YOLO26 pretrained Classify models are shown here. Detect, Segment, and Pose mode
 - **Speed** averaged over ImageNet val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val classify data=path/to/ImageNet batch=1 device=0|cpu`
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary classification speed and model sizes.
+
 ## Train
 
 Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) at image size 64. For a full list of available arguments see the [Configuration](../usage/cfg.md) page.
@@ -80,7 +82,6 @@ Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
     To preserve the full image while maintaining its proportions, consider using [`torchvision.transforms.Resize`](https://docs.pytorch.org/vision/stable/generated/torchvision.transforms.Resize.html) instead of cropping transforms.
 
     You can implement this by customizing your augmentation pipeline through a custom `ClassificationDataset` and `ClassificationTrainer`.
-
 
     ```python
     import torch
@@ -140,8 +141,8 @@ Train YOLO26n-cls on the MNIST160 dataset for 100 [epochs](https://www.ultralyti
 
 
     model = YOLO("yolo26n-cls.pt")
-    model.train(data="imagenet1000", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
-    model.val(data="imagenet1000", validator=CustomizedValidator, imgsz=224, batch=64)
+    model.train(data="imagenet", trainer=CustomizedTrainer, epochs=10, imgsz=224, batch=64)
+    model.val(data="imagenet", validator=CustomizedValidator, imgsz=224, batch=64)
     ```
 
 ### Dataset format

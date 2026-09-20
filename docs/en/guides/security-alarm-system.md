@@ -17,7 +17,7 @@ The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanc
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/DTjtBnSK2fY"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ij9cnYM0EVE"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
@@ -30,11 +30,9 @@ The Security Alarm System Project utilizing Ultralytics YOLO26 integrates advanc
 
 The `SecurityAlarm` solution tracks objects in your video feed and sends a single email alert with an annotated image attached as soon as the number of detections meets the `records` threshold. Authenticate a Gmail account with an app password, then run the solution over your source.
 
-???+ note
+!!! note "App password required"
 
-    App Password Generation is necessary
-
-- Navigate to [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project," and obtain a 16-digit password. Copy this password and paste it into the designated `password` field in the code below.
+    Navigate to the [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project", and obtain a 16-digit password. Copy this password and paste it into the `password` field in the code below.
 
 !!! example "Security Alarm System using Ultralytics YOLO"
 
@@ -91,6 +89,7 @@ The `SecurityAlarm` solution tracks objects in your video feed and sends a singl
         ```
 
         !!! note
+
             Email alerts require the Python API to call `.authenticate()`. The CLI provides detection and visualization only.
 
 When you run the code, you will receive a single email notification if any object is detected. The notification is sent immediately, not repeatedly. You can customize the code to suit your project requirements.
@@ -108,8 +107,7 @@ Here's a table with the `SecurityAlarm` arguments:
 
 The `SecurityAlarm` solution supports a variety of `track` parameters:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Moreover, the following visualization settings are available:
 

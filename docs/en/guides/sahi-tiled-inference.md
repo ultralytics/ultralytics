@@ -5,11 +5,11 @@ description: Learn how to implement YOLO26 with SAHI for sliced inference. Optim
 keywords: YOLO26, SAHI, Sliced Inference, Object Detection, Ultralytics, High-resolution Images, Computational Efficiency, Integration Guide
 ---
 
-# Ultralytics Docs: Using YOLO26 with SAHI for Sliced Inference
+# Using YOLO26 with SAHI for Sliced Inference
 
 <a href="https://colab.research.google.com/github/ultralytics/notebooks/blob/main/notebooks/how-to-use-ultralytics-yolo-with-sahi.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open SAHI for Sliced Inference In Colab"></a>
 
-Welcome to the Ultralytics documentation on how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). This comprehensive guide aims to furnish you with all the essential knowledge you'll need to implement SAHI alongside YOLO26. We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLO26 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
+This guide shows how to use YOLO26 with [SAHI](https://github.com/obss/sahi) (Slicing Aided Hyper Inference). We'll deep-dive into what SAHI is, why sliced inference is critical for large-scale applications, and how to integrate these functionalities with YOLO26 for enhanced [object detection](https://www.ultralytics.com/glossary/object-detection) performance.
 
 <p align="center">
   <video width="1024" src="https://cdn.ul.run/v/875e435c815f7be5e42d0d1af5627644.mp4" autoplay loop muted playsinline aria-label="SAHI tiled inference for small objects"></video>

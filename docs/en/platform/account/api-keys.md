@@ -10,12 +10,11 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 
 [Ultralytics Platform](https://platform.ultralytics.com) API keys enable secure programmatic access for remote training, inference, and automation. Create named keys with AES-256-GCM encryption for different use cases.
 
-![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.ul.run/i/f2c74d17fe21805f988c87adbc456674.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab Key List](https://cdn.ul.run/i/c1abcc5fad50796fdf1a5bd67fd29c67.avif)<!-- screenshot -->
 
 !!! note "Owner-Only"
 
-    Only the workspace owner can create, view, or revoke a workspace's API keys, because a key authenticates as the
-    workspace owner. Members with any other role see a note on the tab instead of the key list. API keys themselves
+    Only the workspace owner can create, view, or revoke a workspace's **Ultralytics API keys**, because these keys authenticate as the workspace owner. Other members cannot view that key list. They can see external provider connection status, but cannot view full provider keys or change those connections. API keys themselves
     cannot create or revoke other API keys. The one exception is [On Premise worker keys](#on-premise-worker-keys),
     which are revoked by disconnecting the host from the On Premise integration.
 
@@ -24,11 +23,11 @@ keywords: Ultralytics Platform, API keys, authentication, remote training, secur
 Create a new API key:
 
 1. Go to **Settings > API Keys**
-2. Click **Create Key**
+2. Click **Add Key** and select **Ultralytics** as the provider
 3. Enter a name for the key (e.g., "Training Server")
 4. Click **Create Key**
 
-![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/263a91df7402a10d57923827fe00aa0b.avif)<!-- screenshot -->
+![Ultralytics Platform Settings API Keys Tab Create API Key Dialog](https://cdn.ul.run/i/f06be245e628d7129554260107ae1bf7.avif)<!-- screenshot -->
 
 ### Key Name
 
@@ -43,10 +42,22 @@ Give your key a descriptive name:
 After creation, the key is displayed in a confirmation dialog:
 
 ![Ultralytics Platform Settings API Keys Tab API Key Created Copy Dialog](https://cdn.ul.run/i/9d54f61a64e1d9887f622d64834d7d2e.avif)<!-- screenshot -->
+
 !!! tip "Copy Your Key"
 
-    Copy your key after creation for easy reference. Keys are also visible in the key list — the platform decrypts and
-    displays full key values so you can copy them anytime.
+    Copy your key after creation for easy reference. You can also use the copy button in the key list anytime; the list displays only each key's prefix.
+
+## Provider Keys for Agents
+
+The same **Settings > API Keys** tab also stores keys for external model providers used by [Agents](../agents.md). Only the workspace owner can add, replace, or remove these keys; team members can see which providers are connected. Ask the owner to connect a missing provider. To connect a provider as the owner:
+
+1. Click **Add Key**.
+2. Select the provider matching your workflow's language or vision-language model.
+3. Paste that provider's API key into **API Key**, then click **Save Key**. The dialog's **Get an API key** link opens the provider's key page.
+
+An Ultralytics key does not authenticate external model providers. Provider usage is billed through the provider account associated with the saved key. Use the key row's edit control to replace a provider key.
+
+![Ultralytics Platform Add API Key dialog with Google Gemini selected as the provider](https://cdn.ul.run/i/d25887575ed998e955cea7ae69901f90.avif)
 
 ## Key Format
 
@@ -85,7 +96,7 @@ Set your key as an environment variable:
 
 ### YOLO CLI
 
-Validate and save the key using the YOLO CLI:
+Validate and save the key using the YOLO CLI on Python>=3.11:
 
 ```bash
 yolo login YOUR_API_KEY
@@ -102,7 +113,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://platform.ultralytics.com/api/...
 ```
 
-Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.5"`), which also reads `ULTRALYTICS_API_KEY`:
+Or pass it to the Python SDK (`pip install "ultralytics-platform>=0.1.45"`), which reads `ULTRALYTICS_API_KEY` or the key saved by `yolo login` when `api_key` is omitted:
 
 ```python
 from ultralytics_platform import Platform
@@ -116,7 +127,7 @@ See the [REST API Reference](../api/index.md) for all available endpoints.
 
 Enable metric streaming with your key.
 
-Install or update the Ultralytics package before starting:
+Install or update the Ultralytics package on Python>=3.11 before starting:
 
 ```bash
 pip install -U ultralytics
@@ -218,7 +229,7 @@ Solutions:
 1. Verify key is copied correctly (including the `ul_` prefix)
 2. Check key hasn't been revoked
 3. Confirm environment variable is set
-4. Ensure you're using `ultralytics>=8.4.120`
+4. Ensure you're using Python>=3.11 and `ultralytics>=8.4.120`
 
 ### Permission Denied
 

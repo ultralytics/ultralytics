@@ -158,15 +158,15 @@ class TensorRTBackend(BaseBackend):
         graph = torch.cuda.CUDAGraph()
         try:
             with torch.cuda.device(self.device):  # the capture must record on the engine's own device
-                self.stream = torch.cuda.Stream()
-                with torch.cuda.stream(self.stream):
-                    ok = self.context.execute_async_v3(self.stream.cuda_stream)  # TensorRT allocates on its first run
-                self.stream.synchronize()
-                if ok:
-                    with torch.cuda.graph(graph, stream=self.stream):
-                        ok = self.context.execute_async_v3(self.stream.cuda_stream)
-                if not ok:  # a refused enqueue records nothing, leaving a graph that replays into stale buffers
-                    raise RuntimeError("the engine could not be enqueued")
+                stream = torch.cuda.Stream()
+                with torch.cuda.stream(stream):  # a failed capture_end skips the restore inside torch.cuda.graph
+                    ok = self.context.execute_async_v3(stream.cuda_stream)  # TensorRT allocates on its first run
+                    stream.synchronize()
+                    if ok:
+                        with torch.cuda.graph(graph, stream=stream):
+                            ok = self.context.execute_async_v3(stream.cuda_stream)
+                    if not ok:  # a refused enqueue records nothing, leaving a graph that replays into stale buffers
+                        raise RuntimeError("the engine could not be enqueued")
         except RuntimeError as e:
             LOGGER.warning(f"TensorRT engine cannot be captured as a CUDA graph, running it per call instead. {e}")
             return None

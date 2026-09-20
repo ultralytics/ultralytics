@@ -215,7 +215,7 @@ def modelopt_quantize_onnx(
     # AutoCast keeps nodes in FP32 when their observed activation range exceeds the FP16 threshold. Calibrate on a
     # real image because unstructured noise inflates early activations and strands the first convolutions in FP32.
     im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)
-    im = np.resize(im, (shape[1], *shape[2:]))  # repeat or drop channels for models that are not 3-channel
+    im = np.resize(im, shape[1:])  # repeat or drop channels for models that are not 3-channel
     im = np.broadcast_to(im, shape).astype(np.float32, order="C")
     im /= 255.0
     onnx.save(

@@ -124,9 +124,9 @@ def test_export_engine_fp16_parity():
     """FP16 engine scores must track PyTorch, guarding the SiLU rewrite `fuse_silu` applies at export.
 
     TensorRT miscompiles a fused convolution, activation and residual add whose shortcut aliases a concatenation buffer
-    (NVIDIA/TensorRT#4854), which silently costs accuracy rather than raising. Rewriting the shortcut bottlenecks too
-    takes the error below from 0.003 to 0.289. The test needs a full-size image: at the imgsz=32 of the export matrix
-    above, P5 is 1x1 and the bad fusion never forms.
+    (NVIDIA/TensorRT#4854), which silently costs accuracy rather than raising, so `fuse_silu` leaves the shortcut
+    bottlenecks alone. Rewriting those too takes the error below from 0.003 to 0.289. The imgsz=32 export matrix above
+    cannot catch it: P5 is 1x1 there and the bad fusion never forms.
     """
     check_tensorrt()
     from ultralytics.nn.autobackend import AutoBackend
@@ -135,14 +135,10 @@ def test_export_engine_fp16_parity():
     im = torch.rand(1, 3, 640, 640, device=DEVICES[0])
     with torch.no_grad():
         ref = model.model.to(DEVICES[0]).eval()(im)[0]
-    file = model.export(format="engine", quantize=16, imgsz=640, batch=1, device=DEVICES[0])
-    backend = AutoBackend(file, device=torch.device(DEVICES[0]))
-    out = backend(im.half() if backend.fp16 else im)
-    out = out[0] if isinstance(out, (list, tuple)) else out
-    err = (out[:, 4:].float() - ref[:, 4:]).abs().max()  # class scores, which a bad fusion corrupts
-    Path(file).unlink()
-    Path(file).with_suffix(".onnx").unlink(missing_ok=True)
-    Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)
+    file = model.export(format="engine", quantize=16, imgsz=640, batch=1, workspace=1, device=DEVICES[0])
+    backend = AutoBackend(file, device=torch.device(DEVICES[0]))  # the call below also replays the captured graph
+    err = (backend(im)[:, 4:].float() - ref[:, 4:]).abs().max()  # class scores, which a bad fusion corrupts
+    Path(file).unlink()  # the session teardown removes the intermediate ONNX files
     assert err < 0.05, f"FP16 engine class scores diverge from PyTorch by {err:.3f}"
 
 

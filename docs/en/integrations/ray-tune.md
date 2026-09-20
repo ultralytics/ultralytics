@@ -203,14 +203,13 @@ After running a hyperparameter tuning experiment with Ray Tune, you might want t
 
 ### Loading Tune Experiment Results from a Directory
 
-After running the tuning experiment with `tuner.fit()`, you can load the results from a directory. This is useful, especially if you're performing the analysis after the initial training script has exited.
+`model.tune(use_ray=True)` returns a Ray `ResultGrid` and saves the experiment under `runs/{task}/tune`, or under the `name` you passed. To load those results after the original script has exited, resume the session, which restores the saved trials and returns the same `ResultGrid`:
 
 ```python
-experiment_path = f"{storage_path}/{exp_name}"
-print(f"Loading results from {experiment_path}...")
+from ultralytics import YOLO
 
-restored_tuner = tune.Tuner.restore(experiment_path, trainable=train_mnist)
-result_grid = restored_tuner.get_results()
+model = YOLO("yolo26n.pt")
+result_grid = model.tune(data="coco8.yaml", epochs=50, use_ray=True, resume=True)
 ```
 
 ### Basic Experiment-Level Analysis
@@ -243,12 +242,12 @@ import matplotlib.pyplot as plt
 for i, result in enumerate(result_grid):
     plt.plot(
         result.metrics_dataframe["training_iteration"],
-        result.metrics_dataframe["mean_accuracy"],
+        result.metrics_dataframe["metrics/mAP50-95(B)"],
         label=f"Trial {i}",
     )
 
 plt.xlabel("Training Iterations")
-plt.ylabel("Mean Accuracy")
+plt.ylabel("mAP50-95")
 plt.legend()
 plt.show()
 ```

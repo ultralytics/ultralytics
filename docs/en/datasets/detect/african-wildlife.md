@@ -126,7 +126,6 @@ If you use this dataset in your research, please cite it using the mentioned det
     === "BibTeX"
 
         ```bibtex
-
         @dataset{Ferreira_African_Wildlife_Ultralytics_Adaptation_2024,
             author  = {Ferreira, Bianca},
             title   = {African Wildlife Detection Dataset (Ultralytics YOLO Adaptation)},

@@ -80,3 +80,17 @@ with dai.Pipeline() as pipeline:
 Open `http://localhost:8082` to view the RGB stream and detections. `DetectionNetwork` also supports compatible [instance segmentation](https://github.com/luxonis/depthai-core/blob/v3.9.0/examples/python/DetectionNetwork/detection_and_segmentation.py) and [pose](https://github.com/luxonis/depthai-core/blob/v3.9.0/examples/python/DetectionNetwork/detection_and_keypoints.py) models. For other tasks, including semantic segmentation and classification, follow the [task-specific inference guidance](https://docs.luxonis.com/software-v3/ai-inference/inference/).
 
 For stereo depth pipelines, see the [spatial detection example](https://github.com/luxonis/oak-examples/tree/main/neural-networks/object-detection/spatial-detections). Measure your model on the target camera using the [benchmarking guide](https://docs.luxonis.com/software-v3/ai-inference/benchmarking/); throughput depends on the model, input size, precision, and pipeline configuration.
+
+## FAQ
+
+### Can I export directly to Luxonis with `model.export()`?
+
+No. Luxonis is not a native Ultralytics export format. Convert a `.pt` checkpoint with [Luxonis Hub](#cloud-conversion-with-luxonis-hub) or the [local Tools and ModelConverter workflow](#local-conversion-with-tools-and-modelconverter), then run the resulting NN Archive with DepthAI.
+
+### Can I reuse an RVC2 model on an RVC4 camera?
+
+No. RVC2 and RVC4 artifacts are compiled for different hardware and are not interchangeable, so convert once per platform.
+
+### Which YOLO models and tasks are supported?
+
+Support is determined by Luxonis tooling rather than Ultralytics. Check the [Luxonis Tools support matrix](https://github.com/luxonis/tools#-supported-models) before converting, and see the [task-specific inference guidance](https://docs.luxonis.com/software-v3/ai-inference/inference/) for running non-detection models.

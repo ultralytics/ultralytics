@@ -31,20 +31,20 @@ Experience the power of next-generation object detection with the pretrained YOL
 
     === "Detection (COCO)"
 
-        | Model            | mAP   | Latency (ms) |
-        | ---------------- | ----- | ------------ |
-        | YOLO-NAS S       | 47.5  | 3.21         |
-        | YOLO-NAS M       | 51.55 | 5.85         |
-        | YOLO-NAS L       | 52.22 | 7.87         |
-        | YOLO-NAS S INT-8 | 47.03 | 2.36         |
-        | YOLO-NAS M INT-8 | 51.0  | 3.78         |
-        | YOLO-NAS L INT-8 | 52.1  | 4.78         |
+        | Model            | mAP       | Latency (ms) |
+        | ---------------- | --------- | ------------ |
+        | YOLO-NAS S       | 47.5      | 3.21         |
+        | YOLO-NAS M       | 51.55     | 5.85         |
+        | YOLO-NAS L       | **52.22** | 7.87         |
+        | YOLO-NAS S INT-8 | 47.03     | **2.36**     |
+        | YOLO-NAS M INT-8 | 51.0      | 3.78         |
+        | YOLO-NAS L INT-8 | 52.1      | 4.78         |
 
 Each model variant is designed to offer a balance between [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) and latency, helping you optimize your object detection tasks for both performance and speed.
 
 ## Usage Examples
 
-Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` python package. The package provides a user-friendly Python API to streamline the process.
+Ultralytics has made YOLO-NAS models easy to integrate into your Python applications via our `ultralytics` Python package. The package provides a user-friendly Python API to streamline the process.
 
 The following examples show how to use YOLO-NAS models with the `ultralytics` package for inference and validation:
 
@@ -58,7 +58,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in Python:
 
         ```python
         from ultralytics import NAS
@@ -81,7 +81,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
         CLI commands are available to directly run the models:
 
         ```bash
-        # Load a COCO-pretrained YOLO-NAS-s model and validate it's performance on the COCO8 example dataset
+        # Load a COCO-pretrained YOLO-NAS-s model and validate its performance on the COCO8 example dataset
         yolo val model=yolo_nas_s.pt data=coco8.yaml
 
         # Load a COCO-pretrained YOLO-NAS-s model and run inference on the 'bus.jpg' image

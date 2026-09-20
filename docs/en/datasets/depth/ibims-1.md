@@ -88,3 +88,17 @@ If you use the iBims-1 dataset in your research or development work, please cite
         ```
 
 We would like to acknowledge the authors for creating and maintaining this valuable resource for the computer vision community.
+
+## FAQ
+
+### What does iBims-1 evaluate?
+
+iBims-1 is a 100-image indoor benchmark with survey-grade laser-scanner depth designed to test sharp depth edges and planar surfaces, going beyond aggregate accuracy to probe depth-map quality. The YOLO26-Depth models are evaluated on it zero-shot, with YOLO26x-depth reaching a delta1 of 0.961.
+
+### Can I validate on iBims-1 with a dataset YAML?
+
+No. iBims-1 ships without a bundled YAML and is scored through a dedicated evaluation script with multi-scale and flip test-time augmentation and log-least-squares scale alignment. Use [predict mode](../../modes/predict.md) on its images as shown in the [Usage](#usage) section.
+
+### What other benchmarks are used alongside iBims-1?
+
+The released models are also evaluated zero-shot on [NYU Depth V2](nyu-depth-v2.md), [ETH3D](eth3d.md), and [Make3D](make3d.md), and on the [KITTI Eigen](kitti.md) split, whose training drives are part of the pretraining mix; see the [Depth Estimation task page](../../tasks/depth.md) for the combined results.

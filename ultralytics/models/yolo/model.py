@@ -307,7 +307,7 @@ class YOLOE(Model):
         return self.model.get_visual_pe(img, visual)
 
     def set_vocab(
-        self, vocab: torch.nn.ModuleList, names: list[str], one2one_vocab: torch.nn.ModuleList = None
+        self, vocab: torch.nn.ModuleList, names: list[str], one2one_vocab: torch.nn.ModuleList | None = None
     ) -> None:
         """Re-parameterize the model into a prompt-free one over the given class names.
 

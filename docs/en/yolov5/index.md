@@ -35,7 +35,7 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Train Custom Data](tutorials/train-custom-data.md) 🚀 RECOMMENDED: Learn how to train the YOLOv5 model on your custom dataset.
 - [Tips for Best Training Results](tutorials/tips-for-best-training-results.md) ☘️: Uncover practical tips to optimize your model training process.
 - [Multi-GPU Training](tutorials/multi-gpu-training.md): Understand how to leverage multiple GPUs to expedite your training.
-- [PyTorch Hub](tutorials/pytorch-hub-model-loading.md) 🌟 NEW: Learn to load pretrained models via PyTorch Hub.
+- [PyTorch Hub](tutorials/pytorch-hub-model-loading.md): Learn to load pretrained models via PyTorch Hub.
 - [TFLite, ONNX, CoreML, TensorRT Export](tutorials/model-export.md) 🚀: Understand how to export your model to different formats.
 - [Test-Time Augmentation (TTA)](tutorials/test-time-augmentation.md): Explore how to use TTA to improve your model's prediction accuracy.
 - [Model Ensembling](tutorials/model-ensembling.md): Learn the strategy of combining multiple models for improved performance.
@@ -45,7 +45,7 @@ Here's a compilation of comprehensive tutorials that will guide you through diff
 - [Architecture Summary](tutorials/architecture-description.md) 🌟 Delve into the structural details of the YOLOv5 model. Read the [YOLOv5 v6.0 blog post](https://www.ultralytics.com/blog/yolov5-v6-0-is-here) for more insights.
 - [ClearML Logging Integration](tutorials/clearml-logging-integration.md) 🌟 Learn how to integrate [ClearML](https://clear.ml/) for efficient logging during your model training.
 - [YOLOv5 with Neural Magic](tutorials/neural-magic-pruning-quantization.md): Discover how to use [Neural Magic's DeepSparse](https://github.com/neuralmagic/deepsparse/blob/main/README.md) to prune and quantize your YOLOv5 model.
-- [Comet Logging Integration](tutorials/comet-logging-integration.md) 🌟 NEW: Explore how to utilize [Comet](https://www.comet.com/site/) for improved model training logging.
+- [Comet Logging Integration](tutorials/comet-logging-integration.md): Explore how to utilize [Comet](https://www.comet.com/site/) for improved model training logging.
 
 ## Supported Environments
 

@@ -14,12 +14,10 @@ from ultralytics.utils import (
     ENVIRONMENT,
     GIT,
     LOGGER,
-    PLATFORM_API_URL,
     PLATFORM_URL,
     PYTHON_VERSION,
     SETTINGS,
     TESTS_RUNNING,
-    Retry,
     colorstr,
 )
 
@@ -83,7 +81,7 @@ def _validation_payload(image_metrics, sample_limit=5_000, extremes_limit=100):
 
 
 def _sanitize_json_value(value):
-    """Replace non-finite floats in payloads with None so requests JSON encoding succeeds."""
+    """Replace non-finite floats in payloads with None so JSON encoding succeeds."""
     if isinstance(value, dict):
         return {k: _sanitize_json_value(v) for k, v in value.items()}
     if isinstance(value, (list, tuple)):
@@ -94,49 +92,34 @@ def _sanitize_json_value(value):
 
 
 def _send(event, data, project, name, model_id=None, retry=2, timeout=30):
-    """Send event to Platform endpoint with retry logic."""
+    """Send a training event using the SDK's retry policy."""
+    global _api_key
     if not _api_key:
         return None
-    import requests  # scoped as slow import
+    import httpx
 
-    payload = {"event": event, "data": _sanitize_json_value(data)}
-    if model_id:
-        payload["modelId"] = model_id
-    else:
-        payload.update(project=project, name=name)
+    from ultralytics import APIError, Platform
 
-    def send_once():
-        global _api_key
-        r = requests.post(
-            f"{PLATFORM_API_URL}/training/metrics",
-            json=payload,
-            headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=timeout,
-        )
-        if 400 <= r.status_code < 500 and r.status_code not in {408, 429}:
-            try:
-                msg = r.json().get("error", r.reason)
-            except Exception:
-                msg = r.reason
-            # Only 401 is credential-scoped; 403/404 concern one run and must not disable the process.
-            if r.status_code == 401:
-                _api_key = None
-            # A console_output failure must not be logged: ConsoleLogger flushes the warning back as the
-            # next chunk, which fails again. 401 is safe — the cleared key short-circuits _send.
-            if event != "console_output" or r.status_code == 401:
-                LOGGER.warning(f"{PREFIX}{msg}")
-            return None  # Don't retry client errors (except 408 timeout, 429 rate limit)
-        r.raise_for_status()
-        return r.json()
-
-    # Same loop as above, so a console_output send stays silent at every level — including Retry's
-    # per-attempt warning. It must still retry: _flush_buffer clears the buffer before calling us.
-    quiet = event == "console_output"
+    identity = {"model_id": model_id} if model_id else {"project": project, "name": name}
     try:
-        return Retry(times=retry, delay=1, verbose=not quiet)(send_once)()
-    except Exception as e:
-        if not quiet:
-            LOGGER.debug(f"{PREFIX}Failed to send {event}: {e}")
+        with Platform(
+            api_key=_api_key,
+            base_url=PLATFORM_URL,
+            max_retries=retry - 1,
+            retry_methods=("POST",),
+            http_client=httpx.Client(follow_redirects=True),
+        ) as client:
+            response = client.training.metrics(
+                event=event, data=_sanitize_json_value(data), timeout=timeout, **identity
+            )
+            return response if isinstance(response, dict) else None
+    except Exception as error:
+        if isinstance(error, APIError) and error.status_code == 401:
+            _api_key = None
+        # Console errors must not generate another console event; clearing the key makes 401 safe to log.
+        if event != "console_output" or not _api_key:
+            detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
+            LOGGER.warning(f"{PREFIX}Failed to send {event}: {detail}")
         return None
 
 
@@ -165,33 +148,28 @@ def _upload_model(model_path, project, name, progress=False, retry=1, model_id=N
         LOGGER.warning(f"{PREFIX}Model file not found: {model_path}")
         return None
     model_size = model_path.stat().st_size
-    if os.getenv("PLATFORM_API_URL"):
-        return {"modelPath": str(model_path.resolve()), "modelSize": model_size}
-    import requests  # scoped as slow import
+    import httpx
 
-    # Get signed upload URL from Platform (server sanitizes filename for storage safety)
-    @Retry(times=3, delay=2)
-    def get_signed_url():
-        payload = {"filename": model_path.name}
-        if model_id:
-            payload["modelId"] = model_id  # Direct lookup avoids slug mismatch from auto-increment
-        else:
-            payload.update(project=project, name=name)
-        if run_id:
-            payload["runId"] = run_id
-        r = requests.post(
-            f"{PLATFORM_API_URL}/models/upload",
-            json=payload,
-            headers={"Authorization": f"Bearer {_api_key}"},
-            timeout=30,
-        )
-        r.raise_for_status()
-        return r.json()
+    from ultralytics import APIError, Platform
+
+    identity = {"model_id": model_id} if model_id else {"project": project, "name": name}
+    if run_id:
+        identity["run_id"] = run_id
 
     try:
-        data = get_signed_url()
-    except Exception as e:
-        LOGGER.warning(f"{PREFIX}Failed to get upload URL: {e}")
+        with Platform(
+            api_key=_api_key,
+            base_url=PLATFORM_URL,
+            max_retries=2,
+            retry_methods=("POST",),
+            http_client=httpx.Client(follow_redirects=True),
+        ) as client:
+            data = client.models.upload_checkpoint(filename=model_path.name, timeout=30, **identity)
+            if not isinstance(data, dict):
+                raise TypeError("Invalid Platform upload response")
+    except Exception as error:
+        detail = f"HTTP {error.status_code}" if isinstance(error, APIError) else str(error)
+        LOGGER.warning(f"{PREFIX}Failed to get upload URL: {detail}")
         return None
 
     # Upload to GCS using safe_upload with retry logic and optional progress bar
@@ -283,6 +261,11 @@ def on_pretrain_routine_start(trainer):
         return
     _api_key = os.getenv("ULTRALYTICS_API_KEY") or SETTINGS.get("api_key")
     if not _api_key:
+        return
+    if sys.version_info < (3, 11):
+        LOGGER.warning(
+            f"{PREFIX}Platform integration requires Python 3.11 or newer. Training will continue without tracking."
+        )
         return
 
     project, name = _get_project_name(trainer)

@@ -77,8 +77,6 @@ Before modifying anything, **first train with default settings to establish a pe
 
 If you'd like to know more, a good place to start is Karpathy's 'Recipe for Training [Neural Networks](https://www.ultralytics.com/glossary/neural-network-nn)', which has great ideas for training that apply broadly across all ML domains: [https://karpathy.github.io/2019/04/25/recipe/](https://karpathy.github.io/2019/04/25/recipe/)
 
-For more detailed information on training settings and configurations, refer to the [Ultralytics train settings documentation](../../modes/train.md), which provides comprehensive explanations of all available parameters.
-
 Good luck 🍀 and let us know if you have any other questions!
 
 ## FAQ

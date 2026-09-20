@@ -17,13 +17,13 @@ When deploying [deep learning](https://www.ultralytics.com/glossary/deep-learnin
 
 Latency optimization is vital for applications requiring immediate response from a single model given a single input, typical in consumer scenarios. The goal is to minimize the delay between input and inference result. However, achieving low latency involves careful consideration, especially when running concurrent inferences or managing multiple models.
 
-### Key Strategies for Latency Optimization:
+### Key Strategies for Latency Optimization
 
 - **Single Inference per Device:** The simplest way to achieve low latency is by limiting to one inference at a time per device. Additional concurrency often leads to increased latency.
 - **Leveraging Sub-Devices:** Devices like multi-socket CPUs or multi-tile GPUs can execute multiple requests with minimal latency increase by utilizing their internal sub-devices.
 - **OpenVINO Performance Hints:** Utilizing OpenVINO's `ov::hint::PerformanceMode::LATENCY` for the `ov::hint::performance_mode` property during model compilation simplifies performance tuning, offering a device-agnostic and future-proof approach.
 
-### Managing First-Inference Latency:
+### Managing First-Inference Latency
 
 - **Model Caching:** To mitigate model load and compile times impacting latency, use model caching where possible. For scenarios where caching isn't viable, CPUs generally offer the fastest model load times.
 - **Model Mapping vs. Reading:** To reduce load times, OpenVINO replaced model reading with mapping. However, if the model is on a removable or network drive, consider using `ov::enable_mmap(false)` to switch back to reading.
@@ -33,20 +33,23 @@ Latency optimization is vital for applications requiring immediate response from
 
 Throughput optimization is crucial for scenarios serving numerous inference requests simultaneously, maximizing [resource utilization](https://www.ultralytics.com/blog/measuring-ai-performance-to-weigh-the-impact-of-your-innovations) without significantly sacrificing individual request performance.
 
-### Approaches to Throughput Optimization:
+### Approaches to Throughput Optimization
 
 1. **OpenVINO Performance Hints:** A high-level, future-proof method to enhance throughput across devices using performance hints.
 
     ```python
+    import openvino as ov
     import openvino.properties.hint as hints
 
+    core = ov.Core()
+    model = core.read_model("yolo26n_openvino_model/yolo26n.xml")
     config = {hints.performance_mode: hints.PerformanceMode.THROUGHPUT}
     compiled_model = core.compile_model(model, "GPU", config)
     ```
 
 2. **Explicit Batching and Streams:** A more granular approach involving explicit batching and the use of streams for advanced performance tuning.
 
-### Designing Throughput-Oriented Applications:
+### Designing Throughput-Oriented Applications
 
 To maximize throughput, applications should:
 
@@ -54,13 +57,13 @@ To maximize throughput, applications should:
 - Decompose data flow into concurrent inference requests, scheduled for parallel execution.
 - Utilize the Async API with callbacks to maintain efficiency and avoid device starvation.
 
-### Multi-Device Execution:
+### Multi-Device Execution
 
 OpenVINO's multi-device mode simplifies scaling throughput by automatically balancing inference requests across devices without requiring application-level device management.
 
 ## Real-World Performance Gains
 
-Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and VPUs.
+Implementing OpenVINO optimizations with Ultralytics YOLO models can yield significant performance improvements. As demonstrated in [benchmarks](../integrations/openvino.md#openvino-yolo26-benchmarks), users can experience up to 3x faster inference speeds on Intel CPUs, with even greater accelerations possible across Intel's hardware spectrum including integrated GPUs, dedicated GPUs, and NPUs.
 
 For example, when running YOLO26 models on Intel Xeon CPUs, the OpenVINO-optimized versions consistently outperform their PyTorch counterparts in terms of inference time per image, without compromising on [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
@@ -94,8 +97,6 @@ Optimizing Ultralytics YOLO models for latency and throughput with OpenVINO can 
 
 For more detailed technical information and the latest updates, refer to the [OpenVINO documentation](https://docs.openvino.ai/) and [Ultralytics YOLO repository](https://github.com/ultralytics/ultralytics). These resources provide in-depth guides, tutorials, and community support to help you get the most out of your deep learning models.
 
----
-
 Ensuring your models achieve optimal performance is not just about tweaking configurations; it's about understanding your application's needs and making informed decisions. Whether you're optimizing for [real-time responses](https://www.ultralytics.com/blog/real-time-inferences-in-vision-ai-solutions-are-making-an-impact) or maximizing throughput for large-scale processing, the combination of Ultralytics YOLO models and OpenVINO offers a powerful toolkit for developers to deploy high-performance AI solutions.
 
 ## FAQ
@@ -121,8 +122,11 @@ OpenVINO enhances Ultralytics YOLO model throughput by maximizing device resourc
 Example configuration:
 
 ```python
+import openvino as ov
 import openvino.properties.hint as hints
 
+core = ov.Core()
+model = core.read_model("yolo26n_openvino_model/yolo26n.xml")
 config = {hints.performance_mode: hints.PerformanceMode.THROUGHPUT}
 compiled_model = core.compile_model(model, "GPU", config)
 ```

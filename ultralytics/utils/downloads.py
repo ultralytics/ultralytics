@@ -374,12 +374,12 @@ def safe_download(
                         if resume:
                             headers["Range"] = f"bytes={resume}-"
                         with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
+                            if response.status_code == 416:  # nothing left to resume, so the next retry restarts
+                                f.unlink()
                             response.raise_for_status()
                             if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
                                 resume = 0
-                            expected_size = int(response.headers.get("Content-Length", 0))
-                            if expected_size:
-                                expected_size += resume
+                                expected_size = int(response.headers.get("Content-Length", 0))
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192

@@ -104,6 +104,7 @@ column headers and its own pagination controls.
 Each item displays:
 
 ![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/6d245bbadc0f8f3870cfd3659d6591a0.avif)<!-- screenshot -->
+
 === "Project Cards"
 
     | Element         | Description                                            |
@@ -172,6 +173,7 @@ Use a public dataset for your training:
 4. Click `Clone Dataset` to confirm
 
 ![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/f8691631e0bf7b37d6402ee377c040f7.avif)<!-- screenshot -->
+
 !!! note "Cloned Dataset Properties"
 
     - The clone dialog lets you review the destination, name, visibility, and license
@@ -213,6 +215,7 @@ Clone a public model to one of your projects:
 5. Review the source, destination, and storage summary, then click `Clone Model` to confirm
 
 ![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/258ade9b3b4aea11dab181c17995f802.avif)<!-- screenshot -->
+
 !!! note "Clone vs Download"
 
     **Clone** copies the model to a project on the Platform for further training or deployment. **Download** saves the model file to your local machine.
@@ -226,6 +229,7 @@ Copy a public project to your workspace:
 3. Review the destination, name, visibility, and license, then click `Clone Project`
 
 ![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/1096f79e000e9297860173aa46258035.avif)<!-- screenshot -->
+
 The cloned project includes completed models that have model files. Deployments and exports are not copied. Its default visibility follows the same workspace rules as dataset cloning.
 
 See [Projects](train/projects.md) for organizing models in your project.

@@ -106,7 +106,7 @@ Published NMS-free speed measurements use `nms=False`. Compare accuracy and late
 
 ### What does `max_det` control?
 
-It limits detections returned by prediction and validation. For end-to-end and embedded-NMS exports, the limit is part of the graph; re-export to change it. End-to-end output can contain fewer candidates when the image supplies fewer than `max_det` anchors.
+It limits detections returned by prediction and validation. For end-to-end and embedded-NMS exports, the limit is part of the graph, so re-export to change it; CoreML detection embedded NMS is the exception and has no detection cap. End-to-end output can contain fewer candidates when the image supplies fewer than `max_det` anchors.
 
 ### My exported ONNX model outputs `(1, 300, 6)` — is that correct?
 

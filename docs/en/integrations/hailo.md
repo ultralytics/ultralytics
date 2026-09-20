@@ -315,6 +315,8 @@ Choose an export format based on the hardware that will execute the model. HEF i
 | Apple hardware                         | [CoreML](coreml.md)            | Uses the Apple Neural Engine, GPU, and CPU through the native Apple runtime                          |
 | Qualcomm Snapdragon NPU                | [QNN](qnn.md)                  | Compiles for Qualcomm's on-device NPU rather than requiring an external accelerator                  |
 | Rockchip NPU                           | [RKNN](rockchip-rknn.md)       | Widely used across affordable SBCs and embedded systems                                              |
+| Huawei Ascend NPU                      | [Ascend](ascend.md)            | Compiles a CANN `.om` model for the Ascend AI Core on Atlas boards and OrangePi AIPro                |
+| Google Coral Edge TPU                  | [Edge TPU](edge-tpu.md)        | Runs an INT8 LiteRT model on the Coral accelerator instead of a Hailo module                         |
 | Ambarella CVflow SoC                   | [Ambarella](ambarella.md)      | Compiles for Ambarella camera and embedded-vision SoCs                                               |
 | Raspberry Pi AI Camera                 | [Sony IMX500](sony-imx500.md)  | Runs the network in the camera sensor rather than through a host-attached Hailo accelerator          |
 | Mobile or embedded CPU/GPU             | [NCNN](ncnn.md)                | Provides a lightweight portable runtime when a dedicated supported NPU is unavailable                |

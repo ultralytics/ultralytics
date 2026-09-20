@@ -444,8 +444,7 @@ def safe_download(
                     ):
                         LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
                         continue
-                    if m_path.parts:  # '.' root entries have no parts
-                        top_level_dirs.add(m_path.parts[0])
+                    top_level_dirs.update(m_path.parts[:1])  # slice as './' root entries have no parts
                     if m.isdir():
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
@@ -453,8 +452,7 @@ def safe_download(
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
             if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
-                # tar has 1 top-level directory
-                unzip_dir /= top  # i.e. extract coco8/ dir to ../datasets/
+                unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

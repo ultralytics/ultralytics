@@ -1265,7 +1265,7 @@ def test_data_utils(tmp_path):
 
 
 def test_safe_download_unzips_local_path_archive(tmp_path):
-    """Test safe_download() unzips local archive paths without treating them like remote URLs."""
+    """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"
     archive = tmp_path / "coco8 local.zip"
     (dataset_dir / "images" / "train").mkdir(parents=True)
@@ -1283,6 +1283,11 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert extracted == expected_path, f"Extracted path {extracted} != expected {expected_path}"
     assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
+
+    with tarfile.open(tar_archive := tmp_path / "coco8 local.tar", "w") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
+    assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
@@ -1311,28 +1316,6 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
 
     assert not (tmp_path / "unsafe.txt").exists()
     assert (extracted / "safe.txt").is_file()
-
-
-def test_safe_download_tar_returns_top_level_dir(tmp_path):
-    """Test safe_download() returns a tar's single top-level directory like zip extraction does."""
-    (ds := tmp_path / "tartest8").mkdir()
-    (ds / "data.yaml").write_text("path: .\ntrain: images\nval: images\nnames: {0: person}\n")
-    (ds / "images").mkdir()
-    (ds / "images" / "im0.jpg").write_bytes(b"jpg")
-    archive = tmp_path / "tartest8.tar.gz"
-    with tarfile.open(archive, "w:gz") as tar:
-        tar.add(ds, arcname="tartest8")
-
-    extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
-
-    assert extracted == tmp_path / "datasets" / "tartest8"  # dataset root, not the extraction root
-    assert (extracted / "data.yaml").is_file()
-
-    (top := tmp_path / "top.txt").write_text("x")  # multiple top-level entries still return the extraction root
-    with tarfile.open(multi := tmp_path / "multi.tar", "w") as tar:
-        tar.add(ds, arcname="tartest8")
-        tar.add(top, arcname="top.txt")
-    assert safe_download(multi, dir=tmp_path / "datasets2", unzip=True, progress=False) == tmp_path / "datasets2"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

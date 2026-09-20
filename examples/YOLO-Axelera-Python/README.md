@@ -40,7 +40,7 @@ already work.
 `yolo26-pose-tracker.py` keeps OpenCV for capture, drawing, and post-processing, and
 only runs the model (and, optionally, a tracker) through Axelera. The pose-only
 pipeline returns the model's raw NumPy rows, so it slots into NumPy post-processing
-you already have. Uses YOLO26 (NMS-free).
+you already have. Uses a YOLO26 `nms=False` (NMS-free) export.
 
 `yolo11-seg.py` runs the whole pipeline through the runtime instead: hardware decode
 operators, typed `Results` objects, `cv.create_source()` for capture, and the
@@ -83,7 +83,7 @@ yolo export model=your-model.pt format=axelera
 To reproduce these examples, export the pretrained Ultralytics models:
 
 ```bash
-yolo export model=yolo26n-pose.pt format=axelera
+yolo export model=yolo26n-pose.pt format=axelera nms=False
 yolo export model=yolo11n-seg.pt format=axelera
 ```
 

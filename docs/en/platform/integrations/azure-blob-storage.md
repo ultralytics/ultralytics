@@ -112,3 +112,21 @@ Azure-backed datasets currently exclude features that require Platform-owned cop
 Deleting an Azure-backed dataset, or individual images from it, removes Platform's references only — your blobs are never touched.
 
 Also see the [Google Cloud Storage](google-cloud-storage.md) and [Amazon S3](amazon-s3.md) integrations.
+
+## FAQ
+
+### Does Platform copy my images?
+
+No. Platform lists the container once and indexes the image dimensions and labels it finds. Originals are streamed on demand for browsing and annotation, and managed training works from Platform's own copies of the pinned images only for the duration of the run. Indexed images do not count against your [storage quota](../account/billing.md).
+
+### What happens if I add or change files in the container?
+
+A dataset is indexed once when it is created. New objects are not picked up until you create a new dataset or retry a failed import, and every indexed image is pinned to its version, so overwriting an object makes Platform fail closed on that image. Add new objects instead of replacing existing ones.
+
+### Why is smart annotation or clustering unavailable on my Azure dataset?
+
+Features that need Platform-owned copies of your images are excluded on connected datasets: auto-annotation, [clustering analysis](../data/datasets.md#clustering), dataset cloning, and immutable [version snapshots](../data/datasets.md#versions-tab). Manual annotation, sharing, and training all work as normal.
+
+### How do I revoke Platform's access?
+
+Disconnect the integration in **Settings > Integrations** to delete the stored credentials, or rotate the storage account access keys in Azure. Neither action touches the data in your containers.

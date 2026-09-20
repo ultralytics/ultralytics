@@ -1258,7 +1258,7 @@ class ClassificationDataset:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
 
         A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
-        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared buffer is read-only across
         workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
         """
         with ThreadPool(NUM_THREADS) as pool:

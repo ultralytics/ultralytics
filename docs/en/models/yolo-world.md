@@ -66,16 +66,16 @@ This section details the models available with their specific pretrained weights
 
     === "Detection (COCO)"
 
-        | Model Type      | mAP  | mAP50 | mAP75 |
-        | --------------- | ---- | ----- | ----- |
-        | yolov8s-world   | 37.4 | 52.0  | 40.6  |
-        | yolov8s-worldv2 | 37.7 | 52.2  | 41.0  |
-        | yolov8m-world   | 42.0 | 57.0  | 45.6  |
-        | yolov8m-worldv2 | 43.0 | 58.4  | 46.8  |
-        | yolov8l-world   | 45.7 | 61.3  | 49.8  |
-        | yolov8l-worldv2 | 45.8 | 61.3  | 49.8  |
-        | yolov8x-world   | 47.0 | 63.0  | 51.2  |
-        | yolov8x-worldv2 | 47.1 | 62.8  | 51.4  |
+        | Model Type      | mAP      | mAP50    | mAP75    |
+        | --------------- | -------- | -------- | -------- |
+        | yolov8s-world   | 37.4     | 52.0     | 40.6     |
+        | yolov8s-worldv2 | 37.7     | 52.2     | 41.0     |
+        | yolov8m-world   | 42.0     | 57.0     | 45.6     |
+        | yolov8m-worldv2 | 43.0     | 58.4     | 46.8     |
+        | yolov8l-world   | 45.7     | 61.3     | 49.8     |
+        | yolov8l-worldv2 | 45.8     | 61.3     | 49.8     |
+        | yolov8x-world   | 47.0     | **63.0** | 51.2     |
+        | yolov8x-worldv2 | **47.1** | 62.8     | **51.4** |
 
 ## Usage Examples
 
@@ -104,7 +104,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models as well as configuration `*.yaml` files can be passed to the `YOLOWorld()` class to create a model instance in Python:
 
         ```python
         from ultralytics import YOLOWorld
@@ -123,7 +123,7 @@ The YOLO-World models are easy to integrate into your Python applications. Ultra
 
         ```bash
         # Load a pretrained YOLOv8s-worldv2 model and train it on the COCO8 example dataset for 100 epochs
-        yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
+        yolo train model=yolov8s-worldv2.pt data=coco8.yaml epochs=100 imgsz=640
         ```
 
 ### Predict Usage
@@ -434,7 +434,7 @@ results = model.train(data="coco8.yaml", epochs=100, imgsz=640)
 Or using CLI:
 
 ```bash
-yolo train model=yolov8s-worldv2.yaml data=coco8.yaml epochs=100 imgsz=640
+yolo train model=yolov8s-worldv2.pt data=coco8.yaml epochs=100 imgsz=640
 ```
 
 ### What are the available pretrained YOLO-World models and their supported tasks?

@@ -115,7 +115,7 @@ The sample below shows a driving scene from the dataset with its 2D bounding-box
 
 If you use the KITTI dataset in your research, please cite the following paper:
 
-!!! quote
+!!! quote ""
 
     === "BibTeX"
 

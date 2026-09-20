@@ -19,7 +19,7 @@ Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhon
 
 !!! note "Apple's new Core AI format"
 
-    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, and Ultralytics exports it with `format="coreai"`. CoreML remains the recommended format for the Ultralytics iOS and Flutter SDKs and broader Apple device compatibility.
+    Apple has introduced the new [Core AI framework and `.aimodel` format](coreai.md) for the iOS 27 and macOS 27 generation, and Ultralytics exports it with `format="coreai"`. CoreML remains the default format for the Ultralytics iOS and Flutter SDKs, which load Core AI as an opt-in on iOS 27 devices, and the format for broader Apple device compatibility.
 
 <p align="center">
   <br>
@@ -29,7 +29,7 @@ Apple ships dedicated AI silicon — the Neural Engine — in every modern iPhon
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to CoreML with INT8 Quantization | Apple  Deployment | iOS/MacOS 🍎
+  <strong>Watch:</strong> How to Export Ultralytics YOLO26 to CoreML with INT8 Quantization | Apple Deployment | iOS/MacOS 🍎
 </p>
 
 ## What is CoreML?
@@ -170,8 +170,8 @@ The CoreML format supports the [Export](../modes/export.md), [Predict](../modes/
 | `imgsz`    | `int` or `tuple` | `640`      | Desired image size for the model input. Can be an integer for square images or a tuple `(height, width)` for specific dimensions.                                                                                                                                                                             |
 | `quantize` | `int` or `str`   | `None`     | Quantization precision (weight-only for CoreML): `16` (FP16), `8` (INT8), `"w8a16"` (INT8 weights with FP16 activations), or `32`/unset (FP32). NMS ML Programs use FP16 (for Xcode preview, and required by segment and pose); pass `32` to override on detect. Replaces the deprecated `half`/`int8` flags. |
 | `nms`      | `bool`, optional | `None`     | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`). Embedded NMS supports detect, segment and pose with `dynamic=False`.                                                                                                                                              |
-| `dynamic`  | `bool`           | `False`    | Allows dynamic input sizes, enhancing flexibility in handling varying image dimensions.                                                                                                                                                                                                                       |
-| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode.                                                                                                                                                                       |
+| `dynamic`  | `bool`           | `False`    | Allows dynamic input sizes. Not supported for classification or RT-DETR models, and cannot be combined with `nms=True`.                                                                                                                                                                                       |
+| `batch`    | `int`            | `1`        | Specifies export model batch inference size or the max number of images the exported model will process concurrently in `predict` mode. Values above `1` require `dynamic=True`.                                                                                                                              |
 | `device`   | `str`            | `None`     | Specifies the device for exporting: GPU (`device=0`), CPU (`device=cpu`), MPS for Apple silicon (`device=mps`).                                                                                                                                                                                               |
 
 For more details about the export process, visit the [Ultralytics documentation page on exporting](../modes/export.md).

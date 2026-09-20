@@ -358,7 +358,8 @@ def safe_download(
             expected_size = None  # set from Content-Length; reused to validate curl retries
             for i in range(retry + 1):
                 try:
-                    if (curl or i > 0) and curl_installed:  # curl download with retry, continue
+                    resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
+                    if (curl or (i > 0 and not resume)) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
@@ -369,11 +370,16 @@ def safe_download(
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
-                        with requests.get(
-                            url, stream=True, headers={"Accept-Encoding": "identity"}, timeout=(30, 300)
-                        ) as response:
+                        headers = {"Accept-Encoding": "identity"}
+                        if resume:
+                            headers["Range"] = f"bytes={resume}-"
+                        with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
                             response.raise_for_status()
+                            if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
+                                resume = 0
                             expected_size = int(response.headers.get("Content-Length", 0))
+                            if expected_size:
+                                expected_size += resume
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
@@ -384,7 +390,8 @@ def safe_download(
                                 unit="B",
                                 unit_scale=True,
                                 unit_divisor=1024,
-                            ) as pbar, open(f, "wb") as f_opened:
+                                initial=resume,
+                            ) as pbar, open(f, "ab" if resume else "wb") as f_opened:
                                 for data in response.iter_content(chunk_size=buffer_size):
                                     f_opened.write(data)
                                     pbar.update(len(data))
@@ -405,7 +412,7 @@ def safe_download(
                 except MemoryError:
                     raise  # Re-raise immediately - no point retrying if insufficient disk space
                 except Exception as e:
-                    # Only on the terminal failure: retries resume the partial file via curl `-C -`, but leaving
+                    # Only on the terminal failure: retries resume the partial file via a Range request, but leaving
                     # one behind makes the `not f.is_file()` guard above serve it as a complete cache hit forever.
                     if i == 0 and not is_online():
                         f.unlink(missing_ok=True)

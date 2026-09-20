@@ -2256,7 +2256,8 @@ class SAM3SemanticPredictor(SAM3Predictor):
         if model_path.is_dir() and (model_path.name.endswith("_onnx") or model_path.name.endswith("_engine")):
             from ultralytics.nn.backends.sam3 import SAM3Backend
 
-            backend = SAM3Backend(model_path, device=self.args.device or "cpu")
+            # `device` reaches here as "", 0, "0", "cuda" or a list, so resolve it the way setup_model does.
+            backend = SAM3Backend(model_path, device=select_device(self.args.device, verbose=False))
             # The graphs are traced at a fixed size, so adopt it instead of letting the caller's
             # default reach a graph that can only reject it.
             if backend.imgsz:
@@ -2461,10 +2462,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
                 mh, mw = kept_masks.shape[-2:]
                 h = min(mh, round(mh * orig_img.shape[0] * r / dst_h))
                 w = min(mw, round(mw * orig_img.shape[1] * r / dst_w))
-                result_masks = (
-                    F.interpolate(kept_masks.float()[None, ..., :h, :w], orig_img.shape[:2], mode="bilinear")[0]
-                    > self.model.mask_threshold
-                )
+                result_masks = self._upscale_masks(kept_masks[..., :h, :w], orig_img.shape[:2])
                 boxes_out = batched_mask_to_box(result_masks)
                 cls = torch.arange(kept_masks.shape[0], dtype=torch.int32, device=masks.device)
                 boxes_out = torch.cat([boxes_out, kept_scores[:, None], cls[:, None].float()], dim=-1)
@@ -2526,7 +2524,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
 
         # Scale points into model input coords, one ratio for both axes because the letterbox pads
         # rather than stretches on this path.
-        point_coords = points.clone().float() * self._letterbox_ratio(self.batch[1][0].shape[:2])
+        point_coords = points.clone().float() * self._letterbox_ratio(self.src_shape)
 
         # Build per-object groups of (coords [num_pts, 2], labels [num_pts]).
         if point_coords.ndim == 3:  # explicit [num_obj, num_pts, 2]

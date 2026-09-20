@@ -375,7 +375,8 @@ def safe_download(
                             stdout=subprocess.PIPE,
                         )
                         assert r.returncode == 0, f"Curl return value {r.returncode}"
-                        final_headers = r.stdout.strip().rpartition(b"\r\n\r\n")[2]  # after redirects and retries
+                        # Final response, after any redirect, proxy or retry blocks and before any trailer block
+                        final_headers = [h for h in r.stdout.split(b"\r\n\r\n") if h.startswith(b"HTTP/")][-1]
                         encoding = (
                             b"".join(re.findall(rb"(?im)^content-encoding:\s*(\S+)", final_headers)).decode().lower()
                         )
@@ -420,17 +421,24 @@ def safe_download(
                             if encoding not in {"", "identity"}:  # undo the transfer encoding of the complete body
                                 decoded = f.with_name(f"{f.name}.decoded")
                                 try:
-                                    d = zlib.decompressobj(47)  # gzip or zlib (deflate), detected from its header
                                     with open(f, "rb") as src, open(decoded, "wb") as dst:
+                                        # 47 detects a gzip or zlib header; some servers send 'deflate' without one
+                                        wbits = 47 if encoding != "deflate" or src.read(1) == b"\x78" else -15
+                                        src.seek(0)
+                                        d = zlib.decompressobj(wbits)
                                         for chunk in iter(lambda: src.read(1048576), b""):
                                             while chunk:
-                                                d = zlib.decompressobj(47) if d.eof else d  # next gzip member
+                                                if d.eof:  # next gzip member, after any zero padding
+                                                    chunk = chunk.lstrip(b"\0")
+                                                    if not chunk:
+                                                        break
+                                                    d = zlib.decompressobj(wbits)
                                                 dst.write(d.decompress(chunk))
                                                 chunk = d.unused_data
                                     assert d.eof, "Encoded body ended before its end-of-stream marker"
                                     # A gzip name means the gzip is the file itself, e.g. a .tar.gz object stored with
                                     # a gzip Content-Encoding, so keep its now verified bytes
-                                    if target.suffix not in {".gz", ".tgz"}:
+                                    if encoding != "gzip" or target.suffix not in {".gz", ".tgz"}:
                                         decoded.replace(f)
                                 finally:
                                     decoded.unlink(missing_ok=True)

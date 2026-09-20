@@ -37,6 +37,7 @@ from ultralytics.utils import (
     LOGGER,
     RANK,
     TQDM,
+    WINDOWS,
     YAML,
     callbacks,
     clean_url,
@@ -47,11 +48,13 @@ from ultralytics.utils.autobatch import check_train_batch_size
 from ultralytics.utils.checks import check_amp, check_file, check_imgsz, check_model_file_from_stem, print_args
 from ultralytics.utils.dist import ddp_cleanup, generate_ddp_command
 from ultralytics.utils.files import get_latest_run
+from ultralytics.utils.patches import override_configs
 from ultralytics.utils.plotting import plot_results
 from ultralytics.utils.torch_utils import (
     TORCH_1_11,
     TORCH_2_0,
     TORCH_2_4,
+    TORCH_2_13,
     EarlyStopping,
     ModelEMA,
     attempt_compile,
@@ -61,8 +64,12 @@ from ultralytics.utils.torch_utils import (
     init_seeds,
     one_cycle,
     parse_device,
+    prepare_qat,
+    qat_state,
+    restore_qat,
     select_device,
     strip_optimizer,
+    strip_qat,
     torch_distributed_zero_first,
     unset_deterministic,
     unwrap_model,
@@ -129,7 +136,7 @@ class BaseTrainer:
             _callbacks (dict, optional): Dictionary of callback functions.
         """
         self.args = get_cfg(cfg, overrides)
-        self.check_resume(overrides)
+        self.check_resume(overrides or {})
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
@@ -154,7 +161,7 @@ class BaseTrainer:
         self.save_period = self.args.save_period
 
         self.batch_size = self.args.batch
-        self.epochs = self.args.epochs or 100  # in case users accidentally pass epochs=None with timed training
+        self.epochs = self.args.epochs
         self.start_epoch = 0
         if RANK == -1:
             print_args(vars(self.args))
@@ -319,13 +326,33 @@ class BaseTrainer:
         ckpt = self.setup_model()
         self.model = self.model.to(self.device)
         # channels_last (NHWC) is CUDA-only: lossless and Tensor-Core friendly there, but numerically wrong
-        # on MPS and no benefit on CPU
-        channels_last = self.args.channels_last is True or (self.args.channels_last is None and TORCH_1_11)
+        # on MPS and no benefit on CPU. Not auto-enabled on Windows, where it measured 3x slower (#26105).
+        channels_last = self.args.channels_last is True or (
+            self.args.channels_last is None and TORCH_1_11 and not WINDOWS
+        )
         if channels_last and self.device.type == "cuda":
             self.model = self.model.to(memory_format=torch.channels_last)
         elif self.args.channels_last:
             LOGGER.warning(f"'channels_last=True' is only supported on CUDA, ignoring on '{self.device.type}'.")
         self.set_model_attributes()
+
+        # Check imgsz
+        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
+        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
+        self.stride = gs  # for multiscale training
+
+        # Prepare the final module structure before compile, DDP, and EMA wrap it.
+        if self.args.quantize == 8:
+            if self.resume and ckpt.get("modelopt"):
+                restore_qat(self.model, ckpt["modelopt"])
+            else:
+                batch = max(self.batch_size // max(self.world_size, 1), 1) if self.batch_size >= 1 else 16
+                with torch_distributed_zero_first(LOCAL_RANK), override_configs(self.args, {"cache": False}):
+                    calibration_loader = self.get_dataloader(
+                        self.data["train"], batch_size=batch, rank=-1, mode="train"
+                    )
+                self.model = prepare_qat(self.model, calibration_loader, self.preprocess_batch)
+                del calibration_loader
 
         # Compile model (knowledge distillation runs the wrapped model eagerly and relies on
         # find_unused_parameters under DDP for the frozen teacher, so disable compilation when distilling)
@@ -388,11 +415,6 @@ class BaseTrainer:
                 if TORCH_2_4
                 else torch.cuda.amp.GradScaler(enabled=self.amp and self.args.amp != "bf16")
             )
-        # Check imgsz
-        gs = max(int(self.model.stride.max() if hasattr(self.model, "stride") else 32), 32)  # grid size (max stride)
-        self.args.imgsz = check_imgsz(self.args.imgsz, stride=gs, floor=gs, max_dim=1)
-        self.stride = gs  # for multiscale training
-
         # resume training would directly load DistillationModel so check here
         if self.args.distill_model is not None and not isinstance(unwrap_model(self.model), DistillationModel):
             self.model = DistillationModel(student_model=self.model, teacher_model=self.args.distill_model)
@@ -400,10 +422,10 @@ class BaseTrainer:
             # static_graph=True permits params used >1 time per forward (e.g. flow_model in
             # o2m+o2o pose loss branches) under torch.compile.
             ddp_kwargs = {"static_graph": bool(self.args.compile)} if TORCH_1_11 else {}
+            ddp_kwargs["forward_sync_buffers" if TORCH_2_13 else "broadcast_buffers"] = False
             self.model = nn.parallel.DistributedDataParallel(
                 self.model,
                 device_ids=[self.device.index],
-                broadcast_buffers=False,
                 find_unused_parameters=not bool(self.args.compile),
                 **ddp_kwargs,
             )
@@ -450,6 +472,7 @@ class BaseTrainer:
             base_idx = (self.epochs - self.args.close_mosaic) * nb
             self.plot_idx.extend([base_idx, base_idx + 1, base_idx + 2])
         epoch = self.start_epoch
+        mosaic_closed = not self.args.close_mosaic  # close once when the run enters its final close_mosaic epochs
         self.optimizer.zero_grad()  # zero any resumed gradients to ensure stability on train start
         self._oom_retries = 0  # OOM auto-reduce counter for first epoch
         while True:
@@ -464,7 +487,8 @@ class BaseTrainer:
                 self.train_loader.sampler.set_epoch(epoch)
             pbar = enumerate(self.train_loader)
             # Update dataloader attributes (optional)
-            if epoch == (self.epochs - self.args.close_mosaic):
+            if not mosaic_closed and epoch >= self.epochs - self.args.close_mosaic:
+                mosaic_closed = True
                 self._close_dataloader_mosaic()
                 self.train_loader.reset()
 
@@ -733,6 +757,7 @@ class BaseTrainer:
                     v.copy_(model_sd[k])
         # Serialize NCHW regardless of channels_last training: released versions fuse with .view(), which crashes on
         # NHWC-strided checkpoint weights, and trainer/predictor re-apply channels_last at setup anyway.
+        modelopt = qat_state(ema)
         ema = deepcopy(ema).half().to(memory_format=torch.contiguous_format)
         if hasattr(ema, "criterion"):
             ema.criterion = None  # strip training-only state from the serialization snapshot
@@ -742,6 +767,7 @@ class BaseTrainer:
                 torch.nan_to_num_(v)
 
         # Serialize ckpt to a byte buffer once (faster than repeated torch.save() calls)
+        strip_qat(ema)
         buffer = io.BytesIO()
         torch.save(
             {
@@ -750,6 +776,7 @@ class BaseTrainer:
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
+                "modelopt": modelopt,  # quantization state of a QAT model, restored by load_checkpoint()
                 "optimizer": convert_optimizer_state_dict_to_fp16(deepcopy(self.optimizer.state_dict())),
                 "scaler": self.scaler.state_dict(),
                 "train_args": vars(self.args),  # save as dict
@@ -973,48 +1000,49 @@ class BaseTrainer:
                 exists = isinstance(resume, (str, Path)) and Path(resume).exists()
                 last = Path(check_file(resume) if exists else get_latest_run())
                 ckpt_args = load_checkpoint(last)[0].args
-                if not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists():
-                    ckpt_args["data"] = self.args.data
-
-                resume = True
-                self.args = get_cfg(ckpt_args)
-                self.args.model = self.args.resume = str(last)  # reinstate model
-                for k in (
-                    "imgsz",
-                    "batch",
-                    "device",
-                    "close_mosaic",
-                    "augmentations",
-                    "save_period",
-                    "workers",
-                    "cache",
-                    "patience",
-                    "time",
-                    "freeze",
-                    "val",
-                    "plots",
-                    "channels_last",
-                    "distill_model",
-                    "save_dir",
-                ):  # allow arg updates to reduce memory or update device on resume
-                    if k in overrides:
-                        setattr(self.args, k, overrides[k])
-
             except Exception as e:
                 raise FileNotFoundError(
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
                     "i.e. 'yolo train resume model=path/to/last.pt'"
                 ) from e
+            if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
+                ckpt_args["data"] = self.args.data
+
+            resume = True
+            self.args = get_cfg(ckpt_args)
+            self.args.model = self.args.resume = str(last)  # reinstate model
+            for k in (
+                "imgsz",
+                "batch",
+                "device",
+                "close_mosaic",
+                "augmentations",
+                "save_period",
+                "workers",
+                "cache",
+                "patience",
+                "time",
+                "freeze",
+                "val",
+                "plots",
+                "channels_last",
+                "distill_model",
+                "save_dir",
+            ):  # allow arg updates to reduce memory or update device on resume
+                if k in overrides:
+                    setattr(self.args, k, overrides[k])
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
         """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
         if ckpt.get("optimizer") is not None:
             self.optimizer.load_state_dict(ckpt["optimizer"])
-        if ckpt.get("scaler") is not None:
+        if ckpt.get("scaler"):
             self.scaler.load_state_dict(ckpt["scaler"])
         if self.ema and ckpt.get("ema"):
             self.ema = ModelEMA(self.model)  # validation with EMA creates inference tensors that can't be updated
+            # A QAT checkpoint serializes its EMA without quantizers, but load_checkpoint() re-applied them in place
+            # to this very module, so the strict load below still matches the QAT-structured EMA built above.
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
@@ -1077,9 +1105,6 @@ class BaseTrainer:
             model.criterion.updates = start_epoch - 1
             model.criterion.update()
         self.start_epoch = start_epoch
-        if start_epoch > (self.epochs - self.args.close_mosaic):
-            self._close_dataloader_mosaic()
-            self.train_loader.reset()
 
     def _close_dataloader_mosaic(self):
         """Update dataloaders to stop using mosaic augmentation."""
@@ -1168,7 +1193,10 @@ class BaseTrainer:
                     (p1 if id(v) in boosted or "proto.semseg" in k or "SemanticSegment" in k else p2).append(v)
                 g_.extend([{"params": p1, **x, "lr": lr * 3}, {"params": p2, **x}])
             g = g_
-        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g)
+        # fused=True must go to the constructor: that is where Adam registers _step_supports_amp_scaling, which lets
+        # GradScaler pass found_inf to the kernel instead of reading it back on the host
+        fused = {"fused": True} if name in {"Adam", "AdamW"} and TORCH_2_0 and next(model.parameters()).is_cuda else {}
+        optimizer = (partial(MuSGD, muon=muon, sgd=sgd) if use_muon else getattr(optim, name))(params=g, **fused)
 
         LOGGER.info(
             f"{colorstr('optimizer:')} {type(optimizer).__name__}(lr={lr}, momentum={momentum}) with parameter groups "
@@ -1242,9 +1270,10 @@ class MultiTrainer:
         model_name = Path(str(self.args.get("model") or "multitrain_base")).stem
         base_model = self.save_dir / f"{model_name}.pt" if self.trainer is None else None
         if base_model:
-            torch_save(
-                {"model": deepcopy(self.model).half(), "train_args": getattr(self.model, "args", {})}, base_model
-            )
+            state = qat_state(self.model)
+            model = deepcopy(self.model).half()
+            strip_qat(model)
+            torch_save({"model": model, "modelopt": state, "train_args": getattr(self.model, "args", {})}, base_model)
         try:
             for i, data in enumerate(datasets):
                 LOGGER.info(

@@ -11,6 +11,8 @@ keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, de
 
 Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, and [OBB](obb.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
+For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
+
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/3Z0_Fxhm030"

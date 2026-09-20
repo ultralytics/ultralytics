@@ -27,7 +27,7 @@ DL Streamer enables analysis of audio and video streams to detect, classify, tra
 
 DL Streamer supports many AI models including the full Ultralytics YOLO family (YOLOv5 through YOLO26) all in OpenVINO™ format.
 
-DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform Documentation](https://docs.openedgeplatform.intel.com/2026.1/edge-ai-libraries/dlstreamer/get_started/system_requirements.html)
+DL Streamer is being regularly validated with systems provided on [System Requirements — Open Edge Platform Documentation](https://docs.openedgeplatform.intel.com/dev/edge-ai-libraries/dlstreamer/system_requirements.html)
 
 ## Prerequisites
 
@@ -116,7 +116,7 @@ gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! 
 
 <img src="https://cdn.ul.run/i/5bbfdc15b1ea8aa2ee9879db25573123.avif" alt="Intel DL Streamer GPU">
 
-### Run YOLO26s with INT8 on GPU, save output to video file (~/intel/dlstreamer_demo/yolo_video1_yolo26s_INT8_GPU.mp4)
+### Run YOLO26s with INT8 on GPU and save the output to a video file
 
 ```bash
 gst-launch-1.0 filesrc location=/home/dlstreamer/demo/video1.mp4 ! decodebin3 ! gvadetect model=/home/dlstreamer/demo/yolo26s_int8_openvino_model/yolo26s.xml device=GPU ! queue ! vapostproc ! gvawatermark ! gvafpscounter ! vah264enc ! h264parse ! mp4mux ! filesink location=/home/dlstreamer/demo/yolo_video1_yolo26s_INT8_GPU.mp4

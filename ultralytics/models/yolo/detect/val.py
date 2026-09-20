@@ -417,6 +417,9 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        if self.names and len(self.names) < self.data["nc"]:  # standalone val of a model with fewer classes
+            LOGGER.warning(f"Skipping labels of classes the model (nc={len(self.names)}) cannot predict.")
+            dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
             dataset,
             batch_size,
@@ -610,9 +613,9 @@ class DetectionValidator(BaseValidator):
                         stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                         stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-                    stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
-                    stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
-                    stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
+                    for x in "small", "medium", "large":
+                        if f"AP_{x}" in val.stats_as_dict:  # COCO keypoint evaluation has no small area range
+                            stats[f"metrics/mAP_{x}({suffix[i][0]})"] = val.stats_as_dict[f"AP_{x}"]
                     if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]

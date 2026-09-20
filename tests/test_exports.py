@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import io
-import os
 import shutil
 import sys
 import threading
@@ -10,9 +9,6 @@ from contextlib import redirect_stderr, redirect_stdout
 from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
-
-if sys.platform == "win32":
-    os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX2")
 
 import pytest
 import torch
@@ -53,7 +49,10 @@ def skip_rpi_semantic(task):
 def test_export_torchscript(nms, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
     file = YOLO(isolated_model).export(format="torchscript", imgsz=32, nms=nms)
-    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    model = YOLO(file)
+    model(SOURCE, imgsz=32)  # exported model inference
+    model(SOURCE, imgsz=64)  # predictor reuse must keep the fixed export imgsz
+    assert model.predictor.imgsz == [32, 32]
 
 
 @pytest.mark.parametrize("nms", [None, False])

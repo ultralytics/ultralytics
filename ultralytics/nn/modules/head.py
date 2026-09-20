@@ -212,7 +212,7 @@ class Detect(nn.Module):
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
-        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
+        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0), x.get("angle")) * self.strides
         return dbox
 
     def bias_init(self):
@@ -229,14 +229,11 @@ class Detect(nn.Module):
                     5 / self.nc / (640 / self.stride[i]) ** 2
                 )  # cls (.01 objects, 80 classes, 640 img)
 
-    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
-        """Decode bounding boxes from predictions."""
-        return dist2bbox(
-            bboxes,
-            anchors,
-            xywh=xywh and not self.end2end and not self.xyxy,
-            dim=1,
-        )
+    def decode_bboxes(
+        self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Decode bounding boxes from predictions, angle is only used by the OBB head."""
+        return dist2bbox(bboxes, anchors, xywh=not self.end2end and not self.xyxy, dim=1)
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """Post-processes YOLO model predictions.
@@ -435,7 +432,6 @@ class OBB(Detect):
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
-        angle (torch.Tensor): Predicted rotation angles.
 
     Methods:
         forward: Concatenate and return predicted bounding boxes and class probabilities.
@@ -478,8 +474,6 @@ class OBB(Detect):
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with rotation angles."""
-        # For decode_bboxes convenience
-        self.angle = x["angle"]
         preds = super()._inference(x)
         return torch.cat([preds, x["angle"]], dim=1)
 
@@ -497,9 +491,9 @@ class OBB(Detect):
             preds["angle"] = angle
         return preds
 
-    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor) -> torch.Tensor:
+    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:
         """Decode rotated bounding boxes."""
-        return dist2rbox(bboxes, self.angle, anchors, dim=1)
+        return dist2rbox(bboxes, angle, anchors, dim=1)
 
 
 class OBB26(OBB):
@@ -510,7 +504,6 @@ class OBB26(OBB):
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
-        angle (torch.Tensor): Predicted rotation angles.
 
     Methods:
         forward_head: Concatenate and return predicted bounding boxes, class probabilities, and raw angles.
@@ -1161,25 +1154,32 @@ class YOLOEDetect(Detect):
         bs = x[0].shape[0]
         cv2 = self.one2one_cv2 if self.end2end else self.cv2
         cv3 = self.one2one_cv3 if self.end2end else self.cv3
+        lrpc = self.one2one_lrpc if self.end2end and hasattr(self, "one2one_lrpc") else self.lrpc
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
+            assert isinstance(lrpc[i], LRPCHead)
+            box, score, idx = lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
+        index = torch.cat(index) if conf else None
         preds = {
             "boxes": torch.cat(boxes, 2),
             "scores": torch.cat(scores, 2),
             "feats": x,
-            "index": torch.cat(index) if conf else None,
+            "index": index,
+            **self.forward_mask(x, index),
         }
         y = self._inference(preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+    def forward_mask(self, x: list[torch.Tensor], index: torch.Tensor | None) -> dict[str, torch.Tensor]:
+        """Return the prompt-free mask coefficients, which the detection head does not produce."""
+        return {}
 
     def _get_decode_boxes(self, x):
         """Decode predicted bounding boxes for inference."""
@@ -1300,35 +1300,11 @@ class YOLOESegment(YOLOEDetect):
             "contrastive_head": self.one2one_cv4,
         }
 
-    def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
-        """Process features with fused text embeddings to generate detections for prompt-free model."""
-        boxes, scores, index = [], [], []
-        bs = x[0].shape[0]
-        cv2 = self.one2one_cv2 if self.end2end else self.cv2
-        cv3 = self.one2one_cv3 if self.end2end else self.cv3
+    def forward_mask(self, x: list[torch.Tensor], index: torch.Tensor | None) -> dict[str, torch.Tensor]:
+        """Return the prompt-free mask coefficients of the anchors the proposal filter kept."""
         cv5 = self.one2one_cv5 if self.end2end else self.cv5
-        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
-        for i in range(self.nl):
-            cls_feat = cv3[i](x[i])
-            loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
-            boxes.append(box.view(bs, self.reg_max * 4, -1))
-            scores.append(score)
-            index.append(idx)
-        mc = torch.cat([cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        index = torch.cat(index) if conf else None
-        preds = {
-            "boxes": torch.cat(boxes, 2),
-            "scores": torch.cat(scores, 2),
-            "feats": x,
-            "index": index,
-            "mask_coefficient": mc if index is None else mc[..., index],
-        }
-        y = self._inference(preds)
-        if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1))
-        return y if self.export else (y, preds)
+        mc = torch.cat([cv5[i](x[i]).view(x[0].shape[0], self.nm, -1) for i in range(self.nl)], 2)
+        return {"mask_coefficient": mc if index is None else mc[..., index]}
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""

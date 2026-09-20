@@ -860,7 +860,7 @@ class Exporter:
             p.requires_grad = False
         model.eval()
         model.float()
-        model = model.fuse(imgsz=self.imgsz)  # BaseModel.fuse() leaves a QAT model alone, fusing would drop its ranges
+        model = model.fuse(imgsz=self.imgsz)
 
         if fmt == "imx":
             from ultralytics.utils.export.imx import FXModel
@@ -1229,7 +1229,7 @@ class Exporter:
             dynamic=self.args.dynamic,
             quantize=self.args.quantize,
             calibration_dataset=calibration_dataset,
-            int8_detect=isinstance(self.model.model[-1], Detect),
+            int8_detect=isinstance(self.model.model[-1], (Detect, RTDETRDecoder)),
             prefix=prefix,
         )
 

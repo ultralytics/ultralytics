@@ -120,7 +120,9 @@ class ClassificationTrainer(BaseTrainer):
         Returns:
             (ClassificationDataset): Dataset for the specified mode.
         """
-        return ClassificationDataset(root=img_path, args=self.args, augment=mode == "train", prefix=mode)
+        return ClassificationDataset(
+            img_path, self.args, augment=mode == "train", prefix=mode, names=self.data["names"]
+        )
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):
         """Return PyTorch DataLoader with transforms to preprocess images.
@@ -143,7 +145,6 @@ class ClassificationTrainer(BaseTrainer):
                 f"See https://docs.ultralytics.com/datasets/classify for cls dataset format."
             )
 
-        dataset.filter_extra_classes(self.data["nc"])
         drop_last = self.args.compile and mode == "train"
         loader = build_dataloader(
             dataset, batch_size, self.args.workers, rank=rank, drop_last=drop_last, device=self.device

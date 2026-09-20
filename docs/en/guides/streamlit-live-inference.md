@@ -111,7 +111,7 @@ Then, you can create a basic Streamlit application to run live inference:
         from ultralytics import solutions
 
         inf = solutions.Inference(
-            model="yolo26n.pt",  # you can use any model that Ultralytics supports, e.g., YOLO26, YOLOv10
+            model="yolo26n.pt",  # you can use any model that Ultralytics supports, e.g., YOLO26, or a custom-trained model
         )
 
         inf.inference()

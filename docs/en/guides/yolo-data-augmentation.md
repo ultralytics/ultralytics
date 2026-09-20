@@ -398,7 +398,7 @@ Then launch the training with the Python API:
 - **Note**:
     - Building the transform objects requires the Python API. Ultralytics serializes them with `A.to_dict()` when saving a checkpoint, so an already-serialized list round-trips through a YAML configuration file or the CLI, which is what lets `resume` restore them.
     - Custom transforms completely replace the default Albumentations set. Every augmentation configured elsewhere on this page — `mosaic`, `hsv_h`, `degrees`, and the rest — stays active and is applied independently.
-    - Be cautious with spatial transforms that change image geometry. Ultralytics adjusts bounding boxes automatically, but some complex transforms may require additional configuration.
+    - Spatial transforms that change image geometry, including ones nested in `A.OneOf` or `A.Compose`, move bounding boxes, polygons, keypoints, and depth or semantic masks together with the image; `A.RandomGridShuffle` cannot preserve polygon or keypoint topology and raises on segmentation, pose, and OBB samples.
     - Albumentations offers 70+ transforms; the [Albumentations documentation](https://albumentations.ai/docs/) lists them all. Adding many transforms, or computationally expensive ones, slows training down, so start with a small set and watch the epoch time.
     - Applies to the `detect`, `segment`, `semantic`, `depth`, `pose`, and `obb` tasks. Classification is excluded, as it uses a separate augmentation pipeline.
 

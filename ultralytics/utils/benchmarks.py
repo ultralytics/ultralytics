@@ -339,7 +339,7 @@ class ProfileModels:
         self.imgsz = imgsz
         self.quantize = quantize
         self.trt = trt  # run TensorRT profiling
-        self.device = device if isinstance(device, torch.device) else select_device(device)
+        self.device = select_device(device, verbose=False)
 
     def run(self):
         """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.

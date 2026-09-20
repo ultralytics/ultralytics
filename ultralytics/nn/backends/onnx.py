@@ -84,10 +84,6 @@ class ONNXBackend(BaseBackend):
                 providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
             else:
                 providers = ["CPUExecutionProvider"]
-                if cuda:
-                    LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
-                    self.device = torch.device("cpu")
-                    cuda = False
 
             LOGGER.info(
                 f"Using ONNX Runtime {onnxruntime.__version__} with "
@@ -105,6 +101,10 @@ class ONNXBackend(BaseBackend):
                     f"({type(e).__name__}: {e}).\nRecommend fixes are to re-export it with "
                     f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
                 ) from e
+            if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
+                LOGGER.warning("CUDA requested but CUDAExecutionProvider not available. Using CPU...")
+                self.device = torch.device("cpu")
+                cuda = False
             self.output_names = [x.name for x in self.session.get_outputs()]
 
             # Check if dynamic shapes

@@ -26,8 +26,8 @@ Developing a custom [object detection](../../tasks/detect.md) model is an iterat
 
 1.  **Collect & Organize Images**: Gather images relevant to your specific task. High-quality, diverse data is crucial. See our guide on [Data Collection and Annotation](../../guides/data-collection-and-annotation.md).
 2.  **Label Objects**: Annotate the objects of interest within your images accurately.
-3.  **Train a Model**: Use the labeled data to [train](../../modes/train.md) your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
-4.  **Deploy & Predict**: Utilize the trained model for [inference](../../modes/predict.md) on new, unseen data.
+3.  **Train a Model**: Use the labeled data to train your YOLOv5 model. Leverage [transfer learning](https://www.ultralytics.com/glossary/transfer-learning) by starting with pretrained weights.
+4.  **Deploy & Predict**: Utilize the trained model for inference on new, unseen data.
 5.  **Collect Edge Cases**: Identify scenarios where the model performs poorly ([edge cases](https://en.wikipedia.org/wiki/Edge_case)) and add similar data to your dataset to improve robustness. Repeat the cycle.
 
 [Ultralytics Platform](../../platform/index.md) offers a streamlined, no-code solution for this entire [machine learning operations (MLOps)](https://www.ultralytics.com/glossary/machine-learning-operations-mlops) cycle, including dataset management, model training, and deployment.
@@ -144,9 +144,9 @@ Choose a [pretrained model](../../models/index.md) to initiate the training proc
 
 ## 3. Train
 
-Begin the [model training](../../modes/train.md) using the `train.py` script. Essential arguments include:
+Begin model training using the `train.py` script. Essential arguments include:
 
-- `--img`: Defines the input [image size](../../usage/cfg.md) (e.g., `--img 640`). Larger sizes generally yield better accuracy but require more GPU memory.
+- `--img`: Defines the input image size (e.g., `--img 640`). Larger sizes generally yield better accuracy but require more GPU memory.
 - `--batch`: Determines the [batch size](https://www.ultralytics.com/glossary/batch-size) (e.g., `--batch 16`). Choose the largest size your GPU can handle.
 - `--epochs`: Specifies the total number of training [epochs](https://www.ultralytics.com/glossary/epoch) (e.g., `--epochs 100`). One epoch represents a full pass over the entire training dataset.
 - `--data`: Path to your `dataset.yaml` file (e.g., `--data coco128.yaml`).
@@ -228,11 +228,11 @@ plot_results("runs/train/exp/results.csv")  # This will generate 'results.png' i
 
 Upon successful completion of training, the best performing model checkpoint (`best.pt`) is saved and ready for deployment or further refinement. Potential next steps include:
 
-- Run [inference](../../modes/predict.md) on new images or videos using the trained model via the [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch-hub-model-loading.md).
-- Perform [validation](../../modes/val.md) to evaluate the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) and generalization capabilities on different data splits (e.g., a held-out test set).
-- [Export](../../modes/export.md) the model to various deployment formats like [ONNX](../../integrations/onnx.md), [TensorFlow SavedModel](../../integrations/tf-savedmodel.md), or [TensorRT](../../integrations/tensorrt.md) for optimized inference on diverse platforms.
-- Employ [hyperparameter tuning](../../guides/hyperparameter-tuning.md) techniques to potentially squeeze out additional performance gains.
-- Continue improving your model by following our [Tips for Best Training Results](../../guides/model-training-tips.md) and iteratively adding more diverse and challenging data based on performance analysis.
+- Run inference on new images or videos using the trained model via the [CLI](https://github.com/ultralytics/yolov5#quick-start-examples) or [Python](./pytorch-hub-model-loading.md).
+- Run `val.py` to evaluate the model's [accuracy](https://www.ultralytics.com/glossary/accuracy) and generalization capabilities on different data splits (e.g., a held-out test set).
+- [Export](./model-export.md) the model to various deployment formats like [ONNX](../../integrations/onnx.md), [TensorFlow SavedModel](../../integrations/tf-savedmodel.md), or [TensorRT](../../integrations/tensorrt.md) for optimized inference on diverse platforms.
+- Employ [hyperparameter evolution](./hyperparameter-evolution.md) to potentially squeeze out additional performance gains.
+- Continue improving your model by following our [Tips for Best Training Results](./tips-for-best-training-results.md) and iteratively adding more diverse and challenging data based on performance analysis.
 
 ## Supported Environments
 
@@ -245,15 +245,15 @@ Ultralytics provides ready-to-use environments equipped with essential dependenc
 - **Cloud Platforms**:
     - **Google Cloud**: [GCP Quickstart Guide](../environments/google-cloud-quickstart-tutorial.md)
     - **Amazon AWS**: [AWS Quickstart Guide](../environments/aws-quickstart-tutorial.md)
-    - **Microsoft Azure**: [AzureML Quickstart Guide](../../guides/azureml-quickstart.md)
+    - **Microsoft Azure**: [AzureML Quickstart Guide](../environments/azureml-quickstart-tutorial.md)
 - **Local Setup**:
-    - **Docker**: [Docker Quickstart Guide](../../guides/docker-quickstart.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
+    - **Docker**: [Docker Quickstart Guide](../environments/docker-image-quickstart-tutorial.md) <a href="https://hub.docker.com/r/ultralytics/yolov5"><img src="https://img.shields.io/docker/pulls/ultralytics/yolov5?logo=docker" alt="Docker Pulls"></a>
 
 ## Project Status
 
 <a href="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml"><img src="https://github.com/ultralytics/yolov5/actions/workflows/ci-testing.yml/badge.svg" alt="YOLOv5 Continuous Integration Status Badge"></a>
 
-This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These rigorous CI tests cover the core functionalities, including [training](../../modes/train.md), [validation](../../modes/val.md), [inference](../../modes/predict.md), [export](../../modes/export.md), and [benchmarks](../../modes/benchmark.md), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit, ensuring consistent stability and optimal performance.
+This badge indicates that all YOLOv5 [GitHub Actions](https://github.com/ultralytics/yolov5/actions) [Continuous Integration (CI)](https://www.ultralytics.com/glossary/continuous-integration-ci) tests are passing successfully. These rigorous CI tests cover the core functionalities, including [training](https://github.com/ultralytics/yolov5/blob/master/train.py), [validation](https://github.com/ultralytics/yolov5/blob/master/val.py), [inference](https://github.com/ultralytics/yolov5/blob/master/detect.py), [export](https://github.com/ultralytics/yolov5/blob/master/export.py), and [benchmarks](https://github.com/ultralytics/yolov5/blob/master/benchmarks.py), across macOS, Windows, and Ubuntu operating systems. Tests are executed automatically every 24 hours and upon each code commit, ensuring consistent stability and optimal performance.
 
 ## FAQ
 
@@ -280,7 +280,7 @@ Training YOLOv5 on a custom dataset involves several key steps:
 
 - **Simplified Training**: Easily train models using pre-configured environments and an intuitive user interface.
 - **Integrated Data Management**: Upload, version control, and manage your datasets efficiently within the platform.
-- **Real-time Monitoring**: Track training progress and visualize performance metrics using integrated tools like [Comet](../../integrations/comet.md) or TensorBoard.
+- **Real-time Monitoring**: Track training progress and visualize performance metrics as they stream in.
 - **Collaboration Features**: Facilitates teamwork through shared resources, project management tools, and easy model sharing.
 - **No-Code Deployment**: Deploy trained models directly to various targets.
 

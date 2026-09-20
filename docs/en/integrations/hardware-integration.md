@@ -41,9 +41,9 @@ Ultralytics YOLO provides several core modes for working with models, all docume
 1. **[Train](../modes/train.md)**: Functionality to train and fine-tune Ultralytics YOLO models from scratch or with transfer learning.
 2. **[Val](../modes/val.md)**: Assessment tools to evaluate the quality and performance of trained models on validation datasets.
 3. **[Predict](../modes/predict.md)**: The inference engine that processes visual data to generate predictions. This mode supports the vast majority of export formats.
-4. **[Track](../modes/track.md)**: Object tracking across multiple frames in video sequences, built on top of predict mode.
-5. **[Benchmark](../modes/benchmark.md)**: Performance evaluation framework that assesses model speed and accuracy across various export formats in real-world scenarios.
-6. **[Export](../modes/export.md)**: Model conversion tools that transform trained models into different deployment formats for various platforms and devices.
+4. **[Export](../modes/export.md)**: Model conversion tools that transform trained models into different deployment formats for various platforms and devices.
+5. **[Track](../modes/track.md)**: Object tracking across multiple frames in video sequences, built on top of predict mode.
+6. **[Benchmark](../modes/benchmark.md)**: Performance evaluation framework that assesses model speed and accuracy across various export formats in real-world scenarios.
 
 All modes are accessible through both the Python API and CLI:
 
@@ -58,9 +58,9 @@ All modes are accessible through both the Python API and CLI:
         model.train()  # Train mode
         model.val()  # Validation mode
         model.predict()  # Predict / inference mode
+        model.export()  # Export mode
         model.track()  # Tracking mode
         model.benchmark()  # Benchmark mode
-        model.export()  # Export mode
         ```
 
     === "CLI"
@@ -69,9 +69,9 @@ All modes are accessible through both the Python API and CLI:
         yolo train model=yolo26n.pt
         yolo val model=yolo26n.pt
         yolo predict model=yolo26n.pt
+        yolo export model=yolo26n.pt
         yolo track model=yolo26n.pt
         yolo benchmark model=yolo26n.pt
-        yolo export model=yolo26n.pt
         ```
 
 For a complete hardware integration, two core modes are primarily affected:
@@ -186,7 +186,7 @@ Do not hand-roll precision coercion here. An accelerator that only runs INT8 joi
 
 Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry; a genuinely new argument must first be registered and validated in the shared configuration owner.
 
-`quantize` is the one exception: `validate_args()` subtracts it from the `Arguments`-driven check and gates it instead on the `FP16_FORMATS`, `INT8_FORMATS`, `W8A16_FORMATS`, `W8A32_FORMATS`, and `FP32_UNSUPPORTED_FORMATS` frozensets in `exporter.py`. Add your format to every precision set its runtime actually supports, and to `FP32_UNSUPPORTED_FORMATS` if it cannot run FP32 — a format that lists `quantize` in its `Arguments` column but is missing from `INT8_FORMATS` rejects `quantize=8` with an `AssertionError`.
+`quantize` is the main exception: `validate_args()` subtracts it (along with `nms`, which is gated by the export flow instead) from the `Arguments`-driven check and gates it instead on the `FP16_FORMATS`, `INT8_FORMATS`, `W8A16_FORMATS`, `W8A32_FORMATS`, and `FP32_UNSUPPORTED_FORMATS` frozensets in `exporter.py`. Add your format to every precision set its runtime actually supports, and to `FP32_UNSUPPORTED_FORMATS` if it cannot run FP32 — a format that lists `quantize` in its `Arguments` column but is missing from `INT8_FORMATS` rejects `quantize=8` with an `AssertionError`.
 
 ### Model Modification Guidelines
 
@@ -243,7 +243,7 @@ def torch2partner(model, output_dir, metadata, dataset=None, prefix=""):
 
 #### Adding Optional Dependencies to `pyproject.toml`
 
-Register your integration's dependencies under `[project.optional-dependencies]` in [`pyproject.toml`](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) as a dedicated `export-<format>` group. Do not add partner pins to the aggregate `export` group: it is a meta-group of `export-base`, `export-tensorflow`, `export-coreml`, and `export-litert` that every `pip install "ultralytics[export]"` installs, so adding to it ships your SDK to users who will never run your format. Existing partner groups such as `export-coreai`, `export-deepx`, and `export-executorch` stay out of it for exactly this reason.
+Register your integration's dependencies under `[project.optional-dependencies]` in [`pyproject.toml`](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml) as a dedicated `export-<format>` group. Do not add partner pins to the aggregate `export` group: it is a meta-group of `export-base`, `export-openvino`, `export-tensorflow`, `export-coreml`, and `export-litert` that every `pip install "ultralytics[export]"` installs, so adding to it ships your SDK to users who will never run your format. Existing partner groups such as `export-coreai`, `export-deepx`, and `export-executorch` stay out of it for exactly this reason.
 
 ```toml
 [project.optional-dependencies]
@@ -384,7 +384,7 @@ If the format supports FP16 inference, expects NHWC inputs, or runs on a CUDA GP
 
 ```python
 # Add only if FP16 inference is supported by the runtime
-fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine", "triton"}
+fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
 
 # Add only if the runtime expects NHWC tensors instead of NCHW
 self.nhwc = format in {"coreml", "saved_model", "pb", "edgetpu", "rknn"}

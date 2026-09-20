@@ -74,7 +74,11 @@ def torch2litert(
     # End-to-end models output post-NMS pixel coordinates in FP32 (no scale collapse), so they are left as-is.
     meta = metadata or {}
     task = meta.get("task")
-    if task in {"detect", "segment", "pose", "obb"} and not meta.get("end2end", False):
+    if (
+        task in {"detect", "segment", "pose", "obb"}
+        and not meta.get("end2end", False)
+        and meta.get("head") != "RTDETRDecoder"
+    ):
         model = _NormalizeCoords(
             model, int(im.shape[2]), int(im.shape[3]), task, len(meta.get("names", {})), meta.get("kpt_shape")
         )
@@ -88,7 +92,7 @@ def torch2litert(
     litert_torch.fx_infra.decomp.add_pre_lower_decomp(
         torch.ops.aten.index_select.default, lambda x, dim, index: torch.ops.tfl.gather(x, index.int(), dim)
     )
-    edge_model = litert_torch.convert(model, (im,))
+    edge_model = litert_torch.convert(model.eval(), (im,))  # export wrappers default to training mode
     tflite_file = file.with_name(f"{file.stem}{quant_tag}.tflite")
     edge_model.export(tflite_file)
 

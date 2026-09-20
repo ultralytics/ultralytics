@@ -98,7 +98,7 @@ An NDJSON dataset file contains:
             "task": "detect",
             "name": "Example",
             "description": "COCO NDJSON example dataset",
-            "url": "https://app.ultralytics.com/user/datasets/example",
+            "url": "https://platform.ultralytics.com/user/datasets/example",
             "class_names": { "0": "person", "1": "bicycle", "2": "car" },
             "bytes": 426342,
             "version": 0,
@@ -295,13 +295,13 @@ To use an NDJSON dataset with YOLO26, simply specify the path to the `.ndjson` f
 
 ## Supported Datasets
 
-Here is a list of the supported datasets and a brief description for each:
+Here is a list of the supported datasets and a brief description for each. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
 - [Argoverse](argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
 - [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
 - [COCO](coco.md): Common Objects in Context (COCO) is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset with 80 object categories.
-- [COCO8](coco8.md): A smaller subset of the first 4 images from COCO train and COCO val, suitable for quick tests.
+- [COCO8](coco8.md): A smaller subset of the first 8 images from COCO train2017, 4 for training and 4 for validation, suitable for quick tests.
 - [COCO8-Grayscale](coco8-grayscale.md): A grayscale version of COCO8 created by converting RGB to grayscale, useful for single-channel model evaluation.
 - [COCO8-Multispectral](coco8-multispectral.md): A 10-channel multispectral version of COCO8 created by interpolating RGB wavelengths, useful for spectral-aware model evaluation.
 - [COCO12-Formats](coco12-formats.md): A test dataset with 12 images covering 12 supported image formats (AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WebP) for validating image loading pipelines.

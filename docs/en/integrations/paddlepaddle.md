@@ -100,14 +100,14 @@ The PaddlePaddle format supports the [Export](../modes/export.md), [Predict](../
         model = YOLO("yolo26n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolo26n_paddle_model'
+        model.export(format="paddle")  # creates 'yolo26n_paddle_model'
         ```
 
     === "CLI"
 
         ```bash
         # Export a YOLO26n PyTorch model to PaddlePaddle format
-        yolo export model=yolo26n.pt format=paddle # creates '/yolo26n_paddle_model'
+        yolo export model=yolo26n.pt format=paddle # creates 'yolo26n_paddle_model'
         ```
 
 !!! example "Predict"
@@ -201,7 +201,7 @@ Exporting Ultralytics YOLO26 models to PaddlePaddle format is straightforward. Y
         model = YOLO("yolo26n.pt")
 
         # Export the model to PaddlePaddle format
-        model.export(format="paddle")  # creates '/yolo26n_paddle_model'
+        model.export(format="paddle")  # creates 'yolo26n_paddle_model'
 
         # Load the exported PaddlePaddle model
         paddle_model = YOLO("./yolo26n_paddle_model")
@@ -214,7 +214,7 @@ Exporting Ultralytics YOLO26 models to PaddlePaddle format is straightforward. Y
 
         ```bash
         # Export a YOLO26n PyTorch model to PaddlePaddle format
-        yolo export model=yolo26n.pt format=paddle # creates '/yolo26n_paddle_model'
+        yolo export model=yolo26n.pt format=paddle # creates 'yolo26n_paddle_model'
 
         # Run inference with the exported model
         yolo predict model='./yolo26n_paddle_model' source='https://ultralytics.com/images/bus.jpg'

@@ -5,7 +5,7 @@ keywords: semantic segmentation, YOLO26, pixel-wise classification, scene parsin
 model_name: yolo26n-sem
 ---
 
-# Semantic Segmentation
+# Semantic Segmentation with Ultralytics YOLO
 
 <img width="1024" src="https://cdn.ul.run/i/30702b4e25c1ef422e4638fedd8795c0.avif" alt="Semantic segmentation examples">
 
@@ -49,6 +49,8 @@ YOLO26 semantic segmentation models pretrained on the [ADE20K](https://github.co
 - **mIoU<sup>val</sup>** values are for single-model single-scale on the [ADE20K](https://github.com/CSAILVision/ADE20K) validation set. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml device=0 imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
 - **Speed** metrics are averaged over ADE20K validation images using an RTX3090 instance. <br>Reproduce with `yolo semantic val model=yolo26n-sem-ade20k.pt data=ade20k.yaml batch=1 device=0|cpu imgsz=640`, replacing `yolo26n-sem-ade20k.pt` with the desired `yolo26*-sem-ade20k.pt` checkpoint.
 - **Params** and **FLOPs** values are for the fused model after `model.fuse()`, which merges Conv and BatchNorm layers. Pretrained checkpoints retain the full training architecture and may show higher counts.
+
+See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary Cityscapes mIoU results.
 
 ## Train
 

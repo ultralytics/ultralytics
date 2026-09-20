@@ -34,15 +34,11 @@ This guide serves as a comprehensive introduction to setting up a Docker environ
   <strong>Watch:</strong> How to Get started with Docker | Usage of Ultralytics Python Package inside Docker live demo 🎉
 </p>
 
----
-
 ## Prerequisites
 
 - Make sure Docker is installed on your system. If not, you can download and install it from [Docker's website](https://www.docker.com/products/docker-desktop/).
 - For GPU acceleration, ensure that your system has an NVIDIA GPU and [NVIDIA drivers](https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/index.html) installed. CPU images do not require NVIDIA hardware.
 - If you are using NVIDIA Jetson devices, ensure that you have the appropriate JetPack version installed. Refer to the [NVIDIA Jetson guide](nvidia-jetson.md) for more details.
-
----
 
 ## Setting up Docker with NVIDIA Support (Optional)
 
@@ -95,8 +91,6 @@ nvidia-ctk cdi list
 
 You should see entries such as `nvidia.com/gpu=0` and `nvidia.com/gpu=all`. Discovered CDI devices also appear in `docker info`.
 
----
-
 ## Installing Ultralytics Docker Images
 
 Ultralytics publishes the following images to [Docker Hub](https://hub.docker.com/r/ultralytics/ultralytics/tags). Each image is built from its linked Dockerfile by the [Docker publishing workflow](https://github.com/ultralytics/ultralytics/blob/main/.github/workflows/docker.yml).
@@ -110,12 +104,20 @@ Ultralytics publishes the following images to [Docker Hub](https://hub.docker.co
 | [`latest-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-cpu)                         | Linux AMD64 CPU image with Bash as the default command                                                                               | [`Dockerfile-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-cpu)                         |
 | [`latest-jupyter`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jupyter)                 | Linux AMD64 CPU image with JupyterLab and Ultralytics tutorial notebooks                                                             | [`Dockerfile-jupyter`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jupyter)                 |
 | [`latest-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-arm64)                     | Linux ARM64 CPU image for Apple silicon, [Raspberry Pi](raspberry-pi.md), and other ARM64 systems                                    | [`Dockerfile-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-arm64)                     |
-| [`latest-nvidia-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-nvidia-arm64)       | Linux ARM64 with NVIDIA GPU support for Jetson AGX Thor, DGX Spark, JetPack 7, and DGX OS                                            | [`Dockerfile-nvidia-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-nvidia-arm64)       |
+| [`latest-nvidia-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-nvidia-arm64)       | Linux ARM64 for DGX Spark (DGX OS) and PyTorch on Thor (JetPack 7.1); bundled TensorRT does not support JetPack                      | [`Dockerfile-nvidia-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-nvidia-arm64)       |
 | [`latest-jetson-jetpack6`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack6) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61)  | [`Dockerfile-jetson-jetpack6`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack6) |
 | [`latest-jetson-jetpack5`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack5) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512) | [`Dockerfile-jetson-jetpack5`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack5) |
 | [`latest-jetson-jetpack4`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack4) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 4](https://developer.nvidia.com/embedded/jetpack-sdk-461) | [`Dockerfile-jetson-jetpack4`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack4) |
 | [`latest-runner`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-runner)                   | Linux AMD64 CUDA image for a self-hosted GitHub Actions GPU runner                                                                   | [`Dockerfile-runner`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-runner)                   |
 | [`latest-runner-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-runner-cpu)           | Linux AMD64 image for a self-hosted GitHub Actions CPU runner                                                                        | [`Dockerfile-runner-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-runner-cpu)           |
+
+The AMD64 GPU images (`latest`, `latest-export`, and `latest-runner`) use PyTorch 2.14 and CUDA 13.2. Check the host driver's CUDA support with `nvidia-smi` before launching them; installing a newer container does not upgrade the host driver. CUDA 13 removes support for Maxwell, Pascal, and Volta GPUs, including Tesla P100 and V100. See [NVIDIA's CUDA release notes](https://docs.nvidia.com/cuda/archive/13.0.0/cuda-toolkit-release-notes/index.html#deprecated-architectures) and [driver compatibility requirements](https://docs.nvidia.com/deploy/cuda-compatibility/minor-version-compatibility.html).
+
+The NVIDIA ARM64 image uses NVIDIA PyTorch 26.08 with CUDA 13.4 and TensorRT 11.2. Its PyTorch support for Thor does not extend to TensorRT: NVIDIA does not support TensorRT 11.2 on JetPack. For Jetson TensorRT exports, use the supported TensorRT 10.x runtime for your JetPack release. Follow the platform requirements in the [Jetson guide](nvidia-jetson.md#quick-start-with-docker) or [DGX Spark guide](nvidia-dgx-spark.md#quick-start-with-docker). The JetPack 4, 5, and 6 images retain their separate device-specific stacks.
+
+The Conda Dockerfile is available for [local builds](conda-quickstart.md#ultralytics-conda-docker-image); automated publishing of `latest-conda` is disabled, so that registry tag does not contain these updates.
+
+Use `latest-python-export` for LiteRT exports. The GPU `latest-export` image keeps PyTorch 2.14 and omits LiteRT because its current dependency requires PyTorch below 2.14.
 
 Tags beginning with `latest` track the most recently published main-branch build. Versioned tags replace the `latest` prefix with an Ultralytics release, such as `VERSION`, `VERSION-cpu`, or `VERSION-jetson-jetpack6`. Use a versioned tag for a reproducible environment.
 
@@ -132,8 +134,6 @@ To build an image yourself instead, clone the repository and pass the matching D
 # Build the CPU image locally from docker/Dockerfile-cpu
 sudo docker build -t ultralytics/ultralytics:latest-cpu -f docker/Dockerfile-cpu .
 ```
-
----
 
 ## Running Ultralytics in Docker Container
 
@@ -208,7 +208,8 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 !!! example
 
     ??? info "Use GPUs"
-            If you're using [GPUs](#using-gpus), you can add the `--device nvidia.com/gpu=all` flag to the command.
+
+        If you're using [GPUs](#using-gpus), you can add the `--device nvidia.com/gpu=all` flag to the command.
 
     === "X11"
 
@@ -222,7 +223,6 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
         ```
 
         This command sets the `DISPLAY` environment variable to the host's display, mounts the X11 socket, and maps the `.Xauthority` file to the container. The `xhost +local:docker` command allows the Docker container to access the X11 server.
-
 
     === "Wayland"
 
@@ -261,8 +261,6 @@ yolo predict model=yolo26n.pt show=True
 ??? question "Want to view image results directly in the Terminal?"
 
     Refer to the following guide on [viewing the image results using a terminal](./view-results-in-terminal.md)
-
----
 
 You are now set up to use Ultralytics with Docker and ready to take advantage of its capabilities. To self-host the Ultralytics web application, see the [Platform On-Premise guide](../platform/integrations/on-premise.md). For alternative Python package installation methods, see the [Ultralytics quickstart documentation](../quickstart.md).
 

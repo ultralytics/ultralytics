@@ -2144,9 +2144,17 @@ def test_yoloe_vocab_head_switch():
     model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     model.model.args["imgsz"] = 32
     names = ["person", "bus"]
-    model.set_vocab(model.get_vocab(names), names)
+    vocab = model.get_vocab(names)  # one-to-many branch
+    model.set_vocab(vocab, names)
     for nms in (None, False):
         model(SOURCE, imgsz=32, nms=nms)
+
+    dual = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")  # one head per branch, as the yoloe-26*-seg-pf.pt weights carry
+    dual.model.args["imgsz"] = 32
+    dual.model.end2end = True
+    dual.set_vocab(vocab, names, one2one_vocab=dual.get_vocab(names))
+    for nms in (None, False):
+        dual(SOURCE, imgsz=32, nms=nms)
 
 
 def test_yoloe_visual_prompt_verbose_false(capfd):

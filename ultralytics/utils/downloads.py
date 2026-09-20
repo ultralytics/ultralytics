@@ -356,31 +356,37 @@ def safe_download(
             f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
             expected_size = 0  # total bytes from Content-Length, kept across retries to validate them
-            encoded = False  # body is decoded while streaming, so Content-Length and Range do not describe the file
+            # Server encodes the body despite `Accept-Encoding: identity`, e.g. gzip objects on S3: only requests decodes
+            # it, and Content-Length and Range then describe the encoded bytes rather than the file
+            encoded = False
             for i in range(retry + 1):
                 try:
                     resume = f.stat().st_size if f.exists() and not encoded else 0  # partial from a failed attempt
-                    if (curl or (i > 0 and not resume and not encoded)) and curl_installed:  # curl download with retry
+                    if (curl or i > 0) and not resume and not encoded and curl_installed:  # curl download or fallback
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
                         # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", *args], check=False
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
+                        with open(f, "rb") as f_opened:  # curl saves encoded bodies as-is, so requests retries them
+                            encoded = f_opened.read(2) == b"\x1f\x8b" and target.suffix not in {".gz", ".tgz"}
+                        assert not encoded, "Curl saved a gzip-encoded body"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
                         headers = {"Accept-Encoding": "identity"}
                         if resume:
                             headers["Range"] = f"bytes={resume}-"
                         with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
-                            if response.status_code == 416:  # nothing left to resume, so the next retry restarts
-                                f.unlink()
+                            encoded = "Content-Encoding" in response.headers
+                            if response.status_code == 416 or (response.status_code == 206 and encoded):
+                                f.unlink()  # nothing left to resume or an encoded range, so the next retry restarts
+                                raise ConnectionError(f"Cannot resume partial download, HTTP {response.status_code}")
                             response.raise_for_status()
                             if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
                                 resume = 0
-                                encoded = "Content-Encoding" in response.headers  # e.g. gzip objects served by S3
                                 expected_size = (
                                     0 if encoded else int(response.headers.get("Content-Length", 0)) or expected_size
                                 )
@@ -435,7 +441,7 @@ def safe_download(
     if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
         from zipfile import is_zipfile
 
-        unzip_dir = (dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
+        unzip_dir = Path(dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:

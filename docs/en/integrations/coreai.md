@@ -151,7 +151,7 @@ Core AI is not currently a replacement for the production Core ML path:
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
 - **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. Core AI exports raw one-to-many predictions by default; use `nms=False` for YOLO26's NMS-free head. Embedded NMS (`nms=True`) and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
 - **Fixed input size:** The exported graph is traced at one `imgsz` and has no dynamic shapes, so predict at the size it was exported with.
-- **FP16 assets can abort on load:** Some FP16 `.aimodel` assets fail to load their Apple Neural Engine program and MPSGraph raises a failed assertion, which ends the process rather than falling back. This happens inside Apple's runtime, before any Ultralytics code runs, and the same asset loads with a CPU-only specialization. Fall back to FP32 if an asset does this; the FP16 assets published for the Ultralytics SDKs were loaded on an iPhone 17 Pro without an abort.
+- **FP16 assets can abort on load:** Some FP16 `.aimodel` assets fail to load their Apple Neural Engine program and MPSGraph raises a failed assertion, which ends the process rather than falling back. This happens inside Apple's runtime, before any Ultralytics code runs, and the same asset loads with a CPU-only specialization. Fall back to FP32 if an asset does this; the FP16 SDK assets checked on an iPhone 17 Pro (every nano model, detect at every size, and the largest model of each task) loaded without an abort.
 
 ## Which Apple Format Should You Use?
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import re
 import shutil
 import subprocess
@@ -356,40 +357,39 @@ def safe_download(
             f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
             expected_size = 0  # total bytes from Content-Length, kept across retries to validate them
-            # Server encodes the body despite `Accept-Encoding: identity`, e.g. gzip objects on S3: only requests decodes
-            # it, and Content-Length and Range then describe the encoded bytes rather than the file
-            encoded = False
+            # Both transports save the body as sent, so Content-Length and Range describe the file even when the server
+            # encodes it despite `Accept-Encoding: identity`, e.g. gzip objects on S3; it is decoded once complete
+            encoding = ""
             for i in range(retry + 1):
                 try:
-                    resume = f.stat().st_size if f.exists() and not encoded else 0  # partial from a failed attempt
-                    if (curl or i > 0) and not resume and not encoded and curl_installed:  # curl download or fallback
+                    resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
+                    if (curl or i > 0) and not resume and curl_installed:  # curl download or fallback
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
                         # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", *args], check=False
-                        ).returncode
-                        assert r == 0, f"Curl return value {r}"
-                        with open(f, "rb") as f_opened:  # curl saves encoded bodies as-is, so requests retries them
-                            encoded = f_opened.read(2) == b"\x1f\x8b" and target.suffix not in {".gz", ".tgz"}
-                        assert not encoded, "Curl saved a gzip-encoded body"
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "-D", "-", "--retry", "5", *args],
+                            check=False,
+                            stdout=subprocess.PIPE,
+                            text=True,
+                        )
+                        assert r.returncode == 0, f"Curl return value {r.returncode}"
+                        final_headers = r.stdout.strip().rpartition("\r\n\r\n")[2]  # after redirects and retries
+                        encoding = "".join(re.findall(r"(?im)^content-encoding:\s*(\S+)", final_headers)).lower()
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
                         headers = {"Accept-Encoding": "identity"}
                         if resume:
                             headers["Range"] = f"bytes={resume}-"
                         with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
-                            encoded = "Content-Encoding" in response.headers
-                            if response.status_code == 416 or (response.status_code == 206 and encoded):
-                                f.unlink()  # nothing left to resume or an encoded range, so the next retry restarts
-                                raise ConnectionError(f"Cannot resume partial download, HTTP {response.status_code}")
+                            if response.status_code == 416:  # nothing left to resume, so the next retry restarts
+                                f.unlink()
                             response.raise_for_status()
+                            encoding = response.headers.get("Content-Encoding", "").lower()
                             if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
                                 resume = 0
-                                expected_size = (
-                                    0 if encoded else int(response.headers.get("Content-Length", 0)) or expected_size
-                                )
+                                expected_size = int(response.headers.get("Content-Length", 0)) or expected_size
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
@@ -402,7 +402,7 @@ def safe_download(
                                 unit_divisor=1024,
                                 initial=resume,
                             ) as pbar, open(f, "ab" if resume else "wb") as f_opened:
-                                for data in response.iter_content(chunk_size=buffer_size):
+                                for data in response.raw.stream(buffer_size, decode_content=False):
                                     f_opened.write(data)
                                     pbar.update(len(data))
 
@@ -415,6 +415,16 @@ def safe_download(
                                     f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
                                 )
                             else:
+                                # Undo the transfer encoding unless the name says the gzip is the file itself, e.g. a
+                                # .tar.gz stored with a gzip Content-Encoding; gzip verifies its own length and checksum
+                                if encoding not in {"", "identity"} and target.suffix not in {".gz", ".tgz"}:
+                                    decoded = f.with_name(f"{f.name}.decoded")
+                                    try:
+                                        with gzip.open(f) as src, open(decoded, "wb") as dst:
+                                            shutil.copyfileobj(src, dst)
+                                        decoded.replace(f)
+                                    finally:
+                                        decoded.unlink(missing_ok=True)
                                 f.replace(target)
                                 f = target
                                 break  # success

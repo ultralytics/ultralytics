@@ -153,3 +153,59 @@ def test_faster_coco_eval():
     validator.is_coco = True
     download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
     _ = validator.eval_json(validator.stats)
+
+
+@pytest.mark.skipif(not check_requirements("faster-coco-eval", install=False), reason="faster-coco-eval not installed")
+@pytest.mark.parametrize(
+    "iou_types, suffix, expected",
+    [
+        (["bbox", "segm"], ["Box", "Mask"], {"metrics/mAP_small(M)": 0.0, "metrics/mAP_large(M)": 1.0}),
+        (["bbox", "keypoints"], ["Box", "Pose"], {"metrics/mAP_large(P)": 1.0}),
+    ],
+)
+def test_coco_evaluate_size_metrics_per_iou_type(iou_types, suffix, expected):
+    """Keep the box size mAP when a second IoU type is evaluated and report that type under its own suffix."""
+    from ultralytics.models.yolo.detect import DetectionValidator
+
+    def square(x0, y0, x1, y1):
+        return [x0, y0, x1, y0, x1, y1, x0, y1]
+
+    def keypoints(x0, y0, step):
+        return [v for i in range(17) for v in (x0 + step * i, y0 + step * i, 2)]
+
+    # One small object (20x20 < 32**2) and one large object (120x120 > 96**2) in a 200x200 image
+    objects = [
+        {
+            "bbox": [10, 10, 20, 20],
+            "area": 400.0,
+            "segmentation": [square(10, 10, 30, 30)],
+            "keypoints": keypoints(11, 11, 1),
+        },
+        {
+            "bbox": [50, 50, 120, 120],
+            "area": 14400.0,
+            "segmentation": [square(50, 50, 170, 170)],
+            "keypoints": keypoints(60, 60, 6),
+        },
+    ]
+    gt = {
+        "images": [{"id": 1, "width": 200, "height": 200}],
+        "categories": [{"id": 1, "name": "person"}],
+        "annotations": [
+            {"id": i, "image_id": 1, "category_id": 1, "iscrowd": 0, "num_keypoints": 17, **obj}
+            for i, obj in enumerate(objects, 1)
+        ],
+    }
+    # Exact boxes and keypoints, but the small mask covers 40% of its object and misses every IoU threshold
+    preds = [{"image_id": 1, "category_id": 1, "score": 0.9 - 0.1 * i, **obj} for i, obj in enumerate(objects)]
+    preds[0]["segmentation"] = [square(10, 10, 18, 30)]
+
+    validator = DetectionValidator(args={"save_json": True})
+    validator.jdict, validator.gdict = preds, gt
+    stats = validator.coco_evaluate({}, preds, gt, iou_types, suffix)
+
+    assert stats["metrics/mAP_small(B)"] == 1.0
+    assert stats["metrics/mAP_large(B)"] == 1.0
+    assert "metrics/mAP_small(P)" not in stats  # COCO keypoint evaluation has no small area range
+    for k, v in expected.items():
+        assert stats[k] == v

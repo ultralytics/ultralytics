@@ -1630,6 +1630,17 @@ def test_semantic_loss_all_ignore(nc):
     assert preds.grad is not None and aux.grad is not None
 
 
+def test_semantic_confusion_matrix_large_counts():
+    """SemanticMetrics must keep counting past float32's 2**24, where accumulating 1.0 at a time would saturate."""
+    from ultralytics.utils.metrics import SemanticMetrics
+
+    metrics = SemanticMetrics(names={0: "a", 1: "b"})
+    metrics.matrix = torch.full((2, 2), float(2**24))  # counts already accumulated from a large val set
+    zeros = torch.zeros((1, 10, 10), dtype=torch.int32)
+    metrics.update_stats(zeros, zeros)
+    assert metrics.matrix[0, 0].item() == 2**24 + 100, f"confusion matrix saturated at {metrics.matrix[0, 0].item()}"
+
+
 class _DepthLossModel(torch.nn.Module):
     """Tiny stub mirroring the model surface DepthLoss26 reads: .parameters() for device and .args for hyps."""
 
@@ -2134,9 +2145,17 @@ def test_yoloe_vocab_head_switch():
     model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     model.model.args["imgsz"] = 32
     names = ["person", "bus"]
-    model.set_vocab(model.get_vocab(names), names)
+    vocab = model.get_vocab(names)  # one-to-many branch
+    model.set_vocab(vocab, names)
     for nms in (None, False):
         model(SOURCE, imgsz=32, nms=nms)
+
+    dual = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")  # one head per branch, as the yoloe-26*-seg-pf.pt weights carry
+    dual.model.args["imgsz"] = 32
+    dual.model.end2end = True
+    dual.set_vocab(vocab, names, one2one_vocab=dual.get_vocab(names))
+    for nms in (None, False):
+        dual(SOURCE, imgsz=32, nms=nms)
 
 
 def test_yoloe_visual_prompt_verbose_false(capfd):
@@ -2232,3 +2251,21 @@ def test_semantic_polygon_data():
     model = YOLO("yolo26n-sem.pt")
     model.train(data="coco8-seg.yaml", epochs=1, imgsz=32, close_mosaic=1)
     model.val(data="coco8-seg.yaml")
+
+
+def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
+    """Test a yaml-only nc 2->1 edit still loads 1-bit masks as {0, 1} from a cache scanned at nc=2."""
+    from ultralytics.data.dataset import SemanticDataset
+
+    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    foreground = np.zeros((32, 32), dtype=np.uint8)
+    foreground[8:24, 8:24] = 255
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    Image.fromarray(foreground).convert("1").save(masks / "a.png")  # cv2 later reads this as 0/255
+
+    data = {"names": {0: "bg", 1: "fg"}, "nc": 2}
+    SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
+    assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255

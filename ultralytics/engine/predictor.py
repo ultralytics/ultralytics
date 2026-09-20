@@ -271,6 +271,8 @@ class BasePredictor:
                 inference.
             stride (int, optional): Model stride for image size checking.
         """
+        if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
+            self.args.imgsz = self.model.imgsz  # every run reuses imgsz from export metadata, not just the first
         self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(
             source=source,
@@ -439,8 +441,6 @@ class BasePredictor:
         )
 
         self.device = self.model.device  # update device
-        if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
-            self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 

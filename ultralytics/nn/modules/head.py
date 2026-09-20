@@ -1154,25 +1154,32 @@ class YOLOEDetect(Detect):
         bs = x[0].shape[0]
         cv2 = self.one2one_cv2 if self.end2end else self.cv2
         cv3 = self.one2one_cv3 if self.end2end else self.cv3
+        lrpc = self.one2one_lrpc if self.end2end and hasattr(self, "one2one_lrpc") else self.lrpc
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
+            assert isinstance(lrpc[i], LRPCHead)
+            box, score, idx = lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
+        index = torch.cat(index) if conf else None
         preds = {
             "boxes": torch.cat(boxes, 2),
             "scores": torch.cat(scores, 2),
             "feats": x,
-            "index": torch.cat(index) if conf else None,
+            "index": index,
+            **self.forward_mask(x, index),
         }
         y = self._inference(preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+    def forward_mask(self, x: list[torch.Tensor], index: torch.Tensor | None) -> dict[str, torch.Tensor]:
+        """Return the prompt-free mask coefficients, which the detection head does not produce."""
+        return {}
 
     def _get_decode_boxes(self, x):
         """Decode predicted bounding boxes for inference."""
@@ -1293,35 +1300,11 @@ class YOLOESegment(YOLOEDetect):
             "contrastive_head": self.one2one_cv4,
         }
 
-    def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
-        """Process features with fused text embeddings to generate detections for prompt-free model."""
-        boxes, scores, index = [], [], []
-        bs = x[0].shape[0]
-        cv2 = self.one2one_cv2 if self.end2end else self.cv2
-        cv3 = self.one2one_cv3 if self.end2end else self.cv3
+    def forward_mask(self, x: list[torch.Tensor], index: torch.Tensor | None) -> dict[str, torch.Tensor]:
+        """Return the prompt-free mask coefficients of the anchors the proposal filter kept."""
         cv5 = self.one2one_cv5 if self.end2end else self.cv5
-        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
-        for i in range(self.nl):
-            cls_feat = cv3[i](x[i])
-            loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
-            boxes.append(box.view(bs, self.reg_max * 4, -1))
-            scores.append(score)
-            index.append(idx)
-        mc = torch.cat([cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        index = torch.cat(index) if conf else None
-        preds = {
-            "boxes": torch.cat(boxes, 2),
-            "scores": torch.cat(scores, 2),
-            "feats": x,
-            "index": index,
-            "mask_coefficient": mc if index is None else mc[..., index],
-        }
-        y = self._inference(preds)
-        if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1))
-        return y if self.export else (y, preds)
+        mc = torch.cat([cv5[i](x[i]).view(x[0].shape[0], self.nm, -1) for i in range(self.nl)], 2)
+        return {"mask_coefficient": mc if index is None else mc[..., index]}
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""

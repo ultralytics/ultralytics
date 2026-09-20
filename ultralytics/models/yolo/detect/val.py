@@ -597,13 +597,8 @@ class DetectionValidator(BaseValidator):
                 self._coco_api = anno
                 pred = anno.loadRes(pred_json)
                 for i, iou_type in enumerate(iou_types):
-                    val = COCOeval(
-                        anno,
-                        pred,
-                        iouType=iou_type,
-                        lvis_style=self.is_lvis,
-                        lvis_protocol="coco",
-                        print_function=LOGGER.info,
+                    val = COCOeval(  # lvis_protocol="coco" reproduces the faster-coco-eval LVIS numbers
+                        anno, pred, iou_type, lvis_style=self.is_lvis, lvis_protocol="coco", print_function=LOGGER.info
                     )
                     val.params.imgIds = (
                         anno.getImgIds()

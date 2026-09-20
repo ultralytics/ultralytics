@@ -1,5 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Extract image properties, correlations, and label-review scores."""
+"""Correlate dataset properties with per-image accuracy and score possible label issues."""
 
 from __future__ import annotations
 
@@ -8,13 +8,20 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image
 
-from ultralytics.utils import DataExportMixin, plt_settings
+from ultralytics.utils import DataExportMixin
 from ultralytics.utils.metrics import box_iou
 from ultralytics.utils.ops import xywh2xyxy
 
 COCO_AREA_SMALL = 32**2  # COCO small-object area threshold (px^2), Lin et al. 2014
+_PROPERTIES = (
+    "num_objects",
+    "small_object_ratio",
+    "object_scale_variance",
+    "num_classes_present",
+    "center_spread",
+    "max_pairwise_iou",
+)
 _LABEL_ISSUES = ("possible_fp", "possible_fn", "possible_label_confusion")
 
 
@@ -23,9 +30,8 @@ class AnalysisReport(DataExportMixin):
     """Store per-image metrics and property correlations.
 
     Attributes:
-        per_image (dict[str, dict]): Per-image metrics and properties keyed by image path.
+        per_image (dict[str, dict]): Per-image metrics and properties keyed by absolute image path.
         correlations (dict[str, dict]): Per-property Spearman correlation and sample count against F1.
-        label_issues (list[dict]): Three highest-priority label-review candidates.
     """
 
     per_image: dict[str, dict]
@@ -42,107 +48,65 @@ class AnalysisReport(DataExportMixin):
             for prop, row in self.correlations.items()
         ]
 
-    @property
-    def label_issues(self) -> list[dict]:
-        """Return the three strongest label-review candidates."""
-        return sorted(
-            (
-                {"image": image, "issue": issue, "score": score}
-                for issue in _LABEL_ISSUES
-                for image, row in self.per_image.items()
-                if (score := row.get(issue, 0.0)) > 0.5
-            ),
-            key=lambda row: row["score"],
-            reverse=True,
-        )[:3]
 
-    @plt_settings()
-    def plot(self) -> np.ndarray:
-        """Return an RGB plot of the three strongest correlations."""
-        import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
-
-        properties = sorted(
-            self.correlations, key=lambda prop: abs(self.correlations[prop]["spearman_r"] or 0), reverse=True
-        )[:3]
-        values = list(self.per_image.values())
-        f1 = np.array([row.get("f1", np.nan) for row in values], dtype=float)
-        fig, axes = plt.subplots(1, 3, figsize=(10.2, 3.0))
-        for ax, prop in zip(axes, properties):
-            x = np.array([row.get(prop, np.nan) for row in values], dtype=float)
-            mask = np.isfinite(x) & np.isfinite(f1)
-            ax.scatter(x[mask], f1[mask], s=4, alpha=0.5)
-            r = self.correlations[prop]["spearman_r"]
-            ax.set_title(f"{prop}\nSpearman r={r:.2f}" if r is not None else prop, fontsize=8)
-            ax.set_xlabel(prop, fontsize=7)
-            ax.set_ylabel("f1", fontsize=7)
-            ax.tick_params(axis="both", labelsize=6)
-        fig.tight_layout()
-        fig.canvas.draw()
-        image = np.asarray(fig.canvas.buffer_rgba())[..., :3].copy()
-        plt.close(fig)
-        return image
+def _max_pairwise_iou(xyxy: np.ndarray) -> float:
+    """Calculate the maximum pairwise IoU among boxes in xyxy format."""
+    boxes, maximum = torch.as_tensor(xyxy, dtype=torch.float32), 0.0
+    for i in range(0, len(boxes), 1024):
+        for j in range(i, len(boxes), 1024):
+            iou = box_iou(boxes[i : i + 1024], boxes[j : j + 1024])
+            if i == j:
+                iou.triu_(diagonal=1)
+            maximum = max(maximum, float(iou.max()))
+    return maximum
 
 
-class ImagePropertyExtractor:
-    """Augment a ``YOLODataset``'s labels in place with six per-image properties.
+def _rankdata(values: np.ndarray) -> np.ndarray:
+    """Return average ranks, assigning tied values their mean rank."""
+    sorter = np.argsort(values, kind="stable")
+    inverse = np.empty(values.size, dtype=int)
+    inverse[sorter] = np.arange(values.size)
+    sorted_values = values[sorter]
+    observed = np.r_[True, sorted_values[1:] != sorted_values[:-1]]
+    dense = observed.cumsum()[inverse]
+    count = np.r_[np.nonzero(observed)[0], values.size]
+    return 0.5 * (count[dense] + count[dense - 1] + 1)
 
-    Compute object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise
-    IoU from image headers and annotations.
 
-    Attributes:
-        labels (list[dict]): The same list as ``dataset.labels``, with an ``im_properties`` dict added per image.
+def analyze_correlations(dataset, metrics) -> AnalysisReport:
+    """Correlate per-image dataset properties with per-image F1.
+
+    Derive object count, small-object ratio, object-scale variation, class count, center spread, and maximum pairwise
+    IoU from each label's cached shape and annotations, then rank-correlate them against the per-image F1 recorded
+    during validation.
+
+    Args:
+        dataset (YOLODataset): Dataset whose ``labels`` supply annotations and cached image shapes.
+        metrics (DetMetrics): Validation metrics carrying ``box.image_metrics`` keyed by absolute image path.
+
+    Returns:
+        (AnalysisReport): Per-image rows and per-property Spearman correlations.
     """
-
-    def __init__(self, dataset):
-        """Extract properties into dataset labels."""
-        self.labels = dataset.labels
-        for label in self.labels:
-            self._augment_label(label)
-
-    @staticmethod
-    def _augment_label(lbl: dict) -> None:
-        """Compute the six properties for one label into its ``im_properties`` dict."""
-        cls_arr = lbl["cls"].reshape(-1)
-        bboxes_n = lbl["bboxes"].reshape(-1, 4)
-        with Image.open(lbl["im_file"]) as image:
-            w, h = image.size
-        n = len(bboxes_n)
-        areas_n = bboxes_n[:, 2] * bboxes_n[:, 3]
-        lbl["im_properties"] = {
-            "num_objects": n,
-            "small_object_ratio": float(np.mean(areas_n * w * h < COCO_AREA_SMALL)) if n else np.nan,
-            "object_scale_variance": (float(np.std(areas_n) / max(np.mean(areas_n), 1e-9)) if n else np.nan),
-            "num_classes_present": int(np.unique(cls_arr).size),
-            "center_spread": (float(np.sqrt(np.var(bboxes_n[:, 0]) + np.var(bboxes_n[:, 1]))) if n else np.nan),
-            "max_pairwise_iou": (ImagePropertyExtractor._max_pairwise_iou(xywh2xyxy(bboxes_n)) if n >= 2 else np.nan),
-        }
-
-    @staticmethod
-    def _max_pairwise_iou(xyxy: np.ndarray) -> float:
-        """Calculate the maximum pairwise IoU among boxes in xyxy format."""
-        boxes, maximum = torch.as_tensor(xyxy, dtype=torch.float32), 0.0
-        for i in range(0, len(boxes), 1024):
-            for j in range(i, len(boxes), 1024):
-                iou = box_iou(boxes[i : i + 1024], boxes[j : j + 1024])
-                if i == j:
-                    iou.triu_(diagonal=1)
-                maximum = max(maximum, float(iou.max()))
-        return maximum
-
-
-def analyze_correlations(labels: list[dict], metrics) -> AnalysisReport:
-    """Correlate image properties with per-image F1."""
     per_image = {}
-    for label in labels:
+    for label in dataset.labels:
+        h, w = label["shape"]
+        bboxes = label["bboxes"]
+        n = len(bboxes)
+        areas = bboxes[:, 2] * bboxes[:, 3]
         im_file = str(Path(label["im_file"]).absolute())
         per_image[im_file] = {
             **metrics.box.image_metrics.get(im_file, {}),
-            **label["im_properties"],
+            "num_objects": n,
+            "small_object_ratio": float(np.mean(areas * w * h < COCO_AREA_SMALL)) if n else np.nan,
+            "object_scale_variance": float(np.std(areas) / max(np.mean(areas), 1e-9)) if n else np.nan,
+            "num_classes_present": int(np.unique(label["cls"]).size),
+            "center_spread": float(np.sqrt(np.var(bboxes[:, 0]) + np.var(bboxes[:, 1]))) if n else np.nan,
+            "max_pairwise_iou": _max_pairwise_iou(xywh2xyxy(bboxes)) if n >= 2 else np.nan,
         }
 
     f1 = np.array([row.get("f1", np.nan) for row in per_image.values()], dtype=float)
     correlations = {}
-    for prop in labels[0]["im_properties"]:
+    for prop in _PROPERTIES:
         values = np.array([row[prop] for row in per_image.values()], dtype=float)
         mask = np.isfinite(values) & np.isfinite(f1)
         r = None
@@ -164,19 +128,7 @@ def _label_issue_scores(
     weighted_iou = iou * pred_conf[None]
     scores = (
         np.max(pred_conf * (1 - np.max(iou, axis=0, initial=0)), initial=0),
-        np.max(1 - np.max(np.where(same_class, weighted_iou, 0), axis=1, initial=0), initial=0),
+        np.mean(1 - np.max(np.where(same_class, weighted_iou, 0), axis=1, initial=0)) if len(gt_cls) else 0.0,
         np.max(np.where(~same_class, weighted_iou, 0), initial=0),
     )
     return dict(zip(_LABEL_ISSUES, map(float, scores)))
-
-
-def _rankdata(values: np.ndarray) -> np.ndarray:
-    """Return average ranks, assigning tied values their mean rank."""
-    sorter = np.argsort(values, kind="stable")
-    inverse = np.empty(values.size, dtype=int)
-    inverse[sorter] = np.arange(values.size)
-    sorted_values = values[sorter]
-    observed = np.r_[True, sorted_values[1:] != sorted_values[:-1]]
-    dense = observed.cumsum()[inverse]
-    count = np.r_[np.nonzero(observed)[0], values.size]
-    return 0.5 * (count[dense] + count[dense - 1] + 1)

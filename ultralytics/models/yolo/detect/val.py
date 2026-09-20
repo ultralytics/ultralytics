@@ -222,7 +222,7 @@ class DetectionValidator(BaseValidator):
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             batch (dict[str, Any]): Batch data containing ground truth.
         """
-        score_labels = self.args.score_labels and self.args.task == "detect"
+        score_labels = self.args.task == "detect"  # segment/pose/obb inherit this method
         if score_labels:
             from ultralytics.utils.analysis import _label_issue_scores
         for si, pred in enumerate(preds):
@@ -254,9 +254,10 @@ class DetectionValidator(BaseValidator):
             no_pred = predn["cls"].shape[0] == 0
             pred_cls_np = np.zeros(0) if no_pred else predn["cls"].cpu().numpy()
             pred_conf_np = np.zeros(0) if no_pred else predn["conf"].cpu().numpy()
+            stat = self._process_batch(predn, pbatch)
             self.metrics.update_stats(
                 {
-                    **self._process_batch(predn, pbatch),
+                    **stat,
                     "target_cls": cls,
                     "target_img": np.unique(cls),
                     "conf": pred_conf_np,
@@ -267,7 +268,7 @@ class DetectionValidator(BaseValidator):
             if score_labels:
                 self.metrics.box.image_metrics[im_name].update(
                     _label_issue_scores(
-                        box_iou(pbatch["bboxes"], predn["bboxes"]).cpu().numpy(),
+                        stat["iou"].cpu().numpy(),
                         pred_cls_np,
                         pred_conf_np,
                         cls,
@@ -400,10 +401,14 @@ class DetectionValidator(BaseValidator):
             (dict[str, np.ndarray]): Dictionary containing 'tp' key with correct prediction matrix of shape (N, 10) for
                 10 IoU levels.
         """
-        if batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0:
-            return {"tp": np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)}
         iou = box_iou(batch["bboxes"], preds["bboxes"])
-        return {"tp": self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()}
+        empty = batch["cls"].shape[0] == 0 or preds["cls"].shape[0] == 0
+        tp = (
+            np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
+            if empty
+            else self.match_predictions(preds["cls"], batch["cls"], iou).cpu().numpy()
+        )
+        return {"tp": tp, "iou": iou}
 
     def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None) -> torch.utils.data.Dataset:
         """Build YOLO Dataset.

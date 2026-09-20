@@ -16,7 +16,11 @@ keywords: Ultralytics, image property analysis, correlation, dataset quality, de
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis.ImagePropertyExtractor
+## ::: ultralytics.utils.analysis._max_pairwise_iou
+
+<br><br><hr><br>
+
+## ::: ultralytics.utils.analysis._rankdata
 
 <br><br><hr><br>
 
@@ -25,9 +29,5 @@ keywords: Ultralytics, image property analysis, correlation, dataset quality, de
 <br><br><hr><br>
 
 ## ::: ultralytics.utils.analysis._label_issue_scores
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.analysis._rankdata
 
 <br><br>

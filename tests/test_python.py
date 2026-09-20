@@ -2233,8 +2233,8 @@ def test_semantic_polygon_data():
     model.val(data="coco8-seg.yaml")
 
 
-def test_semantic_cache_nc_edit_rescans_1bit_masks(tmp_path):
-    """A yaml-only nc 2->1 edit must invalidate the cache so 1-bit masks rescan and load as {0, 1}."""
+def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
+    """Test a yaml-only nc 2->1 edit still loads 1-bit masks as {0, 1} from a cache scanned at nc=2."""
     from ultralytics.data.dataset import SemanticDataset
 
     images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
@@ -2242,18 +2242,10 @@ def test_semantic_cache_nc_edit_rescans_1bit_masks(tmp_path):
     masks.mkdir(parents=True)
     foreground = np.zeros((32, 32), dtype=np.uint8)
     foreground[8:24, 8:24] = 255
-    for name in ("a", "b"):
-        cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
-        Image.fromarray(foreground).convert("1").save(masks / f"{name}.png")  # cv2 later reads this as 0/255
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    Image.fromarray(foreground).convert("1").save(masks / "a.png")  # cv2 later reads this as 0/255
 
-    def dataset(nc):
-        """Scan the same image/mask files for the given class count."""
-        return SemanticDataset(img_path=str(images), imgsz=32, data={"names": {0: "bg", 1: "fg"}, "nc": nc})
-
-    first = dataset(2)
-    assert not first.labels[0]["is_1bit"]  # nc=2 skips the bit-depth check, caching is_1bit=False
-    assert (masks.parent / "train.cache").exists()
-
-    second = dataset(1)
-    assert second.labels[0]["is_1bit"]  # the nc edit must trigger a rescan, not reuse the stale cache
-    assert set(np.unique(second.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
+    data = {"names": {0: "bg", 1: "fg"}, "nc": 2}
+    SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
+    assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255

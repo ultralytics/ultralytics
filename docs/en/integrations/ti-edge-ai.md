@@ -24,7 +24,7 @@ This page gives information on exporting [Ultralytics YOLO](https://github.com/u
 
 The [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) is a companion repository that provides pre-validated ONNX models with per-model YAML configuration files, ready to be compiled and benchmarked on TI hardware.
 
-[TI HuggingFace page](https://huggingface.co/TexasInstruments/) and [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/) gives more information about models and configs.
+The [TI Hugging Face page](https://huggingface.co/TexasInstruments) gives more information about TI models and configs.
 
 For a complete overview of the TI Edge AI MPU platform — architecture, supported devices, and development resources — see the [Edge AI MPU overview](https://github.com/TexasInstruments/edgeai/tree/main/edgeai-mpu); for SDK installation and system setup, refer to the [Edge AI SDK documentation](https://github.com/TexasInstruments/edgeai/blob/main/edgeai-mpu/readme_sdk.md).
 
@@ -70,9 +70,9 @@ Compatible TI MPU device families compiled and validated via TIDL. See the suppo
 | **J721S2**    | [TDA4VE](https://www.ti.com/product/TDA4VE-Q1) · [TDA4VL](https://www.ti.com/product/TDA4VL-Q1) · [TDA4AL](https://www.ti.com/product/TDA4AL-Q1) · [AM68A](https://www.ti.com/product/AM68A) |
 | **J784S4**    | [TDA4VH](https://www.ti.com/product/TDA4VH-Q1) · [TDA4AH](https://www.ti.com/product/TDA4AH-Q1) · [AM69A](https://www.ti.com/product/AM69A)                                                  |
 
-## Workflow for compiling and infering pre-trained YOLO Models on TI Hardware
+## Workflow for compiling and running pre-trained YOLO Models on TI Hardware
 
-The TI Edge AI deployment workflow is a multi-step pipeline: **get the model** → **compile and evaluate with TIDL**. Detailed instructions, per-model configuration files, and download scripts are available on the [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/models).
+The TI Edge AI deployment workflow is a multi-step pipeline: **set up tidlrunner** → **get the model** → **compile on PC** → **infer on device**. Detailed instructions, per-model configuration files, and download scripts are available in the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub/tree/main/models/vision/detection).
 
 ### Step 1 — Setup tidlrunner
 
@@ -80,9 +80,9 @@ Follow the [edgeai-tidlrunner](https://github.com/TexasInstruments/edgeai-tidlru
 
 ### Step 2 — Get the Model
 
-Download the model export script (prepare_model.py) and configuration files from the [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/models), or clone the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub).\
+Download the model preparation script (`prepare_model.py`) and configuration files from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub/tree/main/models/vision/detection), or clone the [repository](https://github.com/TexasInstruments/edgeai-modelhub).\
 Refer to the model specific `README.md` document to get more details on model export.\
-Run `prepare_model.py` for your chosen variant. The script handles the full preparation pipeline — it exports the YOLO model to ONNX, fixes dynamic shapes to static shapes, and validates the graph for TIDL compilation. Full setup instructions are in the Model Hub README.
+Run `prepare_model.py` for your chosen variant. The script downloads the pre-exported ONNX file referenced by that variant's `.onnx.link` entry, fixes dynamic shapes to static shapes, and validates the graph for TIDL compilation. For custom weights, export to ONNX with Ultralytics first and follow the custom-model workflow below. Full setup instructions are in the Model Hub README.
 
 ### Step 3 — Compile with TIDL Runner (on PC)
 
@@ -99,21 +99,21 @@ tidlrunner-cli compile --target_device TDA4VH --config_path /path/to/model/yolo2
 Each model ships with a `<model>_model_config.yaml`; pass it to `tidlrunner-cli` to run inference on your target device.
 
 ```bash
-# Run infernce (run from edgeai-tidlrunner path)
+# Run inference (run from edgeai-tidlrunner path)
 cd /path/to/edgeai-tidlrunner
 tidlrunner-cli infer --target_device TDA4VH --config_path /path/to/model/yolo26n_model_config.yaml
 ```
 
-Note: For fine-grained control over the compilation and inferene script, use [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) directly.
+Note: For fine-grained control over the compilation and inference scripts, use [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) directly.
 
-## Workflow for compiling and infering your own trained YOLO Models on TI Hardware
+## Workflow for compiling and running your own trained YOLO Models on TI Hardware
 
 1. **Train** your model using Ultralytics [Train Mode](../modes/train.md)
 2. **Export** the model to ONNX format using the Ultralytics ONNX export method.
-3. **Adapt** the [model YAML configuration](https://huggingface.co/TexasInstruments-EdgeAI/YOLO26-Detection/blob/main/yolo26n_model_config.yaml): set `session.model_path` to your ONNX file, `dataloader.name` and `dataloader.path` for your dataset, and `preprocess` plus `session.input_mean`/`session.input_scale` to match training. Match `postprocess` to the exported output layout and box decoding, and replace the COCO mapping in `metric.label_offset_pred` with your dataset's class IDs.
+3. **Adapt** the [model YAML configuration](https://github.com/TexasInstruments/edgeai-modelhub/blob/main/models/vision/detection/YOLO26/yolo26n_model_config.yaml): set `session.model_path` to your ONNX file, `dataloader.name` and `dataloader.path` for your dataset, and `preprocess` plus `session.input_mean`/`session.input_scale` to match training. Match `postprocess` to the exported output layout and box decoding, and replace the COCO mapping in `metric.label_offset_pred` with your dataset's class IDs.
 4. **Compile** on PC for your target TI device with `tidlrunner-cli compile`, passing the per-model config YAML.
 5. **Infer** on your target TI device with `tidlrunner-cli infer`, passing the per-model config YAML to test that the inference is working correctly on device.
-6. **Deploy** on device through the ONNX Runtime APIs with TIDL Offfload (see [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for more details).
+6. **Deploy** on device through the ONNX Runtime APIs with TIDL offload (see [edgeai-tidl-tools](https://github.com/TexasInstruments/edgeai-tidl-tools) for more details).
 
 ## Real-World Applications
 
@@ -127,7 +127,7 @@ YOLO models running on TI MPU hardware are well suited for a wide range of embed
 
 ## Summary
 
-In this guide, you have learned how to deploy Ultralytics YOLO models on Texas Instruments MPU hardware using the TI Edge AI TIDL toolchain. The pipeline exports your model to ONNX, prepares it with static shapes using the Model Hub scripts, and compiles it with `tidlrunner-cli` targeting the C7 NPU on the TI TDA4x or other supported TI devices — producing a hardware-optimized artifact ready for on-device inference.
+In this guide, you have learned how to deploy Ultralytics YOLO models on Texas Instruments MPU hardware using the TI Edge AI TIDL toolchain. The pipeline starts from an ONNX model, prepares it with static shapes using the Model Hub scripts, and compiles it with `tidlrunner-cli` targeting the C7 NPU on the TI TDA4x or other supported TI devices — producing a hardware-optimized artifact ready for on-device inference.
 
 The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and the TI Edge AI platform provides a straightforward path from model training to production deployment on TI's industrial, automotive, and embedded compute hardware.
 
@@ -135,7 +135,7 @@ The combination of [Ultralytics YOLO](https://www.ultralytics.com/yolo) and the 
 
 ### How do I deploy a YOLO model on TI Edge AI hardware?
 
-Download the model and configuration files from the [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/models) or run `prepare_model.py` from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) — the script handles ONNX export, static shape fixing, and graph validation in one go. Then follow [Step 3](#step-3-compile-with-tidl-runner-on-pc) and [Step 4](#step-4-infer-with-tidl-runner-on-device) to compile and evaluate on your target device.
+Download the model and configuration files from the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub/tree/main/models/vision/detection) and run `prepare_model.py` — the script handles the ONNX download, static shape fixing, and graph validation in one go. Then follow [Step 3](#step-3-compile-with-tidl-runner-on-pc) and [Step 4](#step-4-infer-with-tidl-runner-on-device) to compile and run inference on your target device.
 
 ### What is the difference between edgeai-tidl-tools and edgeai-tidlrunner?
 
@@ -147,7 +147,7 @@ Compilation with `tidlrunner-cli compile` produces device artifacts on the host 
 
 ### Where can I find pre-compiled models for TI devices?
 
-The [TI Edge AI HuggingFace page](https://huggingface.co/TexasInstruments-EdgeAI/models) and the [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub) host pre-validated ONNX models with per-model config YAMLs for YOLO26, YOLO11, and YOLOv8. Models can be downloaded and prepared with the included `prepare_model.py` script, then compiled locally for your target device.
+The [TI Edge AI Model Hub](https://github.com/TexasInstruments/edgeai-modelhub/tree/main/models/vision/detection) hosts pre-validated ONNX models with per-model config YAMLs for YOLO26, YOLO11, and YOLOv8. Models can be downloaded and prepared with the included `prepare_model.py` script, then compiled locally for your target device.
 
 ### Which TI devices are supported?
 

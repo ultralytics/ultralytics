@@ -2,7 +2,7 @@
 
 # Ultralytics Model Configurations
 
-Welcome to the [Ultralytics](https://www.ultralytics.com) models configuration directory. This folder contains a collection of model configuration files (`*.yaml`) that define Ultralytics YOLO model architectures. These configurations are used across common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [object detection](https://docs.ultralytics.com/tasks/detect), [image segmentation](https://docs.ultralytics.com/tasks/segment), pose estimation, oriented bounding boxes (OBB), and image classification.
+Welcome to the [Ultralytics](https://www.ultralytics.com) models configuration directory. This folder contains a collection of model configuration files (`*.yaml`) that define Ultralytics YOLO model architectures. These configurations are used across common [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks such as [object detection](https://docs.ultralytics.com/tasks/detect), [instance segmentation](https://docs.ultralytics.com/tasks/segment), [semantic segmentation](https://docs.ultralytics.com/tasks/semantic), [depth estimation](https://docs.ultralytics.com/tasks/depth), [image classification](https://docs.ultralytics.com/tasks/classify), [pose estimation](https://docs.ultralytics.com/tasks/pose), and [oriented bounding boxes (OBB)](https://docs.ultralytics.com/tasks/obb).
 
 Configurations are designed to run efficiently on a range of hardware, from standard [CPUs](https://en.wikipedia.org/wiki/Central_processing_unit) to modern [GPUs](https://www.ultralytics.com/glossary/gpu-graphics-processing-unit). Pick a base model that matches your constraints (latency, memory, and accuracy), then customize it as needed.
 
@@ -14,7 +14,7 @@ Model configuration files (`*.yaml`) can be used directly from the [Command Line
 
 ```bash
 # Train a YOLO26n detection model using the coco8 dataset for 100 epochs
-yolo task=detect mode=train model=yolo26n.yaml data=coco8.yaml epochs=100 imgsz=640
+yolo detect train model=yolo26n.yaml data=coco8.yaml epochs=100 imgsz=640
 ```
 
 The same YAML files can be used from [Python](https://www.python.org/), with the same [configuration arguments](https://docs.ultralytics.com/usage/cfg) as in the CLI:

@@ -213,7 +213,7 @@ class Detect(nn.Module):
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
-        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0)) * self.strides
+        dbox = self.decode_bboxes(self.dfl(x["boxes"]), self.anchors.unsqueeze(0), x.get("angle")) * self.strides
         return dbox
 
     def bias_init(self):
@@ -230,14 +230,11 @@ class Detect(nn.Module):
                     5 / self.nc / (640 / self.stride[i]) ** 2
                 )  # cls (.01 objects, 80 classes, 640 img)
 
-    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, xywh: bool = True) -> torch.Tensor:
-        """Decode bounding boxes from predictions."""
-        return dist2bbox(
-            bboxes,
-            anchors,
-            xywh=xywh and not self.end2end and not self.xyxy,
-            dim=1,
-        )
+    def decode_bboxes(
+        self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor | None = None
+    ) -> torch.Tensor:
+        """Decode bounding boxes from predictions, angle is only used by the OBB head."""
+        return dist2bbox(bboxes, anchors, xywh=not self.end2end and not self.xyxy, dim=1)
 
     def postprocess(self, preds: torch.Tensor) -> torch.Tensor:
         """Post-processes YOLO model predictions.
@@ -436,7 +433,6 @@ class OBB(Detect):
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
-        angle (torch.Tensor): Predicted rotation angles.
 
     Methods:
         forward: Concatenate and return predicted bounding boxes and class probabilities.
@@ -479,8 +475,6 @@ class OBB(Detect):
 
     def _inference(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Decode predicted bounding boxes and class probabilities, concatenated with rotation angles."""
-        # For decode_bboxes convenience
-        self.angle = x["angle"]
         preds = super()._inference(x)
         return torch.cat([preds, x["angle"]], dim=1)
 
@@ -498,9 +492,9 @@ class OBB(Detect):
             preds["angle"] = angle
         return preds
 
-    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor) -> torch.Tensor:
+    def decode_bboxes(self, bboxes: torch.Tensor, anchors: torch.Tensor, angle: torch.Tensor) -> torch.Tensor:
         """Decode rotated bounding boxes."""
-        return dist2rbox(bboxes, self.angle, anchors, dim=1)
+        return dist2rbox(bboxes, angle, anchors, dim=1)
 
 
 class OBB26(OBB):
@@ -511,7 +505,6 @@ class OBB26(OBB):
     Attributes:
         ne (int): Number of extra parameters.
         cv4 (nn.ModuleList): Convolution layers for angle prediction.
-        angle (torch.Tensor): Predicted rotation angles.
 
     Methods:
         forward_head: Concatenate and return predicted bounding boxes, class probabilities, and raw angles.
@@ -1007,7 +1000,7 @@ class LRPCHead(nn.Module):
             return (
                 loc_feat,
                 cls_feat.flatten(2),
-                torch.ones(cls_feat.shape[2] * cls_feat.shape[3], device=cls_feat.device, dtype=torch.bool),
+                cls_feat.new_ones(cls_feat.shape[2] * cls_feat.shape[3], dtype=torch.bool),
             )
 
 
@@ -1162,25 +1155,32 @@ class YOLOEDetect(Detect):
         bs = x[0].shape[0]
         cv2 = self.one2one_cv2 if self.end2end else self.cv2
         cv3 = self.one2one_cv3 if self.end2end else self.cv3
+        lrpc = self.one2one_lrpc if self.end2end and hasattr(self, "one2one_lrpc") else self.lrpc
         conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
         for i in range(self.nl):
             cls_feat = cv3[i](x[i])
             loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
+            assert isinstance(lrpc[i], LRPCHead)
+            box, score, idx = lrpc[i](cls_feat, loc_feat, conf)
             boxes.append(box.view(bs, self.reg_max * 4, -1))
             scores.append(score)
             index.append(idx)
+        index = torch.cat(index) if conf else None
         preds = {
             "boxes": torch.cat(boxes, 2),
             "scores": torch.cat(scores, 2),
             "feats": x,
-            "index": torch.cat(index) if conf else None,
+            "index": index,
+            **self.forward_mask(x, index),
         }
         y = self._inference(preds)
         if self.end2end:
             y = self.postprocess(y.permute(0, 2, 1))
         return y if self.export else (y, preds)
+
+    def forward_mask(self, x: list[torch.Tensor], index: torch.Tensor | None) -> dict[str, torch.Tensor]:
+        """Return the prompt-free mask coefficients, which the detection head does not produce."""
+        return {}
 
     def _get_decode_boxes(self, x):
         """Decode predicted bounding boxes for inference."""
@@ -1301,35 +1301,11 @@ class YOLOESegment(YOLOEDetect):
             "contrastive_head": self.one2one_cv4,
         }
 
-    def forward_lrpc(self, x: list[torch.Tensor]) -> torch.Tensor | tuple:
-        """Process features with fused text embeddings to generate detections for prompt-free model."""
-        boxes, scores, index = [], [], []
-        bs = x[0].shape[0]
-        cv2 = self.one2one_cv2 if self.end2end else self.cv2
-        cv3 = self.one2one_cv3 if self.end2end else self.cv3
+    def forward_mask(self, x: list[torch.Tensor], index: torch.Tensor | None) -> dict[str, torch.Tensor]:
+        """Return the prompt-free mask coefficients of the anchors the proposal filter kept."""
         cv5 = self.one2one_cv5 if self.end2end else self.cv5
-        conf = 0 if self.export and not self.dynamic else getattr(self, "conf", 0.001)
-        for i in range(self.nl):
-            cls_feat = cv3[i](x[i])
-            loc_feat = cv2[i](x[i])
-            assert isinstance(self.lrpc[i], LRPCHead)
-            box, score, idx = self.lrpc[i](cls_feat, loc_feat, conf)
-            boxes.append(box.view(bs, self.reg_max * 4, -1))
-            scores.append(score)
-            index.append(idx)
-        mc = torch.cat([cv5[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
-        index = torch.cat(index) if conf else None
-        preds = {
-            "boxes": torch.cat(boxes, 2),
-            "scores": torch.cat(scores, 2),
-            "feats": x,
-            "index": index,
-            "mask_coefficient": mc if index is None else mc[..., index],
-        }
-        y = self._inference(preds)
-        if self.end2end:
-            y = self.postprocess(y.permute(0, 2, 1))
-        return y if self.export else (y, preds)
+        mc = torch.cat([cv5[i](x[i]).view(x[0].shape[0], self.nm, -1) for i in range(self.nl)], 2)
+        return {"mask_coefficient": mc if index is None else mc[..., index]}
 
     def forward(self, x: list[torch.Tensor]) -> tuple | list[torch.Tensor] | dict[str, torch.Tensor]:
         """Return model outputs and mask coefficients if training, otherwise return outputs and mask coefficients."""
@@ -1585,7 +1561,7 @@ class RTDETRDecoder(nn.Module):
         dn_embed, dn_bbox, attn_mask, dn_meta = get_cdn_group(
             batch,
             self.nc,
-            self.num_queries,
+            min(self.num_queries, feats.shape[1]),
             self.denoising_class_embed.weight,
             self.num_denoising,
             self.label_noise_ratio,
@@ -1628,6 +1604,11 @@ class RTDETRDecoder(nn.Module):
                 export, and last dimension format [cx, cy, w, h, max_class_prob, class_index].
         """
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
+        k = (
+            (torch._shape_as_tensor(scores)[1] * self.nc).clamp(max=k)
+            if self.dynamic
+            else min(k, scores.shape[1] * self.nc)
+        )
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
@@ -1638,18 +1619,16 @@ class RTDETRDecoder(nn.Module):
     @staticmethod
     def _generate_anchors(
         shapes: list[list[int]],
+        feats: torch.Tensor,
         grid_size: float = 0.05,
-        dtype: torch.dtype = torch.float32,
-        device: str = "cpu",
         eps: float = 1e-2,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Generate anchor bounding boxes for given shapes with specific grid size and validate them.
 
         Args:
             shapes (list): List of feature map shapes.
+            feats (torch.Tensor): Tensor whose dtype and device the anchors inherit.
             grid_size (float, optional): Base size of grid cells.
-            dtype (torch.dtype, optional): Data type for tensors.
-            device (str, optional): Device to create tensors on.
             eps (float, optional): Small value for numerical stability.
 
         Returns:
@@ -1658,14 +1637,11 @@ class RTDETRDecoder(nn.Module):
         """
         anchors = []
         for i, (h, w) in enumerate(shapes):
-            sy = torch.arange(end=h, dtype=dtype, device=device)
-            sx = torch.arange(end=w, dtype=dtype, device=device)
+            sy = torch.arange(h).type_as(feats)  # type_as inherits the runtime device in traces, unlike device=
+            sx = torch.arange(w).type_as(feats)
             grid_y, grid_x = torch.meshgrid(sy, sx, indexing="ij") if TORCH_1_11 else torch.meshgrid(sy, sx)
-            grid_xy = torch.stack([grid_x, grid_y], -1)  # (h, w, 2)
-
-            valid_WH = torch.tensor([w, h], dtype=dtype, device=device)
-            grid_xy = (grid_xy.unsqueeze(0) + 0.5) / valid_WH  # (1, h, w, 2)
-            wh = torch.ones_like(grid_xy, dtype=dtype, device=device) * grid_size * (2.0**i)
+            grid_xy = torch.stack([(grid_x + 0.5) / w, (grid_y + 0.5) / h], -1)[None]  # (1, h, w, 2)
+            wh = torch.full_like(grid_xy, grid_size * (2.0**i))
             anchors.append(torch.cat([grid_xy, wh], -1).view(-1, h * w, 4))  # (1, h*w, 4)
 
         anchors = torch.cat(anchors, 1)  # (1, h*w*nl, 4)
@@ -1723,7 +1699,7 @@ class RTDETRDecoder(nn.Module):
         """
         bs = feats.shape[0]
         if self.dynamic or self.shapes != shapes:
-            self.anchors, self.valid_mask = self._generate_anchors(shapes, dtype=feats.dtype, device=feats.device)
+            self.anchors, self.valid_mask = self._generate_anchors(shapes, feats)
             self.shapes = shapes
 
         # Prepare input for decoder
@@ -1733,14 +1709,19 @@ class RTDETRDecoder(nn.Module):
         # Query selection
         # (bs*num_queries,)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
-        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, self.num_queries, groups)[1].view(-1)
+        k = (
+            torch._shape_as_tensor(enc_outputs_scores)[1].clamp(max=self.num_queries)
+            if self.dynamic
+            else min(self.num_queries, enc_outputs_scores.shape[1])
+        )
+        topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, k, groups)[1].view(-1)
         # (bs*num_queries,)
-        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, self.num_queries).view(-1)
+        batch_ind = torch.arange(end=bs, dtype=topk_ind.dtype).unsqueeze(-1).repeat(1, k).view(-1)
 
         # (bs, num_queries, 256)
-        top_k_features = features[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        top_k_features = features[batch_ind, topk_ind].view(bs, k, -1)
         # (bs, num_queries, 4)
-        top_k_anchors = self.anchors[:, topk_ind].view(bs, self.num_queries, -1)
+        top_k_anchors = self.anchors[:, topk_ind].view(bs, k, -1)
 
         # Dynamic anchors + static content
         refer_bbox = self.enc_bbox_head(top_k_features) + top_k_anchors
@@ -1748,9 +1729,11 @@ class RTDETRDecoder(nn.Module):
         enc_bboxes = refer_bbox.sigmoid()
         if dn_bbox is not None:
             refer_bbox = torch.cat([dn_bbox, refer_bbox], 1)
-        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, self.num_queries, -1)
+        enc_scores = enc_outputs_scores[batch_ind, topk_ind].view(bs, k, -1)
 
-        embeddings = self.tgt_embed.weight.unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        embeddings = (
+            self.tgt_embed.weight[:k].unsqueeze(0).repeat(bs, 1, 1) if self.learnt_init_query else top_k_features
+        )
         if self.training:
             refer_bbox = refer_bbox.detach()
             if not self.learnt_init_query:

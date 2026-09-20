@@ -63,8 +63,6 @@ To learn more about how Sentry handles data, please visit [Sentry's Privacy Poli
 - **Sensitive Information**: We ensure that crash logs are scrubbed of any personally identifiable or sensitive user data, safeguarding the confidentiality of your information.
 - **Controlled Collection**: Our crash reporting mechanism is meticulously calibrated to gather only what is essential for troubleshooting while respecting user privacy.
 
-By detailing the tools used for data collection and offering additional background information with URLs to their respective privacy pages, users are provided with a comprehensive view of our practices, emphasizing transparency and respect for user privacy.
-
 ## Disabling Data Collection
 
 We believe in providing our users with full control over their data. By default, our package is configured to collect analytics and crash reports to help improve the experience for all users. However, we respect that some users may prefer to opt out of this data collection.

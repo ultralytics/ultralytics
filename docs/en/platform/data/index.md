@@ -28,7 +28,7 @@ The Data section of Ultralytics Platform helps you:
 - **Import from a URL** by pasting a direct link to an archive or NDJSON export, or from [Roboflow](../integrations/roboflow.md)
 - **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
 - **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
-- **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md) or the new [SAM 3](../../models/sam-3.md)
+- **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)
 - **Manage classes** by renaming, recoloring, merging, and deleting them across the whole dataset
 - **Analyze** your data with statistics, visualizations, and embedding-based clustering
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
@@ -123,7 +123,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 
 ### Clustering
 
-Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. See [Clustering](datasets.md#clustering) for details.
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. The same embeddings let you [find similar images](datasets.md#find-similar-images) in public datasets and add them to yours. See [Clustering](datasets.md#clustering) for details.
 
 ### Statistics and Visualization
 
@@ -155,7 +155,7 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels, plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
+**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels or [semantic PNG masks](datasets.md#preparing-your-dataset), plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
 
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 

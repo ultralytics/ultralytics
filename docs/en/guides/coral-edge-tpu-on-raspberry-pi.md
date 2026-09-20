@@ -136,7 +136,7 @@ Now you can run inference:
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
+        model = YOLO("path/to/yolo26n_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
 
         # Run Prediction
         model.predict("path/to/source.png")
@@ -145,7 +145,7 @@ Now you can run inference:
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/ source=path/to/source.png < model_name > _full_integer_quant_edgetpu.tflite # Load an official model or custom model
+        yolo predict model=path/to/yolo26n_full_integer_quant_edgetpu.tflite source=path/to/source.png # Load an official model or custom model
         ```
 
 Find full prediction-mode details on the [Predict](../modes/predict.md) page.
@@ -160,7 +160,7 @@ Find full prediction-mode details on the [Predict](../modes/predict.md) page.
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
+        model = YOLO("path/to/yolo26n_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
 
         # Run Prediction
         model.predict("path/to/source.png")  # Inference defaults to the first TPU
@@ -276,7 +276,7 @@ After exporting your YOLO26 model to an Edge TPU-compatible format, run inferenc
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("path/to/<model_name>_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
+        model = YOLO("path/to/yolo26n_full_integer_quant_edgetpu.tflite")  # Load an official model or custom model
 
         # Run Prediction
         model.predict("path/to/source.png")
@@ -285,7 +285,7 @@ After exporting your YOLO26 model to an Edge TPU-compatible format, run inferenc
     === "CLI"
 
         ```bash
-        yolo predict model=path/to/ source=path/to/source.png < model_name > _full_integer_quant_edgetpu.tflite # Load an official model or custom model
+        yolo predict model=path/to/yolo26n_full_integer_quant_edgetpu.tflite source=path/to/source.png # Load an official model or custom model
         ```
 
 Comprehensive details on prediction mode are on the [Predict](../modes/predict.md) page.

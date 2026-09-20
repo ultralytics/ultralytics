@@ -23,10 +23,12 @@ from torch.nn.utils.fusion import fuse_conv_bn_weights
 
 from ultralytics import __version__
 from ultralytics.utils import (
+    ARM64,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
     LOCAL_RANK,
     LOGGER,
+    MACOS,
     NUM_THREADS,
     PYTHON_VERSION,
     TORCH_VERSION,
@@ -196,6 +198,8 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if isinstance(device, torch.device):
         if device.type == "cuda" and device.index is None:
             return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
+        if device.type == "cpu":
+            return "cpu"  # an indexed torch.device('cpu', 0) is the same cpu
         if device.type in {"npu", "xpu"}:
             return device.type if device.index is None else f"{device.type}:{device.index}"
     device = str(device).lower()
@@ -266,8 +270,8 @@ def select_device(device="", newline=False, verbose=True):
         the current device untouched.
     """
     if isinstance(device, torch.device):
-        if device.type not in {"cuda", "npu", "xpu"}:
-            return device  # other torch.device inputs pass through; accelerator inputs canonicalize and validate below
+        if device.type not in {"cpu", "cuda", "npu", "xpu"}:
+            return device  # other torch.device inputs pass through; cpu and accelerator inputs canonicalize below
     elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
@@ -351,6 +355,8 @@ def select_device(device="", newline=False, verbose=True):
 
     if arg in {"cpu", "mps"}:
         torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
+    if arg == "cpu" and MACOS and ARM64 and TORCH_2_3:
+        torch.backends.nnpack.set_flags(False)  # NNPACK conv2d at batch>=16 is 6x slower than im2col on Apple silicon
     if verbose:
         LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
@@ -1032,8 +1038,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         thop = None  # conda support without 'ultralytics-thop' installed
 
     results = []
-    if not isinstance(device, torch.device):
-        device = select_device(device)
+    device = select_device(device, verbose=False)
     LOGGER.info(
         f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"

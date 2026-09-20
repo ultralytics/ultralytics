@@ -326,7 +326,7 @@ Some export formats have architecture or task restrictions:
 
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Core AI**  | FP32 or FP16 `.aimodel`; runs on iOS 27+ and macOS 27+. CoreML remains the default format for the Ultralytics iOS and Flutter SDKs                                                     |
+| **Core AI**  | FP32 or FP16 `.aimodel`; no embedded NMS or dynamic shapes; runs on iOS 27+ and macOS 27+. CoreML remains the default format for the Ultralytics iOS and Flutter SDKs                  |
 | **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 or W8A16                                                                                                                              |
 | **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
 | **DeepX**    | INT8 only                                                                                                                                                                              |

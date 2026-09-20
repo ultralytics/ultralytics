@@ -610,9 +610,10 @@ class DetectionValidator(BaseValidator):
                         stats[f"metrics/mAP50({suffix[i][0]})"] = val.stats_as_dict["AP_50"]
                         stats[f"metrics/mAP50-95({suffix[i][0]})"] = val.stats_as_dict["AP_all"]
                         stats["fitness"] = 0.9 * val.stats_as_dict["AP_all"] + 0.1 * val.stats_as_dict["AP_50"]
-                    stats["metrics/mAP_small(B)"] = val.stats_as_dict["AP_small"]
-                    stats["metrics/mAP_medium(B)"] = val.stats_as_dict["AP_medium"]
-                    stats["metrics/mAP_large(B)"] = val.stats_as_dict["AP_large"]
+                    for size in "small", "medium", "large":
+                        ap = val.stats_as_dict.get(f"AP_{size}")  # keypoints report no small range
+                        if ap is not None:
+                            stats[f"metrics/mAP_{size}({suffix[i][0]})"] = ap
                     if not self.training and self.is_lvis:
                         stats[f"metrics/APr({suffix[i][0]})"] = val.stats_as_dict["APr"]
                         stats[f"metrics/APc({suffix[i][0]})"] = val.stats_as_dict["APc"]

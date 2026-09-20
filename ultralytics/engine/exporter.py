@@ -581,13 +581,8 @@ class Exporter:
         fmt = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = "engine"
-        if fmt in {"mlmodel", "mlpackage", "mlprogram", "coreml"}:  # 'coreml' aliases
+        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
-        if fmt in {"apple", "ios"}:  # 'coreai' aliases, Apple's default on iOS 27+ and macOS 27+
-            LOGGER.info(
-                f"format='{fmt}' exports Apple Core AI for iOS 27+. Use format='coreml' for earlier iOS versions."
-            )
-            fmt = self.args.format = "coreai"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
         if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
@@ -1510,8 +1505,7 @@ class Exporter:
     def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
         """Export YOLO model to Apple Core AI *.aimodel format."""
         assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
-            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only. "
-            "Use format='coreml' to export for Apple devices from other platforms."
+            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
         )
         assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.coreai import torch2coreai

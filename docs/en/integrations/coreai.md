@@ -8,7 +8,7 @@ keywords: Apple Core AI, CoreAI, aimodel, Core ML comparison, CoreML, mlpackage,
 
 !!! warning "Core AI export requires macOS 26 or later on Apple silicon"
 
-    `coreai-core` publishes `macosx_26_0_arm64` wheels only, so export runs on Apple silicon Macs. The exported `.aimodel` runs on iOS 27 and macOS 27. The [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) (8.9.15 and later) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) (0.6.15 and later) load `.aimodel` assets on iOS 27 and fall back to [Core ML](coreml.md) on earlier iOS versions and on the iOS Simulator, which does not ship Core AI.
+    `coreai-core` publishes `macosx_26_0_arm64` wheels only, so export runs on Apple silicon Macs. The exported `.aimodel` runs on iOS 27 and macOS 27. The [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) (8.9.15 and later) and [Flutter plugin](https://github.com/ultralytics/yolo-flutter-app) (0.6.15 and later) load `.aimodel` assets as an opt-in on iOS 27 devices; [Core ML](coreml.md) remains their default.
 
 [Core AI](https://developer.apple.com/core-ai/) is Apple's new framework for running neural networks directly on Apple silicon. It introduces the `.aimodel` model format, a modern Swift inference API, PyTorch-based conversion tools, ahead-of-time compilation, model specialization, and dedicated debugging and profiling tools.
 
@@ -30,7 +30,7 @@ Core AI is a new deployment path rather than a new name for Core ML. The framewo
 | Model preparation                | Specialization at installation or first use, with optional ahead-of-time compilation | Xcode or on-device model compilation                                                      |
 | Custom operations                | Custom Core AI lowerings and Metal kernels                                           | Core ML custom layers and supported MIL operations                                        |
 | Deployment availability          | New Apple operating-system generation; currently beta                                | Broad support across existing Apple operating systems                                     |
-| Ultralytics iOS and Flutter SDKs | iOS 27 and later, on device                                                          | Fully supported, and the fallback below iOS 27                                            |
+| Ultralytics iOS and Flutter SDKs | Opt-in on iOS 27 and later devices                                                   | Fully supported, and the default                                                          |
 
 Core ML remains the appropriate choice when an application needs broad device coverage, Vision framework integration, or model types such as decision trees and tabular pipelines. Apple continues to support Core ML and directs developers with non-neural model types to it.
 
@@ -120,7 +120,7 @@ guard let function = try model.loadFunction(named: "main") else {
 let outputs = try await function.run(inputs: ["images": imageTensor])
 ```
 
-Unlike the current [Core ML and Vision workflow](coreml.md#deploying-exported-yolo26-coreml-models), the Core AI path in the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) does its own letterbox preprocessing and `NDArray` construction, reads the same Ultralytics metadata from the asset's `metadata.json`, and reuses the Core ML output decoders. Apple provides current API details in the [Core AI framework documentation](https://developer.apple.com/documentation/coreai) and working model examples in the [Core AI models repository](https://github.com/apple/coreai-models).
+Unlike the current [Core ML and Vision workflow](coreml.md#deploying-exported-yolo26-coreml-models), the Core AI path in the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) does its own letterbox preprocessing and `NDArray` construction, reads the same Ultralytics metadata from the asset's `metadata.json`, and reuses the Core ML output decoders. It loads when an app passes an `.aimodel` path or an `.aimodel.zip` URL. Apple provides current API details in the [Core AI framework documentation](https://developer.apple.com/documentation/coreai) and working model examples in the [Core AI models repository](https://github.com/apple/coreai-models).
 
 ## Advantages of Core AI
 
@@ -144,8 +144,9 @@ Core AI is not currently a replacement for the production Core ML path:
 - **Beta software:** Apple's Core AI framework and parts of its Python toolchain are still preliminary and may change before their stable releases.
 - **Narrower export environment:** `coreai-torch` currently requires Python 3.11 or newer but below 3.14, plus recent PyTorch versions, which is much narrower than Ultralytics' supported Python and PyTorch range.
 - **Export runs on macOS only:** `coreai-core` publishes `macosx_26_0_arm64` wheels only, so `format=coreai` needs an Apple silicon Mac on macOS 26 or later.
-- **Slower end-to-end head on the Neural Engine:** With `nms=False`, YOLO26n measures 3.06 ms on Core AI against 1.53 ms on Core ML on an iPhone 17 Pro, and the FP16 end-to-end pose model returns no detections under Core AI's default placement on iOS 27.0 ([apple/coreai-torch#115](https://github.com/apple/coreai-torch/issues/115)). The raw head (`nms=None`, the default) avoids both, which is why the Ultralytics iOS SDK and Flutter plugin ship raw-head Core AI models and run NMS in Swift. See [Choosing the head](#choosing-the-head).
-- **No iOS Simulator runtime:** The iOS Simulator SDK does not include Core AI, so the Ultralytics SDKs run Core ML there.
+- **Opt-in in the Ultralytics SDKs, not the default:** On an iPhone 17 Pro the [on-device comparison](https://github.com/ultralytics/yolo-ios-app/blob/main/docs/performance.md) puts Core AI level with Core ML end to end rather than ahead, with semantic, depth and CPU-only inference slower and FP16 assets about twice the download size, so the iOS SDK and Flutter plugin keep Core ML as the default.
+- **Use the raw head for the SDKs:** With `nms=False`, YOLO26n measures 3.06 ms on Core AI against 1.53 ms on Core ML, and the FP16 end-to-end pose model returns no detections under Core AI's default placement on iOS 27.0 ([apple/coreai-torch#115](https://github.com/apple/coreai-torch/issues/115)). The raw head (`nms=None`, the default) avoids both, and the SDKs run NMS in Swift. See [Choosing the head](#choosing-the-head).
+- **No iOS Simulator runtime:** The iOS Simulator SDK does not include Core AI.
 - **Application migration required:** A `.aimodel` cannot be substituted for an `.mlpackage`; model loading, preprocessing, inference calls, metadata handling, and output decoding need a Core AI implementation.
 - **Limited production evidence:** Performance, power use, first-run specialization time, accuracy, and compression need validation across the supported YOLO task and device matrix.
 - **No NMS pipeline:** Core ML can package an NMS stage for older YOLO detection models. Core AI exports raw one-to-many predictions by default; use `nms=False` for YOLO26's NMS-free head. Embedded NMS (`nms=True`) and `dynamic=True` are not supported. `coreai-torch` has no lowering for `torchvision::nms`, so NMS stays on the host.
@@ -157,7 +158,7 @@ Core AI is not currently a replacement for the production Core ML path:
 Use **Core ML today** when you need:
 
 - Deployment across current and older Apple operating systems
-- YOLO26's end-to-end head without a separate NMS step
+- Integration with the Ultralytics iOS or Flutter SDK
 - Vision framework image handling
 - Tested FP16 and INT8 YOLO deployment
 - Embedded NMS for compatible legacy detection models
@@ -176,12 +177,12 @@ Core ML and Core AI are expected to coexist while applications transition. Suppo
 
 The dedicated `coreai` export target is implemented: export and numerical validation cover the supported YOLO26 task models and run continuously in Ultralytics CI on macOS 26, and FP16 latency is measured on-device. The remaining roadmap before Core AI reaches parity with the Core ML path:
 
-1. Closing the end-to-end head latency gap on the Apple Neural Engine ([apple/coreai-torch#66](https://github.com/apple/coreai-torch/issues/66)).
+1. Closing the end-to-end head latency gap on the Apple Neural Engine ([apple/coreai-torch#66](https://github.com/apple/coreai-torch/issues/66)) and the Neural Engine correctness issues ([apple/coreai-torch#115](https://github.com/apple/coreai-torch/issues/115), [#116](https://github.com/apple/coreai-torch/issues/116)).
 2. INT8 and palettized Core AI assets; today's assets are FP16, about twice the download size of the INT8 Core ML assets.
 3. Stable Apple framework and conversion-tool releases (the iOS 27 and macOS 27 generation is currently in beta).
 4. Memory, power, and specialization benchmarks across the supported device matrix.
 
-The Ultralytics iOS SDK and Flutter plugin load Core AI on iOS 27 and later and keep Core ML as the fallback; Core ML remains the recommended target for coverage below iOS 27; follow the [Ultralytics roadmap](https://www.ultralytics.com/roadmap) and release notes for the remaining items.
+The Ultralytics iOS SDK and Flutter plugin load Core AI as an opt-in on iOS 27 and later; Core ML remains their default and the recommended target for coverage below iOS 27; follow the [Ultralytics roadmap](https://www.ultralytics.com/roadmap) and release notes for the remaining items.
 
 ## Additional Resources
 
@@ -196,7 +197,7 @@ The Ultralytics iOS SDK and Flutter plugin load Core AI on iOS 27 and later and 
 
 ### Can Ultralytics export YOLO models to `.aimodel`?
 
-Yes. Export with `model.export(format="coreai")` or `yolo export format=coreai` on an Apple silicon Mac running macOS 26 or later; the exported `.aimodel` runs on iOS 27 and macOS 27. From `ultralytics` 8.4.156, `format="ios"` and `format="apple"` are aliases of `format="coreai"`. For operating systems below that generation, export Core ML `.mlpackage` files with `format="coreml"`.
+Yes. Export with `model.export(format="coreai")` or `yolo export format=coreai` on an Apple silicon Mac running macOS 26 or later; the exported `.aimodel` runs on iOS 27 and macOS 27. The Ultralytics iOS and Flutter SDKs load it as an opt-in on iOS 27 devices. For their default path, and for operating systems below that generation, export Core ML `.mlpackage` files with `format="coreml"`.
 
 ### Is Core AI replacing Core ML?
 
@@ -208,4 +209,4 @@ No. They contain different model representations and are loaded by different fra
 
 ### Will the Ultralytics Core AI integration replace `format=coreml`?
 
-No. `format=coreml` keeps exporting Core ML, and the Ultralytics iOS and Flutter SDKs keep loading it below iOS 27 and on the iOS Simulator. Only the `ios` and `apple` convenience aliases moved to Core AI.
+The initial integration is expected to coexist with Core ML. Any future replacement decision depends on operating-system adoption, stable tooling, performance, and downstream iOS and Flutter support.

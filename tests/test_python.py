@@ -1629,6 +1629,17 @@ def test_semantic_loss_all_ignore(nc):
     assert preds.grad is not None and aux.grad is not None
 
 
+def test_semantic_confusion_matrix_large_counts():
+    """SemanticMetrics must keep counting past float32's 2**24, where accumulating 1.0 at a time would saturate."""
+    from ultralytics.utils.metrics import SemanticMetrics
+
+    metrics = SemanticMetrics(names={0: "a", 1: "b"})
+    metrics.matrix = torch.full((2, 2), float(2**24))  # counts already accumulated from a large val set
+    zeros = torch.zeros((1, 10, 10), dtype=torch.int32)
+    metrics.update_stats(zeros, zeros)
+    assert metrics.matrix[0, 0].item() == 2**24 + 100, f"confusion matrix saturated at {metrics.matrix[0, 0].item()}"
+
+
 class _DepthLossModel(torch.nn.Module):
     """Tiny stub mirroring the model surface DepthLoss26 reads: .parameters() for device and .args for hyps."""
 

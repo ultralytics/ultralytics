@@ -5,7 +5,7 @@ description: Learn how to manage and optimize queues using Ultralytics YOLO26 to
 keywords: queue management, YOLO26, Ultralytics, reduce wait times, efficiency, customer satisfaction, retail, airports, healthcare, banks
 ---
 
-# Queue Management using Ultralytics YOLO26 🚀
+# Queue Management using Ultralytics YOLO26
 
 ## What is Queue Management?
 
@@ -106,10 +106,9 @@ Here's a table with the `QueueManager` arguments:
 {% from "macros/solutions-args.md" import param_table %}
 {{ param_table(["model", "region", "line_width", "verbose"]) }}
 
-The `QueueManagement` solution also support some `track` arguments:
+The `QueueManager` solution also supports `track` arguments:
 
-{% from "macros/solutions-track-args.md" import param_table %}
-{{ param_table(["tracker", "conf", "iou", "classes", "device"]) }}
+{% include "macros/solutions-track-args.md" %}
 
 Additionally, the following visualization parameters are available:
 

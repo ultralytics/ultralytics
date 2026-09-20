@@ -37,7 +37,7 @@ from ultralytics.data.loaders import (
     SourceTypes,
     autocast_list,
 )
-from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, get_split_fraction
+from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS, add_polygon_background, get_split_fraction
 from ultralytics.utils import RANK, colorstr
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.torch_utils import TORCH_1_13, TORCH_2_0, TORCH_2_7, get_torch_device_backend
@@ -74,7 +74,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
             kwargs.pop("prefetch_factor", None)  # not supported by earlier versions
         super().__init__(*args, **kwargs)
         object.__setattr__(self, "batch_sampler", _RepeatSampler(self.batch_sampler))
-        self.iterator = super().__iter__()
+        self.iterator = None  # fork workers on first iteration, not while another loader's pin-memory thread starts up
 
     def __len__(self) -> int:
         """Return the length of the batch sampler's sampler."""
@@ -82,6 +82,8 @@ class InfiniteDataLoader(dataloader.DataLoader):
 
     def __iter__(self) -> Iterator:
         """Yield one epoch of batches from the persistent iterator."""
+        if self.iterator is None:
+            self.iterator = self._get_iterator()
         for _ in range(len(self)):
             yield next(self.iterator)
 
@@ -103,7 +105,7 @@ class InfiniteDataLoader(dataloader.DataLoader):
     def reset(self):
         """Reset the iterator to allow modifications to the dataset during training."""
         self.close()  # free old worker pipes before creating new iterator
-        self.iterator = self._get_iterator()
+        self.iterator = None
 
 
 class _RepeatSampler:
@@ -436,6 +438,8 @@ def build_yolo_dataset(
         pad, rect = 0.0, rect and mode == "train"  # depth val letterbox stretches, so pad and rect_shape are ignored
     elif cfg.task == "semantic":
         dataset = SemanticDataset if data.get("masks_dir") else PolygonSemanticDataset
+        if dataset is PolygonSemanticDataset:
+            add_polygon_background(data)  # polygon labels need a background class; idempotent if already added
         pad = 0.0  # no pad for semantic
     elif multi_modal:
         dataset = YOLOMultiModalDataset

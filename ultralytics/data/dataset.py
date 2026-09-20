@@ -100,6 +100,12 @@ class YOLODataset(BaseDataset):
         self.use_keypoints = task == "pose"
         self.use_obb = task == "obb"
         self.data = data
+        nkpt, ndim = self.data.get("kpt_shape", (0, 0))
+        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):  # checked before the label cache is consulted
+            raise ValueError(
+                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
+                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
+            )
         super().__init__(*args, channels=self.data.get("channels", 3), **kwargs)
 
     def cache_labels(self, path: Path = Path("./labels.cache")) -> dict:
@@ -159,12 +165,13 @@ class YOLODataset(BaseDataset):
         return self.label_files
 
     def get_cache_hash(self) -> str:
-        """Return the hash used to validate a label cache against the current dataset files.
+        """Return the hash used to validate a label cache against the current dataset files and scan settings.
 
         Returns:
             (str): Dataset cache hash.
         """
-        return get_hash(self.label_files + self.im_files)
+        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of scan counters for progress bars and cache logs.
@@ -187,11 +194,6 @@ class YOLODataset(BaseDataset):
             (tuple): (verify function, zipped argument iterable) for ThreadPool.imap.
         """
         nkpt, ndim = self.data.get("kpt_shape", (0, 0))
-        if self.use_keypoints and (nkpt <= 0 or ndim not in {2, 3}):
-            raise ValueError(
-                "'kpt_shape' in data.yaml missing or incorrect. Should be a list with [number of "
-                "keypoints, number of dims (2 for x,y or 3 for x,y,visible)], i.e. 'kpt_shape: [17, 3]'"
-            )
         return verify_image_label, zip(
             self.im_files,
             self.label_files,
@@ -890,6 +892,7 @@ class SemanticDataset(YOLODataset):
         data (dict): Dataset configuration from YAML.
         mask_files (list[str]): List of mask file paths corresponding to images.
         include_class (np.ndarray | None): Class ids to keep per pixel (None keeps all).
+        masks (dict[int, np.ndarray]): Resized masks of the images in the mosaic buffer, evicted with them.
     """
 
     format_class = SemanticFormat
@@ -907,6 +910,7 @@ class SemanticDataset(YOLODataset):
         self.label_lut, self.inverse_lut = self._build_label_luts()
         self.mask_files = []
         self.include_class = None
+        self.masks = {}  # masks of the buffered images, evicted with the image buffer
         super().__init__(*args, data=data, **kwargs)
 
     def update_labels(self, include_class: list[int] | None) -> None:
@@ -975,7 +979,7 @@ class SemanticDataset(YOLODataset):
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", "mask_bit_depth"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -983,12 +987,7 @@ class SemanticDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the mask verification function and its argument iterable."""
-        return verify_image_mask, zip(
-            self.im_files,
-            self.mask_files,
-            repeat(self.prefix),
-            repeat(int(self.data.get("nc", 0)) == 1),
-        )
+        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix))
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
@@ -1055,8 +1054,7 @@ class SemanticDataset(YOLODataset):
     def get_image_and_label(self, index):
         """Get image, label and semantic mask for the given index.
 
-        Overrides parent to include semantic mask so that Mosaic/CopyPaste mix images
-        also have their masks loaded.
+        Overrides parent to include the semantic mask, served from RAM for the images Mosaic draws from the buffer.
 
         Args:
             index (int): Dataset index.
@@ -1066,12 +1064,17 @@ class SemanticDataset(YOLODataset):
         """
         label = super().get_image_and_label(index)
         h, w = label["img"].shape[:2]
-        mask = self.load_mask(index, image_shape=(h, w))
-        if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
-            mask[~np.isin(mask, self.include_class)] = 255
-        # Resize mask to match the resized image dimensions
-        if mask.shape[:2] != (h, w):
-            mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+        mask = self.masks.get(index)
+        if mask is None:
+            mask = self.load_mask(index, image_shape=(h, w))
+            if self.include_class is not None:  # keep only selected classes; remap the rest to the ignore label
+                mask[~np.isin(mask, self.include_class)] = 255
+            if mask.shape[:2] != (h, w):
+                mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+            if index in self.buffer:  # image is RAM-resident for mosaic reuse, keep its mask with it
+                self.masks[index] = mask
+                if len(self.masks) > len(self.buffer):
+                    self.masks = {i: self.masks[i] for i in self.buffer if i in self.masks}
         label["semantic_mask"] = mask
         return label
 
@@ -1155,14 +1158,17 @@ class ClassificationDataset:
         cache_images: Decode images into one contiguous RAM cache.
     """
 
-    def __init__(self, root: str, args, augment: bool = False, prefix: str = ""):
-        """Initialize a classification-style dataset.
+    def __init__(self, root: str, args, augment: bool = False, prefix: str = "", names: dict[int, str] | None = None):
+        """Initialize a classification-style dataset with root directory, arguments, augmentations, and cache settings.
 
         Args:
-            root (str): Dataset root path.
-            args (Namespace): Dataset and augmentation configuration.
-            augment (bool, optional): Whether to apply training augmentations.
-            prefix (str, optional): Prefix for logging and cache filenames.
+            root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
+            args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
+                parameters, and cache settings.
+            augment (bool, optional): Whether to apply augmentations to the dataset.
+            prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
+            names (dict[int, str], optional): Model class names; class folders are aligned to this order by name and
+                folders the model lacks are dropped, since each split's ImageFolder scan is indexed on its own.
         """
         self.base = self.build_base_dataset(root)
         self.root = str(getattr(self.base, "root", root))
@@ -1181,10 +1187,7 @@ class ClassificationDataset:
         self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
         self.cache_disk = str(args.cache).lower() == "disk"  # cache images on disk as uncompressed *.npy files
         self.samples = self.verify_images()  # filter out bad images
-        if is_ndjson:
-            self.samples = [(f, int(Path(f).parent.name), *rest) for f, _, *rest in self.samples]
-        if args.single_cls:
-            self.samples = [(f, 0, *rest) for f, _, *rest in self.samples]
+        self.samples = self.index_samples(args, is_ndjson, names)
         self.samples = [self.cache_sample(sample) for sample in self.samples]
         if self.cache_ram:
             self.cache_images()
@@ -1201,6 +1204,35 @@ class ClassificationDataset:
     def get_samples(self) -> list[tuple]:
         """Return dataset samples as tuples whose first element is the image path."""
         return self.base.samples
+
+    def index_samples(self, args, is_ndjson: bool, names: dict[int, str] | None) -> list[tuple]:
+        """Map each verified sample onto the model class index its folder name corresponds to.
+
+        Args:
+            args (Namespace): Dataset configuration, read for `single_cls`.
+            is_ndjson (bool): Whether the split is an NDJSON export whose folder names are the class ids.
+            names (dict[int, str] | None): Model class names to align the split's class folders to.
+
+        Returns:
+            (list[tuple]): Samples as (file, class index) tuples, without classes the model lacks.
+        """
+        classes = self.base.classes  # this split's class folders, sorted, indexed by the ImageFolder target
+        if args.single_cls:
+            index = dict.fromkeys(classes, 0)
+        elif is_ndjson:  # folders are the class ids
+            index = {c: int(c) for c in classes}
+        elif names and not set(classes).isdisjoint(names.values()):  # align to the model's class order by name
+            index = {n: i for i, n in names.items()}
+        else:  # folder names carry no class meaning, e.g. ImageNet wnids under humanized names
+            index = {c: i for i, c in enumerate(classes)}
+        extra = {c for c in classes if index.get(c, len(names)) >= len(names)} if names else set()  # not in the model
+        samples = [(f, index[classes[t]]) for f, t in self.samples if classes[t] not in extra]
+        if extra:
+            LOGGER.warning(
+                f"{self.prefix}Skipping {len(self.samples) - len(samples)} samples from classes the model lacks: "
+                f"{sorted(extra)}"
+            )
+        return samples
 
     @staticmethod
     def cache_sample(sample: tuple) -> list:
@@ -1260,7 +1292,7 @@ class ClassificationDataset:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
 
         A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
-        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared buffer is read-only across
         workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
         """
         with ThreadPool(NUM_THREADS) as pool:
@@ -1323,11 +1355,11 @@ class ClassificationDataset:
     def _cache_hash(self) -> str:
         """Return the cache-validity hash for this dataset.
 
-        Subclasses can override to extend the hash beyond image paths — e.g. ReidDataset
+        Subclasses can override to extend the hash beyond image paths and class folders — e.g. ReidDataset
         includes (pid, camid) tuples so a filename_re change in the YAML invalidates the
         cache.
         """
-        return get_hash([x[0] for x in self.samples])
+        return get_hash([x[0] for x in self.samples] + self.base.classes)  # files and classes
 
 
 class ReidDataset(ClassificationDataset):
@@ -1435,6 +1467,10 @@ class ReidDataset(ClassificationDataset):
         if self._is_folder_per_identity(root_path):
             return self._get_samples_folder(root_path)
         return self._get_samples_flat(root_path)
+
+    def index_samples(self, args, is_ndjson: bool, names: dict[int, str] | None) -> list[tuple]:
+        """Keep the discovered (path, pid, camid) samples; ReID labels are identities, not model class names."""
+        return self.samples
 
     def _get_samples_folder(self, root_path: Path) -> list[tuple]:
         """Parse samples from folder-per-identity layout (classification-style).

@@ -6,57 +6,18 @@ keywords: Ultralytics Explorer, data exploration, semantic search, vector simila
 
 # VOC Exploration Example
 
-<div align="center">
-
-<a href="https://www.ultralytics.com/events/yolovision" target="_blank"><img width="100%" src="https://cdn.ul.run/i/bdb282cd382043d7917c5ac6445b6688.avif" alt="Ultralytics YOLO banner"></a>
-
-</div>
-
-<p align="center">
-<a href="https://docs.ultralytics.com/zh">中文</a> |
-<a href="https://docs.ultralytics.com/ko">한국어</a> |
-<a href="https://docs.ultralytics.com/ja">日本語</a> |
-<a href="https://docs.ultralytics.com/ru">Русский</a> |
-<a href="https://docs.ultralytics.com/de">Deutsch</a> |
-<a href="https://docs.ultralytics.com/fr">Français</a> |
-<a href="https://docs.ultralytics.com/es">Español</a> |
-<a href="https://docs.ultralytics.com/pt">Português</a> |
-<a href="https://docs.ultralytics.com/tr">Türkçe</a> |
-<a href="https://docs.ultralytics.com/vi">Tiếng Việt</a> |
-<a href="https://docs.ultralytics.com/ar">العربية</a>
-</p>
-
-<div align="center">
-<br>
-    <a href="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml"><img src="https://github.com/ultralytics/ultralytics/actions/workflows/ci.yml/badge.svg" alt="Ultralytics CI"></a>
-    <a href="https://clickpy.clickhouse.com/dashboard/ultralytics"><img src="https://static.pepy.tech/badge/ultralytics" alt="Ultralytics Downloads"></a>
-    <a href="https://discord.com/invite/ultralytics"><img alt="Ultralytics Discord" src="https://img.shields.io/discord/1089800235347353640?logo=discord&logoColor=white&label=Discord&color=blue"></a>
-    <a href="https://community.ultralytics.com"><img alt="Ultralytics Forums" src="https://img.shields.io/discourse/users?server=https%3A%2F%2Fcommunity.ultralytics.com&logo=discourse&label=Forums&color=blue"></a>
-    <a href="https://www.reddit.com/r/ultralytics/"><img alt="Ultralytics Reddit" src="https://img.shields.io/reddit/subreddit-subscribers/ultralytics?style=flat&logo=reddit&logoColor=white&label=Reddit&color=blue"></a>
-    <br>
-    <a href="https://console.paperspace.com/github/ultralytics/ultralytics"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run Ultralytics on Gradient"></a>
-    <a href="https://colab.research.google.com/github/ultralytics/ultralytics/blob/main/examples/tutorial.ipynb"><img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open Ultralytics In Colab"></a>
-    <a href="https://www.kaggle.com/models/ultralytics/yolo26"><img src="https://kaggle.com/static/images/open-in-kaggle.svg" alt="Open Ultralytics In Kaggle"></a>
-    <a href="https://mybinder.org/v2/gh/ultralytics/ultralytics/HEAD?labpath=examples%2Ftutorial.ipynb"><img src="https://mybinder.org/badge_logo.svg" alt="Open Ultralytics In Binder"></a>
-<br>
-</div>
-
-Welcome to the Ultralytics Explorer API notebook. This notebook introduces the resources available for exploring datasets with semantic search, vector search, and SQL queries.
-
-Try `yolo explorer` (powered by the Explorer API)
-
-Install `ultralytics` and run `yolo explorer` in your terminal to run custom queries and semantic search in your browser.
-
 !!! warning "Community Note ⚠️"
 
     As of **`ultralytics>=8.3.12`**, Ultralytics Explorer has been removed. To use Explorer, install `pip install ultralytics==8.3.11`. Similar (and expanded) dataset exploration features are available in [Ultralytics Platform](https://platform.ultralytics.com).
 
+This example walks through the [Explorer API](api.md) on the [VOC](../detect/voc.md) dataset: building an embeddings table, running semantic and SQL searches, and asking natural-language questions. The same steps power the `yolo explorer` [GUI](dashboard.md).
+
 ## Setup
 
-Install `ultralytics` and the required [dependencies](https://github.com/ultralytics/ultralytics/blob/main/pyproject.toml), then check software and hardware.
+Install the pinned `ultralytics` release with the Explorer extras, then check software and hardware.
 
 ```bash
-!uv pip install ultralytics[explorer] openai
+pip install "ultralytics[explorer]==8.3.11" openai
 yolo checks
 ```
 
@@ -65,6 +26,8 @@ yolo checks
 Utilize the power of vector similarity search to find the similar data points in your dataset along with their distance in the embedding space. Simply create an embeddings table for the given dataset-model pair. It is only needed once, and it is reused automatically.
 
 ```python
+from ultralytics import Explorer
+
 exp = Explorer("VOC.yaml", model="yolo11n.pt")
 exp.create_embeddings_table()
 ```
@@ -72,7 +35,7 @@ exp.create_embeddings_table()
 Once the embeddings table is built, you can run semantic search in any of the following ways:
 
 - On a given index/list of indices in the dataset, e.g., `exp.get_similar(idx=[1, 10], limit=10)`
-- On any image/ list of images not in the dataset - exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10) In case of multiple inputs, the aggregate of their embeddings is used.
+- On any image or list of images not in the dataset, e.g., `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`. In case of multiple inputs, the aggregate of their embeddings is used.
 
 You get a pandas DataFrame with the limit number of most similar data points to the input, along with their distance in the embedding space. You can use this dataset to perform further filtering.
 
@@ -168,7 +131,7 @@ table = exp.table
 print(table.schema)
 ```
 
-### Run raw queries¶
+### Run raw queries
 
 Vector Search finds the nearest vectors from the database. In a recommendation system or search engine, you can find similar products from the one you searched. In LLM and other AI applications, each data point can be presented by the embeddings generated from some models, it returns the most relevant features.
 
@@ -178,7 +141,9 @@ Metric In LanceDB, a Metric is the way to describe the distance between a pair o
 
 - L2
 - Cosine
-- Dot Explorer's similarity search uses L2 by default. You can run queries on tables directly, or use the lance format to build custom utilities to manage datasets. More details on available LanceDB table ops in the [docs](https://lancedb.github.io/lancedb/)
+- Dot
+
+Explorer's similarity search uses L2 by default. You can run queries on tables directly, or use the lance format to build custom utilities to manage datasets. More details on available LanceDB table ops are in the [LanceDB docs](https://lancedb.github.io/lancedb/).
 
 ![Explorer raw SQL queries results table](https://cdn.ul.run/i/5bcdb200f50f4ce74e201e7bcfc1711b.avif)
 
@@ -279,3 +244,17 @@ You should see something like this
 ```python
 exp.plot_similar(idx=[7146, 14035])  # Using avg embeddings of 2 images
 ```
+
+## FAQ
+
+### Is Ultralytics Explorer still available?
+
+Explorer was removed from the `ultralytics` package in version 8.3.12. To run the examples on this page, install the last release that includes it with `pip install "ultralytics[explorer]==8.3.11"`. Equivalent and expanded dataset exploration is built into [Ultralytics Platform](https://platform.ultralytics.com).
+
+### What can I do with the Explorer API on the VOC dataset?
+
+After building an embeddings table once with `create_embeddings_table()`, you can find visually similar images by index or by external image, filter the dataset with SQL `WHERE` clauses, ask natural-language questions with `ask_ai()`, and compute a [similarity index](#similarity-index) to spot near-duplicate images.
+
+### Where is the embeddings table stored?
+
+Explorer persists embeddings in a [LanceDB](https://lancedb.github.io/lancedb/) table on disk, so it is created once per dataset and model pair and reused across sessions. Access it directly through `exp.table` for raw vector queries, pre- and post-filters, and export to pandas or Arrow.

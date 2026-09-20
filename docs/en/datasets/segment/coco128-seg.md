@@ -141,6 +141,6 @@ COCO128-Seg (128 images) sits between [COCO8-Seg](coco8-seg.md) (8 images) and t
 
 - **COCO8-Seg**: 8 images (4 train, 4 val) — ideal for quick sanity checks and debugging.
 - **COCO128-Seg**: 128 images — balanced between size and diversity, with train and val sharing the same directory.
-- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~27 GB on first download.
+- **Full COCO-Seg**: 118,287 training images — comprehensive but resource-intensive, requiring ~20 GB on first download.
 
 COCO128-Seg offers more diversity than COCO8-Seg while remaining far more manageable than the full COCO-Seg dataset for experimentation and initial model development.

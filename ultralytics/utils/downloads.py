@@ -359,24 +359,31 @@ def safe_download(
             target = f
             f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
-            expected_size = None  # set from Content-Length; reused to validate curl retries
+            expected_size = 0  # total bytes from Content-Length, kept across retries to validate them
             for i in range(retry + 1):
                 try:
-                    if (curl or i > 0) and curl_installed:  # curl download with retry, continue
+                    resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
+                    if (curl or (i > 0 and not resume)) and curl_installed:  # curl download with retry, continue
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
-                        with requests.get(
-                            url, stream=True, headers={"Accept-Encoding": "identity"}, timeout=(30, 300)
-                        ) as response:
+                        headers = {"Accept-Encoding": "identity"}
+                        if resume:
+                            headers["Range"] = f"bytes={resume}-"
+                        with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
+                            if response.status_code == 416:  # nothing left to resume, so the next retry restarts
+                                f.unlink()
                             response.raise_for_status()
-                            expected_size = int(response.headers.get("Content-Length", 0))
+                            if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
+                                resume = 0
+                                expected_size = int(response.headers.get("Content-Length", 0)) or expected_size
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
@@ -387,7 +394,8 @@ def safe_download(
                                 unit="B",
                                 unit_scale=True,
                                 unit_divisor=1024,
-                            ) as pbar, open(f, "wb") as f_opened:
+                                initial=resume,
+                            ) as pbar, open(f, "ab" if resume else "wb") as f_opened:
                                 for data in response.iter_content(chunk_size=buffer_size):
                                     f_opened.write(data)
                                     pbar.update(len(data))
@@ -408,7 +416,7 @@ def safe_download(
                 except MemoryError:
                     raise  # Re-raise immediately - no point retrying if insufficient disk space
                 except Exception as e:
-                    # Only on the terminal failure: retries resume the partial file via curl `-C -`, but leaving
+                    # Only on the terminal failure: retries resume the partial file via a Range request, but leaving
                     # one behind makes the `not f.is_file()` guard above serve it as a complete cache hit forever.
                     if i == 0 and not is_online():
                         f.unlink(missing_ok=True)
@@ -432,6 +440,7 @@ def safe_download(
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
+            top_level_dirs = set()
             with tarfile.open(f, "r:*") as tar:
                 for m in tar:
                     if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
@@ -446,12 +455,15 @@ def safe_download(
                     ):
                         LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
                         continue
+                    top_level_dirs.update(m_path.parts[:1])  # slice as './' root entries have no parts
                     if m.isdir():
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+            if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
+                unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

@@ -23,9 +23,12 @@ from torch.nn.utils.fusion import fuse_conv_bn_weights
 
 from ultralytics import __version__
 from ultralytics.utils import (
+    ARM64,
     DEFAULT_CFG_DICT,
     DEFAULT_CFG_KEYS,
+    LOCAL_RANK,
     LOGGER,
+    MACOS,
     NUM_THREADS,
     PYTHON_VERSION,
     TORCH_VERSION,
@@ -33,7 +36,7 @@ from ultralytics.utils import (
     WINDOWS,
     colorstr,
 )
-from ultralytics.utils.checks import check_version
+from ultralytics.utils.checks import check_requirements, check_version
 from ultralytics.utils.cpu import CPUInfo
 from ultralytics.utils.patches import torch_load
 
@@ -44,6 +47,7 @@ TORCH_1_11 = check_version(TORCH_VERSION, "1.11.0")
 TORCH_1_13 = check_version(TORCH_VERSION, "1.13.0")
 TORCH_2_0 = check_version(TORCH_VERSION, "2.0.0")
 TORCH_2_1 = check_version(TORCH_VERSION, "2.1.0")
+TORCH_2_2 = check_version(TORCH_VERSION, "2.2.0")
 TORCH_2_3 = check_version(TORCH_VERSION, "2.3.0")
 TORCH_2_4 = check_version(TORCH_VERSION, "2.4.0")
 TORCH_2_5 = check_version(TORCH_VERSION, "2.5.0")
@@ -52,6 +56,7 @@ TORCH_2_8 = check_version(TORCH_VERSION, "2.8.0")
 TORCH_2_9 = check_version(TORCH_VERSION, "2.9.0")
 TORCH_2_10 = check_version(TORCH_VERSION, "2.10.0")
 TORCH_2_12 = check_version(TORCH_VERSION, "2.12.0")
+TORCH_2_13 = check_version(TORCH_VERSION, "2.13.0")
 TORCHVISION_0_10 = check_version(TORCHVISION_VERSION, "0.10.0")
 TORCHVISION_0_11 = check_version(TORCHVISION_VERSION, "0.11.0")
 TORCHVISION_0_13 = check_version(TORCHVISION_VERSION, "0.13.0")
@@ -193,6 +198,8 @@ def parse_device(device: str | int | list | tuple | torch.device = "") -> str:
     if isinstance(device, torch.device):
         if device.type == "cuda" and device.index is None:
             return ""  # indexless torch.device('cuda') means the current CUDA device, i.e. the '' default request
+        if device.type == "cpu":
+            return "cpu"  # an indexed torch.device('cpu', 0) is the same cpu
         if device.type in {"npu", "xpu"}:
             return device.type if device.index is None else f"{device.type}:{device.index}"
     device = str(device).lower()
@@ -263,8 +270,8 @@ def select_device(device="", newline=False, verbose=True):
         the current device untouched.
     """
     if isinstance(device, torch.device):
-        if device.type not in {"cuda", "npu", "xpu"}:
-            return device  # other torch.device inputs pass through; accelerator inputs canonicalize and validate below
+        if device.type not in {"cpu", "cuda", "npu", "xpu"}:
+            return device  # other torch.device inputs pass through; cpu and accelerator inputs canonicalize below
     elif str(device).startswith(("tpu", "intel", "vulkan")):
         return device
 
@@ -348,6 +355,8 @@ def select_device(device="", newline=False, verbose=True):
 
     if arg in {"cpu", "mps"}:
         torch.set_num_threads(NUM_THREADS)  # reset OMP_NUM_THREADS for cpu training
+    if arg == "cpu" and MACOS and ARM64 and TORCH_2_3:
+        torch.backends.nnpack.set_flags(False)  # NNPACK conv2d at batch>=16 is 6x slower than im2col on Apple silicon
     if verbose:
         LOGGER.info(s if newline else s.rstrip())
     return torch.device(arg)
@@ -380,6 +389,9 @@ def fuse_conv_and_bn(conv, bn):
     conv.weight, conv.bias = fuse_conv_bn_weights(
         conv.weight, conv.bias, bn.running_mean, bn.running_var, bn.eps, bn.weight, bn.bias
     )
+    q = getattr(conv, "weight_quantizer", None)
+    if q is not None:  # QAT: the per-channel weight range scales with the folded BN, so the INT8 codes do not move
+        q.amax = q.amax * (bn.weight / torch.sqrt(bn.running_var + bn.eps)).abs().view_as(q.amax)
     return conv.requires_grad_(False)
 
 
@@ -409,6 +421,117 @@ def fuse_deconv_and_bn(deconv, bn):
     )
     deconv.weight = nn.Parameter(weight.view(g, co, ci // g, *k).transpose(1, 2).reshape(ci, co, *k))
     return deconv.requires_grad_(False)
+
+
+# ModelOpt's torch plugins import huggingface_hub unconditionally but declare it only under its heavy [hf] extra,
+# so a bare install cannot import modelopt.torch at all
+MODELOPT_REQUIREMENTS = ["nvidia-modelopt>=0.44", "huggingface_hub"]
+
+
+def prepare_qat(model: nn.Module, dataloader, preprocess, batches: int = 8) -> nn.Module:
+    """Insert INT8 fake-quantization into a model for quantization-aware training (QAT).
+
+    Swaps Conv and Linear layers for ModelOpt equivalents that fake-quantize their input and weight, so training learns
+    weights that survive INT8 export and `torch.onnx.export` emits those ranges as Q/DQ nodes. Activation and weight
+    ranges are calibrated once from `batches` batches and then held fixed (ModelOpt's INT8 config keeps `amax` as a
+    buffer, not a learnable parameter), so training adapts the weights to them.
+
+    Training keeps BatchNorm unfused; `fuse()` folds it at export and rescales the weight ranges along. The head's
+    output layers, the bare convolutions and linears outside its `Conv` blocks, are left in float to limit INT8 accuracy
+    loss.
+
+    Args:
+        model (nn.Module): Model to prepare, modified in place.
+        dataloader (Iterable): Loader yielding Ultralytics batches for the initial range calibration.
+        preprocess (Callable): Task trainer preprocessing applied to each calibration batch.
+        batches (int): Number of calibration batches.
+
+    Returns:
+        (nn.Module): The prepared model, carrying fake-quantization modules.
+    """
+    with torch_distributed_zero_first(LOCAL_RANK):
+        check_requirements(MODELOPT_REQUIREMENTS)
+        import modelopt.torch.quantization as mtq
+
+    def forward_loop(m):
+        """Calibrate through the task batch path."""
+        for batch, _ in zip(dataloader, range(batches)):
+            m(preprocess(batch))
+
+    LOGGER.info(f"Preparing INT8 quantization-aware training from {batches} calibration batches...")
+    training = model.training
+    model.eval()  # freeze BatchNorm statistics
+    with torch.no_grad():
+        model = mtq.quantize(model, mtq.INT8_DEFAULT_CFG, forward_loop)
+        # Keep the head's output layers, the bare convolutions and linears outside its Conv blocks, in float to limit
+        # INT8 accuracy loss. DFL's fixed conv is left in float too.
+        head = f"model.{len(model.model) - 1}."
+        mtq.disable_quantizer(model, lambda n: n.startswith(head) and (".conv." not in n or ".dfl." in n))
+    model.train(training)
+    return model
+
+
+def is_qat(model: nn.Module) -> bool:
+    """Return True if the model carries fake-quantization modules inserted by `prepare_qat`.
+
+    Matched by class name so that non-QAT models, i.e. every ordinary export, never import ModelOpt.
+    """
+    model = model.model if isinstance(getattr(model, "model", None), nn.Module) else model
+    return any(type(m).__name__ == "TensorQuantizer" for m in model.modules())
+
+
+def qat_state(model: nn.Module) -> dict[str, Any] | None:
+    """Return the state that reproduces a model's fake-quantization, or None if it carries none.
+
+    Ultralytics checkpoints are pickled modules, but ModelOpt builds its quantized layers as classes created at runtime,
+    which pickle cannot look up on load. The quantization therefore travels beside the module as data. The checkpoint
+    writers read it here and `restore_qat` reconstructs it at load and resume.
+
+    Args:
+        model (nn.Module): Model to read, left untouched.
+
+    Returns:
+        (dict | None): ModelOpt conversion state and the calibrated quantizer ranges, or None for a plain model.
+    """
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
+    if not is_qat(model):
+        return None
+    import modelopt.torch.opt as mto
+
+    return {
+        "modelopt": mto.modelopt_state(model),
+        "ranges": {k: v for k, v in model.state_dict().items() if "quantizer" in k},
+    }
+
+
+def strip_qat(model: nn.Module) -> None:
+    """Revert a model's fake-quantization in place, leaving the plain layers it wraps.
+
+    Checkpoint writers call this on the copy they are about to pickle, after `qat_state` has read the quantization out
+    of it, since the runtime-generated layer classes cannot be pickled.
+    """
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
+    if not is_qat(model):
+        return
+    from modelopt.torch.opt.conversion import ModeloptStateManager
+    from modelopt.torch.opt.dynamic import DynamicModule
+
+    for m in model.modules():
+        if isinstance(m, DynamicModule):
+            m.export()  # revert the runtime class to the plain layer it wraps
+            m.__dict__.pop("_parallel_state", None)  # runtime process groups do not belong in a checkpoint
+    ModeloptStateManager.remove_state(model)  # a reverted copy must not claim to be converted
+
+
+def restore_qat(model: nn.Module, state: dict[str, Any]) -> None:
+    """Re-apply the fake-quantization captured by `qat_state` to a model, in place."""
+    model = getattr(model, "student_model", model)  # distillation checkpoints quantize only the student
+    check_requirements(MODELOPT_REQUIREMENTS)
+    import modelopt.torch.opt as mto
+
+    mto.restore_from_modelopt_state(model, state["modelopt"])
+    model.to(next(model.parameters()).device)
+    model.load_state_dict(state["ranges"], strict=False)
 
 
 def model_info(model, detailed=False, verbose=True, imgsz=640):
@@ -564,8 +687,6 @@ def initialize_weights(model):
         elif t is nn.BatchNorm2d:
             m.eps = 1e-3
             m.momentum = 0.03
-        elif t in {nn.Hardswish, nn.LeakyReLU, nn.ReLU, nn.ReLU6, nn.SiLU}:
-            m.inplace = True
 
 
 def scale_img(img, ratio=1.0, same_shape=False, gs=32):
@@ -680,6 +801,8 @@ def init_seeds(seed=0, deterministic=False):
         if TORCH_2_0:
             torch.use_deterministic_algorithms(True, warn_only=True)  # warn if deterministic is not possible
             torch.backends.cudnn.deterministic = True
+            if TORCH_2_2:  # skip deterministic mode's NaN fill of every new tensor, one fill kernel per allocation
+                torch.utils.deterministic.fill_uninitialized_memory = False
             os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
             os.environ["PYTHONHASHSEED"] = str(seed)
         else:
@@ -692,6 +815,8 @@ def unset_deterministic():
     """Unset all the configurations applied for deterministic training."""
     torch.use_deterministic_algorithms(False)
     torch.backends.cudnn.deterministic = False
+    if TORCH_2_2:
+        torch.utils.deterministic.fill_uninitialized_memory = True
     os.environ.pop("CUBLAS_WORKSPACE_CONFIG", None)
     os.environ.pop("PYTHONHASHSEED", None)
 
@@ -733,6 +858,7 @@ class ModelEMA:
         for p in self.ema.parameters():
             p.requires_grad_(False)
         self.enabled = True
+        self._pairs = None  # (ema tensors, model tensors) with floating dtype, built on the first update
 
     def update(self, model):
         """Update EMA parameters.
@@ -744,12 +870,15 @@ class ModelEMA:
             self.updates += 1
             d = self.decay(self.updates)
 
-            msd = unwrap_model(model).state_dict()  # model state_dict
-            ema_v, model_v = [], []
-            for k, v in self.ema.state_dict().items():
-                if v.dtype.is_floating_point:  # true for FP16 and FP32
-                    ema_v.append(v)
-                    model_v.append(msd[k])
+            if self._pairs is None:  # the tensors are updated in place, so the lists are built once
+                msd = unwrap_model(model).state_dict()  # model state_dict
+                ema_v, model_v = [], []
+                for k, v in self.ema.state_dict().items():
+                    if v.dtype.is_floating_point:  # true for FP16 and FP32
+                        ema_v.append(v)
+                        model_v.append(msd[k])
+                self._pairs = ema_v, model_v
+            ema_v, model_v = self._pairs
             if (
                 ema_v and TORCH_2_0 and ema_v[0].device.type != "npu" and (TORCH_2_4 or ema_v[0].device.type != "mps")
             ):  # one kernel launch per op
@@ -911,8 +1040,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
         thop = None  # conda support without 'ultralytics-thop' installed
 
     results = []
-    if not isinstance(device, torch.device):
-        device = select_device(device)
+    device = select_device(device, verbose=False)
     LOGGER.info(
         f"{'Params':>12s}{'GFLOPs':>12s}{'GPU_mem (GB)':>14s}{'forward (ms)':>14s}{'backward (ms)':>14s}"
         f"{'input':>24s}{'output':>24s}"
@@ -1066,6 +1194,8 @@ def attempt_compile(
     """
     if not hasattr(torch, "compile") or not mode:
         return model
+    if is_qat(model):
+        raise ValueError("QAT models do not support torch.compile. Use compile=False.")
 
     if mode is True:
         mode = "default"

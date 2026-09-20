@@ -5,12 +5,12 @@
 A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN module](https://docs.opencv.org/4.x/d6/d0f/group__dnn.html). It supports [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and semantic segmentation, sharing its post-processing with the other examples in [`../common`](../common).
 
 > [!IMPORTANT]
-> The OpenCV DNN module cannot run the NMS-in-graph operators used by **YOLO26 end-to-end** exports, and it cannot read class names or the task from the ONNX metadata. So this example targets **grid models** ([YOLOv8](https://docs.ultralytics.com/models/yolov8) / [YOLO11](https://docs.ultralytics.com/models/yolo11), or [YOLO26](https://docs.ultralytics.com/models/yolo26) with its end-to-end head disabled), class names fall back to the 80 COCO names, and the task is inferred from the output shapes (use `--task` for grid pose/obb).
+> The OpenCV DNN module cannot read class names or the task from the ONNX metadata, so class names fall back to the 80 COCO names and the task is inferred from the output shapes (use `--task` for grid pose/obb). This example targets **grid models** ([YOLOv8](https://docs.ultralytics.com/models/yolov8) / [YOLO11](https://docs.ultralytics.com/models/yolo11), or a default [YOLO26](https://docs.ultralytics.com/models/yolo26) export); NMS-free (`nms=False`) YOLO26 exports need OpenCV 4.11 or newer for their TopK operator.
 
 ## ✨ Features
 
 - **All tasks (grid models):** [detect](https://docs.ultralytics.com/tasks/detect), [segment](https://docs.ultralytics.com/tasks/segment), [pose](https://docs.ultralytics.com/tasks/pose), [OBB](https://docs.ultralytics.com/tasks/obb), [classify](https://docs.ultralytics.com/tasks/classify), and semantic segmentation.
-- **All generations (grid):** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) with its end-to-end head disabled. The OpenCV DNN module cannot run the YOLO26 end-to-end (NMS-in-graph) operators.
+- **All generations (grid):** [Ultralytics YOLOv8](https://docs.ultralytics.com/models/yolov8), [Ultralytics YOLO11](https://docs.ultralytics.com/models/yolo11), and default (`nms=None`) [Ultralytics YOLO26](https://docs.ultralytics.com/models/yolo26) exports. NMS-free (`nms=False`) YOLO26 exports need OpenCV 4.11 or newer for their TopK operator.
 - **Zero configuration:** OpenCV exposes no model metadata, so the task is inferred from the output shapes and class names fall back to COCO (pass `--task` for grid pose/obb).
 - **CPU or CUDA:** runs on the OpenCV DNN CPU backend, or the CUDA backend with `--cuda` (requires a CUDA-enabled OpenCV).
 
@@ -25,21 +25,13 @@ A C++ application that runs Ultralytics YOLO ONNX models with the [OpenCV DNN mo
 
 ## 📦 Exporting a Model
 
-The OpenCV DNN module runs grid models only. [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) export to a grid by default:
+The OpenCV DNN module runs grid models and, with OpenCV 4.11 or newer, NMS-free YOLO26 exports. [YOLOv8](https://docs.ultralytics.com/models/yolov8) and [YOLO11](https://docs.ultralytics.com/models/yolo11) export to a grid by default:
 
 ```bash
 yolo export model=yolo11n.pt format=onnx opset=12 imgsz=640 # detect (also -seg / -pose / -obb / -cls / -sem)
 ```
 
-[YOLO26](https://docs.ultralytics.com/models/yolo26) is end-to-end (NMS-free) by architecture, so a normal export emits a `[1, 300, 6]` tensor that the OpenCV DNN module cannot run. Disable the end-to-end head first to get a grid `[1, 84, 8400]` output:
-
-```python
-from ultralytics import YOLO
-
-model = YOLO("yolo26n.pt")
-model.model.model[-1].end2end = False  # grid output the OpenCV DNN module can run
-model.export(format="onnx", opset=12, imgsz=640)
-```
+[YOLO26](https://docs.ultralytics.com/models/yolo26) default exports (`nms=None`) emit the same grid `[1, 84, 8400]` output, so the command above works with `yolo26n.pt` as well. NMS-free exports (`nms=False`) emit a `[1, 300, 6]` tensor that also runs here, but only on OpenCV 4.11 or newer, which added the TopK operator they use.
 
 ## 🛠️ Build
 

@@ -2287,13 +2287,3 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
-
-
-def test_force_disk_cache():
-    """Test cache='force-disk' bypasses the disk space safety margin and caches to disk."""
-    model = YOLO("yolo26n.pt")
-    model.train(data="coco8.yaml", epochs=1, imgsz=32, close_mosaic=1, cache="force-disk")
-    # Verify cache normalized to "disk" and .npy files were created
-    dataset = model.trainer.train_loader.dataset
-    assert dataset.cache == "disk"
-    assert any(f.exists() for f in dataset.npy_files)

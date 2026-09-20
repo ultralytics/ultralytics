@@ -51,7 +51,7 @@ class BaseDataset(Dataset):
         im_hw0 (list): List of original image dimensions (h, w).
         im_hw (list): List of resized image dimensions (h, w).
         npy_files (list[Path]): List of numpy file paths.
-        cache (str | None): Cache setting ('ram', 'disk', 'force-disk', or None for no caching).
+        cache (str | None): Cache setting ('ram', 'disk', or None for no caching).
         transforms (callable): Image transformation function.
         batch_shapes (np.ndarray): Batch shapes for rectangular training.
         batch (np.ndarray): Batch index of each image.
@@ -167,7 +167,7 @@ class BaseDataset(Dataset):
         self.buffer = []  # buffer size = batch size
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
-        # Cache images (options are cache = True, False, None, "ram", "disk", "force-disk")
+        # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
         self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
@@ -179,13 +179,6 @@ class BaseDataset(Dataset):
                 )
             self.cache_images()
         elif self.cache == "disk" and self.check_cache_disk():
-            self.cache_images()
-        elif self.cache == "force-disk":
-            if not self.check_cache_disk():
-                LOGGER.warning(
-                    f"{self.prefix}WARNING ⚠️ cache='force-disk' requires disk space beyond the 50% safety margin"
-                )
-            self.cache = "disk"  # normalize so cache_images() and load_image() dispatch correctly
             self.cache_images()
 
         # Transforms
@@ -330,8 +323,7 @@ class BaseDataset(Dataset):
             pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
                 if self.cache == "disk":
-                    if self.npy_files[i].exists():
-                        b += self.npy_files[i].stat().st_size
+                    b += self.npy_files[i].stat().st_size
                 else:  # 'ram'
                     self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                     b += self.ims[i].nbytes
@@ -350,11 +342,8 @@ class BaseDataset(Dataset):
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
-    def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
-        """Check if there's enough disk space for caching images.
-
-        Args:
-            safety_margin (float): Safety margin factor for disk space calculation.
+    def check_cache_disk(self) -> bool:
+        """Check if there's enough disk space for caching images, keeping 1GB free.
 
         Returns:
             (bool): True if there's enough disk space, False otherwise.
@@ -371,14 +360,13 @@ class BaseDataset(Dataset):
                 self.cache = None
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
-        disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
+        disk_required = b * self.ni / n + gb  # bytes to cache dataset to disk, keeping 1GB free
         total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
             self.cache = None
             LOGGER.warning(
-                f"{self.prefix}{disk_required / gb:.1f}GB disk space required, "
-                f"with {int(safety_margin * 100)}% safety margin but only "
-                f"{free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk"
+                f"{self.prefix}{disk_required / gb:.1f}GB disk space required to cache images with a 1GB "
+                f"reserve but only {free / gb:.1f}/{total / gb:.1f}GB free, not caching images to disk"
             )
             return False
         return True

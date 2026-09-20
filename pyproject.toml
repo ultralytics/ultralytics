@@ -134,7 +134,7 @@ export-executorch = [
 ]
 export-deepx = [
     "dx_com",
-    "numpy<2; python_version < '3.13'",  # dx_com wheels stop at Python 3.12
+    "numpy<2; python_version < '3.13'",  # NumPy 1.x wheels stop at Python 3.12
 ]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)
     "litert-torch>=0.9.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",

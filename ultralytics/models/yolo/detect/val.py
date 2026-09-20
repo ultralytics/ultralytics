@@ -417,6 +417,9 @@ class DetectionValidator(BaseValidator):
             (torch.utils.data.DataLoader): DataLoader for validation.
         """
         dataset = self.build_dataset(dataset_path, batch=batch_size, mode="val")
+        if self.names and len(self.names) < self.data["nc"]:  # standalone val of a model with fewer classes
+            LOGGER.warning(f"Skipping labels of classes the model (nc={len(self.names)}) cannot predict.")
+            dataset.update_labels(list(range(len(self.names))))
         return build_dataloader(
             dataset,
             batch_size,

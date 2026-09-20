@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import gzip
 import re
 import shutil
 import subprocess
 import tarfile
+import zlib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -367,17 +367,18 @@ def safe_download(
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
-                        args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        args = ["--retry", "4", "--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
                         # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}fL", url, "-o", f, "-D", "-", "--retry", "5", *args],
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "-D", "-", *args],
                             check=False,
                             stdout=subprocess.PIPE,
-                            text=True,
                         )
                         assert r.returncode == 0, f"Curl return value {r.returncode}"
-                        final_headers = r.stdout.strip().rpartition("\r\n\r\n")[2]  # after redirects and retries
-                        encoding = "".join(re.findall(r"(?im)^content-encoding:\s*(\S+)", final_headers)).lower()
+                        final_headers = r.stdout.strip().rpartition(b"\r\n\r\n")[2]  # after redirects and retries
+                        encoding = (
+                            b"".join(re.findall(rb"(?im)^content-encoding:\s*(\S+)", final_headers)).decode().lower()
+                        )
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
                         headers = {"Accept-Encoding": "identity"}
                         if resume:
@@ -390,6 +391,9 @@ def safe_download(
                             if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
                                 resume = 0
                                 expected_size = int(response.headers.get("Content-Length", 0)) or expected_size
+                            elif not expected_size:  # partial left by curl, so take the total from 'bytes 5-9/10'
+                                total = response.headers.get("Content-Range", "").rpartition("/")[2]
+                                expected_size = int(total) if total.isdigit() else 0
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
@@ -408,23 +412,29 @@ def safe_download(
 
                     if f.exists():
                         file_size = f.stat().st_size
-                        if file_size > min_bytes:
-                            # Check if download is complete (only if we have expected_size)
-                            if expected_size and file_size != expected_size:
-                                LOGGER.warning(
-                                    f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
-                                )
-                            else:
-                                # Undo the transfer encoding unless the name says the gzip is the file itself, e.g. a
-                                # .tar.gz stored with a gzip Content-Encoding; gzip verifies its own length and checksum
-                                if encoding not in {"", "identity"} and target.suffix not in {".gz", ".tgz"}:
-                                    decoded = f.with_name(f"{f.name}.decoded")
-                                    try:
-                                        with gzip.open(f) as src, open(decoded, "wb") as dst:
-                                            shutil.copyfileobj(src, dst)
+                        if expected_size and file_size != expected_size:  # only if Content-Length is known
+                            LOGGER.warning(
+                                f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                            )
+                        else:
+                            if encoding not in {"", "identity"}:  # undo the transfer encoding of the complete body
+                                decoded = f.with_name(f"{f.name}.decoded")
+                                try:
+                                    d = zlib.decompressobj(47)  # gzip or zlib (deflate), detected from its header
+                                    with open(f, "rb") as src, open(decoded, "wb") as dst:
+                                        for chunk in iter(lambda: src.read(1048576), b""):
+                                            while chunk:
+                                                d = zlib.decompressobj(47) if d.eof else d  # next gzip member
+                                                dst.write(d.decompress(chunk))
+                                                chunk = d.unused_data
+                                    assert d.eof, "Encoded body ended before its end-of-stream marker"
+                                    # A gzip name means the gzip is the file itself, e.g. a .tar.gz object stored with
+                                    # a gzip Content-Encoding, so keep its now verified bytes
+                                    if target.suffix not in {".gz", ".tgz"}:
                                         decoded.replace(f)
-                                    finally:
-                                        decoded.unlink(missing_ok=True)
+                                finally:
+                                    decoded.unlink(missing_ok=True)
+                            if f.stat().st_size > min_bytes:
                                 f.replace(target)
                                 f = target
                                 break  # success

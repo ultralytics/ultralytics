@@ -118,30 +118,6 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
 
 
-@pytest.mark.slow
-@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_export_engine_fp16_parity():
-    """FP16 engine scores must track PyTorch, guarding the SiLU rewrite `fuse_silu` applies at export.
-
-    TensorRT miscompiles a fused convolution, activation and residual add whose shortcut aliases a concatenation buffer
-    (NVIDIA/TensorRT#4854), which silently costs accuracy rather than raising, so `fuse_silu` leaves the shortcut
-    bottlenecks alone. Rewriting those too takes the error below from 0.003 to 0.289. The imgsz=32 export matrix above
-    cannot catch it: P5 is 1x1 there and the bad fusion never forms.
-    """
-    check_tensorrt()
-    from ultralytics.nn.autobackend import AutoBackend
-
-    model = YOLO(MODEL)
-    im = torch.rand(1, 3, 640, 640, device=DEVICES[0])
-    with torch.no_grad():
-        ref = model.model.to(DEVICES[0]).eval()(im)[0]
-    file = model.export(format="engine", quantize=16, imgsz=640, batch=1, workspace=1, device=DEVICES[0])
-    backend = AutoBackend(file, device=torch.device(DEVICES[0]))  # the call below also replays the captured graph
-    err = (backend(im)[:, 4:].float() - ref[:, 4:]).abs().max()  # class scores, which a bad fusion corrupts
-    Path(file).unlink()  # the session teardown removes the intermediate ONNX files
-    assert err < 0.05, f"FP16 engine class scores diverge from PyTorch by {err:.3f}"
-
-
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 @pytest.mark.parametrize("nc", [1, 3])
 def test_semantic_loss_all_ignore_amp(nc):

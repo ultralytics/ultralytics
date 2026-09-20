@@ -16,36 +16,6 @@ from ultralytics.utils.checks import check_requirements, check_tensorrt, check_v
 from ultralytics.utils.torch_utils import TORCH_2_4
 
 
-class _TanhSiLU(torch.nn.Module):
-    """SiLU written through tanh, which TensorRT fuses into the convolution epilogue."""
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply SiLU through the identity sigmoid(x) = 0.5 * tanh(0.5 * x) + 0.5."""
-        return x * (0.5 * torch.tanh(0.5 * x) + 0.5)
-
-
-def fuse_silu(model: torch.nn.Module) -> None:
-    """Rewrite SiLU through tanh in place so TensorRT fuses it into the preceding convolution.
-
-    TensorRT has no SiLU activation and leaves `sigmoid(x) * x` as a separate memory-bound kernel after every
-    convolution, which costs 20% of FP16 engine time. It does fuse tanh, so the mathematically equal tanh form runs in
-    the convolution epilogue instead. Bottlenecks that add a shortcut keep SiLU: TensorRT 11.2 miscompiles the fused
-    convolution/activation/add when the shortcut aliases a strided view of a later concatenation buffer.
-
-    Args:
-        model (torch.nn.Module): Model to rewrite, modified in place.
-    """
-    from ultralytics.nn.modules import Bottleneck
-
-    skip = {m.cv2 for m in model.modules() if isinstance(m, Bottleneck) and m.add}
-    for m in model.modules():
-        if m in skip:
-            continue
-        for name, child in m.named_children():
-            if isinstance(child, torch.nn.SiLU):  # a single shared instance backs every default Conv activation
-                setattr(m, name, _TanhSiLU())
-
-
 class _NormalizeCoords(torch.nn.Module):
     """Wrap a model with input-relative box and pose coordinates for per-tensor quantization."""
 
@@ -212,12 +182,11 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
-    # AutoCast keeps nodes in FP32 when their observed activation range exceeds the FP16 threshold. Calibrate on a
-    # real image because unstructured noise inflates early activations and strands the first convolutions in FP32.
-    im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)
+    # AutoCast keeps a node in FP32 when its observed activation range exceeds `data_max`, so calibrate it on a real
+    # image: unstructured noise inflates the early activations and strands the first convolutions of most models.
+    im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)  # BGR HWC to RGB CHW
     im = np.resize(im, shape[1:])  # repeat or drop channels for models that are not 3-channel
-    im = np.broadcast_to(im, shape).astype(np.float32, order="C")
-    im /= 255.0
+    im = np.broadcast_to(im, shape).astype(np.float32, order="C") / 255
     onnx.save(
         autocast.convert_to_mixed_precision(
             onnx_file,

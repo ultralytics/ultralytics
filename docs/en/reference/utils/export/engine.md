@@ -12,15 +12,7 @@ keywords: Ultralytics, TensorRT export, ONNX export, PyTorch to ONNX, quantizati
 
 <br>
 
-## ::: ultralytics.utils.export.engine._TanhSiLU
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.export.engine._NormalizeCoords
-
-<br><br><hr><br>
-
-## ::: ultralytics.utils.export.engine.fuse_silu
 
 <br><br><hr><br>
 

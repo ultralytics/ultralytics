@@ -126,6 +126,7 @@ def test_cfg_rejects_fuzzed_values():
         ("optimizer", None),
         ("split", None),
         ("copy_paste_mode", None),
+        ("patience", -1),
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})

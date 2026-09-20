@@ -440,8 +440,8 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts
-    matches = [s for s in font_manager.findSystemFonts() if font in s]
+    # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
+    matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
     if any(matches):
         return matches[0]
 
@@ -491,6 +491,12 @@ def check_apt_requirements(requirements):
 
     # Install missing packages if any
     if missing_packages:
+        if not AUTOINSTALL:  # check environment variable
+            LOGGER.warning(
+                f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, "
+                f"AutoUpdate disabled by YOLO_AUTOINSTALL=False. Install with 'apt install {' '.join(missing_packages)}'"
+            )
+            return
         LOGGER.info(
             f"{prefix} Ultralytics requirement{'s' * (len(missing_packages) > 1)} {missing_packages} not found, attempting AutoUpdate..."
         )
@@ -622,6 +628,10 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
                 LOGGER.warning(msg)
                 return False
         else:
+            if install:  # AutoUpdate disabled by environment variable
+                LOGGER.warning(
+                    f"{prefix} Ultralytics requirement{'s' * (len(pkgs) > 1)} {pkgs} not found, AutoUpdate disabled by YOLO_AUTOINSTALL=False"
+                )
             return False
 
     return True
@@ -776,9 +786,6 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if uri_path.is_absolute() or ".." in uri_path.parts:
             raise ValueError(f"Unsafe Ultralytics Platform URI path: {file}")
         local_file = Path(download_dir) / uri_path / url2file(url)
-        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
-        if local_file.suffix == ".ndjson":
-            local_file.unlink(missing_ok=True)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:

@@ -247,10 +247,13 @@ class BaseModel(torch.nn.Module):
         Returns:
             (torch.nn.Module): The fused model is returned.
         """
-        if is_qat(self):  # fusing rewrites conv weights, invalidating the ranges calibrated for the unfused ones
-            return self
+        # BN folds into a QAT conv exactly, its per-channel weight range scales along; merged branches and transposed
+        # convs have no such rescale for their ranges, so they stay as trained
+        skip = (Conv2, ConvTranspose, RepConv, RepVGGDW) if is_qat(self) else ()
         if not self.is_fused():
             for m in self.model.modules():
+                if isinstance(m, skip):
+                    continue
                 if isinstance(m, (Conv, Conv2, DWConv)) and hasattr(m, "bn"):
                     if isinstance(m, Conv2):
                         m.fuse_convs()

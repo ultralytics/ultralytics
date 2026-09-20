@@ -1741,13 +1741,18 @@ class ReidMetrics(SimpleClass, DataExportMixin):
         if reranking:
             dist = self._rerank_distance(query_feats, self.gallery_feats)
         else:
-            # L2 distance matrix (Q, G)
+            # L2 distance matrix (Q, G), clipped before the square root because float32 cancellation on
+            # near-identical embeddings makes squared distances slightly negative, and sqrt turns those into
+            # NaNs that clipping afterwards cannot repair (NaN then corrupts the ranking sort).
             dist = np.sqrt(
-                np.sum(query_feats**2, axis=1, keepdims=True)
-                + np.sum(self.gallery_feats**2, axis=1, keepdims=True).T
-                - 2 * query_feats @ self.gallery_feats.T
+                np.clip(
+                    np.sum(query_feats**2, axis=1, keepdims=True)
+                    + np.sum(self.gallery_feats**2, axis=1, keepdims=True).T
+                    - 2 * query_feats @ self.gallery_feats.T,
+                    0,
+                    None,
+                )
             )
-            dist = np.clip(dist, 0, None)  # numerical stability
 
         self._eval_distmat(dist, query_pids, query_camids)
 
@@ -1868,6 +1873,7 @@ class ReidMetrics(SimpleClass, DataExportMixin):
 
         all_num = original_dist.shape[0]
         query_num = len(query_feats)
+        k1, k2 = min(k1, all_num - 1), min(k2, all_num)  # neighborhoods cannot exceed the query+gallery set size
         initial_rank = np.argpartition(original_dist, range(1, k1 + 1), axis=1)
 
         # Build k-reciprocal encoding vectors

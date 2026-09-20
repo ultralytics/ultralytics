@@ -136,18 +136,20 @@ See the [ReID task page](../tasks/reid.md#val) for the full evaluation reference
 
 ## CLI and the ReID-Only Keys
 
-The ReID-specific keys (`reid_p`, `reid_k`, `triplet_weight`, `triplet_margin`, `ce_weight`, etc.) are accepted on the CLI **only when `task=reid` is explicit in the command**:
+The ReID-specific keys (`reid_p`, `reid_k`, `triplet_weight`, `triplet_margin`, `ce_weight`, etc.) are accepted on the CLI when the task is known at argument-parsing time — either given explicitly, or inferable from a model filename containing `-reid`:
 
 ```bash
-# Works — 'reid' is given explicitly, so the ReID-only keys are recognized
-yolo reid train model=yolo26l-reid.pt data=my_reid.yaml reid_p=16 imgsz=448
+# Works — 'reid' is given explicitly
+yolo reid train model=my_checkpoint.pt data=my_reid.yaml reid_p=16 imgsz=448
 
-# Fails — task is inferred from the model file *after* argument parsing,
-# so reid_p is rejected as "not a valid YOLO argument"
+# Works — the task is inferred from the '-reid' model filename
 yolo train model=yolo26l-reid.pt data=my_reid.yaml reid_p=16
+
+# Fails — a renamed checkpoint carries no task hint, so reid_p is rejected as "not a valid YOLO argument"
+yolo train model=my_checkpoint.pt data=my_reid.yaml reid_p=16
 ```
 
-To avoid this entirely, **use the Python API for ReID train/val** — it always sets the task before the arguments are validated, so every ReID key is accepted:
+Pass `task=reid` whenever the checkpoint has been renamed, or **use the Python API for ReID train/val** — it always sets the task before the arguments are validated, so every ReID key is accepted:
 
 ```python
 from ultralytics import YOLO

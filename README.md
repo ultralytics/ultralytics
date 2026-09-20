@@ -257,14 +257,17 @@ Check the [OBB Docs](https://docs.ultralytics.com/tasks/obb) for usage examples.
 
 <details><summary>Person Re-Identification (Market-1501)</summary>
 
-Check the [ReID Docs](https://docs.ultralytics.com/tasks/reid/) for usage examples. These models are trained on [Market-1501](https://docs.ultralytics.com/datasets/reid/market1501/) and produce L2-normalized embedding vectors for matching the same person across cameras.
+Check the [ReID Docs](https://docs.ultralytics.com/tasks/reid/) for usage examples. These models are trained on [Market-1501](https://docs.ultralytics.com/datasets/reid/market1501/) and produce L2-normalized embedding vectors for matching the same person across cameras. The bare `yolo26{n,s,m,l,x}-reid.pt` weights are general-purpose fine-tuning seeds; the `-reid-market` weights below reproduce the Market-1501 benchmark.
 
-| Model                                                                                          | size<br><sup>(pixels)</sup> | mAP<sup>Market-1501</sup> | Rank-1<sup>Market-1501</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
-| ---------------------------------------------------------------------------------------------- | --------------------------- | ------------------------- | ---------------------------- | ------------------------ | ----------------------- |
-| [YOLO26n-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26n-reid.pt) | 256                         | 23.7                      | 42.5                         | 2.0                      | 3.3                     |
-| [YOLO26s-reid](https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo26s-reid.pt) | 256                         | 29.4                      | 50.4                         | 6.5                      | 12.7                    |
+| Model                                                                                                        | size<br><sup>(pixels)</sup> | mAP<sup>Market-1501</sup> | Rank-1<sup>Market-1501</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------- | ------------------------- | ---------------------------- | ------------------------ | ----------------------- |
+| [YOLO26n-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n-reid-market.pt) | 448                         | 67.3                      | 86.6                         | 2.8                      | 2.0                     |
+| [YOLO26s-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26s-reid-market.pt) | 448                         | 72.9                      | 89.4                         | 7.5                      | 6.6                     |
+| [YOLO26m-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26m-reid-market.pt) | 448                         | 73.6                      | 88.5                         | 12.4                     | 20.1                    |
+| [YOLO26l-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26l-reid-market.pt) | 448                         | 76.8                      | 90.6                         | 15.3                     | 25.2                    |
+| [YOLO26x-reid-market](https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26x-reid-market.pt) | 448                         | 75.5                      | 90.5                         | 32.7                     | 55.9                    |
 
-- **mAP** and **Rank-1** values are for single-model single-scale evaluation on the [Market-1501 val/gallery splits](https://docs.ultralytics.com/datasets/reid/market1501/). <br>Reproduce by `yolo reid val data=Market-1501.yaml device=0`
+- **mAP** and **Rank-1** values are for single-model single-scale evaluation on the [Market-1501 query/gallery splits](https://docs.ultralytics.com/datasets/reid/market1501/). <br>Reproduce by `yolo reid val model=yolo26l-reid-market.pt data=Market-1501.yaml imgsz=448 device=0`
 
 </details>
 

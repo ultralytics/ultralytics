@@ -446,6 +446,11 @@ nav:
           - Imagenette: datasets/classify/imagenette.md
           - Imagewoof: datasets/classify/imagewoof.md
           - MNIST: datasets/classify/mnist.md
+      - Oriented Bounding Boxes (OBB):
+          - datasets/obb/index.md
+          - DOTA8: datasets/obb/dota8.md
+          - DOTA128: datasets/obb/dota128.md
+          - DOTAv2: datasets/obb/dota-v2.md
       - Re-Identification (ReID):
           - datasets/reid/index.md
           - Market-1501: datasets/reid/market1501.md
@@ -456,11 +461,6 @@ nav:
           - rOxford5k: datasets/reid/roxford5k.md
           - RP2K: datasets/reid/rp2k.md
           - LUPerson-NL: datasets/reid/luperson-nl.md
-      - Oriented Bounding Boxes (OBB):
-          - datasets/obb/index.md
-          - DOTA8: datasets/obb/dota8.md
-          - DOTA128: datasets/obb/dota128.md
-          - DOTAv2: datasets/obb/dota-v2.md
       - Multi-Object Tracking:
           - datasets/track/index.md
       - Explorer:

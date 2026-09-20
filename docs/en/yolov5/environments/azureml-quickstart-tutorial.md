@@ -64,8 +64,6 @@ Clone the official Ultralytics YOLOv5 repository from [GitHub](https://github.co
 ```bash
 git clone https://github.com/ultralytics/yolov5 # Clone the repository
 cd yolov5                                       # Navigate into the directory
-# Initialize submodules (if any, though YOLOv5 typically doesn't require this step)
-# git submodule update --init --recursive
 ```
 
 ### 3. Install Dependencies
@@ -81,28 +79,28 @@ pip install "onnx>=1.12.0"      # Install ONNX for exporting
 
 With the setup complete, you can now train, validate, perform inference, and export your YOLOv5 model.
 
-- **Train** the model on a dataset like [COCO128](../../datasets/detect/coco128.md). Check the [Training Mode](../../modes/train.md) documentation for more details.
+- **Train** the model on a dataset like [COCO128](../../datasets/detect/coco128.md). See the [Train Custom Data](../tutorials/train-custom-data.md) tutorial for more details.
 
     ```bash
     # Start training using yolov5s pretrained weights on the COCO128 dataset
     python train.py --data coco128.yaml --weights yolov5s.pt --img 640 --epochs 10 --batch 16
     ```
 
-- **Validate** the trained model's performance using metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). See the [Validation Mode](../../modes/val.md) guide for options.
+- **Validate** the trained model's performance using metrics like [Precision](https://www.ultralytics.com/glossary/precision), [Recall](https://www.ultralytics.com/glossary/recall), and [mAP](https://www.ultralytics.com/glossary/mean-average-precision-map). Run `python val.py --help` for all options.
 
     ```bash
     # Validate the yolov5s model on the COCO128 validation set
     python val.py --weights yolov5s.pt --data coco128.yaml --img 640
     ```
 
-- **Run Inference** on new images or videos. Explore the [Prediction Mode](../../modes/predict.md) documentation for various inference sources.
+- **Run Inference** on new images or videos. See the [YOLOv5 Quickstart](../quickstart-tutorial.md#inference-with-detectpy) for the supported inference sources.
 
     ```bash
     # Run inference with yolov5s on sample images
     python detect.py --weights yolov5s.pt --source data/images --img 640
     ```
 
-- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](../../integrations/coreml.md) for deployment. Refer to the [Export Mode](../../modes/export.md) guide and the [ONNX Integration](../../integrations/onnx.md) page.
+- **Export** the model to different formats like ONNX, [TensorRT](https://www.ultralytics.com/glossary/tensorrt), or [CoreML](../../integrations/coreml.md) for deployment. Refer to the [Model Export](../tutorials/model-export.md) tutorial and the [ONNX Integration](../../integrations/onnx.md) page.
 
     ```bash
     # Export yolov5s to ONNX format
@@ -145,3 +143,21 @@ After creating the kernel, refresh your browser. When you open or create a `.ipy
     ```
 
 Congratulations! You've successfully set up and run Ultralytics YOLOv5 on AzureML. For further exploration, consider checking out other [Ultralytics Integrations](../../integrations/index.md) or the detailed [YOLOv5 documentation](../index.md). You might also find the [AzureML documentation](https://learn.microsoft.com/en-us/azure/machine-learning/?view=azureml-api-2) useful for advanced scenarios like distributed training or model deployment as an endpoint.
+
+## FAQ
+
+### Do I need a GPU compute instance?
+
+A CPU instance is enough for inference and short test runs on COCO128, but real training needs a GPU size. Select a GPU virtual machine when you create the compute instance, and confirm PyTorch sees it with `python -c "import torch; print(torch.cuda.is_available())"`.
+
+### Why does my notebook cell not find the `yolov5env` packages?
+
+Bash cells do not inherit the notebook kernel's environment. Start each `%%bash` cell with `source activate yolov5env`, or run Python cells with the `Python (yolov5env)` kernel you created.
+
+### Will my files survive stopping the compute instance?
+
+Files under the workspace file share mounted at `~/cloudfiles` persist across stops and are visible from other compute instances. Anything elsewhere on the instance disk is kept while the instance exists but is lost if it is deleted.
+
+### Can I use the `ultralytics` package on AzureML instead?
+
+Yes. `pip install ultralytics` gives you YOLO26 training, validation, and export with the `yolo` CLI in the same Conda environment. See the [AzureML Quickstart](../../guides/azureml-quickstart.md) for the package-based walkthrough.

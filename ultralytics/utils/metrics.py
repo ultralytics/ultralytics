@@ -289,8 +289,87 @@ def batch_probiou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarr
     return 1 - hd
 
 
-def batch_polygon_iou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarray, eps: float = 1e-7) -> torch.Tensor:
-    """Calculate polygon IoU between oriented bounding boxes.
+def _convex_quad_intersection(q1: torch.Tensor, q2: torch.Tensor, eps: float) -> torch.Tensor:
+    """Exact intersection area of two batches of convex quads, (K, 4, 2) and (K, 4, 2) -> (K,).
+
+    The intersection of two convex sets is convex, so its vertices are exactly the vertices of either quad that
+    lie inside the other plus the edge-edge crossings. Sorting those around their centroid recovers the ring and
+    the shoelace formula gives the area. Differentiable: the sort only permutes and the masks are piecewise
+    constant, so gradients flow through the vertex coordinates.
+
+    Args:
+        q1 (torch.Tensor): First batch of quad corners with shape (K, 4, 2).
+        q2 (torch.Tensor): Second batch of quad corners with shape (K, 4, 2).
+        eps (float): Tolerance for degenerate edges and containment tests.
+
+    Returns:
+        (torch.Tensor): Intersection areas with shape (K,).
+
+    References:
+        https://github.com/lilanxiao/Rotated_IoU
+    """
+    o = q1.mean(1, keepdim=True).detach()  # area is shift invariant; keeps fp32 cross products well conditioned
+    q1, q2 = q1 - o, q2 - o
+
+    def inside(pts, poly):
+        """Containment test that works for either winding order."""
+        e = poly.roll(-1, 1) - poly
+        d = pts.unsqueeze(2) - poly.unsqueeze(1)
+        cr = e[:, None, :, 0] * d[..., 1] - e[:, None, :, 1] * d[..., 0]
+        return (cr >= -eps).all(-1) | (cr <= eps).all(-1)
+
+    r, t2 = q1.roll(-1, 1) - q1, q2.roll(-1, 1) - q2
+    den = r[:, :, None, 0] * t2[:, None, :, 1] - r[:, :, None, 1] * t2[:, None, :, 0]
+    qp = q2[:, None] - q1[:, :, None]
+    safe = torch.where(den.abs() > eps, den, torch.ones_like(den))
+    t = (qp[..., 0] * t2[:, None, :, 1] - qp[..., 1] * t2[:, None, :, 0]) / safe
+    u = (qp[..., 0] * r[:, :, None, 1] - qp[..., 1] * r[:, :, None, 0]) / safe
+    hit = (den.abs() > eps) & (t >= 0) & (t <= 1) & (u >= 0) & (u <= 1)
+
+    cand = torch.cat([q1, q2, (q1[:, :, None] + t.unsqueeze(-1) * r[:, :, None]).flatten(1, 2)], 1)  # (K, 24, 2)
+    mask = torch.cat([inside(q1, q2), inside(q2, q1), hit.flatten(1, 2)], 1)  # (K, 24)
+    cnt = mask.sum(1)
+    ctr = (cand * mask.unsqueeze(-1)).sum(1) / cnt.clamp(min=1).unsqueeze(-1)
+    ang = torch.atan2(cand[..., 1] - ctr[:, None, 1], cand[..., 0] - ctr[:, None, 0])
+    order = torch.where(mask, ang, torch.full_like(ang, torch.inf)).argsort(1)  # invalid points sort to the end
+    pts = cand.gather(1, order.unsqueeze(-1).expand(-1, -1, 2))
+    val = mask.gather(1, order)
+    nxt = torch.where(val.roll(-1, 1).unsqueeze(-1), pts.roll(-1, 1), pts[:, :1])  # close at the last valid point
+    cross = pts[..., 0] * nxt[..., 1] - nxt[..., 0] * pts[..., 1]
+    return torch.where(cnt >= 3, 0.5 * (cross * val).sum(1).abs(), torch.zeros_like(cand[:, 0, 0]))
+
+
+def polygon_iou(obb1: torch.Tensor, obb2: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+    """Calculate exact polygon IoU between paired oriented bounding boxes.
+
+    Unlike probiou this is the true rotated IoU, matching DOTA_devkit's iou_poly, and it is differentiable so it
+    can drive a regression loss. It is exactly zero, hence has zero gradient, as soon as the boxes stop
+    overlapping, whereas probiou keeps a usable gradient much further out.
+
+    Args:
+        obb1 (torch.Tensor): Boxes of shape (..., 5) in xywhr format.
+        obb2 (torch.Tensor): Boxes of shape (..., 5) in xywhr format, paired elementwise with obb1.
+        eps (float, optional): A small value to avoid division by zero.
+
+    Returns:
+        (torch.Tensor): OBB similarities of shape (..., 1), matching probiou.
+    """
+    shape = obb1.shape[:-1]
+    o1, o2 = obb1.reshape(-1, 5), obb2.reshape(-1, 5)
+    a1, a2 = o1[:, 2] * o1[:, 3], o2[:, 2] * o2[:, 3]
+    inter = _convex_quad_intersection(ops.xywhr2xyxyxyxy(o1), ops.xywhr2xyxyxyxy(o2), eps)
+    # A near-degenerate polygon can shoelace to a spuriously large area, which drives the union negative and
+    # blows the ratio up once it is clamped, so cap the intersection at its geometric maximum.
+    inter = inter.clamp(max=torch.minimum(a1, a2))
+    iou = inter / (a1 + a2 - inter).clamp(min=eps)
+    iou = torch.where((a1 > eps) & (a2 > eps), iou, torch.zeros_like(iou)).clamp(0, 1)
+    return iou.reshape(*shape, 1)
+
+
+def batch_polygon_iou(
+    obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.ndarray, eps: float = 1e-7
+) -> torch.Tensor:
+    """Calculate exact polygon IoU between every pair of oriented bounding boxes.
 
     Args:
         obb1 (torch.Tensor | np.ndarray): A tensor of shape (N, 5) representing ground truth obbs, with xywhr format.
@@ -298,52 +377,28 @@ def batch_polygon_iou(obb1: torch.Tensor | np.ndarray, obb2: torch.Tensor | np.n
         eps (float, optional): A small value to avoid division by zero.
 
     Returns:
-        (torch.Tensor): A tensor of shape (N, M) representing obb similarities.
+        (torch.Tensor): A tensor of shape (N, M) representing obb similarities, on obb1's device.
     """
-    try:
-        from ultralytics.utils.checks import check_requirements
-
-        check_requirements("shapely>=2.0.0")
-        from shapely.geometry import Polygon
-    except Exception as exc:  # fall back to probabilistic IoU if shapely is unavailable
-        LOGGER.warning(f"Shapely IoU fallback to probabilistic IoU: {exc}")
-        return batch_probiou(obb1, obb2, eps=eps)
-
     obb1 = torch.from_numpy(obb1) if isinstance(obb1, np.ndarray) else obb1
     obb2 = torch.from_numpy(obb2) if isinstance(obb2, np.ndarray) else obb2
     n, m = obb1.shape[0], obb2.shape[0]
-    device = obb1.device
+    ious = torch.zeros((n, m), dtype=torch.float32)
     if n == 0 or m == 0:
-        return torch.zeros((n, m), device=device)
+        return ious.to(obb1.device)
 
-    obb1_cpu = obb1.detach().float().cpu()
-    obb2_cpu = obb2.detach().float().cpu()
-    polys1 = ops.xywhr2xyxyxyxy(obb1_cpu).numpy().reshape(-1, 4, 2)
-    polys2 = ops.xywhr2xyxyxyxy(obb2_cpu).numpy().reshape(-1, 4, 2)
-
-    lt1 = polys1.min(axis=1)
-    rb1 = polys1.max(axis=1)
-    lt2 = polys2.min(axis=1)
-    rb2 = polys2.max(axis=1)
-    inter_lt = np.maximum(lt1[:, None, :], lt2[None, :, :])
-    inter_rb = np.minimum(rb1[:, None, :], rb2[None, :, :])
-    wh = np.clip(inter_rb - inter_lt, 0, np.inf)
-    aabb_overlap = (wh[..., 0] > 0) & (wh[..., 1] > 0)
-
-    sg_polys1 = [Polygon(p) for p in polys1]
-    sg_polys2 = [Polygon(p) for p in polys2]
-    areas1 = np.array([p.area for p in sg_polys1], dtype=np.float32)
-    areas2 = np.array([p.area for p in sg_polys2], dtype=np.float32)
-
-    ious = np.zeros((n, m), dtype=np.float32)
-    for i, j in zip(*np.nonzero(aabb_overlap)):
-        if areas1[i] <= eps or areas2[j] <= eps:
-            continue
-        inter = sg_polys1[i].intersection(sg_polys2[j]).area
-        union = areas1[i] + areas2[j] - inter
-        if union > eps:
-            ious[i, j] = inter / union
-    return torch.from_numpy(ious).to(device=device)
+    # CPU is the faster device here: these matrices are small (DOTA val averages 6 GT x 13 predictions) and the
+    # launch overhead of the ~30 small CUDA kernels dominates the arithmetic.
+    o1, o2 = obb1.detach().float().cpu(), obb2.detach().float().cpu()
+    q1, q2 = ops.xywhr2xyxyxyxy(o1), ops.xywhr2xyxyxyxy(o2)
+    a1, a2 = o1[:, 2] * o1[:, 3], o2[:, 2] * o2[:, 3]
+    # Convex polygons can only intersect if their axis-aligned boxes do, so this prune discards no overlap.
+    lt = torch.maximum(q1.amin(1)[:, None], q2.amin(1)[None])
+    rb = torch.minimum(q1.amax(1)[:, None], q2.amax(1)[None])
+    wh = (rb - lt).clamp_(min=0)
+    i, j = torch.nonzero((wh[..., 0] * wh[..., 1] > 0) & (a1[:, None] > eps) & (a2[None] > eps), as_tuple=True)
+    if i.numel():
+        ious[i, j] = polygon_iou(o1[i], o2[j], eps).squeeze(-1)
+    return ious.to(obb1.device)
 
 
 def smooth_bce(eps: float = 0.1) -> tuple[float, float]:

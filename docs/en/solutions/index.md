@@ -27,6 +27,7 @@ Ultralytics Solutions provide cutting-edge applications of YOLO models, offering
 Here's our curated list of Ultralytics solutions that can be used to create awesome [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects.
 
 - [Analytics](../guides/analytics.md): Conduct comprehensive data analysis to discover patterns and make informed decisions, leveraging YOLO26 for descriptive, predictive, and prescriptive analytics.
+- [Detection to OCR](../guides/object-ocr.md): Run a user-provided OCR callable on regions detected by a YOLO model.
 - [Distance Calculation](../guides/distance-calculation.md): Calculate distances between objects using [bounding box](https://www.ultralytics.com/glossary/bounding-box) centroids in YOLO26, essential for spatial analysis.
 - [Heatmaps](../guides/heatmaps.md): Utilize detection heatmaps to visualize data intensity across a matrix, providing clear insights in computer vision tasks.
 - [Instance Segmentation with Object Tracking](../guides/instance-segmentation-and-tracking.md): Implement [instance segmentation](https://www.ultralytics.com/glossary/instance-segmentation) and object tracking with YOLO26 to achieve precise object boundaries and continuous monitoring.
@@ -35,7 +36,6 @@ Here's our curated list of Ultralytics solutions that can be used to create awes
 - [Object Counting](../guides/object-counting.md): Learn to perform real-time object counting with YOLO26. Gain the expertise to accurately count objects in live video streams.
 - [Object Counting in Regions](../guides/region-counting.md): Count objects in specific regions using YOLO26 for accurate detection in varied areas.
 - [Object Cropping](../guides/object-cropping.md): Master object cropping with YOLO26 for precise extraction of objects from images and videos.
-- [Detection to OCR](../guides/object-ocr.md): Run a user-provided OCR callable on regions detected by a YOLO model.
 - [Parking Management](../guides/parking-management.md): Organize and direct vehicle flow in parking areas with YOLO26, optimizing space utilization and user experience.
 - [Queue Management](../guides/queue-management.md): Implement efficient queue management systems to minimize wait times and improve productivity using YOLO26.
 - [Security Alarm System](../guides/security-alarm-system.md): Create a security alarm system with YOLO26 that triggers alerts upon detecting new objects. Customize the system to fit your specific needs.

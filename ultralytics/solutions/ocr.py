@@ -92,6 +92,7 @@ class OCR(BaseSolution):
                         label += f" {confidence:.2f}"
                 annotator.box_label(box_list, label=label)
 
+        self.clss = classes  # required for logging only.
         plot_im = annotator.result()
         self.display_output(plot_im)
         return SolutionResults(

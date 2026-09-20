@@ -106,18 +106,20 @@ class HungarianMatcher(nn.Module):
                 the tensor of indices of the corresponding selected ground truth targets (in order).
             For each batch element, it holds: len(index_i) = len(index_j) = min(num_queries, num_target_boxes).
         """
-        bs, nq, nc = pred_scores.shape
+        bs, nq, _ = pred_scores.shape
 
         if sum(gt_groups) == 0:
             return [(torch.tensor([], dtype=torch.long), torch.tensor([], dtype=torch.long)) for _ in range(bs)]
 
-        # Flatten to compute cost matrices in batch format
-        pred_scores = pred_scores.detach().view(-1, nc)
+        # Pad targets to compute costs within each image.
+        gt_bboxes = torch.nn.utils.rnn.pad_sequence(gt_bboxes.split(gt_groups), batch_first=True)
+        gt_cls = torch.nn.utils.rnn.pad_sequence(gt_cls.split(gt_groups), batch_first=True)
+        pred_scores = pred_scores.detach()
         pred_scores = F.sigmoid(pred_scores) if self.use_fl else F.softmax(pred_scores, dim=-1)
-        pred_bboxes = pred_bboxes.detach().view(-1, 4)
+        pred_bboxes = pred_bboxes.detach()
 
         # Compute classification cost
-        pred_scores = pred_scores[:, gt_cls]
+        pred_scores = pred_scores.gather(2, gt_cls[:, None].expand(-1, nq, -1))
         if self.use_fl:
             neg_cost_class = (1 - self.alpha) * (pred_scores**self.gamma) * (-(1 - pred_scores + 1e-8).log())
             pos_cost_class = self.alpha * ((1 - pred_scores) ** self.gamma) * (-(pred_scores + 1e-8).log())
@@ -126,10 +128,10 @@ class HungarianMatcher(nn.Module):
             cost_class = -pred_scores
 
         # Compute L1 cost between boxes
-        cost_bbox = (pred_bboxes.unsqueeze(1) - gt_bboxes.unsqueeze(0)).abs().sum(-1)  # (bs*num_queries, num_gt)
+        cost_bbox = (pred_bboxes.unsqueeze(2) - gt_bboxes.unsqueeze(1)).abs().sum(-1)
 
-        # Compute GIoU cost between boxes, (bs*num_queries, num_gt)
-        cost_giou = 1.0 - bbox_iou(pred_bboxes.unsqueeze(1), gt_bboxes.unsqueeze(0), xywh=True, GIoU=True).squeeze(-1)
+        # Compute GIoU cost between boxes within each image
+        cost_giou = 1.0 - bbox_iou(pred_bboxes.unsqueeze(2), gt_bboxes.unsqueeze(1), xywh=True, GIoU=True).squeeze(-1)
 
         # Combine costs into final cost matrix
         C = (
@@ -140,13 +142,16 @@ class HungarianMatcher(nn.Module):
 
         # Add mask costs if available
         if self.with_mask:
-            C += self._cost_mask(bs, gt_groups, masks, gt_mask)
+            mask_cost = self._cost_mask(bs, gt_groups, masks, gt_mask).view(bs, nq, -1)
+            C += torch.nn.utils.rnn.pad_sequence(
+                [c[i].T for i, c in enumerate(mask_cost.split(gt_groups, -1))], batch_first=True
+            ).transpose(1, 2)
 
         # Set invalid values (NaNs and infinities) to 0
         C[C.isnan() | C.isinf()] = 0.0
 
-        C = C.view(bs, nq, -1).cpu()
-        indices = [linear_sum_assignment(c[i]) for i, c in enumerate(C.split(gt_groups, -1))]
+        C = C.cpu()
+        indices = [linear_sum_assignment(c[:, :n]) for c, n in zip(C, gt_groups)]
         gt_groups = torch.as_tensor([0, *gt_groups[:-1]]).cumsum_(0)  # (idx for queries, idx for gt)
         return [
             (torch.tensor(i, dtype=torch.long), torch.tensor(j, dtype=torch.long) + gt_groups[k])

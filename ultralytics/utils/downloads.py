@@ -363,8 +363,9 @@ def safe_download(
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
                         args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}L", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
                         ).returncode
                         assert r == 0, f"Curl return value {r}"
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
@@ -428,6 +429,7 @@ def safe_download(
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
         elif f.suffix in {".tar", ".gz"}:
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
+            top_level_dirs = set()
             with tarfile.open(f, "r:*") as tar:
                 for m in tar:
                     if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
@@ -442,12 +444,15 @@ def safe_download(
                     ):
                         LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
                         continue
+                    top_level_dirs.update(m_path.parts[:1])  # slice as './' root entries have no parts
                     if m.isdir():
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+            if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
+                unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

@@ -11,7 +11,7 @@ keywords: Ultralytics Platform, inference, API, YOLO, object detection, predicti
 [Ultralytics Platform](https://platform.ultralytics.com) provides browser-based inference for testing trained models
 and dedicated endpoints for programmatic access.
 
-![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/3cb26693dd15bd98be3742b7c8b09cc5.avif)<!-- screenshot -->
+![Ultralytics Platform Model Predict Tab With Detections Overlay](https://cdn.ul.run/i/0c19d802fbe4e81b32f34b9826ba2ee4.avif)<!-- screenshot -->
 
 ## Predict Tab
 
@@ -24,7 +24,7 @@ Every model with weights includes a `Predict` tab for browser-based inference:
 
 Models without weights show an empty state instead — train the model or upload weights first.
 
-![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/d2dafa4b28ec36687eaf850ccb1fea3c.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Image Upload Dropzone](https://cdn.ul.run/i/116d77e49c6fd00d9eb49a26217e3cc5.avif)<!-- screenshot -->
 
 ### Input Methods
 
@@ -95,7 +95,7 @@ Inference results display the output appropriate to the model task: boxes, masks
 classification scores, semantic coverage, or a depth map. Object results use the dataset class colors when available.
 The panel also shows preprocess, inference, postprocess, and network timing.
 
-![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/b12413a329d89294abbe75ed8b488356.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Results With Detections And Speed Stats](https://cdn.ul.run/i/d220b0d1e04768b6417ae09cf07bfefa.avif)<!-- screenshot -->
 
 The results panel shows:
 
@@ -113,7 +113,7 @@ download button to save an annotated JPEG of the current result.
 
 Adjust inference behavior with the three sliders below the image:
 
-![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/9cfec37c66590d4e323567478693c800.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/1ca455d168dce72b251904b1f5ffff69.avif)<!-- screenshot -->
 
 | Parameter      | Range                     | Default | Description                  |
 | -------------- | ------------------------- | ------- | ---------------------------- |
@@ -144,6 +144,8 @@ Control Non-Maximum Suppression:
 ## Deployment Predict
 
 Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab directly on its deployment card. This uses the deployment's own inference service rather than the shared predict service, letting you test your deployed endpoint from the browser.
+
+On a paid endpoint with monitoring enabled, processed images also contribute to the [Monitoring tab](monitoring.md#monitoring-tab). Its sampled examples and aggregate charts are lightweight, temporary data held in memory; stopping, restarting, redeploying, resizing, or replacing the model can clear them. Save examples to a dataset to keep them.
 
 ## Dedicated Endpoint API
 
@@ -240,7 +242,7 @@ with open("image.jpg", "rb") as f:
     console.log(result);
     ```
 
-![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/b3913018ed5745d7abdb03fefa67a21a.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Code Examples Python Tab](https://cdn.ul.run/i/42273bfce7b498f3ed996ef73a219140.avif)<!-- screenshot -->
 
 ### Request Parameters
 
@@ -289,7 +291,7 @@ with open("image.jpg", "rb") as f:
 }
 ```
 
-![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/2103262abc6d1ea0832eff6e280f4661.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab Json Response View](https://cdn.ul.run/i/51b46ea38818156171938e1dae77f32e.avif)<!-- screenshot -->
 
 ### Response Fields
 

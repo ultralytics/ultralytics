@@ -569,7 +569,13 @@ class BaseTrainer:
                     batch = loss = preds = None
                     self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
+                    prev_state, prev_cls = self.optimizer.state_dict()["state"], type(self.optimizer)
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    if type(self.optimizer) is prev_cls:  # 'auto' may reselect on a large batch change
+                        state_dict = self.optimizer.state_dict()
+                        state_dict["state"] = prev_state  # keep momentum, keep the rebuilt hyperparameters
+                        self.optimizer.load_state_dict(state_dict)
+                    mosaic_closed = not self.args.close_mosaic  # rebuilt loader re-enabled mosaic
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)

@@ -1303,6 +1303,10 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
+    mislabeled = tmp_path / "corrupt.zip"  # an HTML error page served with a .zip name
+    mislabeled.write_bytes(b"<html>not an archive</html>\n")
+    assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
+
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""

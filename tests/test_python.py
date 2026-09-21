@@ -1316,6 +1316,12 @@ def test_safe_download_nonarchive_returns_file(tmp_path):
     assert result == archive  # mislabeled '.zip' returns the file instead of the datasets directory
     assert not any(datasets.iterdir())  # nothing was extracted
 
+    archive.write_bytes(b"<html>not an archive</html>\n")  # restore, delete=True unlinks the bad archive
+    result = safe_download(archive, dir=datasets, unzip=True, delete=True, progress=False)
+
+    assert result == archive  # still the file path, letting callers report the real artifact
+    assert not archive.exists()  # honored delete so the next run re-downloads instead of reusing it
+
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""

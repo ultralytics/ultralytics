@@ -1500,6 +1500,7 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
     from ultralytics.data.utils import save_depth_png
+    from ultralytics.utils import DEFAULT_CFG
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
@@ -1518,7 +1519,10 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     (depth / "corrupt.png").write_text("not a png file")
 
     data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 100}
-    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
+    hyp = copy(DEFAULT_CFG)
+    hyp.mosaic = 1.0  # pin the value the unsupported-argument zeroing must not reach, regardless of ambient state
+    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1, hyp=hyp)
+    assert hyp.mosaic == 1.0  # construction must never mutate the caller's hyp namespace
     assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
     assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
     legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")

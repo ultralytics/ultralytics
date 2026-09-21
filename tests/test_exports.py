@@ -55,6 +55,24 @@ def test_export_torchscript(nms, isolated_model):
     assert model.predictor.imgsz == [32, 32]
 
 
+@pytest.mark.parametrize(
+    ("model_name", "expected_names"),
+    [("yolo26n.yaml", 80), ("yolo26n-cls.yaml", 1000), ("yolo26n-depth.yaml", 999)],
+)
+def test_export_torchscript_missing_names(model_name, expected_names, tmp_path):
+    """Test TorchScript export reconstructs missing class names from the model head."""
+    model = YOLO(model_name)
+    model.model.names = None
+    model.model.pt_path = str(tmp_path / Path(model_name).with_suffix(".pt").name)
+
+    file = model.export(format="torchscript", imgsz=32)
+    names = YOLO(file).names
+
+    assert len(names) == expected_names
+    assert names[0] == "class0"
+    assert names[expected_names - 1] == f"class{expected_names - 1}"
+
+
 @pytest.mark.parametrize("nms", [None, False])
 def test_export_onnx(nms, isolated_model):
     """Test YOLO model export to ONNX format with dynamic axes."""

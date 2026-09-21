@@ -989,7 +989,7 @@ class SAM2Model(torch.nn.Module):
     def _apply_non_overlapping_constraints(pred_masks):
         """Apply non-overlapping constraints to masks, keeping the highest scoring object per location."""
         batch_size = pred_masks.shape[0]
-        if batch_size == 1:
+        if batch_size < 2:
             return pred_masks
 
         device = pred_masks.device

@@ -134,10 +134,10 @@ class TensorRTBackend(BaseBackend):
         """
         if self.dynamic and im.shape != self.bindings["images"].shape:
             if self.is_trt10:
-                valid = self.context.set_input_shape("images", im.shape)
+                ok = self.context.set_input_shape("images", im.shape)
             else:
-                valid = self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
-            if not valid:
+                ok = self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+            if not ok:  # the profile refused the shape, so the bindings below would describe the wrong engine state
                 raise ValueError(f"input size {tuple(im.shape)} is outside the TensorRT optimization profile")
             self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
             for name in self.output_names:

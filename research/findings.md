@@ -1,7 +1,7 @@
 # Findings — YOLOPose-3D
 
 _Can SAM 3D Body's capability be compressed into a single YOLO forward pass? Repo `~/ultralytics_pose3d`,
-branch `pose3d`. Last updated 2026-09-17. Status: **106.5 mm MPJPE and 0.0398 root-depth AbsRel on 3DPW
+branch `pose3d`. Last updated 2026-09-21. Status: **106.5 mm MPJPE and 0.0398 root-depth AbsRel on 3DPW
 from a 3.4M-parameter single-shot model — depth error down 3.2x in two days, none of it from a bigger model.**_
 
 ## Research Question
@@ -44,6 +44,22 @@ The depth distributions are well inside the chosen encoding: root depth median 5
 against a 50 m cap), relative depth p1 −0.53 / p99 +0.40 m (absmax 0.95 against a ±2 m range), and **not one
 value in 120k landed on an encoding bound**. The relative range is about twice as wide as the data needs, which
 costs nothing in float32 but would matter if the channel were ever quantized.
+
+**The 2D half is 77% of a 2D model, and the depth channel is not why (2026-09-21).** H7 put the student
+beside `yolo26n-pose` on one ruler — 17 COCO joints, `OKS_SIGMA`, root and depth channel dropped from both
+predictions and labels. Against COCO's human annotation the baseline scores **0.5676** pose mAP50-95 and the
+best pose3d arm **0.4360**. On the teacher's own labels the ranking inverts (0.5722 vs 0.5463), so a large part
+of the gap is annotator convention rather than capability — but the human ruler is the one that counts, and on
+it the gap is real. E_refocal and B_warmstart sit within 0.0003 of each other on both rulers: the fourth
+channel costs nothing in 2D, and never has.
+
+**Half the dataset never loaded (2026-09-21).** Found while building H7's second ruler, in the label caches:
+train2017 loads **29,344 of 56,599** images and val2017 **1,168 of 2,346**. `data/utils.py:358` asserts every
+keypoint x/y is `<= 1.01`; SAM 3D Body reconstructs out-of-frame joints rather than omitting them, and
+`pseudo_label_sam3d.py` uses that only to set visibility, never to clip the value — so one out-of-frame joint
+rejects the entire image. Every result so far (R0, H2, H2.1, H6) was trained on the surviving half, with all
+arms handicapped identically. The fix is a clip at write time; visibility is already 0 for those joints and
+`Pose3DLoss` recomputes the mask from it, so nothing the model learns from changes.
 
 ## Patterns and Insights
 
@@ -88,6 +104,11 @@ Recorded from reading the code and from the s3d project's history, before they c
   filter and its skeleton branch all tested for exactly 3 channels, so with `plots=True` (the default) a 4-wide
   keypoint silently lost visibility filtering and drew no skeleton. Nothing crashed — which is why it had to be
   looked for rather than waited for.
+- **`verify_image_label` rejects the whole image on one out-of-bounds keypoint** (`data/utils.py:358`,
+  `points.max() <= 1.01`). A teacher that reconstructs joints outside the frame must have its coordinates
+  clipped at write time, or half the dataset disappears with nothing but a per-image warning.
+- **Check `results` in the label `.cache` before trusting a dataset size.** It records (found, missing, empty,
+  corrupt, total); the corrupt count is where a silently halved dataset shows up.
 - **MPJPE cannot be the fitness metric.** The framework maximizes fitness and MPJPE is an error; `delta1(Z)` is
   the higher-is-better form, mirroring the depth task.
 - **From s3d (`~/ultralytics_3d_foundation/research/findings.md`): direct regression beat geometric decoding.**

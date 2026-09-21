@@ -244,23 +244,23 @@ Every error response is a JSON object with an `error` message:
 }
 ```
 
-| HTTP Status | Meaning                                                     |
-| ----------- | ----------------------------------------------------------- |
-| `200`       | Success                                                     |
-| `201`       | Created                                                     |
-| `202`       | Accepted, work continues asynchronously                     |
-| `400`       | Invalid path, query, or request body                        |
-| `401`       | Missing or invalid authentication                           |
-| `402`       | Insufficient credits (training)                             |
-| `403`       | Insufficient permissions, plan, or quota                    |
-| `404`       | Resource not found                                          |
-| `409`       | Conflict with current state (duplicate name, job in flight) |
-| `413`       | Prediction input too large                                  |
-| `422`       | Model classes do not match the dataset (auto-annotation)    |
-| `429`       | Rate limit exceeded                                         |
-| `500`       | Server error                                                |
-| `502`       | Upstream provider or service call failed                    |
-| `503`       | Dependent service temporarily unavailable                   |
+| HTTP Status | Meaning                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| `200`       | Success                                                                                            |
+| `201`       | Created                                                                                            |
+| `202`       | Accepted, work continues asynchronously                                                            |
+| `400`       | Invalid path, query, or request body                                                               |
+| `401`       | Missing or invalid authentication                                                                  |
+| `402`       | Insufficient credits (training)                                                                    |
+| `403`       | Insufficient permissions, plan, or quota                                                           |
+| `404`       | Resource not found                                                                                 |
+| `409`       | Conflict with current state (duplicate name, job in flight)                                        |
+| `413`       | Prediction input too large                                                                         |
+| `422`       | Model classes do not match the dataset, or a provider key is missing or rejected (auto-annotation) |
+| `429`       | Rate limit exceeded                                                                                |
+| `500`       | Server error                                                                                       |
+| `502`       | Upstream provider or service call failed                                                           |
+| `503`       | Dependent service temporarily unavailable                                                          |
 
 ## Pagination
 
@@ -949,7 +949,8 @@ graph LR
     signed.raise_for_status()
     upload = signed.json()
 
-    requests.put(upload["uploadUrl"], headers={"Content-Type": "application/zip"}, data=data).raise_for_status()
+    headers_put = {"Content-Type": "application/zip", **upload["headers"]}
+    requests.put(upload["uploadUrl"], headers=headers_put, data=data).raise_for_status()
     requests.post(
         f"{api}/upload/complete",
         headers=headers,
@@ -1046,17 +1047,17 @@ POST /api/images/{imageId}/predict
 
 **Python SDK:** `client.images.predict(image_id, model_id=...)`
 
-Runs YOLO inference on the image and returns predicted annotations. It does not save them — write the results back with
+Runs the model on the image and returns predicted annotations. It does not save them — write the results back with
 `PATCH /api/images/{imageId}` when you are happy with them.
 
-| Field        | Type   | Required | Description                                                          |
-| ------------ | ------ | -------- | -------------------------------------------------------------------- |
-| `modelId`    | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`          |
-| `confidence` | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25)                     |
-| `iou`        | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7) |
+| Field          | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                          |
+| -------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`      | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or a class-prompted model ID for a detection dataset with 1–100 classes: a hosted model (`qwen`, `moondream`, `florence2`, `owlv2`, `yoloe26x`, `groundingdino`) or a paid provider model ID from the `modelId` enum in [`openapi.json`](https://platform.ultralytics.com/openapi.json) |
+| `confidence`   | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25); ignored by class-prompted models, which use model-specific thresholds                                                                                                                                                                                                                              |
+| `iou`          | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7); ignored by class-prompted models                                                                                                                                                                                                                                               |
+| `classMapping` | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models                                                                                                                                        |
 
-**Response:** `success`, `predictions` (annotation objects), `modelUsed`, and `inferenceTime`. A model whose classes do
-not match the dataset returns `422`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models), `modelUsed`, `inferenceTime`, and for class-prompted models `partial` (`true` when a generative model's truncated output returned only the complete boxes). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–100 classes, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `403`, or `404` (a rejected key, model, or request), `429` for its rate limit, and `503` for any other provider error.
 
 ### Auto-Annotate a Dataset
 
@@ -1067,14 +1068,19 @@ POST /api/datasets/{owner}/{dataset}/predict/batch
 **Python SDK:** `client.datasets.create_batch(owner, dataset, model_id=...)`
 
 Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
-The body takes the same `modelId`, `confidence`, and `iou` fields as the single-image endpoint, plus `includeAnnotated`
-(default `false`) to also annotate images that already have labels and an optional `classMapping` array giving the
-dataset class index for each model class, or `null` to skip it. Existing labels are never changed, and the run is billed
-for the images it actually processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not
-ready, has no images left to annotate, or already has a run in progress, and `422` that the dataset has no classes: create them with the [classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it starts a run.
+The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
+`includeAnnotated` (default `false`) to also annotate images that already have labels. A class-prompted model detects
+the dataset classes without confidence scores, and a paid provider model needs a provider key saved in the dataset
+workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, and the run is billed for the images it actually
+processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, has no images left to
+annotate, or already has a run in progress, and `422` that the dataset has no classes, or that a class-prompted model
+was given a non-detection dataset or one outside 1–100 classes: create the classes with the
+[classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it
+starts a run.
 
 `GET` on the same path (`client.datasets.batch(owner, dataset)`) returns the in-flight run and its progress, or the last
-finished run until it is dismissed; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
+finished run until it is dismissed, whose `results` include `partialImages` when a generative model's run kept only the
+complete boxes of truncated output; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
 settles billing and dismisses the finished summary.
 
 ### Bulk Move Images

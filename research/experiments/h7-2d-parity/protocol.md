@@ -51,8 +51,21 @@ Two things that follow from the setup and should not be read as results:
 
 - The refocal relabel only touched the depth channel, so on the teacher ruler the original and re-keyed label
   sets are **identical once z is dropped**. One converted view serves every arm.
-- The pseudo-labelling dropped the persons the teacher could not process, so the teacher ruler carries slightly
-  fewer GT persons than the COCO ruler on the same images. **mAP is comparable within a column only.**
+- The pseudo-labelling dropped the persons the teacher could not process, so the teacher ruler may carry fewer
+  GT persons than the COCO ruler on the same images. **mAP is comparable within a column only.**
+
+## Amendments
+
+_2026-09-21, after the first pass and before the numbers were read._
+
+- **The person sets are identical, not merely similar**: 6,352 rows in both label trees, and the boxes are
+  byte-identical (the pseudo-labeller copies COCO's box verbatim). Only the keypoint coordinates and the
+  visibility convention differ. The "within a column only" rule stands, for the reason below instead.
+- **One evaluator, forced.** Both dataset paths contain `coco` and end in `val2017.txt`, so
+  `DetectionValidator.init_metrics` sets `is_coco` and forces `save_json` on for both — but only the COCO tree
+  ships an `annotations/` dir, so the first pass scored that column with pycocotools and the other with
+  Ultralytics' own metric. Two evaluators, two columns, one table: not readable across. `eval_2d_parity.py`
+  now clears `save_json` after `init_metrics`, and both rulers were re-run.
 
 ## Predictions
 

@@ -36,6 +36,9 @@ class Common2DValidator(PoseValidator):
         super().init_metrics(model)
         self.kpt_shape = [COCO_KPT, 3]  # what this validator reports on, not what the data carries
         self.sigma = OKS_SIGMA
+        # Both rulers match `is_coco`, which forces `save_json` on and hands the metrics to pycocotools — but
+        # only one of them ships an annotations/ dir, so the two columns would be scored by two evaluators.
+        self.args.save_json = False
 
     def postprocess(self, preds):
         """Reshape predicted keypoints using the model's own layout, then truncate to COCO-17 (x, y, visible)."""

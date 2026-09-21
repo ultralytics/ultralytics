@@ -19,7 +19,7 @@ Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https:
 1. Open **Agents**, click **Add block > Templates**, and choose **YOLO → VLM Monitor**.
 2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person. Use an image of up to 4 megapixels for the shared trial.
 3. Keep the default YOLO26 nano model. The condition passes when YOLO detects at least one person.
-4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
+4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
 
@@ -117,6 +117,6 @@ Reloading the page restores the run's progress and selected execution deployment
 
 - **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the image resolution, input count, and model/provider calls.
 - **The deployment is preparing or stopped:** wait for it to become ready or start it from [Deployments](deploy/index.md).
-- **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.
+- **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.
 - **No images reach the destination:** inspect the condition and prediction confidence cutoff. Empty detection results never satisfy a confidence range.
 - **Collected images have no labels:** collection adds original images for review. Use the existing annotation tools to label them.

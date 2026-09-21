@@ -798,9 +798,11 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         name = Path(url2file(url))  # '%2F' to '/', split authentication query strings
-        # cache key includes a URL hash: bare basenames collide across different URLs and with pre-existing local files
+        # cache key includes a URL hash: bare basenames collide across different URLs and with pre-existing local files;
+        # strip only the query so signed URLs share one entry while path escaping (e.g. %2F vs /) keeps distinct keys
         file = (
-            Path(download_dir) / f"{name.stem}-{hashlib.sha256(clean_url(url).encode()).hexdigest()[:8]}{name.suffix}"
+            Path(download_dir)
+            / f"{name.stem}-{hashlib.sha256(url.split('?', 1)[0].encode()).hexdigest()[:8]}{name.suffix}"
         )
         if file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists

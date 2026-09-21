@@ -855,11 +855,15 @@ def test_check_file_remote_same_basename_no_collision(tmp_path):
         base = f"http://127.0.0.1:{server.server_address[1]}"
         first = check_file(f"{base}/a/data.yaml", suffix=".yaml", download_dir=str(tmp_path))
         second = check_file(f"{base}/b/data.yaml", suffix=".yaml", download_dir=str(tmp_path))
+        escaped = check_file(f"{base}/p%2Fq/data.yaml", suffix=".yaml", download_dir=str(tmp_path))
+        plain = check_file(f"{base}/p/q/data.yaml", suffix=".yaml", download_dir=str(tmp_path))
     finally:
         server.shutdown()
     assert Path(first).read_text() == "contenta"
     assert Path(second).read_text() == "contentb"  # main returns a's cached file here without contacting /b
-    assert requests == ["/a/data.yaml", "/b/data.yaml"]
+    assert Path(escaped).read_text() == "contentp%2Fq"
+    assert Path(plain).read_text() == "contentp"  # unquoting the path must not alias these two cache keys
+    assert requests == ["/a/data.yaml", "/b/data.yaml", "/p%2Fq/data.yaml", "/p/q/data.yaml"]
 
 
 def test_convert_signed_ndjson(monkeypatch):

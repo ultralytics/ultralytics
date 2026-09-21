@@ -570,6 +570,7 @@ class BaseTrainer:
                     self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
                     self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    mosaic_closed = not self.args.close_mosaic  # the rebuilt loader reopened mosaic, re-arm the gate
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)

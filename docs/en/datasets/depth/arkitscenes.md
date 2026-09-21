@@ -34,8 +34,7 @@ ARKitScenes has no autodownload — the data is distributed by Apple, and downlo
 
 ```bash
 git clone https://github.com/apple/ARKitScenes && cd ARKitScenes
-python3 download_data.py upsampling --video_id_csv depth_upsampling/upsampling_train_val_splits.csv --split Training --download_dir ./data
-python3 download_data.py upsampling --video_id_csv depth_upsampling/upsampling_train_val_splits.csv --split Validation --download_dir ./data
+python3 download_data.py upsampling --video_id_csv depth_upsampling/upsampling_train_val_splits.csv --download_dir ./data
 ```
 
 Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth filenames are capture timestamps that do not match exactly — pair each depth frame with the nearest-timestamp RGB frame. Reference conversion to the [Ultralytics depth dataset format](index.md):
@@ -51,8 +50,7 @@ for split, out in (("Training", "train"), ("Validation", "val")):
     (dst / f"images/{out}").mkdir(parents=True, exist_ok=True)
     (dst / f"depth/{out}").mkdir(parents=True, exist_ok=True)
     for video in sorted((src / split).iterdir()):
-        rgb_dir = video / "wide" if (video / "wide").exists() else video / "lowres_wide"
-        rgbs = {float(p.stem.split("_")[-1]): p for p in rgb_dir.glob("*.png")}
+        rgbs = {float(p.stem.split("_")[-1]): p for p in (video / "wide").glob("*.png")}
         if not rgbs:
             continue
         for depth_png in sorted((video / "lowres_depth").glob("*.png")):

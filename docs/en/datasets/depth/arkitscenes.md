@@ -35,7 +35,7 @@ ARKitScenes has no autodownload — the data is distributed by Apple, and downlo
 ```bash
 git clone https://github.com/apple/ARKitScenes && cd ARKitScenes
 python3 download_data.py raw --video_id_csv raw/raw_train_val_splits.csv \
-    --raw_dataset_assets lowres_wide lowres_depth --download_dir ./data
+  --raw_dataset_assets lowres_wide lowres_depth --download_dir ./data
 ```
 
 Frames land in `data/raw/{Training,Validation}/<video_id>/{lowres_wide,lowres_depth}/`. Budget roughly 2.5 TB of disk: the raw streams run at ~60 FPS, and the conversion below keeps every 30th frame (~2 Hz).

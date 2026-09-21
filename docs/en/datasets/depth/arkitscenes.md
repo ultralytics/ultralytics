@@ -44,6 +44,7 @@ Depth frames are `uint16` PNGs in **millimeters** (0 = invalid), and RGB/depth f
 
 ```python
 import shutil
+from bisect import bisect_left
 from pathlib import Path
 
 src, dst = Path("data/raw"), Path("datasets/depth-arkitscenes")
@@ -51,16 +52,19 @@ for split, out in (("Training", "train"), ("Validation", "val")):
     (dst / f"images/{out}").mkdir(parents=True, exist_ok=True)
     (dst / f"depth/{out}").mkdir(parents=True, exist_ok=True)
     for video in sorted((src / split).iterdir()):
-        depths = {float(p.stem.split("_")[-1]): p for p in (video / "lowres_depth").glob("*.png")}
+        depths = sorted((video / "lowres_depth").glob("*.png"), key=lambda p: float(p.stem.split("_")[-1]))
         if not depths:
             continue
+        times = [float(p.stem.split("_")[-1]) for p in depths]
         rgbs = sorted((video / "lowres_wide").glob("*.png"), key=lambda p: float(p.stem.split("_")[-1]))
         for rgb in rgbs[30::30]:  # every 30th frame of the ~60 FPS capture (~2 Hz)
             t = float(rgb.stem.split("_")[-1])
-            depth_png = depths[min(depths, key=lambda k: abs(k - t))]  # nearest-timestamp depth frame
-            name = f"{out}_{video.name}_{depth_png.stem}"
+            i = min(bisect_left(times, t), len(times) - 1)
+            if i and t - times[i - 1] < times[i] - t:
+                i -= 1  # nearest-timestamp depth frame
+            name = f"{out}_{video.name}_{depths[i].stem}"
             shutil.copy2(rgb, dst / f"images/{out}/{name}.png")
-            shutil.copy2(depth_png, dst / f"depth/{out}/{name}.png")
+            shutil.copy2(depths[i], dst / f"depth/{out}/{name}.png")
 ```
 
 ## Role in YOLO26-Depth
@@ -133,7 +137,7 @@ ARKitScenes is the single largest real-world source in the roughly 2.19M-image Y
 
 ### How do I download ARKitScenes for Ultralytics training?
 
-ARKitScenes has no automatic download. Accept the license terms in the [ARKitScenes repository](https://github.com/apple/ARKitScenes), download the depth-upsampling subset with the official `download_data.py` script, and pair each depth frame with its nearest-timestamp RGB frame using the conversion script in [Obtain the Data](#obtain-the-data). The result follows the standard [Ultralytics depth layout](index.md) with uint16 millimeter PNGs.
+ARKitScenes has no automatic download. Accept the license terms in the [ARKitScenes repository](https://github.com/apple/ARKitScenes), download the `lowres_wide` and `lowres_depth` assets of the raw subset with the official `download_data.py` script, then keep every 30th RGB frame and pair it with its nearest-timestamp depth frame using the conversion script in [Obtain the Data](#obtain-the-data). The result follows the standard [Ultralytics depth layout](index.md) with uint16 millimeter PNGs.
 
 ### What depth range does ARKitScenes cover?
 

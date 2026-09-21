@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-from copy import copy
 from typing import Any
 
 import torch
@@ -393,9 +392,13 @@ class v8DetectionLoss:
             # pred_dist = (pred_dist.view(b, a, c // 4, 4).softmax(2) * self.proj.type(pred_dist.dtype).view(1, 1, -1, 1)).sum(2)
         return dist2bbox(pred_dist, anchor_points, xywh=False)
 
-    def get_assigned_targets_and_loss(self, preds: dict[str, torch.Tensor], batch: dict[str, Any]) -> tuple:
+    def get_assigned_targets_and_loss(
+        self, preds: dict[str, torch.Tensor], batch: dict[str, Any], cls_gain: float | None = None
+    ) -> tuple:
         """Calculate the sum of the loss for box, cls and dfl multiplied by batch size and return foreground mask and
         target indices.
+
+        ``cls_gain`` overrides ``hyp.cls`` for callers whose score slot is not class scores.
         """
         loss = torch.zeros(3, device=self.device)  # box, cls, dfl
         pred_distri, pred_scores = (
@@ -458,7 +461,7 @@ class v8DetectionLoss:
             )
 
         loss[0] *= self.hyp.box  # box gain
-        loss[1] *= self.hyp.cls  # cls gain
+        loss[1] *= self.hyp.cls if cls_gain is None else cls_gain  # cls gain
         loss[2] *= self.hyp.dfl  # dfl gain
         return (
             (fg_mask, target_gt_idx, target_bboxes, anchor_points, stride_tensor),
@@ -490,123 +493,71 @@ class v8DetectionLoss:
 class AnomalyMCLoss(v8DetectionLoss):
     """Decoupled binary-detection + multi-class type loss for ``AnomalyMCDetect``.
 
-    Matching, box, DFL and confidence are trained on the 1-channel anomaly logit (``preds["anom"]``)
-    with the GT class collapsed to 0 -- i.e. the detection half is byte-for-byte the ``single_cls``
-    problem, which is the configuration that scores 0.3472 against nc=57's 0.2763. The type head
-    (``preds["scores"]``, ``type_nc`` channels) gets its own cross-entropy on matched positives
-    only, reusing the assigner's foreground mask, so a wrong type label can no longer move a box's
-    confidence. Loss vector: ``[box, cls, dfl, anom]`` -- ``cls`` is the TYPE loss, keeping the
-    baseline's slot, and the binary logit is appended as ``anom``.
+    Matching, box, DFL and confidence train on the 1-channel anomaly logit (``preds["anom"]``) with
+    the GT class collapsed to 0, so the detection half is the ``single_cls`` problem. The type head
+    (``preds["scores"]``) gets its own per-class BCE on matched positives only, so a wrong type
+    label cannot move a box's confidence. Loss vector: ``[box, cls, dfl, anom]``, ``cls`` = type.
     """
 
     def __init__(self, model, tal_topk: int = 10, tal_topk2: int | None = None):
         """Collapse the detection branch to a single class and split the two classification gains."""
         super().__init__(model, tal_topk, tal_topk2)
         self.type_nc = self.nc  # defect classes (cv3 output width)
-        self.nc = 1  # detection matching/confidence is binary: anomaly vs background
-        self.no = 1 + self.reg_max * 4
-        self.assigner.num_classes = 1
-        # `cls` means "classification", so it belongs to the TYPE head -- the only thing here
-        # that classifies. The binary logit merely OCCUPIES the cls slot of the inherited
-        # detection loss, so it takes its own gain: without this split, `cls=0.5` weights 73-way
-        # classification in the baseline arm and a 1-way binary logit here, and the two arms
-        # look comparable on the command line while meaning different things.
-        self.type_gain = float(getattr(self.hyp, "cls", 0.5))
-        self.cls_softmax = bool(getattr(self.hyp, "cls_softmax", True))
-        self.hyp = copy(self.hyp)
-        self.hyp.cls = float(getattr(self.hyp, "anom", 0.5))  # the cls SLOT carries the anomaly logit
-        # `cls_pw` balances the MULTICLASS loss, which here is the type head -- so the weights move
-        # to `_type_loss` and come off the detection branch, whose BCE the base class would apply
-        # them to. That branch is now nc=1: a `(1, 1, type_nc)` vector against a `(bs, A, 1)` loss
-        # is an in-place broadcast error (it raised on the first step), and even with matching
-        # shapes a single-class weight is just a rescale of `anom`, which the `anom` gain already is.
-        self.type_weights = self.class_weights  # (1, 1, type_nc) or None
+        self.nc = self.assigner.num_classes = 1  # detection is binary: anomaly vs background
+        self.cls_gain = float(self.hyp.cls)  # cv3, the type head -- the only classifier here
+        self.obj_gain = float(getattr(self.hyp, "anom", 0.5))  # cv_anom, the binary objectness logit
+        # cls_pw weights the type head, not the binary logit -- whose (bs, A, 1) loss the base
+        # class would broadcast-error against a (1, 1, type_nc) vector anyway.
+        self.type_weights = None if self.class_weights is None else self.class_weights.view(1, -1)
         self.class_weights = None
-        if self.type_weights is not None and self.cls_softmax:
-            # Refused, not silently ignored. Detect weights PER CHANNEL, over positives, siblings
-            # and background alike; softmax CE has no per-channel hook at all -- only `weight[target]`,
-            # which is a different scheme. Supporting both under one knob is how `cls=0.5` came to
-            # mean two things; the BCE branch can mirror Detect, so that is where `cls_pw` lives.
-            raise ValueError(
-                "cls_pw is only supported on AnomalyMCDetect with cls_softmax=False (v5-style per-class "
-                "BCE), whose per-channel weighting mirrors Detect's. Softmax cross-entropy can only "
-                "weight by target class, which is a different quantity and would not be comparable. "
-                "Set cls_softmax=False, or cls_pw=0.0."
-            )
         self.type_ignore_mask = self._parse_ignore(getattr(self.hyp, "cls_ignore", ""), getattr(model, "names", None))
 
     def _parse_ignore(self, spec, names):
         """Map a comma-separated class-name list to a bool mask over the type channels.
 
-        Detection is untouched: an ignored class's boxes stay ordinary foreground to the binary
-        anomaly logit, only its type cross-entropy is silenced. Names resolve through
-        ``model.names`` (indices shift across datasets, names do not), and a name not in the
-        dataset raises rather than silently no-oping.
+        Only the type loss is silenced; an ignored class's boxes stay ordinary foreground to the
+        anomaly logit. Names resolve through ``model.names``, and an unknown one raises.
         """
         if not spec:
             return None
-        if isinstance(spec, str):
-            spec = spec.split(",")
-        name_to_idx = (
-            {v: k for k, v in names.items()} if isinstance(names, dict) else {v: i for i, v in enumerate(names or [])}
-        )
+        idx = {v: k for k, v in (names if isinstance(names, dict) else dict(enumerate(names or []))).items()}
+        want = [n.strip() for n in (spec.split(",") if isinstance(spec, str) else spec)]
+        if missing := [n for n in want if n not in idx]:
+            raise ValueError(f"cls_ignore: {missing} not found in dataset names")
         mask = torch.zeros(self.type_nc, dtype=torch.bool, device=self.device)
-        for name in spec:
-            name = name.strip()
-            if name not in name_to_idx:
-                raise ValueError(f"cls_ignore: class '{name}' not found in dataset names")
-            mask[name_to_idx[name]] = True
+        mask[[idx[n] for n in want]] = True
         return mask
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the decoupled detection + type loss."""
-        batch_size = preds["boxes"].shape[0]
         det_preds = {"boxes": preds["boxes"], "scores": preds["anom"], "feats": preds["feats"]}
         det_batch = dict(batch, cls=torch.zeros_like(batch["cls"]))
-        (fg_mask, target_gt_idx, *_), det_loss, _ = self.get_assigned_targets_and_loss(det_preds, det_batch)
-        type_loss = self._type_loss(preds["scores"], batch, fg_mask, target_gt_idx) * self.type_gain
-        # box/cls/dfl keep the baseline's slots so results.csv lines up column-for-column with a
-        # plain-head run, and `cls_loss` means the same thing in both: the multiclass loss. The
-        # binary logit is the NEW term, so it is appended rather than displacing cls.
+        (fg_mask, target_gt_idx, *_), det_loss, _ = self.get_assigned_targets_and_loss(
+            det_preds, det_batch, cls_gain=self.obj_gain
+        )
+        type_loss = self._type_loss(preds["scores"], batch, fg_mask, target_gt_idx) * self.cls_gain
+        # cls keeps the multiclass loss so results.csv lines up with a plain-head run; anom is new.
         loss = torch.stack([det_loss[0], type_loss, det_loss[2], det_loss[1]])  # box, cls, dfl, anom
-        return loss * batch_size, loss.detach()
+        return loss * preds["boxes"].shape[0], loss.detach()
 
     def _type_loss(self, type_scores, batch, fg_mask, target_gt_idx):
-        """Cross-entropy between predicted defect type and the matched GT type, foreground only."""
-        if not fg_mask.any():
-            return type_scores.sum() * 0.0  # keep the type head in the graph, zero contribution
-        bs, dev = type_scores.shape[0], type_scores.device
-        batch_idx = batch["batch_idx"].view(-1).to(dev).long()
-        gt_cls = batch["cls"].view(-1).to(dev).long()
-        # target_gt_idx indexes an image's OWN gt list, so shift by that image's start in the
-        # flat one -- the same offset trick TaskAlignedAssigner.get_targets uses.
-        starts = gt_cls.new_zeros(bs)
-        starts[1:] = torch.bincount(batch_idx, minlength=bs).cumsum(0)[:-1]
-        logits = type_scores.permute(0, 2, 1)[fg_mask]  # (n_fg, K)
-        tgt = gt_cls[(target_gt_idx + starts[:, None])[fg_mask]]  # (n_fg,)
+        """Per-class BCE between predicted defect type and the matched GT type, foreground only."""
+        dev = type_scores.device
+        fg_mask = fg_mask.bool()  # float zeros when the batch has no GT at all
+        counts = torch.bincount(batch["batch_idx"].view(-1).to(dev).long(), minlength=type_scores.shape[0])
+        # target_gt_idx indexes an image's OWN gt list, so shift by its start in the flat one.
+        flat_idx = (target_gt_idx.long() + (counts.cumsum(0) - counts)[:, None])[fg_mask]
+        tgt = batch["cls"].view(-1).to(dev).long()[flat_idx]  # (n_fg,)
+        logits = type_scores.permute(0, 2, 1)[fg_mask]  # (n_fg, type_nc)
         if self.type_ignore_mask is not None:
             keep = ~self.type_ignore_mask[tgt]
-            if not keep.any():
-                return type_scores.sum() * 0.0
             logits, tgt = logits[keep], tgt[keep]
-        if self.cls_softmax:
-            return F.cross_entropy(logits, tgt)
-        # v5-style: independent per-class sigmoids against a one-hot. Summed over classes and
-        # averaged over anchors, so the term stays "one classification loss per positive anchor"
-        # like the CE branch -- but the two are different functions, so the same `cls` gain does
-        # NOT mean the same effective weight. Their magnitudes are reported by the smoke.
-        t = torch.zeros_like(logits)
-        t[torch.arange(len(tgt), device=logits.device), tgt] = 1.0
-        bce = F.binary_cross_entropy_with_logits(logits, t, reduction="none")
+        if not len(tgt):
+            return type_scores.sum() * 0.0  # keep the type head in the graph, zero contribution
+        bce = F.binary_cross_entropy_with_logits(logits, F.one_hot(tgt, self.type_nc).type_as(logits), reduction="none")
         if self.type_weights is not None:
-            # Per CHANNEL, exactly as `Detect` does it (`bce_loss *= self.class_weights`): a rare
-            # class's column is scaled both where it is the target and where it is a sibling being
-            # pushed down. The one property that cannot carry over is the background bucket -- the
-            # type head only ever sees foreground anchors. The normaliser stays `len(tgt)`, so it
-            # is weight-independent like Detect's `target_scores_sum`; `set_class_weights`
-            # normalises the vector to mean 1.0, which is what keeps the term's scale put.
-            bce = bce * self.type_weights.view(1, -1)
-        return bce.sum() / len(tgt)
+            bce = bce * self.type_weights  # per channel, as Detect does it
+        return bce.sum(1).mean()  # summed over classes, averaged over positives
 
 
 class v8SegmentationLoss(v8DetectionLoss):

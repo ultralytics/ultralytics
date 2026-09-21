@@ -102,10 +102,9 @@ warmup_bias_lr: 0.1 # (float) bias learning rate during warmup
 p_drop: 0.5
 box: 7.5 # (float) box loss gain
 cls: 0.5 # (float) classification loss gain
-cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency); on AnomalyMCDetect it weights the type head and requires cls_softmax=False
+cls_pw: 0.0 # (float) class weights power for handling class imbalance (0.0=disable, 1.0=full inverse frequency); on AnomalyMCDetect it weights the type head
 dfl: 1.5 # (float) distribution focal loss gain
 anom: 0.5 # (float) gain on the binary anomaly logit (AnomalyMCDetect only); `cls` stays the multiclass type gain
-cls_softmax: True # (bool) AnomalyMCDetect type loss: True = softmax cross-entropy, False = v5-style per-class BCE against a one-hot
 cls_ignore: "" # (str) comma-separated type class names to silence in AnomalyMCDetect's type loss (e.g. anomaly,syn_defect,gen_defect); detection still trains on their boxes
 o2o_topk2: 1 # (int) anchors kept per GT by the one2one assigner's second narrowing pass; 1 = NMS-free default
 ood_end2end: False # (bool) also evaluate the other head branch: adds ood/e2e_* (o2o) and metrics/o2m_* (in-domain), ~2x OOD eval time

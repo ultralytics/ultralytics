@@ -56,6 +56,7 @@ Building the second ruler meant reading the label caches, and they say this:
 | `coco-pose3d` train2017 | 56,599 | **29,344** | 65,857 |
 | `coco-pose3d-refocal` train2017 | 56,599 | **29,344** | 65,857 |
 | `coco-pose3d` val2017 | 2,346 | **1,168** | 2,609 |
+| `3dpw-pose3d` / `-conv` / `-r12` | 4,907 | 4,907 | 7,097 |
 
 **27,255 training images — 48% — were silently rejected**, and the same in val. The cause is in the cache's own
 message: `ignoring corrupt image/label: non-normalized or out of bounds coordinates [1.24015 1.27461 ...]`.
@@ -64,8 +65,10 @@ teacher's reconstructed coordinates unclipped — SAM 3D Body reconstructs joint
 omitting them, and `pseudo_label_sam3d.py` only uses that fact to set visibility, never to clip the value. One
 out-of-frame joint on one person rejects the whole image.
 
-Every result in this project so far — R0, H2, H2.1, H6 — was trained on 29,344 images and validated on 1,168,
-not the 56,599 and 2,346 the protocols claim. Nothing is invalidated by this, since every arm was handicapped
+**3DPW is unaffected** — all three converted copies load 4,907 of 4,907 images with zero corrupt, so every
+outer-loop number (MPJPE 106.5 mm, AbsRel 0.0398) is scored on the full benchmark. The loss is training-side and
+COCO-val-side only. Every result in this project so far — R0, H2, H2.1, H6 — was trained on 29,344 images and
+validated in-domain on 1,168, not the 56,599 and 2,346 the protocols claim. Nothing is invalidated by this, since every arm was handicapped
 identically, but every absolute number is from a half-sized dataset, and the images lost are the ones with
 people at the frame edge.
 

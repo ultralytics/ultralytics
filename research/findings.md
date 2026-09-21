@@ -57,8 +57,9 @@ channel costs nothing in 2D, and never has.
 train2017 loads **29,344 of 56,599** images and val2017 **1,168 of 2,346**. `data/utils.py:358` asserts every
 keypoint x/y is `<= 1.01`; SAM 3D Body reconstructs out-of-frame joints rather than omitting them, and
 `pseudo_label_sam3d.py` uses that only to set visibility, never to clip the value — so one out-of-frame joint
-rejects the entire image. Every result so far (R0, H2, H2.1, H6) was trained on the surviving half, with all
-arms handicapped identically. The fix is a clip at write time; visibility is already 0 for those joints and
+rejects the entire image. **3DPW is unaffected** (4,907 of 4,907, zero corrupt), so the outer-loop numbers
+stand on the full benchmark; the loss is training-side and COCO-val-side. Every result so far (R0, H2, H2.1,
+H6) was trained on the surviving half, with all arms handicapped identically. The fix is a clip at write time; visibility is already 0 for those joints and
 `Pose3DLoss` recomputes the mask from it, so nothing the model learns from changes.
 
 ## Patterns and Insights

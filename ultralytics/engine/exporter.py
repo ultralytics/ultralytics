@@ -83,7 +83,7 @@ from ultralytics.cfg import QUANTIZE_DOCS_URL, TASK2CALIBRATIONDATA, TASK2DATA, 
 from ultralytics.data import build_dataloader, build_yolo_dataset
 from ultralytics.data.dataset import ClassificationDataset
 from ultralytics.data.utils import check_cls_dataset, check_det_dataset, get_split_fraction
-from ultralytics.nn.autobackend import AutoBackend, check_class_names, default_class_names
+from ultralytics.nn.autobackend import AutoBackend, check_class_names
 from ultralytics.nn.modules import (
     OBB,
     OBB26,
@@ -677,7 +677,9 @@ class Exporter:
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
-            model.names = default_class_names()
+            head = model.model[-1]
+            nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
+            model.names = {i: f"class{i}" for i in range(nc)}
         model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):
             model.end2end = self.args.nms is False

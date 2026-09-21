@@ -489,9 +489,9 @@ Efficient annotation with keyboard shortcuts:
 
 === "Modes"
 
-    | Shortcut | Action                                           |
-    | -------- | ------------------------------------------------ |
-    | `V`      | Draw mode (manual, default)                      |
+    | Shortcut | Action                                          |
+    | -------- | ----------------------------------------------- |
+    | `V`      | Draw mode (manual, default)                     |
     | `S`      | Smart mode (SAM, YOLO, or class-prompted model) |
 
 === "Drawing"

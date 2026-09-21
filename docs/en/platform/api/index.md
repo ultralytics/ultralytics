@@ -949,7 +949,8 @@ graph LR
     signed.raise_for_status()
     upload = signed.json()
 
-    requests.put(upload["uploadUrl"], headers={"Content-Type": "application/zip"}, data=data).raise_for_status()
+    headers_put = {"Content-Type": "application/zip", **upload["headers"]}
+    requests.put(upload["uploadUrl"], headers=headers_put, data=data).raise_for_status()
     requests.post(
         f"{api}/upload/complete",
         headers=headers,

@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import functools
 import glob
+import hashlib
 import inspect
 import math
 import os
@@ -796,7 +797,11 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if file.startswith("gs://"):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
-        file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
+        name = Path(url2file(url))  # '%2F' to '/', split authentication query strings
+        # cache key includes a URL hash: bare basenames collide across different URLs and with pre-existing local files
+        file = (
+            Path(download_dir) / f"{name.stem}-{hashlib.sha256(clean_url(url).encode()).hexdigest()[:8]}{name.suffix}"
+        )
         if file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
         else:

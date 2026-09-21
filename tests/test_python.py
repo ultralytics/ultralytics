@@ -825,6 +825,43 @@ def test_normalize_platform_uri():
     assert normalize_platform_uri("coco8.yaml") == "coco8.yaml"  # non-Platform inputs unchanged
 
 
+def test_check_file_remote_same_basename_no_collision(tmp_path):
+    """Remote URLs sharing a basename each get their own cached download instead of the first one's file."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    from ultralytics.utils.checks import check_file
+
+    requests = []
+
+    class Handler(BaseHTTPRequestHandler):
+        """Serve content tagged by the first path segment so wrong-cache hits are detectable."""
+
+        def do_GET(self):
+            """Answer with body 'content<tag>' derived from /<tag>/<basename> paths."""
+            requests.append(self.path)
+            body = f"content{self.path.split('/')[1]}".encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            """Silence request logging."""
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        first = check_file(f"{base}/a/data.yaml", suffix=".yaml", download_dir=str(tmp_path))
+        second = check_file(f"{base}/b/data.yaml", suffix=".yaml", download_dir=str(tmp_path))
+    finally:
+        server.shutdown()
+    assert Path(first).read_text() == "contenta"
+    assert Path(second).read_text() == "contentb"  # main returns a's cached file here without contacting /b
+    assert requests == ["/a/data.yaml", "/b/data.yaml"]
+
+
 def test_convert_signed_ndjson(monkeypatch):
     """Test signed NDJSON URLs are converted before dataset YAML validation."""
     from ultralytics.data import converter, utils

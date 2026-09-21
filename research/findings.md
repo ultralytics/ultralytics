@@ -50,8 +50,13 @@ beside `yolo26n-pose` on one ruler — 17 COCO joints, `OKS_SIGMA`, root and dep
 predictions and labels. Against COCO's human annotation the baseline scores **0.5676** pose mAP50-95 and the
 best pose3d arm **0.4360**. On the teacher's own labels the ranking inverts (0.5722 vs 0.5463), so a large part
 of the gap is annotator convention rather than capability — but the human ruler is the one that counts, and on
-it the gap is real. E_refocal and B_warmstart sit within 0.0003 of each other on both rulers: the fourth
+it the gap is real. E_refocal and B_warmstart sit within 0.0043 of each other on every ruler: the fourth
 channel costs nothing in 2D, and never has.
+
+Restricting COCO GT to the 1,168 images whose teacher labels survive validation cuts that gap to **0.0759** —
+**42% of it is the frame-edge images the loader dropped from training**. On those matched pixels the annotator
+alone is worth ~0.10 of swing: pose2d leads by 0.0759 under COCO's annotation and trails by 0.0259 under the
+teacher's. The student never leads on human ground truth, even on its friendliest subset.
 
 **Half the dataset never loaded (2026-09-21).** Found while building H7's second ruler, in the label caches:
 train2017 loads **29,344 of 56,599** images and val2017 **1,168 of 2,346**. `data/utils.py:358` asserts every

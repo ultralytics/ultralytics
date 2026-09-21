@@ -29,7 +29,7 @@ model per ruler. Every number below comes from the same class with the same trun
 | --- | --- |
 | A > C on COCO GT | **confirmed** — 0.5676 vs 0.4360, a gap of 0.1316 |
 | D > B on the teacher ruler | **confirmed** — 0.5722 vs 0.5463, +0.0259 |
-| E ≈ B within 0.005 | **confirmed exactly** — 0.4360 vs 0.4363 on GT, 0.5722 vs 0.5718 on the teacher |
+| E ≈ B within 0.005 | **confirmed** — largest gap 0.0043 across all three columns |
 | A_scratch well below both, by more than 0.075 | confirmed — 0.0877 below B on GT |
 
 ## The answer
@@ -77,18 +77,54 @@ those joints and `Pose3DLoss` recomputes the mask from it, so a clipped joint is
 changes nothing the model learns from, it only stops the loader throwing the image away. That is the first
 thing to test against the 0.1316 gap.
 
+## The follow-up probe: the same 1,168 images, both annotators
+
+The teacher ruler only ever scored the 1,168 images whose pseudo-labels survive validation, so the first two
+columns were not on the same pixels. `coco-pose-gt-surviving.yaml` fixes that — COCO's own annotation
+restricted to exactly those images and those 2,609 persons.
+
+**COCO GT ruler, 1,168 surviving images.**
+
+| model | box mAP50-95 | pose mAP50 | pose mAP50-95 |
+| --- | ---: | ---: | ---: |
+| pose2d (`yolo26n-pose`) | 0.6852 | **0.8628** | **0.6169** |
+| A_scratch | 0.6666 | 0.7931 | 0.4587 |
+| B_warmstart | **0.6990** | 0.8400 | 0.5453 |
+| E_refocal | 0.6963 | 0.8395 | 0.5410 |
+
+Box mAP here is **identical to the teacher column** to four decimals for every model (0.6852 / 0.6666 / 0.6990 /
+0.6963), which is the check that the subset is exactly right: the two trees carry the same boxes, so once the
+image sets match, detection cannot differ. Only the keypoints do.
+
+Two readings, both clean:
+
+**The gap nearly halves on the images the student was trained to expect.** pose2d's lead over E_refocal goes
+from **0.1316** on the full val set to **0.0759** on the surviving 1,168 — 42% of it lives in the frame-edge
+images, which are exactly the ones the loader threw out of training. E gains +0.105 moving to the subset
+(0.4360 -> 0.5410) against pose2d's +0.049. That is the strongest evidence yet for candidate 2, though it does
+not separate "never trained on them" from "intrinsically harder".
+
+**The annotator is worth about 0.10 of swing.** On identical pixels and identical people, pose2d leads by
+0.0759 when COCO defines truth and trails by 0.0259 when the teacher does. Same models, same images — only the
+annotation changes.
+
+**And the student never wins on human ground truth.** Even on its friendliest subset it is 0.076 behind.
+
 ## Reading the gap
 
-Three candidates, not separable from these runs alone:
+Three candidates, the first two now both measured:
 
 1. **Annotator convention.** The teacher agrees with COCO at OKS mean 0.805; a student fit to it inherits that
-   disagreement. The ruler flip is direct evidence this is a real component.
-2. **Half the training data**, per above — and `yolo26n-pose` trained on all of COCO-pose.
+   disagreement. Worth ~0.10 of swing on matched images, by the probe above.
+2. **Half the training data**, per above — worth ~0.056 of the 0.1316, by the subset probe. `yolo26n-pose`
+   trained on all of COCO-pose.
 3. **Visibility means "in frame", not "unoccluded"**, deliberately (`pseudo_label_sam3d.py`), so the student is
    supervised on joints COCO leaves unlabelled. This changes what the model puts on screen but cannot by itself
    lower OKS, which only scores labelled joints.
 
-Candidate 2 is cheap to test and is the obvious next run.
+Candidate 2 now has a number against it, and the clipped-label relabel plus retrain is the experiment that
+would collect it: it should close part of the 0.0557 that the frame-edge images cost, and leave the 0.0759
+residual on the easy subset as the annotator's share.
 
 ## Harness notes
 

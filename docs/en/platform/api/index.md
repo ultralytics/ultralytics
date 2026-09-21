@@ -1069,12 +1069,17 @@ POST /api/datasets/{owner}/{dataset}/predict/batch
 Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, and `iou` fields as the single-image endpoint, plus `includeAnnotated`
 (default `false`) to also annotate images that already have labels and an optional `classMapping` array giving the
-dataset class index for each model class, or `null` to skip it. Existing labels are never changed, and the run is billed
-for the images it actually processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not
-ready, has no images left to annotate, or already has a run in progress, and `422` that the dataset has no classes: create them with the [classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it starts a run.
+dataset class index for each model class, or `null` to skip it. A `qwen` or `moondream` run detects the dataset classes
+without confidence scores. Existing labels are never changed, and the run is billed for the images it actually
+processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, has no images left to
+annotate, or already has a run in progress, and `422` that the dataset has no classes, or that a vision-language model
+was given a non-detection dataset or one outside 1–100 classes: create the classes with the
+[classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it
+starts a run.
 
 `GET` on the same path (`client.datasets.batch(owner, dataset)`) returns the in-flight run and its progress, or the last
-finished run until it is dismissed; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
+finished run until it is dismissed, whose `results` include `partialImages` when a vision-language run kept only the
+complete boxes of truncated output; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
 settles billing and dismisses the finished summary.
 
 ### Bulk Move Images

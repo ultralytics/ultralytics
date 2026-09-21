@@ -255,6 +255,64 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
+@pytest.mark.parametrize("is_trt10", [False, True])
+def test_tensorrt_backend_rejects_invalid_shape_and_execution(is_trt10):
+    """TensorRT failures must not mutate shape bookkeeping or return stale output buffers."""
+    from collections import OrderedDict, namedtuple
+
+    from ultralytics.nn.backends.tensorrt import TensorRTBackend
+
+    class Context:
+        shape_ok = False
+        execute_ok = True
+        executions = 0
+
+        def set_input_shape(self, name, shape):
+            return self.shape_ok
+
+        def set_binding_shape(self, index, shape):
+            return self.shape_ok
+
+        def get_tensor_shape(self, name):
+            return (1, 10, 6)
+
+        def get_binding_shape(self, index):
+            return (1, 10, 6)
+
+        def execute_v2(self, pointers):
+            self.executions += 1
+            return self.execute_ok
+
+    Binding = namedtuple("Binding", ("name", "dtype", "shape", "data"))
+    backend = TensorRTBackend.__new__(TensorRTBackend)
+    backend.dynamic = True
+    backend.is_trt10 = is_trt10
+    backend.context = Context()
+    backend.graph = None
+    backend.model = type("Engine", (), {"get_binding_index": lambda self, name: int(name != "images")})()
+    backend.output_names = ["output0"]
+    backend.bindings = OrderedDict(
+        images=Binding("images", np.float32, torch.Size((1, 3, 32, 32)), torch.zeros(1, 3, 32, 32)),
+        output0=Binding("output0", np.float32, (1, 10, 6), torch.full((1, 10, 6), 7.0)),
+    )
+    image = torch.zeros(1, 3, 64, 64)
+
+    with pytest.raises(ValueError, match="outside the TensorRT optimization profile"):
+        backend.forward(image)
+    assert backend.bindings["images"].shape == (1, 3, 32, 32)
+    assert backend.context.executions == 0
+
+    backend.context.shape_ok = True
+    backend.context.execute_ok = False
+    with pytest.raises(RuntimeError, match="TensorRT inference execution failed"):
+        backend.forward(image)
+    assert backend.context.executions == 1
+
+    backend.context.execute_ok = True
+    assert backend.forward(image)[0][0, 0, 0] == 7
+    assert backend.context.executions == 2
+
+
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     import pathlib

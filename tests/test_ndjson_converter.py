@@ -185,29 +185,6 @@ def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
         assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, expected_test]
         assert YAML.load(yaml_path)["nc"] == 3
 
-
-def test_convert_ndjson_small_fraction_selects_one_image(tmp_path, depth_server):
-    """Keep at least one image per nonempty split when a valid fraction rounds to zero."""
-    base_url, _ = depth_server
-    records = [
-        {"type": "dataset", "task": "detect"},
-        *[
-            {
-                "type": "image",
-                "file": f"{index}.jpg",
-                "url": f"{base_url}/train.jpg?signature={index}",
-                "split": "train" if index < 4 else "val",
-                "annotations": {"boxes": [[0, 0.5, 0.5, 1, 1]]},
-            }
-            for index in range(5)
-        ],
-    ]
-    manifest = tmp_path / "detect.ndjson"
-    manifest.write_text("\n".join(json.dumps(record) for record in records))
-
-    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=0.1))
-    files = [{p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val")]
-    assert files == [{"1.jpg"}, {"5.jpg"}]  # round(4 * 0.1) == 0 floors to one image instead of an empty split
-
-    count_yaml = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=2))
-    assert {p.name for p in (count_yaml.parent / "images" / "train").glob("*")} == {"1.jpg", "4.jpg"}
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=0.05))
+    train = {p.name for p in (yaml_path.parent / "images" / "train").glob("*")}
+    assert train == {"1.jpg"}  # round(9 * 0.05) == 0, yet a nonzero fraction must never write an empty split

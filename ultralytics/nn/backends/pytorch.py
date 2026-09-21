@@ -122,8 +122,6 @@ class TorchScriptBackend(BaseBackend):
         import torchvision  # noqa - required for TorchScript model deserialization
 
         LOGGER.info(f"Loading {weight} for TorchScript inference...")
-        if TORCH_1_10 and not TORCH_2_1:  # this fuser has no shape expression for a traced constant, so a repeat
-            torch._C._jit_set_texpr_fuser_enabled(False)  # forward raises "RuntimeError: _Map_base::at" or segfaults
         self.model = torch.jit.load(weight, map_location=self.device)
         self.model.half() if self.fp16 else self.model.float()
         self.apply_metadata(self.read_metadata(weight))
@@ -137,4 +135,11 @@ class TorchScriptBackend(BaseBackend):
         Returns:
             (torch.Tensor | list[torch.Tensor]): Model predictions as tensor(s).
         """
+        if TORCH_1_10 and not TORCH_2_1:  # NNC builds no shape expression for a traced constant: repeat forwards
+            fuser = torch._C._jit_texpr_fuser_enabled()  # raise "RuntimeError: _Map_base::at" or segfault
+            torch._C._jit_set_texpr_fuser_enabled(False)
+            try:
+                return self.model(im)
+            finally:
+                torch._C._jit_set_texpr_fuser_enabled(fuser)  # restore, never disable NNC process-wide
         return self.model(im)

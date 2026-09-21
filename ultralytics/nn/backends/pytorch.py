@@ -9,7 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
-from ultralytics.utils.torch_utils import unwrap_model
+from ultralytics.utils.torch_utils import TORCH_2_1, unwrap_model
 
 from .base import BaseBackend
 
@@ -123,6 +123,8 @@ class TorchScriptBackend(BaseBackend):
 
         LOGGER.info(f"Loading {weight} for TorchScript inference...")
         self.model = torch.jit.load(weight, map_location=self.device)
+        if not TORCH_2_1:
+            torch._C._jit_set_texpr_fuser_enabled(False)  # legacy NNC fuser crashes on the second forward
         self.model.half() if self.fp16 else self.model.float()
         self.apply_metadata(self.read_metadata(weight))
 

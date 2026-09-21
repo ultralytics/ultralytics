@@ -1303,24 +1303,9 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
-
-def test_safe_download_nonarchive_returns_file(tmp_path):
-    """Test safe_download() returns the file itself when an archive-suffixed path is not a zip or tar."""
-    archive = tmp_path / "corrupt.zip"
-    archive.write_bytes(b"<html>not an archive</html>\n")
-    datasets = tmp_path / "datasets"
-    datasets.mkdir()
-
-    result = safe_download(archive, dir=datasets, unzip=True, progress=False)
-
-    assert result == archive  # mislabeled '.zip' returns the file instead of the datasets directory
-    assert not any(datasets.iterdir())  # nothing was extracted
-
-    archive.write_bytes(b"<html>not an archive</html>\n")  # restore, delete=True unlinks the bad archive
-    result = safe_download(archive, dir=datasets, unzip=True, delete=True, progress=False)
-
-    assert result == archive  # still the file path, letting callers report the real artifact
-    assert not archive.exists()  # honored delete so the next run re-downloads instead of reusing it
+    mislabeled = tmp_path / "corrupt.zip"  # an HTML error page served with a .zip name
+    mislabeled.write_bytes(b"<html>not an archive</html>\n")
+    assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):

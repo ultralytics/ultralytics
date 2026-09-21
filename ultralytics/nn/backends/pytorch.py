@@ -9,7 +9,7 @@ import torch
 from torch import nn
 
 from ultralytics.utils import IS_JETSON, LOGGER, is_jetson
-from ultralytics.utils.torch_utils import unwrap_model
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_2_1, unwrap_model
 
 from .base import BaseBackend
 
@@ -122,6 +122,8 @@ class TorchScriptBackend(BaseBackend):
         import torchvision  # noqa - required for TorchScript model deserialization
 
         LOGGER.info(f"Loading {weight} for TorchScript inference...")
+        if TORCH_1_10 and not TORCH_2_1:  # this fuser has no shape expression for a traced constant, so a repeat
+            torch._C._jit_set_texpr_fuser_enabled(False)  # forward raises "RuntimeError: _Map_base::at" or segfaults
         self.model = torch.jit.load(weight, map_location=self.device)
         self.model.half() if self.fp16 else self.model.float()
         self.apply_metadata(self.read_metadata(weight))

@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks or YOLO models for those tasks and pose.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks, YOLO models for those tasks and pose, or hosted vision-language models for detection datasets with 1–100 classes.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models.
+[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–100 classes, hosted vision-language models.
 
 ![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/fd13a4b1f4b8fad9ed5e736030a070cf.avif)<!-- screenshot -->
 
@@ -129,10 +129,10 @@ graph LR
 
 `Draw` is the default mode for spatial annotation tasks. For detect, segment, semantic, pose, and OBB datasets, the toolbar also provides `Smart` mode when Smart annotation is available:
 
-| Mode      | Description                                                                                                                       | Shortcut |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| **Draw**  | Default manual mode with task-specific drawing tools                                                                              | `V`      |
-| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, or with YOLO models on those and pose datasets | `S`      |
+| Mode      | Description                                                                                                                                                                                                    | Shortcut |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| **Draw**  | Default manual mode with task-specific drawing tools                                                                                                                                                           | `V`      |
+| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, with YOLO models on those and pose datasets, or with hosted vision-language models on detection datasets with 1–100 classes | `S`      |
 
 Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
@@ -242,7 +242,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–100 classes, the picker also offers the hosted vision-language models Qwen3.8 27B and Moondream 3.1, which detect the dataset's classes. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -341,16 +341,20 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
     - The model picker only lists models that match the current dataset task, so a pose dataset offers pose models.
     - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.
 
+### Vision-Language Smart Annotation
+
+On a detection dataset with 1–100 classes, the model picker's **Vision Language** project lists **Qwen3.8 27B** and **Moondream 3.1**. Select one and click `Predict` (or press `P`): the model detects the dataset's classes and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
+
 ### Batch Annotation
 
-Batch Annotation runs one YOLO model over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Inference All** action on the toast after a YOLO prediction in the editor. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
+Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–100 classes Qwen3.8 27B or Moondream 3.1 — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Inference All** action on the toast after a YOLO prediction in the editor. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
-1. Select a model from the picker (`Official` or `My Models`)
-2. Adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the **Test run** strip shows what the model finds on a few sample images as you move them
+1. Select a model from the picker (`Official`, including the **Vision Language** project on detection datasets with 1–100 classes, or `My Models`)
+2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the **Test run** strip shows what the model finds on a few sample images as you move them. A vision-language model detects the dataset classes (1–100) with no confidence or IoU settings and returns no scores
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
 
-By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. If the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
+By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. For a YOLO model, if the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
 
 The dataset page shows the run's progress, and **Stop** keeps and bills the images processed so far. When the run finishes, a summary shows the images processed and the annotations and classes added.
 
@@ -483,10 +487,10 @@ Efficient annotation with keyboard shortcuts:
 
 === "Modes"
 
-    | Shortcut | Action                         |
-    | -------- | ------------------------------ |
-    | `V`      | Draw mode (manual, default)    |
-    | `S`      | Smart mode (SAM or YOLO model) |
+    | Shortcut | Action                                           |
+    | -------- | ------------------------------------------------ |
+    | `V`      | Draw mode (manual, default)                      |
+    | `S`      | Smart mode (SAM, YOLO, or vision-language model) |
 
 === "Drawing"
 
@@ -499,7 +503,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click outside mask`   | Add to SAM mask (positive point)                                                |
     | `Shift (hold) + Click` | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on) |
     | `A`                    | Toggle auto-apply (SAM Smart mode)                                              |
-    | `P`                    | Run YOLO prediction (Smart mode)                                                |
+    | `P`                    | Run the selected YOLO or vision-language model (Smart mode)                     |
     | `Enter`                | Complete polygon / Save SAM annotation                                          |
     | `Escape`               | Complete polygon / Save SAM annotation / Deselect / Exit                        |
 

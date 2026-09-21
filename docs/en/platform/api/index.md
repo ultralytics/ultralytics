@@ -1046,17 +1046,16 @@ POST /api/images/{imageId}/predict
 
 **Python SDK:** `client.images.predict(image_id, model_id=...)`
 
-Runs YOLO inference on the image and returns predicted annotations. It does not save them — write the results back with
+Runs the model on the image and returns predicted annotations. It does not save them — write the results back with
 `PATCH /api/images/{imageId}` when you are happy with them.
 
-| Field        | Type   | Required | Description                                                          |
-| ------------ | ------ | -------- | -------------------------------------------------------------------- |
-| `modelId`    | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`          |
-| `confidence` | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25)                     |
-| `iou`        | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7) |
+| Field        | Type   | Required | Description                                                                                                                                                          |
+| ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`    | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or `qwen` / `moondream` for a hosted vision-language detector on a detection dataset with 1–100 classes |
+| `confidence` | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25)                                                                                                                     |
+| `iou`        | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7)                                                                                                 |
 
-**Response:** `success`, `predictions` (annotation objects), `modelUsed`, and `inferenceTime`. A model whose classes do
-not match the dataset returns `422`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for vision-language models), `modelUsed`, `inferenceTime`, and for vision-language models `partial` (`true` when truncated output returned only the complete boxes). A model whose classes do not match the dataset returns `422`, as does a vision-language model on a non-detection dataset or one outside 1–100 classes.
 
 ### Auto-Annotate a Dataset
 

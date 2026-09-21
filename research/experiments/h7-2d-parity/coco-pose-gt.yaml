@@ -1,0 +1,21 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# COCO val2017 person keypoints with COCO's own human annotation, for the H7 2D-parity comparison.
+# Addressed by absolute path rather than through `datasets_dir`, because these boxes cannot reach GitHub and a
+# failed resolve there hangs rather than errors. Same 2,346 images as `coco-pose3d` val: that dataset's
+# images/val2017 is a symlink into this one, so the two rulers score the same pixels.
+# Example usage: python research/src/eval_2d_parity.py --data research/experiments/h7-2d-parity/coco-pose-gt.yaml
+
+path: /data/shared-datasets/coco-pose # dataset root dir
+train: train2017.txt
+val: val2017.txt
+test:
+
+# Keypoints. No `kpt_oks_sigmas` on purpose: [17, 3] makes the validator select OKS_SIGMA, the standard COCO
+# ruler, which is the whole point of this experiment.
+kpt_shape: [17, 3]
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]
+
+# Classes
+names:
+  0: person

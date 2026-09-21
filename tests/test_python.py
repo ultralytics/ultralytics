@@ -1304,6 +1304,19 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
 
+def test_safe_download_nonarchive_returns_file(tmp_path):
+    """Test safe_download() returns the file itself when an archive-suffixed path is not a zip or tar."""
+    archive = tmp_path / "corrupt.zip"
+    archive.write_bytes(b"<html>not an archive</html>\n")
+    datasets = tmp_path / "datasets"
+    datasets.mkdir()
+
+    result = safe_download(archive, dir=datasets, unzip=True, progress=False)
+
+    assert result == archive  # mislabeled '.zip' returns the file instead of the datasets directory
+    assert not any(datasets.iterdir())  # nothing was extracted
+
+
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""
     archive = tmp_path / "unsafe.zip"

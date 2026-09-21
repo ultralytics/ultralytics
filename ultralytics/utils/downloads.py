@@ -503,6 +503,10 @@ def safe_download(
                             shutil.copyfileobj(source, out)
             if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
                 unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
+        else:
+            if delete:
+                f.unlink()  # remove archive
+            return f  # archive-suffixed file is neither a zip nor a tar, i.e. mislabeled or corrupt
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

@@ -2250,6 +2250,7 @@ def test_oom_auto_reduce_keeps_closed_mosaic(tmp_path):
             data="coco8.yaml",
             epochs=3,  # < close_mosaic=10, so mosaic closes at epoch 0 where the auto-reduce is allowed
             close_mosaic=close_mosaic,
+            mosaic=1.0,  # pin the precondition: worker-global cfg state must not decide whether mosaic starts on
             imgsz=32,
             batch=16,
             workers=0,

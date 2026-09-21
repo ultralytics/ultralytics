@@ -533,6 +533,30 @@ class AnomalyMCLoss(v8DetectionLoss):
                 "weight by target class, which is a different quantity and would not be comparable. "
                 "Set cls_softmax=False, or cls_pw=0.0."
             )
+        self.type_ignore_mask = self._parse_ignore(getattr(self.hyp, "cls_ignore", ""), getattr(model, "names", None))
+
+    def _parse_ignore(self, spec, names):
+        """Map a comma-separated class-name list to a bool mask over the type channels.
+
+        Detection is untouched: an ignored class's boxes stay ordinary foreground to the binary
+        anomaly logit, only its type cross-entropy is silenced. Names resolve through
+        ``model.names`` (indices shift across datasets, names do not), and a name not in the
+        dataset raises rather than silently no-oping.
+        """
+        if not spec:
+            return None
+        if isinstance(spec, str):
+            spec = spec.split(",")
+        name_to_idx = (
+            {v: k for k, v in names.items()} if isinstance(names, dict) else {v: i for i, v in enumerate(names or [])}
+        )
+        mask = torch.zeros(self.type_nc, dtype=torch.bool, device=self.device)
+        for name in spec:
+            name = name.strip()
+            if name not in name_to_idx:
+                raise ValueError(f"cls_ignore: class '{name}' not found in dataset names")
+            mask[name_to_idx[name]] = True
+        return mask
 
     def loss(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
         """Compute the decoupled detection + type loss."""
@@ -560,6 +584,11 @@ class AnomalyMCLoss(v8DetectionLoss):
         starts[1:] = torch.bincount(batch_idx, minlength=bs).cumsum(0)[:-1]
         logits = type_scores.permute(0, 2, 1)[fg_mask]  # (n_fg, K)
         tgt = gt_cls[(target_gt_idx + starts[:, None])[fg_mask]]  # (n_fg,)
+        if self.type_ignore_mask is not None:
+            keep = ~self.type_ignore_mask[tgt]
+            if not keep.any():
+                return type_scores.sum() * 0.0
+            logits, tgt = logits[keep], tgt[keep]
         if self.cls_softmax:
             return F.cross_entropy(logits, tgt)
         # v5-style: independent per-class sigmoids against a one-hot. Summed over classes and

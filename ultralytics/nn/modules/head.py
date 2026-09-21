@@ -483,35 +483,19 @@ class AnomalyDetect(Detect):
 class AnomalyMCDetect(AnomalyDetect):
     """Anomaly head that decouples binary detection from multi-class type prediction.
 
-    In YOLO26 the class logit IS the detection confidence, so a multi-class head makes every type
-    label an input to detection. Measured on v10.2: the same recipe scores mAP50 0.3472 with
-    ``single_cls=True`` and 0.2763 with nc=57 -- a 0.0708 gap (12.4x the seed floor) that is the
-    price of letting type labels into the confidence path. This head removes that coupling:
+    The inherited ``cv3`` predicts the defect type and the added ``cv_anom`` predicts a single
+    anomaly logit, which alone drives matching, confidence and NMS. At inference the two fuse back
+    into an ordinary ``[4 + nc]`` tensor, ``conf_j = P_anom if j == argmax(type_logits) else 0``, so
+    ``max_j conf_j == P_anom`` exactly and a wrong type can never lower a box's confidence. NMS, the
+    validators and every export format are untouched; only ArgMax and ScatterElements are added.
 
-    - ``cv_anom`` (1 channel): the anomaly logit. Drives matching, confidence and NMS, trained as a
-      binary detector by ``AnomalyMCLoss``, so recall is governed by anomaly-ness alone.
-    - ``cv3`` (``nc`` channels, inherited): the defect type. Cross-entropy on matched positives
-      only; never enters matching or confidence.
+    Attributes:
+        cv_anom (nn.ModuleList): Convolution layers for the 1-channel anomaly logit.
+        one2one_cv_anom (nn.ModuleList): One-to-one variant, present when ``end2end``.
 
-    At inference the two fuse into an ordinary ``[4 + nc]`` tensor, so NMS, the validators and every
-    export format are untouched::
-
-        conf_j = P_anom if j == argmax(type_logits) else 0
-
-    So ``max_j conf_j == P_anom`` exactly -- **type confusion can never lower a box's confidence** --
-    while the class is still reported, as the channel the score lands in. Only ArgMax and
-    ScatterElements are added, both ONNX-native.
-
-    Writing ONE channel per anchor is not just simpler than a soft distribution, it is the property
-    that makes this comparable to the binary detector: the NMS-free path ranks (anchor, class)
-    PAIRS, so a head that writes several channels per anchor spends its ``max_det`` slots on
-    duplicates of one box and can push a weaker anchor's only entry out of the budget entirely. The
-    deleted objectness branch hit the limit of that -- 6 unique boxes out of 300. One channel per
-    anchor makes the top-k see exactly what it sees at nc=1, so any remaining gap to the
-    ``single_cls`` result is the trunk, not the postprocessing.
-
-    ``_fuse_mc`` is a separate method so an eval harness can swap the fusion (sqrt, plain product,
-    a weighted family) on trained weights without retraining -- it never runs during training.
+    Methods:
+        forward_head: Append the anomaly logit to the base head output.
+        bias_init: Initialize the anomaly branch as a single-class detector.
     """
 
     def __init__(
@@ -549,11 +533,7 @@ class AnomalyMCDetect(AnomalyDetect):
         return dict(box_head=self.one2one_cv2, cls_head=self.one2one_cv3, anom_head=self.one2one_cv_anom)
 
     def forward_head(self, x, box_head=None, cls_head=None, cls_x=None, anom_head=None):
-        """Add the 1-channel anomaly logit to the base head output.
-
-        ``cv_anom`` reads ``cls_x`` for the same reason ``cv3`` does: it is a scoring branch, and the
-        heatmap prior is anomaly evidence, so routing it with the box branch would starve it.
-        """
+        """Add the 1-channel anomaly logit to the base head output, read from ``cls_x`` like cv3."""
         preds = super().forward_head(x, box_head=box_head, cls_head=cls_head, cls_x=cls_x)
         if preds and anom_head is not None:
             cx = x if cls_x is None else cls_x

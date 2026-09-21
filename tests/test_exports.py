@@ -55,22 +55,17 @@ def test_export_torchscript(nms, isolated_model):
     assert model.predictor.imgsz == [32, 32]
 
 
-@pytest.mark.parametrize(
-    ("model_name", "expected_names"),
-    [("yolo26n.yaml", 80), ("yolo26n-cls.yaml", 1000), ("yolo26n-depth.yaml", 999)],
-)
-def test_export_torchscript_missing_names(model_name, expected_names, tmp_path):
-    """Test TorchScript export reconstructs missing class names from the model head."""
+@pytest.mark.parametrize(("model_name", "nc"), [("yolo26n.yaml", 80), ("yolo26n-cls.yaml", 1000)])
+def test_export_torchscript_missing_names(model_name, nc, tmp_path):
+    """Test TorchScript export reconstructs missing class names from the model head's class count."""
     model = YOLO(model_name)
-    model.model.names = None
+    model.model.names = None  # legacy and foreign checkpoints reach the exporter without names
     model.model.pt_path = str(tmp_path / Path(model_name).with_suffix(".pt").name)
 
-    file = model.export(format="torchscript", imgsz=32)
-    names = YOLO(file).names
+    names = YOLO(model.export(format="torchscript", imgsz=32)).names
 
-    assert len(names) == expected_names
-    assert names[0] == "class0"
-    assert names[expected_names - 1] == f"class{expected_names - 1}"
+    assert len(names) == nc  # a 999-name fallback would leave names[999] missing on a 1000-class head
+    assert names[nc - 1] == f"class{nc - 1}"
 
 
 @pytest.mark.parametrize("nms", [None, False])

@@ -2214,6 +2214,59 @@ def test_yolov10():
     model(SOURCE)
 
 
+def test_oom_auto_reduce_keeps_closed_mosaic(tmp_path):
+    """Test that a first-epoch OOM auto-reduce dataloader rebuild does not re-open already-closed mosaic."""
+    from ultralytics.data.augment import Mosaic
+    from ultralytics.models.yolo.detect.train import DetectionTrainer
+
+    class OOMOnceTrainer(DetectionTrainer):
+        """DetectionTrainer raising one CUDA OOM on the first batch to trigger the auto-reduce rebuild."""
+
+        oom_injected = False
+
+        def preprocess_batch(self, batch):
+            if not self.oom_injected:
+                self.oom_injected = True
+                raise RuntimeError("CUDA out of memory")
+            return super().preprocess_batch(batch)
+
+    def mosaic_probability(dataset):
+        """Recursively find the first Mosaic transform in the dataset pipeline and return its p."""
+        stack = list(getattr(dataset, "transforms", None) or [])
+        while stack:
+            t = stack.pop()
+            if isinstance(t, Mosaic):
+                return t.p
+            ts = getattr(t, "transforms", None)
+            if ts:
+                stack.extend(ts)
+        return None
+
+    def train_oom_reduced(close_mosaic):
+        """Train epochs=3 with one first-batch OOM auto-reduce and return the final batch size and Mosaic p."""
+        model = YOLO("yolo11n.pt")
+        model.train(
+            trainer=OOMOnceTrainer,
+            data="coco8.yaml",
+            epochs=3,  # < close_mosaic=10, so mosaic closes at epoch 0 where the auto-reduce is allowed
+            close_mosaic=close_mosaic,
+            imgsz=32,
+            batch=16,
+            workers=0,
+            device="cpu",
+            plots=False,
+            project=str(tmp_path),
+            name=f"oom-mosaic-{close_mosaic}",
+            exist_ok=True,
+        )
+        return model.trainer.batch_size, mosaic_probability(model.trainer.train_loader.dataset)
+
+    batch, p = train_oom_reduced(close_mosaic=10)
+    assert batch == 8  # auto-reduce halved the batch before rebuilding
+    assert p == 0.0  # rebuild re-opened it on main
+    assert train_oom_reduced(close_mosaic=0) == (8, 1.0)  # close disabled: rebuild must not close it either
+
+
 @pytest.mark.parametrize("grayscale_tiff", (False, True))
 def test_multichannel(tmp_path, grayscale_tiff):
     """Test training, validation, prediction, and export with multispectral and grayscale TIFF datasets."""

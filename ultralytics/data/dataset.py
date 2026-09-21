@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from copy import copy
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -534,7 +533,6 @@ class DepthDataset(YOLODataset):
             (Compose): Composed transforms.
         """
         # NOTE: For now following arguments are not supported
-        hyp = copy(hyp)  # zero only this dataset's copy; the shared default cfg namespace must stay untouched
         hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
         transforms = super().build_transforms(hyp)
         if not self.augment:

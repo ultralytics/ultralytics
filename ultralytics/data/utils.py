@@ -533,7 +533,7 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     return fraction
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, mode=None) -> str | Path:
+def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=None) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
@@ -542,7 +542,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, mode=Non
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction, mode=mode))
+        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction, split=split))
     return data
 
 

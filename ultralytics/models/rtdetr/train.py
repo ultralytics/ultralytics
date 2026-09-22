@@ -83,7 +83,9 @@ class RTDETRTrainer(DetectionTrainer):
             prefix=colorstr(f"{mode}: "),
             classes=self.args.classes,
             data=self.data,
-            fraction=1.0 if self.data.get("complete") else get_split_fraction(self.args.fraction, mode),
+            fraction=1.0
+            if self.data.get("complete")
+            else get_split_fraction(self.args.fraction, "train" if mode == "train" else self.args.split),
         )
 
     def get_validator(self):

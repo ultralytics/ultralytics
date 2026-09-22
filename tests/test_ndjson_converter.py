@@ -177,8 +177,13 @@ def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    for fraction, expected_test in (([0.25, 1], {"10.jpg"}), ([0.25, 1, 0], set())):
-        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction))
+    for fraction, split, expected_test in (
+        ([0.25, 1], None, {"10.jpg"}),
+        ([0.25, 1, 0], None, set()),
+        ([0.25, 1], "val", set()),
+        ([0.25, 1], "test", {"10.jpg"}),
+    ):
+        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction, split=split))
         files = [
             {p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val", "test")
         ]
@@ -188,34 +193,3 @@ def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
     yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=0.05))
     train = {p.name for p in (yaml_path.parent / "images" / "train").glob("*")}
     assert train == {"1.jpg"}  # round(9 * 0.05) == 0, yet a nonzero fraction must never write an empty split
-
-
-@pytest.mark.parametrize(
-    ("task", "has_val"), [("detect", True), ("detect", False), ("classify", True), ("classify", False)]
-)
-@pytest.mark.parametrize("fraction", [1.0, 2, [0.5, 1.0], [1.0, 1.0, 1.0]])
-def test_training_skips_unused_test_split(tmp_path, depth_server, task, has_val, fraction):
-    """Train without fetching unused test URLs, retaining classification's test-only validation fallback."""
-    base_url, _ = depth_server
-    needs_test = task == "classify" and not has_val
-    records = [{"type": "dataset", "task": task, "class_names": {0: "object"}}]
-    for split in ["train", "train", *(["val"] if has_val else []), "test"]:
-        records.append(
-            {
-                "type": "image",
-                "file": f"{len(records)}.jpg",
-                "url": f"{base_url}/{'missing' if split == 'test' and not needs_test else 'train'}.jpg",
-                "split": split,
-                "annotations": {"classification": [0]} if task == "classify" else {"boxes": [[0, 0.5, 0.5, 1, 1]]},
-            }
-        )
-    manifest = tmp_path / "training.ndjson"
-    manifest.write_text("\n".join(json.dumps(record) for record in records))
-    result = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction, mode="train"))
-    images = result if task == "classify" else result.parent / "images"
-    assert list((images / "train").rglob("*.jpg"))
-    assert bool(list((images / "test").rglob("*.jpg"))) == needs_test
-    assert bool(list((images / "val").rglob("*.jpg"))) == (not needs_test)
-    assert (
-        asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction, mode="train")) == result
-    )

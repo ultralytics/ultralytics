@@ -629,6 +629,8 @@ class Model(torch.nn.Module):
             >>> print(results.box.map)  # Print mAP50-95
         """
         custom = {"rect": True}  # method defaults
+        if kwargs.get("data") is None:
+            kwargs["data"] = self._val_data()
         args = {**self.overrides, **custom, **kwargs, "mode": "val"}  # highest priority args on the right
 
         validator = (validator or self._smart_load("validator"))(args=args, _callbacks=self.callbacks)
@@ -1142,6 +1144,23 @@ class Model(torch.nn.Module):
         """
         include = {"imgsz", "data", "task", "single_cls"}  # only remember these arguments when loading a PyTorch model
         return {k: v for k, v in args.items() if k in include}
+
+    def _val_data(self) -> str | None:
+        """Return the checkpoint's dataset when it still resolves, otherwise the task default."""
+        data = self.overrides.get("data")
+        if not isinstance(data, (str, Path)):  # absent, or a YOLOE multi-source training dict
+            data = None
+        # a bare name (coco8.yaml, imagenet10) is portable; a path recorded on another host, or OS, is not
+        if data and ("://" in str(data) or not any(sep in str(data) for sep in "/\\") or Path(data).exists()):
+            return data
+        default = TASK2DATA.get(self.task)
+        LOGGER.warning(
+            f"Checkpoint dataset '{data}' was not found. Using default 'data={default}'. Pass data=... to validate on "
+            f"the original dataset."
+            if data
+            else f"'data' argument is missing. Using default 'data={default}'."
+        )
+        return default
 
     def _smart_load(self, key: str):
         """Intelligently load the appropriate module based on the model task.

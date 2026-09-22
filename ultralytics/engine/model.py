@@ -638,7 +638,7 @@ class Model(torch.nn.Module):
         self.metrics = validator.metrics
         return validator.metrics
 
-    def calibrate(self, data=None, **kwargs: Any):
+    def calibrate(self, data: str | Path, **kwargs: Any):
         """Fit scale-only depth calibration on a small labeled set (depth task only).
 
         Runs a validation pass, then fits the global log-affine ``d' = exp(a·log d + b)`` against
@@ -649,7 +649,7 @@ class Model(torch.nn.Module):
         Call ``model.save(...)`` afterwards to persist the calibration.
 
         Args:
-            data (str, optional): Dataset YAML providing a labeled split to calibrate against.
+            data (str | Path): Dataset YAML providing a labeled split to calibrate against.
             **kwargs (Any): Extra validation arguments (e.g. ``imgsz``, ``batch``, ``device``, ``split``).
 
         Returns:
@@ -667,9 +667,7 @@ class Model(torch.nn.Module):
 
         if _depth_head(self.model) is None:
             raise ValueError("Model has no Depth head with calibration buffers (cal_a/cal_b).")
-        args = {**self.overrides, **kwargs, "mode": "val", "task": "depth"}
-        if data is not None:
-            args["data"] = data
+        args = {**self.overrides, **kwargs, "data": data, "mode": "val", "task": "depth"}
         validator = self._smart_load("validator")(args=args, _callbacks=self.callbacks)
         validator(model=self.model)
         self.predictor = None  # calibration updates the retained model below

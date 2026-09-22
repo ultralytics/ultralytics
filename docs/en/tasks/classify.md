@@ -172,8 +172,8 @@ Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo26n-cls.pt data=mnist160           # val official model
-        yolo classify val model=path/to/best.pt data=path/to/data.yaml # val custom model
+        yolo classify val model=yolo26n-cls.pt data=imagenet10     # val official model
+        yolo classify val model=path/to/best.pt data=path/to/dataset # val custom model
         ```
 
 !!! tip
@@ -309,7 +309,7 @@ To validate a trained model's accuracy on a dataset like MNIST160, you can use t
         from ultralytics import YOLO
 
         # Load a model
-        model = YOLO("yolo26n-cls.pt")  # load the trained model
+        model = YOLO("path/to/best.pt")  # load the trained model
 
         # Validate the model
         metrics = model.val()  # no arguments needed, uses the dataset and settings from training
@@ -320,7 +320,7 @@ To validate a trained model's accuracy on a dataset like MNIST160, you can use t
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo26n-cls.pt data=mnist160 # validate the trained model
+        yolo classify val model=path/to/best.pt data=mnist160 # validate the trained model
         ```
 
 For more information, visit the [Validate](#val) section.

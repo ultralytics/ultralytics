@@ -1302,8 +1302,8 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     with zipfile.ZipFile(single_file_archive, "w") as zf:
         zf.writestr("model.pt", "weights")
     single_extracted = safe_download(single_file_archive, dir=tmp_path / "weights", unzip=True, progress=False)
-    assert single_extracted == tmp_path / "weights" / "weights"
-    assert (single_extracted / "model.pt").is_file()
+    assert single_extracted == tmp_path / "weights" / "model.pt"
+    assert single_extracted.is_file()
     assert safe_download(single_file_archive, dir=tmp_path / "weights", unzip=True, progress=False) == single_extracted
 
     with tarfile.open(tar_archive := tmp_path / "coco8 local.tar", "w") as tar:

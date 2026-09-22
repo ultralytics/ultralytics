@@ -12,6 +12,14 @@ scaling depths by `ratio * max(w, h) / diagonal`. Depth scales with focal becaus
 point at (X, Y, Z) under focal f lands where (X, Y, Z * f'/f) lands under f'. Image dimensions are read from
 the file headers, so the teacher never runs again.
 
+It also clips keypoints into [0, 1], for the same reason and in the same pass. `verify_image_label` rejects an
+entire image on one keypoint outside [0, 1.01], and the teacher reconstructs out-of-frame joints rather than
+omitting them, so 48% of COCO never reached the model. Visibility was already written as 0 for those joints
+and `Pose3DLoss` recomputes its mask from visibility, so clipping changes nothing the model learns from; the
+root keeps visibility 2 because its absolute depth is valid whether or not the mid-hip happens to be framed.
+`pseudo_label_sam3d.py` now clips at write time, so this arm of the pass only matters for labels already on
+disk.
+
 Usage:
     python research/src/refocal_labels.py --src <dataset root> --dst <new root> --ratio 1.2
 """
@@ -31,7 +39,7 @@ def convert_split(src: Path, dst: Path, split: str, ratio: float) -> tuple[int, 
     """Rewrite one split's labels into the declared convention. Returns (files, rows, factors)."""
     (dst / "labels" / split).mkdir(parents=True, exist_ok=True)
     files = sorted((src / "labels" / split).glob("*.txt"))
-    n_rows, factors, clipped = 0, [], 0
+    n_rows, factors, clipped, oob = 0, [], 0, 0
     for lb in files:
         img = src / "images" / split / f"{lb.stem}.jpg"
         if not img.exists():
@@ -43,6 +51,8 @@ def convert_split(src: Path, dst: Path, split: str, ratio: float) -> tuple[int, 
 
         v = np.array([x.split() for x in lb.read_text().strip().splitlines()], dtype=np.float64)
         k = v[:, 5:].reshape(len(v), -1, 4)
+        oob += int(((k[..., :2] < 0.0) | (k[..., :2] > 1.0)).any(axis=(1, 2)).any())
+        k[..., :2] = k[..., :2].clip(0.0, 1.0)  # see the module docstring: unclipped joints drop the whole image
         z_rel, z_root = decode_z(k[:, :-1, 3], k[:, -1, 3])
         enc_rel, enc_root = encode_z(z_rel * factor, z_root * factor)
         clipped += int((z_root * factor >= Z_ROOT_MAX).sum() + (np.abs(z_rel * factor) >= Z_REL_RANGE).sum())
@@ -52,6 +62,8 @@ def convert_split(src: Path, dst: Path, split: str, ratio: float) -> tuple[int, 
         n_rows += len(v)
     if clipped:
         print(f"  {split}: {clipped} depth values hit an encoding bound after rescaling")
+    if oob:
+        print(f"  {split}: {oob} images had out-of-frame keypoints clipped back into the image")
     return len(files), n_rows, factors
 
 

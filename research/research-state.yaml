@@ -103,13 +103,34 @@ experiments:
 open_tasks:
   - id: T1
     text: "Provision SAM 3D Body on an ultra host: gated HF checkpoints + its detectron2-pinned install."
-    blocking: "H1 — no teacher, no pseudo-labels. Not present on ultra1-8, ultra9, ultra10 or ultra13 as of 2026-09-16."
+    status: done
+    blocking: "Closed 2026-09-16 without a download — already installed on ultra11 (/data/rick/sam3d)."
   - id: T2
     text: "Acquire one real-GT 3D benchmark (3DPW preferred, else EMDB/AGORA/BEDLAM)."
-    blocking: "Every number is teacher-agreement until this lands; nothing publishable without it."
+    status: done
+    blocking: "Closed 2026-09-16. 3DPW test is the benchmark; train+validation joined the training set 2026-09-22."
   - id: T3
     text: "Pseudo-label a COCO person subset and build the first real pose3d dataset."
-    blocking: "T1"
+    status: done
+    blocking: "Closed 2026-09-16, and un-halved 2026-09-22: 56,599 images now load, not 29,344."
+  - id: T4
+    text: "Finish the BEDLAM 1.0 download and write research/src/convert_bedlam.py."
+    status: in_progress
+    blocking: >
+      H1 and H5. BEDLAM is the only source with exact metric depth AND per-frame intrinsics at scale, which is
+      what root depth needs and what no pseudo-label can supply. Pulling ~380 GB (6fps + AGORA) from the ungated
+      hf-mirror copy nguyenquivinhquang/BEDLAM at ~5 MB/s into /data/shared-datasets/bedlam-rick on ultra15.
+      The converter is the real work, not the download: BEDLAM ships per-frame intrinsics, so each frame's depth
+      must be re-keyed onto the declared focal = 1.2 * max(w, h) at write time, exactly as refocal_labels.py does
+      for COCO. A naive converter would make it a fourth focal convention in one pipeline — see H6.
+  - id: T5
+    text: "Retrain on the recovered full COCO + 3DPW before acquiring any more pseudo-label source imagery."
+    status: pending
+    blocking: >
+      This is the gate on Tier-4 data (Objects365/sama-coco person crops, already on disk, no download needed).
+      H7 attributes the 2D gap to the dropped images (now fixed) plus annotator convention (which more teacher
+      labels make worse, not better). If the gap does not close and depth does not move on this run, volume and
+      scene diversity become the next lever; if it does, more pseudo-labels are the wrong spend.
 
 outer_loop:
   cycle: 0

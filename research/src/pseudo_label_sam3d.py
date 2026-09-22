@@ -59,6 +59,14 @@ def person_to_label(out: dict, w: int, h: int, box: np.ndarray) -> str | None:
     # through occlusion; it also means OKS against COCO GT is not directly comparable.
     vis = np.where((xy > 0).all(1) & (xy < 1).all(1), 2.0, 0.0)
 
+    # Clip after visibility is read, never before. `verify_image_label` rejects an entire image on one keypoint
+    # outside [0, 1.01], and the teacher reconstructs out-of-frame joints rather than omitting them, so writing
+    # them verbatim silently drops 48% of COCO. The clipped value is never supervised for joints 0-16 (vis is
+    # already 0 there and Pose3DLoss recomputes its mask from it); the root keeps vis 2 so that its absolute
+    # depth, which is valid whether or not the mid-hip is framed, still supervises.
+    xy = xy.clip(0.0, 1.0)
+    root_xy = root_xy.clip(0.0, 1.0)
+
     z_rel_enc, z_root_enc = encode_z(z_rel, np.float32(z_root))
     row = [0.0, *box]
     for (x, y), v, z in zip(xy, vis, z_rel_enc):

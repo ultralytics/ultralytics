@@ -185,16 +185,19 @@ def check_file_speeds(
 
 
 def get_hash(paths: list[str]) -> str:
-    """Return a single hash value of a list of paths (files or dirs)."""
-    size = 0
+    """Return a hash of paths and their file sizes and modification times."""
+    h = __import__("hashlib").sha256()
     for p in paths:
+        h.update(p.encode())
+        h.update(b"\0")
         try:
-            size += os.stat(p).st_size
+            stat = os.stat(p)
         except OSError:
+            h.update(b"\0")
             continue
-    h = __import__("hashlib").sha256(str(size).encode())  # hash sizes
-    h.update("".join(paths).encode())  # hash paths
-    return h.hexdigest()  # return hash
+        h.update(f"{stat.st_size}:{stat.st_mtime_ns}".encode())
+        h.update(b"\0")
+    return h.hexdigest()
 
 
 def exif_size(img: Image.Image) -> tuple[int, int]:

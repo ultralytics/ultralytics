@@ -184,3 +184,7 @@ def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
         ]
         assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, expected_test]
         assert YAML.load(yaml_path)["nc"] == 3
+
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=0.05))
+    train = {p.name for p in (yaml_path.parent / "images" / "train").glob("*")}
+    assert train == {"1.jpg"}  # round(9 * 0.05) == 0, yet a nonzero fraction must never write an empty split

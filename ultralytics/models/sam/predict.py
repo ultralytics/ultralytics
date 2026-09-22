@@ -57,6 +57,7 @@ class Predictor(BasePredictor):
         features (torch.Tensor): Extracted image features.
         prompts (dict[str, Any]): Dictionary to store various types of prompts (e.g., bboxes, points, masks).
         segment_all (bool): Flag to indicate if full image segmentation should be performed.
+        non_overlap_masks (bool): Whether each pixel is assigned to at most one of the predicted masks.
         mean (torch.Tensor): Mean values for image normalization.
         std (torch.Tensor): Standard deviation values for image normalization.
 
@@ -107,6 +108,7 @@ class Predictor(BasePredictor):
         self.features = None
         self.prompts = {}
         self.segment_all = False
+        self.non_overlap_masks = False
 
     def preprocess(self, im):
         """Preprocess the input image for model inference.
@@ -540,17 +542,20 @@ class Predictor(BasePredictor):
             if masks.shape[0] == 0:
                 masks, pred_bboxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                masks = ops.scale_masks(masks[None].float(), orig_img.shape[:2], padding=False)[0]
+                idx = pred_scores > self.args.conf
+                masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], padding=False)[0]
+                if self.non_overlap_masks:
+                    masks = self.model._apply_non_overlapping_constraints(masks[:, None])[:, 0]
                 masks = masks > self.model.mask_threshold  # to bool
                 if pred_bboxes is not None:
-                    pred_bboxes = ops.scale_boxes(img.shape[2:], pred_bboxes.float(), orig_img.shape, padding=False)
+                    pred_bboxes = ops.scale_boxes(
+                        img.shape[2:], pred_bboxes[idx].float(), orig_img.shape, padding=False
+                    )
                 else:
                     pred_bboxes = batched_mask_to_box(masks)
                 # NOTE: SAM models do not return cls info. This `cls` here is just a placeholder for consistency.
-                cls = torch.arange(pred_masks.shape[0], dtype=torch.int32, device=pred_masks.device)
-                idx = pred_scores > self.args.conf
-                pred_bboxes = torch.cat([pred_bboxes, pred_scores[:, None], cls[:, None]], dim=-1)[idx]
-                masks = masks[idx]
+                cls = torch.arange(pred_masks.shape[0], dtype=torch.int32, device=pred_masks.device)[idx]
+                pred_bboxes = torch.cat([pred_bboxes, pred_scores[idx, None], cls[:, None]], dim=-1)
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=pred_bboxes))
         # Reset segment-all mode.
         self.segment_all = False
@@ -872,7 +877,6 @@ class SAM2VideoPredictor(SAM2Predictor):
     Methods:
         get_model: Retrieve and configure the model with binarization enabled.
         inference: Perform image segmentation inference based on the given input cues.
-        postprocess: Post-process the predictions to apply non-overlapping constraints if required.
         add_new_prompts: Add new points or masks to a specific frame for a given object ID.
         propagate_in_video_preflight: Prepare inference_state and consolidate temporary outputs before tracking.
         init_state: Initialize an inference state for the predictor.
@@ -994,32 +998,6 @@ class SAM2VideoPredictor(SAM2Predictor):
         pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
 
         return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
-
-    def postprocess(self, preds, img, orig_imgs):
-        """Post-process the predictions to apply non-overlapping constraints if required.
-
-        This method extends the post-processing functionality by applying non-overlapping constraints to the predicted
-        masks if the `non_overlap_masks` flag is set to True. This ensures that the masks do not overlap, which can be
-        useful for certain applications.
-
-        Args:
-            preds (tuple[torch.Tensor, torch.Tensor]): The predicted masks and scores from the model.
-            img (torch.Tensor): The processed image tensor.
-            orig_imgs (list[np.ndarray]): The original images before processing.
-
-        Returns:
-            (list): The post-processed predictions.
-
-        Notes:
-            If `non_overlap_masks` is True, the method applies constraints to ensure non-overlapping masks.
-        """
-        results = super().postprocess(preds, img, orig_imgs)
-        if self.non_overlap_masks:
-            for result in results:
-                if result.masks is None or len(result.masks) == 0:
-                    continue
-                result.masks.data = self.model._apply_non_overlapping_constraints(result.masks.data.unsqueeze(0))[0]
-        return results
 
     @smart_inference_mode()
     def add_new_prompts(

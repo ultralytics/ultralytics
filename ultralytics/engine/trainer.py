@@ -308,7 +308,7 @@ class BaseTrainer:
             )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
-            self.data.get("val") or self.data.get("test"),
+            self.data[self.args.split],
             batch_size=batch_size if self.args.task in {"obb", "semantic", "depth"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
@@ -820,14 +820,14 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction, split=self.args.split)
 
             # Task-specific dataset checking
             if self.args.task == "classify":
                 if getattr(self.args, "multi_label", False):
                     data = check_multilabel_cls_dataset(self.args.data)
                 else:
-                    data = check_cls_dataset(self.args.data)
+                    data = check_cls_dataset(self.args.data, split=self.args.split)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
@@ -836,7 +836,7 @@ class BaseTrainer:
                 "semantic",
                 "depth",
             }:
-                data = check_det_dataset(self.args.data)
+                data = check_det_dataset(self.args.data, split=self.args.split)
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:

@@ -6,9 +6,12 @@ import os
 import platform
 import shutil
 import tarfile
+import threading
 import urllib
 import zipfile
 from copy import copy
+from functools import partial
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import cv2
@@ -1334,6 +1337,75 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
 
     assert not (tmp_path / "unsafe.txt").exists()
     assert (extracted / "safe.txt").is_file()
+
+
+class _QuietFileHandler(SimpleHTTPRequestHandler):
+    """Serve regression-test fixtures without writing requests to the test log."""
+
+    def log_message(self, _format, *args):
+        pass
+
+
+@pytest.fixture
+def same_basename_server(tmp_path):
+    """Serve /a/data.yaml and /b/data.yaml with distinct content, recording served paths."""
+    hits = []
+
+    class CountingHandler(_QuietFileHandler):
+        def do_GET(self):
+            hits.append(self.path)
+            super().do_GET()
+
+    source = tmp_path / "source"
+    for sub, content in (("a", "contenta"), ("b", "contentb")):
+        (source / sub).mkdir(parents=True)
+        (source / sub / "data.yaml").write_text(content)
+    server = ThreadingHTTPServer(("127.0.0.1", 0), partial(CountingHandler, directory=source))
+    server.daemon_threads = True
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}", hits
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+
+def test_check_file_remote_same_basename_no_collision(tmp_path, monkeypatch, same_basename_server):
+    """Two remote urls sharing a basename must each get their own content, with repeats served offline."""
+    monkeypatch.setattr(checks, "URL_CACHE_FILE", tmp_path / "url_cache.json", raising=False)
+    base, hits = same_basename_server
+
+    first = Path(checks.check_file(f"{base}/a/data.yaml", download_dir=tmp_path))
+    assert first.parent == tmp_path and first.name == "data.yaml"  # natural filename on the common path
+    assert first.read_text() == "contenta" and hits.count("/a/data.yaml") == 1
+
+    second = Path(checks.check_file(f"{base}/b/data.yaml", download_dir=tmp_path))
+    assert second != first and second.parent == tmp_path and second.suffix == ".yaml"
+    assert second.name.startswith("data-")  # keyed name still derived from the natural name
+    assert second.read_text() == "contentb" and first.read_text() == "contenta"
+    assert hits.count("/b/data.yaml") == 1
+
+    hits.clear()
+    assert Path(checks.check_file(f"{base}/b/data.yaml", download_dir=tmp_path)) == second  # repeat, no request
+    assert Path(checks.check_file(f"{base}/a/data.yaml", download_dir=tmp_path)) == first
+    assert Path(checks.check_file(f"{base}/a/data.yaml?sig=x", download_dir=tmp_path)) == first  # signed variant
+    assert not hits
+
+
+def test_check_file_remote_adopts_preexisting_local_file(tmp_path, monkeypatch, same_basename_server):
+    """A pre-existing untracked local file is returned without network contact and pinned to the first url."""
+    monkeypatch.setattr(checks, "URL_CACHE_FILE", tmp_path / "url_cache.json", raising=False)
+    base, hits = same_basename_server
+    (tmp_path / "data.yaml").write_text("mine")
+
+    adopted = Path(checks.check_file(f"{base}/b/data.yaml", download_dir=tmp_path))
+    assert adopted.name == "data.yaml" and adopted.read_text() == "mine" and not hits  # adopted, zero requests
+
+    other = Path(checks.check_file(f"{base}/a/data.yaml", download_dir=tmp_path))
+    assert other != adopted and other.read_text() == "contenta"  # second url no longer aliases the adopted file
+    assert adopted.read_text() == "mine"
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

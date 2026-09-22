@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import functools
 import glob
+import hashlib
 import inspect
 import math
 import os
@@ -46,6 +47,7 @@ from ultralytics.utils import (
     TORCHVISION_VERSION,
     USER_CONFIG_DIR,
     WINDOWS,
+    JSONDict,
     Retry,
     ThreadingLocked,
     TryExcept,
@@ -58,6 +60,7 @@ from ultralytics.utils import (
 )
 
 REMOTE_FILE_PREFIXES = ("https://", "http://", "rtsp://", "rtmp://", "tcp://", "ul://", "gs://")
+URL_CACHE_FILE = USER_CONFIG_DIR / "url_cache.json"  # remote-file provenance: resolved path -> query-stripped url
 
 
 def normalize_platform_uri(uri):
@@ -799,10 +802,26 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
             file = "https://storage.googleapis.com/" + file[5:]  # convert gs:// to public HTTPS URL
         url = file  # warning: Pathlib turns :// -> :/
         file = Path(download_dir) / url2file(file)  # '%2F' to '/', split authentication query strings
+        key = url.split("?", 1)[0]  # query-stripped: signed urls share one key; clean_url() would unquote and re-alias
+        keyed = file.with_name(f"{file.stem}-{hashlib.sha256(key.encode()).hexdigest()[:8]}{file.suffix}")
+        cache = JSONDict(URL_CACHE_FILE)  # provenance registry; corrupt or unwritable degrades to empty
+        for k in [k for k in cache if not Path(k).is_file()]:  # prune entries whose local file is gone
+            del cache[k]
+        if keyed.exists():  # this url previously took the suffixed name after a same-basename collision
+            LOGGER.info(f"Found {clean_url(url)} locally at {keyed}")
+            return str(keyed)
         if file.exists():
-            LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
-        else:
-            downloads.safe_download(url=url, file=file, unzip=False)
+            resolved = str(file.resolve())
+            owner = cache.get(resolved)
+            if owner is not None and owner != key:  # natural name is owned by a different url
+                file = keyed
+            else:  # repeat, or an untracked local file adopted as this url's cache (no re-download)
+                if owner is None:
+                    cache[resolved] = key
+                LOGGER.info(f"Found {clean_url(url)} locally at {file}")  # file already exists
+                return str(file)
+        downloads.safe_download(url=url, file=file, unzip=False)
+        cache[str(file.resolve())] = key  # natural entries drive repeat reuse; suffixed entries are provenance records
         return str(file)
     else:  # search
         files = glob.glob(str(ROOT / "**" / file), recursive=True) or glob.glob(str(ROOT.parent / file))  # find file

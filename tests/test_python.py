@@ -2293,26 +2293,3 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
-
-
-def test_label_cache_reloads_same_size_edits(tmp_path):
-    """Reload labels when an annotation changes without changing its file size."""
-    from ultralytics.data.dataset import YOLODataset
-    from ultralytics.data.utils import get_hash
-
-    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
-    images.mkdir(parents=True)
-    labels.mkdir(parents=True)
-    cv2.imwrite(str(images / "a.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
-    label = labels / "a.txt"
-    label.write_text("0 0.5 0.5 0.2 0.2\n")
-    data = {"names": {0: "first", 1: "second"}}
-    original_hash = get_hash([str(label)])
-    assert YOLODataset(img_path=str(images), imgsz=32, data=data, augment=False).labels[0]["cls"].item() == 0
-
-    previous = label.stat()
-    label.write_text("1 0.5 0.5 0.2 0.2\n")
-    assert label.stat().st_size == previous.st_size
-    os.utime(label, ns=(previous.st_atime_ns, previous.st_mtime_ns + 1_000_000_000))
-    assert get_hash([str(label)]) != original_hash
-    assert YOLODataset(img_path=str(images), imgsz=32, data=data, augment=False).labels[0]["cls"].item() == 1

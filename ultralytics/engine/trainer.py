@@ -197,6 +197,7 @@ class BaseTrainer:
 
         # Optimization utils init
         self.lf = None
+        self.optimizer = None
         self.scheduler = None
 
         # Epoch level metrics
@@ -438,7 +439,6 @@ class BaseTrainer:
         # Batch size
         if self.batch_size < 1 and RANK == -1:  # single-GPU only, estimate best batch size
             self.args.batch = self.batch_size = self.auto_batch()
-        self.optimizer = None  # initial setup must start with a fresh optimizer, including repeated train() calls
         self._build_train_pipeline()
         self.validator = self.get_validator()
         self.set_class_weights()  # compute class weights after dataloader is ready

@@ -1298,6 +1298,14 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert (extracted / "data.yaml").is_file(), f"data.yaml not found in {extracted}"
     assert (extracted / "images" / "val").is_dir(), f"images/val not found in {extracted}"
 
+    single_file_archive = tmp_path / "weights.zip"
+    with zipfile.ZipFile(single_file_archive, "w") as zf:
+        zf.writestr("model.pt", "weights")
+    single_extracted = safe_download(single_file_archive, dir=tmp_path / "weights", unzip=True, progress=False)
+    assert single_extracted == tmp_path / "weights" / "weights"
+    assert (single_extracted / "model.pt").is_file()
+    assert safe_download(single_file_archive, dir=tmp_path / "weights", unzip=True, progress=False) == single_extracted
+
     with tarfile.open(tar_archive := tmp_path / "coco8 local.tar", "w") as tar:
         tar.add(dataset_dir, arcname=dataset_dir.name)
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)

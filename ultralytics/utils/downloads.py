@@ -190,7 +190,7 @@ def unzip_file(
         top_level_dirs = {Path(f).parts[0] for f in files}
 
         # Decide to unzip directly or unzip into a directory
-        unzip_as_dir = len(top_level_dirs) == 1  # (len(files) > 1 and not files[0].endswith("/"))
+        unzip_as_dir = len(top_level_dirs) == 1 and all(len(Path(f).parts) > 1 or f.endswith("/") for f in files)
         if unzip_as_dir:
             # Zip has 1 top-level directory
             extract_path = path  # i.e. ../datasets

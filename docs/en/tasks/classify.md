@@ -172,7 +172,7 @@ Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo26n-cls.pt data=imagenet10     # val official model
+        yolo classify val model=yolo26n-cls.pt data=imagenet10       # val official model
         yolo classify val model=path/to/best.pt data=path/to/dataset # val custom model
         ```
 

@@ -2,6 +2,7 @@
 
 import contextlib
 import csv
+import hashlib
 import os
 import platform
 import shutil
@@ -1406,6 +1407,22 @@ def test_check_file_remote_adopts_preexisting_local_file(tmp_path, monkeypatch, 
     other = Path(checks.check_file(f"{base}/a/data.yaml", download_dir=tmp_path))
     assert other != adopted and other.read_text() == "contenta"  # second url no longer aliases the adopted file
     assert adopted.read_text() == "mine"
+
+
+def test_check_file_remote_keyed_name_not_stolen_by_natural_name(tmp_path, monkeypatch, same_basename_server):
+    """A url whose natural filename equals another url's keyed name must not have its content served to that url."""
+    monkeypatch.setattr(checks, "URL_CACHE_FILE", tmp_path / "url_cache.json", raising=False)
+    base, _hits = same_basename_server
+    shadow = f"data-{hashlib.sha256(f'{base}/b/data.yaml'.encode()).hexdigest()[:8]}.yaml"  # b's future keyed name
+    (tmp_path / "source" / "a" / shadow).write_text("contenta")  # a's natural download is named exactly like it
+    Path(checks.check_file(f"{base}/a/data.yaml", download_dir=tmp_path))  # a takes the plain natural name first
+    natural = Path(checks.check_file(f"{base}/a/{shadow}", download_dir=tmp_path))
+    assert natural.name == shadow and natural.read_text() == "contenta"  # the natural-name owner keeps its file
+
+    displaced = Path(checks.check_file(f"{base}/b/data.yaml", download_dir=tmp_path))
+    assert displaced.name == shadow  # b's keyed target is a's natural filename
+    assert displaced.read_text() == "contentb"  # b gets a fresh download, never a's content through the keyed shortcut
+    assert Path(checks.check_file(f"{base}/a/{shadow}", download_dir=tmp_path)).read_text() == "contenta"  # a converges
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

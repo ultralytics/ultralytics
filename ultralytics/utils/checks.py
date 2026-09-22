@@ -807,13 +807,17 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         cache = JSONDict(URL_CACHE_FILE)  # provenance registry; corrupt or unwritable degrades to empty
         for k in [k for k in cache if not Path(k).is_file()]:  # prune entries whose local file is gone
             del cache[k]
-        if keyed.exists():  # this url previously took the suffixed name after a same-basename collision
+        if keyed.exists() and cache.get(str(keyed.resolve()), key) == key:
+            # keyed reuse needs the registry's blessing, or its silence (registry loss self-heals); a different url's
+            # natural download can occupy this exact name, and its recorded ownership blocks the shortcut
             LOGGER.info(f"Found {clean_url(url)} locally at {keyed}")
             return str(keyed)
         if file.exists():
             resolved = str(file.resolve())
             owner = cache.get(resolved)
             if owner is not None and owner != key:  # natural name is owned by a different url
+                if keyed.is_file():  # its natural download occupies this url's keyed slot; safe_download skips
+                    keyed.unlink()  # existing files, so the slot must be retaken or the foreign content would win
                 file = keyed
             else:  # repeat, or an untracked local file adopted as this url's cache (no re-download)
                 if owner is None:

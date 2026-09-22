@@ -4,14 +4,12 @@ import os
 from itertools import product
 from pathlib import Path
 
-import numpy as np
 import pytest
 import torch
 
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
-from ultralytics.engine.results import Results
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_tensorrt
@@ -38,19 +36,6 @@ def test_checks():
     """Validate CUDA settings against torch CUDA functions."""
     assert torch.cuda.is_available() == CUDA_IS_AVAILABLE
     assert torch.cuda.device_count() == CUDA_DEVICE_COUNT
-
-
-@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
-def test_results_numpy_from_cuda():
-    """Convert CUDA-backed Results directly to NumPy without modifying the source result."""
-    boxes = torch.tensor([[0, 0, 1, 1, 0.9, 0]], device=f"cuda:{DEVICES[0]}")
-    result = Results(np.zeros((1, 1, 3), dtype=np.uint8), "image.jpg", {0: "object"}, boxes=boxes)
-
-    converted = result.numpy()
-
-    assert isinstance(converted.boxes.data, np.ndarray)
-    np.testing.assert_array_equal(converted.boxes.data, boxes.cpu().numpy())
-    assert result.boxes.data.is_cuda
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

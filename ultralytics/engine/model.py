@@ -1149,7 +1149,9 @@ class Model(torch.nn.Module):
         if not isinstance(data, (str, Path)):  # absent, or a YOLOE multi-source training dict
             data = None
         # a bare name (coco8.yaml, imagenet10) is portable; a path recorded on another host, or OS, is not
-        if data and ("://" in str(data) or not any(sep in str(data) for sep in "/\\") or Path(data).exists()):
+        if data and (
+            "://" in str(data) or not any(sep in str(data) for sep in "/\\") or checks.check_file(data, hard=False)
+        ):
             return data
         default = TASK2DATA.get(self.task)
         LOGGER.warning(

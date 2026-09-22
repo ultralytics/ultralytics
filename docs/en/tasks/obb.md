@@ -83,17 +83,6 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
         yolo obb train data=dota8.yaml model=yolo26n-obb.yaml pretrained=yolo26n-obb.pt epochs=100 imgsz=640
         ```
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/uZ7SymQfqKI"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics Platform
-</p>
-
 See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
@@ -169,17 +158,6 @@ Use a trained YOLO26n-obb model to run predictions on images.
         yolo obb predict model=yolo26n-obb.pt source='https://ultralytics.com/images/boats.jpg'  # predict with official model
         yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg' # predict with custom model
         ```
-
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/5XYdm5CYODA"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Detect and Track Storage Tanks using Ultralytics YOLO-OBB | Oriented Bounding Boxes | DOTA
-</p>
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 

@@ -120,7 +120,7 @@ Train YOLO on the COCO8 dataset for 100 epochs at image size 640. For a full lis
 
 ## Val
 
-Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the trained model on the COCO8 dataset. Pass `data` explicitly: a missing value falls back to the task default `coco8.yaml`, not to the dataset the model was trained on.
+Validate the [accuracy](https://www.ultralytics.com/glossary/accuracy) of the trained model on the COCO8 dataset. A custom model reuses its training `data` when `data` is omitted; official weights fall back to the task default `coco8.yaml`.
 
 !!! example
 

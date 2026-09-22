@@ -45,11 +45,11 @@ These are the notable functionalities offered by YOLO26's Val mode:
 
 !!! tip
 
-    * YOLO26 models automatically remember their training settings, so `YOLO("yolo26n.pt").val()` validates at the training image size on the original dataset. The CLI keeps the image size but fills a missing `data` with the task default (`coco8.yaml` for detection), so pass `data` explicitly there
+    * YOLO26 models automatically remember their training settings, so `yolo val model=path/to/best.pt` or `YOLO("path/to/best.pt").val()` validates at the training image size on the original dataset. Official weights fall back to the task default dataset; pass `data` to override
 
 ## Usage Examples
 
-Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy). In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` validates on the dataset it was trained on, the official `yolo26n.pt` on the full COCO val set. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8.yaml`, not to the dataset the model was trained on. See the Arguments section below for a full list of validation arguments.
+Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy). No arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` validates on the dataset it was trained on. Official weights record a training dataset path that doesn't exist on your machine, so they fall back to the task default `coco8.yaml` with a warning. Pass `data` to validate on another dataset. See the Arguments section below for a full list of validation arguments.
 
 !!! warning "Windows Multi-Processing Error"
 

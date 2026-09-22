@@ -83,6 +83,17 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
         yolo obb train data=dota8.yaml model=yolo26n-obb.yaml pretrained=yolo26n-obb.pt epochs=100 imgsz=640
         ```
 
+<p align="center">
+  <br>
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/uZ7SymQfqKI"
+    title="YouTube video player" frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen>
+  </iframe>
+  <br>
+  <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics Platform
+</p>
+
 See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
 
 ### Dataset format
@@ -97,7 +108,7 @@ Internally, YOLO processes losses and outputs in the `xywhr` format, which repre
 
 ## Val
 
-Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the DOTA8 dataset. Pass `data` explicitly so validation uses the intended dataset YAML; the official weights retain the full [DOTAv1](../datasets/obb/dota-v2.md) split they were trained on.
+Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the DOTA8 dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
 
 !!! example
 

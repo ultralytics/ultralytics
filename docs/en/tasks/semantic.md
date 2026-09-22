@@ -161,7 +161,6 @@ belong to separate objects.
 | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Class IDs; dtype selected by class count. |
 | `result.masks`              | -                                               | -       | No instance masks.                        |
 | `result.boxes`              | -                                               | -       | No instance boxes/confidences.            |
-| `result.masks.xy`           | -                                               | -       | No default polygons.                      |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 

@@ -123,6 +123,16 @@ open_tasks:
       The converter is the real work, not the download: BEDLAM ships per-frame intrinsics, so each frame's depth
       must be re-keyed onto the declared focal = 1.2 * max(w, h) at write time, exactly as refocal_labels.py does
       for COCO. A naive converter would make it a fourth focal convention in one pipeline — see H6.
+      Provenance to settle before publication: this copy is a third-party mirror, so MPI's licence was never
+      accepted. It does not block the experiments, but a paper using it needs the licence question answered.
+  - id: T6
+    text: "Pseudo-label the Objects365v1 person subset (608,253 labelled images, class 0 = person)."
+    status: in_progress
+    blocking: >
+      Nothing — launched 2026-09-22 on ultra15 GPUs 0/1/3, three shards, writing /home/rick/objects365-pose3d.
+      Resumable: the labeller skips any image whose output label already exists, so it can be killed and
+      relaunched freely. This is new imagery, not a re-annotation, which is why it was chosen over sama-coco
+      (same COCO pixels, already pseudo-labelled — no new information). Read T5 before believing its numbers.
   - id: T5
     text: "Retrain on the recovered full COCO + 3DPW before acquiring any more pseudo-label source imagery."
     status: pending

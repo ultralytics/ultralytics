@@ -158,7 +158,9 @@ def modelopt_quantize_onnx(
             n += images[-1].shape[0]
             if n >= 512:
                 break
-        calib = torch.cat(images).to(torch.float32) / 255.0
+        calib = torch.cat(images)
+        del images, batch
+        calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
         modelopt_quantize(

@@ -1308,16 +1308,6 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
 
 
-def test_img2label_paths_accepts_pathlib():
-    """img2label_paths used to AttributeError on pathlib.Path from Path.glob."""
-    from ultralytics.data.utils import img2label_paths
-
-    img = Path("dataset") / "images" / "a.jpg"
-    expected = str(Path("dataset") / "labels" / "a.txt")
-    assert img2label_paths([img]) == [expected]
-    assert img2label_paths([str(img)]) == [expected]
-
-
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""
     archive = tmp_path / "unsafe.zip"

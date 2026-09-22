@@ -134,9 +134,11 @@ class TensorRTBackend(BaseBackend):
         """
         if self.dynamic and im.shape != self.bindings["images"].shape:
             if self.is_trt10:
-                self.context.set_input_shape("images", im.shape)
+                ok = self.context.set_input_shape("images", im.shape)
             else:
-                self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+                ok = self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+            if not ok:  # the profile refused the shape, so the bindings below would describe the wrong engine state
+                raise ValueError(f"input size {tuple(im.shape)} is outside the TensorRT optimization profile")
             self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
             for name in self.output_names:
                 shape = (
@@ -151,7 +153,8 @@ class TensorRTBackend(BaseBackend):
 
         if self.graph is None:
             self.bindings["images"] = self.bindings["images"]._replace(data=im)
-            self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()])
+            if not self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()]):
+                raise RuntimeError("TensorRT inference execution failed")
         else:
             self.bindings["images"].data.copy_(im)  # the capture reads this address, so the input must land in it
             self.graph.replay()

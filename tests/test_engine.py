@@ -186,6 +186,47 @@ def test_resume_invalid_checkpoint_args(tmp_path):
         detect.DetectionTrainer(overrides={"model": MODEL, "data": "coco8.yaml", "resume": str(last)})
 
 
+def test_oom_retry_preserves_optimizer(tmp_path):
+    """Keep optimizer momentum when an OOM reduces batch size after an optimizer step."""
+
+    class OOMTrainer(detect.DetectionTrainer):
+        def preprocess_batch(self, batch):
+            self.batches_seen = getattr(self, "batches_seen", 0) + 1
+            if self.batches_seen == 2:
+                self.optimizer_before_oom = self.optimizer
+                assert self.optimizer.state, "first batch did not initialize optimizer momentum"
+                raise RuntimeError("CUDA out of memory")
+            return super().preprocess_batch(batch)
+
+    trainer = OOMTrainer(
+        overrides={
+            "model": "yolo26n.yaml",
+            "data": "coco8.yaml",
+            "epochs": 1,
+            "imgsz": 64,
+            "batch": 2,
+            "nbs": 1,
+            "optimizer": "SGD",
+            "workers": 0,
+            "device": "cpu",
+            "amp": False,
+            "val": False,
+            "save": False,
+            "plots": False,
+            "mosaic": 0,
+            "close_mosaic": 0,
+            "project": tmp_path,
+        }
+    )
+    trainer.train()
+    assert trainer.batch_size == 1
+    assert trainer.optimizer is trainer.optimizer_before_oom
+    assert trainer.optimizer.state
+    assert next(
+        g["weight_decay"] for g in trainer.optimizer.param_groups if g["param_group"] == "weight"
+    ) == pytest.approx(trainer.args.weight_decay)
+
+
 def test_distill_resume(tmp_path: Path):
     """Test knowledge distillation resumes from an incomplete checkpoint."""
     overrides = {

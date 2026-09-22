@@ -1466,8 +1466,6 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
 @pytest.mark.parametrize("external", [False, True])
 def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
     """Calibration provenance records local splits without rejecting external validation paths."""
-    from types import SimpleNamespace
-
     from ultralytics.models.yolo import detect
     from ultralytics.models.yolo.depth import calibrate
     from ultralytics.models.yolo.depth.train import DepthTrainer

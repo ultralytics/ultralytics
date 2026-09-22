@@ -49,7 +49,7 @@ These are the notable functionalities offered by YOLO26's Val mode:
 
 ## Usage Examples
 
-Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8.yaml`, not to the dataset the model was trained on. See the Arguments section below for a full list of validation arguments.
+Validate a trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy). In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` validates on the dataset it was trained on, the official `yolo26n.pt` on the full COCO val set. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8.yaml`, not to the dataset the model was trained on. See the Arguments section below for a full list of validation arguments.
 
 !!! warning "Windows Multi-Processing Error"
 

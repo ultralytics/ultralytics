@@ -85,7 +85,7 @@ YOLO segmentation dataset format can be found in detail in the [Dataset Guide](.
 
 ## Val
 
-Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8-seg dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8-seg.yaml`, not to the dataset the model was trained on.
+Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy). In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` from the [Train](#train) example validates on COCO8-seg, the official `yolo26n-seg.pt` on the full COCO val set. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8-seg.yaml`, not to the dataset the model was trained on.
 
 !!! example
 

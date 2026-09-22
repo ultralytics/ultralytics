@@ -85,7 +85,7 @@ For custom pose estimation tasks, you can also explore specialized datasets like
 
 ## Val
 
-Validate trained YOLO26n-pose model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8-pose dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8-pose.yaml`, not to the dataset the model was trained on.
+Validate trained YOLO26n-pose model [accuracy](https://www.ultralytics.com/glossary/accuracy). In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` from the [Train](#train) example validates on COCO8-pose, the official `yolo26n-pose.pt` on the full COCO keypoints val set. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8-pose.yaml`, not to the dataset the model was trained on.
 
 !!! example
 

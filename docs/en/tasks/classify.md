@@ -150,7 +150,7 @@ model.val(data="imagenet", validator=CustomizedValidator, imgsz=224, batch=64)
 
 ## Val
 
-Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the MNIST160 dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `imagenet10`, not to the dataset the model was trained on.
+Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossary/accuracy). In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes: `path/to/best.pt` from the [Train](#train) example validates on MNIST160, the official `yolo26n-cls.pt` on the ImageNet val set. On the CLI pass `data` explicitly: a missing value falls back to the task default `imagenet10`, not to the dataset the model was trained on.
 
 !!! example
 

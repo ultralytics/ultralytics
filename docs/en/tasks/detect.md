@@ -83,7 +83,7 @@ YOLO detection dataset format can be found in detail in the [Dataset Guide](../d
 
 ## Val
 
-Validate trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8.yaml`, not to the dataset the model was trained on.
 
 !!! example
 
@@ -108,8 +108,8 @@ Validate trained YOLO26n model [accuracy](https://www.ultralytics.com/glossary/a
     === "CLI"
 
         ```bash
-        yolo detect val model=yolo26n.pt      # val official model
-        yolo detect val model=path/to/best.pt # val custom model
+        yolo detect val model=yolo26n.pt data=coco8.yaml             # val official model
+        yolo detect val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Predict
@@ -266,7 +266,7 @@ To validate the accuracy of your trained YOLO26 model, you can use the `.val()` 
     === "CLI"
 
         ```bash
-        yolo detect val model=path/to/best.pt
+        yolo detect val model=path/to/best.pt data=path/to/data.yaml
         ```
 
 For more validation details, visit the [Val](../modes/val.md) page.

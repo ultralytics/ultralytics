@@ -85,7 +85,7 @@ YOLO segmentation dataset format can be found in detail in the [Dataset Guide](.
 
 ## Val
 
-Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8-seg dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8-seg dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `coco8-seg.yaml`, not to the dataset the model was trained on.
 
 !!! example
 
@@ -115,8 +115,8 @@ Validate trained YOLO26n-seg model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo segment val model=yolo26n-seg.pt  # val official model
-        yolo segment val model=path/to/best.pt # val custom model
+        yolo segment val model=yolo26n-seg.pt data=coco8-seg.yaml     # val official model
+        yolo segment val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Predict
@@ -271,7 +271,7 @@ Loading and validating a pretrained YOLO segmentation model is straightforward. 
     === "CLI"
 
         ```bash
-        yolo segment val model=yolo26n-seg.pt
+        yolo segment val model=yolo26n-seg.pt data=coco8-seg.yaml
         ```
 
 These steps will provide you with validation metrics like [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP), crucial for assessing model performance.

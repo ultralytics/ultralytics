@@ -150,7 +150,7 @@ model.val(data="imagenet", validator=CustomizedValidator, imgsz=224, batch=64)
 
 ## Val
 
-Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the MNIST160 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the MNIST160 dataset. In Python no arguments are needed, as the `model` retains its training `data` and arguments as model attributes. On the CLI pass `data` explicitly: a missing value falls back to the task default `imagenet10`, not to the dataset the model was trained on.
 
 !!! example
 
@@ -172,8 +172,8 @@ Validate trained YOLO26n-cls model [accuracy](https://www.ultralytics.com/glossa
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo26n-cls.pt  # val official model
-        yolo classify val model=path/to/best.pt # val custom model
+        yolo classify val model=yolo26n-cls.pt data=mnist160           # val official model
+        yolo classify val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 !!! tip
@@ -320,7 +320,7 @@ To validate a trained model's accuracy on a dataset like MNIST160, you can use t
     === "CLI"
 
         ```bash
-        yolo classify val model=yolo26n-cls.pt # validate the trained model
+        yolo classify val model=yolo26n-cls.pt data=mnist160 # validate the trained model
         ```
 
 For more information, visit the [Validate](#val) section.

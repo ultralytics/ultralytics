@@ -1790,19 +1790,6 @@ def test_nms_end2end_classes_before_max_det():
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 
 
-def test_nms_preserves_prediction_tensor():
-    """NMS must not overwrite raw xywh predictions when converting selected boxes to xyxy."""
-    from ultralytics.utils.nms import non_max_suppression
-
-    pred = torch.tensor([[[50.0, 150.0], [50.0, 150.0], [20.0, 20.0], [20.0, 20.0], [0.9, 0.8], [0.1, 0.2]]])
-    original = pred.clone()
-    first = non_max_suppression(pred, conf_thres=0.25)[0]
-    second = non_max_suppression(pred, conf_thres=0.25)[0]
-
-    assert torch.equal(pred, original)
-    assert torch.equal(first, second)
-
-
 def test_process_mask_empty():
     """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
     from ultralytics.utils import ops

@@ -1429,16 +1429,6 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
-        # Export to TF
-        images = None
-        if self.args.quantize == 8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = (
-                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
-                .permute(0, 2, 3, 1)
-                .numpy()
-            )
-
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
@@ -1449,7 +1439,16 @@ class Exporter:
             f_onnx,
             f,
             quantize=self.args.quantize,
-            images=images,
+            images=(
+                torch.nn.functional.interpolate(
+                    torch.cat([batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)], 0).float(),
+                    size=self.imgsz,
+                )
+                .permute(0, 2, 3, 1)
+                .numpy()
+                if self.args.quantize == 8 and self.args.data
+                else None
+            ),
             disable_group_convolution=self.args.format == "edgetpu",
             cuda=self.device.type == "cuda",
             prefix=prefix,

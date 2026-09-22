@@ -860,7 +860,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         fraction = get_split_fraction(fraction, "train")
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
-    source_hash = hashlib.sha256(repr((source_id, fraction, mode)).encode()).hexdigest()[:8]
+    source_hash = hashlib.sha256(repr((source_id, fraction)).encode() + (mode or "").encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
@@ -920,7 +920,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
         fraction = [get_split_fraction(fraction, split) for split in ("train", "val")] + [0.0]
 
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256(repr((fraction, mode)).encode())
+    _h = hashlib.sha256(repr(fraction).encode() + (mode or "").encode())
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")

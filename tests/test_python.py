@@ -831,7 +831,7 @@ def test_convert_signed_ndjson(monkeypatch):
 
     captured = []
 
-    async def convert(path, fraction):
+    async def convert(path, fraction, mode):
         captured.append((path, fraction))
         return "dataset.ndjson.yaml"
 

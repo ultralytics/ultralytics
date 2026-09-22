@@ -815,7 +815,7 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction, mode="train")
 
             # Task-specific dataset checking
             if self.args.task == "classify":

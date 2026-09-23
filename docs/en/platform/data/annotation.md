@@ -362,7 +362,7 @@ The dataset page shows the run's progress, and **Stop** keeps and bills the imag
 
 !!! note "Batch Annotation Cost"
 
-    Batch Annotation costs $1.50 per 1,000 processed images, with a minimum of $0.01 per run. The estimate is held from your balance when the run starts and settled for the images actually processed; the charge appears on the [Billing tab](../account/billing.md#transaction-types) as **Auto-Annotation** once you dismiss the run summary. With a paid provider model, this is the Platform processing fee only: the provider also bills your API key for the test-run previews and the annotations.
+    Batch Annotation costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run. The estimate is held from your balance when the run starts and settled for the images actually processed; the charge appears on the [Billing tab](../account/billing.md#transaction-types) as **Auto-Annotation** once you dismiss the run summary. With a paid provider model, this is the Platform processing fee only: the provider also bills your API key for the test-run previews and the annotations.
 
 ## Class Sidebar
 

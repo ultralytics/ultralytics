@@ -23,51 +23,6 @@ from ultralytics.utils.metrics import ap_per_class
 from ultralytics.utils.plotting import Annotator, colors
 
 
-# def heatmap_to_boxes(
-#     heatmap: "torch.Tensor",
-#     thresh: float = 0.5,
-#     max_det: int = 9,
-#     min_area: int = 64,
-# ) -> "torch.Tensor":
-#     """Threshold a spatial heatmap and fit bounding boxes via connected components.
-#
-#     Args:
-#         heatmap (Tensor): (H, W) float tensor, values in [0, 1].
-#         thresh (float): Score threshold for foreground pixels.
-#         max_det (int): Maximum number of boxes returned.
-#         min_area (int): Minimum connected-component area (pixels) to keep.
-#
-#     Returns:
-#         Tensor: Shape (N, 6) — ``[x1, y1, x2, y2, score, class_id=0]``,
-#             sorted by score descending.  Returns empty (0, 6) when no
-#             component passes the threshold or min_area filter.
-#     """
-#     import cv2
-#     import numpy as np
-#     import torch
-#
-#     h_np = heatmap.detach().cpu().float().numpy()
-#     mask = (h_np >= thresh).astype(np.uint8)
-#     if mask.sum() == 0:
-#         return torch.zeros((0, 6), dtype=torch.float32)
-#     num, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
-#     H, W = h_np.shape
-#     boxes = []
-#     for lbl in range(1, num):  # skip background label 0
-#         x, y, w, h, area = stats[lbl]
-#         if area < min_area:
-#             continue
-#         # Skip components that touch the image border (resize / padding artifacts).
-#         if x == 0 or y == 0 or (x + w) >= W or (y + h) >= H:
-#             continue
-#         score = float(h_np[labels == lbl].mean())
-#         boxes.append([float(x), float(y), float(x + w), float(y + h), score, 0.0])
-#     if not boxes:
-#         return torch.zeros((0, 6), dtype=torch.float32)
-#     t = torch.tensor(boxes, dtype=torch.float32)
-#     order = t[:, 4].argsort(descending=True)[:max_det]
-#     return t[order]
-
 
 class YOLOAnomalyValidator(DetectionValidator):
     """Anomaly validator.
@@ -215,12 +170,6 @@ class YOLOAnomalyValidator(DetectionValidator):
         if not preds:
             return
 
-        # head = self._anomaly_head()
-        # if head is None:
-        #     # Fall back to the standard detection plot if the head is not a YOLOA head.
-        #     return super().plot_predictions(batch, preds, ni, max_det)
-
-        # mask_size = head.heatmap_processor.mask_size
         mask_size = 80  # hard-code to 80 now
         imgs = batch["img"]
         b = imgs.shape[0]

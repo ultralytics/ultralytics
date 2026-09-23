@@ -1067,19 +1067,20 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     fig, ax = None, None
     for i, f in enumerate(files):
         try:
-            data = pl.read_csv(f, infer_schema_length=None)
+            data = pl.read_csv(f.read_bytes(), infer_schema_length=None)
             if i == 0:
                 for c in data.columns:
                     if "loss" in c:
                         loss_keys.append(c)
                     elif "metric" in c:
                         metric_keys.append(c)
-                loss_mid, metric_mid = len(loss_keys) // 2, len(metric_keys) // 2
+                loss_mid, metric_mid = len(loss_keys) // 2, (len(metric_keys) + 1) // 2
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                fig, ax = plt.subplots(2, len(columns) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                fig, ax = plt.subplots(2, (len(columns) + 1) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
                 ax = ax.ravel()
+                ax[-1].set_visible(len(columns) % 2 == 0)
             x = data.select(data.columns[0]).to_numpy().flatten()
             for i, j in enumerate(columns):
                 y = data.select(j).to_numpy().flatten().astype("float")

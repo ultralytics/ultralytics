@@ -48,6 +48,7 @@ class YOLOAnomalyValidator(DetectionValidator):
         # Columns: .10=0, .25=3, .50=8. mAP10-50 is the mean over the whole grid.
         self.iouv = torch.linspace(0.1, 0.5, 9)
         self.niou = self.iouv.numel()
+        self._ood_files: list[str] = []  # loader-order image paths, aligned with the stat chunks
 
     def postprocess(self, preds: list[torch.Tensor]) -> list[dict[str, torch.Tensor]]:
         """Post-process YOLO predictions and return output detections with proto.
@@ -235,54 +236,154 @@ class YOLOAnomalyValidator(DetectionValidator):
             fname = self.save_dir / f"val_batch{ni}_pred_{Path(batch['im_file'][i]).stem}.jpg"
             cv2.imwrite(str(fname), grid)
 
-    # Confidence floors reported next to the threshold-free numbers. AP describes the whole ranked
-    # list, so a floor does not set an operating point -- it deletes the low-score tail of the PR
-    # curve. That makes "recall at a floor" meaningful (how much survives a deployment threshold)
-    # and "AP at a floor" a truncated curve, so both are emitted and labelled differently.
-    _OOD_OPS = (0.01, 0.10, 0.25)
-    # Fitness stays defined on this floor: every historical yoloa run was measured there, and
-    # changing what fitness means would silently break comparison with all of them.
-    _OOD_FITNESS_CONF = 0.25
+    _OOD_OPS = (0.01, 0.10, 0.25)  # conf floors; see _pr_at_floor for what is read at each
+    _OOD_FITNESS_CONF = 0.25  # fitness is defined here; changing it breaks comparison with past runs
+
+    def update_metrics(self, preds, batch) -> None:
+        """Record the image order alongside the stats, so a subset can be selected later."""
+        self._ood_files.extend(batch["im_file"][: len(preds)])
+        super().update_metrics(preds, batch)
 
     def get_stats(self) -> dict:
-        """Keep the flat stat arrays before ``DetMetrics`` clears them.
+        """Keep the flat stat arrays, and where each entry came from, before ``DetMetrics`` clears them.
 
-        They are all ``_ap_above`` needs to re-score the run at another confidence floor, which is
-        why the multi-threshold report costs one inference pass rather than one per threshold.
+        They are all ``_ap_above`` and ``_pr_at_floor`` need to re-score the run at another
+        confidence floor, which is why the multi-threshold report costs one inference pass rather
+        than one per threshold. The same trick extends to any *image* subset -- a defect type, a
+        texture/object split -- but only if each flat entry can be traced back to its image, which
+        is what ``_ood_img`` records.
+
+        Prediction-space (``tp``/``conf``/``pred_cls``) and GT-space (``target_cls``) have different
+        lengths, so they need separate maps. Both are derived from the per-image chunk lengths that
+        ``Metric.update_stats`` accumulated, so no extra bookkeeping happens during inference.
         """
-        self._ood_stats = {k: np.concatenate(v, 0) for k, v in self.metrics.stats.items() if len(v)}
+        chunks = self.metrics.stats
+        self._ood_stats = {k: np.concatenate(v, 0) for k, v in chunks.items() if len(v)}
+        self._ood_img = {
+            space: np.concatenate([np.full(len(a), i, dtype=np.int64) for i, a in enumerate(chunks[key])])
+            if chunks.get(key)
+            else np.zeros(0, dtype=np.int64)
+            for space, key in (("pred", "conf"), ("gt", "target_cls"))
+        }
         return super().get_stats()
 
-    def _ap_above(self, floor: float) -> tuple[float, float, np.ndarray]:
+    @classmethod
+    def pooled(cls, validators: list[YOLOAnomalyValidator]) -> YOLOAnomalyValidator:
+        """Concatenate several finished passes into one ranked list, for a pooled read.
+
+        Pooling is one global ranked list, not a mean of per-product numbers, so a product that
+        scores its own normals high outranks another's true positives -- what a single deployed
+        threshold faces, and why the pooled value sits below the macro mean.
+
+        Args:
+            validators (list[YOLOAnomalyValidator]): Finished passes sharing one IoU grid.
+
+        Returns:
+            (YOLOAnomalyValidator): A read-only stand-in. It has no ``DetMetrics``, so
+                ``_ood_map_metrics`` must be called with an explicit ``images``.
+        """
+        self = cls.__new__(cls)
+        self.names, self.iouv = validators[0].names, validators[0].iouv
+        self._ood_files = []
+        stats: dict[str, list[np.ndarray]] = {}
+        img: dict[str, list[np.ndarray]] = {"pred": [], "gt": []}
+        for v in validators:
+            off = len(self._ood_files)  # image indices are per-pass; shift them into the pooled frame
+            self._ood_files.extend(v._ood_files)
+            for k, a in v._ood_stats.items():
+                stats.setdefault(k, []).append(a)
+            for space, acc in img.items():
+                acc.append(v._ood_img[space] + off)
+        self._ood_stats = {k: np.concatenate(a, 0) for k, a in stats.items()}
+        self._ood_img = {k: np.concatenate(a) for k, a in img.items()}
+        return self
+
+    def snapshot(self) -> YOLOAnomalyValidator:
+        """Return this pass's stats, detached from the validator and its dataloader.
+
+        Retaining the validator retains its worker processes and their file descriptors; 4 passes
+        over 38 products exhausts the limit part-way through.
+        """
+        return type(self).pooled([self])
+
+    def _image_mask(self, images) -> tuple[np.ndarray, np.ndarray] | None:
+        """Prediction- and GT-space boolean masks selecting ``images`` (indices into ``_ood_files``).
+
+        ``None`` means "every image", returned as ``None`` so callers can skip masking entirely and
+        stay bit-identical to the unsubsetted path.
+        """
+        if images is None:
+            return None
+        keep = np.zeros(len(self._ood_files), dtype=bool)
+        keep[np.asarray(list(images), dtype=np.int64)] = True
+        idx = self._ood_img
+        return keep[idx["pred"]], keep[idx["gt"]]
+
+    def _ap_above(self, floor: float, images=None) -> tuple[float, float, np.ndarray]:
         """Mean precision, mean recall and the per-class AP grid over predictions scoring >= floor.
 
         Masking after the fact is equivalent to having run NMS at ``floor``: suppression only flows
         from higher score to lower, so no box above the floor can be removed by one below it, and
         ``max_det`` truncation drops the lowest scores first.
+
+        ``images`` optionally restricts the read to a subset of the pass (see :meth:`_image_mask`).
+        Because ``target_cls`` is subset alongside the predictions, the recall denominator follows,
+        so the result equals a standalone val run over just those images.
         """
         s = getattr(self, "_ood_stats", None)
         if not s or "conf" not in s or not len(s["conf"]):
             return 0.0, 0.0, np.zeros((0, 0))
         m = s["conf"] >= floor
-        res = ap_per_class(s["tp"][m], s["conf"][m], s["pred_cls"][m], s["target_cls"], plot=False, names=self.names)
+        tgt = s["target_cls"]
+        if (sub := self._image_mask(images)) is not None:
+            m, tgt = m & sub[0], tgt[sub[1]]
+        res = ap_per_class(s["tp"][m], s["conf"][m], s["pred_cls"][m], tgt, plot=False, names=self.names)
         p, r, ap = res[2], res[3], res[5]
         return float(p.mean()), float(r.mean()), ap
 
-    def _ood_map_metrics(self) -> dict[str, float]:
+    def _pr_at_floor(self, floor: float, iou_idx: int, images=None) -> tuple[float, float]:
+        """Literal precision and recall of the predictions scoring >= ``floor``, matched at one IoU.
+
+        This is what a deployment threshold actually yields: every surviving prediction counts, so
+        ``P = TP/kept`` and ``R = TP/GT``. ``_ap_above`` cannot answer that -- ``ap_per_class``
+        returns the *max-F1 point* of the masked curve, an operating point that moves between runs,
+        and it builds that curve from ``tp[:, 0]`` alone, i.e. IoU 0.10 regardless of the floor. So
+        its ``P``/``R`` are neither at the floor nor at the IoU the mAP columns are read at.
+        """
+        s = getattr(self, "_ood_stats", None)
+        if not s or "conf" not in s or not len(s["conf"]):
+            return 0.0, 0.0
+        m = s["conf"] >= floor
+        n_gt = len(s["target_cls"])
+        if (sub := self._image_mask(images)) is not None:
+            m, n_gt = m & sub[0], int(sub[1].sum())
+        tp = float(s["tp"][m][:, iou_idx].sum())
+        kept = int(m.sum())
+        return (tp / kept if kept else 0.0), (tp / n_gt if n_gt else 0.0)
+
+    def _ood_map_metrics(self, images=None) -> dict[str, float]:
         """mAP at IoU {0.10, 0.25, 0.50}, mAP10-50, and operating-point P/R per confidence floor.
 
         The bare keys are threshold-free -- computed over everything the head emitted, which is the
         honest measure of ranking. The ``@conf`` keys re-score that same pass at a floor.
+
+        ``images`` restricts the whole read to a subset of the pass (a defect type, a texture/object
+        split). The no-subset path deliberately still reads ``DetMetrics`` rather than recomputing,
+        so runs recorded before subsetting existed cannot drift by a digit.
         """
-        box = self.metrics.box
-        all_ap = getattr(box, "all_ap", [])
+        if images is None:
+            box = self.metrics.box
+            all_ap = getattr(box, "all_ap", [])
+            mp, mr = float(box.mp), float(box.mr)
+        else:
+            mp, mr, all_ap = self._ap_above(0.0, images)  # every conf is > 0, so this is "no floor"
         out = {
             "mAP10": 0.0,
             "mAP25": 0.0,
             "mAP50": 0.0,
             "mAP10_50": 0.0,
-            "P": float(box.mp),
-            "R": float(box.mr),
+            "P": mp,
+            "R": mr,
         }
         if not len(all_ap):
             return out
@@ -294,9 +395,8 @@ class YOLOAnomalyValidator(DetectionValidator):
         out["mAP10_50"] = float(all_ap.mean())  # mean over the full .10:.50 grid
 
         for c in self._OOD_OPS:
-            p, r, ap = self._ap_above(c)
-            out[f"P@{c:g}"] = p
-            out[f"R@{c:g}"] = r
+            ap = self._ap_above(c, images)[2]
+            out[f"P50@{c:g}"], out[f"R50@{c:g}"] = self._pr_at_floor(c, idx[0.50], images)
             if c == self._OOD_FITNESS_CONF and ap.size:
                 for thr, i in idx.items():
                     out[f"mAP{round(thr * 100)}@{c:g}"] = float(ap[:, i].mean())
@@ -319,6 +419,8 @@ class YOLOAnomalyValidator(DetectionValidator):
 
     def print_results(self) -> None:
         """Print the 'all' row with mAP10/mAP25/mAP50 and the mAP10:50 aggregate."""
+        if not self.args.verbose:
+            return
         mm = self._ood_map_metrics()
         nt = int(self.metrics.nt_per_class.sum()) if len(self.metrics.nt_per_class) else 0
         pf = "%22s" + "%11i" * 2 + "%11.3g" * 6

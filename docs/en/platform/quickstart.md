@@ -97,17 +97,17 @@ After signing in, you will be directed to the Home page of [Ultralytics Platform
 
 The sidebar provides access to all Platform sections:
 
-| Section     | Item     | Description                                                        |
-| ----------- | -------- | ------------------------------------------------------------------ |
-| **Top**     | Search   | Quick search across all your resources (Cmd+K)                     |
-|             | Home     | Dashboard with quick actions and recent activity                   |
-|             | Explore  | Discover public projects and datasets                              |
-| **Content** | Annotate | Your datasets, with a `+` shortcut to create one                   |
-|             | Train    | Your projects containing trained models                            |
-|             | Deploy   | Your active deployments; any entry opens the deployments dashboard |
-| **Footer**  | Help     | Guides, community links, and the in-app feedback form              |
-|             | Settings | Account, billing, teams, and preferences                           |
-|             | Account  | Profile menu with workspace switcher, activity, and **Log out**    |
+| Section     | Item        | Description                                                                           |
+| ----------- | ----------- | ------------------------------------------------------------------------------------- |
+| **Top**     | Search      | Quick search across all your resources (Cmd+K)                                        |
+|             | Home        | Dashboard with quick actions and recent activity                                      |
+|             | Explore     | Discover public projects and datasets                                                 |
+| **Content** | Annotate    | Your datasets, with a `+` shortcut to create one                                      |
+|             | Train       | Your projects containing trained models                                               |
+|             | Deployments | Your deployments, each opening its deployment page, with a `+` shortcut to create one |
+| **Footer**  | Help        | Guides, community links, and the in-app feedback form                                 |
+|             | Settings    | Account, billing, teams, and preferences                                              |
+|             | Account     | Profile menu with workspace switcher, activity, and **Log out**                       |
 
 Each content section lists your five most recent items with a link to the rest. Hovering an item reveals a delete
 action that moves it to [Trash](account/trash.md); Trash itself is reached from search (`Cmd+K`) or by opening
@@ -394,7 +394,7 @@ Once provisioning completes, your endpoint provides:
     Endpoints can be **started**, **stopped**, and **deleted**. Stopped endpoints retain their configuration and can be
     restarted with one click.
 
-After deployment, you can manage all your endpoints from the `Deploy` section in the sidebar. The deployments dashboard shows a global map with your active deployments, 24-hour metrics (total requests, active deployments, error rate, and P95 latency), and a list of every endpoint.
+After deployment, you can manage all your endpoints from the **Deployments** tab on your profile, reached from the `Deployments` section in the sidebar. The tab shows a global map with your active deployments, 24-hour metrics (active deployments, total requests, error rate, and P95 latency), and a list of every endpoint.
 
 Read more about [endpoints](deploy/endpoints.md).
 

@@ -249,6 +249,7 @@ class ONNXBackend(BaseBackend):
                     # Plugin init can raise (e.g. unsupported-op compile); fall back to CPU with fresh options.
                     LOGGER.warning(f"MIGraphX EP init failed ({e}). Using CPU...")
                     session_options = onnxruntime.SessionOptions()
+                    self.device, cuda = torch.device("cpu"), False  # already warned, skip the missing-plugin hint below
             plugin_ep = self.session is not None
             if not plugin_ep:
                 available = onnxruntime.get_available_providers()

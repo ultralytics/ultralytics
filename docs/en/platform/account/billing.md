@@ -99,12 +99,12 @@ credits on hand, and it is shown in red when it does.
 
 Credits are consumed by:
 
-| Service              | Rate                                                                                               |
-| -------------------- | -------------------------------------------------------------------------------------------------- |
-| **Cloud Training**   | GPU rate x hours                                                                                   |
-| **Batch Annotation** | $1.00 per 1,000 images, minimum $0.01 per run                                                      |
-| **Face Blurring**    | $1.00 per 1,000 images for a whole dataset, minimum $0.01 per run; single images and previews free |
-| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only                                              |
+| Service              | Rate                                                                                                                    |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Cloud Training**   | GPU rate x hours                                                                                                        |
+| **Batch Annotation** | $1.00 per 1,000 images, minimum $0.01 per run                                                                           |
+| **Face Blurring**    | $1.00 per 1,000 images for a whole dataset, minimum $0.01 per run; single images, previews, and blurring on upload free |
+| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only                                                                   |
 
 !!! note "Monthly Credits Don't Roll Over"
 

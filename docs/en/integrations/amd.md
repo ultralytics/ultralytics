@@ -171,7 +171,7 @@ For the full list of export arguments, see the [ONNX integration](onnx.md#export
 
 ## Deploying on AMD GPUs with MIGraphX
 
-The wheels target ROCm 10 (MIGraphX 2.17, ONNX Runtime 1.29), so keep the plugin, `migraphx-libs`, and the ROCm runtime on the same ROCm release. The MIGraphX EP is a loadable plugin that adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module, so there is no package conflict with `onnxruntime` or `onnxruntime-gpu`.
+The wheels target ROCm 10 (MIGraphX 2.17, ONNX Runtime 1.29), so keep the plugin, `migraphx-libs`, and the ROCm runtime on the same ROCm release. The MIGraphX EP is a loadable plugin that adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module. `onnxruntime-gpu` provides the same module, so the two cannot share an environment: if an earlier setup installed `onnxruntime-gpu`, run `pip uninstall -y onnxruntime-gpu onnxruntime` and Ultralytics reinstalls stock `onnxruntime` on the next ONNX inference.
 
 !!! note "Compiled-program cache"
 

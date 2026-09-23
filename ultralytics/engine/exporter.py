@@ -1319,8 +1319,6 @@ class Exporter:
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
-        if f.is_dir():
-            shutil.rmtree(f)
 
         if self.args.nms and self.model.task == "detect":
             model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
@@ -1380,15 +1378,7 @@ class Exporter:
         if self.model.task == "classify":
             ct_model.user_defined_metadata.update({"com.apple.coreml.model.preview.type": "imageClassifier"})
 
-        try:
-            ct_model.save(str(f))  # save *.mlpackage
-        except Exception as e:
-            LOGGER.warning(
-                f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
-                f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
-            )
-            f = f.with_suffix(".mlmodel")
-            ct_model.save(str(f))
+        ct_model.save(str(f))  # save *.mlpackage or *.mlmodel
         return f
 
     @try_export

@@ -35,7 +35,7 @@ The MIGraphX EP ships as a loadable plugin package (`onnxruntime-ep-migraphx`) t
 - **Automatic provider selection**: The ONNX backend registers the plugin and picks `MIGraphXExecutionProvider` when ROCm is detected, with a clean CPU fallback otherwise.
 - **Zero-copy IO binding**: Inputs and outputs are bound directly to GPU tensors through the DLPack protocol, avoiding host round-trips during inference.
 - **Precision options**: Run FP32 or export an FP16 ONNX model for reduced-precision inference.
-- **Reproducible deployment**: The full stack — ROCm PyTorch, the MIGraphX plugin, and its libraries — installs through `pip` from AMD's ROCm wheel indexes.
+- **Reproducible deployment**: The full stack (ROCm PyTorch, the MIGraphX plugin, and its libraries) installs through `pip` from AMD's ROCm wheel indexes.
 
 ## Supported Tasks
 
@@ -49,7 +49,7 @@ MIGraphX inference uses the standard [ONNX export](onnx.md). A dedicated `format
 
 ### Installation
 
-The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexes — no `apt` packages or root access are needed for PyTorch, the plugin, or the ROCm runtime libraries, provided the host already has the AMD GPU kernel driver (`amdgpu` / `/dev/kfd`) in place.
+The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexes, so no `apt` packages or root access are needed for PyTorch, the plugin, or the ROCm runtime libraries, provided the host already has the AMD GPU kernel driver (`amdgpu` / `/dev/kfd`) in place.
 
 !!! tip "Installation"
 

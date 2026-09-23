@@ -257,7 +257,7 @@ jobs:
         run: docker builder prune -af
 
       - name: Run Tests
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
+        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
         run: |
           test_torch=""
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then

@@ -80,7 +80,7 @@ The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexe
         pip install ultralytics
         ```
 
-If `onnx` or the plugin are missing, Ultralytics installs them automatically on the first ONNX export or inference on a ROCm system. For detailed instructions and best practices, check our [YOLO26 Installation guide](../quickstart.md); if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md).
+Ultralytics installs `onnx` automatically on the first ONNX export and the plugin on the first ONNX inference on a ROCm system. For detailed instructions and best practices, check our [YOLO26 Installation guide](../quickstart.md); if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md).
 
 ### Usage
 

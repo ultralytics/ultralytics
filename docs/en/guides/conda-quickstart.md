@@ -67,7 +67,7 @@ pip install ultralytics
 
 !!! note
 
-    The AMD `onnxruntime-ep-migraphx` plugin requires **Python 3.11 to 3.14** on **Linux x86_64** and targets the ROCm 10 wheels (MIGraphX 2.17, onnxruntime 1.29). The plugin adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module, and Ultralytics installs it with `migraphx-libs` automatically on the first ONNX export or inference (see the [AMD GPU guide](../integrations/amd.md#installation) for details).
+    The AMD `onnxruntime-ep-migraphx` plugin requires **Python 3.11 to 3.14** on **Linux x86_64** and targets the ROCm 10 wheels (MIGraphX 2.17, onnxruntime 1.29). The plugin adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module, and Ultralytics installs it with `migraphx-libs` automatically on the first ONNX inference (see the [AMD GPU guide](../integrations/amd.md#installation) for details).
 
 See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [AMD GPU guide](../integrations/amd.md#installation) for MIGraphX inference setup.
 

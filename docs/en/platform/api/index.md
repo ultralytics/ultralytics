@@ -1094,7 +1094,7 @@ Runs the model on the image and returns predicted annotations. It does not save 
 POST /api/datasets/{owner}/{dataset}/predict/batch
 ```
 
-**Python SDK:** `client.datasets.create_batch(owner, dataset, model_id=...)`
+**Python SDK:** `client.datasets.create_batch(owner, dataset, body={...})` (`ultralytics-platform>=0.1.57`)
 
 Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus

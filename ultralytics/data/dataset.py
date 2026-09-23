@@ -1109,6 +1109,19 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
     result_to_label = YOLODataset.result_to_label
     verify_labels = YOLODataset.verify_labels
 
+    def build_transforms(self, hyp: dict | None = None) -> Compose:
+        """Build transforms, keeping instance polygons only for the augmentations that can read them."""
+        transforms = super().build_transforms(hyp)
+        # load_mask rasterizes self.labels; polygons reach the image or mask only via CopyPaste, CutMix, Albumentations
+        self.use_segments = self.augment and bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
+        return transforms
+
+    def update_labels_info(self, label: dict) -> dict:
+        """Drop the polygons from the instances when no augmentation reads them."""
+        if not self.use_segments:
+            label["segments"] = []
+        return super().update_labels_info(label)
+
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""
         h, w = image_shape

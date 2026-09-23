@@ -505,7 +505,7 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 The same embeddings power similarity search across public datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
-An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — shows `Analyze this dataset in Clustering to find similar images`. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
 
 ## Dataset Tabs
 

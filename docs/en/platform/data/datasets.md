@@ -789,7 +789,7 @@ Delete multiple images at once:
 
 ### Copy and Move Images
 
-Copy or move images from one dataset you can edit into another:
+Copy or move images from one dataset you can edit into another, including a dataset in a different workspace:
 
 1. In the source dataset, right-click an image in **Grid** or **Compact** view and choose **Copy** or **Cut**, or select images in **Table** view and press `Cmd/Ctrl+C` or `Cmd/Ctrl+X`. `Esc` clears the clipboard.
 2. Open the destination dataset, right-click an image and choose **Paste**, or press `Cmd/Ctrl+V`.

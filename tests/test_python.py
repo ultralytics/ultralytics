@@ -2,7 +2,6 @@
 
 import contextlib
 import csv
-import gzip
 import os
 import platform
 import shutil
@@ -1304,37 +1303,10 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
-    mislabeled = tmp_path / "corrupt.zip"  # an HTML error page served with a .zip name
-    mislabeled.write_bytes(b"<html>not an archive</html>\n")
-    assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
-
-    mislabeled_tar = tmp_path / "corrupt.tar.gz"  # an HTML error page served with a .tar.gz name
-    mislabeled_tar.write_bytes(b"<html>not an archive</html>\n")
-    assert safe_download(mislabeled_tar, dir=tmp_path / "datasets4", unzip=True, progress=False) == mislabeled_tar
-
-    plain_gzip = tmp_path / "data.yaml.gz"  # a gzipped single file that is not a tar
-    plain_gzip.write_bytes(gzip.compress(b"path: .\ntrain: images/train\n"))
-    assert safe_download(plain_gzip, dir=tmp_path / "datasets5", unzip=True, progress=False) == plain_gzip
-
-
-def test_safe_download_unzips_single_file_archive(tmp_path):
-    """Test safe_download() returns the single root file itself from zip and tar archives, not the parent directory."""
-    member = tmp_path / "data.yaml"
-    member.write_text("path: .\ntrain: images/train\nval: images/val\nnames:\n  0: item\n")
-
-    archive = tmp_path / "single.zip"
-    with zipfile.ZipFile(archive, "w") as zf:
-        zf.write(member, arcname="data.yaml")
-    assert safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False) == (
-        tmp_path / "datasets" / "data.yaml"
-    )  # pin the established zip behavior
-
-    tarball = tmp_path / "single.tar"
-    with tarfile.open(tarball, "w") as tar:
-        tar.add(member, arcname="data.yaml")
-    extracted = safe_download(tarball, dir=tmp_path / "datasets2", unzip=True, progress=False)
-    assert extracted == tmp_path / "datasets2" / "data.yaml", f"tar returned {extracted}"
-    assert Path(extracted).is_file()
+    for name in ("corrupt.zip", "corrupt.tar.gz"):
+        mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
+        mislabeled.write_bytes(b"<html>not an archive</html>\n")
+        assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):

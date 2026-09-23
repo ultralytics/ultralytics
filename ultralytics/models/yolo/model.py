@@ -498,3 +498,32 @@ class YOLOA(Model):
         self._check_is_pytorch_model()
         self.model.memory_bank.reset()
         return self
+
+    def val_ood(self, data: str | Path, groups: str = "nature=structural", **kwargs: Any):
+        """Evaluate on an anomaly catalogue: one memory bank per product, one pooled binary number.
+
+        ``val()`` measures one dataset with one bank. This measures a MVTec-Ultra tree: a bank per
+        product from that product's normal images, every product scored, then the images ``groups``
+        selects pooled into ONE ranked list -- what a single deployed threshold faces, and why the
+        pooled value sits below the mean of per-product numbers.
+
+        Args:
+            data (str | Path): A MVTec-Ultra version root. Its ``meta.yaml`` is the taxonomy, so the
+                selection is a tag query rather than a list of paths.
+            groups (str): ``nature=structural``, ``surface=texture``, or a list of group ids.
+            **kwargs (Any): Passed to ``OODEvaluator`` -- ``e2e``, ``batch``, ``workers``,
+                ``device``, ``save_dir``, ``verbose``.
+
+        Returns:
+            (OODResult): Decisive metrics, plus ``.groups`` and ``.products`` rows.
+
+        Examples:
+            >>> m = YOLOA("best.pt")
+            >>> res = m.val_ood("/data/shared-datasets/louis_data/MVTec-Ultra/v1")
+            >>> res["mAP50@0.25"]
+        """
+        from ultralytics.models.yolo.anomaly import OODEvaluator
+
+        self._check_is_pytorch_model()
+        kwargs.setdefault("device", next(self.model.parameters()).device)
+        return OODEvaluator(data, groups=groups, **kwargs)(self.model)

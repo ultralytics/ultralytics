@@ -68,10 +68,9 @@ For organizations with advanced needs:
 - Unlimited models, storage, training jobs, and deployments · 50 GB dataset upload limit
 - Custom team capacity (50 seats by default)
 - Enterprise License (commercial use, non-AGPL)
-- SSO / SAML authentication and custom role-based access controls
+- SSO / SAML authentication
 - [On Premise](../integrations/on-premise.md) data and compute
-- [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
-- Enterprise SLA guarantees
+- Custom SLAs on top of [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
 - Dedicated onboarding and support
 
 Enterprise plans are provisioned by the Ultralytics team. Click **Request Enterprise Demo** on the Enterprise card in

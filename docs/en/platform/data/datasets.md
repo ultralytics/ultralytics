@@ -994,6 +994,10 @@ Ultralytics Platform manages storage efficiently:
 
 Yes. Drag files onto the dataset gallery or click the upload icon in the page header, which opens your browser's native file picker directly. New statistics are computed automatically after processing.
 
+### Can I copy or move images to another dataset?
+
+Yes. Copy or cut images in one dataset and paste them into another dataset you can edit; they keep their labels and splits, and **Cut** removes them from the source. Classes are matched by name, and the **Map classes** dialog handles any the destination does not have. See [Copy and Move Images](#copy-and-move-images).
+
 ### How do I move images between splits?
 
 Use the bulk move-to-split feature:

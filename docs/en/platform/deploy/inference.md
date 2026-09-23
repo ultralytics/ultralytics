@@ -143,16 +143,17 @@ Control Non-Maximum Suppression:
 
 ## Deployment Predict
 
-Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab directly on its deployment card. This uses the deployment's own inference service rather than the shared predict service, letting you test your deployed endpoint from the browser.
+Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab on its deployment page. This uses the deployment's own inference service rather than the shared predict service, letting you test your deployed endpoint from the browser.
 
-On a paid endpoint with monitoring enabled, processed images also contribute to the [Monitoring tab](monitoring.md#monitoring-tab). Its sampled examples and aggregate charts are lightweight, temporary data held in memory; stopping, restarting, redeploying, resizing, or replacing the model can clear them. Save examples to a dataset to keep them.
+On a ready endpoint, processed images also contribute to the [Monitoring tab](monitoring.md#monitoring-tab). Its examples and aggregate charts are lightweight, temporary data held in memory; stopping, restarting, redeploying, resizing, or replacing the model can clear them. Save examples to a dataset to keep them.
 
 ## Dedicated Endpoint API
 
 The **API Docs** card in the model `Predict` tab contains example Python, JavaScript, and cURL requests, pre-filled with
 the confidence, IoU, and image size currently set on the sliders. The URL and key are placeholders until you deploy the
-model — a **Deploy** button next to the code tabs jumps to the model's `Deploy` tab. After deployment, the deployment
-card's `Code` tab fills in that endpoint's URL and, for workspace owners, its bound API key, ready to copy and run.
+model — a **Deploy** button next to the code tabs jumps to the model's `Deploy` tab. After deployment, the **Docs**
+result tab in the deployment page's `Predict` tab fills in that endpoint's URL and, for workspace owners, its bound API
+key, ready to copy and run.
 
 ### Authentication
 

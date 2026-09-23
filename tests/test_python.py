@@ -1326,6 +1326,15 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
+    with tarfile.open(tgz_archive := tmp_path / "coco8 local.tgz", "w:gz") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    tar_gz_archive = tmp_path / "coco8 local.tar.gz"
+    tar_gz_archive.write_bytes(tgz_archive.read_bytes())
+    for archive, target in ((tgz_archive, "datasets_tgz"), (tar_gz_archive, "datasets_tar_gz")):
+        extracted = safe_download(archive, dir=tmp_path / target, unzip=True, progress=False)
+        assert extracted == tmp_path / target / dataset_dir.name
+        assert (extracted / "data.yaml").is_file()
+
     for name in ("corrupt.zip", "corrupt.tar.gz"):
         mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
         mislabeled.write_bytes(b"<html>not an archive</html>\n")

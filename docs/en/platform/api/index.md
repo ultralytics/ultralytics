@@ -838,13 +838,14 @@ Copies up to 1,000 images from other datasets into this one, as the app's
 }
 ```
 
-With `release`, images from datasets you can edit keep their labels and splits: `false` copies them and `true` moves
-them out of their source dataset. Without `release` or `classMapping`, or from a dataset you can only view, they are
-added as unlabeled `train` images. Images the dataset already holds in the same split are skipped. Classes are matched
+Setting `release` or `classMapping` preserves labels and splits from datasets you can edit: `release: false` copies
+images and `release: true` moves them out of their source dataset. Omitting both fields imports unlabeled `train`
+images, as does copying from a read-only source; moving from a read-only source returns `403`. Existing images are
+skipped; when preserving labels and splits, duplicates are checked within the destination split. Classes are matched
 by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
 each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
-dataset or, for labeled images, the source and destination task, image channels, pose keypoints, or depth scale do not
-match.
+dataset or a source or destination is busy. When preserving labels and splits, incompatible tasks, image channels,
+pose settings, or depth scales also return `409`, even for images without labels.
 
 ### Ingest Dataset Data
 

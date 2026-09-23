@@ -44,7 +44,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 # Use pip directly for Ubuntu 24.04 externally-managed Python compatibility.
 # The MIGraphX EP ships as the onnxruntime-ep-migraphx plugin (pulls stock onnxruntime 1.29); migraphx-libs provides
 # its C library and libamdhip64.so.7 comes from the base image's ROCm runtime.
-RUN pip install -e "." albumentations faster-coco-eval && \
+RUN pip install -e "." albumentations faster-coco-eval uv && \
     pip install onnxruntime-ep-migraphx migraphx-libs \
       --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
       --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ && \

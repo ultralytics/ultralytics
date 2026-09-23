@@ -61,18 +61,6 @@ def _max_pairwise_iou(xyxy: np.ndarray) -> float:
     return maximum
 
 
-def _rankdata(values: np.ndarray) -> np.ndarray:
-    """Return average ranks, assigning tied values their mean rank."""
-    sorter = np.argsort(values, kind="stable")
-    inverse = np.empty(values.size, dtype=int)
-    inverse[sorter] = np.arange(values.size)
-    sorted_values = values[sorter]
-    observed = np.r_[True, sorted_values[1:] != sorted_values[:-1]]
-    dense = observed.cumsum()[inverse]
-    count = np.r_[np.nonzero(observed)[0], values.size]
-    return 0.5 * (count[dense] + count[dense - 1] + 1)
-
-
 def analyze_correlations(dataset, metrics) -> AnalysisReport:
     """Correlate per-image dataset properties with per-image F1.
 
@@ -87,6 +75,8 @@ def analyze_correlations(dataset, metrics) -> AnalysisReport:
     Returns:
         (AnalysisReport): Per-image rows and per-property Spearman correlations.
     """
+    import polars as pl
+
     per_image = {}
     for label in dataset.labels:
         h, w = label["shape"]
@@ -111,7 +101,7 @@ def analyze_correlations(dataset, metrics) -> AnalysisReport:
         mask = np.isfinite(values) & np.isfinite(f1)
         r = None
         if mask.sum() > 1 and np.ptp(values[mask]) and np.ptp(f1[mask]):
-            r = float(np.corrcoef(_rankdata(values[mask]), _rankdata(f1[mask]))[0, 1])
+            r = pl.select(pl.corr(pl.Series(values[mask]), pl.Series(f1[mask]), method="spearman")).item()
         correlations[prop] = {"spearman_r": r, "n": int(mask.sum())}
     return AnalysisReport(per_image, correlations)
 

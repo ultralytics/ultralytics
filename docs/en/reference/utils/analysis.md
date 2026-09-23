@@ -20,10 +20,6 @@ keywords: Ultralytics, image property analysis, correlation, dataset quality, de
 
 <br><br><hr><br>
 
-## ::: ultralytics.utils.analysis._rankdata
-
-<br><br><hr><br>
-
 ## ::: ultralytics.utils.analysis.analyze_correlations
 
 <br><br><hr><br>

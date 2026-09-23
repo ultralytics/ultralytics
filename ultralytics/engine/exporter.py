@@ -1047,20 +1047,13 @@ class Exporter:
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
     def _int8_calibration_images(self, prefix=""):
-        """Collect INT8 calibration images as one BHWC float32 array for TensorFlow INT8 export.
-
-        The array is preallocated and filled batch by batch, freeing each raw batch after its resized copy lands,
-        which avoids the full torch.cat() and interpolate() copies of a single-expression build.
-        """
-        batches = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-        images = np.empty((sum(b.shape[0] for b in batches), *self.imgsz, 3), dtype=np.float32)
-        i = 0
-        for j, b in enumerate(batches):
-            images[i : i + b.shape[0]] = (
-                torch.nn.functional.interpolate(b.float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
+        """Collect calibration batches directly into one BHWC float32 array."""
+        loader = self.get_int8_calibration_dataloader(prefix)
+        images = np.empty((len(loader) * loader.batch_size, *self.imgsz, self.im.shape[1]), dtype=np.float32)
+        for i, batch in enumerate(loader):
+            images[i * loader.batch_size : (i + 1) * loader.batch_size] = (
+                torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
             )
-            batches[j] = None  # free the raw batch; only its resized copy lives on in the array
-            i += b.shape[0]
         return images
 
     @try_export

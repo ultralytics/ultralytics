@@ -63,14 +63,11 @@ conda create --name ultralytics-rocm python=3.12 -y
 conda activate ultralytics-rocm
 pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/
 pip install ultralytics
-pip install onnxruntime-ep-migraphx migraphx-libs \
-  --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
-  --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/
 ```
 
 !!! note
 
-    The AMD `onnxruntime-ep-migraphx` plugin requires **Python 3.11 to 3.14** on **Linux x86_64** and targets the ROCm 10 wheels (MIGraphX 2.17, onnxruntime 1.29). The plugin adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module; `migraphx-libs` is installed alongside it because the plugin does not yet declare it as a dependency (see the [AMD GPU guide](../integrations/amd.md#installation) for details).
+    The AMD `onnxruntime-ep-migraphx` plugin requires **Python 3.11 to 3.14** on **Linux x86_64** and targets the ROCm 10 wheels (MIGraphX 2.17, onnxruntime 1.29). The plugin adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module, and Ultralytics installs it with `migraphx-libs` automatically on the first ONNX export or inference (see the [AMD GPU guide](../integrations/amd.md#installation) for details).
 
 See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [AMD GPU guide](../integrations/amd.md#installation) for MIGraphX inference setup.
 

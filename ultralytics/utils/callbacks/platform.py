@@ -448,13 +448,14 @@ def on_train_end(trainer):
         ctx["console_logger"].stop_capture()
         ctx["console_logger"] = None
 
-    # Upload best model (blocking with progress bar to ensure it completes)
+    # Upload best.pt, or last.pt when save=False never wrote best.pt (blocking with progress bar to ensure it completes)
     artifact = None
-    if trainer.best and Path(trainer.best).exists():
+    model_path = trainer.best if trainer.best and Path(trainer.best).exists() else trainer.last
+    if Path(model_path).exists():
         if ctx["checkpoint_upload"]:
             ctx["checkpoint_upload"].result()
         artifact = _upload_model(
-            trainer.best,
+            model_path,
             project,
             name,
             progress=True,

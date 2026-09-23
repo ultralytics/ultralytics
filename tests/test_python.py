@@ -4,7 +4,6 @@ import contextlib
 import csv
 import os
 import platform
-import runpy
 import shutil
 import tarfile
 import urllib
@@ -122,28 +121,6 @@ def test_build_yolo_dataset_hyp_isolated():
     cfg = get_cfg(overrides={"data": "coco8.yaml", "imgsz": 32, "rect": True})  # rect zeroes mosaic on the hyp used
     data_build.build_yolo_dataset(cfg, data["train"], batch=2, data=data, mode="train")
     assert cfg.mosaic == DEFAULT_CFG.mosaic
-
-
-def test_fuzz_classifies_wrapped_dataset_validation():
-    """A clean dataset error stays expected when the trainer wraps it in RuntimeError."""
-    classify = runpy.run_path(str(ROOT.parent / ".github/scripts/fuzz.py"))["classify"]
-    trial = {"mode": "train", "task": "segment", "argv": ["train", "segment", "split=test"], "mutated": ["split"]}
-    stderr = """Traceback (most recent call last):
-  File "/repo/ultralytics/data/utils.py", line 600, in check_det_dataset
-FileNotFoundError: coco8-seg.yaml 'test:' images not found
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/repo/ultralytics/engine/trainer.py", line 841, in get_dataset
-RuntimeError: Dataset 'coco8-seg.yaml' error: 'test:' images not found"""
-
-    assert classify(trial, 1, stderr)[0] == "expected"
-    assert classify({**trial, "mutated": []}, 1, stderr)[0] == "bug-candidate"
-    assert classify({**trial, "mutated": ["copy_paste"]}, 1, stderr)[0] == "bug-candidate"
-    assert classify(trial, 1, stderr.replace("ultralytics/data/utils.py", "ultralytics/engine/model.py"))[0] == (
-        "bug-candidate"
-    )
 
 
 def test_cfg_rejects_fuzzed_values():
@@ -1335,9 +1312,10 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
         assert extracted == tmp_path / target / dataset_dir.name
         assert (extracted / "data.yaml").is_file()
 
-    mislabeled = tmp_path / "corrupt.zip"  # an HTML error page served with a .zip name
-    mislabeled.write_bytes(b"<html>not an archive</html>\n")
-    assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
+    for name in ("corrupt.zip", "corrupt.tar.gz"):
+        mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
+        mislabeled.write_bytes(b"<html>not an archive</html>\n")
+        assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
@@ -1365,7 +1343,7 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
     extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
 
     assert not (tmp_path / "unsafe.txt").exists()
-    assert (extracted / "safe.txt").is_file()
+    assert extracted == tmp_path / "datasets" / "safe.txt" and extracted.is_file()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

@@ -1046,6 +1046,16 @@ class Exporter:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
+    def _int8_calibration_images(self, prefix=""):
+        """Collect calibration batches directly into one BHWC float32 array."""
+        loader = self.get_int8_calibration_dataloader(prefix)
+        images = np.empty((len(loader) * loader.batch_size, *self.imgsz, self.im.shape[1]), dtype=np.float32)
+        for i, batch in enumerate(loader):
+            images[i * loader.batch_size : (i + 1) * loader.batch_size] = (
+                torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
+            )
+        return images
+
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
         """Export YOLO model to TorchScript format."""
@@ -1429,16 +1439,8 @@ class Exporter:
             f_onnx,
             f,
             quantize=self.args.quantize,
-            images=(
-                torch.nn.functional.interpolate(
-                    torch.cat([batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)], 0).float(),
-                    size=self.imgsz,
-                )
-                .permute(0, 2, 3, 1)
-                .numpy()
-                if self.args.quantize == 8 and self.args.data
-                else None
-            ),
+            # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
+            images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
             disable_group_convolution=self.args.format == "edgetpu",
             cuda=self.device.type == "cuda",
             prefix=prefix,

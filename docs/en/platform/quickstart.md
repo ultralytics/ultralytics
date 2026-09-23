@@ -216,7 +216,7 @@ graph LR
 
 After upload, the platform automatically processes your data:
 
-1. Images larger than 4096px are resized (preserving aspect ratio)
+1. Images larger than 4096px are resized (preserving aspect ratio; TIFF originals are stored as uploaded)
 2. 256px thumbnails are generated for fast browsing
 3. YOLO, COCO, and Ultralytics NDJSON labels are parsed and validated
 4. Statistics are computed (class distribution, heatmaps, dimensions)

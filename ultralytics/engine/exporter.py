@@ -677,7 +677,9 @@ class Exporter:
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
         if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
-            model.names = default_class_names()
+            head = model.model[-1]  # name the head's own classes so the metadata matches the output layer
+            nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
+            model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):
             model.end2end = self.args.nms is False
@@ -1427,16 +1429,6 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
-        # Export to TF
-        images = None
-        if self.args.quantize == 8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = (
-                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
-                .permute(0, 2, 3, 1)
-                .numpy()
-            )
-
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
@@ -1447,7 +1439,16 @@ class Exporter:
             f_onnx,
             f,
             quantize=self.args.quantize,
-            images=images,
+            images=(
+                torch.nn.functional.interpolate(
+                    torch.cat([batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)], 0).float(),
+                    size=self.imgsz,
+                )
+                .permute(0, 2, 3, 1)
+                .numpy()
+                if self.args.quantize == 8 and self.args.data
+                else None
+            ),
             disable_group_convolution=self.args.format == "edgetpu",
             cuda=self.device.type == "cuda",
             prefix=prefix,

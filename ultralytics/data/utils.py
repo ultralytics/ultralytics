@@ -100,10 +100,10 @@ def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
     return depth
 
 
-def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
+def img2label_paths(img_paths: list[str | Path], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}{label_dir}{os.sep}"  # /images/, /labels/ substrings
-    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + f"{suffix}" for x in img_paths]
+    return [sb.join(os.fspath(x).rsplit(sa, 1)).rsplit(".", 1)[0] + f"{suffix}" for x in img_paths]
 
 
 def check_file_speeds(
@@ -185,16 +185,19 @@ def check_file_speeds(
 
 
 def get_hash(paths: list[str]) -> str:
-    """Return a single hash value of a list of paths (files or dirs)."""
-    size = 0
+    """Return a hash of paths and their file sizes and modification times."""
+    h = __import__("hashlib").sha256()
     for p in paths:
+        h.update(p.encode())
+        h.update(b"\0")
         try:
-            size += os.stat(p).st_size
+            stat = os.stat(p)
         except OSError:
+            h.update(b"\0")
             continue
-    h = __import__("hashlib").sha256(str(size).encode())  # hash sizes
-    h.update("".join(paths).encode())  # hash paths
-    return h.hexdigest()  # return hash
+        h.update(f"{stat.st_size}:{stat.st_mtime_ns}".encode())
+        h.update(b"\0")
+    return h.hexdigest()
 
 
 def exif_size(img: Image.Image) -> tuple[int, int]:
@@ -533,7 +536,7 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     return fraction
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0) -> str | Path:
+def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=None) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
@@ -542,7 +545,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0) -> str | Pa
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction))
+        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction, split=split))
     return data
 
 

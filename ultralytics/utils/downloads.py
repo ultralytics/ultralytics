@@ -199,10 +199,9 @@ def unzip_file(
             # Zip has multiple files at top level
             path = extract_path = Path(path) / Path(file).stem  # i.e. extract multiple files to ../datasets/coco8/
 
-        # Check if destination directory already exists and contains files
-        if path.exists() and any(path.iterdir()) and not exist_ok:
-            # If it exists and is not empty, return the path without unzipping
-            LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
+        # Skip existing files or non-empty directories unless overwriting
+        if path.exists() and (path.is_file() or any(path.iterdir())) and not exist_ok:
+            LOGGER.warning(f"Skipping {file} unzip as destination path {path} already exists.")
             return path
 
         extract_path = Path(extract_path).resolve()
@@ -503,6 +502,8 @@ def safe_download(
                             shutil.copyfileobj(source, out)
             if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
                 unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
+        else:
+            unzip_dir = f  # neither a zip nor a tar, i.e. an HTML error page served as .zip, so return the file
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

@@ -242,7 +242,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–100 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models and paid vision models from six providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–100 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models and paid vision models from seven providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -343,7 +343,7 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 
 ### Class-Prompted Smart Annotation
 
-On a detection dataset with 1–100 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base** — and the **OpenAI**, **Anthropic**, **Google**, **DeepSeek**, **Z.ai**, and **Kimi** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
+On a detection dataset with 1–100 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base** — and the **OpenAI**, **Anthropic**, **Google**, **DeepSeek**, **Z.ai**, **Kimi**, and **Xiaomi MiMo** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
 
 A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction.
 
@@ -362,7 +362,7 @@ The dataset page shows the run's progress, and **Stop** keeps and bills the imag
 
 !!! note "Batch Annotation Cost"
 
-    Batch Annotation costs $1.50 per 1,000 processed images, with a minimum of $0.01 per run. The estimate is held from your balance when the run starts and settled for the images actually processed; the charge appears on the [Billing tab](../account/billing.md#transaction-types) as **Auto-Annotation** once you dismiss the run summary. With a paid provider model, this is the Platform processing fee only: the provider also bills your API key for the test-run previews and the annotations.
+    Batch Annotation costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run. The estimate is held from your balance when the run starts and settled for the images actually processed; the charge appears on the [Billing tab](../account/billing.md#transaction-types) as **Auto-Annotation** once you dismiss the run summary. With a paid provider model, this is the Platform processing fee only: the provider also bills your API key for the test-run previews and the annotations.
 
 ## Class Sidebar
 

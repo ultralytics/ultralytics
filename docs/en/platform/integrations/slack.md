@@ -41,7 +41,7 @@ Platform posts a confirmation in the selected channel as soon as the connection 
 | **Deployment ready**  | A [deployment](../deploy/endpoints.md#deployment-lifecycle) is ready           |
 | **Deployment failed** | A deployment fails to start                                                    |
 
-Each message says what finished and links straight to the related model or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments page](../deploy/index.md#deployments-page).
+Each message says what finished and links straight to the related model or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments tab](../deploy/index.md#deployments-tab).
 
 ## Agents Workflow Messages
 

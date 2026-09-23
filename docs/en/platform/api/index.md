@@ -65,20 +65,20 @@ graph LR
     classDef proc fill:#2196F3,color:#fff
 ```
 
-| Resource                                   | Description                     | Key Operations                                        |
-| ------------------------------------------ | ------------------------------- | ----------------------------------------------------- |
-| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone        |
-| [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate     |
-| [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                           |
-| [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status       |
-| [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel             |
-| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                          |
-| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, start/stop/replace, predict, metrics, logs    |
-| [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                     |
-| [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                 |
-| [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup |
-| [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                           |
-| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                          |
+| Resource                                   | Description                     | Key Operations                                                |
+| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------- |
+| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone, copy          |
+| [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate, blur faces |
+| [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                                   |
+| [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status               |
+| [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel                     |
+| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                                  |
+| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs            |
+| [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                             |
+| [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
+| [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
+| [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
+| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                                  |
 
 ## Authentication
 
@@ -388,6 +388,7 @@ POST /api/datasets
 | `classNames`       | array   | No       | Class names in index order (max 25,000)                                                                                  |
 | `format`           | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                                             |
 | `visibility`       | string  | No       | `public` or `private`                                                                                                    |
+| `blurFaces`        | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces))                          |
 | `tags`             | array   | No       | Up to 50 tags of 50 characters each                                                                                      |
 | `license`          | string  | No       | Dataset license identifier                                                                                               |
 | `metadata`         | object  | No       | Custom JSON metadata                                                                                                     |
@@ -432,8 +433,8 @@ PATCH /api/datasets/{owner}/{dataset}
 ```
 
 Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `classNames`, `classColors`, `format`, `task`,
-`license`, `iconColor`, `iconLetter`, and `starred`. Send an empty `metadata` object (`{}`) to clear custom metadata.
-Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
+`license`, `iconColor`, `iconLetter`, `starred`, and `blurFaces`. Send an empty `metadata` object (`{}`) to clear custom
+metadata. Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
 
 **Response:**
 
@@ -817,6 +818,35 @@ as the list operation.
 }
 ```
 
+### Copy or Move Images
+
+```http
+POST /api/datasets/{owner}/{dataset}/images/adopt
+```
+
+**Python SDK:** `client.datasets.adopt_images(owner, dataset, image_ids=..., release=...)`
+(`ultralytics-platform>=0.1.50`)
+
+Copies up to 1,000 images from other datasets into this one, as the app's
+[copy and paste](../data/datasets.md#copy-and-move-images) does, and returns the number `adopted`.
+
+```json
+{
+    "imageIds": ["65f1c0a2b3d4e5f601234567"],
+    "release": false,
+    "classMapping": { "person": 0, "vase": null }
+}
+```
+
+Setting `release` or `classMapping` preserves labels and splits from datasets you can edit: `release: false` copies
+images and `release: true` moves them out of their source dataset. Omitting both fields imports unlabeled `train`
+images, as does copying from a read-only source; moving from a read-only source returns `403`. Existing images are
+skipped; when preserving labels and splits, duplicates are checked within the destination split. Classes are matched
+by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
+each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
+dataset or a source or destination is busy. When preserving labels and splits, incompatible tasks, image channels,
+pose settings, or depth scales also return `409`, even for images without labels.
+
 ### Ingest Dataset Data
 
 ```http
@@ -1065,7 +1095,7 @@ Runs the model on the image and returns predicted annotations. It does not save 
 POST /api/datasets/{owner}/{dataset}/predict/batch
 ```
 
-**Python SDK:** `client.datasets.create_batch(owner, dataset, model_id=...)`
+**Python SDK:** `client.datasets.create_batch(owner, dataset, body={...})` (`ultralytics-platform>=0.1.57`)
 
 Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
 The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
@@ -1082,6 +1112,16 @@ starts a run.
 finished run until it is dismissed, whose `results` include `partialImages` when a generative model's run kept only the
 complete boxes of truncated output; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
 settles billing and dismisses the finished summary.
+
+The same endpoint [blurs faces](../data/datasets.md#blur-faces) with `"operation": "blur"`, `confidence` (default
+`0.25`), and `boxScale` (`0.5`–`1.5`, default `1`); `imageId` limits the run to one image. It creates no version and
+never changes labels. Send `"preview": true` to process up to six images without changing them, then send the returned
+`jobId` as `previewJobId` with the same settings to apply; an applied preview cannot be reused and returns `409`.
+While a preview is pending, pass its ID as `previewJobId` to `DELETE` to discard it.
+
+```json
+{ "operation": "blur", "confidence": 0.25, "boxScale": 1, "preview": true }
+```
 
 ### Bulk Move Images
 
@@ -1767,20 +1807,23 @@ POST /api/deployments/{owner}
 }
 ```
 
-| Field        | Type   | Required | Description                            |
-| ------------ | ------ | -------- | -------------------------------------- |
-| `project`    | string | Yes      | Project containing the model           |
-| `model`      | string | Yes      | Model to deploy                        |
-| `deployment` | string | Yes      | Deployment name used in Platform URLs  |
-| `name`       | string | Yes      | Display name                           |
-| `region`     | string | Yes      | One of 42 supported deployment regions |
+| Field        | Type   | Required | Description                                     |
+| ------------ | ------ | -------- | ----------------------------------------------- |
+| `project`    | string | Yes      | Project containing the model                    |
+| `model`      | string | Yes      | Model to deploy                                 |
+| `deployment` | string | Yes      | Deployment name used in Platform URLs           |
+| `name`       | string | Yes      | Display name                                    |
+| `region`     | string | Yes      | One of 42 supported deployment regions          |
+| `cpu`        | number | No       | vCPU cores: 1 (default), 2, 4, 6, or 8          |
+| `memoryGi`   | number | No       | Memory in GiB: 2 (default), 4, 8, 16, 24, or 32 |
 
 **Response (`201`):** `id`, `deployment`, `status` (`creating`), `message`, and `region`.
 
 !!! note "Resource Sizing"
 
-    CPU, memory, and instance scaling are managed by the Platform from your plan limits, and the create request does not
-    accept a resource configuration. The current values are returned in the `resources` object on every deployment read.
+    The default 1 vCPU / 2 GiB size scales to zero when idle and can use a free deployment allowance; other sizes use
+    [metered pricing](../deploy/endpoints.md). The current values are returned in the `resources` object on every
+    deployment read.
 
 !!! tip "Region Selection"
 
@@ -1795,9 +1838,10 @@ GET /api/deployments/{owner}/{deployment}
 
 **Python SDK:** `client.deployments.retrieve(owner, deployment)`
 
-Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, and `resources`.
+Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, `resources`, and custom
+`metadata`.
 
-### Start, Stop, or Replace a Deployment
+### Update a Deployment
 
 ```http
 PATCH /api/deployments/{owner}/{deployment}
@@ -1805,7 +1849,19 @@ PATCH /api/deployments/{owner}/{deployment}
 
 **Python SDK:** `client.deployments.update(owner, deployment, body=...)`
 
-A single `action` field selects the operation:
+Send one of these bodies:
+
+=== "Rename"
+
+    ```json
+    { "name": "Edge 1 (primary)" }
+    ```
+
+=== "Metadata"
+
+    ```json
+    { "metadata": { "site": "factory-1" } }
+    ```
 
 === "Start"
 
@@ -1830,10 +1886,17 @@ A single `action` field selects the operation:
     }
     ```
 
-Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint URL; the existing revision
-stays live if the rollout fails. The replacement model must be a completed model with weights that your key can access.
-Completed operations return `200` with `status` `ready` or `stopped`; operations still rolling out return `202` with
-`deploying` or `stopping`.
+=== "Resize"
+
+    ```json
+    { "action": "resize", "cpu": 2, "memoryGi": 4 }
+    ```
+
+Renaming changes only the display name; the `deployment` value in the URL stays the same. An empty `metadata` object
+clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
+URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
+that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still
+rolling out return `202` with `deploying` or `stopping`.
 
 ### Delete Deployment
 
@@ -1884,10 +1947,12 @@ GET /api/deployments/{owner}/{deployment}/metrics
 | ----------- | ------- | ------------------------------------------------------------------------------ |
 | `range`     | string  | `1h`, `6h`, `24h` (default), `7d`, or `30d`                                    |
 | `sparkline` | boolean | Return the compact dashboard summary instead of full series (default: `false`) |
+| `view`      | string  | `overview` returns only request, error, and P95 latency metrics                |
 
 The full response contains `summary` (request totals, error rate, average and p50/p95/p99 latency) and `timeSeries`
 (requests, errors, latency, CPU, memory, instance count). The sparkline response returns `requests24h`,
-`totalRequests`, `errorRate`, and `avgLatencyMs`.
+`totalRequests`, `errorRate`, and `avgLatencyMs`. With `view=overview`, `summary` holds `totalRequests`, `errorRate`,
+and `p95LatencyMs`, and `timeSeries` holds `requests`, `errors`, and `latencyP95`.
 
 ### Get Logs
 

@@ -281,6 +281,12 @@ To enable this feature, use the `dynamic=True` flag during export:
 
 Dynamic input sizing is particularly useful for applications where input dimensions may vary, such as video processing or when handling images from different sources.
 
+### How do I match native and exported model predictions on non-square images?
+
+With a non-square source, the same `imgsz` value can produce different input tensors for native and exported models. PyTorch and dynamic ONNX/Triton inference can use [minimum-rectangle padding](../modes/predict.md#fixed-shape-vs-minimum-rectangle-rect), while a static-shape export pads to the full `imgsz` dimensions. Predictions near the confidence threshold can therefore differ between a `.pt` model and a static export, even when their model outputs otherwise match.
+
+For comparable results with a fixed-shape export, use `rect=False` for native inference or pass square inputs. If the target format supports dynamic shapes and you want minimum-rectangle behavior, export with `dynamic=True`.
+
 ### What are the key export arguments to consider for optimizing model performance?
 
 Understanding and configuring export arguments is crucial for optimizing model performance:

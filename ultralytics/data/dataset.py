@@ -317,6 +317,8 @@ class YOLODataset(BaseDataset):
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
+            if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
+                self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -396,7 +398,7 @@ class YOLODataset(BaseDataset):
 
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
-        if len(segments) > 0:
+        if len(segments) > 0 and (self.use_segments or self.format_class is not SemanticFormat):
             # make sure segments interpolate correctly if original length is greater than segment_resamples
             max_len = max(len(s) for s in segments)
             segment_resamples = (max_len + 1) if segment_resamples < max_len else segment_resamples
@@ -1108,19 +1110,6 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
     verify_args = YOLODataset.verify_args
     result_to_label = YOLODataset.result_to_label
     verify_labels = YOLODataset.verify_labels
-
-    def build_transforms(self, hyp: dict | None = None) -> Compose:
-        """Build transforms, keeping instance polygons only for the augmentations that can read them."""
-        transforms = super().build_transforms(hyp)
-        # load_mask rasterizes self.labels; polygons reach the image or mask only via CopyPaste, CutMix, Albumentations
-        self.use_segments = self.augment and bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
-        return transforms
-
-    def update_labels_info(self, label: dict) -> dict:
-        """Drop the polygons from the instances when no augmentation reads them."""
-        if not self.use_segments:
-            label["segments"] = []
-        return super().update_labels_info(label)
 
     def load_mask(self, index: int, image_shape: tuple[int, int] | None = None) -> np.ndarray:
         """Rasterize this image's polygons into a (H, W) uint8 semantic mask, bg = self.bg_class_idx."""

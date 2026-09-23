@@ -505,7 +505,7 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 The same embeddings power similarity search across public datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
-An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — shows `Analyze this dataset in Clustering to find similar images`. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
+An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
 
 ## Dataset Tabs
 
@@ -727,6 +727,9 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
 | **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images))          |
 | **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
+| **Blur Faces**              | Blur the faces detected in the image (see [Blur Faces](#blur-faces))                                                 |
+| **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
+| **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
 | **Download**                | Download the original image file                                                                                     |
 | **Delete**                  | Delete the image from the dataset                                                                                    |
 
@@ -734,7 +737,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 
 !!! tip "Single vs Bulk"
 
-    The image context menu operates on a **single image**. For bulk operations on multiple images, use **Table** view with checkbox selection.
+    The image context menu acts on the image you clicked, except **Paste**, which adds the clipboard's images. For bulk operations on multiple images, use **Table** view with checkbox selection.
 
 ### Bulk Move to Split
 
@@ -783,6 +786,28 @@ Delete multiple images at once:
 1. Select images in the table view
 2. Right-click and choose `Delete`, or press `Cmd/Ctrl+Delete`
 3. Confirm deletion
+
+### Copy and Move Images
+
+Copy or move images from one dataset you can edit into another, including a dataset in a different workspace:
+
+1. In the source dataset, right-click an image in **Grid** or **Compact** view and choose **Copy** or **Cut**, or select images in **Table** view and press `Cmd/Ctrl+C` or `Cmd/Ctrl+X`. `Esc` clears the clipboard.
+2. Open the destination dataset, right-click an image and choose **Paste**, or press `Cmd/Ctrl+V`.
+
+Pasted images keep their labels and splits, and images the destination already holds in the same split are skipped. **Cut** removes the pasted images from the source dataset; **Copy** leaves it unchanged. The source and destination must have the same task and compatible image channels, pose keypoint settings, and depth scale, even when the copied images have no labels. An empty destination can inherit unset image-channel and pose settings. Images cannot be pasted into a [connected dataset](#what-is-not-available-for-connected-datasets).
+
+Classes are matched by name, ignoring case, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
+
+### Blur Faces
+
+Blur the faces in a dataset's images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
+
+- **One image:** right-click the image and choose **Blur faces**, or use the **Blur faces** button in the fullscreen viewer.
+- **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
+
+The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.
+
+To blur faces in images as they are uploaded, turn on **Blur faces** when you create a dataset from **Upload** or **URL**, or **Blur future uploads** in the whole-dataset **Blur faces** dialog. Images uploaded to the dataset afterward are blurred during processing, at no charge.
 
 ## Dataset URI
 
@@ -969,6 +994,10 @@ Ultralytics Platform manages storage efficiently:
 
 Yes. Drag files onto the dataset gallery or click the upload icon in the page header, which opens your browser's native file picker directly. New statistics are computed automatically after processing.
 
+### Can I copy or move images to another dataset?
+
+Yes. Copy or cut images in one dataset and paste them into another dataset you can edit; they keep their labels and splits, and **Cut** removes them from the source. Classes are matched by name, and the **Map classes** dialog handles any the destination does not have. See [Copy and Move Images](#copy-and-move-images).
+
 ### How do I move images between splits?
 
 Use the bulk move-to-split feature:
@@ -1035,5 +1064,7 @@ Datasets that read from [cloud storage](../integrations/index.md) or [On Premise
 | [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
 | [NDJSON export](#export-dataset)                             | Available       | Unavailable |
 | [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable     | Available   |
+| [Blur faces](#blur-faces)                                    | Unavailable     | Unavailable |
+| [Pasting images](#copy-and-move-images) into the dataset     | Unavailable     | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

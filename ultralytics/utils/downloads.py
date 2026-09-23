@@ -199,10 +199,9 @@ def unzip_file(
             # Zip has multiple files at top level
             path = extract_path = Path(path) / Path(file).stem  # i.e. extract multiple files to ../datasets/coco8/
 
-        # Check if destination directory already exists and contains files
-        if path.exists() and any(path.iterdir()) and not exist_ok:
-            # If it exists and is not empty, return the path without unzipping
-            LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
+        # Skip existing files or non-empty directories unless overwriting
+        if path.exists() and (path.is_file() or any(path.iterdir())) and not exist_ok:
+            LOGGER.warning(f"Skipping {file} unzip as destination path {path} already exists.")
             return path
 
         extract_path = Path(extract_path).resolve()

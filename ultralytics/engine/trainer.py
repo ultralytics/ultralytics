@@ -202,6 +202,7 @@ class BaseTrainer:
 
         # Optimization utils init
         self.lf = None
+        self.optimizer = None
         self.scheduler = None
 
         # Epoch level metrics
@@ -295,7 +296,7 @@ class BaseTrainer:
         )
 
     def _build_train_pipeline(self):
-        """Build dataloaders, optimizer, and scheduler for current batch size."""
+        """Build dataloaders and update optimizer settings for the current batch size."""
         batch_size = self.batch_size // max(self.world_size, 1)
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
@@ -315,16 +316,21 @@ class BaseTrainer:
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
-            model=self.model,
-            name=self.args.optimizer,
-            lr=self.args.lr0,
-            momentum=self.args.momentum,
-            decay=weight_decay,
-            iterations=iterations,
-        )
-        self._setup_scheduler()
+        if self.optimizer is None:
+            iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
+            self.optimizer = self.build_optimizer(
+                model=self.model,
+                name=self.args.optimizer,
+                lr=self.args.lr0,
+                momentum=self.args.momentum,
+                decay=weight_decay,
+                iterations=iterations,
+            )
+            self._setup_scheduler()
+        else:
+            for group in self.optimizer.param_groups:
+                if group.get("param_group") in {"weight", "muon"}:
+                    group["weight_decay"] = weight_decay
 
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
@@ -574,7 +580,7 @@ class BaseTrainer:
                     batch = loss = preds = None
                     self.loss = self.loss_items = self.tloss = None
                     self._clear_memory()
-                    self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    self._build_train_pipeline()  # retain optimizer state across OOM retries
                     mosaic_closed = not self.args.close_mosaic  # the rebuilt loader reopened mosaic, re-arm the gate
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)

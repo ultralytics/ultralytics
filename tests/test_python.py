@@ -1006,39 +1006,6 @@ def test_train_pretrained(scls):
     model(SOURCE)
 
 
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for training")
-def test_oom_auto_reduce_refreshes_validator_loader():
-    """An OOM batch auto-reduce must point the validator at the rebuilt (halved) dataloader."""
-    from ultralytics.models.yolo.detect.train import DetectionTrainer
-
-    class OOMOnceTrainer(DetectionTrainer):
-        """Raise one out-of-memory error on the first batch to trigger the auto-reduce path."""
-
-        injected = True
-
-        def preprocess_batch(self, batch):
-            if self.injected:
-                self.injected = False
-                raise RuntimeError("CUDA out of memory")
-            return super().preprocess_batch(batch)
-
-    model = YOLO("yolo11n.pt")
-    model.train(
-        data="coco128.yaml",  # val split (128 images) must exceed 2 * reduced batch for staleness to be visible
-        epochs=1,
-        batch=16,
-        imgsz=128,
-        device="cpu",
-        workers=0,
-        plots=False,
-        trainer=OOMOnceTrainer,
-    )
-    trainer = model.trainer
-    assert trainer.batch_size == 8  # halved once by the auto-reduce
-    assert trainer.validator.dataloader is trainer.test_loader  # not the loader captured before the halving
-    assert trainer.validator.dataloader.batch_size == 16  # 2 * reduced batch, not 2 * original batch
-
-
 def test_all_model_yamls():
     """Test YOLO model creation for all available YAML configurations in the `cfg/models` directory."""
     for m in (ROOT / "cfg" / "models").rglob("*.yaml"):

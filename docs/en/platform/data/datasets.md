@@ -727,6 +727,8 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
 | **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images))          |
 | **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
+| **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
+| **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
 | **Download**                | Download the original image file                                                                                     |
 | **Delete**                  | Delete the image from the dataset                                                                                    |
 
@@ -734,7 +736,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 
 !!! tip "Single vs Bulk"
 
-    The image context menu operates on a **single image**. For bulk operations on multiple images, use **Table** view with checkbox selection.
+    The image context menu acts on the image you clicked, except **Paste**, which adds the clipboard's images. For bulk operations on multiple images, use **Table** view with checkbox selection.
 
 ### Bulk Move to Split
 
@@ -783,6 +785,17 @@ Delete multiple images at once:
 1. Select images in the table view
 2. Right-click and choose `Delete`, or press `Cmd/Ctrl+Delete`
 3. Confirm deletion
+
+### Copy and Move Images
+
+Copy or move images from one dataset you can edit into another:
+
+1. In the source dataset, right-click an image in **Grid** or **Compact** view and choose **Copy** or **Cut**, or select images in **Table** view and press `Cmd/Ctrl+C` or `Cmd/Ctrl+X`. `Esc` clears the clipboard.
+2. Open the destination dataset, right-click an image and choose **Paste**, or press `Cmd/Ctrl+V`.
+
+Pasted images keep their labels and splits, and images the destination already holds in the same split are skipped. **Cut** removes the pasted images from the source dataset; **Copy** leaves it unchanged. Labeled images can only be pasted into a dataset with the same task and number of image channels, and for pose and depth datasets the same keypoint layout and depth scale. Images cannot be pasted into a [connected dataset](#what-is-not-available-for-connected-datasets).
+
+Classes are matched by name, ignoring case, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
 
 ## Dataset URI
 

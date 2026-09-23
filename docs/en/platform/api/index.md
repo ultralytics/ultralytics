@@ -67,7 +67,7 @@ graph LR
 
 | Resource                                   | Description                     | Key Operations                                        |
 | ------------------------------------------ | ------------------------------- | ----------------------------------------------------- |
-| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone        |
+| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone, copy  |
 | [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate     |
 | [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                           |
 | [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status       |
@@ -816,6 +816,34 @@ as the list operation.
     "imageIds": ["65f1c0a2b3d4e5f601234567", "65f1c0a2b3d4e5f601234568"]
 }
 ```
+
+### Copy or Move Images
+
+```http
+POST /api/datasets/{owner}/{dataset}/images/adopt
+```
+
+**Python SDK:** `client.datasets.adopt_images(owner, dataset, image_ids=..., release=...)`
+(`ultralytics-platform>=0.1.50`)
+
+Copies up to 1,000 images from other datasets into this one, as the app's
+[copy and paste](../data/datasets.md#copy-and-move-images) does, and returns the number `adopted`.
+
+```json
+{
+    "imageIds": ["65f1c0a2b3d4e5f601234567"],
+    "release": false,
+    "classMapping": { "person": 0, "vase": null }
+}
+```
+
+With `release`, images from datasets you can edit keep their labels and splits: `false` copies them and `true` moves
+them out of their source dataset. Without `release` or `classMapping`, or from a dataset you can only view, they are
+added as unlabeled `train` images. Images the dataset already holds in the same split are skipped. Classes are matched
+by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
+each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
+dataset or, for labeled images, the source and destination task, image channels, pose keypoints, or depth scale do not
+match.
 
 ### Ingest Dataset Data
 

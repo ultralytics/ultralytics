@@ -727,6 +727,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
 | **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images))          |
 | **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
+| **Blur Faces**              | Blur the faces detected in the image (see [Blur Faces](#blur-faces))                                                 |
 | **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
 | **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
 | **Download**                | Download the original image file                                                                                     |
@@ -796,6 +797,17 @@ Copy or move images from one dataset you can edit into another:
 Pasted images keep their labels and splits, and images the destination already holds in the same split are skipped. **Cut** removes the pasted images from the source dataset; **Copy** leaves it unchanged. Labeled images can only be pasted into a dataset with the same task and number of image channels, and for pose and depth datasets the same keypoint layout and depth scale. Images cannot be pasted into a [connected dataset](#what-is-not-available-for-connected-datasets).
 
 Classes are matched by name, ignoring case, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
+
+### Blur Faces
+
+Blur the faces in a dataset's images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
+
+- **One image:** right-click the image and choose **Blur faces**, or use the **Blur faces** button in the fullscreen viewer.
+- **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
+
+The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.
+
+To blur faces in images as they are uploaded, turn on **Blur faces** when you create a dataset from **Upload** or **URL**, or **Blur future uploads** in the whole-dataset **Blur faces** dialog. Images uploaded to the dataset afterward are blurred during processing.
 
 ## Dataset URI
 
@@ -1048,5 +1060,7 @@ Datasets that read from [cloud storage](../integrations/index.md) or [On Premise
 | [Version snapshots](#versions-tab)                           | Unavailable     | Unavailable |
 | [NDJSON export](#export-dataset)                             | Available       | Unavailable |
 | [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable     | Available   |
+| [Blur faces](#blur-faces)                                    | Unavailable     | Unavailable |
+| [Pasting images](#copy-and-move-images) into the dataset     | Unavailable     | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

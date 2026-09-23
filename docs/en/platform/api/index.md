@@ -65,20 +65,20 @@ graph LR
     classDef proc fill:#2196F3,color:#fff
 ```
 
-| Resource                                   | Description                     | Key Operations                                        |
-| ------------------------------------------ | ------------------------------- | ----------------------------------------------------- |
-| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone, copy  |
-| [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate     |
-| [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                           |
-| [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status       |
-| [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel             |
-| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                          |
-| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs    |
-| [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                     |
-| [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                 |
-| [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup |
-| [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                           |
-| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                          |
+| Resource                                   | Description                     | Key Operations                                                |
+| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------- |
+| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone, copy          |
+| [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate, blur faces |
+| [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                                   |
+| [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status               |
+| [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel                     |
+| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                                  |
+| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs            |
+| [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                             |
+| [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
+| [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
+| [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
+| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                                  |
 
 ## Authentication
 
@@ -388,6 +388,7 @@ POST /api/datasets
 | `classNames`       | array   | No       | Class names in index order (max 25,000)                                                                                  |
 | `format`           | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                                             |
 | `visibility`       | string  | No       | `public` or `private`                                                                                                    |
+| `blurFaces`        | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces))                          |
 | `tags`             | array   | No       | Up to 50 tags of 50 characters each                                                                                      |
 | `license`          | string  | No       | Dataset license identifier                                                                                               |
 | `metadata`         | object  | No       | Custom JSON metadata                                                                                                     |
@@ -432,8 +433,8 @@ PATCH /api/datasets/{owner}/{dataset}
 ```
 
 Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `classNames`, `classColors`, `format`, `task`,
-`license`, `iconColor`, `iconLetter`, and `starred`. Send an empty `metadata` object (`{}`) to clear custom metadata.
-Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
+`license`, `iconColor`, `iconLetter`, `starred`, and `blurFaces`. Send an empty `metadata` object (`{}`) to clear custom
+metadata. Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
 
 **Response:**
 
@@ -1110,6 +1111,16 @@ starts a run.
 finished run until it is dismissed, whose `results` include `partialImages` when a generative model's run kept only the
 complete boxes of truncated output; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
 settles billing and dismisses the finished summary.
+
+The same endpoint [blurs faces](../data/datasets.md#blur-faces) with `"operation": "blur"`, `confidence` (default
+`0.25`), and `boxScale` (`0.5`–`1.5`, default `1`); `imageId` limits the run to one image. It creates no version and
+never changes labels. Send `"preview": true` to process up to six images without changing them, then send the returned
+`jobId` as `previewJobId` with the same settings to apply; an applied preview cannot be reused and returns `409`.
+While a preview is pending, pass its ID as `previewJobId` to `DELETE` to discard it.
+
+```json
+{ "operation": "blur", "confidence": 0.25, "boxScale": 1, "preview": true }
+```
 
 ### Bulk Move Images
 

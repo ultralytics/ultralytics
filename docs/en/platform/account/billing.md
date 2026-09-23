@@ -100,11 +100,12 @@ credits on hand, and it is shown in red when it does.
 
 Credits are consumed by:
 
-| Service              | Rate                                                  |
-| -------------------- | ----------------------------------------------------- |
-| **Cloud Training**   | GPU rate x hours                                      |
-| **Batch Annotation** | $1.00 per 1,000 images, minimum $0.01 per run         |
-| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only |
+| Service              | Rate                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------- |
+| **Cloud Training**   | GPU rate x hours                                                                                   |
+| **Batch Annotation** | $1.00 per 1,000 images, minimum $0.01 per run                                                      |
+| **Face Blurring**    | $1.00 per 1,000 images for a whole dataset, minimum $0.01 per run; single images and previews free |
+| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only                                              |
 
 !!! note "Monthly Credits Don't Roll Over"
 
@@ -317,21 +318,21 @@ supports free-text search across every field, and exports to CSV or JSON from th
 
 ### Transaction Types
 
-| Type                   | Meaning                                                       |
-| ---------------------- | ------------------------------------------------------------- |
-| **Signup Bonus**       | Signup credit, including the company-email top-up             |
-| **Credit Purchase**    | Manual top-up                                                 |
-| **Auto Top-Up**        | Automatic top-up triggered by your threshold                  |
-| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added       |
-| **Subscription**       | Pro subscription or seat charge                               |
-| **Monthly Grant**      | $30/seat monthly Pro credit                                   |
-| **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade |
-| **Training**           | Settled cost of one cloud training run                        |
-| **Auto-Annotation**    | Settled cost of one Batch Annotation run                      |
-| **Endpoint Uptime**    | Settled uptime of a custom-resource endpoint                  |
-| **Refund**             | Refunded charge                                               |
-| **Promo Bonus**        | Credit from a promotional code or a referral reward           |
-| **Adjustment**         | Manual correction applied by Ultralytics                      |
+| Type                   | Meaning                                                                 |
+| ---------------------- | ----------------------------------------------------------------------- |
+| **Signup Bonus**       | Signup credit, including the company-email top-up                       |
+| **Credit Purchase**    | Manual top-up                                                           |
+| **Auto Top-Up**        | Automatic top-up triggered by your threshold                            |
+| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added                 |
+| **Subscription**       | Pro subscription or seat charge                                         |
+| **Monthly Grant**      | $30/seat monthly Pro credit                                             |
+| **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade           |
+| **Training**           | Settled cost of one cloud training run                                  |
+| **Auto-Annotation**    | Settled cost of one Batch Annotation or whole-dataset face-blurring run |
+| **Endpoint Uptime**    | Settled uptime of a custom-resource endpoint                            |
+| **Refund**             | Refunded charge                                                         |
+| **Promo Bonus**        | Credit from a promotional code or a referral reward                     |
+| **Adjustment**         | Manual correction applied by Ultralytics                                |
 
 ## FAQ
 

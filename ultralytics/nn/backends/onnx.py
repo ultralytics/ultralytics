@@ -129,7 +129,7 @@ def _load_migraphx_session(onnxruntime, session_options, weight: str | Path, ind
         onnxruntime (module): The imported onnxruntime module.
         session_options (onnxruntime.SessionOptions): Session options the MIGraphX provider is added to.
         weight (str | Path): Path to the .onnx model file.
-        index (int): Requested GPU device index, clamped to device 0 if not enumerated by the EP.
+        index (int): Requested GPU device index; no session is built if the EP does not enumerate it.
 
     Returns:
         (onnxruntime.InferenceSession | None): The session on the MIGraphX EP, or None if MIGraphX is unavailable.
@@ -139,8 +139,8 @@ def _load_migraphx_session(onnxruntime, session_options, weight: str | Path, ind
     if not devices:
         return None
     if index >= len(devices):  # requested GPU not enumerated by the EP
-        LOGGER.warning(f"MIGraphX device {index} unavailable ({len(devices)} found); using device 0.")
-        index = 0
+        LOGGER.warning(f"MIGraphX device {index} unavailable ({len(devices)} found); use HIP_VISIBLE_DEVICES.")
+        return None
 
     # Disabling Winograd cuts cold-compile time with no accuracy change (ROCm/AMDMIGraphX#5234).
     os.environ.setdefault("MIGRAPHX_DISABLE_WINOGRAD", "1")

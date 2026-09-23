@@ -233,8 +233,7 @@ class ONNXBackend(BaseBackend):
                 # Ensure stock ONNX Runtime as a fallback so a missing plugin wheel degrades to CPU instead of crashing.
                 check_requirements([("onnxruntime", "onnxruntime-gpu")])
             else:
-                ort = "onnxruntime-gpu" if cuda else "onnxruntime"
-                check_requirements([(ort, "onnxruntime", "onnxruntime-gpu")])
+                check_requirements("onnxruntime-gpu" if cuda else "onnxruntime")
             import onnxruntime
 
             session_options = self.session_options or onnxruntime.SessionOptions()

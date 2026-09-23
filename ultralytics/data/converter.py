@@ -816,7 +816,7 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0) -> Path:
+async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0, *, split=None) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
@@ -833,6 +833,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
         fraction (float | int | list): Train ratio/count or [train, val, test] ratios/counts to download.
+        split (str, optional): Validation split requested by training. Unused test images are skipped.
 
     Returns:
         (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
@@ -859,14 +860,14 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         fraction = get_split_fraction(fraction, "train")
     local = Path(source).is_file()
     source_id = str(Path(source).resolve()) if local else clean_url(source)
-    source_hash = hashlib.sha256(repr((source_id, fraction)).encode()).hexdigest()[:8]
+    source_hash = hashlib.sha256(repr((source_id, fraction)).encode() + (split or "").encode()).hexdigest()[:8]
     cache_path = output_path / f".{Path(source_id).stem}-{source_hash}.cache"
 
     async def convert() -> Path:
         cache_path.unlink(missing_ok=True)
         with TemporaryDirectory() as download_dir:
             result = await _convert_ndjson_to_yolo(
-                Path(check_file(source, download_dir=download_dir)), output_path, local, fraction
+                Path(check_file(source, download_dir=download_dir)), output_path, local, fraction, split
             )
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
@@ -886,7 +887,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction) -> Path:
+async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction, split=None) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -915,8 +916,13 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
 
     local_path = dataset_record.pop("path", None) if local and not (is_classification or is_depth) else None
 
+    if split == "train" or (
+        split == "val" and (not is_classification or any(r.get("split") == "val" for r in image_records))
+    ):
+        fraction = [get_split_fraction(fraction, split) for split in ("train", "val")] + [0.0]
+
     # Hash stable content plus source identity. Query strings are excluded because signed URLs change on every export.
-    _h = hashlib.sha256(repr(fraction).encode())
+    _h = hashlib.sha256(repr(fraction).encode() + (split or "").encode())
     for i, r in enumerate(lines):
         if i:
             split, source_name = r.get("split"), r.get("file")

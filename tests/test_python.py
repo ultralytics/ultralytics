@@ -831,7 +831,7 @@ def test_convert_signed_ndjson(monkeypatch):
 
     captured = []
 
-    async def convert(path, fraction):
+    async def convert(path, fraction, split):
         captured.append((path, fraction))
         return "dataset.ndjson.yaml"
 
@@ -1466,8 +1466,6 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
 @pytest.mark.parametrize("external", [False, True])
 def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
     """Calibration provenance records local splits without rejecting external validation paths."""
-    from types import SimpleNamespace
-
     from ultralytics.models.yolo import detect
     from ultralytics.models.yolo.depth import calibrate
     from ultralytics.models.yolo.depth.train import DepthTrainer
@@ -1488,7 +1486,7 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
     trainer.best = checkpoint
     trainer.last = tmp_path / "last.pt"
     trainer.save_dir = tmp_path
-    trainer.args = SimpleNamespace(plots=False)
+    trainer.args = get_cfg(overrides={"plots": False})
     trainer.test_loader = []
     trainer.device = "cpu"
     trainer.data = {"path": dataset_root, "val": str(validation_path), "hash": "manifest-sha256"}

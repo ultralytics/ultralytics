@@ -11,11 +11,7 @@ model_name: yolo26n-obb
 
 Oriented object detection goes a step further than standard object detection by introducing an extra angle to locate objects more accurately in an image.
 
-The output of an oriented object detector is a set of rotated bounding boxes that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background.
-
-!!! tip
-
-    YOLO26 OBB models use the `-obb` suffix, i.e., `yolo26n-obb.pt`, and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
+The output of an oriented object detector is a set of rotated bounding boxes that precisely enclose the objects in the image, along with class labels and confidence scores for each box. Oriented bounding boxes are particularly useful when objects appear at various angles, such as in aerial imagery, where traditional axis-aligned bounding boxes may include unnecessary background. Typical uses are ship and vehicle detection from satellites and drones, building and infrastructure analysis for urban planning, crop monitoring, and solar panel or wind turbine inspection.
 
 <p align="center">
   <br>
@@ -28,7 +24,9 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
   <strong>Watch:</strong> How to Detect & Track Objects with Ultralytics YOLO26 Oriented Bounding Boxes (OBB) | Ship Tracking 🚢
 </p>
 
-## Visual Samples
+!!! tip
+
+    YOLO26 OBB models use the `-obb` suffix, i.e., `yolo26n-obb.pt`, and are pretrained on [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml).
 
 |                                Ships Detection using OBB                                 |                                Vehicle Detection using OBB                                 |
 | :--------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
@@ -36,14 +34,14 @@ The output of an oriented object detector is a set of rotated bounding boxes tha
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
-YOLO26 pretrained OBB models are shown here, which are pretrained on the [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml) dataset.
+YOLO26 OBB models pretrained on the [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml) dataset are shown below.
 
 [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models) download automatically from the latest Ultralytics [release](https://github.com/ultralytics/assets/releases) on first use.
 
 {% include "macros/yolo-obb-perf.md" %}
 
-- **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce by `yolo val obb data=DOTAv1.yaml device=0 split=test nms=False` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
-- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce by `yolo val obb data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
+- **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce with `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
+- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo obb val data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary DOTAv1 results.
@@ -96,6 +94,8 @@ Train YOLO26n-obb on the DOTA8 dataset for 100 [epochs](https://www.ultralytics.
   <strong>Watch:</strong> How to Train Ultralytics YOLO-OBB (Oriented Bounding Boxes) Models on DOTA Dataset using Ultralytics Platform
 </p>
 
+See full `train` mode details in the [Train](../modes/train.md) page. OBB models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
+
 ### Dataset format
 
 OBB dataset format can be found in detail in the [Dataset Guide](../datasets/obb/index.md). The YOLO OBB format designates bounding boxes by their four corner points with coordinates normalized between 0 and 1, following this structure. [Ultralytics Platform annotation](../platform/data/annotation.md) supports OBB labels with a dedicated oriented bounding box drawing tool:
@@ -108,7 +108,7 @@ Internally, YOLO processes losses and outputs in the `xywhr` format, which repre
 
 ## Val
 
-Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the DOTA8 dataset. No arguments are needed as the `model` retains its training `data` and arguments as model attributes.
+Validate trained YOLO26n-obb model [accuracy](https://www.ultralytics.com/glossary/accuracy) on the DOTA8 dataset. Pass `data` explicitly so validation uses the intended dataset YAML.
 
 !!! example
 
@@ -170,17 +170,6 @@ Use a trained YOLO26n-obb model to run predictions on images.
         yolo obb predict model=path/to/best.pt source='https://ultralytics.com/images/boats.jpg' # predict with custom model
         ```
 
-<p align="center">
-  <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/5XYdm5CYODA"
-    title="YouTube video player" frameborder="0"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowfullscreen>
-  </iframe>
-  <br>
-  <strong>Watch:</strong> How to Detect and Track Storage Tanks using Ultralytics YOLO-OBB | Oriented Bounding Boxes | DOTA
-</p>
-
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
 ### Results Output
@@ -219,7 +208,7 @@ Export a YOLO26n-obb model to a different format like ONNX, CoreML, etc.
 
         # Load a model
         model = YOLO("yolo26n-obb.pt")  # load an official model
-        model = YOLO("path/to/best.pt")  # load a custom-trained model
+        model = YOLO("path/to/best.pt")  # load a custom model
 
         # Export the model
         model.export(format="onnx")
@@ -229,7 +218,7 @@ Export a YOLO26n-obb model to a different format like ONNX, CoreML, etc.
 
         ```bash
         yolo export model=yolo26n-obb.pt format=onnx  # export official model
-        yolo export model=path/to/best.pt format=onnx # export custom-trained model
+        yolo export model=path/to/best.pt format=onnx # export custom model
         ```
 
 Available YOLO26-obb export formats are in the table below. You can export to any format using the `format` argument, i.e., `format='onnx'` or `format='engine'`. You can predict or validate directly on exported models, i.e., `yolo predict model=yolo26n-obb.onnx`. Usage examples are shown for your model after export completes.
@@ -237,18 +226,6 @@ Available YOLO26-obb export formats are in the table below. You can export to an
 {% include "macros/export-table.md" %}
 
 See full `export` details in the [Export](../modes/export.md) page.
-
-## Real-World Applications
-
-OBB detection with YOLO26 has numerous practical applications across various industries:
-
-- **Maritime and Port Management**: Detecting ships and vessels at various angles for [fleet management](https://www.ultralytics.com/blog/how-to-use-ultralytics-yolo11-for-obb-object-detection) and monitoring.
-- **Urban Planning**: Analyzing buildings and infrastructure from aerial imagery.
-- **Agriculture**: Monitoring crops and agricultural equipment from drone footage.
-- **Energy Sector**: Inspecting solar panels and wind turbines at different orientations.
-- **Transportation**: Tracking vehicles on roads and in parking lots from various perspectives.
-
-These applications benefit from OBB's ability to precisely fit objects at any angle, providing more accurate detection than traditional bounding boxes.
 
 ## FAQ
 
@@ -286,32 +263,6 @@ For more training arguments, check the [Configuration](../usage/cfg.md) section.
 
 YOLO26-OBB models are pretrained on datasets like [DOTAv1](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/DOTAv1.yaml) but you can use any dataset formatted for OBB. Detailed information on OBB dataset formats can be found in the [Dataset Guide](../datasets/obb/index.md).
 
-### How can I export a YOLO26-OBB model to ONNX format?
-
-Exporting a YOLO26-OBB model to ONNX format is straightforward using either Python or CLI:
-
-!!! example
-
-    === "Python"
-
-        ```python
-        from ultralytics import YOLO
-
-        # Load a model
-        model = YOLO("yolo26n-obb.pt")
-
-        # Export the model
-        model.export(format="onnx")
-        ```
-
-    === "CLI"
-
-        ```bash
-        yolo export model=yolo26n-obb.pt format=onnx
-        ```
-
-For more export formats and details, refer to the [Export](../modes/export.md) page.
-
 ### How do I validate the accuracy of a YOLO26n-obb model?
 
 To validate a YOLO26n-obb model, you can use Python or CLI commands as shown below:
@@ -337,3 +288,29 @@ To validate a YOLO26n-obb model, you can use Python or CLI commands as shown bel
         ```
 
 See full validation details in the [Val](../modes/val.md) section.
+
+### How can I export a YOLO26-OBB model to ONNX format?
+
+Exporting a YOLO26-OBB model to ONNX format is straightforward using either Python or CLI:
+
+!!! example
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        # Load a model
+        model = YOLO("yolo26n-obb.pt")
+
+        # Export the model
+        model.export(format="onnx")
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo export model=yolo26n-obb.pt format=onnx
+        ```
+
+For more export formats and details, refer to the [Export](../modes/export.md) page.

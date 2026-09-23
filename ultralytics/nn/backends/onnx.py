@@ -10,8 +10,8 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import LOGGER, ROCM_EP_PACKAGES, ROCM_EXTRA_INDEX, USER_CONFIG_DIR
-from ultralytics.utils.checks import check_requirements, rocm_is_available
+from ultralytics.utils import ARM64, LOGGER, ROCM_EP_PACKAGES, ROCM_EXTRA_INDEX, USER_CONFIG_DIR
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, check_requirements, rocm_is_available
 
 from .base import BaseBackend
 
@@ -227,9 +227,11 @@ class ONNXBackend(BaseBackend):
             # ONNX Runtime
             LOGGER.info(f"Loading {weight} for ONNX Runtime inference...")
             rocm = cuda and rocm_is_available()  # the MIGraphX plugin EP targets AMD GPUs; CPU/CUDA use stock wheels
+            wheels = IS_PYTHON_MINIMUM_3_11 and not ARM64  # MIGraphX EP wheels are Python>=3.11 x86_64 only
             check_requirements("onnx")
             if rocm:
-                check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
+                if wheels:
+                    check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
                 # Ensure stock ONNX Runtime as a fallback so a missing plugin wheel degrades to CPU instead of crashing.
                 check_requirements([("onnxruntime", "onnxruntime-gpu")])
             else:
@@ -260,6 +262,8 @@ class ONNXBackend(BaseBackend):
                         ep_name = "MIGraphXExecutionProvider" if rocm else "CUDAExecutionProvider"
                         pkg = "onnxruntime-ep-migraphx" if rocm else "onnxruntime-gpu"
                         fix = f"pip install {pkg}" + (f" {ROCM_EXTRA_INDEX}" if rocm else "")
+                        if rocm and not wheels:
+                            fix = f"Python>=3.11 on x86_64, the only platforms {pkg} supports"
                         LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU... Fix with '{fix}'")
                         self.device = torch.device("cpu")
                         cuda = False

@@ -54,7 +54,6 @@ For professionals and small teams ($29 per seat/month or $290 per seat/year):
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
 - Access to the best GPUs (B200, B300) — 26 GPU types in total
-- Full monitoring dashboard
 - Priority support
 
 !!! tip "Save with Yearly Billing"
@@ -253,7 +252,6 @@ After upgrading:
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) (up to 5 members, including you)
 - Access to best GPUs (B200, B300)
-- Full monitoring dashboard
 - Priority support
 
 ### Renewals

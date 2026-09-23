@@ -4,6 +4,7 @@ from .predict import AnomalyPredictor, AnomalyPredictorHM
 from .train import AnomalyTrainer
 from .train_rnd import AnomalyRNDTrainer
 from .val import YOLOAnomalyCocoValidator, YOLOAnomalyValidator, YOLOAnomalyValidatorHM
+from .val_rnd import GroupMeta, OODEvaluator, OODResult
 
 __all__ = (
     "AnomalyPredictor",
@@ -13,4 +14,7 @@ __all__ = (
     "YOLOAnomalyValidator",
     "YOLOAnomalyValidatorHM",
     "YOLOAnomalyCocoValidator",
+    "GroupMeta",
+    "OODEvaluator",
+    "OODResult",
 )

@@ -110,6 +110,7 @@ o2o_topk2: 1 # (int) anchors kept per GT by the one2one assigner's second narrow
 ood_end2end: False # (bool) also evaluate the other head branch: adds ood/e2e_* (o2o) and metrics/o2m_* (in-domain), ~2x OOD eval time
 fitness_branch: o2m # (str) which branch best.pt is selected on: o2m (default, NMS) or o2o (NMS-free; needs ood_end2end=True)
 fitness_prior: heatmap # (str) which OOD pass best.pt is selected on: heatmap (default, memory-bank prior ON) or none (prior OFF, the native regime for p_drop=1.0 runs)
+fitness_groups: # (str, optional) which defect groups best.pt is selected on, e.g. nature=structural or an explicit group list; needs anomaly.meta_yaml. Set = fitness becomes the POOLED binary AP of those groups; unset = the historical macro mean over products
 pose: 12.0 # (float) pose loss gain (pose tasks)
 kobj: 1.0 # (float) keypoint objectness loss gain (pose tasks)
 rle: 1.0 # (float) rle loss gain (pose tasks)

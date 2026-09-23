@@ -2,122 +2,48 @@
 
 """Internal R&D trainer for YOLO Anomaly.
 
-Extends ``AnomalyTrainer`` with periodic cross-dataset OOD validation. This is
-not intended for normal users; it exists for internal experiments where best.pt
-selection should be driven by a macro-average OOD metric (e.g. MVTec mAP50).
-
-The OOD loop is intentionally simple:
-  * resolve a list of data yamls,
-  * for each yaml, build a memory bank from its normal train split,
-  * run ``YOLOAnomalyValidator`` on its val split,
-  * macro-average the metrics and use the result as training fitness.
+Extends ``AnomalyTrainer`` with periodic cross-dataset OOD validation, so best.pt is selected on a
+whole anomaly catalogue rather than the training set. The evaluation itself lives in ``val_rnd.py``;
+this only schedules it and turns its result into fitness.
 """
 
 from __future__ import annotations
 
 import math
-import random
-from contextlib import contextmanager
 from copy import deepcopy
-from pathlib import Path
 
-import numpy as np
-import torch
 from torch import distributed as dist
 
 from ultralytics.models.yolo.anomaly.train import AnomalyTrainer
 from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidator
-from ultralytics.utils import LOGGER, RANK, YAML
+from ultralytics.models.yolo.anomaly.val_rnd import OODEvaluator, _average_ood_rows, _frozen_rng
+from ultralytics.utils import LOGGER, RANK
 from ultralytics.utils.torch_utils import unwrap_model
-
-
-MVTEC_CATEGORIES = [
-    "bottle",
-    "cable",
-    "capsule",
-    "carpet",
-    "grid",
-    "hazelnut",
-    "leather",
-    "metal_nut",
-    "pill",
-    "screw",
-    "tile",
-    "toothbrush",
-    "transistor",
-    "wood",
-    "zipper",
-]
-
-_MVTEC_ROOT_CANDIDATES = (
-    "/data/shared-datasets/louis_data/MVTec-YOLO",
-    "/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO",
-    "/home/laughing/codes/datasets/MVTec-YOLO",
-)
-
-
-def _normal_dir_from_yaml(yaml_path: str | Path) -> Path:
-    """Resolve the directory of normal images referenced by a data yaml.
-
-    Follows the MVTec convention: if ``<train>/good`` exists, use it; otherwise
-    use ``<train>``.
-    """
-    data = YAML.load(yaml_path)
-    root = Path(data.get("path", Path(yaml_path).parent))
-    train = Path(data["train"])
-    if not train.is_absolute():
-        train = root / train
-    good = train / "good"
-    return good if good.is_dir() else train
-
-
-@contextmanager
-def _frozen_rng():
-    """Run a block, then rewind every global RNG it touched.
-
-    Used to keep ``ood_end2end``'s extra eval passes purely ADDITIVE. The memory-bank build
-    draws on global RNG and is reproducible only by replaying the same draw sequence: three
-    back-to-back ``_run_ood_eval`` calls on one model give prior-ON mAP10_50
-    0.1957 / 0.2026 / 0.2019, while prior-OFF (bank disabled) stays at 0.195577 to six
-    decimals — so it is the bank, not the detector. Without this, an extra pass would shift
-    every later category's prior-ON number and ``ood_end2end=True`` runs would stop being
-    comparable with ``False`` ones on the o2m columns they are supposed to share.
-    """
-    state = (
-        torch.get_rng_state(),
-        torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
-        random.getstate(),
-        np.random.get_state(),
-    )
-    try:
-        yield
-    finally:
-        torch.set_rng_state(state[0])
-        if state[1] is not None:
-            torch.cuda.set_rng_state_all(state[1])
-        random.setstate(state[2])
-        np.random.set_state(state[3])
-
-
-def _average_ood_rows(rows: list[dict]) -> dict[str, float]:
-    """Macro-average over categories, ignoring NaNs and non-numeric fields (e.g. ``category``).
-
-    Averages every numeric key present, so both the heatmap-prior metrics (``mAP50`` …) and the
-    none-prior metrics (``none_mAP50`` …) are aggregated in one pass.
-    """
-    keys = [k for k in rows[0] if isinstance(rows[0].get(k), (int, float))]
-    out: dict[str, float] = {}
-    for key in keys:
-        vals = [r[key] for r in rows if isinstance(r.get(key), (int, float)) and not math.isnan(r[key])]
-        out[key] = sum(vals) / len(vals) if vals else math.nan
-    return out
 
 
 class AnomalyRNDTrainer(AnomalyTrainer):
     """Trainer for YOLOAnomaly with periodic cross-dataset OOD validation."""
 
     def validate(self):
-        """Run normal validation, then periodic OOD validation; fitness = OOD mAP50."""
+        """Run normal validation, then periodic OOD validation, and select best.pt on its result.
+
+        Fitness is ``mAP50@0.25`` on three axes, each set by an arg and each choosing a different
+        number from the same passes:
+
+        - ``fitness_branch`` (o2m / o2o): o2m is the NMS path, o2o the NMS-free one a deployment
+          ships. They do not peak together -- on 26s, o2o OOD tops out at ep5 and decays
+          0.2127 -> 0.1925 while o2m stays flat through ep10 -- so an o2m-selected best.pt is past
+          o2o's optimum. o2o needs ``ood_end2end=True``.
+        - ``fitness_prior`` (heatmap / none): the memory-bank prior. ``p_drop=1.0`` runs drop it on
+          every training sample, so prior-OFF is their native regime.
+        - ``fitness_groups``: unset keeps the macro mean over products; set makes fitness the pooled
+          binary AP of the selected groups. The two are not comparable -- pooling is one global
+          ranked list and sits below the mean of per-product APs -- so turning it on is a new
+          project (experiment_protocol.md section 0).
+
+        Returns:
+            (tuple[dict, float]): Validation metrics and the fitness value.
+        """
         if self.ema and self.world_size > 1:
             # Sync EMA buffers from rank 0 to all ranks
             for buffer in self.ema.ema.buffers():
@@ -129,10 +55,6 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         if RANK not in (-1, 0) or self.ema is None:
             return metrics, fitness
 
-        # In-domain on the OTHER branch. The domain val above inherits ``end2end`` from the model
-        # yaml (True for yolo26), so ``metrics/*`` is the o2o branch; this adds the o2m mirror as
-        # ``metrics/o2m_*``. Together with the ``e2e_*`` OOD keys below a run then reports the full
-        # 2x2 — {in-domain, OOD} x {o2m, o2o} — instead of one cell of each.
         if getattr(self.args, "ood_end2end", False):
             metrics.update(self._domain_other_branch())
 
@@ -141,50 +63,44 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         if freq <= 0 or (self.epoch + 1) % freq != 0:
             return metrics, fitness
 
-        yamls = self._resolve_test_yamls(v2_cfg)
-        if not yamls:
+        ev = OODEvaluator(
+            v2_cfg,
+            groups=(getattr(self.args, "fitness_groups", "") or "").strip(),
+            e2e=bool(getattr(self.args, "ood_end2end", False)),
+            device=self.device,
+            workers=self.args.workers,
+            save_dir=self.save_dir,
+        )
+        if not ev.resolve():
             return metrics, fitness
 
         ema_eval = deepcopy(self.ema.ema).eval()
         try:
-            rows = self._run_ood_eval(ema_eval, yamls, v2_cfg)
+            res = ev(ema_eval, epoch=self.epoch)
+            rows = res.products
             if rows:
-                self._save_ood_percat(rows)
                 avg = _average_ood_rows(rows)
+                avg.update(res.pooled)
                 avg_metrics = {f"ood/{k}": v for k, v in avg.items()}
-                # Fitness keeps its historical definition -- mAP50 measured at conf>=0.25 -- so
-                # best.pt selection stays comparable with every earlier yoloa run. The bare
-                # ``mAP50`` key is now the threshold-free value and is reported, not selected on.
-                #
-                # ``fitness_branch`` picks WHICH branch that number comes from. It defaults to
-                # o2m, which is what every run on record used -- but o2m is the NMS path, and a
-                # NMS-free deployment ships o2o. The two do not peak together: on 26s the recipe's
-                # o2o OOD tops out at ep5 and then decays 0.2127 -> 0.1925 while o2m stays flat
-                # through ep10, so an o2m-selected best.pt is past o2o's optimum. Set
-                # ``fitness_branch=o2o`` (needs ood_end2end=True for the e2e_* keys to exist) when
-                # the run is meant to produce a NMS-free checkpoint.
-                #
-                # ``fitness_prior`` picks the OTHER axis: the memory-bank prior is ON in the
-                # ``heatmap`` pass and OFF in the ``none`` pass. For ``p_drop=1.0`` runs the prior
-                # is dropped on every training sample, so prior-OFF is that run's native regime and
-                # selecting on the prior-ON pass optimises a regime it never trained in.
                 branch = getattr(self.args, "fitness_branch", "o2m") or "o2m"
                 if branch not in {"o2m", "o2o"}:
                     LOGGER.warning(f"fitness_branch={branch!r} invalid; falling back to 'o2m'")
                     branch = "o2m"
-                # ``smart_value`` turns the CLI's ``fitness_prior=none`` into Python None, so the
-                # usual ``or <default>`` idiom would silently swallow the opt-in and select on the
-                # prior-ON pass instead. None IS the "none" option here.
+                # CLI `fitness_prior=none` arrives as Python None, so `or <default>` would eat it.
                 prior = getattr(self.args, "fitness_prior", "heatmap")
                 prior = "none" if prior is None else prior
                 if prior not in {"heatmap", "none"}:
                     LOGGER.warning(f"fitness_prior={prior!r} invalid; falling back to 'heatmap'")
                     prior = "heatmap"
-                pre = ("e2e_" if branch == "o2o" else "") + ("none_" if prior == "none" else "")
+                pre = ("pool_" if (getattr(self.args, "fitness_groups", "") or "").strip() else "") + (
+                    "e2e_" if branch == "o2o" else ""
+                ) + ("none_" if prior == "none" else "")
                 if pre and f"{pre}mAP50@0.25" not in avg:
                     LOGGER.warning(
                         f"fitness_branch={branch!r} fitness_prior={prior!r} unavailable (no {pre}* metrics; "
-                        "o2o needs ood_end2end=True, none needs test_none_prior); using o2m heatmap"
+                        "o2o needs ood_end2end=True, none needs test_none_prior, pool_ needs "
+                        "anomaly.meta_yaml + a fitness_groups query that matched); "
+                        "falling back to the o2m heatmap MACRO mean -- not the same number"
                     )
                     pre, branch, prior = "", "o2m", "heatmap"
                 fitness = float(avg.get(f"{pre}mAP50@0.25", avg[f"{pre}mAP50"]))
@@ -196,35 +112,14 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                     f"mAP10={avg['mAP10']:.4f} "
                     f"| [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
                     f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
-                    f"| fitness={fitness:.4f} ({branch} {prior} mAP50@0.25); "
+                    f"| fitness={fitness:.4f} "
+                    f"({'pooled ' if pre.startswith('pool_') else 'macro '}{branch} {prior} mAP50@0.25); "
                     f"bare keys are threshold-free; n={len(rows)} categories"
                 )
         finally:
             del ema_eval
 
         return metrics, fitness
-
-    def _save_ood_percat(self, rows: list[dict]) -> None:
-        """Append the per-category OOD rows to ``ood_percat.csv``, one line per category per epoch.
-
-        ``_average_ood_rows`` collapses 15 categories into the single ``ood/*`` number that goes into
-        results.csv, and the rows it averaged were then dropped — but that average hides a 2.6x
-        texture/object spread, and a checkpoint chosen on it can halve one category's recall while the
-        mean moves 0.0020. The rows already exist, so keeping them (plus ``save_period`` weights) makes
-        checkpoint selection re-decidable offline under a different aggregate, with no extra eval.
-
-        Long format — ``epoch, category, <metric>…`` — so the file stays readable when OOD eval is
-        gated by ``test_val_freq`` and only some epochs have rows.
-        """
-        keys = [k for k in rows[0] if k != "category"]
-        csv = self.save_dir / "ood_percat.csv"
-        header = "" if csv.exists() else "epoch,category," + ",".join(keys) + "\n"
-        with open(csv, "a", encoding="utf-8") as f:
-            f.write(header)
-            f.writelines(
-                f"{self.epoch + 1},{r['category']}," + ",".join(f"{r.get(k, math.nan):.6g}" for k in keys) + "\n"
-                for r in rows
-            )
 
     def _domain_other_branch(self) -> dict[str, float]:
         """Re-run in-domain val on whichever of o2m/o2o the main pass did not use.
@@ -258,110 +153,3 @@ class AnomalyRNDTrainer(AnomalyTrainer):
             LOGGER.warning(f"in-domain other-branch val failed: {type(e).__name__}: {e}")
             return {}
 
-    def _resolve_test_yamls(self, v2_cfg: dict) -> list[Path]:
-        """Resolve explicit ``test_data_yamls`` or expand ``test_root`` + ``test_categories``."""
-        if explicit := v2_cfg.get("test_data_yamls"):
-            return [Path(p) for p in explicit]
-
-        root = v2_cfg.get("test_root")
-        if not root:
-            for candidate in _MVTEC_ROOT_CANDIDATES:
-                if Path(candidate).is_dir():
-                    root = candidate
-                    break
-        if not root:
-            LOGGER.warning("AnomalyRNDTrainer: no test_data_yamls or test_root configured; skipping OOD eval.")
-            return []
-
-        cats = v2_cfg.get("test_categories") or MVTEC_CATEGORIES
-        yamls = []
-        for cat in cats:
-            for name in (f"{cat}_binary.yaml", f"{cat}.yaml"):
-                p = Path(root) / cat / name
-                if p.exists():
-                    yamls.append(p)
-                    break
-            else:
-                LOGGER.warning(f"AnomalyRNDTrainer: no yaml found for category '{cat}' under {root}")
-        return yamls
-
-    def _run_ood_eval(self, model, yamls: list[Path], v2_cfg: dict) -> list[dict]:
-        """Fit bank per yaml and validate; return per-category metric rows."""
-        rows = []
-        batch = int(v2_cfg.get("test_batch", 8))
-        device = self.device
-        workers = self.args.workers
-
-        e2e = bool(getattr(self.args, "ood_end2end", False))
-        for yaml in yamls:
-            source = _normal_dir_from_yaml(yaml)
-            try:
-                model.memory_bank.reset()
-                n = model.build_memory_bank(str(source), imgsz=640, device=device, batch=batch)
-                if not n:
-                    LOGGER.warning(f"OOD eval: empty bank for {yaml.name}; skipping.")
-                    continue
-
-                overrides = {
-                    "task": "detect",
-                    "mode": "val",
-                    "data": str(yaml),
-                    "split": "val",
-                    "imgsz": 640,
-                    "batch": batch,
-                    "workers": workers,
-                    "device": str(device) if device is not None else None,
-                    "rect": False,
-                    "plots": False,
-                    "verbose": False,
-                    "save_json": False,
-                    "single_cls": True,
-                    "iou": 0.2,
-                    # Score everything the head emits. AP is threshold-free, so the old 0.25 floor
-                    # was deleting ~73% of the correct detections (their median score is 0.065)
-                    # before AP was computed, understating OOD by ~3.7x. The validator re-derives
-                    # the 0.25 numbers by masking, so nothing is lost and fitness is unchanged.
-                    "conf": 0.001,
-                    "end2end": False,
-                }
-                # Pass 1: heatmap prior (memory bank active) — the yoloa_clean fitness signal.
-                validator = YOLOAnomalyValidator(args=overrides)
-                validator(trainer=None, model=model)
-                row = {"category": yaml.parent.name, **validator._ood_map_metrics()}
-
-                # Pass 2: none prior (bank disabled via the ``building`` flag, same toggle the viz
-                # path uses) — bare-detector baseline, logged as ``none_*`` so the per-category
-                # fusion lift (heatmap - none) is visible. Does not change fitness.
-                mb = model.memory_bank
-                saved_building = mb.building
-                mb.building = True
-                try:
-                    validator_none = YOLOAnomalyValidator(args=overrides)
-                    validator_none(trainer=None, model=model)
-                    row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
-                finally:
-                    mb.building = saved_building
-
-                # Passes 3-4 (``ood_end2end``): the same two passes on the ONE2ONE branch, i.e.
-                # the NMS-free path deployment actually uses. Everything above is o2m, so
-                # without this a run reports no number for what it would ship.
-                if e2e:
-                    e2e_overrides = {**overrides, "end2end": True}
-                    with _frozen_rng():  # keeps the o2m columns identical to an ood_end2end=False run
-                        v_e2e = YOLOAnomalyValidator(args=e2e_overrides)
-                        v_e2e(trainer=None, model=model)
-                        row.update({f"e2e_{k}": v for k, v in v_e2e._ood_map_metrics().items()})
-
-                        mb.building = True
-                        try:
-                            v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
-                            v_e2e_none(trainer=None, model=model)
-                            row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
-                        finally:
-                            mb.building = saved_building
-
-                rows.append(row)
-            except Exception as e:
-                LOGGER.warning(f"OOD eval failed for {yaml}: {type(e).__name__}: {e}")
-
-        return rows

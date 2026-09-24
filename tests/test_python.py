@@ -1759,7 +1759,7 @@ def test_utils_ops():
 
 
 def test_segments2boxes_list_points_and_empty():
-    """segments2boxes documents list-of-points segments; empty polygons must not ValueError."""
+    """Segments2boxes documents list-of-points segments; empty polygons must not ValueError."""
     from ultralytics.utils.ops import segments2boxes
 
     # Documented call shape: each segment is a list of [x, y] points (not only ndarrays).

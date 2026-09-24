@@ -75,19 +75,16 @@ Example:
 
 
 def _prefetch(iterator):
-    """Yield items while loading the next one on a short-lived worker thread."""
-    executor = ThreadPoolExecutor(max_workers=1)
-    future = executor.submit(next, iterator)
-    executor.shutdown(wait=False)
-    while True:
-        try:
-            item = future.result()
-        except StopIteration:
-            return
-        executor = ThreadPoolExecutor(max_workers=1)
+    """Yield items while loading the next one on a worker thread."""
+    with ThreadPoolExecutor(max_workers=1) as executor:
         future = executor.submit(next, iterator)
-        executor.shutdown(wait=False)
-        yield item
+        while True:
+            try:
+                item = future.result()
+            except StopIteration:
+                return
+            future = executor.submit(next, iterator)
+            yield item
 
 
 class BasePredictor:

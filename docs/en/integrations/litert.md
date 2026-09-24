@@ -1,5 +1,5 @@
 ---
-title: Export YOLO to LiteRT (TFLite) for Edge and Web Deployment
+title: Export YOLO to LiteRT (TFLite)
 comments: true
 description: Convert Ultralytics YOLO models to LiteRT (formerly TensorFlow Lite) for fast on-device inference on mobile, embedded, edge, and browser platforms from a single .tflite model.
 keywords: YOLO26, LiteRT, TFLite, TensorFlow Lite, LiteRT.js, model export, edge deployment, browser ML, on-device inference, Ultralytics, machine learning, WebGPU

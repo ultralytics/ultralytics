@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
+from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -102,6 +102,10 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
         build_dataloader([], batch=4, workers=2)
 
 
+@pytest.mark.skipif(
+    not TORCH_1_9,
+    reason="torch<1.9: fork dataloader workers segfault before the first batch on the 3.8/1.8.0 floor stack",
+)
 def test_oom_auto_reduce_closes_replaced_loader(tmp_path):
     """Test the first-epoch OOM auto-reduce closes the replaced train loader before rebuilding the pipeline."""
     from ultralytics.models.yolo.detect.train import DetectionTrainer

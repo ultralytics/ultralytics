@@ -38,6 +38,8 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         file_bytes = np.fromfile(filename, np.uint8)
     except (FileNotFoundError, OSError):
         return None
+    if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
+        return None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
         if not success:
@@ -123,9 +125,12 @@ def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.nd
         (np.ndarray | None): The read image array, or None if reading fails.
     """
     try:
-        return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
+        file_bytes = np.fromfile(filename, np.uint8)
     except (FileNotFoundError, OSError):
         return None
+    if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
+        return None
+    return cv2.imdecode(file_bytes, flags)
 
 
 def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
@@ -238,8 +243,10 @@ def arange_patch(dynamic: bool = False, quantize: int | str | None = None, fmt: 
             return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
 
         torch.arange = arange  # patch
-        yield
-        torch.arange = func  # unpatch
+        try:
+            yield
+        finally:
+            torch.arange = func  # unpatch
     else:
         yield
 
@@ -257,8 +264,10 @@ def onnx_export_patch():
             return func(*args, **kwargs, dynamo=False)
 
         torch.onnx.export = torch_export  # patch
-        yield
-        torch.onnx.export = func  # unpatch
+        try:
+            yield
+        finally:
+            torch.onnx.export = func  # unpatch
     else:
         yield
 

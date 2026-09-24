@@ -6,7 +6,6 @@ import math
 import os
 import random
 from collections.abc import Iterator
-from copy import copy
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
@@ -266,13 +265,13 @@ def build_yolo_dataset(
     if data.get("complete"):
         fraction = 1.0  # already limited during dataset download
     elif fraction is None:
-        fraction = get_split_fraction(cfg.fraction, mode)
+        fraction = get_split_fraction(cfg.fraction, "train" if mode == "train" else cfg.split)
     return dataset(
         img_path=img_path,
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",
-        hyp=copy(cfg),
+        hyp=cfg,
         rect=rect,
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,
@@ -304,7 +303,7 @@ def build_grounding(
         imgsz=cfg.imgsz,
         batch_size=batch,
         augment=mode == "train",  # augmentation
-        hyp=copy(cfg),
+        hyp=cfg,
         rect=cfg.rect or rect,  # rectangular batches
         cache=cfg.cache or None,
         single_cls=cfg.single_cls or False,

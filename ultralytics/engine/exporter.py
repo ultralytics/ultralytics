@@ -1046,6 +1046,16 @@ class Exporter:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
+    def _int8_calibration_images(self, prefix=""):
+        """Collect calibration batches directly into one BHWC float32 array."""
+        loader = self.get_int8_calibration_dataloader(prefix)
+        images = np.empty((len(loader) * loader.batch_size, *self.imgsz, self.im.shape[1]), dtype=np.float32)
+        for i, batch in enumerate(loader):
+            images[i * loader.batch_size : (i + 1) * loader.batch_size] = (
+                torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
+            )
+        return images
+
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
         """Export YOLO model to TorchScript format."""
@@ -1319,8 +1329,6 @@ class Exporter:
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
-        if f.is_dir():
-            shutil.rmtree(f)
 
         if self.args.nms and self.model.task == "detect":
             model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
@@ -1380,15 +1388,7 @@ class Exporter:
         if self.model.task == "classify":
             ct_model.user_defined_metadata.update({"com.apple.coreml.model.preview.type": "imageClassifier"})
 
-        try:
-            ct_model.save(str(f))  # save *.mlpackage
-        except Exception as e:
-            LOGGER.warning(
-                f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
-                f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
-            )
-            f = f.with_suffix(".mlmodel")
-            ct_model.save(str(f))
+        ct_model.save(str(f))  # save *.mlpackage or *.mlmodel
         return f
 
     @try_export
@@ -1439,16 +1439,8 @@ class Exporter:
             f_onnx,
             f,
             quantize=self.args.quantize,
-            images=(
-                torch.nn.functional.interpolate(
-                    torch.cat([batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)], 0).float(),
-                    size=self.imgsz,
-                )
-                .permute(0, 2, 3, 1)
-                .numpy()
-                if self.args.quantize == 8 and self.args.data
-                else None
-            ),
+            # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
+            images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
             disable_group_convolution=self.args.format == "edgetpu",
             cuda=self.device.type == "cuda",
             prefix=prefix,

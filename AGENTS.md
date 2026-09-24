@@ -100,5 +100,3 @@ Package paths below are relative to `ultralytics/`; `docs/` and `tests/` paths a
 ## Extension boundaries
 
 Subclass the task-neutral engine and override hooks; do not fork training or prediction loops. Keep format-specific export behavior in `ultralytics/utils/export/` and bind it at export time; do not add `self.format` branches to `nn/modules/head.py`. Preserve lazy imports so importing Ultralytics does not eagerly load torchvision through SAM.
-
-Dataset cache hashes use label paths and total size rather than contents or mtimes. Same-size label edits can leave stale labels in training or validation; remove the affected `.cache` after such edits (`ultralytics/data/utils.py`).

@@ -154,7 +154,7 @@ def autocast(enabled: bool | torch.dtype, device: str = "cuda"):
             device, enabled = "cpu", False
         return torch.amp.autocast(device, enabled=enabled, **kwargs)
     else:
-        return torch.cuda.amp.autocast(enabled)
+        return torch.cuda.amp.autocast(enabled and device == "cuda")
 
 
 @functools.lru_cache

@@ -38,7 +38,8 @@ RUN pip install uv && \
     uv pip install --system --no-cache -e . \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     --index-strategy unsafe-best-match && \
-    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
+    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json \
+    /usr/local/lib/python3.13/site-packages/torch/test /usr/local/lib/python3.13/site-packages/torch/bin/test_*
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

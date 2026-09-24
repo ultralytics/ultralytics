@@ -116,7 +116,7 @@ The `Exporter` class has the following responsibilities:
 2. **Argument Validation**: Each export format supports specific arguments (quantization levels, optimization settings). The principle is to minimize new arguments and reuse existing ones.
 3. **Model Modification**: Changes to model heads or outputs should be minimal and non-invasive to the PyTorch model, applying external modifications when possible.
 4. **Exception Handling**: All potential export failures must be properly handled with clear error messages.
-5. **Calibration Data**: Exports requiring quantization data must use Ultralytics' [`get_int8_calibration_dataloader`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) helper.
+5. **Calibration Data**: Exports requiring quantization data must use Ultralytics' [`get_int8_calibration_dataloader`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) helper. For SDKs that take a preprocessing callback, reuse `Exporter._transform_fn`, which converts the uint8 batches to float [0, 1] NumPy arrays (OpenVINO, Axelera, and QNN already do). `TASK2CALIBRATIONDATA` in `ultralytics/cfg/__init__.py` provides per-task default calibration datasets, which Axelera and Hailo use when `data` is unset.
 
 ### Export Method Implementation Pattern
 
@@ -141,6 +141,23 @@ The method should return the output path. See `export_executorch`, `export_axele
 
 The helper module (e.g. `ultralytics/utils/export/partner.py`) is where the actual compilation lives — dependency imports, calibration handling, partner SDK calls, metadata writing (`YAML.save(Path(output_dir) / "metadata.yaml", metadata)`), and any external model wrapping. Re-export the helper function from `ultralytics/utils/export/__init__.py` and add it to `__all__`, as every shipped helper (`torch2executorch`, `onnx2deepx`, `onnx2ascend`, ...) is.
 
+If the partner compiler takes ONNX as input, as TensorRT, RKNN, DEEPX, QNN, Ascend, and MNN do, call `self.export_onnx()` instead of running your own ONNX export. The generated ONNX already applies `NMSModel`, `dynamic`, and `simplify`, and embeds the model metadata. Cap `opset` in the method when the compiler's ONNX parser has a limit, as `export_ascend` (17) and `export_rknn` (19) do:
+
+```python
+@try_export
+def export_partner_format(self, prefix=colorstr("Partner Format:")):
+    """Export YOLO model to Partner format through ONNX."""
+    from ultralytics.utils.export.partner import onnx2partner
+
+    self.args.opset = min(self.args.opset or 17, 17)  # partner ONNX parser supports opset<=17
+    return onnx2partner(
+        onnx_file=self.export_onnx(),
+        output_dir=self.file.parent / f"{self.file.stem}_partner_model",
+        metadata=self.metadata,
+        prefix=prefix,
+    )
+```
+
 #### Integration Registration
 
 Register the new format in `export_formats()`. Its `Arguments` list declares which existing configuration arguments the format accepts; the generic `validate_args()` function rejects any non-default export argument not on that list. New argument names must also be added to `ultralytics/cfg/default.yaml` and the matching `CFG_*_KEYS` type set in `ultralytics/cfg/__init__.py`.
@@ -150,12 +167,14 @@ def export_formats():
     """Return a dictionary of Ultralytics YOLO export formats."""
     x = [
         # ... existing formats ...
-        ["Partner Format", "partner_format", "_partner_model", True, True, ["batch", "quantize", "nms"], "base"],
+        ["Partner Format", "partner_format", "_partner_model", False, False, ["batch", "quantize", "nms"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 ```
 
 Choose a unique `Suffix` (e.g. `"_partner_model"` or `".partner"`) — this same suffix drives runtime auto-detection (see [Format Detection](#format-detection)).
+
+The `CPU` and `GPU` columns declare whether the exported model runs on the host CPU or a CUDA GPU, and they decide whether your format is benchmarked. [`benchmark()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/utils/benchmarks.py) exports, predicts, and validates every row of `export_formats()`, and the CI Benchmarks job runs it on every pull request for every task model plus YOLO-World. A format that only runs on its own accelerator sets both columns to `False`, as DEEPX, Axelera, QNN, Hailo, and Ascend do, so benchmarks skip it. When `verbose` is set, as it is in CI, `benchmark()` treats only an `AssertionError` as a skip and fails on any other exception. Write platform checks in the export method as `assert` statements (see `export_axelera` and `export_deepx`), and add a guard to the format checks in `benchmark()` if your format needs one.
 
 The `Env` column names a key in `EXPORT_ENVS`, the dictionary in `exporter.py` that owns each CI export environment: its Python version, extras groups, torch pin, extra requirements, package indexes, environment variables, and a `smoke` export command. Use `"base"` only when the SDK installs cleanly alongside the standard test dependencies; a partner toolchain with conflicting pins needs its own `isolated-<format>` entry (see `isolated-imx` and `isolated-axelera`). `tests/test_exports.py` is partitioned by `--export-env`, so this value decides which CI job actually exercises your format: `base` formats run in the main `Tests` job, and every other environment runs in the `IsolatedExports` job, which builds it with `.github/scripts/create-export-env.py --env <id>`.
 
@@ -182,6 +201,10 @@ if fmt == "partner_format" and model.task not in {"detect", "segment"}:
 
 Do not hand-roll precision coercion here. An accelerator that only runs INT8 joins the shared `if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"}` set already in `__call__`, which warns and coerces `quantize` for every INT8-only format. Likewise, a runtime without top-k support joins the `if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}` set that disables the `end2end` branch.
 
+Decide support for every task Ultralytics ships, in the canonical order `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`, and reject unsupported ones in this pre-validation block. Semantic segmentation and depth estimation are the newest tasks and are benchmarked in CI like the others. For NPU targets, `ClassMapModel` replaces semantic logits with a compact uint8 class map; add your format to the existing `if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}` set rather than writing your own reduction.
+
+Quantization-aware trained (QAT) models, produced by `quantize=8` in train mode, carry Q/DQ nodes with baked-in ranges, and `__call__` only lets `onnx` and `engine` export them. If your compiler reads those ranges, add your format to that assertion; otherwise QAT checkpoints are rejected with a clear message.
+
 #### Argument Validation Framework
 
 Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry; a genuinely new argument must first be registered and validated in the shared configuration owner.
@@ -196,6 +219,7 @@ When model modifications are necessary, follow these principles:
 2. **External Wrappers**: When a custom wrapper is unavoidable, subclass `ExportWrapper` (defined in `exporter.py`) so it composes the model rather than mutating its internals. It forwards attribute lookups to the wrapped model, so exporter code such as `self.model.model[-1]` keeps working.
 3. **Temporary Changes**: Apply modifications only during export.
 4. **Minimal Impact**: Make the smallest possible changes to achieve export compatibility.
+5. **No Head Branches**: Do not add `self.format` branches to `ultralytics/nn/modules/head.py`. Bind format-specific behavior at export time from `ultralytics/utils/export/` instead. The few format checks already in `head.py` are not a pattern to copy.
 
 For embedded NMS post-processing, use the existing [`NMSModel`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) class. `export_torchscript`, `export_onnx`, `export_openvino`, and `export_coreml` (for segment and pose) wrap the model with `NMSModel(self.model, self.args)` directly, and ONNX-based exports such as `export_engine`, `export_mnn`, and `export_ascend` inherit it by calling `self.export_onnx()`. Reuse it rather than reimplementing NMS post-processing in a new wrapper.
 
@@ -361,6 +385,18 @@ class PartnerBackend(BaseBackend):
 
 `forward()` can return the runtime's native outputs: `AutoBackend.forward()` passes every output through `from_numpy()`, which converts NumPy arrays to tensors on the inference device, so backends such as DeepX and Ascend return NumPy arrays or lists of them directly. See [`ultralytics/nn/backends/executorch.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/executorch.py), [`openvino.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/openvino.py), and [`tensorrt.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/tensorrt.py) for live references that follow this pattern.
 
+The output shape `forward()` must produce depends on the `nms` mode the model was exported with:
+
+| Export `nms`       | Model output                                                                       | Post-processing           |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------- |
+| `None` (default)   | Raw head output, `(batch, 4 + num_classes + extra, anchors)`                       | The predictor runs NMS    |
+| `True`             | Final detections from the embedded `NMSModel`, `(batch, max_det, 6 + extra)`       | Confidence filtering only |
+| `False` (NMS-free) | Final detections from the one-to-one `end2end` head, `(batch, max_det, 6 + extra)` | Confidence filtering only |
+
+`extra` holds mask coefficients, keypoints, or the OBB angle, and segmentation models also return a prototype tensor. `apply_metadata()` sets `end2end` for both final-detection modes, so the backend only has to return what the compiled graph produces.
+
+`read_metadata()` also runs before any backend exists: `guess_model_task()` in `ultralytics/nn/tasks.py` and `YOLO.__init__` call it on the exported path to find the task and head, without the partner SDK installed. A directory export with `metadata.yaml` inside it, such as `yolo26n_partner_model/`, works automatically. A single-file artifact must embed its metadata where `read_metadata()` can read it, or add a suffix branch to `read_metadata()` as Core AI does for `.aimodel`. Otherwise `YOLO("model.partner")` falls back to guessing the task from the file name, which fails for renamed files.
+
 #### Backend Registration
 
 Export the new backend from `ultralytics/nn/backends/__init__.py`, import it in the existing `from .backends import (...)` block of `autobackend.py`, and register it in `AutoBackend._BACKEND_MAP`. The dictionary key must match the `Argument` value used in `export_formats()`.
@@ -438,7 +474,10 @@ A new export format also needs an entry in every table and index that lists form
 - `docs/macros/export-table.md`: the shared export formats table included in the Export and Benchmark mode pages, the task pages, and the integrations overview.
 - `docs/en/modes/export.md`: the per-format precision support table for the `quantize` argument.
 - `docs/en/integrations/index.md`: the linked list of integrations.
+- `docs/en/guides/model-deployment-options.md`: the deployment format list and comparison table.
 - `mkdocs.yml`: the `Integrations` navigation, in alphabetical order.
+
+The same applies to the format lists in code: the `format` comment in `ultralytics/cfg/default.yaml`, the `Usage - formats` examples in the `ultralytics/engine/predictor.py` and `ultralytics/engine/validator.py` module docstrings, and the suffix table in the `AutoBackend` docstring. Export support on the [Ultralytics Platform](../platform/index.md) is enabled separately by Ultralytics, so do not edit the Platform docs.
 
 ### Page Structure Template
 
@@ -628,6 +667,18 @@ Contributors must provide and maintain:
 - **Performance Regression**: Continuous monitoring of export times, inference speed, and memory usage.
 - **Accuracy Preservation**: Validation that the new format maintains model accuracy standards.
 
+#### Export Tests
+
+Add export tests to [`tests/test_exports.py`](https://github.com/ultralytics/ultralytics/blob/main/tests/test_exports.py) and name them `test_export_<format>` or `test_export_<format>_<detail>`, for example `test_export_partner_format_int8`. `tests/conftest.py` maps each test to its format from that name and skips it outside the format's `Env`, so a test with any other name runs in every environment, including `base`, where your SDK is not installed. Use the `isolated_model` fixture so parallel workers do not race on the same weights file, and run the real export and inference instead of mocking platform or device state.
+
+To reproduce an isolated CI environment locally (requires [`uv`](https://docs.astral.sh/uv/)), build it and run its tests with that environment's Python:
+
+```bash
+export ULTRALYTICS_ISOLATED_VENVS="$HOME/export-venvs"
+python .github/scripts/create-export-env.py --env isolated-partner
+"$ULTRALYTICS_ISOLATED_VENVS/isolated-partner/bin/python" -m pytest tests/test_exports.py --export-env isolated-partner
+```
+
 #### Required Pre-Submission Verification
 
 Before submitting your integration PR, verify the export and runtime end-to-end by running [Val mode](../modes/val.md) against the exported model on the appropriate dataset. This is the only way to confirm the [Accuracy Preservation](#accuracy-preservation) targets in the Performance Standards section are actually met.
@@ -703,6 +754,10 @@ This testing approach ensures that integrations maintain high quality standards 
 - Migration guides for version updates.
 - Backward compatibility maintenance when possible.
 
+## Pull Request Review
+
+Ultralytics reviews integration PRs against the repository's [`AGENTS.md`](https://github.com/ultralytics/ultralytics/blob/main/AGENTS.md) rules. A PR that adds more than 50 net non-documentation code lines (tests included) or any new argument is treated as a high-barrier exception. A complete integration always crosses that line, so explain in the PR description why each part cannot be smaller or reuse an existing owner. Tests that mock platform or device state are removed in review. Contributors must also sign the [Contributor License Agreement](../help/CLA.md) before a PR can be merged.
+
 ## Quality Assurance Checklist
 
 Use this checklist as a final review before opening a pull request for a new integration.
@@ -720,7 +775,8 @@ Use this checklist as a final review before opening a pull request for a new int
 - [ ] **Argument Validation**: Integration with the existing argument validation framework.
 - [ ] **Model Compatibility**: Clear model type and task compatibility definitions.
 - [ ] **Error Handling**: Comprehensive exception handling with helpful error messages.
-- [ ] **Metadata Integration**: Proper metadata saving and loading following Ultralytics conventions.
+- [ ] **Metadata Integration**: Metadata saved with the export and readable by `BaseBackend.read_metadata()` from the exported path alone.
+- [ ] **Benchmark Compatibility**: `CPU` and `GPU` columns set correctly, and platform checks written as `assert` statements so `benchmark()` skips unsupported hosts.
 - [ ] **Quantization Support**: INT8 / FLOAT16 calibration using the Ultralytics base dataloader when applicable.
 
 ### Runtime Pipeline Requirements
@@ -764,7 +820,7 @@ Use this checklist as a final review before opening a pull request for a new int
 - [ ] **Type Hints**: Type annotations for public interfaces.
 - [ ] **Error Messages**: Clear, actionable error messages.
 - [ ] **Logging Integration**: Use `LOGGER` from `ultralytics.utils` with a `colorstr("Format:")` prefix; do not use bare `print()`.
-- [ ] **Unit Tests**: Tests added for the export pipeline and runtime backend (see [`tests/`](https://github.com/ultralytics/ultralytics/tree/main/tests) for examples).
+- [ ] **Export Tests**: `test_export_<format>` tests in `tests/test_exports.py` that run the real export and inference (see [Export Tests](#export-tests)).
 - [ ] **Docstrings**: Google-style docstrings on all public functions and classes (per the [Contributing Guide](../help/contributing.md#google-style-docstrings)).
 
 ## Conclusion

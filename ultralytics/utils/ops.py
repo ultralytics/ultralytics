@@ -452,19 +452,13 @@ def segments2boxes(segments):
     """Convert segment coordinates to bounding box labels in xywh format.
 
     Args:
-        segments (list): List of segments where each segment is a list of points, each point is [x, y] coordinates.
+        segments (list[np.ndarray]): List of segments, each an (N, 2) array of [x, y] points.
 
     Returns:
         (np.ndarray): Bounding box coordinates in xywh format.
     """
     boxes = []
     for s in segments:
-        # Docstring accepts a list of [x, y] points; np.asarray lets s.T work for
-        # both lists and arrays. An empty segment used to raise ValueError on min().
-        s = np.asarray(s)
-        if len(s) == 0:
-            boxes.append([0.0, 0.0, 0.0, 0.0])
-            continue
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
     return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh

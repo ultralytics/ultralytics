@@ -32,12 +32,32 @@ the loader accepts 56,599 images instead of 29,344 and 166k persons instead of 6
 - **Teacher-agreement numbers are not comparable to any earlier arm** — that val split grew from 1,168 to 2,346
   images. Report them, do not rank on them.
 
-## The confound, named before the run
+## The confound, and the control that removes it
 
-100 epochs over 2x the images is 2x the optimization steps. An improvement is therefore "more data *and* more
-steps", not the images alone. A step-matched control (50 epochs) would separate them and is the follow-up if
-the result is large enough to argue about. The prediction that discriminates without a second run is the
-subset one: more steps would lift the 1,168 subset too, the missing images should not.
+100 epochs over 2x the images is 2x the optimization steps, so `F_clip` alone measures "more data *and* more
+steps". `G_stepmatch` removes the second half: the same arm at **52 epochs**, which is 46,020 steps against the
+45,900 `E_refocal` took over 29,344 images — a 0.3% match, where a round 50 would have landed 3.6% short.
+Batch 64 throughout, so steps and image-presentations are the same quantity here.
+
+That makes a three-point line with one variable moving at a time:
+
+| arm | images | epochs | steps | isolates |
+| --- | ---: | ---: | ---: | --- |
+| `E_refocal` | 29,344 | 100 | 45,900 | the baseline |
+| `G_stepmatch` | 56,599 | 52 | 46,020 | **the recovered images**, at fixed compute |
+| `F_clip` | 56,599 | 100 | 88,500 | **the extra steps**, at fixed data |
+
+Added prediction: **G lands close to F on the COCO GT ruler** — near 0.48, most of the way from E's 0.4360 — if
+H7 was right that the missing images, not the compute, were the binding constraint. G near E instead would say
+the recovered data bought nothing and F's gain was the schedule.
+
+One thing the control cannot equalize: G decays its learning rate over 52 epochs and E over 100, so the
+schedules have the same length in steps but a different shape per epoch, and warmup (defined in iterations from
+`warmup_epochs=3`) is longer for G. That residual is inherent to matching steps across datasets of different
+size; it is small next to the effect being measured.
+
+The prediction that discriminates without any of this is still the subset one: more steps would lift the 1,168
+subset too, the missing images should not.
 
 ## Not in this arm
 

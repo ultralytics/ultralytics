@@ -242,10 +242,8 @@ def xyxy2xywh(x):
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in (x, y, width, height) format.
     """
-    # Lists/tuples are common call shapes (same as Annotator.box_label examples); without
-    # asarray, x.shape raises AttributeError even though a 1D ndarray of length 4 works.
     if isinstance(x, (list, tuple)):
-        x = np.asarray(x)
+        x = np.asarray(x, dtype=np.float32)  # float so odd integer boxes keep fractional centers
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
     x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
@@ -267,7 +265,7 @@ def xywh2xyxy(x):
         (np.ndarray | torch.Tensor): Bounding box coordinates in (x1, y1, x2, y2) format.
     """
     if isinstance(x, (list, tuple)):
-        x = np.asarray(x)
+        x = np.asarray(x, dtype=np.float32)  # float so odd integer boxes keep fractional centers
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers

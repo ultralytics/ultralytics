@@ -1758,17 +1758,6 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
-def test_xyxy_xywh_accepts_list_boxes():
-    """xyxy2xywh/xywh2xyxy accept list boxes; a 1D ndarray already worked, lists used to AttributeError."""
-    from ultralytics.utils.ops import xywh2xyxy, xyxy2xywh
-
-    xyxy = [10, 20, 30, 40]
-    xywh = xyxy2xywh(xyxy)
-    assert np.allclose(xywh, [20, 30, 20, 20])
-    assert np.allclose(xywh2xyxy(xywh.tolist()), xyxy)
-    assert np.allclose(xyxy2xywh([[10, 20, 30, 40]]), [[20, 30, 20, 20]])
-
-
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

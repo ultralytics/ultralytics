@@ -65,20 +65,20 @@ graph LR
     classDef proc fill:#2196F3,color:#fff
 ```
 
-| Resource                                   | Description                     | Key Operations                                        |
-| ------------------------------------------ | ------------------------------- | ----------------------------------------------------- |
-| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone        |
-| [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate     |
-| [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                           |
-| [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status       |
-| [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel             |
-| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                          |
-| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, start/stop/replace, predict, metrics, logs    |
-| [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                     |
-| [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                 |
-| [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup |
-| [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                           |
-| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                          |
+| Resource                                   | Description                     | Key Operations                                                |
+| ------------------------------------------ | ------------------------------- | ------------------------------------------------------------- |
+| [Datasets](../data/datasets.md)            | Labeled image collections       | CRUD, ingest, versions, classes, splits, clone, copy          |
+| [Images](../data/annotation.md)            | Individual images and labels    | Read, annotate, move split, delete, auto-annotate, blur faces |
+| [Projects](../train/projects.md)           | Model workspaces                | CRUD, clone                                                   |
+| [Models](../train/models.md)               | Trained checkpoints             | CRUD, predict, download, clone, training status               |
+| [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel                     |
+| [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                                  |
+| [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs            |
+| [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                             |
+| [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
+| [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
+| [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
+| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                                  |
 
 ## Authentication
 
@@ -244,23 +244,23 @@ Every error response is a JSON object with an `error` message:
 }
 ```
 
-| HTTP Status | Meaning                                                     |
-| ----------- | ----------------------------------------------------------- |
-| `200`       | Success                                                     |
-| `201`       | Created                                                     |
-| `202`       | Accepted, work continues asynchronously                     |
-| `400`       | Invalid path, query, or request body                        |
-| `401`       | Missing or invalid authentication                           |
-| `402`       | Insufficient credits (training)                             |
-| `403`       | Insufficient permissions, plan, or quota                    |
-| `404`       | Resource not found                                          |
-| `409`       | Conflict with current state (duplicate name, job in flight) |
-| `413`       | Prediction input too large                                  |
-| `422`       | Model classes do not match the dataset (auto-annotation)    |
-| `429`       | Rate limit exceeded                                         |
-| `500`       | Server error                                                |
-| `502`       | Upstream provider or service call failed                    |
-| `503`       | Dependent service temporarily unavailable                   |
+| HTTP Status | Meaning                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------- |
+| `200`       | Success                                                                                            |
+| `201`       | Created                                                                                            |
+| `202`       | Accepted, work continues asynchronously                                                            |
+| `400`       | Invalid path, query, or request body                                                               |
+| `401`       | Missing or invalid authentication                                                                  |
+| `402`       | Insufficient credits (training)                                                                    |
+| `403`       | Insufficient permissions, plan, or quota                                                           |
+| `404`       | Resource not found                                                                                 |
+| `409`       | Conflict with current state (duplicate name, job in flight)                                        |
+| `413`       | Prediction input too large                                                                         |
+| `422`       | Model classes do not match the dataset, or a provider key is missing or rejected (auto-annotation) |
+| `429`       | Rate limit exceeded                                                                                |
+| `500`       | Server error                                                                                       |
+| `502`       | Upstream provider or service call failed                                                           |
+| `503`       | Dependent service temporarily unavailable                                                          |
 
 ## Pagination
 
@@ -354,7 +354,9 @@ GET /api/datasets/{owner}/{dataset}
 **Python SDK:** `client.datasets.retrieve(owner, dataset)`
 
 Returns the full dataset object under a `dataset` key, including `classNames`, `splits`, `versions`, `source`, and the
-user-defined `metadata` object.
+user-defined `metadata` object. While an import of 10,000 or more images is processing, editors also receive
+`processingProgress` with `stage`, `percent`, and, when known, `processed`, `total`, and `objects` (cloud objects
+scanned).
 
 ### Create Dataset
 
@@ -388,6 +390,7 @@ POST /api/datasets
 | `classNames`       | array   | No       | Class names in index order (max 25,000)                                                                                  |
 | `format`           | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                                             |
 | `visibility`       | string  | No       | `public` or `private`                                                                                                    |
+| `blurFaces`        | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces))                          |
 | `tags`             | array   | No       | Up to 50 tags of 50 characters each                                                                                      |
 | `license`          | string  | No       | Dataset license identifier                                                                                               |
 | `metadata`         | object  | No       | Custom JSON metadata                                                                                                     |
@@ -432,8 +435,8 @@ PATCH /api/datasets/{owner}/{dataset}
 ```
 
 Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `classNames`, `classColors`, `format`, `task`,
-`license`, `iconColor`, `iconLetter`, and `starred`. Send an empty `metadata` object (`{}`) to clear custom metadata.
-Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
+`license`, `iconColor`, `iconLetter`, `starred`, and `blurFaces`. Send an empty `metadata` object (`{}`) to clear custom
+metadata. Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
 
 **Response:**
 
@@ -767,7 +770,7 @@ GET /api/datasets/{owner}/{dataset}/images
 | `hasLabel`          | boolean | Filter by annotation state                                                                                                                                          |
 | `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
 | `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
-| `search`            | string  | Substring match on filename and custom metadata (max 200 chars)                                                                                                     |
+| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
 | `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
 | `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
 | `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
@@ -816,6 +819,35 @@ as the list operation.
     "imageIds": ["65f1c0a2b3d4e5f601234567", "65f1c0a2b3d4e5f601234568"]
 }
 ```
+
+### Copy or Move Images
+
+```http
+POST /api/datasets/{owner}/{dataset}/images/adopt
+```
+
+**Python SDK:** `client.datasets.adopt_images(owner, dataset, image_ids=..., release=...)`
+(`ultralytics-platform>=0.1.50`)
+
+Copies up to 1,000 images from other datasets into this one, as the app's
+[copy and paste](../data/datasets.md#copy-and-move-images) does, and returns the number `adopted`.
+
+```json
+{
+    "imageIds": ["65f1c0a2b3d4e5f601234567"],
+    "release": false,
+    "classMapping": { "person": 0, "vase": null }
+}
+```
+
+Setting `release` or `classMapping` preserves labels and splits from datasets you can edit: `release: false` copies
+images and `release: true` moves them out of their source dataset. Omitting both fields imports unlabeled `train`
+images, as does copying from a read-only source; moving from a read-only source returns `403`. Existing images are
+skipped; when preserving labels and splits, duplicates are checked within the destination split. Classes are matched
+by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
+each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
+dataset or a source or destination is busy. When preserving labels and splits, incompatible tasks, image channels,
+pose settings, or depth scales also return `409`, even for images without labels.
 
 ### Ingest Dataset Data
 
@@ -949,7 +981,8 @@ graph LR
     signed.raise_for_status()
     upload = signed.json()
 
-    requests.put(upload["uploadUrl"], headers={"Content-Type": "application/zip"}, data=data).raise_for_status()
+    headers_put = {"Content-Type": "application/zip", **upload["headers"]}
+    requests.put(upload["uploadUrl"], headers=headers_put, data=data).raise_for_status()
     requests.post(
         f"{api}/upload/complete",
         headers=headers,
@@ -1046,17 +1079,17 @@ POST /api/images/{imageId}/predict
 
 **Python SDK:** `client.images.predict(image_id, model_id=...)`
 
-Runs YOLO inference on the image and returns predicted annotations. It does not save them — write the results back with
+Runs the model on the image and returns predicted annotations. It does not save them — write the results back with
 `PATCH /api/images/{imageId}` when you are happy with them.
 
-| Field        | Type   | Required | Description                                                          |
-| ------------ | ------ | -------- | -------------------------------------------------------------------- |
-| `modelId`    | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`          |
-| `confidence` | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25)                     |
-| `iou`        | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7) |
+| Field          | Type   | Required | Description                                                                                                                                                                                                                                                                                                                                                            |
+| -------------- | ------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `modelId`      | string | Yes      | Fully qualified model URI, `ul://{owner}/{project}/{model}`, or a class-prompted model ID for a detection dataset with 1–100 classes: a hosted model (`qwen`, `moondream`, `florence2`, `owlv2`, `yoloe26x`, `sam3`, `sam3.1`, `groundingdino`) or a paid provider model ID from the `modelId` enum in [`openapi.json`](https://platform.ultralytics.com/openapi.json) |
+| `confidence`   | float  | No       | Confidence threshold, 0.01 – 1.0 (default: 0.25); ignored by class-prompted models, which use model-specific thresholds                                                                                                                                                                                                                                                |
+| `iou`          | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7); ignored by class-prompted models                                                                                                                                                                                                                                                                 |
+| `classMapping` | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models                                                                                                                                                          |
 
-**Response:** `success`, `predictions` (annotation objects), `modelUsed`, and `inferenceTime`. A model whose classes do
-not match the dataset returns `422`.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models), `modelUsed`, `inferenceTime`, and for class-prompted models `partial` (`true` when a generative model's truncated output returned only the complete boxes). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–100 classes, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `403`, or `404` (a rejected key, model, or request), `429` for its rate limit, and `503` for any other provider error.
 
 ### Auto-Annotate a Dataset
 
@@ -1064,18 +1097,33 @@ not match the dataset returns `422`.
 POST /api/datasets/{owner}/{dataset}/predict/batch
 ```
 
-**Python SDK:** `client.datasets.create_batch(owner, dataset, model_id=...)`
+**Python SDK:** `client.datasets.create_batch(owner, dataset, body={...})` (`ultralytics-platform>=0.1.57`)
 
 Saves a dataset version, then queues a run that labels the dataset's unlabeled images with the model and returns `202`.
-The body takes the same `modelId`, `confidence`, and `iou` fields as the single-image endpoint, plus `includeAnnotated`
-(default `false`) to also annotate images that already have labels and an optional `classMapping` array giving the
-dataset class index for each model class, or `null` to skip it. Existing labels are never changed, and the run is billed
-for the images it actually processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not
-ready, has no images left to annotate, or already has a run in progress, and `422` that the dataset has no classes: create them with the [classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it starts a run.
+The body takes the same `modelId`, `confidence`, `iou`, and `classMapping` fields as the single-image endpoint, plus
+`includeAnnotated` (default `false`) to also annotate images that already have labels. A class-prompted model detects
+the dataset classes without confidence scores, and a paid provider model needs a provider key saved in the dataset
+workspace's **Settings > API Keys** (`422`, `code`: `missing_provider_api_key`, before the run is admitted). Existing labels are never changed, and the run is billed for the images it actually
+processes. `402` means the balance cannot cover the estimate, `409` that the dataset is not ready, has no images left to
+annotate, or already has a run in progress, and `422` that the dataset has no classes, or that a class-prompted model
+was given a non-detection dataset or one outside 1–100 classes: create the classes with the
+[classes endpoint](#manage-classes) before calling this endpoint, which is what the app's Map classes step does before it
+starts a run.
 
 `GET` on the same path (`client.datasets.batch(owner, dataset)`) returns the in-flight run and its progress, or the last
-finished run until it is dismissed; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
+finished run until it is dismissed, whose `results` include `partialImages` when a generative model's run kept only the
+complete boxes of truncated output; `DELETE` (`client.datasets.delete_batch(owner, dataset)`) cancels an in-flight run or
 settles billing and dismisses the finished summary.
+
+The same endpoint [blurs faces](../data/datasets.md#blur-faces) with `"operation": "blur"`, `confidence` (default
+`0.25`), and `boxScale` (`0.5`–`1.5`, default `1`); `imageId` limits the run to one image. It creates no version and
+never changes labels. Send `"preview": true` to process up to six images without changing them, then send the returned
+`jobId` as `previewJobId` with the same settings to apply; an applied preview cannot be reused and returns `409`.
+While a preview is pending, pass its ID as `previewJobId` to `DELETE` to discard it.
+
+```json
+{ "operation": "blur", "confidence": 0.25, "boxScale": 1, "preview": true }
+```
 
 ### Bulk Move Images
 
@@ -1761,20 +1809,23 @@ POST /api/deployments/{owner}
 }
 ```
 
-| Field        | Type   | Required | Description                            |
-| ------------ | ------ | -------- | -------------------------------------- |
-| `project`    | string | Yes      | Project containing the model           |
-| `model`      | string | Yes      | Model to deploy                        |
-| `deployment` | string | Yes      | Deployment name used in Platform URLs  |
-| `name`       | string | Yes      | Display name                           |
-| `region`     | string | Yes      | One of 42 supported deployment regions |
+| Field        | Type   | Required | Description                                     |
+| ------------ | ------ | -------- | ----------------------------------------------- |
+| `project`    | string | Yes      | Project containing the model                    |
+| `model`      | string | Yes      | Model to deploy                                 |
+| `deployment` | string | Yes      | Deployment name used in Platform URLs           |
+| `name`       | string | Yes      | Display name                                    |
+| `region`     | string | Yes      | One of 42 supported deployment regions          |
+| `cpu`        | number | No       | vCPU cores: 1 (default), 2, 4, 6, or 8          |
+| `memoryGi`   | number | No       | Memory in GiB: 2 (default), 4, 8, 16, 24, or 32 |
 
 **Response (`201`):** `id`, `deployment`, `status` (`creating`), `message`, and `region`.
 
 !!! note "Resource Sizing"
 
-    CPU, memory, and instance scaling are managed by the Platform from your plan limits, and the create request does not
-    accept a resource configuration. The current values are returned in the `resources` object on every deployment read.
+    The default 1 vCPU / 2 GiB size scales to zero when idle and can use a free deployment allowance; other sizes use
+    [metered pricing](../deploy/endpoints.md). The current values are returned in the `resources` object on every
+    deployment read.
 
 !!! tip "Region Selection"
 
@@ -1789,9 +1840,10 @@ GET /api/deployments/{owner}/{deployment}
 
 **Python SDK:** `client.deployments.retrieve(owner, deployment)`
 
-Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, and `resources`.
+Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, `resources`, and custom
+`metadata`.
 
-### Start, Stop, or Replace a Deployment
+### Update a Deployment
 
 ```http
 PATCH /api/deployments/{owner}/{deployment}
@@ -1799,7 +1851,19 @@ PATCH /api/deployments/{owner}/{deployment}
 
 **Python SDK:** `client.deployments.update(owner, deployment, body=...)`
 
-A single `action` field selects the operation:
+Send one of these bodies:
+
+=== "Rename"
+
+    ```json
+    { "name": "Edge 1 (primary)" }
+    ```
+
+=== "Metadata"
+
+    ```json
+    { "metadata": { "site": "factory-1" } }
+    ```
 
 === "Start"
 
@@ -1824,10 +1888,17 @@ A single `action` field selects the operation:
     }
     ```
 
-Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint URL; the existing revision
-stays live if the rollout fails. The replacement model must be a completed model with weights that your key can access.
-Completed operations return `200` with `status` `ready` or `stopped`; operations still rolling out return `202` with
-`deploying` or `stopping`.
+=== "Resize"
+
+    ```json
+    { "action": "resize", "cpu": 2, "memoryGi": 4 }
+    ```
+
+Renaming changes only the display name; the `deployment` value in the URL stays the same. An empty `metadata` object
+clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
+URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
+that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still
+rolling out return `202` with `deploying` or `stopping`.
 
 ### Delete Deployment
 
@@ -1878,10 +1949,12 @@ GET /api/deployments/{owner}/{deployment}/metrics
 | ----------- | ------- | ------------------------------------------------------------------------------ |
 | `range`     | string  | `1h`, `6h`, `24h` (default), `7d`, or `30d`                                    |
 | `sparkline` | boolean | Return the compact dashboard summary instead of full series (default: `false`) |
+| `view`      | string  | `overview` returns only request, error, and P95 latency metrics                |
 
 The full response contains `summary` (request totals, error rate, average and p50/p95/p99 latency) and `timeSeries`
 (requests, errors, latency, CPU, memory, instance count). The sparkline response returns `requests24h`,
-`totalRequests`, `errorRate`, and `avgLatencyMs`.
+`totalRequests`, `errorRate`, and `avgLatencyMs`. With `view=overview`, `summary` holds `totalRequests`, `errorRate`,
+and `p95LatencyMs`, and `timeSeries` holds `requests`, `errors`, and `latencyP95`.
 
 ### Get Logs
 

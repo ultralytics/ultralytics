@@ -42,7 +42,7 @@ def torch2coreai(
     Returns:
         (str): Path to the exported asset.
     """
-    check_requirements("coreai-torch>=0.4.2")
+    check_requirements("coreai-torch>=0.4.3")
     import coreai_torch
     from coreai.runtime import AIModelAssetMetadata
     from coreai_torch import TorchConverter
@@ -66,8 +66,7 @@ def torch2coreai(
         input_names=["images"],
         output_names=[f"output{i}" for i in range(n_outputs)],
     )
-    program = converter.to_coreai()
-    program.optimize()
+    program = converter.to_coreai()  # already optimized
 
     asset_metadata = AIModelAssetMetadata()
     asset_metadata.author = "Ultralytics"

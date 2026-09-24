@@ -1312,7 +1312,19 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
         assert extracted == tmp_path / target / dataset_dir.name
         assert (extracted / "data.yaml").is_file()
 
-    for name in ("corrupt.zip", "corrupt.tar.gz"):
+    for name, mode, target in (
+        ("coco8 local.tar.xz", "w:xz", "datasets_xz"),
+        ("coco8 local.txz", "w:xz", "datasets_txz"),
+        ("coco8 local.tar.bz2", "w:bz2", "datasets_tar_bz2"),
+        ("coco8 local.tbz2", "w:bz2", "datasets_tbz2"),
+    ):
+        with tarfile.open(archive := tmp_path / name, mode) as tar:
+            tar.add(dataset_dir, arcname=dataset_dir.name)
+        extracted = safe_download(archive, dir=tmp_path / target, unzip=True, progress=False)
+        assert extracted == tmp_path / target / dataset_dir.name
+        assert (extracted / "data.yaml").is_file()
+
+    for name in ("corrupt.zip", "corrupt.tar.gz", "corrupt.tar.xz"):
         mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
         mislabeled.write_bytes(b"<html>not an archive</html>\n")
         assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled

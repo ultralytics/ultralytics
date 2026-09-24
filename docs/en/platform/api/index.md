@@ -354,7 +354,9 @@ GET /api/datasets/{owner}/{dataset}
 **Python SDK:** `client.datasets.retrieve(owner, dataset)`
 
 Returns the full dataset object under a `dataset` key, including `classNames`, `splits`, `versions`, `source`, and the
-user-defined `metadata` object.
+user-defined `metadata` object. While an import of at least 10,000 images is processing, the dataset object also
+carries `processingProgress` for editors, with its `stage`, `percent`, and, where known, `processed` and `total`
+images and cloud `objects` scanned.
 
 ### Create Dataset
 

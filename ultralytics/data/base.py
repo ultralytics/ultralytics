@@ -7,7 +7,7 @@ import math
 import os
 import random
 import shutil
-from copy import deepcopy
+from copy import copy, deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Any
@@ -182,7 +182,7 @@ class BaseDataset(Dataset):
             self.cache_images()
 
         # Transforms
-        self.transforms = self.build_transforms(hyp=hyp)
+        self.transforms = self.build_transforms(hyp=copy(hyp))  # subclasses zero unsupported keys, never the caller's
 
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Read image files from the specified path.
@@ -323,7 +323,7 @@ class BaseDataset(Dataset):
             pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
                 if self.cache == "disk":
-                    b += self.npy_files[i].stat().st_size
+                    b += self.npy_files[i].stat().st_size if self.npy_files[i].exists() else 0  # failed writes unlink
                 else:  # 'ram'
                     self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                     b += self.ims[i].nbytes
@@ -342,7 +342,7 @@ class BaseDataset(Dataset):
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
-    def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
+    def check_cache_disk(self, safety_margin: float = 0.1) -> bool:
         """Check if there's enough disk space for caching images.
 
         Args:

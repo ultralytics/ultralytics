@@ -54,18 +54,16 @@ class OpenVINOBackend(BaseBackend):
 
         self.apply_metadata(self.read_metadata(w))
 
-        # OpenVINO CPU plugin segfaults running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
+        # OpenVINO CPU plugin crashes running INT8 models with dynamic shapes on Intel AMX CPUs (Sapphire Rapids and
         # newer), see https://github.com/openvinotoolkit/openvino/issues/37577, so run those as static models by
         # reshaping and recompiling per input shape in forward() instead
         cpuinfo = Path("/proc/cpuinfo")
         self.read_model = (
             partial(core.read_model, model=str(w), weights=w.with_suffix(".bin"))
-            if LINUX
-            and device_name in {"CPU", "AUTO"}
+            if device_name in {"CPU", "AUTO"}
             and ov_model.input().get_partial_shape().is_dynamic
             and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
-            and cpuinfo.exists()
-            and "amx_int8" in cpuinfo.read_text()
+            and (WINDOWS or (LINUX and cpuinfo.exists() and "amx_int8" in cpuinfo.read_text()))
             else None
         )
         if self.read_model is not None:

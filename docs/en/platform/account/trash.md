@@ -137,7 +137,8 @@ To permanently delete one item without waiting:
 
 For projects, permanent deletion also removes related deployments and export files that belong to the deleted workspace
 resources. If a deployment cannot be deleted, the Platform warns you and leaves it
-listed on the [Deployments](../deploy/endpoints.md) page so you can retry from there.
+listed on your profile's [Deployments tab](../deploy/index.md#deployments-tab); open its deployment page to retry
+deletion.
 
 ## Storage and Trash
 

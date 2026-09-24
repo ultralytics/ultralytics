@@ -1920,7 +1920,7 @@ class NMSModel(torch.nn.Module):
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = pred.new_zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:])
+            pad = pred.new_zeros((self.args.batch - torch._shape_as_tensor(pred)[0]).clamp(min=0), *pred.shape[1:])
             pred = torch.cat((pred, pad))
         if self.args.dynamic and self.args.format == "onnx" and self.obb:
             pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)

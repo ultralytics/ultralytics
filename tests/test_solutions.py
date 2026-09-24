@@ -13,7 +13,7 @@ import torch
 
 from tests import MODEL
 from ultralytics import solutions
-from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION, checks
+from ultralytics.utils import IS_RASPBERRYPI, TORCH_VERSION
 from ultralytics.utils.downloads import safe_download
 from ultralytics.utils.torch_utils import TORCH_2_4
 
@@ -194,8 +194,10 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
     kwargs.setdefault("imgsz", 320)
 
     if name == "StreamlitInference":
-        if checks.check_imshow():  # do not merge with elif above
-            solution_class(**kwargs).inference()  # requires interactive GUI environment
+        AppTest = pytest.importorskip("streamlit.testing.v1").AppTest
+
+        app = AppTest.from_string("from ultralytics import solutions\nsolutions.Inference().inference()")
+        assert not app.run(timeout=60).exception
         return
 
     process_video(
@@ -370,28 +372,6 @@ def test_plot_with_no_masks():
     isegment = solutions.InstanceSegmentation(model="yolo26n-seg.pt")
     results = isegment(im0)
     assert results.plot_im is not None, "Instance segmentation plot returned None"
-
-
-def test_streamlit_handle_video_upload_creates_file(tmp_path):
-    """Test Streamlit video upload logic saves file correctly."""
-    import io
-
-    fake_file = io.BytesIO(b"fake video content")
-    fake_file.read = fake_file.getvalue
-    if fake_file is not None:
-        g = io.BytesIO(fake_file.read())
-        with open(tmp_path / "ultralytics.mp4", "wb") as out:
-            out.write(g.read())
-        output_path = str(tmp_path / "ultralytics.mp4")
-    else:
-        output_path = None
-    assert output_path == str(tmp_path / "ultralytics.mp4"), (
-        f"Expected output_path '{tmp_path / 'ultralytics.mp4'}', got {output_path}"
-    )
-    assert os.path.exists(tmp_path / "ultralytics.mp4"), "ultralytics.mp4 file not created"
-    with open(tmp_path / "ultralytics.mp4", "rb") as f:
-        content = f.read()
-        assert content == b"fake video content", f"File content mismatch: {content}"
 
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")

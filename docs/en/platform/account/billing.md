@@ -54,7 +54,6 @@ For professionals and small teams ($29 per seat/month or $290 per seat/year):
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) with 4-role RBAC (up to 5 members)
 - Access to the best GPUs (B200, B300) — 26 GPU types in total
-- Full monitoring dashboard
 - Priority support
 
 !!! tip "Save with Yearly Billing"
@@ -69,10 +68,9 @@ For organizations with advanced needs:
 - Unlimited models, storage, training jobs, and deployments · 50 GB dataset upload limit
 - Custom team capacity (50 seats by default)
 - Enterprise License (commercial use, non-AGPL)
-- SSO / SAML authentication and custom role-based access controls
+- SSO / SAML authentication
 - [On Premise](../integrations/on-premise.md) data and compute
-- [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
-- Enterprise SLA guarantees
+- Custom SLAs on top of [ISO/IEC 27001:2022 and SOC 2 Type I compliance](https://www.ultralytics.com/security)
 - Dedicated onboarding and support
 
 Enterprise plans are provisioned by the Ultralytics team. Click **Request Enterprise Demo** on the Enterprise card in
@@ -100,11 +98,12 @@ credits on hand, and it is shown in red when it does.
 
 Credits are consumed by:
 
-| Service              | Rate                                                  |
-| -------------------- | ----------------------------------------------------- |
-| **Cloud Training**   | GPU rate x hours                                      |
-| **Batch Annotation** | $1.50 per 1,000 images, minimum $0.01 per run         |
-| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only |
+| Service              | Rate                                                                                                                    |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Cloud Training**   | GPU rate x hours                                                                                                        |
+| **Batch Annotation** | $1.00 per 1,000 images, minimum $0.01 per run                                                                           |
+| **Face Blurring**    | $1.00 per 1,000 images for a whole dataset, minimum $0.01 per run; single images, previews, and blurring on upload free |
+| **Endpoint Uptime**  | Resource rate x hours, custom-resource endpoints only                                                                   |
 
 !!! note "Monthly Credits Don't Roll Over"
 
@@ -252,7 +251,6 @@ After upgrading:
 - [Google Cloud Storage, Amazon S3, and Azure Blob Storage datasets](../integrations/index.md)
 - [Team collaboration](teams.md) (up to 5 members, including you)
 - Access to best GPUs (B200, B300)
-- Full monitoring dashboard
 - Priority support
 
 ### Renewals
@@ -317,21 +315,21 @@ supports free-text search across every field, and exports to CSV or JSON from th
 
 ### Transaction Types
 
-| Type                   | Meaning                                                       |
-| ---------------------- | ------------------------------------------------------------- |
-| **Signup Bonus**       | Signup credit, including the company-email top-up             |
-| **Credit Purchase**    | Manual top-up                                                 |
-| **Auto Top-Up**        | Automatic top-up triggered by your threshold                  |
-| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added       |
-| **Subscription**       | Pro subscription or seat charge                               |
-| **Monthly Grant**      | $30/seat monthly Pro credit                                   |
-| **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade |
-| **Training**           | Settled cost of one cloud training run                        |
-| **Auto-Annotation**    | Settled cost of one Batch Annotation run                      |
-| **Endpoint Uptime**    | Settled uptime of a custom-resource endpoint                  |
-| **Refund**             | Refunded charge                                               |
-| **Promo Bonus**        | Credit from a promotional code or a referral reward           |
-| **Adjustment**         | Manual correction applied by Ultralytics                      |
+| Type                   | Meaning                                                                 |
+| ---------------------- | ----------------------------------------------------------------------- |
+| **Signup Bonus**       | Signup credit, including the company-email top-up                       |
+| **Credit Purchase**    | Manual top-up                                                           |
+| **Auto Top-Up**        | Automatic top-up triggered by your threshold                            |
+| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added                 |
+| **Subscription**       | Pro subscription or seat charge                                         |
+| **Monthly Grant**      | $30/seat monthly Pro credit                                             |
+| **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade           |
+| **Training**           | Settled cost of one cloud training run                                  |
+| **Auto-Annotation**    | Settled cost of one Batch Annotation or whole-dataset face-blurring run |
+| **Endpoint Uptime**    | Settled uptime of a custom-resource endpoint                            |
+| **Refund**             | Refunded charge                                                         |
+| **Promo Bonus**        | Credit from a promotional code or a referral reward                     |
+| **Adjustment**         | Manual correction applied by Ultralytics                                |
 
 ## FAQ
 

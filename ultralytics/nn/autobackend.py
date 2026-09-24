@@ -74,11 +74,12 @@ def check_class_names(names: list | dict) -> dict[int, str]:
     return names
 
 
-def default_class_names(data: str | Path | None = None) -> dict[int, str]:
+def default_class_names(data: str | Path | None = None, nc: int = 999) -> dict[int, str]:
     """Load class names from a YAML file or return numerical class names.
 
     Args:
         data (str | Path, optional): Path to YAML file containing class names.
+        nc (int): Number of names to generate when the YAML is missing or unreadable.
 
     Returns:
         (dict): Dictionary mapping class indices to class names.
@@ -91,7 +92,7 @@ def default_class_names(data: str | Path | None = None) -> dict[int, str]:
             return YAML.load(check_yaml(data))["names"]
         except Exception:
             pass
-    return {i: f"class{i}" for i in range(999)}  # return default if above errors
+    return {i: f"class{i}" for i in range(nc)}  # return default if above errors
 
 
 class AutoBackend(nn.Module):

@@ -137,13 +137,13 @@ def export_partner_format(self, prefix=colorstr("Partner Format:")):
     )
 ```
 
-The method should return the output path. See `export_imx`, `export_rknn`, and `export_executorch` in [`exporter.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) for live references that follow this pattern.
+The method should return the output path. See `export_executorch`, `export_axelera`, and `export_deepx` in [`exporter.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) for live references that follow this pattern.
 
-The helper module (e.g. `ultralytics/utils/export/partner.py`) is where the actual compilation lives — dependency imports, calibration handling, partner SDK calls, metadata writing (`YAML.save(Path(output_dir) / "metadata.yaml", metadata)`), and any external model wrapping.
+The helper module (e.g. `ultralytics/utils/export/partner.py`) is where the actual compilation lives — dependency imports, calibration handling, partner SDK calls, metadata writing (`YAML.save(Path(output_dir) / "metadata.yaml", metadata)`), and any external model wrapping. Re-export the helper function from `ultralytics/utils/export/__init__.py` and add it to `__all__`, as every shipped helper (`torch2executorch`, `onnx2deepx`, `onnx2ascend`, ...) is.
 
 #### Integration Registration
 
-Register the new format in `export_formats()`. Its `Arguments` list declares which existing configuration arguments the format accepts; the generic `validate_args()` function rejects any non-default export argument not on that list. New argument names must also be added to `ultralytics/cfg/default.yaml` and the corresponding configuration type/value validation owner.
+Register the new format in `export_formats()`. Its `Arguments` list declares which existing configuration arguments the format accepts; the generic `validate_args()` function rejects any non-default export argument not on that list. New argument names must also be added to `ultralytics/cfg/default.yaml` and the matching `CFG_*_KEYS` type set in `ultralytics/cfg/__init__.py`.
 
 ```python
 def export_formats():
@@ -157,7 +157,7 @@ def export_formats():
 
 Choose a unique `Suffix` (e.g. `"_partner_model"` or `".partner"`) — this same suffix drives runtime auto-detection (see [Format Detection](#format-detection)).
 
-The `Env` column names a key in `EXPORT_ENVS`, the dictionary in `exporter.py` that owns each CI export environment: its Python version, extras groups, torch pin, extra requirements, package indexes, and a `smoke` export command. Use `"base"` only when the SDK installs cleanly alongside the standard test dependencies; a partner toolchain with conflicting pins needs its own `isolated-<format>` entry (see `isolated-imx` and `isolated-axelera`). `tests/test_exports.py` is partitioned by `--export-env`, so this value decides which CI job actually exercises your format.
+The `Env` column names a key in `EXPORT_ENVS`, the dictionary in `exporter.py` that owns each CI export environment: its Python version, extras groups, torch pin, extra requirements, package indexes, environment variables, and a `smoke` export command. Use `"base"` only when the SDK installs cleanly alongside the standard test dependencies; a partner toolchain with conflicting pins needs its own `isolated-<format>` entry (see `isolated-imx` and `isolated-axelera`). `tests/test_exports.py` is partitioned by `--export-env`, so this value decides which CI job actually exercises your format: `base` formats run in the main `Tests` job, and every other environment runs in the `IsolatedExports` job, which builds it with `.github/scripts/create-export-env.py --env <id>`.
 
 ### Main Export Flow Integration
 
@@ -180,26 +180,26 @@ if fmt == "partner_format" and model.task not in {"detect", "segment"}:
     raise ValueError("Partner format only supports detection and segmentation models.")
 ```
 
-Do not hand-roll precision coercion here. An accelerator that only runs INT8 joins the shared `if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"}` set already in `__call__`, which warns and coerces `quantize` for every INT8-only format.
+Do not hand-roll precision coercion here. An accelerator that only runs INT8 joins the shared `if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"}` set already in `__call__`, which warns and coerces `quantize` for every INT8-only format. Likewise, a runtime without top-k support joins the `if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}` set that disables the `end2end` branch.
 
 #### Argument Validation Framework
 
 Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry; a genuinely new argument must first be registered and validated in the shared configuration owner.
 
-`quantize` is the main exception: `validate_args()` subtracts it (along with `nms`, which is gated by the export flow instead) from the `Arguments`-driven check and gates it instead on the `FP16_FORMATS`, `INT8_FORMATS`, `W8A16_FORMATS`, `W8A32_FORMATS`, and `FP32_UNSUPPORTED_FORMATS` frozensets in `exporter.py`. Add your format to every precision set its runtime actually supports, and to `FP32_UNSUPPORTED_FORMATS` if it cannot run FP32 — a format that lists `quantize` in its `Arguments` column but is missing from `INT8_FORMATS` rejects `quantize=8` with an `AssertionError`.
+A few arguments are exempt from this check. `conf`, `iou`, and `name` are skipped: listing them in `Arguments` still records them in the export metadata, but passing them to another format is not rejected. `nms` is skipped because the export flow gates it instead. `quantize` is also skipped and gated instead on the `FP16_FORMATS`, `INT8_FORMATS`, `W8A16_FORMATS`, `W8A32_FORMATS`, and `FP32_UNSUPPORTED_FORMATS` frozensets in `exporter.py`. Add your format to every precision set its runtime actually supports, and to `FP32_UNSUPPORTED_FORMATS` if it cannot run FP32 — a format that lists `quantize` in its `Arguments` column but is missing from `INT8_FORMATS` rejects `quantize=8` with an `AssertionError`.
 
 ### Model Modification Guidelines
 
 When model modifications are necessary, follow these principles:
 
 1. **Reuse Existing Wrappers**: Prefer the wrappers already shipped in `ultralytics/engine/exporter.py` and `ultralytics/utils/export/` over rolling your own.
-2. **External Wrappers**: When a custom wrapper is unavoidable, build a `torch.nn.Module` that composes the model rather than mutating its internals.
+2. **External Wrappers**: When a custom wrapper is unavoidable, subclass `ExportWrapper` (defined in `exporter.py`) so it composes the model rather than mutating its internals. It forwards attribute lookups to the wrapped model, so exporter code such as `self.model.model[-1]` keeps working.
 3. **Temporary Changes**: Apply modifications only during export.
 4. **Minimal Impact**: Make the smallest possible changes to achieve export compatibility.
 
-For embedded NMS post-processing, use the existing [`NMSModel`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) class — every NMS-capable export in the codebase (`export_torchscript`, `export_onnx`, `export_openvino`, `export_engine`, etc.) wraps the model with it via `NMSModel(self.model, self.args)`. Reuse it rather than reimplementing NMS post-processing in a new wrapper.
+For embedded NMS post-processing, use the existing [`NMSModel`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/engine/exporter.py) class. `export_torchscript`, `export_onnx`, `export_openvino`, and `export_coreml` (for segment and pose) wrap the model with `NMSModel(self.model, self.args)` directly, and ONNX-based exports such as `export_engine`, `export_mnn`, and `export_ascend` inherit it by calling `self.export_onnx()`. Reuse it rather than reimplementing NMS post-processing in a new wrapper.
 
-For graph-level rewrites (e.g. swapping ops the target compiler doesn't support), see the existing patterns: `FXModel` for IMX, `tf_wrapper` for TFLite/EdgeTPU, and `executorch_wrapper` for ExecuTorch — all under `ultralytics/utils/export/`.
+For graph-level rewrites (e.g. swapping ops the target compiler doesn't support), see the existing patterns: `FXModel` for IMX, `tf_wrapper` for Edge TPU, and `executorch_wrapper` for ExecuTorch (all under `ultralytics/utils/export/`), plus `QNNModel`, the `ExportWrapper` subclass that gives Qualcomm QNN exports a channel-last input.
 
 ### Error Handling Standards
 
@@ -307,18 +307,19 @@ Runtime dependency management is as critical as export dependency management. Ev
 
 `AutoBackend` is a thin dispatcher: it identifies the model format from the file path and delegates inference to a per-format backend class registered in `AutoBackend._BACKEND_MAP`. The actual runtime code lives in dedicated modules under [`ultralytics/nn/backends/`](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/nn/backends), one file per format.
 
-Adding a new runtime integration is a four-step process:
+Adding a new runtime integration is a five-step process:
 
 1. **Implement** a backend class in `ultralytics/nn/backends/<format>.py` that extends `BaseBackend`.
-2. **Register** it in `AutoBackend._BACKEND_MAP`.
-3. **Match** the suffix you used in `export_formats()` so format detection picks it up automatically.
-4. **Update** the FP16, NHWC, and GPU-capable format sets in `AutoBackend.__init__()` if your runtime supports any of them.
+2. **Export** it from `ultralytics/nn/backends/__init__.py` (import and `__all__`).
+3. **Register** it in `AutoBackend._BACKEND_MAP`.
+4. **Match** the suffix you used in `export_formats()` so format detection picks it up automatically.
+5. **Update** the FP16, NHWC, and GPU-capable format sets in `AutoBackend.__init__()` if your runtime supports any of them.
 
 ### Runtime Integration Implementation Pattern
 
 #### Backend Class Implementation
 
-A backend extends [`BaseBackend`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/base.py) and implements two methods: `load_model()` and `forward()`. The base class already handles common attributes (`device`, `fp16`, `stride`, `names`, `task`, `imgsz`, `end2end`, `dynamic`, `metadata`), provides `read_metadata()` to locate and parse the metadata saved during export (a `metadata.yaml` sidecar, or metadata embedded in the artifact), and `apply_metadata()` to populate the attributes from it. Call `self.apply_metadata(self.read_metadata(w))` as every shipped backend does — do not re-derive the sidecar path yourself.
+A backend extends [`BaseBackend`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/base.py) and implements two methods: `load_model()` and `forward()`. The base class already initializes common attributes (`device`, `fp16`, `nhwc`, `stride`, `names`, `task`, `batch`, `channels`, `end2end`, `dynamic`, `metadata`), provides `read_metadata()` to locate and parse the metadata saved during export (a `metadata.yaml` sidecar, or metadata embedded in the artifact), and `apply_metadata()` to populate the attributes from it, including `imgsz`. Call `self.apply_metadata(self.read_metadata(w))` as every shipped backend does — do not re-derive the sidecar path yourself.
 
 ```python
 # ultralytics/nn/backends/partner.py
@@ -355,22 +356,31 @@ class PartnerBackend(BaseBackend):
 
     def forward(self, im: torch.Tensor):
         """Run inference using the partner runtime."""
-        outputs = self.model.predict(im.cpu().numpy())
-        if isinstance(outputs, list):
-            return [torch.from_numpy(x).to(self.device) for x in outputs]
-        return torch.from_numpy(outputs).to(self.device)
+        return self.model.predict(im.cpu().numpy())
 ```
 
-See [`ultralytics/nn/backends/executorch.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/executorch.py), [`openvino.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/openvino.py), and [`tensorrt.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/tensorrt.py) for live references that follow this pattern.
+`forward()` can return the runtime's native outputs: `AutoBackend.forward()` passes every output through `from_numpy()`, which converts NumPy arrays to tensors on the inference device, so backends such as DeepX and Ascend return NumPy arrays or lists of them directly. See [`ultralytics/nn/backends/executorch.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/executorch.py), [`openvino.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/openvino.py), and [`tensorrt.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/backends/tensorrt.py) for live references that follow this pattern.
 
 #### Backend Registration
 
-Register the new backend in `AutoBackend._BACKEND_MAP`. The dictionary key must match the `Argument` value used in `export_formats()`.
+Export the new backend from `ultralytics/nn/backends/__init__.py`, import it in the existing `from .backends import (...)` block of `autobackend.py`, and register it in `AutoBackend._BACKEND_MAP`. The dictionary key must match the `Argument` value used in `export_formats()`.
+
+```python
+# In ultralytics/nn/backends/__init__.py
+from .partner import PartnerBackend
+
+__all__ = [
+    # ... existing backends ...
+    "PartnerBackend",
+]
+```
 
 ```python
 # In ultralytics/nn/autobackend.py
-
-from .backends.partner import PartnerBackend
+from .backends import (
+    # ... existing backends ...
+    PartnerBackend,
+)
 
 
 class AutoBackend(nn.Module):
@@ -420,6 +430,15 @@ docs/en/integrations/
 ├── existing-integration.md   # Example of an existing integration
 └── ...
 ```
+
+### Format Tables and Navigation
+
+A new export format also needs an entry in every table and index that lists formats. Copy the row of a neighboring format rather than inventing a new layout:
+
+- `docs/macros/export-table.md`: the shared export formats table included in the Export and Benchmark mode pages, the task pages, and the integrations overview.
+- `docs/en/modes/export.md`: the per-format precision support table for the `quantize` argument.
+- `docs/en/integrations/index.md`: the linked list of integrations.
+- `mkdocs.yml`: the `Integrations` navigation, in alphabetical order.
 
 ### Page Structure Template
 
@@ -708,7 +727,7 @@ Use this checklist as a final review before opening a pull request for a new int
 
 - [ ] **AutoBackend Integration**: Proper integration into the `AutoBackend` class.
 - [ ] **Device Management**: Intelligent device selection and fallback mechanisms.
-- [ ] **Output Tensors**: `forward()` returns torch tensors matching the YOLO output shape contract (the `Results` object is constructed downstream by the predictor — backends only emit tensors).
+- [ ] **Output Tensors**: `forward()` returns tensors or NumPy arrays matching the YOLO output shape contract (`AutoBackend` moves them to the inference device, and the predictor builds the `Results` object downstream).
 - [ ] **Metadata Handling**: Consistent metadata extraction and processing.
 - [ ] **Hardware Fallback**: Graceful handling when target hardware is unavailable.
 - [ ] **Val Mode Verified**: `model.val()` runs end-to-end against the exported model with mAP / accuracy within the targets specified in [Performance Standards](#performance-standards), and Val results are included in the PR description.

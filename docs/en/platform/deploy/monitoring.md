@@ -8,7 +8,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 # Monitoring
 
-[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints with a monitoring-capable runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
+[Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints on a current runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
 
 ![Ultralytics Platform Deployments Tab Overview Cards And World Map](https://cdn.ul.run/i/f13ad8c9a1b981b5b3863a9ba602b345.avif)<!-- screenshot -->
 
@@ -121,7 +121,7 @@ sending traffic.
 
 !!! info "Cold Start Tolerance"
 
-    Platform gives the health check extra time and retries transient connection failures, so a scale-to-zero endpoint has time to start. Until the first health check answers, the status badge reads **Starting** and the `Predict` and `Monitoring` tabs show **Endpoint is starting**; the page updates on its own once the endpoint responds. If the health check fails, the badge reads **Not responding** and those tabs offer a **Retry** button.
+    Platform gives the health check extra time and retries transient connection failures, so a scale-to-zero endpoint has time to start. Until the first health check answers, the badge reads **Starting** and the `Predict` and `Monitoring` tabs show **Endpoint is starting**, updating automatically once the endpoint responds. If the check fails, the badge reads **Not responding** and those tabs offer **Retry**.
 
 ## Monitoring Tab
 

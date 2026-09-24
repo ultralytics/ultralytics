@@ -273,9 +273,8 @@ Replacement requires all of the following, and is rejected otherwise:
 | **Stopped**   | Endpoint is paused and unavailable      |
 | **Failed**    | Deployment failed (see error message)   |
 
-These are deployment lifecycle statuses. On a **Ready** deployment, the page's badge also reflects the endpoint's
-[health check](monitoring.md#health-check): it reads **Starting** until the endpoint answers its first check, and
-**Not responding** if that check fails.
+On a **Ready** deployment, the page's badge reads **Starting** until the endpoint answers its first
+[health check](monitoring.md#health-check), and **Not responding** if the check fails.
 
 ### Endpoint URL
 

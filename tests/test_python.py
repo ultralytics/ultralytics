@@ -1278,6 +1278,18 @@ def test_data_utils(tmp_path):
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
+@pytest.mark.parametrize("nested", [False, True])
+def test_det_dataset_discovers_yml(tmp_path, nested):
+    """Test .yml dataset discovery at the dataset root and in a nested directory."""
+    yaml_dir = tmp_path / "dataset" / "nested" if nested else tmp_path / "dataset"
+    for split in ("train", "val"):
+        (yaml_dir / "images" / split).mkdir(parents=True)
+    (yaml_dir / "data.yml").write_text("train: images/train\nval: images/val\nnames: [item]\n")
+    data = check_det_dataset(tmp_path / "dataset", split="val")
+    assert Path(data["yaml_file"]) == yaml_dir / "data.yml"
+    assert Path(data["val"]).is_dir()
+
+
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"

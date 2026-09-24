@@ -125,9 +125,12 @@ def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.nd
         (np.ndarray | None): The read image array, or None if reading fails.
     """
     try:
-        return cv2.imdecode(np.fromfile(filename, np.uint8), flags)
+        file_bytes = np.fromfile(filename, np.uint8)
     except (FileNotFoundError, OSError):
         return None
+    if not file_bytes.size:  # empty file, cv2 decoders assert on an empty buffer
+        return None
+    return cv2.imdecode(file_bytes, flags)
 
 
 def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:

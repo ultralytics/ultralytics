@@ -273,6 +273,9 @@ Replacement requires all of the following, and is rejected otherwise:
 | **Stopped**   | Endpoint is paused and unavailable      |
 | **Failed**    | Deployment failed (see error message)   |
 
+On a **Ready** deployment, the page's badge reads **Starting** until the endpoint answers its first
+[health check](monitoring.md#health-check), and **Not responding** if the check fails.
+
 ### Endpoint URL
 
 Each endpoint has a unique URL, for example:
@@ -490,7 +493,8 @@ For global coverage:
 ### What's the cold start time?
 
 Cold start time depends on the model and whether the endpoint has scaled to zero; Platform allows an idle endpoint
-extra time to start before reporting it unhealthy. Opening the deployment page, or re-running its health check, before a burst of traffic warms the instance.
+extra time to start before reporting it unhealthy. Opening the deployment page or re-running its health check warms an
+idle endpoint, so do either before a burst of traffic arrives.
 
 ### Can I use a custom domain?
 

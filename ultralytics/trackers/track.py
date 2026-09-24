@@ -1,7 +1,6 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 from functools import partial
-from pathlib import Path
 
 import torch
 
@@ -111,7 +110,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     for i, result in enumerate(predictor.results):
         tracker = predictor.trackers[i if is_stream else 0]
-        vid_path = predictor.save_dir / Path(result.path).name
+        vid_path = result.path
         if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
             predictor.vid_path[i if is_stream else 0] = vid_path

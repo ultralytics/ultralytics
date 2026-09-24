@@ -95,7 +95,7 @@ TASK2METRIC = {
     "depth": "metrics/delta1",
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
-    "pose3d": "metrics/MPJPE",
+    "pose3d": "metrics/delta1(Z)",  # MPJPE is an error; consumers maximize, so use the delta1 form
     "obb": "metrics/mAP50-95(B)",
 }
 

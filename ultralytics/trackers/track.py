@@ -39,7 +39,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
-    trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
+    trackable = ("detect", "segment", "pose", "pose3d", "obb")  # tasks whose results carry boxes, in canonical order
     if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
         raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
 

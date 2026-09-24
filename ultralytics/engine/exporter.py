@@ -954,7 +954,7 @@ class Exporter:
         }  # model metadata
         if self.dla is not None:
             self.metadata["dla"] = self.dla  # make sure `AutoBackend` uses correct dla device if it has one
-        if model.task == "pose":
+        if model.task in {"pose", "pose3d"}:
             self.metadata["kpt_shape"] = model.model[-1].kpt_shape
             if hasattr(model, "kpt_names"):
                 self.metadata["kpt_names"] = model.kpt_names

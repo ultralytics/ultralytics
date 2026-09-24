@@ -772,6 +772,8 @@ class Results(SimpleClass, DataExportMixin):
                     kpt = kpts[j].xyn
                     if kpts[j].has_visible:
                         kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].conf)[..., None]), 2)
+                    if kpts[j].has_z:  # pose3d: without the depth channel the row is not a pose3d label
+                        kpt = torch.cat((torch.as_tensor(kpt), torch.as_tensor(kpts[j].z)[..., None]), 2)
                     line += (*kpt.reshape(-1).tolist(),)
                 line += (conf,) * save_conf + (() if id is None else (id,))
                 texts.append(("%g " * len(line)).rstrip() % line)
@@ -1249,6 +1251,7 @@ class Keypoints(BaseTensor):
             keypoints = keypoints[None, :]
         super().__init__(keypoints, orig_shape)
         self.has_visible = self.data.shape[-1] >= 3  # pose3d keypoints are (x, y, visible, z)
+        self.has_z = self.data.shape[-1] == 4  # the pose3d depth channel
 
     @cached_property
     def xy(self) -> torch.Tensor | np.ndarray:
@@ -1306,6 +1309,20 @@ class Keypoints(BaseTensor):
             >>> print(conf.shape)  # torch.Size([1, 17])
         """
         return self.data[..., 2] if self.has_visible else None
+
+    @cached_property
+    def z(self) -> torch.Tensor | np.ndarray | None:
+        """Return the encoded depth channel of each keypoint, or None outside the pose3d task.
+
+        Returns:
+            (torch.Tensor | np.ndarray | None): Encoded depth with shape (N, K), or None when the keypoints
+                carry no depth channel. Decode to metres with `ultralytics.utils.pose3d.decode_z`.
+
+        Examples:
+            >>> keypoints = Keypoints(torch.rand(1, 18, 4), orig_shape=(640, 640))
+            >>> print(keypoints.z.shape)  # torch.Size([1, 18])
+        """
+        return self.data[..., 3] if self.has_z else None
 
 
 class Probs(BaseTensor):

@@ -2,8 +2,8 @@
 plans: [free, pro, enterprise]
 comments: true
 title: Agents - Visual Workflows
-description: Build visual computer vision workflows in Ultralytics Platform with YOLO, vision-language models, conditions, dataset collection, and Slack alerts.
-keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filtering, datasets, Slack
+description: Build visual computer vision workflows in Ultralytics Platform with YOLO, vision-language models, conditions, dataset collection, Slack alerts, and webhooks.
+keywords: Ultralytics Platform, Agents, workflows, YOLO26, VLM, confidence filtering, datasets, Slack, webhook
 ---
 
 # Agents
@@ -19,7 +19,7 @@ Open **Agents** in the sidebar or go to [platform.ultralytics.com/agents](https:
 1. Open **Agents**, click **Add block > Templates**, and choose **YOLO → VLM Monitor**.
 2. Select the **Input image** block, choose an uploaded dataset, and select an image containing a person. Use an image of up to 4 megapixels for the shared trial.
 3. Keep the default YOLO26 nano model. The condition passes when YOLO detects at least one person.
-4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
+4. Select **Describe the scene**, choose a vision-language model, and enter a prompt. [Add the matching provider key](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys** if you have not already done so. In a team workspace, ask the workspace owner to add or replace the provider key.
 5. Keep **Shared trial · 60 seconds** selected for a small run, then click **Run**.
 6. Watch the blocks update and inspect the **Output**. If no person is detected, the condition finishes without running the description branch.
 
@@ -47,7 +47,7 @@ The execution selector next to **Run** chooses the hardware for the workflow.
 | **Existing dedicated deployment** | Larger datasets, longer runs, or other local models | Uses that deployment's existing hardware and pricing, including an eligible free dedicated deployment; no overall workflow duration or image-count cap     |
 | **New deployment…**               | Creating dedicated hardware from the builder        | Opens the existing deployment creation and pricing dialog; choose resources and wait until the deployment is ready                                         |
 
-Shared trials allow two submissions per five minutes. Platform runs support up to 20 blocks. Model/provider calls include YOLO, vision-language models, deployment predictions, and Slack actions; branching can increase the number of calls per input image.
+Shared trials allow three runs per minute; runs on a dedicated deployment have no rate limit. Platform runs support up to 20 blocks. Model/provider calls include YOLO, vision-language models, deployment predictions, and Slack and Webhook actions; branching can increase the number of calls per input image.
 
 Dedicated runs continue in checkpointed requests on the selected deployment. Closing or reloading the browser does not stop a run. Existing deployment limits and provider limits still apply, and language-model usage is billed by the provider associated with your key. See [deployment pricing](deploy/endpoints.md) for hardware options.
 
@@ -57,18 +57,19 @@ A **Deployment** block selects the endpoint used for a prediction step. The exec
 
 ## Configure Blocks
 
-| Block                                      | Purpose                                                                               |
-| ------------------------------------------ | ------------------------------------------------------------------------------------- |
-| **Image**                                  | Select one image from an uploaded dataset                                             |
-| **Dataset** without an incoming connection | Read images from a selected dataset and split, with a configurable input limit        |
-| **YOLO**                                   | Run an official model or a trained model from the workspace                           |
-| **Deployment**                             | Predict through an existing ready Platform deployment                                 |
-| **LLM**                                    | Send the image and upstream context to the selected language or vision-language model |
-| **Gate**                                   | Control downstream execution with a condition or cadence                              |
-| **Dataset** with an incoming connection    | Add the incoming image to a destination dataset                                       |
-| **Slack**                                  | Send a message to the workspace's connected Slack channel                             |
-| **Export**                                 | Export a model using Platform's existing export workflow                              |
-| **Output**                                 | Display the upstream result                                                           |
+| Block                                      | Purpose                                                                                                          |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| **Image**                                  | Upload an image or a video sampled into up to 10 frames by default, or select one image from an uploaded dataset |
+| **Dataset** without an incoming connection | Read images from a selected dataset and split, with a configurable input limit                                   |
+| **YOLO**                                   | Run an official model or a trained model from the workspace                                                      |
+| **Deployment**                             | Predict through an existing ready Platform deployment                                                            |
+| **LLM**                                    | Send the image and upstream context to the selected language or vision-language model                            |
+| **Gate**                                   | Control downstream execution with a condition or cadence                                                         |
+| **Dataset** with an incoming connection    | Add the incoming image to a destination dataset                                                                  |
+| **Slack**                                  | Send a message to the workspace's connected Slack channel                                                        |
+| **Webhook**                                | `POST` a JSON body to an HTTPS endpoint                                                                          |
+| **Export**                                 | Export a model using Platform's existing export workflow                                                         |
+| **Output**                                 | Display the upstream result                                                                                      |
 
 Select a block to edit its settings. Connect an output to another block to pass its result downstream. One output can connect to multiple blocks: for example, connect one condition to both a destination dataset and Slack. Each branch uses the same evaluated condition.
 
@@ -100,6 +101,10 @@ Use hosted images that your workspace can access and a destination dataset you c
 
 Workflow Slack messages are configured in the block. They are separate from the training, export, and deployment notification choices in Settings.
 
+### Send Webhooks
+
+A **Webhook** block sends one `POST` per result with `Content-Type: application/json` to a public HTTPS URL, so any service that accepts a JSON request can receive the outcome of a condition. Enter the destination URL and a JSON body of up to 10,000 characters with `{output}` inside a string, where it is replaced with the upstream result; the block is terminal and accepts no outgoing connection. Redirects are not followed, the connection times out after 5 seconds, and a non-2xx response fails the block.
+
 ## Follow Progress and Stop a Run
 
 Active blocks show a green spinner. Completed blocks show a green check and green outline; failed blocks show a red outline. Counts show which inputs have reached each block, and downstream blocks remain unexecuted when a condition does not match.
@@ -112,6 +117,6 @@ Reloading the page restores the run's progress and selected execution deployment
 
 - **The run exceeds the shared trial limits:** select a dedicated deployment, including an eligible free deployment, or reduce the image resolution, input count, and model/provider calls.
 - **The deployment is preparing or stopped:** wait for it to become ready or start it from [Deployments](deploy/index.md).
-- **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.
+- **A provider key is missing:** [connect the selected provider](account/api-keys.md#provider-keys-for-agents-and-annotation) in **Settings > API Keys**. In a team workspace, ask the workspace owner to add or replace the key.
 - **No images reach the destination:** inspect the condition and prediction confidence cutoff. Empty detection results never satisfy a confidence range.
 - **Collected images have no labels:** collection adds original images for review. Use the existing annotation tools to label them.

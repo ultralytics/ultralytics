@@ -1996,8 +1996,7 @@ class CopyPaste(BaseMixTransform):
         if result.ndim == 2:
             result = result[..., None]
 
-        i = im_new.astype(bool)
-        im[i] = result[i]
+        im = cv2.copyTo(result, im_new, im)
         labels["img"] = im
         return labels
 

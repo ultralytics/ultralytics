@@ -470,7 +470,7 @@ def safe_download(
             else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
                 raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
-    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz", ".tgz"}:
+    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
         from zipfile import is_zipfile
 
         unzip_dir = Path(dir or f.parent).resolve()  # unzip to dir if provided else unzip in place

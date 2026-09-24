@@ -383,20 +383,20 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                               |
-    | ---------------- | ------------------------------------- |
-    | **Split filter** | Train, Val, Test, or All              |
-    | **Annotations**  | All images, Annotated, or Unannotated |
-    | **Class filter** | Filter by class name                  |
-    | **Search**       | Filter images by filename or metadata |
+    | Filter           | Options                                            |
+    | ---------------- | -------------------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All                           |
+    | **Annotations**  | All images, Annotated, or Unannotated              |
+    | **Class filter** | Filter by class name                               |
+    | **Search**       | Filter images by filename, class name, or metadata |
 
 !!! tip "Finding Unlabeled Images"
 
     Use the `Annotations` filter set to `Unannotated` to quickly find images that still need annotation. This is especially useful for large datasets where you want to track labeling progress.
 
-!!! tip "Searching Custom Metadata"
+!!! tip "Searching Images"
 
-    The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional) as well as custom metadata keys, scalar values, and array entries, so an image named `img_0042` carrying `{"ship_type": "yacht"}` is found by searching either `img_0042` or `yacht`.
+    The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional), the name of any class annotated in the image, and custom metadata keys, scalar values, and array entries, so an image named `img_0042` with a `boat` annotation and `{"ship_type": "yacht"}` metadata is found by searching `img_0042`, `boat`, or `yacht`.
 
     Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
     directly, bypassing the text search.

@@ -1312,10 +1312,40 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
         assert extracted == tmp_path / target / dataset_dir.name
         assert (extracted / "data.yaml").is_file()
 
+    for suffix, mode in ((".tar.xz", "w:xz"), (".tar.bz2", "w:bz2"), (".txz", "w:xz"), (".tbz2", "w:bz2")):
+        archive = tmp_path / f"coco8 local{suffix}"
+        with tarfile.open(archive, mode) as tar:
+            tar.add(dataset_dir, arcname=dataset_dir.name)
+        extracted = safe_download(archive, dir=tmp_path / suffix[1:], unzip=True, progress=False)
+        assert extracted == tmp_path / suffix[1:] / dataset_dir.name
+        assert (extracted / "data.yaml").is_file()
+
     for name in ("corrupt.zip", "corrupt.tar.gz"):
         mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
         mislabeled.write_bytes(b"<html>not an archive</html>\n")
         assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
+
+
+def test_check_cls_dataset_unzips_compressed_tar(tmp_path, monkeypatch):
+    """Test classification datasets accept compressed tar archives."""
+    dataset_dir = tmp_path / "classification"
+    for split in ("train", "val"):
+        class_dir = dataset_dir / split / "item"
+        class_dir.mkdir(parents=True)
+        Image.new("RGB", (1, 1)).save(class_dir / f"{split}.jpg")
+
+    archive = tmp_path / "classification.tar.xz"
+    with tarfile.open(archive, "w:xz") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+
+    from ultralytics.data import utils as data_utils
+
+    datasets_dir = tmp_path / "datasets"
+    monkeypatch.setattr(data_utils, "DATASETS_DIR", datasets_dir)
+    result = check_cls_dataset(archive)
+
+    assert result["train"] == datasets_dir / dataset_dir.name / "train"
+    assert result["val"] == datasets_dir / dataset_dir.name / "val"
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):

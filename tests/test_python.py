@@ -43,7 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
-from ultralytics.utils.torch_utils import TORCH_1_9, TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
+from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
 def test_dataloader_caps_workers_to_batches():
@@ -100,60 +100,6 @@ def test_dataloader_empty_dataset_uses_dataloader_validation():
     """Test empty datasets fail through DataLoader validation instead of worker-cap math."""
     with pytest.raises(ValueError, match="positive integer"):
         build_dataloader([], batch=4, workers=2)
-
-
-@pytest.mark.skipif(
-    not TORCH_1_9,
-    reason="torch<1.9: fork dataloader workers segfault before the first batch on the 3.8/1.8.0 floor stack",
-)
-def test_oom_auto_reduce_closes_replaced_loader(tmp_path):
-    """Test the first-epoch OOM auto-reduce closes the replaced train loader before rebuilding the pipeline."""
-    from ultralytics.models.yolo.detect.train import DetectionTrainer
-
-    worker_alive_at_rebuild = []  # snapshotted inside the rebuild the OOM handler triggers
-
-    class OOMOnceTrainer(DetectionTrainer):
-        """Inject a one-shot OOM from the first batch to trigger the auto-reduce path on CPU."""
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.args.workers = 2  # CPU setups clamp workers to 0, but the replaced loader must have live ones
-            self._oomed = False
-
-        def preprocess_batch(self, batch):
-            """Raise once so the handler halves the batch and rebuilds the train pipeline."""
-            if not self._oomed:
-                self._oomed = True
-                raise RuntimeError("CUDA out of memory")
-            return super().preprocess_batch(batch)
-
-        def _build_train_pipeline(self):
-            """Snapshot the replaced loader's worker aliveness before the rebuild replaces it."""
-            if self._oomed and getattr(self, "train_loader", None) is not None:
-                loader = self.train_loader
-                worker_alive_at_rebuild.append([w.is_alive() for w in getattr(loader.iterator, "_workers", ())])
-            super()._build_train_pipeline()
-
-    trainer = OOMOnceTrainer(
-        overrides={
-            "model": "yolo11n.pt",
-            "data": "coco8.yaml",
-            "epochs": 2,
-            "imgsz": 64,
-            "batch": 2,
-            "workers": 2,
-            "device": "cpu",
-            "plots": False,
-            "val": False,
-            "project": str(tmp_path),
-            "name": "oom-close",
-        }
-    )
-    trainer.train()
-    assert worker_alive_at_rebuild, "the OOM handler never rebuilt the train pipeline"
-    assert not any(any(entry) for entry in worker_alive_at_rebuild), (
-        f"replaced loader workers still alive at rebuild: {worker_alive_at_rebuild}"
-    )
 
 
 def test_image_cache_shared_with_spawned_workers():

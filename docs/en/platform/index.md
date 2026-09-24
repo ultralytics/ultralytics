@@ -298,7 +298,7 @@ Get started with these resources:
 
 | Problem                 | Solution                                                                                                                    |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Endpoint not responding | Check endpoint status (Ready vs Stopped). A cold start after idle can take up to ~45 seconds on the first request           |
+| Endpoint not responding | Check endpoint status (Ready vs Stopped). A cold start after idle can take up to a minute on the first request              |
 | 401 Unauthorized        | Verify the API key is active and copied correctly                                                                           |
 | Slow inference          | Check model size, consider [TensorRT export](train/models.md#supported-formats), select closer region                       |
 | Export failed           | Some formats require specific model architectures. Try [ONNX](train/models.md#supported-formats) for broadest compatibility |

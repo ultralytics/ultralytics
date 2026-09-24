@@ -273,6 +273,9 @@ Replacement requires all of the following, and is rejected otherwise:
 | **Stopped**   | Endpoint is paused and unavailable      |
 | **Failed**    | Deployment failed (see error message)   |
 
+On a **Ready** deployment, the page's status badge reads **Starting** until the endpoint answers its first
+[health check](monitoring.md#health-check), and **Not responding** if that check fails.
+
 ### Endpoint URL
 
 Each endpoint has a unique URL, for example:

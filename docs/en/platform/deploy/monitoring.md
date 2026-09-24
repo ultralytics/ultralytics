@@ -121,7 +121,7 @@ sending traffic.
 
 !!! info "Cold Start Tolerance"
 
-    Platform gives the health check extra time and retries transient connection failures, so a scale-to-zero endpoint has time to start. If the card reports "Service starting up...", refresh it to pick up an instance that finished booting in the meantime.
+    Platform gives the health check extra time and retries transient connection failures, so a scale-to-zero endpoint has time to start. Until the first health check answers, the status badge reads **Starting** and the `Predict` and `Monitoring` tabs show **Endpoint is starting**; the page updates on its own once the endpoint responds. If the health check fails, the badge reads **Not responding** and those tabs offer a **Retry** button.
 
 ## Monitoring Tab
 
@@ -141,7 +141,7 @@ Open the deployment page of a **Ready** dedicated endpoint and select the **Moni
 
 The gallery contains recent processed images with prediction overlays. Open an image to inspect its predictions in the full-screen viewer and use the visibility controls to adjust the overlays. The gallery initially shows up to 12 examples; **Show all** expands it.
 
-- **Capture:** Recent processed images appear as temporary examples. Capture is best effort; inference does not wait for example encoding.
+- **Capture:** Recent processed images appear as temporary examples, at most one per second. Capture is best effort; inference does not wait for example encoding.
 - **Capacity:** At most 100 images within a shared 100 MiB memory budget for compressed images, prediction metadata, and associated assets. The interface labels this budget as **100 MB**.
 - **Replacement:** Older examples are replaced when either limit is reached. An example may become unavailable while you are viewing it.
 - **Storage:** Temporary examples remain in endpoint memory. Saving them to a dataset uses normal workspace storage and processing limits.

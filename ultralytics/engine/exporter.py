@@ -676,8 +676,10 @@ class Exporter:
             # Keep a cached CLIP encoder out of the export copy: https://github.com/ultralytics/ultralytics/pull/18445
             memo[id(getattr(model, "clip_model", None))] = None
         model = deepcopy(model, memo).to(self.device)  # copy before the head and names writes below
-        if not hasattr(model, "names"):
-            model.names = default_class_names()
+        if not getattr(model, "names", None):  # missing, None or empty on legacy and foreign checkpoints
+            head = model.model[-1]  # name the head's own classes so the metadata matches the output layer
+            nc = head.linear.out_features if isinstance(head, Classify) else getattr(head, "nc", 999)
+            model.names = default_class_names(nc=nc)
         model.names = check_class_names(model.names)
         if hasattr(model, "end2end"):
             model.end2end = self.args.nms is False
@@ -1044,6 +1046,16 @@ class Exporter:
             LOGGER.warning(f"{prefix} >300 images recommended for INT8 calibration, found {n} images.")
         return build_dataloader(dataset, batch=batch, workers=0, drop_last=True)  # required for batch loading
 
+    def _int8_calibration_images(self, prefix=""):
+        """Collect calibration batches directly into one BHWC float32 array."""
+        loader = self.get_int8_calibration_dataloader(prefix)
+        images = np.empty((len(loader) * loader.batch_size, *self.imgsz, self.im.shape[1]), dtype=np.float32)
+        for i, batch in enumerate(loader):
+            images[i * loader.batch_size : (i + 1) * loader.batch_size] = (
+                torch.nn.functional.interpolate(batch["img"].float(), size=self.imgsz).permute(0, 2, 3, 1).numpy()
+            )
+        return images
+
     @try_export
     def export_torchscript(self, prefix=colorstr("TorchScript:")):  # noqa: B008
         """Export YOLO model to TorchScript format."""
@@ -1317,8 +1329,6 @@ class Exporter:
         assert not WINDOWS, "CoreML export is not supported on Windows, please run on macOS or Linux."
         assert TORCH_1_11, "CoreML export requires torch>=1.11"
         f = self.file.with_suffix(".mlmodel" if mlmodel else ".mlpackage")
-        if f.is_dir():
-            shutil.rmtree(f)
 
         if self.args.nms and self.model.task == "detect":
             model = IOSDetectModel(self.model, self.im, mlprogram=not mlmodel)
@@ -1378,15 +1388,7 @@ class Exporter:
         if self.model.task == "classify":
             ct_model.user_defined_metadata.update({"com.apple.coreml.model.preview.type": "imageClassifier"})
 
-        try:
-            ct_model.save(str(f))  # save *.mlpackage
-        except Exception as e:
-            LOGGER.warning(
-                f"{prefix} CoreML export to *.mlpackage failed ({e}), reverting to *.mlmodel export. "
-                f"Known coremltools Python 3.11 and Windows bugs https://github.com/apple/coremltools/issues/1928."
-            )
-            f = f.with_suffix(".mlmodel")
-            ct_model.save(str(f))
+        ct_model.save(str(f))  # save *.mlpackage or *.mlmodel
         return f
 
     @try_export
@@ -1427,16 +1429,6 @@ class Exporter:
         if f.is_dir():
             shutil.rmtree(f)  # delete output folder
 
-        # Export to TF
-        images = None
-        if self.args.quantize == 8 and self.args.data:
-            images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-            images = (
-                torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz)
-                .permute(0, 2, 3, 1)
-                .numpy()
-            )
-
         # Export to ONNX
         if isinstance(self.model.model[-1], RTDETRDecoder):
             self.args.opset = self.args.opset or 19
@@ -1447,7 +1439,8 @@ class Exporter:
             f_onnx,
             f,
             quantize=self.args.quantize,
-            images=images,
+            # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
+            images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
             disable_group_convolution=self.args.format == "edgetpu",
             cuda=self.device.type == "cuda",
             prefix=prefix,
@@ -1925,7 +1918,7 @@ class NMSModel(torch.nn.Module):
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = pred.new_zeros(torch.max(torch.tensor(self.args.batch - bs), torch.tensor(0)), *pred.shape[1:])
+            pad = pred.new_zeros((self.args.batch - torch._shape_as_tensor(pred)[0]).clamp(min=0), *pred.shape[1:])
             pred = torch.cat((pred, pad))
         if self.args.dynamic and self.args.format == "onnx" and self.obb:
             pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)

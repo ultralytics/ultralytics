@@ -146,7 +146,7 @@ class DepthTrainer(DetectionTrainer):
             for ckpt in (self.best, self.last):
                 if ckpt.exists():
                     plot_dir = self.save_dir if self.args.plots and ckpt == plot_ckpt else None
-                    validation_path = self.data.get("val") or self.data.get("test")
+                    validation_path = self.data[self.args.split]
                     validation_split = None
                     if isinstance(validation_path, (str, Path)):
                         try:

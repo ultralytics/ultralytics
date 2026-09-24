@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 import types
+from functools import lru_cache
 from pathlib import Path
 
 import cv2
@@ -14,6 +15,14 @@ import torch
 from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4
+
+
+@lru_cache
+def get_tensorrt_logger():
+    """Return the shared TensorRT logger, kept alive for every builder and inference runtime."""
+    import tensorrt as trt
+
+    return trt.Logger(trt.Logger.INFO)
 
 
 class _NormalizeCoords(torch.nn.Module):
@@ -264,9 +273,8 @@ def onnx2engine(
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
     output_file = output_file or Path(onnx_file).with_suffix(".engine")
 
-    logger = trt.Logger(trt.Logger.INFO)
-    if verbose:
-        logger.min_severity = trt.Logger.Severity.VERBOSE
+    logger = get_tensorrt_logger()
+    logger.min_severity = trt.Logger.VERBOSE if verbose else trt.Logger.INFO
 
     # Engine builder
     builder = trt.Builder(logger)

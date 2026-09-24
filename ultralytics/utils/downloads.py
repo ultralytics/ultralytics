@@ -470,13 +470,13 @@ def safe_download(
             else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
                 raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
-    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
+    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
         from zipfile import is_zipfile
 
         unzip_dir = Path(dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
-        elif f.suffix in {".tar", ".gz"}:
+        elif tarfile.is_tarfile(f):
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
             top_level_dirs = set()
             with tarfile.open(f, "r:*") as tar:
@@ -500,10 +500,10 @@ def safe_download(
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
-            if len(top_level_dirs) == 1 and (unzip_dir / (top := next(iter(top_level_dirs)))).is_dir():
-                unzip_dir /= top  # tar has 1 top-level directory, i.e. coco8/ extracted to ../datasets/
+            if len(top_level_dirs) == 1:
+                unzip_dir /= next(iter(top_level_dirs))  # return the single extracted file or directory
         else:
-            unzip_dir = f  # neither a zip nor a tar, i.e. an HTML error page served as .zip, so return the file
+            unzip_dir = f  # not a zip or tar, i.e. an HTML error page or plain gzip, return the file
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

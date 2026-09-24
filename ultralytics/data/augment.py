@@ -2400,15 +2400,10 @@ class Format(BaseTransform):
                 elif self.mask_overlap:
                     sem_masks = cls_tensor[masks[0].long() - 1]  # (H, W) from (1, H, W) instance indices
                 else:
-                    # Create sem_masks consistent with mask_overlap=True
-                    sem_masks = (masks * cls_tensor[:, None, None]).max(0).values  # (H, W) from (N, H, W) binary
-                    overlap = masks.sum(dim=0) > 1  # (H, W)
-                    if overlap.any():
-                        weights = masks.sum(axis=(1, 2))
-                        weighted_masks = masks * weights[:, None, None]  # (N, H, W)
-                        weighted_masks[masks == 0] = weights.max() + 1  # handle background
-                        smallest_idx = weighted_masks.argmin(dim=0)  # (H, W)
-                        sem_masks[overlap] = cls_tensor[smallest_idx[overlap]]
+                    # Create sem_masks consistent with mask_overlap=True: the smallest covering instance wins
+                    weights = masks.sum(axis=(1, 2))
+                    key = torch.where(masks.bool(), weights[:, None, None], weights.max() + 1)  # (N, H, W)
+                    sem_masks = cls_tensor[key.min(0).indices] * masks.any(0)  # (H, W), 0 where uncovered
             else:
                 masks = torch.zeros(1 if self.mask_overlap else nl, h // self.mask_ratio, w // self.mask_ratio)
                 sem_masks = torch.zeros(h // self.mask_ratio, w // self.mask_ratio)

@@ -355,11 +355,8 @@ class BasePredictor:
             )
             self.run_callbacks("on_predict_start")
             batches = iter(self.dataset)
-            if (
+            if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
                 self.device.type == "cuda"
-                and self.model.format == "pt"
-                and self.args.mode == "predict"
-                and self.args.task == "detect"
                 and isinstance(self.dataset, LoadImagesAndVideos)
                 and self.dataset.ni == self.dataset.nf
                 and len(self.dataset) > 1

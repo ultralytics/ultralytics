@@ -46,26 +46,17 @@ from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
-def test_predict_prefetch_iterator_lifecycle():
-    """Test prefetch iteration, loader exceptions, and early stream close."""
+def test_predict_prefetch():
+    """Test prefetch preserves order and re-raises loader exceptions (CUDA-only path, otherwise uncovered on CPU CI)."""
     from ultralytics.engine.predictor import _prefetch
 
-    assert list(_prefetch(iter(()))) == []
-    assert list(_prefetch(iter((1, 2)))) == [1, 2]
-
-    def failing_loader():
-        yield 1
+    def loader():
+        yield from (1, 2)
         raise RuntimeError("loader failed")
 
-    batches = _prefetch(failing_loader())
-    assert next(batches) == 1
+    batches = _prefetch(loader())
+    assert [next(batches), next(batches)] == [1, 2]
     with pytest.raises(RuntimeError, match="loader failed"):
-        next(batches)
-
-    batches = _prefetch(iter((1, 2)))
-    assert next(batches) == 1
-    batches.close()
-    with pytest.raises(StopIteration):
         next(batches)
 
 

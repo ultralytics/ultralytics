@@ -348,6 +348,7 @@ Model and pipeline choices often matter more than compiler flags:
 | `simplify` | `bool`                    | `True`    | Simplify the intermediate ONNX graph                                                                                                                                        |
 | `conf`     | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
 | `iou`      | `float`                   | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
+| `device`   | `str`                     | `None`    | Device for the intermediate ONNX export step, CPU by default (`device=cpu`). The Dataflow Compiler steps do not use it.                                                     |
 
 YOLOv8/YOLO11 detection exports receive HailoRT NMS. YOLO26 defaults to raw one-to-many outputs for host NMS; `nms=False` selects its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported.
 

@@ -29,6 +29,7 @@ from ultralytics.utils import (
     checks,
 )
 from ultralytics.utils.export.engine import modelopt_quantize_onnx, torch2onnx
+from ultralytics.utils.patches import arange_patch, onnx_export_patch
 from ultralytics.utils.torch_utils import (
     TORCH_1_10,
     TORCH_1_11,
@@ -37,6 +38,21 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_1,
     TORCH_2_9,
 )
+
+
+def test_export_patches_restore_after_exception():
+    """Restore process-wide PyTorch functions when an export fails inside a temporary patch."""
+    original_arange, original_export = torch.arange, torch.onnx.export
+    try:
+        with pytest.raises(RuntimeError), arange_patch(dynamic=True, quantize=16, fmt="onnx"):
+            raise RuntimeError("export failed")
+        assert torch.arange is original_arange
+
+        with pytest.raises(RuntimeError), onnx_export_patch():
+            raise RuntimeError("export failed")
+        assert torch.onnx.export is original_export
+    finally:
+        torch.arange, torch.onnx.export = original_arange, original_export
 
 
 def skip_rpi_semantic(task):

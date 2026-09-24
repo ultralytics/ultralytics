@@ -456,7 +456,7 @@ def segments2boxes(segments):
     """Convert segment coordinates to bounding box labels in xywh format.
 
     Args:
-        segments (list): List of segments where each segment is a list of points, each point is [x, y] coordinates.
+        segments (list[np.ndarray]): List of segments, each an (N, 2) array of [x, y] points.
 
     Returns:
         (np.ndarray): Bounding box coordinates in xywh format.

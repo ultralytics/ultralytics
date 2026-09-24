@@ -103,7 +103,7 @@ class BaseTensor(SimpleClass):
             >>> print(type(numpy_tensor.data))
             <class 'numpy.ndarray'>
         """
-        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.numpy(), self.orig_shape)
+        return self if isinstance(self.data, np.ndarray) else self.__class__(self.data.cpu().numpy(), self.orig_shape)
 
     def cuda(self):
         """Move the tensor to GPU memory.

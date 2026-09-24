@@ -46,6 +46,20 @@ from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
+def test_predict_prefetch():
+    """Test prefetch preserves order and re-raises loader exceptions (CUDA-only path, otherwise uncovered on CPU CI)."""
+    from ultralytics.engine.predictor import _prefetch
+
+    def loader():
+        yield from (1, 2)
+        raise RuntimeError("loader failed")
+
+    batches = _prefetch(loader())
+    assert [next(batches), next(batches)] == [1, 2]
+    with pytest.raises(RuntimeError, match="loader failed"):
+        next(batches)
+
+
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)
@@ -833,7 +847,7 @@ def test_convert_signed_ndjson(monkeypatch):
 
     captured = []
 
-    async def convert(path, fraction):
+    async def convert(path, fraction, split):
         captured.append((path, fraction))
         return "dataset.ndjson.yaml"
 
@@ -1305,6 +1319,20 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
+    with tarfile.open(tgz_archive := tmp_path / "coco8 local.tgz", "w:gz") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    tar_gz_archive = tmp_path / "coco8 local.tar.gz"
+    tar_gz_archive.write_bytes(tgz_archive.read_bytes())
+    for archive, target in ((tgz_archive, "datasets_tgz"), (tar_gz_archive, "datasets_tar_gz")):
+        extracted = safe_download(archive, dir=tmp_path / target, unzip=True, progress=False)
+        assert extracted == tmp_path / target / dataset_dir.name
+        assert (extracted / "data.yaml").is_file()
+
+    for name in ("corrupt.zip", "corrupt.tar.gz"):
+        mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
+        mislabeled.write_bytes(b"<html>not an archive</html>\n")
+        assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
+
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""
@@ -1331,7 +1359,7 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
     extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
 
     assert not (tmp_path / "unsafe.txt").exists()
-    assert (extracted / "safe.txt").is_file()
+    assert extracted == tmp_path / "datasets" / "safe.txt" and extracted.is_file()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
@@ -1464,8 +1492,6 @@ def test_depth_calibration_checkpoint_provenance(tmp_path):
 @pytest.mark.parametrize("external", [False, True])
 def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch, external):
     """Calibration provenance records local splits without rejecting external validation paths."""
-    from types import SimpleNamespace
-
     from ultralytics.models.yolo import detect
     from ultralytics.models.yolo.depth import calibrate
     from ultralytics.models.yolo.depth.train import DepthTrainer
@@ -1486,7 +1512,7 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
     trainer.best = checkpoint
     trainer.last = tmp_path / "last.pt"
     trainer.save_dir = tmp_path
-    trainer.args = SimpleNamespace(plots=False)
+    trainer.args = get_cfg(overrides={"plots": False})
     trainer.test_loader = []
     trainer.device = "cpu"
     trainer.data = {"path": dataset_root, "val": str(validation_path), "hash": "manifest-sha256"}
@@ -1502,6 +1528,7 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
     from ultralytics.data.utils import save_depth_png
+    from ultralytics.utils import DEFAULT_CFG
 
     images, depth = tmp_path / "images" / "train", tmp_path / "depth" / "train"
     images.mkdir(parents=True)
@@ -1520,7 +1547,10 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     (depth / "corrupt.png").write_text("not a png file")
 
     data = {"names": {0: "depth"}, "nc": 1, "channels": 3, "depth_scale": 100}
-    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1)
+    hyp = copy(DEFAULT_CFG)
+    hyp.mosaic = 1.0  # pin the value the unsupported-argument zeroing must not reach, regardless of ambient state
+    ds = DepthDataset(img_path=str(images), imgsz=32, data=data, augment=False, single_cls=True, batch_size=1, hyp=hyp)
+    assert hyp.mosaic == 1.0  # construction must never mutate the caller's hyp namespace
     assert {Path(f).stem for f in ds.im_files} == {"valid", "scaled", "legacy"}
     assert sorted(ds._load_depth(i).max() for i in range(len(ds))) == [1.0, 1.5, 2.0]
     legacy_index = next(i for i, path in enumerate(ds.im_files) if Path(path).stem == "legacy")

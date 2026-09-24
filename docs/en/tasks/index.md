@@ -21,7 +21,7 @@ For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#support
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> Explore Ultralytics YOLO26 Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Segmentation, Depth Estimation, Classification, Pose Estimation, and OBB.
+  <strong>Watch:</strong> Explore Ultralytics YOLO26 Tasks: <a href="https://www.ultralytics.com/blog/a-guide-to-deep-dive-into-object-detection-in-2025">Object Detection</a>, Instance Segmentation, Semantic Segmentation, Depth Estimation, Classification, Pose Estimation, and OBB.
 </p>
 
 ## [Detection](detect.md)
@@ -64,17 +64,13 @@ Pose estimation detects specific keypoints in images or video frames to track mo
 
 Oriented Bounding Box (OBB) detection enhances traditional object detection by adding an orientation angle to better locate rotated objects. This capability is particularly valuable for [aerial imagery analysis](https://www.ultralytics.com/blog/using-computer-vision-to-analyze-satellite-imagery), [document processing](https://www.ultralytics.com/blog/using-ultralytics-yolo11-for-smart-document-analysis), and [industrial applications](https://www.ultralytics.com/blog/yolo11-enhancing-efficiency-conveyor-automation) where objects appear at various angles. YOLO26 delivers high accuracy and speed for detecting rotated objects in diverse scenarios.
 
-[Oriented Detection](obb.md){ .md-button }
+[OBB Examples](obb.md){ .md-button }
 
 ## [ReID](reid.md)
 
 Person re-identification (ReID) matches the same individual across different camera views or time instances. Unlike detection or classification, ReID produces compact embedding vectors that can be compared by distance to determine identity matches. YOLO26 ReID models use PK batch sampling and multi-loss training (cross-entropy + batch-hard triplet or supervised-contrastive metric loss) for robust metric learning, making them well-suited for surveillance, multi-camera tracking, and person retrieval applications.
 
 [ReID Examples](reid.md){ .md-button }
-
-## Conclusion
-
-Ultralytics YOLO26 supports multiple computer vision tasks, including detection, instance segmentation, semantic segmentation, monocular depth estimation, classification, keypoint detection, and oriented object detection. Each task addresses specific needs in the computer vision landscape, from basic object identification to dense per-pixel depth inference. By understanding the capabilities and applications of each task, you can select the most appropriate approach for your specific computer vision challenges and leverage YOLO26's powerful features to build effective solutions.
 
 ## What's Next
 

@@ -49,12 +49,12 @@ RUN python3 -m pip install --upgrade pip && \
     python3 -m pip install uv
 # Install pip packages and remove extra build files
 # Onnxruntime and TensorRT from https://elinux.org/Jetson_Zoo and https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
-RUN uv pip install --system \
+RUN uv pip install --system --no-cache \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.8.0-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/tensorrt-8.2.0.6-cp38-none-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torch-1.11.0a0+gitbc2c6ed-cp38-cp38-linux_aarch64.whl \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/torchvision-0.12.0a0+9b5a3fe-cp38-cp38-linux_aarch64.whl && \
-    uv pip install --system -e ".[export]" && \
+    uv pip install --system --no-cache -e ".[export]" && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 

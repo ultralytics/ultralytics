@@ -121,7 +121,11 @@ class ClassificationTrainer(BaseTrainer):
             (ClassificationDataset): Dataset for the specified mode.
         """
         return ClassificationDataset(
-            img_path, self.args, augment=mode == "train", prefix=mode, names=self.data["names"]
+            img_path,
+            self.args,
+            augment=mode == "train",
+            prefix="train" if mode == "train" else self.args.split,
+            names=self.data["names"],
         )
 
     def get_dataloader(self, dataset_path: str, batch_size: int = 16, rank: int = 0, mode: str = "train"):

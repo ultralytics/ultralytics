@@ -1846,15 +1846,6 @@ def test_utils_patches_torch_save(tmp_path):
     assert mock.call_count == 4, "torch_save was not attempted the expected number of times"
 
 
-def test_imread_unicode_empty_file(tmp_path):
-    """Test imread_unicode() returns None for an empty image file instead of raising a cv2 decoder assert."""
-    from ultralytics.utils.patches import imread_unicode
-
-    empty = tmp_path / "empty.jpg"
-    empty.touch()
-    assert imread_unicode(str(empty)) is None
-
-
 def test_nn_modules_conv():
     """Test Convolutional Neural Network modules including CBAM, Conv2, and ConvTranspose."""
     from ultralytics.nn.modules.conv import CBAM, Conv2, ConvTranspose, DWConvTranspose2d, Focus

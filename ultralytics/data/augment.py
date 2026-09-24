@@ -2033,9 +2033,7 @@ class CopyPaste(BaseMixTransform):
         source = labels.get("mix_labels", [{}])[0].get("semantic_mask") if self.mode == "mixup" else cv2.flip(mask, 1)
         if source is None:
             return labels
-        pasted = params["im_new"].astype(bool)
-        mask = mask.copy()
-        mask[pasted] = source[pasted]
+        mask = cv2.copyTo(source, params["im_new"], mask.copy())
         labels["semantic_mask"] = mask
         return labels
 

@@ -674,12 +674,23 @@ def classify(trial, rc, stderr):
         return "env-skip", None, None
     if any(marker in stderr for marker in NETWORK_MARKERS):
         return "flake", None, None
+    cause_exc, cause_frames = parse_traceback(stderr.rsplit("The above exception was the direct cause", 1)[0])
     if trial.get("mutated") and (
         # Intentional unsupported-choice errors are expected; abstract "not implemented" gaps keep their signatures
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
         or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
+        # The trainer wraps missing requested splits in RuntimeError; classify the original validation error.
+        or (
+            exc == "RuntimeError"
+            and "split" in trial["mutated"]
+            and frames
+            and frames[-1] == "ultralytics/engine/trainer.py:get_dataset"
+            and cause_exc in EXPECTED_TYPES
+            and cause_frames
+            and cause_frames[-1].startswith(EXPECTED_MODULES)
+        )
         # Both dataset-validation layers summarise as RuntimeError, so the wrapper — not data/utils.py — is the
         # deepest frame: get_dataset re-raises YAML errors, and get_labels reports the per-file reasons once the
         # label cache exists (an uncached first trial raises ValueError from cache_labels instead). Excused only

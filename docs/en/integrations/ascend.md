@@ -116,6 +116,7 @@ The Ascend format supports the [Export](../modes/export.md), [Predict](../modes/
 | `opset`    | `int`            | `17`            | ONNX opset for the intermediate graph. Capped at 17, the highest version the CANN ONNX parser accepts.                                                                                               |
 | `simplify` | `bool`           | `True`          | Simplifies the intermediate ONNX graph with `onnxslim`.                                                                                                                                              |
 | `nms`      | `bool`, optional | `None`          | Select raw output (`None`, default), embedded NMS (`True`), or the NMS-free head (`False`).                                                                                                          |
+| `device`   | `str`            | `None`          | Device for the intermediate ONNX export step, CPU by default (`device=cpu`). ATC compilation does not use it.                                                                                        |
 
 !!! note "Why is FP32 unavailable?"
 

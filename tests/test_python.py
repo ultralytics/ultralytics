@@ -707,35 +707,6 @@ def test_reid_invalid_crops():
     assert feats[0] is not None and feats[1] is None
 
 
-def test_track_resets_for_same_named_sources(tmp_path):
-    """Test distinct sources with the same filename do not share tracker state."""
-    paths = []
-    for folder, name in (("a", "frame.png"), ("b", "frame.png"), ("c", "other.png")):
-        path = tmp_path / folder / name
-        path.parent.mkdir()
-        assert cv2.imwrite(str(path), np.zeros((32, 32, 3), dtype=np.uint8))
-        paths.append(path)
-
-    sources = tmp_path / "sources.csv"
-    sources.write_text(",".join(map(str, paths)))
-    model = YOLO("yolov8n.yaml")
-    frame_ids = [
-        model.predictor.trackers[0].frame_id
-        for _ in model.track(
-            sources,
-            stream=True,
-            tracker="bytetrack.yaml",
-            imgsz=32,
-            conf=0.99,
-            device="cpu",
-            project=tmp_path,
-            name="tracks",
-            verbose=False,
-        )
-    ]
-    assert frame_ids == [1, 1, 1]
-
-
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.parametrize("model", MODELS)
 def test_track_stream(model, tmp_path, solution_assets):

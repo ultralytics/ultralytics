@@ -312,6 +312,9 @@ class BaseModel(torch.nn.Module):
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
             m.strides = fn(m.strides)
+        elif isinstance(m, RTDETRDecoder):
+            m.anchors = fn(m.anchors)
+            m.valid_mask = fn(m.valid_mask)
         return self
 
     def load(self, weights, verbose=True):
@@ -984,21 +987,6 @@ class RTDETRDetectionModel(DetectionModel):
         if verbose and remapped:
             LOGGER.info(f"Remapped {n_match}/{tgt_nc} decoder cls head rows from pretrained weights by class name")
         return remapped
-
-    def _apply(self, fn):
-        """Apply a function to all tensors in the model, including decoder anchors and valid mask.
-
-        Args:
-            fn (function): The function to apply to the model.
-
-        Returns:
-            (RTDETRDetectionModel): An updated RTDETRDetectionModel object.
-        """
-        super()._apply(fn)
-        m = self.model[-1]
-        m.anchors = fn(m.anchors)
-        m.valid_mask = fn(m.valid_mask)
-        return self
 
     def init_criterion(self):
         """Initialize the loss criterion for the RTDETRDetectionModel."""

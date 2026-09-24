@@ -45,12 +45,15 @@ class TensorRTBackend(BaseBackend):
         if self.device.type == "cpu":
             self.device = torch.device("cuda:0")
 
+        from ultralytics.utils.export.engine import get_tensorrt_logger
+
         Binding = namedtuple("Binding", ("name", "dtype", "shape", "data"))
-        logger = trt.Logger(trt.Logger.INFO)
+        logger = get_tensorrt_logger()
 
         # Read engine file
         offset, metadata = self.engine_header(weight)
-        with open(weight, "rb") as f, trt.Runtime(logger) as runtime, torch.cuda.device(self.device):
+        with open(weight, "rb") as f, torch.cuda.device(self.device):
+            runtime = trt.Runtime(logger)
             f.seek(offset)  # skip the metadata header, if any, that precedes the engine
             if (dla := metadata.get("dla")) is not None:
                 runtime.DLA_core = int(dla)
@@ -134,9 +137,11 @@ class TensorRTBackend(BaseBackend):
         """
         if self.dynamic and im.shape != self.bindings["images"].shape:
             if self.is_trt10:
-                self.context.set_input_shape("images", im.shape)
+                ok = self.context.set_input_shape("images", im.shape)
             else:
-                self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+                ok = self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+            if not ok:  # the profile refused the shape, so the bindings below would describe the wrong engine state
+                raise ValueError(f"input size {tuple(im.shape)} is outside the TensorRT optimization profile")
             self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
             for name in self.output_names:
                 shape = (
@@ -151,7 +156,8 @@ class TensorRTBackend(BaseBackend):
 
         if self.graph is None:
             self.bindings["images"] = self.bindings["images"]._replace(data=im)
-            self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()])
+            if not self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()]):
+                raise RuntimeError("TensorRT inference execution failed")
         else:
             self.bindings["images"].data.copy_(im)  # the capture reads this address, so the input must land in it
             self.graph.replay()

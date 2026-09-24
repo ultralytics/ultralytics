@@ -87,8 +87,6 @@ def non_max_suppression(
     multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
     prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
-    if not rotated:
-        prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
 
     t = time.time()
     output = [torch.zeros((0, 6 + extra), device=prediction.device)] * bs
@@ -99,6 +97,8 @@ def non_max_suppression(
         # x[((x[:, 2:4] < min_wh) | (x[:, 2:4] > max_wh)).any(1), 4] = 0  # width-height
         filt = xc[xi]  # confidence
         x = x[filt]
+        if not rotated:
+            x[:, :4] = xywh2xyxy(x[:, :4])
         if return_idxs:
             xk = xk[filt]
 

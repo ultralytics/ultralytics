@@ -1318,6 +1318,22 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
         assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
 
 
+def test_check_cls_dataset_extracts_local_tgz(tmp_path, monkeypatch):
+    """Test check_cls_dataset() extracts a local .tgz archive like the equivalent .tar.gz."""
+    dataset_dir = tmp_path / "clsdata"
+    for cls in ("classA", "classB"):
+        (dataset_dir / "train" / cls).mkdir(parents=True)
+        (dataset_dir / "train" / cls / "img0.jpg").write_bytes(b"jpg")
+    archive = tmp_path / "clsdata.tgz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    monkeypatch.setattr("ultralytics.data.utils.DATASETS_DIR", tmp_path / "datasets")
+
+    data = check_cls_dataset(str(archive))
+    assert data["names"] == {0: "classA", 1: "classB"}
+    assert data["train"] == tmp_path / "datasets" / "clsdata" / "train"
+
+
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
     """Test safe_download() skips archive members that would extract outside the target directory."""
     archive = tmp_path / "unsafe.zip"

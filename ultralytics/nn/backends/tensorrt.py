@@ -45,12 +45,15 @@ class TensorRTBackend(BaseBackend):
         if self.device.type == "cpu":
             self.device = torch.device("cuda:0")
 
+        from ultralytics.utils.export.engine import get_tensorrt_logger
+
         Binding = namedtuple("Binding", ("name", "dtype", "shape", "data"))
-        logger = trt.Logger(trt.Logger.INFO)
+        logger = get_tensorrt_logger()
 
         # Read engine file
         offset, metadata = self.engine_header(weight)
-        with open(weight, "rb") as f, trt.Runtime(logger) as runtime, torch.cuda.device(self.device):
+        with open(weight, "rb") as f, torch.cuda.device(self.device):
+            runtime = trt.Runtime(logger)
             f.seek(offset)  # skip the metadata header, if any, that precedes the engine
             if (dla := metadata.get("dla")) is not None:
                 runtime.DLA_core = int(dla)

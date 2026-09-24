@@ -1303,9 +1303,19 @@ def test_safe_download_unzips_local_path_archive(tmp_path):
     tar_extracted = safe_download(tar_archive, dir=tmp_path / "datasets2", unzip=True, progress=False)
     assert tar_extracted == tmp_path / "datasets2" / dataset_dir.name, f"tar returned {tar_extracted}"
 
-    mislabeled = tmp_path / "corrupt.zip"  # an HTML error page served with a .zip name
-    mislabeled.write_bytes(b"<html>not an archive</html>\n")
-    assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
+    with tarfile.open(tgz_archive := tmp_path / "coco8 local.tgz", "w:gz") as tar:
+        tar.add(dataset_dir, arcname=dataset_dir.name)
+    tar_gz_archive = tmp_path / "coco8 local.tar.gz"
+    tar_gz_archive.write_bytes(tgz_archive.read_bytes())
+    for archive, target in ((tgz_archive, "datasets_tgz"), (tar_gz_archive, "datasets_tar_gz")):
+        extracted = safe_download(archive, dir=tmp_path / target, unzip=True, progress=False)
+        assert extracted == tmp_path / target / dataset_dir.name
+        assert (extracted / "data.yaml").is_file()
+
+    for name in ("corrupt.zip", "corrupt.tar.gz"):
+        mislabeled = tmp_path / name  # an HTML error page served with an archive suffix
+        mislabeled.write_bytes(b"<html>not an archive</html>\n")
+        assert safe_download(mislabeled, dir=tmp_path / "datasets3", unzip=True, progress=False) == mislabeled
 
 
 def test_safe_download_skips_unsafe_archive_members(tmp_path):
@@ -1333,7 +1343,7 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
     extracted = safe_download(archive, dir=tmp_path / "datasets", unzip=True, progress=False)
 
     assert not (tmp_path / "unsafe.txt").exists()
-    assert (extracted / "safe.txt").is_file()
+    assert extracted == tmp_path / "datasets" / "safe.txt" and extracted.is_file()
 
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")

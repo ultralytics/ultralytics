@@ -53,11 +53,12 @@ anomaly:
   mask_offset_range: [0.0, 0.0]
   # in-dist val: mask-off (vanilla floor) always runs; mask-on prior pass optional
   val_mask_prior: false            # skip the mask-ON (prior) in-dist pass -> ~halves in-dist val time
-  # test (cross-dataset MVTec) eval — fitness = OOD heatmap mAP50
+  # test (cross-dataset) eval — an MVTec-Ultra tree, so the catalogue's meta.yaml drives the
+  # product list; fitness = the pooled mAP50@0.25 of the CLI fitness_groups query
   test_val_freq: 1
-  test_categories: null            # null = all 15 MVTec categories
-  test_none_prior: true            # test prior=none — the native regime for p_drop=1.0 (pd100) runs
-  test_heatmap_prior: true         # test prior=heatmap — required (R&D fitness = OOD mAP50)
+  meta_yaml: /data/shared-datasets/louis_data/MVTec-Ultra/v1/meta.yaml
+  test_root: /data/shared-datasets/louis_data/MVTec-Ultra/v1
+  test_skip_unselected: true       # drop products with no selected group (e.g. deferred LOCO)
 
   # new augs, turned off by default for now
   mask_fragment_p: 0.0

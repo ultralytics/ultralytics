@@ -43,8 +43,6 @@ anomaly:
   # test (cross-dataset MVTec) eval
   test_val_freq: 1
   test_categories: null
-  test_none_prior: false
-  test_heatmap_prior: true
 
 backbone:
   - [-1, 1, Conv, [64, 3, 2]]

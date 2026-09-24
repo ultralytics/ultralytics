@@ -37,8 +37,6 @@ anomaly:
   val_mask_prior: false
   test_val_freq: 1
   test_categories: null
-  test_none_prior: false
-  test_heatmap_prior: true
 
   mask_fragment_p: 0.0
   mask_fragment_n: 4

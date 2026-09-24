@@ -243,8 +243,10 @@ def arange_patch(dynamic: bool = False, quantize: int | str | None = None, fmt: 
             return func(*args, **kwargs).to(dtype)  # cast to dtype instead of passing dtype
 
         torch.arange = arange  # patch
-        yield
-        torch.arange = func  # unpatch
+        try:
+            yield
+        finally:
+            torch.arange = func  # unpatch
     else:
         yield
 
@@ -262,8 +264,10 @@ def onnx_export_patch():
             return func(*args, **kwargs, dynamo=False)
 
         torch.onnx.export = torch_export  # patch
-        yield
-        torch.onnx.export = func  # unpatch
+        try:
+            yield
+        finally:
+            torch.onnx.export = func  # unpatch
     else:
         yield
 

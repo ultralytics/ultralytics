@@ -46,6 +46,20 @@ from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
+def test_predict_prefetch():
+    """Test prefetch preserves order and re-raises loader exceptions (CUDA-only path, otherwise uncovered on CPU CI)."""
+    from ultralytics.engine.predictor import _prefetch
+
+    def loader():
+        yield from (1, 2)
+        raise RuntimeError("loader failed")
+
+    batches = _prefetch(loader())
+    assert [next(batches), next(batches)] == [1, 2]
+    with pytest.raises(RuntimeError, match="loader failed"):
+        next(batches)
+
+
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)

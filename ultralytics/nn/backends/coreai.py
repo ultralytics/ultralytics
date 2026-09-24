@@ -27,7 +27,7 @@ class CoreAIBackend(BaseBackend):
             weight (str | Path): Path to the `.aimodel` asset directory.
         """
         LOGGER.info(f"Loading {weight} for Apple Core AI inference...")
-        check_requirements("coreai-torch>=0.4.2")
+        check_requirements("coreai-torch>=0.4.3")
         from coreai.runtime import AIModel
 
         w = Path(weight)

@@ -256,6 +256,9 @@ class OODEvaluator:
         cfg (dict): Resolved catalogue config -- ``test_root``, ``meta_yaml``, ``test_batch``.
         query (str): Which anomalies the pooled number is over, e.g. ``nature=structural``.
         e2e (bool): Also run the o2o (NMS-free) passes, which carry the decisive metrics.
+        passes (set[str]): Which of the four passes to run (``""`` heatmap, ``"none_"``,
+            ``"e2e_"``, ``"e2e_none_"``). Prior-OFF-only subsets skip the memory-bank build
+            entirely -- a bank is never consulted on those passes, so building one is pure cost.
 
     Examples:
         >>> ev = OODEvaluator("/data/.../MVTec-Ultra/v1")
@@ -263,11 +266,14 @@ class OODEvaluator:
         >>> res["mAP50@0.25"]
     """
 
+    _PASSES = ("", "none_", "e2e_", "e2e_none_")
+
     def __init__(
         self,
         data: str | Path | dict,
         groups: str = "nature=structural",
         e2e: bool = True,
+        passes: str | list[str] | None = None,
         device=None,
         batch: int = 8,
         workers: int = 8,
@@ -283,6 +289,9 @@ class OODEvaluator:
             groups (str): Tag query (``nature=structural``, ``surface=texture``) or a
                 comma-separated list of group ids.
             e2e (bool): Run the o2o passes as well as o2m.
+            passes (str | list[str], optional): Subset of ``("", "none_", "e2e_", "e2e_none_")``
+                to run; ``None`` runs all four. A subset without a prior-ON pass skips the
+                memory-bank build.
             device (str | int | torch.device, optional): Defaults to the auto-selected device.
             batch (int): Batch size for bank building and validation.
             workers (int): Dataloader workers.
@@ -297,10 +306,29 @@ class OODEvaluator:
             self.cfg = {"test_root": str(data), "meta_yaml": str(data / "meta.yaml"), "test_batch": batch}
         self.cfg.setdefault("test_batch", batch)
         self.query, self.e2e, self.verbose = groups, e2e, verbose
+        if not passes:
+            # None, "" and [] all mean "no pruning" — an empty subset would run nothing and
+            # produce an empty result silently.
+            self._want = set(self._PASSES)
+        else:
+            self._want = {passes} if isinstance(passes, str) else set(passes)
+            if unknown := self._want - set(self._PASSES):
+                raise ValueError(f"unknown pass(es) {sorted(unknown)}; expected a subset of {self._PASSES!r}")
         self.device = select_device(device) if device is None else device
         self.workers, self.epoch = workers, -1
         self.save_dir = Path(save_dir) if save_dir else None
         self.meta = GroupMeta(self.cfg["meta_yaml"]) if self.cfg.get("meta_yaml") else None
+
+    def _decisive(self) -> str:
+        """The pass prefix the decisive metrics come from: the strongest pass actually run.
+
+        Matches the old rule (``e2e_none_`` when e2e, else ``none_``) whenever those passes are in
+        the requested set; otherwise steps down to whatever pass was requested.
+        """
+        for pre in self._PASSES[::-1]:
+            if pre in self._want and (self.e2e or not pre.startswith("e2e_")):
+                return pre
+        return ""
 
     def __call__(self, model, epoch: int = -1) -> OODResult:
         """Run the full evaluation.
@@ -334,7 +362,7 @@ class OODEvaluator:
             (self.save_dir / "pooled.csv").write_text(
                 "key,value\n" + "".join(f"{k},{v:.6g}\n" for k, v in sorted(pooled.items()))
             )
-        return OODResult(pooled, products, groups, "e2e_none_" if self.e2e else "none_")
+        return OODResult(pooled, products, groups, self._decisive())
 
     def resolve(self) -> list[tuple[str, str, Path]]:
         """Resolve the OOD products as ``(dataset, product, yaml)`` triples.
@@ -351,8 +379,19 @@ class OODEvaluator:
         if meta_path := self.cfg.get("meta_yaml"):
             root = Path(self.cfg.get("test_root") or ".")
             meta = self.meta or GroupMeta(meta_path)
+            # An empty query selects nothing, so skip_unselected would drop every product.
+            selected = self.meta.select(self.query) if self.cfg.get("test_skip_unselected") and (self.query or "").strip() else None
             out = []
             for ds, product, slug in meta.products():
+                if selected is not None:
+                    # Group-level check: an image_nature override could still deselect every image
+                    # of a kept product, and pooled() then drops it with its normals -- the skip
+                    # here is an optimization of exactly that outcome, so the pooled number is
+                    # unchanged by construction.
+                    anomalies = (meta.datasets.get(ds) or {}).get("anomalies") or {}
+                    if not any(f"{ds}/{g}" in selected for g in anomalies if g.startswith(f"{product}/")):
+                        LOGGER.debug(f"OOD eval: skipping {ds}/{product} (no selected group)")
+                        continue
                 d = root / slug
                 for name in (f"{slug}_binary.yaml", "data.yaml"):
                     if (p := d / name).exists():
@@ -402,15 +441,19 @@ class OODEvaluator:
         device = self.device
         workers = self.workers
 
-        e2e = bool(self.e2e)
+        want, e2e = self._want, bool(self.e2e)
+        # Prior-OFF passes never consult the bank (its forward returns zeros while `building`),
+        # so a subset without a prior-ON pass skips the build entirely — pure eval-time cost.
+        need_bank = ("" in want) or ("e2e_" in want)
         for dataset, product, yaml in yamls:
             source = _normal_dir_from_yaml(yaml)
             try:
                 model.memory_bank.reset()
-                n = model.build_memory_bank(str(source), imgsz=640, device=device, batch=batch)
-                if not n:
-                    LOGGER.warning(f"OOD eval: empty bank for {yaml.name}; skipping.")
-                    continue
+                if need_bank:
+                    n = model.build_memory_bank(str(source), imgsz=640, device=device, batch=batch)
+                    if not n:
+                        LOGGER.warning(f"OOD eval: empty bank for {yaml.name}; skipping.")
+                        continue
 
                 overrides = {
                     "task": "detect",
@@ -434,42 +477,49 @@ class OODEvaluator:
                     "end2end": False,
                 }
                 keep = passes.setdefault
+                row = {"category": yaml.parent.name}
 
                 # Pass 1: heatmap prior (memory bank active) — the yoloa_clean fitness signal.
-                validator = YOLOAnomalyValidator(args=overrides)
-                validator(trainer=None, model=model)
-                row = {"category": yaml.parent.name, **validator._ood_map_metrics()}
-                keep("", []).append((dataset, product, validator.snapshot()))
+                if "" in want:
+                    validator = YOLOAnomalyValidator(args=overrides)
+                    validator(trainer=None, model=model)
+                    row.update(validator._ood_map_metrics())
+                    keep("", []).append((dataset, product, validator.snapshot()))
 
                 # Pass 2: prior OFF (bank disabled via `building`) — the bare-detector baseline.
-                mb = model.memory_bank
-                saved_building = mb.building
-                mb.building = True
-                try:
-                    validator_none = YOLOAnomalyValidator(args=overrides)
-                    validator_none(trainer=None, model=model)
-                    row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
-                    keep("none_", []).append((dataset, product, validator_none.snapshot()))
-                finally:
-                    mb.building = saved_building
+                if "none_" in want:
+                    mb = model.memory_bank
+                    saved_building = mb.building
+                    mb.building = True
+                    try:
+                        validator_none = YOLOAnomalyValidator(args=overrides)
+                        validator_none(trainer=None, model=model)
+                        row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
+                        keep("none_", []).append((dataset, product, validator_none.snapshot()))
+                    finally:
+                        mb.building = saved_building
 
                 # Passes 3-4: the same two on the o2o branch — the NMS-free path a deployment ships.
-                if e2e:
+                if e2e and (("e2e_" in want) or ("e2e_none_" in want)):
                     e2e_overrides = {**overrides, "end2end": True}
                     with _frozen_rng():  # keeps the o2m columns identical to an ood_end2end=False run
-                        v_e2e = YOLOAnomalyValidator(args=e2e_overrides)
-                        v_e2e(trainer=None, model=model)
-                        row.update({f"e2e_{k}": v for k, v in v_e2e._ood_map_metrics().items()})
-                        keep("e2e_", []).append((dataset, product, v_e2e.snapshot()))
+                        if "e2e_" in want:
+                            v_e2e = YOLOAnomalyValidator(args=e2e_overrides)
+                            v_e2e(trainer=None, model=model)
+                            row.update({f"e2e_{k}": v for k, v in v_e2e._ood_map_metrics().items()})
+                            keep("e2e_", []).append((dataset, product, v_e2e.snapshot()))
 
-                        mb.building = True
-                        try:
-                            v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
-                            v_e2e_none(trainer=None, model=model)
-                            row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
-                            keep("e2e_none_", []).append((dataset, product, v_e2e_none.snapshot()))
-                        finally:
-                            mb.building = saved_building
+                        if "e2e_none_" in want:
+                            mb = model.memory_bank
+                            saved_building = mb.building
+                            mb.building = True
+                            try:
+                                v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
+                                v_e2e_none(trainer=None, model=model)
+                                row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
+                                keep("e2e_none_", []).append((dataset, product, v_e2e_none.snapshot()))
+                            finally:
+                                mb.building = saved_building
 
                 rows.append(row)
             except Exception as e:

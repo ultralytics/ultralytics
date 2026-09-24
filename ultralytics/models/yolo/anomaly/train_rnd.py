@@ -63,10 +63,24 @@ class AnomalyRNDTrainer(AnomalyTrainer):
         if freq <= 0 or (self.epoch + 1) % freq != 0:
             return metrics, fitness
 
+        branch = getattr(self.args, "fitness_branch", "o2m") or "o2m"
+        if branch not in {"o2m", "o2o"}:
+            LOGGER.warning(f"fitness_branch={branch!r} invalid; falling back to 'o2m'")
+            branch = "o2m"
+        # CLI `fitness_prior=none` arrives as Python None, so `or <default>` would eat it.
+        prior = getattr(self.args, "fitness_prior", "heatmap")
+        prior = "none" if prior is None else prior
+        if prior not in {"heatmap", "none"}:
+            LOGGER.warning(f"fitness_prior={prior!r} invalid; falling back to 'heatmap'")
+            prior = "heatmap"
+
+        # Only the pass fitness reads needs to run; a prior-OFF choice skips the bank build too.
+        pass_key = ("e2e_" if branch == "o2o" else "") + ("none_" if prior == "none" else "")
         ev = OODEvaluator(
             v2_cfg,
             groups=(getattr(self.args, "fitness_groups", "") or "").strip(),
             e2e=bool(getattr(self.args, "ood_end2end", False)),
+            passes=[pass_key] if pass_key else [""],
             device=self.device,
             workers=self.args.workers,
             save_dir=self.save_dir,
@@ -82,34 +96,36 @@ class AnomalyRNDTrainer(AnomalyTrainer):
                 avg = _average_ood_rows(rows)
                 avg.update(res.pooled)
                 avg_metrics = {f"ood/{k}": v for k, v in avg.items()}
-                branch = getattr(self.args, "fitness_branch", "o2m") or "o2m"
-                if branch not in {"o2m", "o2o"}:
-                    LOGGER.warning(f"fitness_branch={branch!r} invalid; falling back to 'o2m'")
-                    branch = "o2m"
-                # CLI `fitness_prior=none` arrives as Python None, so `or <default>` would eat it.
-                prior = getattr(self.args, "fitness_prior", "heatmap")
-                prior = "none" if prior is None else prior
-                if prior not in {"heatmap", "none"}:
-                    LOGGER.warning(f"fitness_prior={prior!r} invalid; falling back to 'heatmap'")
-                    prior = "heatmap"
-                pre = ("pool_" if (getattr(self.args, "fitness_groups", "") or "").strip() else "") + (
-                    "e2e_" if branch == "o2o" else ""
-                ) + ("none_" if prior == "none" else "")
-                if pre and f"{pre}mAP50@0.25" not in avg:
-                    LOGGER.warning(
-                        f"fitness_branch={branch!r} fitness_prior={prior!r} unavailable (no {pre}* metrics; "
-                        "o2o needs ood_end2end=True, none needs test_none_prior, pool_ needs "
-                        "anomaly.meta_yaml + a fitness_groups query that matched); "
-                        "falling back to the o2m heatmap MACRO mean -- not the same number"
-                    )
-                    pre, branch, prior = "", "o2m", "heatmap"
+                pre = ("pool_" if (getattr(self.args, "fitness_groups", "") or "").strip() else "") + pass_key
+                if not (f"{pre}mAP50@0.25" in avg or f"{pre}mAP50" in avg):
+                    for alt, alt_branch, alt_prior in (
+                        ("", "o2m", "heatmap"),
+                        ("none_", "o2m", "none"),
+                        ("e2e_", "o2o", "heatmap"),
+                        ("e2e_none_", "o2o", "none"),
+                    ):
+                        if alt != pass_key and f"{alt}mAP50@0.25" in avg:
+                            LOGGER.warning(
+                                f"fitness_branch={branch!r} fitness_prior={prior!r} unavailable (no {pre}* "
+                                "metrics; o2o needs ood_end2end=True, pool_ needs anomaly.meta_yaml + a "
+                                "fitness_groups query that matched); falling back to the "
+                                f"{alt_branch} {alt_prior} MACRO mean -- not the same number"
+                            )
+                            pre, branch, prior = alt, alt_branch, alt_prior
+                            break
+                    else:
+                        LOGGER.warning(
+                            f"fitness_branch={branch!r} fitness_prior={prior!r} unavailable and no other "
+                            "pass ran; keeping the in-domain fitness"
+                        )
+                        return metrics, fitness
                 fitness = float(avg.get(f"{pre}mAP50@0.25", avg[f"{pre}mAP50"]))
                 metrics["fitness"] = fitness
                 metrics.update(avg_metrics)
                 self.best_fitness = max(self.best_fitness or -math.inf, fitness)
                 LOGGER.info(
-                    f"OOD eval @ep{self.epoch + 1}: [heatmap] mAP50={avg['mAP50']:.4f} "
-                    f"mAP10={avg['mAP10']:.4f} "
+                    f"OOD eval @ep{self.epoch + 1}: [heatmap] mAP50={avg.get('mAP50', float('nan')):.4f} "
+                    f"mAP10={avg.get('mAP10', float('nan')):.4f} "
                     f"| [none] mAP50={avg.get('none_mAP50', float('nan')):.4f} "
                     f"mAP10={avg.get('none_mAP10', float('nan')):.4f} "
                     f"| fitness={fitness:.4f} "

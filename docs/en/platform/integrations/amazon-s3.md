@@ -87,7 +87,7 @@ The dataset then behaves like any other: browse and [annotate](../data/annotatio
 
 !!! note "Limits"
 
-    A single import indexes up to 50,000 objects, and label or YAML files up to 1 MB each. Larger buckets should be split across multiple datasets.
+    A single import indexes up to 500,000 objects, and label or YAML files up to 1 MB each. Larger buckets should be split across multiple datasets.
 
 !!! warning "Keep indexed objects immutable"
 

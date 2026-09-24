@@ -75,11 +75,14 @@ class SemanticSegmentationPredictor(BasePredictor):
             else:
                 # pred: [1, nc, H, W] logits. Upsample to the input resolution first so LetterBox padding is integer.
                 if pred.shape[2:] != img.shape[2:]:
-                    pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
+                    pred = F.interpolate(pred, img.shape[2:], mode="bilinear", align_corners=False)
                 # Remove letterbox padding, then resize to original image.
                 pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
                 dtype = self._class_map_dtype(max(pred.shape[0], 2))
-                class_map = pred.argmax(0).to(dtype) if pred.shape[0] > 1 else pred.gt(0).squeeze(0).to(dtype)
+                if pred.shape[0] > 1:  # CPU argmax over the outermost dim runs as a per-output loop; max(dim) streams
+                    class_map = (pred.max(0).indices if pred.device.type == "cpu" else pred.argmax(0)).to(dtype)
+                else:
+                    class_map = pred.gt(0).squeeze(0).to(dtype)
             if classes is not None:  # keep only selected classes, mark the rest as ignore
                 class_map[~(class_map.unsqueeze(-1) == classes).any(-1)] = 255
             results.append(Results(orig_img, path=img_path, names=self.model.names, semantic_mask=class_map))

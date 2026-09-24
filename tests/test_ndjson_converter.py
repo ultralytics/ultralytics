@@ -177,10 +177,19 @@ def test_convert_ndjson_selects_split_fractions(tmp_path, depth_server):
     manifest = tmp_path / "detect.ndjson"
     manifest.write_text("\n".join(json.dumps(record) for record in records))
 
-    for fraction, expected_test in (([0.25, 1], {"10.jpg"}), ([0.25, 1, 0], set())):
-        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction))
+    for fraction, split, expected_test in (
+        ([0.25, 1], None, {"10.jpg"}),
+        ([0.25, 1, 0], None, set()),
+        ([0.25, 1], "val", set()),
+        ([0.25, 1], "test", {"10.jpg"}),
+    ):
+        yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=fraction, split=split))
         files = [
             {p.name for p in (yaml_path.parent / "images" / split).glob("*")} for split in ("train", "val", "test")
         ]
         assert files == [{"1.jpg", "9.jpg"}, {"8.jpg"}, expected_test]
         assert YAML.load(yaml_path)["nc"] == 3
+
+    yaml_path = asyncio.run(convert_ndjson_to_yolo(manifest, tmp_path / "datasets", fraction=0.05))
+    train = {p.name for p in (yaml_path.parent / "images" / "train").glob("*")}
+    assert train == {"1.jpg"}  # round(9 * 0.05) == 0, yet a nonzero fraction must never write an empty split

@@ -100,10 +100,10 @@ def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
     return depth
 
 
-def img2label_paths(img_paths: list[str], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
+def img2label_paths(img_paths: list[str | Path], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
     """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}{label_dir}{os.sep}"  # /images/, /labels/ substrings
-    return [sb.join(x.rsplit(sa, 1)).rsplit(".", 1)[0] + f"{suffix}" for x in img_paths]
+    return [sb.join(os.fspath(x).rsplit(sa, 1)).rsplit(".", 1)[0] + f"{suffix}" for x in img_paths]
 
 
 def check_file_speeds(
@@ -185,16 +185,19 @@ def check_file_speeds(
 
 
 def get_hash(paths: list[str]) -> str:
-    """Return a single hash value of a list of paths (files or dirs)."""
-    size = 0
+    """Return a hash of paths and their file sizes and modification times."""
+    h = __import__("hashlib").sha256()
     for p in paths:
+        h.update(p.encode())
+        h.update(b"\0")
         try:
-            size += os.stat(p).st_size
+            stat = os.stat(p)
         except OSError:
+            h.update(b"\0")
             continue
-    h = __import__("hashlib").sha256(str(size).encode())  # hash sizes
-    h.update("".join(paths).encode())  # hash paths
-    return h.hexdigest()  # return hash
+        h.update(f"{stat.st_size}:{stat.st_mtime_ns}".encode())
+        h.update(b"\0")
+    return h.hexdigest()
 
 
 def exif_size(img: Image.Image) -> tuple[int, int]:
@@ -512,10 +515,11 @@ def find_dataset_yaml(path: Path) -> Path:
     Returns:
         (Path): The path of the found YAML file.
     """
-    files = list(path.glob("*.yaml")) or list(path.rglob("*.yaml"))  # try root level first and then recursive
+    # try root level first and then recursive
+    files = [*path.glob("*.yaml"), *path.glob("*.yml")] or [*path.rglob("*.yaml"), *path.rglob("*.yml")]
     assert files, f"No YAML file found in '{path.resolve()}'"
     if len(files) > 1:
-        files = [f for f in files if f.stem == path.stem]  # prefer *.yaml files that match
+        files = [f for f in files if f.stem == path.stem]  # prefer YAML files that match
     assert len(files) == 1, f"Expected 1 YAML file in '{path.resolve()}', but found {len(files)}.\n{files}"
     return files[0]
 
@@ -533,7 +537,7 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     return fraction
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0) -> str | Path:
+def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=None) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
@@ -542,7 +546,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0) -> str | Pa
 
         from ultralytics.data.converter import convert_ndjson_to_yolo
 
-        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction))
+        return asyncio.run(convert_ndjson_to_yolo(data, fraction=fraction, split=split))
     return data
 
 
@@ -573,7 +577,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     extract_dir = ""
     if zipfile.is_zipfile(file) or is_tarfile(file):
         new_dir = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
-        file = find_dataset_yaml(DATASETS_DIR / new_dir)
+        file = new_dir if new_dir.is_file() else find_dataset_yaml(new_dir)
         extract_dir, autodownload = file.parent, False
 
     # Read YAML
@@ -691,7 +695,7 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     # Download (optional if dataset=https://file.zip is passed directly)
     if str(dataset).startswith(("http:/", "https:/")):
         dataset = safe_download(dataset, dir=DATASETS_DIR, unzip=True, delete=False)
-    elif str(dataset).endswith((".zip", ".tar", ".gz")):
+    elif str(dataset).endswith((".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")):
         file = check_file(dataset)
         dataset = safe_download(file, dir=DATASETS_DIR, unzip=True, delete=False)
 

@@ -115,7 +115,7 @@ class HungarianMatcher(nn.Module):
         gt_bboxes = torch.nn.utils.rnn.pad_sequence(gt_bboxes.split(gt_groups), batch_first=True)
         gt_cls = torch.nn.utils.rnn.pad_sequence(gt_cls.split(gt_groups), batch_first=True)
         pred_scores = pred_scores.detach()
-        pred_scores = F.sigmoid(pred_scores) if self.use_fl else F.softmax(pred_scores, dim=-1)
+        pred_scores = pred_scores.sigmoid() if self.use_fl else F.softmax(pred_scores, dim=-1)
         pred_bboxes = pred_bboxes.detach()
 
         # Compute classification cost

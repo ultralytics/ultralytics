@@ -28,7 +28,7 @@ The Data section of Ultralytics Platform helps you:
 - **Import from a URL** by pasting a direct link to an archive or NDJSON export, or from [Roboflow](../integrations/roboflow.md)
 - **Connect** [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) and use your data in place without uploading a copy
 - **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
-- **Annotate** with manual drawing tools and SAM-powered smart labeling — choose from [SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)
+- **Annotate** with manual drawing tools and Smart annotation with SAM ([SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)), YOLO models, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–100 classes
 - **Manage classes** by renaming, recoloring, merging, and deleting them across the whole dataset
 - **Analyze** your data with statistics, visualizations, and embedding-based clustering
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
@@ -48,12 +48,12 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-| Stage        | Description                                                                                           |
-| ------------ | ----------------------------------------------------------------------------------------------------- |
-| **Upload**   | Import images, videos, or archives with automatic processing                                          |
-| **Annotate** | Label data with manual tools, or use SAM annotation for detect, segment, semantic, and OBB            |
-| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters              |
-| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use |
+| Stage        | Description                                                                                                                                                                                                                 |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upload**   | Import images, videos, or archives with automatic processing                                                                                                                                                                |
+| **Annotate** | Label data with manual tools, or use Smart annotation with SAM (detect, segment, semantic, and OBB), YOLO, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–100 classes |
+| **Analyze**  | View class distributions, spatial heatmaps, dimension statistics, and embedding clusters                                                                                                                                    |
+| **Export**   | Download in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for offline use                                                                                                                       |
 
 ## Supported Tasks
 

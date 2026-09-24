@@ -21,8 +21,8 @@
 | [DEEPX]({{ integrations_path or "../integrations" }}/deepx.md) | `deepx` | `{{ model_name or "yolo26n" }}_deepx_model/` | ✅ | `imgsz`, `quantize`, `simplify`, `opset`, `data`, `optimize`, `device` |
 | [Qualcomm QNN]({{ integrations_path or "../integrations" }}/qnn.md) | `qnn` | `{{ model_name or "yolo26n" }}_qnn.onnx` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
 | [LiteRT]({{ integrations_path or "../integrations" }}/litert.md) | `litert` | `{{ model_name or "yolo26n" }}.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |
-| [Hailo]({{ integrations_path or "../integrations" }}/hailo.md) | `hailo` | `{{ model_name or "yolo26n" }}_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou` |
-| [Huawei Ascend]({{ integrations_path or "../integrations" }}/ascend.md) | `ascend` | `{{ model_name or "yolo26n" }}_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`{{ tip1 }} |
+| [Hailo]({{ integrations_path or "../integrations" }}/hailo.md) | `hailo` | `{{ model_name or "yolo26n" }}_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou`, `device` |
+| [Huawei Ascend]({{ integrations_path or "../integrations" }}/ascend.md) | `ascend` | `{{ model_name or "yolo26n" }}_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`{{ tip1 }}, `device` |
 | [Apple Core AI]({{ integrations_path or "../integrations" }}/coreai.md) | `coreai` | `{{ model_name or "yolo26n" }}.aimodel` | ✅ | `imgsz`, `batch`, `quantize` |
 | [ExportedProgram]({{ integrations_path or "../integrations" }}/exported-program.md) | `exported_program` | `{{ model_name or "yolo26n" }}.pt2` | ✅ | `imgsz`, `batch`, `device` |
 

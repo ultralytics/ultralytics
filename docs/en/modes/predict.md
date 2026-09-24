@@ -549,22 +549,32 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
 === "Segment"
 
-    | Attribute           | Type          | Shape         | Description                         |
-    | ------------------- | ------------- | ------------- | ----------------------------------- |
-    | `result.boxes`      | `Boxes`       | `(N)`         | Instance boxes/classes/confidences. |
-    | `result.masks`      | `Masks`       | `(N)`         | Instance masks.                     |
-    | `result.masks.data` | `torch.uint8` | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
-    | `result.masks.xy`   | `np.float32`  | `list[(P,2)]` | Pixel polygons.                     |
-    | `result.masks.xyn`  | `np.float32`  | `list[(P,2)]` | Normalized polygons.                |
+    | Attribute           | Type            | Shape         | Description                         |
+    | ------------------- | --------------- | ------------- | ----------------------------------- |
+    | `result.masks`      | `Masks`         | `(N)`         | Instance masks.                     |
+    | `result.masks.data` | `torch.uint8`   | `(N,H,W)`     | Binary masks, values `0` or `1`.    |
+    | `result.masks.xy`   | `np.float32`    | `list[(P,2)]` | Pixel polygons.                     |
+    | `result.masks.xyn`  | `np.float32`    | `list[(P,2)]` | Normalized polygons.                |
+    | `result.boxes`      | `Boxes`         | `(N)`         | Instance boxes/classes/confidences. |
+    | `result.boxes.cls`  | `torch.float32` | `(N,)`        | Class IDs; cast to `int` for names. |
 
 === "Semantic"
 
-    | Attribute                   | Type                                            | Shape   | Description                                         |
-    | --------------------------- | ----------------------------------------------- | ------- | --------------------------------------------------- |
-    | `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                                    |
-    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Per-pixel class IDs, dtype selected by class count. |
-    | `result.masks`              | -                                               | -       | No instance masks.                                  |
-    | `result.boxes`              | -                                               | -       | No instance boxes/confidences.                      |
+    | Attribute                   | Type                                            | Shape   | Description                               |
+    | --------------------------- | ----------------------------------------------- | ------- | ----------------------------------------- |
+    | `result.semantic_mask`      | `SemanticMask`                                  | `(H,W)` | Dense class map.                          |
+    | `result.semantic_mask.data` | `torch.uint8`<br>`torch.int16`<br>`torch.int32` | `(H,W)` | Class IDs; dtype selected by class count. |
+    | `result.masks`              | -                                               | -       | No instance masks.                        |
+    | `result.boxes`              | -                                               | -       | No instance boxes/confidences.            |
+
+=== "Depth"
+
+    | Attribute           | Type           | Shape   | Description                                              |
+    | ------------------- | -------------- | ------- | -------------------------------------------------------- |
+    | `result.depth`      | `DepthMap`     | `(H,W)` | Dense per-pixel depth map.                               |
+    | `result.depth.data` | `torch.Tensor` | `(H,W)` | Depth values in meters; call `.cpu().numpy()` for NumPy. |
+    | `result.boxes`      | -              | -       | No instance boxes.                                       |
+    | `result.masks`      | -              | -       | No instance masks.                                       |
 
 === "Classify"
 
@@ -580,11 +590,11 @@ IDs: `torch.uint8`, `torch.int16`, or `torch.int32`, depending on class count.
 
     | Attribute               | Type            | Shape       | Description                                |
     | ----------------------- | --------------- | ----------- | ------------------------------------------ |
-    | `result.boxes`          | `Boxes`         | `(N)`       | Instance boxes.                            |
     | `result.keypoints`      | `Keypoints`     | `(N)`       | Keypoints.                                 |
     | `result.keypoints.data` | `torch.float32` | `(N,K,2/3)` | `x,y` plus optional visibility/confidence. |
     | `result.keypoints.xy`   | `torch.float32` | `(N,K,2)`   | Pixel keypoints.                           |
     | `result.keypoints.xyn`  | `torch.float32` | `(N,K,2)`   | Normalized keypoints.                      |
+    | `result.boxes`          | `Boxes`         | `(N)`       | Instance boxes.                            |
 
 === "OBB"
 

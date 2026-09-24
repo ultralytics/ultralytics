@@ -143,6 +143,7 @@ def onnx2saved_model(
         if images is not None:
             output_dir.mkdir(parents=True, exist_ok=True)
             np.save(str(tmp_file), images)  # BHWC
+            del images
             np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
     # Patch onnx.helper for onnx_graphsurgeon compatibility with ONNX>=1.17

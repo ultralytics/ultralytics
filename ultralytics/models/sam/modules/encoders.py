@@ -393,7 +393,7 @@ class MemoryEncoder(nn.Module):
     ) -> dict:
         """Process pixel features and masks to generate encoded memory representations for segmentation."""
         if not skip_mask_sigmoid:
-            masks = F.sigmoid(masks)
+            masks = masks.sigmoid()
         masks = self.mask_downsampler(masks)
 
         # Fuse pix_feats and downsampled masks, in case the visual features are on CPU, cast them to CUDA

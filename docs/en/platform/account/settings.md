@@ -242,8 +242,9 @@ are deleted automatically.
 
 ## API Keys Tab
 
-The `API Keys` tab lets you create and manage API keys for remote training and inference. Only the workspace owner can
-create, view, or revoke keys — a workspace key acts as the owner. See [API Keys](api-keys.md) for full documentation.
+The `API Keys` tab lets you create and manage API keys for remote training and inference, and stores provider keys for
+Agents and class-prompted annotation. Only the workspace owner can create, view, or revoke keys — a workspace key acts
+as the owner. See [API Keys](api-keys.md) for full documentation.
 
 ## Plans Tab
 

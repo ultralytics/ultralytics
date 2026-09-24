@@ -13,10 +13,6 @@ Monocular depth estimation predicts a per-pixel depth map from a single RGB imag
 
 The output of a depth model is a dense float map of shape `(H, W)` aligned to the input image. This per-pixel representation makes monocular depth estimation well-suited for 3D scene reconstruction, robot navigation, AR/VR content creation, and any application that requires spatial layout from a single camera.
 
-!!! tip
-
-    Use `task=depth` or the `yolo depth` CLI task for monocular depth estimation. YOLO26 depth model files use the `-depth` suffix, such as `yolo26n-depth.pt`.
-
 <p align="center">
   <br>
   <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/i-V1kRCJD0M"
@@ -27,6 +23,10 @@ The output of a depth model is a dense float map of shape `(H, W)` aligned to th
   <br>
   <strong>Watch:</strong> Monocular Depth Estimation with Ultralytics YOLO26 | Python Tutorial | Vision AI 🚀
 </p>
+
+!!! tip
+
+    Use `task=depth` or the `yolo depth` CLI task for monocular depth estimation. YOLO26 depth model files use the `-depth` suffix, such as `yolo26n-depth.pt`.
 
 ## [Models](https://github.com/ultralytics/ultralytics/tree/main/ultralytics/cfg/models/26)
 
@@ -45,7 +45,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary NYU Depth V2 results.
 
-## Speed compared to Depth Anything V2
+### Speed compared to Depth Anything V2
 
 Depth Anything V2 is a widely used open baseline for monocular depth. Its DINOv2 [vision transformer](https://www.ultralytics.com/glossary/vision-transformer-vit) backbone and DPT decoder are compute-heavy, so on the same Tesla T4 under TensorRT fp16 the smallest released Depth Anything V2 model is slower than every YOLO26 depth model — including YOLO26x-depth, which carries more than twice the parameters.
 
@@ -69,11 +69,9 @@ At ~640 px — `imgsz=640` and 644 px respectively — the ordering is unchanged
 - Depth Anything V2 Small and Base are the released ViT-S and ViT-B checkpoints.
 - The comparison covers latency only — the two model families are not evaluated here under a shared accuracy protocol.
 
-## Depth range and the log-depth head
+### Depth range and the log-depth head
 
 The depth head predicts `exp(logit)` — **unbounded** (~0.02–150 m) — and **decouples scene shape from absolute scale**: the network predicts a relative log-depth field, and absolute meters are set by a separate two-parameter transform (`exp(a·log d + b)`) recovered at evaluation, by lightweight calibration, or by fine-tuning. The common alternative, a bounded `sigmoid × max_depth` head, instead bakes a fixed ceiling into the architecture, so any depth beyond `max_depth` is clipped — which prevents training on, and predicting, longer-range scenes.
-
-### Why the head is unbounded: evidence across depth ranges
 
 **Controlled A/B — same data, same schedule, only the head differs.** Training both heads from scratch on an identical mix of indoor (≤10 m) and outdoor (≤80 m) data:
 
@@ -143,7 +141,23 @@ Train YOLO26n-depth on the [Depth8](../datasets/depth/depth8.md) dataset for 100
         yolo depth train data=depth8.yaml model=yolo26n-depth.yaml pretrained=yolo26n-depth.pt epochs=100 imgsz=640
         ```
 
-See full `train` mode details in the [Train](../modes/train.md) page.
+See full `train` mode details in the [Train](../modes/train.md) page. Depth models can also be trained with [Ultralytics Platform cloud training](../platform/train/cloud-training.md).
+
+### Dataset format
+
+Depth estimation datasets pair each RGB image with a scaled uint16 depth PNG or floating-point NPY depth map in meters. PNG values use millimeters by default; datasets with another convention set `depth_scale` in their YAML. The loader derives the depth path by replacing the `images` component with `depth`, preferring `.png` and falling back to `.npy`.
+
+```text
+dataset/
+├── images/
+│   ├── train/
+│   └── val/
+└── depth/
+    ├── train/
+    └── val/
+```
+
+For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.png`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
 
 ### Fine-tuning on your own data
 
@@ -207,22 +221,6 @@ Training does this for you automatically: after `model.train(...)` completes, th
 
 The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
 
-### Dataset format
-
-Depth estimation datasets pair each RGB image with a scaled uint16 depth PNG or floating-point NPY depth map in meters. PNG values use millimeters by default; datasets with another convention set `depth_scale` in their YAML. The loader derives the depth path by replacing the `images` component with `depth`, preferring `.png` and falling back to `.npy`.
-
-```text
-dataset/
-├── images/
-│   ├── train/
-│   └── val/
-└── depth/
-    ├── train/
-    └── val/
-```
-
-For example, an image at `images/train/scene_001.jpg` is paired with a depth map at `depth/train/scene_001.png`. See the [Depth Estimation Dataset Guide](../datasets/depth/index.md) for the full format specification.
-
 ## Val
 
 Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768`, so validate and predict at that size for best accuracy.
@@ -249,8 +247,8 @@ Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/gl
     === "CLI"
 
         ```bash
-        yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml   # validate official model
-        yolo depth val model=path/to/best.pt data=path/to/data.yaml # validate custom model
+        yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml   # val official model
+        yolo depth val model=path/to/best.pt data=path/to/data.yaml # val custom model
         ```
 
 ## Predict

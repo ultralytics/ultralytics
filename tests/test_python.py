@@ -46,6 +46,29 @@ from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
+def test_predict_prefetch_iterator_lifecycle():
+    """Test prefetch iteration, loader exceptions, and early stream close."""
+    from ultralytics.engine.predictor import _prefetch
+
+    assert list(_prefetch(iter(()))) == []
+    assert list(_prefetch(iter((1, 2)))) == [1, 2]
+
+    def failing_loader():
+        yield 1
+        raise RuntimeError("loader failed")
+
+    batches = _prefetch(failing_loader())
+    assert next(batches) == 1
+    with pytest.raises(RuntimeError, match="loader failed"):
+        next(batches)
+
+    batches = _prefetch(iter((1, 2)))
+    assert next(batches) == 1
+    batches.close()
+    with pytest.raises(StopIteration):
+        next(batches)
+
+
 def test_dataloader_caps_workers_to_batches():
     """Test tiny datasets do not spawn persistent workers beyond useful batch count."""
     single_batch = build_dataloader(range(4), batch=4, workers=8)

@@ -1,6 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 import os
+import threading
 from itertools import product
 from pathlib import Path
 
@@ -10,6 +11,7 @@ import torch
 from tests import CUDA_DEVICE_COUNT, CUDA_IS_AVAILABLE, MODEL, SOURCE
 from ultralytics import YOLO
 from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
+from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_tensorrt
@@ -201,6 +203,21 @@ def test_predict_multiple_devices():
     assert str(model.device) == cuda_device
     _ = model(SOURCE)
     assert str(model.device) == cuda_device
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_predict_directory_prefetch(monkeypatch):
+    """Multi-batch CUDA directory prediction loads images off the main thread, once each and in order."""
+    threads, load = set(), LoadImagesAndVideos.__next__
+
+    def record(self):
+        threads.add(threading.current_thread())
+        return load(self)
+
+    monkeypatch.setattr(LoadImagesAndVideos, "__next__", record)
+    results = YOLO(MODEL)(ASSETS, imgsz=32, device=DEVICES[0])  # default batch=1 gives one batch per image
+    assert [Path(r.path).name for r in results] == sorted(p.name for p in ASSETS.glob("*.jpg"))
+    assert threads and threading.main_thread() not in threads
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")

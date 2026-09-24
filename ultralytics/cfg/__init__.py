@@ -1141,7 +1141,7 @@ def entrypoint(debug: str = "") -> None:
             "https://ultralytics.com/images/boats.jpg" if task == "obb" else DEFAULT_CFG.source or ASSETS
         )
         LOGGER.warning(f"'source' argument is missing. Using default 'source={overrides['source']}'.")
-    elif mode in {"train", "val"}:
+    elif mode == "train":  # val resolves a missing 'data' in Model.val()
         if overrides.get("data") is None and not overrides.get("resume"):
             overrides["data"] = DEFAULT_CFG.data or TASK2DATA.get(task or DEFAULT_CFG.task, DEFAULT_CFG.data)
             LOGGER.warning(f"'data' argument is missing. Using default 'data={overrides['data']}'.")

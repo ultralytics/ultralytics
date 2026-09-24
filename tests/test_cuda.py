@@ -70,7 +70,9 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
         nms=nms,
         device=DEVICES[0],
     )
-    YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
+    model = YOLO(file)
+    model([SOURCE] * batch, imgsz=64 if dynamic else 32, device=DEVICES[0])  # exported model inference
+    assert "CUDAExecutionProvider" in model.predictor.model.backend.session.get_providers()
     Path(file).unlink()  # cleanup
 
 

@@ -53,6 +53,12 @@ of the gap is annotator convention rather than capability — but the human rule
 it the gap is real. E_refocal and B_warmstart sit within 0.0043 of each other on every ruler: the fourth
 channel costs nothing in 2D, and never has.
 
+Retraining on the recovered images (H8) closes 28% of it: `F_clip` reaches **0.4732** against `yolo26n-pose`'s
+0.5676, and **overtakes it on detection** (box mAP 0.6891 vs 0.6645) because boxes were never distilled. A
+step-matched control attributes **71% of the gain to the data rather than the compute**. The cost is root depth:
+3DPW AbsRel(Z) goes 0.0398 -> 0.0445 -> 0.0456 across E, G, F — monotone in the data and indifferent to the
+schedule, because a person truncated at the frame edge has a mid-hip root the network cannot see.
+
 Restricting COCO GT to the 1,168 images whose teacher labels survive validation cuts that gap to **0.0759** —
 **42% of it is the frame-edge images the loader dropped from training**. On those matched pixels the annotator
 alone is worth ~0.10 of swing: pose2d leads by 0.0759 under COCO's annotation and trails by 0.0259 under the

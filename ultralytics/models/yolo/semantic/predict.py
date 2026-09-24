@@ -75,7 +75,7 @@ class SemanticSegmentationPredictor(BasePredictor):
             else:
                 # pred: [1, nc, H, W] logits. Upsample to the input resolution first so LetterBox padding is integer.
                 if pred.shape[2:] != img.shape[2:]:
-                    pred = F.interpolate(pred, img.shape[2:], mode="bilinear")
+                    pred = F.interpolate(pred, img.shape[2:], mode="bilinear", align_corners=False)
                 # Remove letterbox padding, then resize to original image.
                 pred = ops.scale_masks(pred, orig_img.shape[:2])[0]
                 dtype = self._class_map_dtype(max(pred.shape[0], 2))

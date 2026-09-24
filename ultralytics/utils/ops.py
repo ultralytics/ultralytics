@@ -237,11 +237,13 @@ def xyxy2xywh(x):
     the top-left corner and (x2, y2) is the bottom-right corner.
 
     Args:
-        x (np.ndarray | torch.Tensor): Input bounding box coordinates in (x1, y1, x2, y2) format.
+        x (np.ndarray | torch.Tensor | list | tuple): Input bounding box coordinates in (x1, y1, x2, y2) format.
 
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in (x, y, width, height) format.
     """
+    if isinstance(x, (list, tuple)):
+        x = np.asarray(x, dtype=np.float32)  # float so odd integer boxes keep fractional centers
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
     x1, y1, x2, y2 = x[..., 0], x[..., 1], x[..., 2], x[..., 3]
@@ -257,11 +259,13 @@ def xywh2xyxy(x):
     the top-left corner and (x2, y2) is the bottom-right corner. Note: ops per 2 channels faster than per channel.
 
     Args:
-        x (np.ndarray | torch.Tensor): Input bounding box coordinates in (x, y, width, height) format.
+        x (np.ndarray | torch.Tensor | list | tuple): Input bounding box coordinates in (x, y, width, height) format.
 
     Returns:
         (np.ndarray | torch.Tensor): Bounding box coordinates in (x1, y1, x2, y2) format.
     """
+    if isinstance(x, (list, tuple)):
+        x = np.asarray(x, dtype=np.float32)  # float so odd integer boxes keep fractional centers
     assert x.shape[-1] == 4, f"input shape last dimension expected 4 but input shape is {x.shape}"
     y = empty_like(x)  # faster than clone/copy
     xy = x[..., :2]  # centers
@@ -452,7 +456,7 @@ def segments2boxes(segments):
     """Convert segment coordinates to bounding box labels in xywh format.
 
     Args:
-        segments (list): List of segments where each segment is a list of points, each point is [x, y] coordinates.
+        segments (list[np.ndarray]): List of segments, each an (N, 2) array of [x, y] points.
 
     Returns:
         (np.ndarray): Bounding box coordinates in xywh format.

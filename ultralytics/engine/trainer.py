@@ -197,6 +197,7 @@ class BaseTrainer:
 
         # Optimization utils init
         self.lf = None
+        self.optimizer = None
         self.scheduler = None
 
         # Epoch level metrics
@@ -290,7 +291,7 @@ class BaseTrainer:
         )
 
     def _build_train_pipeline(self):
-        """Build dataloaders, optimizer, and scheduler for current batch size."""
+        """Build dataloaders and update optimizer settings for the current batch size."""
         batch_size = self.batch_size // max(self.world_size, 1)
         self.train_loader = self.get_dataloader(
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
@@ -303,23 +304,28 @@ class BaseTrainer:
             )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(
-            self.data.get("val") or self.data.get("test"),
+            self.data[self.args.split],
             batch_size=batch_size if self.args.task in {"obb", "semantic", "depth"} else batch_size * 2,
             rank=LOCAL_RANK,
             mode="val",
         )
         self.accumulate = max(round(self.args.nbs / self.batch_size), 1)  # accumulate loss before optimizing
         weight_decay = self.args.weight_decay * self.batch_size * self.accumulate / self.args.nbs  # scale weight_decay
-        iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
-        self.optimizer = self.build_optimizer(
-            model=self.model,
-            name=self.args.optimizer,
-            lr=self.args.lr0,
-            momentum=self.args.momentum,
-            decay=weight_decay,
-            iterations=iterations,
-        )
-        self._setup_scheduler()
+        if self.optimizer is None:
+            iterations = math.ceil(len(self.train_loader.dataset) / max(self.batch_size, self.args.nbs)) * self.epochs
+            self.optimizer = self.build_optimizer(
+                model=self.model,
+                name=self.args.optimizer,
+                lr=self.args.lr0,
+                momentum=self.args.momentum,
+                decay=weight_decay,
+                iterations=iterations,
+            )
+            self._setup_scheduler()
+        else:
+            for group in self.optimizer.param_groups:
+                if group.get("param_group") in {"weight", "muon"}:
+                    group["weight_decay"] = weight_decay
 
     def _setup_train(self):
         """Configure model, optimizer, dataloaders, and training utilities before the training loop."""
@@ -568,9 +574,12 @@ class BaseTrainer:
                     )
                     batch = loss = preds = None
                     self.loss = self.loss_items = self.tloss = None
+                    if hasattr(self.train_loader, "close"):
+                        self.train_loader.close()  # free the replaced loader's workers and prefetched batches
                     self._clear_memory()
-                    self._build_train_pipeline()  # rebuild dataloaders, optimizer, scheduler
+                    self._build_train_pipeline()  # retain optimizer state across OOM retries
                     mosaic_closed = not self.args.close_mosaic  # the rebuilt loader reopened mosaic, re-arm the gate
+                    self.validator.dataloader = self.test_loader  # the validator holds the pre-halving loader
                     self.scheduler.last_epoch = self.start_epoch - 1
                     nb = len(self.train_loader)
                     nw = self._get_warmup_iterations(nb)
@@ -730,7 +739,7 @@ class BaseTrainer:
         import polars as pl  # scope for faster 'import ultralytics'
 
         try:
-            return pl.read_csv(self.csv, infer_schema_length=None).to_dict(as_series=False)
+            return pl.read_csv(self.csv.read_bytes(), infer_schema_length=None).to_dict(as_series=False)
         except Exception:
             return {}
 
@@ -815,11 +824,11 @@ class BaseTrainer:
             (dict): A dictionary containing the training/validation/test dataset and category names.
         """
         try:
-            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+            self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction, split=self.args.split)
 
             # Task-specific dataset checking
             if self.args.task == "classify":
-                data = check_cls_dataset(self.args.data)
+                data = check_cls_dataset(self.args.data, split=self.args.split)
             elif str(self.args.data).rsplit(".", 1)[-1] in {"yaml", "yml"} or self.args.task in {
                 "detect",
                 "segment",
@@ -828,7 +837,7 @@ class BaseTrainer:
                 "semantic",
                 "depth",
             }:
-                data = check_det_dataset(self.args.data)
+                data = check_det_dataset(self.args.data, split=self.args.split)
                 if "yaml_file" in data:
                     self.args.data = data["yaml_file"]  # for validating 'yolo train data=url.zip' usage
         except Exception as e:
@@ -1037,6 +1046,8 @@ class BaseTrainer:
     def _load_checkpoint_state(self, ckpt):
         """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
         if ckpt.get("optimizer") is not None:
+            for saved, group in zip(ckpt["optimizer"]["param_groups"], self.optimizer.param_groups):
+                saved["fused"] = group.get("fused")  # runtime device, not the checkpoint, picks the kernel
             self.optimizer.load_state_dict(ckpt["optimizer"])
         if ckpt.get("scaler"):
             self.scaler.load_state_dict(ckpt["scaler"])

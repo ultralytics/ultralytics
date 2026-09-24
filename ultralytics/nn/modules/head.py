@@ -272,11 +272,7 @@ class Detect(nn.Module):
         ori_index = self._grouped_topk(scores.max(dim=-1)[0], k, groups)[1]
         scores = self._gather(scores, ori_index)
         scores, index = self._grouped_topk(scores.flatten(1), k, groups)
-        return (
-            scores[..., None],
-            (index % nc)[..., None].float(),
-            self._gather(ori_index, torch.div(index, nc, rounding_mode="trunc")),
-        )
+        return scores[..., None], (index % nc)[..., None].float(), self._gather(ori_index, index // nc)
 
     def fuse(self) -> None:
         """Remove the unused detection branch for inference."""

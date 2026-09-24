@@ -989,12 +989,12 @@ class SAM2Model(torch.nn.Module):
     def _apply_non_overlapping_constraints(pred_masks):
         """Apply non-overlapping constraints to masks, keeping the highest scoring object per location."""
         batch_size = pred_masks.shape[0]
-        if batch_size == 1:
+        if batch_size < 2:
             return pred_masks
 
         device = pred_masks.device
         # "max_obj_inds": object index of the object with the highest score at each location
-        max_obj_inds = torch.argmax(pred_masks, dim=0, keepdim=True)
+        max_obj_inds = pred_masks.max(dim=0, keepdim=True).indices
         # "batch_obj_inds": object index of each object slice (along dim 0) in `pred_masks`
         batch_obj_inds = torch.arange(batch_size, device=device)[:, None, None, None]
         keep = max_obj_inds == batch_obj_inds

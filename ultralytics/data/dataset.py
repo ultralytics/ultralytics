@@ -317,6 +317,8 @@ class YOLODataset(BaseDataset):
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
+            if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
+                self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -396,7 +398,7 @@ class YOLODataset(BaseDataset):
 
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
-        if len(segments) > 0:
+        if len(segments) > 0 and (self.use_segments or self.format_class is not SemanticFormat):
             # make sure segments interpolate correctly if original length is greater than segment_resamples
             max_len = max(len(s) for s in segments)
             segment_resamples = (max_len + 1) if segment_resamples < max_len else segment_resamples

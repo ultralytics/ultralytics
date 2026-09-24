@@ -24,7 +24,7 @@ RUN FILENAME=actions-runner-linux-x64-${RUNNER_VERSION}.tar.gz && \
     tar xzf "$FILENAME" && \
     rm "$FILENAME" && \
     # Install runner dependencies \
-    uv pip install --system pytest-cov && \
+    uv pip install --system --no-cache pytest-cov && \
     ./bin/installdependencies.sh && \
     apt-get install -y --no-install-recommends gh gpg jq libicu-dev sudo && \
     apt-get clean && \

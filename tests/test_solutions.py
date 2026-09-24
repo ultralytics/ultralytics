@@ -194,7 +194,7 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
     kwargs.setdefault("imgsz", 320)
 
     if name == "StreamlitInference":
-        from streamlit.testing.v1 import AppTest
+        AppTest = pytest.importorskip("streamlit.testing.v1").AppTest
 
         app = AppTest.from_string("from ultralytics import solutions\nsolutions.Inference().inference()")
         assert not app.run(timeout=60).exception

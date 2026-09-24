@@ -66,7 +66,7 @@ def torch2coreai(
         input_names=["images"],
         output_names=[f"output{i}" for i in range(n_outputs)],
     )
-    program = converter.to_coreai()  # already optimized since coreai-torch 0.4.3, which removed optimize()
+    program = converter.to_coreai()  # already optimized
 
     asset_metadata = AIModelAssetMetadata()
     asset_metadata.author = "Ultralytics"

@@ -770,7 +770,7 @@ GET /api/datasets/{owner}/{dataset}/images
 | `hasLabel`          | boolean | Filter by annotation state                                                                                                                                          |
 | `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
 | `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
-| `search`            | string  | Substring match on filename and custom metadata (max 200 chars)                                                                                                     |
+| `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
 | `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
 | `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
 | `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |

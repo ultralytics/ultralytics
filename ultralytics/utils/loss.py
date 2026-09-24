@@ -905,7 +905,11 @@ class Pose3DLoss(v8PoseLoss):
 
             # Depth. The last keypoint is the root and carries absolute depth; the rest are relative to it.
             pred_z, gt_z = pred_kpt[..., 3].sigmoid(), gt_kpt[..., 3]
-            rel_mask = kpt_mask[:, :-1]
+            # Visibility is tri-state, as COCO defines it: 0 unlabelled, 1 labelled in 2D only, 2 labelled in 2D
+            # and depth. Only 2 carries a depth target, so relative depth keys off that rather than off `!= 0`.
+            # It lets a set like BEDLAM, whose ground truth is SMPL-X parameters rather than joints, supervise
+            # 2D pose and root depth without a fabricated relative-depth target; every other writer emits 2.
+            rel_mask = gt_kpt[..., 2][:, :-1] == 2
             if rel_mask.any():
                 zrel_loss = ((pred_z[:, :-1] - gt_z[:, :-1]).abs() * rel_mask).sum() / rel_mask.sum()
             root_mask = kpt_mask[:, -1]

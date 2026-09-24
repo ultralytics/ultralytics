@@ -93,7 +93,9 @@ class Pose3DValidator(PoseValidator):
         g3d = keypoints_to_camera(g, focal, float(w) / 2, float(h) / 2)
         p3d = keypoints_to_camera(p, focal, float(w) / 2, float(h) / 2)
 
-        vis = g[..., :-1, 2] != 0  # root excluded; it is a derived joint and always "visible"
+        # Visibility 2 means the depth channel is labelled; 1 means 2D only (see Pose3DLoss). MPJPE is a
+        # depth metric, so it scores 2 alone. Root excluded; it is a derived joint and always "visible".
+        vis = g[..., :-1, 2] == 2
         if not vis.any():
             return
         # MPJPE is root-relative by definition, so both poses are translated to their own root first.

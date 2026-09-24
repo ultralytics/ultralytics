@@ -459,6 +459,12 @@ def segments2boxes(segments):
     """
     boxes = []
     for s in segments:
+        # Docstring accepts a list of [x, y] points; np.asarray lets s.T work for
+        # both lists and arrays. An empty segment used to raise ValueError on min().
+        s = np.asarray(s)
+        if len(s) == 0:
+            boxes.append([0.0, 0.0, 0.0, 0.0])
+            continue
         x, y = s.T  # segment xy
         boxes.append([x.min(), y.min(), x.max(), y.max()])  # cls, xyxy
     return xyxy2xywh(np.array(boxes).reshape(-1, 4))  # cls, xywh

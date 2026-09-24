@@ -1758,6 +1758,21 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_segments2boxes_list_points_and_empty():
+    """segments2boxes documents list-of-points segments; empty polygons must not ValueError."""
+    from ultralytics.utils.ops import segments2boxes
+
+    # Documented call shape: each segment is a list of [x, y] points (not only ndarrays).
+    boxes = segments2boxes([[[1, 2], [5, 2], [5, 6], [1, 6]]])
+    assert boxes.shape == (1, 4)
+    assert np.allclose(boxes[0], [3.0, 4.0, 4.0, 4.0])  # xywh center/size
+
+    # Empty polygon used to raise ValueError on min(); match segment2box's zero box.
+    empty = segments2boxes([np.empty((0, 2))])
+    assert empty.shape == (1, 4)
+    assert np.allclose(empty[0], [0.0, 0.0, 0.0, 0.0])
+
+
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

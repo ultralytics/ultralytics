@@ -353,7 +353,6 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
-            self.run_callbacks("on_predict_start")
             dataset = self.dataset
             batches = ((batch, dataset) for batch in dataset)
             if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
@@ -362,58 +361,67 @@ class BasePredictor:
                 and (dataset.nf > dataset.ni or len(dataset) > 1)
             ):
                 batches = _prefetch((batch, copy(dataset)) for batch in dataset)
-            for self.batch, self.dataset in batches:
-                self.run_callbacks("on_predict_batch_start")
-                paths, im0s, s = self.batch
+            try:
+                self.run_callbacks("on_predict_start")
+                for self.batch, self.dataset in batches:
+                    self.run_callbacks("on_predict_batch_start")
+                    paths, im0s, s = self.batch
 
-                # Preprocess
-                with profilers[0]:
-                    im = self.preprocess(im0s)
+                    # Preprocess
+                    with profilers[0]:
+                        im = self.preprocess(im0s)
 
-                if not self.done_warmup:
-                    self.model.warmup(im=im)
-                    self.done_warmup = True
+                    if not self.done_warmup:
+                        self.model.warmup(im=im)
+                        self.done_warmup = True
 
-                # Inference
-                with profilers[1]:
-                    preds = self.inference(im, *args, **kwargs)
-                    if self.args.embed:
-                        yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embedding tensors
-                        continue
+                    # Inference
+                    with profilers[1]:
+                        preds = self.inference(im, *args, **kwargs)
+                        if self.args.embed:
+                            yield from [preds] if isinstance(preds, torch.Tensor) else preds  # yield embed tensors
+                            continue
 
-                # Postprocess
-                with profilers[2]:
-                    self.results = self.postprocess(preds, im, im0s)
-                self.run_callbacks("on_predict_postprocess_end")
+                    # Postprocess
+                    with profilers[2]:
+                        self.results = self.postprocess(preds, im, im0s)
+                    self.run_callbacks("on_predict_postprocess_end")
 
-                # Visualize, save, write results
-                n = len(im0s)
-                try:
-                    for i in range(n):
-                        self.seen += 1
-                        px += im.shape[2] * im.shape[3]
-                        self.results[i].speed = {
-                            "preprocess": profilers[0].dt * 1e3 / n,
-                            "inference": profilers[1].dt * 1e3 / n,
-                            "postprocess": profilers[2].dt * 1e3 / n,
-                        }
-                        if (
-                            self.args.verbose
-                            or self.args.save
-                            or self.args.save_txt
-                            or self.args.save_crop
-                            or self.args.show
-                        ):
-                            s[i] += self.write_results(i, Path(paths[i]), im, s)
-                except StopIteration:
-                    break
+                    # Visualize, save, write results
+                    n = len(im0s)
+                    try:
+                        for i in range(n):
+                            self.seen += 1
+                            px += im.shape[2] * im.shape[3]
+                            self.results[i].speed = {
+                                "preprocess": profilers[0].dt * 1e3 / n,
+                                "inference": profilers[1].dt * 1e3 / n,
+                                "postprocess": profilers[2].dt * 1e3 / n,
+                            }
+                            if (
+                                self.args.verbose
+                                or self.args.save
+                                or self.args.save_txt
+                                or self.args.save_crop
+                                or self.args.show
+                            ):
+                                s[i] += self.write_results(i, Path(paths[i]), im, s)
+                    except StopIteration:
+                        break
 
-                # Print batch results
-                if self.args.verbose:
-                    LOGGER.info("\n".join(s))
+                    # Print batch results
+                    if self.args.verbose:
+                        LOGGER.info("\n".join(s))
 
-                self.run_callbacks("on_predict_batch_end")
-                yield from self.results
+                    self.run_callbacks("on_predict_batch_end")
+                    yield from self.results
+            finally:  # also runs when a stream=True consumer abandons the generator or an error aborts the loop
+                for v in self.vid_writer.values():
+                    if isinstance(v, cv2.VideoWriter):
+                        v.release()
+                batches.close()  # stop the prefetch worker before releasing the capture it reads
+                if hasattr(dataset, "close"):  # stop LoadStreams threads and release source captures
+                    dataset.close()
 
             # Final results, under the lock: seen is reset by every run, so reading it outside could divide this run's
             # profilers by a concurrent run's count. px and profilers are locals and are already private to this run.
@@ -426,11 +434,6 @@ class BasePredictor:
                         f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
                         f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
                     )
-
-        # Release assets
-        for v in self.vid_writer.values():
-            if isinstance(v, cv2.VideoWriter):
-                v.release()
 
         if self.args.show:
             cv2.destroyAllWindows()  # close any open windows

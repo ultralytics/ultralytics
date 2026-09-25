@@ -31,7 +31,8 @@ jobs:
           gh api "repos/$GH_REPO/actions/runs/$RUN_ID/attempts/1/jobs" --paginate \
             --jq '.jobs[] | select(.conclusion == "failure") | [.id, .name, ([.steps[] | select(.conclusion == "failure") | .name] | join(","))] | @tsv' > failed.tsv
           while IFS=$'\t' read -r id name steps; do
-            text="$(gh api "repos/$GH_REPO/check-runs/$id/annotations" --jq '.[].message'; gh api "repos/$GH_REPO/actions/jobs/$id/logs" | grep -m 1 -B 5 '##\[error\]' || true)"
+            text="$(gh api "repos/$GH_REPO/check-runs/$id/annotations" --paginate --jq '.[].message')"
+            text+=$'\n'"$(gh api "repos/$GH_REPO/actions/jobs/$id/logs" | grep -m 1 -B 5 '##\[error\]' || true)"
             if grep -q "exceeded the maximum execution time" <<< "$text"; then
               reason=""
             elif [[ -n "$steps" && "$steps" =~ $setup_steps ]]; then

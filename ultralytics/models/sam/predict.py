@@ -949,7 +949,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
 
-        frame = self.frame
+        frame = self.dataset.frame
         self.inference_state["im"] = im
         output_dict = self.inference_state["output_dict"]
         if len(output_dict["cond_frame_outputs"]) == 0:  # initialize prompts
@@ -2656,7 +2656,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
     def inference(self, im, bboxes=None, labels=None, text: list[str] | None = None, *args, **kwargs):
         """Perform inference on a video sequence with optional prompts."""
-        frame = self.frame - 1  # align frame index to be 0-based
+        frame = self.dataset.frame - 1  # align frame index to be 0-based
         self.inference_state["im"] = im  # only pass image for subsequent frames
         if "text_ids" not in self.inference_state:  # first frame processing
             self.add_prompt(frame_idx=frame, text=text, bboxes=bboxes, labels=labels)

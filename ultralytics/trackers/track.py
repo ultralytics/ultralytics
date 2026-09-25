@@ -101,7 +101,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         >>> on_predict_postprocess_end(predictor, persist=True)
     """
     is_obb = predictor.args.task == "obb"
-    is_stream = predictor.mode == "stream"
+    is_stream = predictor.dataset.mode == "stream"
 
     tracker_cls = type(predictor.trackers[0])
     dets_del_list = (

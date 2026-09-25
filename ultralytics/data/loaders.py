@@ -326,7 +326,6 @@ class LoadImagesAndVideos:
         frames (int): Total number of frames in the video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
-        video_fps (dict[str, int]): Frame rate of each opened video path.
         cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
@@ -393,7 +392,6 @@ class LoadImagesAndVideos:
         self.mode = "video" if ni == 0 else "image"  # default to video if no images
         self.vid_stride = vid_stride  # video frame-rate stride
         self.bs = batch
-        self.video_fps = {}
         self.cv2_flag = cv2.IMREAD_GRAYSCALE if channels == 1 else cv2.IMREAD_COLOR  # grayscale or color (BGR)
         if any(videos):
             self._new_video(videos[0])  # new video
@@ -438,16 +436,17 @@ class LoadImagesAndVideos:
                         paths.append(path)
                         imgs.append(im0)
                         info.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
-                        if self.frame == self.frames:  # end of video
+                        if self.frame == self.frames:  # end of video, flush so a batch never spans two videos
                             self.count += 1
                             self.cap.release()
+                            break
                 else:
                     # Move to the next file if the current video ended or failed to open
                     self.count += 1
                     if self.cap:
                         self.cap.release()
-                    if self.count < self.nf:
-                        self._new_video(self.files[self.count])
+                    if imgs:  # flush so a batch never spans two videos, the next video opens on the next call
+                        break
             else:
                 # Handle image files
                 self.mode = "image"
@@ -488,7 +487,6 @@ class LoadImagesAndVideos:
         self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
         if not self.cap.isOpened():
             raise FileNotFoundError(f"Failed to open video {path}")
-        self.video_fps[path] = self.fps
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)
 
     def __len__(self) -> int:

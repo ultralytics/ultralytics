@@ -353,16 +353,16 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
-            self.run_callbacks("on_predict_start")
-            batches = iter(self.dataset)
-            if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
-                self.device.type == "cuda"
-                and isinstance(self.dataset, LoadImagesAndVideos)
-                and self.dataset.ni == self.dataset.nf
-                and len(self.dataset) > 1
-            ):
-                batches = _prefetch(batches)
             try:
+                self.run_callbacks("on_predict_start")
+                batches = iter(self.dataset)
+                if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
+                    self.device.type == "cuda"
+                    and isinstance(self.dataset, LoadImagesAndVideos)
+                    and self.dataset.ni == self.dataset.nf
+                    and len(self.dataset) > 1
+                ):
+                    batches = _prefetch(batches)
                 for batch in batches:
                     self.batch = batch
                     self.run_callbacks("on_predict_batch_start")

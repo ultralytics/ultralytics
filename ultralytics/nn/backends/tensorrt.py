@@ -10,6 +10,7 @@ import torch
 
 from ultralytics.utils import IS_JETSON, LOGGER, PYTHON_VERSION
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
+from ultralytics.utils.torch_utils import TORCH_1_10
 
 from .base import BaseBackend
 
@@ -44,22 +45,25 @@ class TensorRTBackend(BaseBackend):
         if self.device.type == "cpu":
             self.device = torch.device("cuda:0")
 
+        from ultralytics.utils.export.engine import get_tensorrt_logger
+
         Binding = namedtuple("Binding", ("name", "dtype", "shape", "data"))
-        logger = trt.Logger(trt.Logger.INFO)
+        logger = get_tensorrt_logger()
 
         # Read engine file
         offset, metadata = self.engine_header(weight)
-        with open(weight, "rb") as f, trt.Runtime(logger) as runtime:
+        with open(weight, "rb") as f, torch.cuda.device(self.device):
+            runtime = trt.Runtime(logger)
             f.seek(offset)  # skip the metadata header, if any, that precedes the engine
             if (dla := metadata.get("dla")) is not None:
                 runtime.DLA_core = int(dla)
             engine = runtime.deserialize_cuda_engine(f.read())
             self.apply_metadata(metadata)
-        try:
-            self.context = engine.create_execution_context()
-        except Exception:
-            LOGGER.error("TensorRT model exported with a different version than expected\n")
-            raise
+            try:
+                self.context = engine.create_execution_context()  # TensorRT binds this to the current device
+            except Exception:
+                LOGGER.error("TensorRT model exported with a different version than expected\n")
+                raise
 
         # Setup bindings
         self.bindings = OrderedDict()
@@ -104,6 +108,22 @@ class TensorRTBackend(BaseBackend):
             im = torch.from_numpy(np.empty(shape, dtype=dtype)).to(self.device)
             self.bindings[name] = Binding(name, dtype, shape, im)
 
+        # Replay the engine from one captured CUDA graph instead of relaunching every kernel, worth ~50 us per call.
+        # A dynamic engine would recapture on every shape change, and DLA or an embedded NMS does host work mid-stream
+        # that cannot be captured, so both keep `execute_v2`.
+        host = dla is not None or metadata.get("args", {}).get("nms", False)
+        self.graph = None
+        if TORCH_1_10 and self.is_trt10 and not self.dynamic and not host:
+            for name, binding in self.bindings.items():
+                self.context.set_tensor_address(name, binding.data.data_ptr())
+            stream, graph = torch.cuda.Stream(self.device), torch.cuda.CUDAGraph()
+            with torch.cuda.stream(stream):  # selects the engine's device as well, which the capture records on
+                ok = self.context.execute_async_v3(stream.cuda_stream)  # TensorRT allocates on its first run
+                stream.synchronize()
+                with torch.cuda.graph(graph, stream=stream):
+                    ok &= self.context.execute_async_v3(stream.cuda_stream)
+            self.graph = graph if ok else None  # a refused enqueue records nothing and would replay stale outputs
+
         self.model = engine
 
     def forward(self, im: torch.Tensor) -> list[torch.Tensor]:
@@ -117,9 +137,11 @@ class TensorRTBackend(BaseBackend):
         """
         if self.dynamic and im.shape != self.bindings["images"].shape:
             if self.is_trt10:
-                self.context.set_input_shape("images", im.shape)
+                ok = self.context.set_input_shape("images", im.shape)
             else:
-                self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+                ok = self.context.set_binding_shape(self.model.get_binding_index("images"), im.shape)
+            if not ok:  # the profile refused the shape, so the bindings below would describe the wrong engine state
+                raise ValueError(f"input size {tuple(im.shape)} is outside the TensorRT optimization profile")
             self.bindings["images"] = self.bindings["images"]._replace(shape=im.shape)
             for name in self.output_names:
                 shape = (
@@ -132,6 +154,11 @@ class TensorRTBackend(BaseBackend):
         s = self.bindings["images"].shape
         assert im.shape == s, f"input size {im.shape} {'>' if self.dynamic else 'not equal to'} max model size {s}"
 
-        self.bindings["images"] = self.bindings["images"]._replace(data=im)
-        self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()])
+        if self.graph is None:
+            self.bindings["images"] = self.bindings["images"]._replace(data=im)
+            if not self.context.execute_v2([binding.data.data_ptr() for binding in self.bindings.values()]):
+                raise RuntimeError("TensorRT inference execution failed")
+        else:
+            self.bindings["images"].data.copy_(im)  # the capture reads this address, so the input must land in it
+            self.graph.replay()
         return [self.bindings[x].data for x in sorted(self.output_names)]

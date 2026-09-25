@@ -49,7 +49,23 @@ def skip_rpi_semantic(task):
 def test_export_torchscript(nms, isolated_model):
     """Test YOLO model export to TorchScript format for compatibility and correctness."""
     file = YOLO(isolated_model).export(format="torchscript", imgsz=32, nms=nms)
-    YOLO(file)(SOURCE, imgsz=32)  # exported model inference
+    model = YOLO(file)
+    model(SOURCE, imgsz=32)  # exported model inference
+    model(SOURCE, imgsz=64)  # predictor reuse must keep the fixed export imgsz
+    assert model.predictor.imgsz == [32, 32]
+
+
+@pytest.mark.parametrize(("model_name", "nc"), [("yolo26n.yaml", 80), ("yolo26n-cls.yaml", 1000)])
+def test_export_torchscript_missing_names(model_name, nc, tmp_path):
+    """Test TorchScript export reconstructs missing class names from the model head's class count."""
+    model = YOLO(model_name)
+    model.model.names = None  # legacy and foreign checkpoints reach the exporter without names
+    model.model.pt_path = str(tmp_path / Path(model_name).with_suffix(".pt").name)
+
+    names = YOLO(model.export(format="torchscript", imgsz=32)).names
+
+    assert len(names) == nc  # a 999-name fallback would leave names[999] missing on a 1000-class head
+    assert names[nc - 1] == f"class{nc - 1}"
 
 
 @pytest.mark.parametrize("nms", [None, False])

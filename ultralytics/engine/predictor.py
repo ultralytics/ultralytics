@@ -42,6 +42,7 @@ from __future__ import annotations
 import platform
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Callable
@@ -53,6 +54,7 @@ import torch
 from ultralytics.cfg import get_cfg, get_save_dir
 from ultralytics.data import load_inference_source
 from ultralytics.data.augment import LetterBox
+from ultralytics.data.loaders import LoadImagesAndVideos
 from ultralytics.nn.autobackend import AutoBackend
 from ultralytics.utils import DEFAULT_CFG, LOGGER, MACOS, WINDOWS, callbacks, colorstr, ops
 from ultralytics.utils.checks import check_imgsz, check_imshow
@@ -70,6 +72,19 @@ Example:
         masks = r.masks  # Masks object for segment masks outputs
         probs = r.probs  # Class probabilities for classification outputs
 """
+
+
+def _prefetch(iterator):
+    """Yield items while loading the next one on a worker thread."""
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(next, iterator)
+        while True:
+            try:
+                item = future.result()
+            except StopIteration:
+                return
+            future = executor.submit(next, iterator)
+            yield item
 
 
 class BasePredictor:
@@ -271,6 +286,8 @@ class BasePredictor:
                 inference.
             stride (int, optional): Model stride for image size checking.
         """
+        if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
+            self.args.imgsz = self.model.imgsz  # every run reuses imgsz from export metadata, not just the first
         self.imgsz = check_imgsz(self.args.imgsz, stride=stride or self.model.stride, min_dim=2)  # check image size
         self.dataset = load_inference_source(
             source=source,
@@ -337,7 +354,15 @@ class BasePredictor:
                 ops.Profile(device=self.device),
             )
             self.run_callbacks("on_predict_start")
-            for batch in self.dataset:
+            batches = iter(self.dataset)
+            if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
+                self.device.type == "cuda"
+                and isinstance(self.dataset, LoadImagesAndVideos)
+                and self.dataset.ni == self.dataset.nf
+                and len(self.dataset) > 1
+            ):
+                batches = _prefetch(batches)
+            for batch in batches:
                 self.batch = batch
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
@@ -439,8 +464,6 @@ class BasePredictor:
         )
 
         self.device = self.model.device  # update device
-        if hasattr(self.model, "imgsz") and not getattr(self.model, "dynamic", False):
-            self.args.imgsz = self.model.imgsz  # reuse imgsz from export metadata
         self.model.eval()
         self.model = attempt_compile(self.model, device=self.device, mode=self.args.compile)
 

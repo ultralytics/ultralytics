@@ -317,6 +317,8 @@ class YOLODataset(BaseDataset):
             hyp.mixup = hyp.mixup if self.augment and not self.rect else 0.0
             hyp.cutmix = hyp.cutmix if self.augment and not self.rect else 0.0
             transforms = v8_transforms(self, self.imgsz, hyp)
+            if self.format_class is SemanticFormat:  # masks rasterize from self.labels; only these read polygons
+                self.use_segments = bool(hyp.copy_paste or hyp.cutmix or getattr(hyp, "augmentations", None))
         else:
             transforms = Compose([LetterBox(new_shape=(self.imgsz, self.imgsz), scaleup=False)])
         transforms.append(
@@ -396,7 +398,7 @@ class YOLODataset(BaseDataset):
 
         # NOTE: do NOT resample oriented boxes
         segment_resamples = 100 if self.use_obb else 1000
-        if len(segments) > 0:
+        if len(segments) > 0 and (self.use_segments or self.format_class is not SemanticFormat):
             # make sure segments interpolate correctly if original length is greater than segment_resamples
             max_len = max(len(s) for s in segments)
             segment_resamples = (max_len + 1) if segment_resamples < max_len else segment_resamples
@@ -977,7 +979,7 @@ class SemanticDataset(YOLODataset):
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", "mask_bit_depth"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -985,12 +987,7 @@ class SemanticDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the mask verification function and its argument iterable."""
-        return verify_image_mask, zip(
-            self.im_files,
-            self.mask_files,
-            repeat(self.prefix),
-            repeat(int(self.data.get("nc", 0)) == 1),
-        )
+        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix))
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
@@ -1263,7 +1260,7 @@ class ClassificationDataset:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
 
         A Python list of per-image arrays is duplicated into every forked worker by copy-on-write refcounting
-        (https://github.com/ultralytics/ultralytics/issues/9824); one shared numpy buffer is read-only across
+        (https://github.com/ultralytics/ultralytics/issues/9824); one shared buffer is read-only across
         workers instead, so RAM stays flat. Original image sizes are preserved for the transforms.
         """
         with ThreadPool(NUM_THREADS) as pool:

@@ -6,6 +6,7 @@ import re
 import shutil
 import subprocess
 import tarfile
+import zlib
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -198,10 +199,9 @@ def unzip_file(
             # Zip has multiple files at top level
             path = extract_path = Path(path) / Path(file).stem  # i.e. extract multiple files to ../datasets/coco8/
 
-        # Check if destination directory already exists and contains files
-        if path.exists() and any(path.iterdir()) and not exist_ok:
-            # If it exists and is not empty, return the path without unzipping
-            LOGGER.warning(f"Skipping {file} unzip as destination directory {path} is not empty.")
+        # Skip existing files or non-empty directories unless overwriting
+        if path.exists() and (path.is_file() or any(path.iterdir())) and not exist_ok:
+            LOGGER.warning(f"Skipping {file} unzip as destination path {path} already exists.")
             return path
 
         extract_path = Path(extract_path).resolve()
@@ -355,25 +355,46 @@ def safe_download(
             target = f
             f = target.with_name(f".{target.name}.{uuid4().hex}.part")  # publish only after size validation
             curl_installed = shutil.which("curl")
-            expected_size = None  # set from Content-Length; reused to validate curl retries
+            expected_size = 0  # total bytes from Content-Length, kept across retries to validate them
+            # Both transports save the body as sent, so Content-Length and Range describe the file even when the server
+            # encodes it despite `Accept-Encoding: identity`, e.g. gzip objects on S3; it is decoded once complete
+            encoding = ""
             for i in range(retry + 1):
                 try:
-                    if (curl or i > 0) and curl_installed:  # curl download with retry, continue
+                    resume = f.stat().st_size if f.exists() else 0  # partial bytes kept from a failed attempt
+                    if (curl or i > 0) and not resume and curl_installed:  # curl download or fallback
                         s = "sS" * (not progress)  # silent
                         # Stall bounds (not a total-transfer cap): abort if <1 B/s for 300 s so a dead connection
                         # cannot block interpreter shutdown while a non-daemon plot thread waits on a font download
-                        args = ["--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
+                        args = ["--retry", "4", "--connect-timeout", "30", "--speed-limit", "1", "--speed-time", "300"]
                         # -f is required: without it curl writes the server error page as the file and exits 0
                         r = subprocess.run(
-                            ["curl", "-#", f"-{s}fL", url, "-o", f, "--retry", "3", "-C", "-", *args], check=False
-                        ).returncode
-                        assert r == 0, f"Curl return value {r}"
+                            ["curl", "-#", f"-{s}fL", url, "-o", f, "-D", "-", *args],
+                            check=False,
+                            stdout=subprocess.PIPE,
+                        )
+                        if r.returncode:
+                            raise ConnectionError(f"Curl return value {r.returncode}")
+                        # Final response, after any redirect, proxy or retry blocks and before any trailer block
+                        final_headers = [h for h in r.stdout.split(b"\r\n\r\n") if h.startswith(b"HTTP/")][-1]
+                        encoding = (
+                            b"".join(re.findall(rb"(?im)^content-encoding:\s*(\S+)", final_headers)).decode().lower()
+                        )
                     else:  # requests download; timeout bounds connect and per-chunk read gaps, not total transfer
-                        with requests.get(
-                            url, stream=True, headers={"Accept-Encoding": "identity"}, timeout=(30, 300)
-                        ) as response:
+                        headers = {"Accept-Encoding": "identity"}
+                        if resume:
+                            headers["Range"] = f"bytes={resume}-"
+                        with requests.get(url, stream=True, headers=headers, timeout=(30, 300)) as response:
+                            if response.status_code == 416:  # nothing left to resume, so the next retry restarts
+                                f.unlink()
                             response.raise_for_status()
-                            expected_size = int(response.headers.get("Content-Length", 0))
+                            encoding = response.headers.get("Content-Encoding", "").lower()
+                            if response.status_code != 206:  # Range ignored, e.g. transcoded GCS objects, so restart
+                                resume = 0
+                                expected_size = int(response.headers.get("Content-Length", 0)) or expected_size
+                            elif not expected_size:  # partial left by curl, so take the total from 'bytes 5-9/10'
+                                total = response.headers.get("Content-Range", "").rpartition("/")[2]
+                                expected_size = int(total) if total.isdigit() else 0
                             if i == 0 and expected_size > 1048576:
                                 check_disk_space(expected_size, path=f.parent)
                             buffer_size = max(8192, min(1048576, expected_size // 1000)) if expected_size else 8192
@@ -384,20 +405,48 @@ def safe_download(
                                 unit="B",
                                 unit_scale=True,
                                 unit_divisor=1024,
-                            ) as pbar, open(f, "wb") as f_opened:
-                                for data in response.iter_content(chunk_size=buffer_size):
+                                initial=resume,
+                            ) as pbar, open(f, "ab" if resume else "wb") as f_opened:
+                                for data in response.raw.stream(buffer_size, decode_content=False):
                                     f_opened.write(data)
                                     pbar.update(len(data))
 
                     if f.exists():
                         file_size = f.stat().st_size
-                        if file_size > min_bytes:
-                            # Check if download is complete (only if we have expected_size)
-                            if expected_size and file_size != expected_size:
-                                LOGGER.warning(
-                                    f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
-                                )
-                            else:
+                        if expected_size and file_size != expected_size:  # only if Content-Length is known
+                            LOGGER.warning(
+                                f"Partial download: {file_size}/{expected_size} bytes ({file_size / expected_size * 100:.1f}%)"
+                            )
+                        else:
+                            if encoding not in {"", "identity"}:  # undo the transfer encoding of the complete body
+                                decoded = f.with_name(f"{f.name}.decoded")
+                                try:
+                                    with open(f, "rb") as src, open(decoded, "wb") as dst:
+                                        wbits = 47  # detects a gzip or zlib header
+                                        try:
+                                            zlib.decompressobj(wbits).decompress(src.read(1024))
+                                        except zlib.error:  # some servers send 'deflate' as raw DEFLATE without one
+                                            wbits = -15
+                                        src.seek(0)
+                                        d = zlib.decompressobj(wbits)
+                                        for chunk in iter(lambda: src.read(1048576), b""):
+                                            while chunk:
+                                                if d.eof:  # next gzip member, after any zero padding
+                                                    chunk = chunk.lstrip(b"\0")
+                                                    if not chunk:
+                                                        break
+                                                    d = zlib.decompressobj(wbits)
+                                                dst.write(d.decompress(chunk))
+                                                chunk = d.unused_data
+                                    if not d.eof:  # not an assert, which `python -O` removes
+                                        raise ConnectionError("Encoded body ended before its end-of-stream marker")
+                                    # A gzip encoding under a gzip name means the gzip is the file itself, e.g. a
+                                    # .tar.gz object stored with a gzip Content-Encoding, so keep its verified bytes
+                                    if encoding != "gzip" or target.suffix not in {".gz", ".tgz"}:
+                                        decoded.replace(f)
+                                finally:
+                                    decoded.unlink(missing_ok=True)
+                            if f.stat().st_size > min_bytes:
                                 f.replace(target)
                                 f = target
                                 break  # success
@@ -405,7 +454,7 @@ def safe_download(
                 except MemoryError:
                     raise  # Re-raise immediately - no point retrying if insufficient disk space
                 except Exception as e:
-                    # Only on the terminal failure: retries resume the partial file via curl `-C -`, but leaving
+                    # Only on the terminal failure: retries resume the partial file via a Range request, but leaving
                     # one behind makes the `not f.is_file()` guard above serve it as a complete cache hit forever.
                     if i == 0 and not is_online():
                         f.unlink(missing_ok=True)
@@ -421,14 +470,15 @@ def safe_download(
             else:  # no attempt reached `break`, so every one failed size validation and unlinked its download
                 raise ConnectionError(emojis(f"❌  Download failure for {uri}. Retry limit reached."))
 
-    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz"}:
+    if unzip and f.exists() and f.suffix in {"", ".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2"}:
         from zipfile import is_zipfile
 
-        unzip_dir = (dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
+        unzip_dir = Path(dir or f.parent).resolve()  # unzip to dir if provided else unzip in place
         if is_zipfile(f):
             unzip_dir = unzip_file(file=f, path=unzip_dir, exist_ok=exist_ok, progress=progress)  # unzip
-        elif f.suffix in {".tar", ".gz"}:
+        elif tarfile.is_tarfile(f):
             LOGGER.info(f"Unzipping {f} to {unzip_dir}...")
+            top_level_dirs = set()
             with tarfile.open(f, "r:*") as tar:
                 for m in tar:
                     if not (m.isfile() or m.isdir()) or m.issym() or m.islnk():
@@ -443,12 +493,17 @@ def safe_download(
                     ):
                         LOGGER.warning(f"Potentially insecure file path: {m.name}, skipping extraction.")
                         continue
+                    top_level_dirs.update(m_path.parts[:1])  # slice as './' root entries have no parts
                     if m.isdir():
                         target.mkdir(parents=True, exist_ok=True)
                     elif source := tar.extractfile(m):
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+            if len(top_level_dirs) == 1:
+                unzip_dir /= next(iter(top_level_dirs))  # return the single extracted file or directory
+        else:
+            unzip_dir = f  # not a zip or tar, i.e. an HTML error page or plain gzip, return the file
         if delete:
             f.unlink()  # remove archive
         return unzip_dir

@@ -266,7 +266,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
-    sz = [max(math.ceil(x / stride) * stride, floor) for x in imgsz]
+    sz = [max(math.ceil(x / stride) * stride, floor, stride) for x in imgsz]  # at least one stride, i.e. imgsz=0
 
     # Print warning message if image size was updated
     if sz != imgsz:
@@ -442,6 +442,8 @@ def check_font(font="Arial.ttf"):
 
     # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
     matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
+    if not matches:  # font installed after matplotlib's cached list was built, rescan the OS
+        matches = [f for f in font_manager.findSystemFonts() if font in f]
     if any(matches):
         return matches[0]
 
@@ -786,9 +788,6 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
         if uri_path.is_absolute() or ".." in uri_path.parts:
             raise ValueError(f"Unsafe Ultralytics Platform URI path: {file}")
         local_file = Path(download_dir) / uri_path / url2file(url)
-        # Always re-download NDJSON datasets (cheap, ensures fresh data after updates)
-        if local_file.suffix == ".ndjson":
-            local_file.unlink(missing_ok=True)
         if local_file.exists():
             LOGGER.info(f"Found {clean_url(url)} locally at {local_file}")
         else:

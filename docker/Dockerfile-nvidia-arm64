@@ -34,7 +34,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages
 RUN python -m pip install --no-cache-dir uv && \
-    uv pip install --system -e ".[export]" onnxruntime-gpu && \
+    uv pip install --system --no-cache -e ".[export]" onnxruntime-gpu && \
     # Remove extra build files
     rm -rf *.whl /root/.config/Ultralytics/persistent_cache.json
 

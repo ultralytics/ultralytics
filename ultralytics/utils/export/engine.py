@@ -5,13 +5,24 @@ from __future__ import annotations
 import json
 import re
 import types
+from functools import lru_cache
 from pathlib import Path
 
+import cv2
+import numpy as np
 import torch
 
-from ultralytics.utils import IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, is_dgx, is_jetson
+from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
 from ultralytics.utils.torch_utils import TORCH_2_4
+
+
+@lru_cache
+def get_tensorrt_logger():
+    """Return the shared TensorRT logger, kept alive for every builder and inference runtime."""
+    import tensorrt as trt
+
+    return trt.Logger(trt.Logger.INFO)
 
 
 class _NormalizeCoords(torch.nn.Module):
@@ -156,7 +167,9 @@ def modelopt_quantize_onnx(
             n += images[-1].shape[0]
             if n >= 512:
                 break
-        calib = torch.cat(images).to(torch.float32) / 255.0
+        calib = torch.cat(images)
+        del images, batch
+        calib = calib.to(torch.float32).div_(255.0)
         LOGGER.info(f"{prefix} quantizing ONNX to INT8 with ModelOpt using {calib.shape[0]} calibration images...")
         kwargs = {"calibration_shapes": f"{input_name}:{'x'.join(str(d) for d in shape)}"} if dynamic else {}
         modelopt_quantize(
@@ -180,12 +193,17 @@ def modelopt_quantize_onnx(
 
     out_file = str(Path(onnx_file).with_suffix(".fp16.onnx"))
     LOGGER.info(f"{prefix} converting ONNX to FP16 mixed precision with ModelOpt AutoCast...")
+    # AutoCast keeps a node in FP32 when its observed activation range exceeds `data_max`, so calibrate it on a real
+    # image: unstructured noise inflates the early activations and strands the first convolutions of most models.
+    im = cv2.resize(imread(ASSETS / "bus.jpg"), shape[:1:-1])[..., ::-1].transpose(2, 0, 1)  # BGR HWC to RGB CHW
+    im = np.resize(im, shape[1:])  # repeat or drop channels for models that are not 3-channel
+    im = np.broadcast_to(im, shape).astype(np.float32, order="C") / 255
     onnx.save(
         autocast.convert_to_mixed_precision(
             onnx_file,
             low_precision_type="fp16",
             keep_io_types=True,
-            calibration_data={input_name: torch.randn(*shape).cpu().numpy()},
+            calibration_data={input_name: im},
         ),
         out_file,
     )
@@ -255,9 +273,8 @@ def onnx2engine(
     LOGGER.info(f"\n{prefix} starting export with TensorRT {trt.__version__}...")
     output_file = output_file or Path(onnx_file).with_suffix(".engine")
 
-    logger = trt.Logger(trt.Logger.INFO)
-    if verbose:
-        logger.min_severity = trt.Logger.Severity.VERBOSE
+    logger = get_tensorrt_logger()
+    logger.min_severity = trt.Logger.VERBOSE if verbose else trt.Logger.INFO
 
     # Engine builder
     builder = trt.Builder(logger)

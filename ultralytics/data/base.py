@@ -6,13 +6,15 @@ import glob
 import math
 import os
 import random
-from copy import deepcopy
+import shutil
+from copy import copy, deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
 from typing import Any
 
 import cv2
 import numpy as np
+import torch
 from torch.utils.data import Dataset
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds, get_split_fraction
@@ -70,22 +72,39 @@ class BaseDataset(Dataset):
     """
 
     class _ImageCache:
-        """Store images in one contiguous array to preserve copy-on-write sharing between workers."""
+        """Store images in one tensor, shared copy-on-write by fork workers and as shared memory by pickled ones."""
 
         def __init__(self, images: list[np.ndarray]):
-            """Pack images and their layouts into contiguous NumPy arrays."""
+            """Pack images into one contiguous uint8 tensor and their layouts into NumPy arrays."""
             self.shapes = np.array([im.shape for im in images])
             self.dtypes = np.array([im.dtype.str for im in images])
             self.offsets = np.concatenate(([0], np.cumsum([im.nbytes for im in images])))
-            self.buffer = np.empty(self.offsets[-1], dtype=np.uint8)
+            self.buffer = torch.empty(int(self.offsets[-1]), dtype=torch.uint8)
+            buffer = self.buffer.numpy()
             for i, im in enumerate(images):
-                self.buffer[self.offsets[i] : self.offsets[i + 1]] = im.reshape(-1).view(np.uint8)
+                buffer[self.offsets[i] : self.offsets[i + 1]] = im.reshape(-1).view(np.uint8)
                 images[i] = None
 
         def __getitem__(self, i: int) -> np.ndarray:
             """Return an image view by index."""
             i = range(len(self.shapes))[i]
-            return self.buffer[self.offsets[i] : self.offsets[i + 1]].view(self.dtypes[i]).reshape(self.shapes[i])
+            return (
+                self.buffer.numpy()[self.offsets[i] : self.offsets[i + 1]].view(self.dtypes[i]).reshape(self.shapes[i])
+            )
+
+        def __getstate__(self) -> dict[str, Any]:
+            """Pickle the buffer by value, as each worker's own copy, when Linux shared memory is too small to share it."""
+            state = self.__dict__.copy()
+            shm = Path("/dev/shm")  # also carries worker batches, so require the same 2x margin as check_cache_ram()
+            if not self.buffer.is_shared() and shm.is_dir() and shutil.disk_usage(shm).free < 2 * self.offsets[-1]:
+                LOGGER.warning(f"{shm} too small to share {self.offsets[-1] / (1 << 30):.1f}GB image cache, copying it")
+                state["buffer"] = self.buffer.numpy()
+            return state
+
+        def __setstate__(self, state: dict[str, Any]):
+            """Restore the buffer as a tensor."""
+            state["buffer"] = torch.as_tensor(state["buffer"])
+            self.__dict__.update(state)
 
     def __init__(
         self,
@@ -163,7 +182,7 @@ class BaseDataset(Dataset):
             self.cache_images()
 
         # Transforms
-        self.transforms = self.build_transforms(hyp=hyp)
+        self.transforms = self.build_transforms(hyp=copy(hyp))  # subclasses zero unsupported keys, never the caller's
 
     def get_img_files(self, img_path: str | list[str]) -> list[str]:
         """Read image files from the specified path.
@@ -304,7 +323,7 @@ class BaseDataset(Dataset):
             pbar = TQDM(enumerate(results), total=self.ni, disable=LOCAL_RANK > 0)
             for i, x in pbar:
                 if self.cache == "disk":
-                    b += self.npy_files[i].stat().st_size
+                    b += self.npy_files[i].stat().st_size if self.npy_files[i].exists() else 0  # failed writes unlink
                 else:  # 'ram'
                     self.ims[i], self.im_hw0[i], self.im_hw[i] = x  # im, hw_orig, hw_resized = load_image(self, i)
                     b += self.ims[i].nbytes
@@ -323,7 +342,7 @@ class BaseDataset(Dataset):
                 f.unlink(missing_ok=True)
                 LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
 
-    def check_cache_disk(self, safety_margin: float = 0.5) -> bool:
+    def check_cache_disk(self, safety_margin: float = 0.1) -> bool:
         """Check if there's enough disk space for caching images.
 
         Args:
@@ -332,8 +351,6 @@ class BaseDataset(Dataset):
         Returns:
             (bool): True if there's enough disk space, False otherwise.
         """
-        import shutil
-
         b, gb = 0, 1 << 30  # bytes of cached images, bytes per gigabytes
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):

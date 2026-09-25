@@ -122,7 +122,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
     IS_PYTHON_MINIMUM_3_13,
-    check_file,
+    check_data_portable,
     check_imgsz,
     check_requirements,
     check_version,
@@ -989,13 +989,11 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
-            d = str(data) if isinstance(data, (str, Path)) else ""  # a YOLOE multi-source dict has no CLI form
-            # a bare name, URL or local file runs as printed; a path recorded on the training host does not
-            portable = d and ("://" in d or not any(sep in d for sep in "/\\") or check_file(d, hard=False))
+            d = f"data={data}" if check_data_portable(data) else ""  # omit host paths that would not run here
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
                 f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} "
-                f"{f'data={d}' if portable else ''} {q} {s}"
+                f"{d} {q} {s}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )

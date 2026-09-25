@@ -827,6 +827,22 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
     return check_file(file, suffix, hard=hard)
 
 
+def check_data_portable(data) -> bool:
+    """Check whether a recorded dataset resolves on this host: a bare name, a URL or a local file.
+
+    Args:
+        data (str | Path | dict | None): Dataset recorded in a checkpoint, e.g. 'coco8.yaml' or '/abs/path/data.yaml'.
+
+    Returns:
+        (bool): True if the dataset can be passed as `data=` here; False for dicts, empty values or paths recorded on
+            another host or OS.
+    """
+    if not data or not isinstance(data, (str, Path)):  # absent, or a YOLOE multi-source training dict
+        return False
+    data = str(data)
+    return "://" in data or not any(sep in data for sep in "/\\") or bool(check_file(data, hard=False))
+
+
 def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
     """Check if the resolved path is under the intended directory to prevent path traversal.
 

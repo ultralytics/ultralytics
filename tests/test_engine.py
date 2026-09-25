@@ -241,6 +241,23 @@ def test_distill_grayscale(tmp_path: Path):
     assert model.teacher_model.yaml["channels"] == 1
 
 
+def test_distill_different_architectures():
+    """Test knowledge distillation between teacher and student with different layer depths (#26332)."""
+    teacher = DetectionModel("yolov9e.yaml", verbose=False)
+    student = DetectionModel("yolov9s.yaml", verbose=False)
+    student.args = SimpleNamespace(imgsz=32, dis=1.0, box=7.5, cls=0.5, dfl=1.5)
+    model = DistillationModel(teacher_model=teacher, student_model=student)
+    batch = {
+        "img": torch.zeros(2, 3, 32, 32),
+        "batch_idx": torch.zeros(0),
+        "cls": torch.zeros(0, 1),
+        "bboxes": torch.zeros(0, 4),
+    }
+    loss, items = model.loss(batch)
+    assert "dis_loss" in items
+    assert loss.shape[0] == 4
+
+
 @pytest.mark.parametrize(
     "ckpt",
     [

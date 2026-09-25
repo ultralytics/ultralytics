@@ -122,6 +122,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
     IS_PYTHON_MINIMUM_3_13,
+    check_data_portable,
     check_imgsz,
     check_requirements,
     check_version,
@@ -919,9 +920,7 @@ class Exporter:
             # predict/val accept both forms.
             model = ClassMapModel(model)
 
-        y = None
-        for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
+        y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)  # dry run
         if self.args.quantize == 16 and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -988,9 +987,11 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
+            d = f"data={data}" if check_data_portable(data) else ""  # omit host paths that would not run here
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} "
+                f"{d} {q} {s}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )

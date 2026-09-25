@@ -416,27 +416,24 @@ class BasePredictor:
 
                     self.run_callbacks("on_predict_batch_end")
                     yield from self.results
-
-                # Final results, under the lock: seen is reset by every run, so reading it outside could divide this
-                # run's profilers by a concurrent run's count. px and profilers are locals, private to this run.
-                if seen := self.seen:
-                    t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
-                    self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
-                    self.pixels = round(px / seen)  # mean area, pairing with per-image mean speeds
-                    if self.args.verbose:
-                        LOGGER.info(
-                            f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
-                            f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
-                        )
-            finally:
-                # Release the run's writers and source even when a stream=True consumer abandons the generator
-                # (GeneratorExit at the yield) or an error aborts the loop; under the lock so this cannot interleave
-                # with another run's setup_source.
+            finally:  # also runs when a stream=True consumer abandons the generator or an error aborts the loop
                 for v in self.vid_writer.values():
                     if isinstance(v, cv2.VideoWriter):
                         v.release()
                 if hasattr(self.dataset, "close"):  # stop LoadStreams threads and release source captures
                     self.dataset.close()
+
+            # Final results, under the lock: seen is reset by every run, so reading it outside could divide this run's
+            # profilers by a concurrent run's count. px and profilers are locals and are already private to this run.
+            if seen := self.seen:
+                t = tuple(x.t / seen * 1e3 for x in profilers)  # speeds per image
+                self.speed = dict(zip(("preprocess", "inference", "postprocess"), t))
+                self.pixels = round(px / seen)  # mean area, pairing with speeds that are themselves per-image means
+                if self.args.verbose:
+                    LOGGER.info(
+                        f"Speed: %.1fms preprocess, %.1fms inference, %.1fms postprocess per image at shape "
+                        f"{(min(self.args.batch, seen), getattr(self.model, 'channels', 3), *im.shape[2:])}" % t
+                    )
 
         if self.args.show:
             cv2.destroyAllWindows()  # close any open windows

@@ -57,7 +57,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.35"
+    ultralytics-inference = "0.0.48"
     ```
 
 ## CLI quickstart
@@ -84,24 +84,30 @@ ultralytics-inference predict --task depth --source image.jpg
 ultralytics-inference predict --source image.jpg --conf 0.5 --iou 0.45 --classes "0,1,2"
 
 # Run a whole folder on the GPU in half precision
-ultralytics-inference predict --source images/ --device cuda:0 --half
+ultralytics-inference predict --source images/ --device cuda:0 --quantize 16
 ```
 
 Common flags:
 
-| Flag             | Default        | Description                                                                 |
-| ---------------- | -------------- | --------------------------------------------------------------------------- |
-| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically.       |
-| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`, `depth`. |
-| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                        |
-| `--conf`         | `0.25`         | Confidence threshold.                                                       |
-| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                  |
-| `--imgsz`        | model metadata | Inference image size.                                                       |
-| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.             |
-| `--half`         | `false`        | FP16 half-precision inference.                                              |
-| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                            |
-| `--show`         | `false`        | Display results in a window.                                                |
-| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                      |
+| Flag             | Default        | Description                                                                     |
+| ---------------- | -------------- | ------------------------------------------------------------------------------- |
+| `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically.           |
+| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`, `depth`.     |
+| `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                            |
+| `--conf`         | `0.25`         | Confidence threshold.                                                           |
+| `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                      |
+| `--imgsz`        | model metadata | Inference image size.                                                           |
+| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.                 |
+| `--max-det`      | `300`          | Maximum number of detections per image.                                         |
+| `--rect`         | `true`         | Rectangular inference with minimal padding.                                     |
+| `--batch`        | `1`            | Batch size for inference.                                                       |
+| `--quantize`     | model default  | Inference precision: `8`/`int8`, `16`/`fp16`, `32`/`fp32`, `w8a16`, or `w8a32`. |
+| `--save`         | `true`         | Save annotated results to `runs/<task>/predict`.                                |
+| `--save-frames`  | `false`        | Save individual frames for video input instead of a video file.                 |
+| `--save-json`    | `false`        | Save semantic segmentation class-map PNGs.                                      |
+| `--show`         | `false`        | Display results in a window.                                                    |
+| `--verbose`      | `true`         | Print per-image results and timing.                                             |
+| `--classes`      | all            | Filter detections by class IDs, for example `"0,1,2"`.                          |
 
 ## Library quickstart
 
@@ -134,14 +140,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 Use `InferenceConfig` to control thresholds, image size, precision, and device with a builder API:
 
 ```rust
-use ultralytics_inference::{Device, InferenceConfig, YOLOModel};
+use ultralytics_inference::{Device, InferenceConfig, Quantization, YOLOModel};
 
 let config = InferenceConfig::new()
     .with_confidence(0.5)
     .with_iou(0.45)
     .with_imgsz(640, 640)
     .with_device(Device::Cuda(0))
-    .with_half(true);
+    .with_quantize(Quantization::Fp16);
 
 let mut model = YOLOModel::load_with_config("yolo26n.onnx", config)?;
 let results = model.predict("image.jpg")?;
@@ -445,7 +451,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.35", features = ["video"] }
+ultralytics-inference = { version = "0.0.48", features = ["video"] }
 ```
 
 ## Output and saving

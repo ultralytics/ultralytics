@@ -78,8 +78,8 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     """Convert segment coordinates to bounding box coordinates.
 
     Converts a single segment label to a box label by finding the minimum and maximum x and y coordinates of the polygon
-    clipped to the image, so segments crossing the image boundary keep their visible extent. Segments already inside the
-    image return immediately without clipping.
+    clipped to the image, so segments crossing the image boundary keep their visible extent. Segments entirely inside the
+    image, or whose bounding box lies entirely outside it, return immediately without clipping.
 
     Args:
         segment (np.ndarray): Segment coordinates in format (N, 2) where N is number of points.
@@ -95,6 +95,8 @@ def segment2box(segment: np.ndarray, width: int = 640, height: int = 640) -> np.
     xmin, ymin, xmax, ymax = x.min(), y.min(), x.max(), y.max()
     if xmin >= 0 and ymin >= 0 and xmax <= width and ymax <= height:  # fully inside image
         return np.array([xmin, ymin, xmax, ymax], dtype=segment.dtype)
+    if xmax < 0 or ymax < 0 or xmin > width or ymin > height:  # fully outside image
+        return np.zeros(4, dtype=segment.dtype)
     axes = np.array((0, 0, 1, 1))
     bounds = np.array((0, width, 0, height), dtype=segment.dtype)
     lims = np.array((height, height, width, width), dtype=segment.dtype)  # (height, width)[axis] per boundary

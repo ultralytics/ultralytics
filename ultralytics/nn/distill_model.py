@@ -18,7 +18,7 @@ class FeatureHook:
     """Picklable forward hook that stores layer output into a shared dict."""
 
     def __init__(self, feat_dict: dict, idx: int) -> None:
-        """Initialize the hook with the shared feature dict and the layer index to store outputs under."""
+        """Initialize the hook with the shared feature dict and the key (feature level) to store outputs under."""
         self.feat_dict = feat_dict
         self.idx = idx
 
@@ -40,7 +40,7 @@ class DistillationModel(nn.Module):
         teacher_model (nn.Module): Frozen teacher model providing features.
         student_model (nn.Module): Trainable student model being distilled.
         feats_idx (list): Student layer indices for feature extraction.
-        teacher_feats_idx (list): Teacher layer indices for feature extraction.
+        teacher_feats_idx (list): Teacher layer indices at the same feature levels.
         projector (nn.ModuleList): MLP projector aligning student features to teacher dimensions.
         dis (float): Distillation loss weight factor.
 
@@ -85,7 +85,7 @@ class DistillationModel(nn.Module):
         if len(self.feats_idx) != len(self.teacher_feats_idx):
             raise ValueError("Teacher and student detection heads must have the same number of feature levels")
 
-        # Hook-based feature capture at corresponding teacher and student levels
+        # Hook-based feature capture: identical for teacher and student
         self._teacher_feats: dict[int, torch.Tensor] = {}
         self._student_feats: dict[int, torch.Tensor] = {}
         self._teacher_hooks: list = []
@@ -100,8 +100,8 @@ class DistillationModel(nn.Module):
             teacher_model(im)
             student_model(im)
         student_model.train()
-        teacher_output = [self._teacher_feats[idx] for idx in self.teacher_feats_idx]
-        student_output = [self._student_feats[idx] for idx in self.feats_idx]
+        teacher_output = [self._teacher_feats[i] for i in range(len(self.feats_idx))]
+        student_output = [self._student_feats[i] for i in range(len(self.feats_idx))]
 
         copy_attr(self, student_model)
         self.dis = self.student_model.args.dis
@@ -159,19 +159,15 @@ class DistillationModel(nn.Module):
     def _register_feature_hooks(self) -> None:
         """Register feature-capture hooks, removing stale FeatureHook instances first."""
         self._remove_feature_hooks()
-        for student_idx, teacher_idx in zip(self.feats_idx, self.teacher_feats_idx):
-            self._clear_feature_hooks(self.student_model.model[student_idx])
+        for i, (s, t) in enumerate(zip(self.feats_idx, self.teacher_feats_idx)):  # features stored by level i
+            self._clear_feature_hooks(self.student_model.model[s])
             self._student_hooks.append(
-                self.student_model.model[student_idx].register_forward_hook(
-                    FeatureHook(self._student_feats, student_idx)
-                )
+                self.student_model.model[s].register_forward_hook(FeatureHook(self._student_feats, i))
             )
             if self.teacher_model is not None:
-                self._clear_feature_hooks(self.teacher_model.model[teacher_idx])
+                self._clear_feature_hooks(self.teacher_model.model[t])
                 self._teacher_hooks.append(
-                    self.teacher_model.model[teacher_idx].register_forward_hook(
-                        FeatureHook(self._teacher_feats, teacher_idx)
-                    )
+                    self.teacher_model.model[t].register_forward_hook(FeatureHook(self._teacher_feats, i))
                 )
 
     @staticmethod
@@ -236,18 +232,19 @@ class DistillationModel(nn.Module):
         preds = self.student_model(batch["img"])  # hooks capture student features
 
         regular_loss, loss_items = self.student_model.loss(batch, preds)
-        teacher_head_feat = self._teacher_feats[self.teacher_feats_idx[-1]]
+        n = len(self.feats_idx) - 1  # neck levels; level n is the Detect head
+        teacher_head_feat = self._teacher_feats[n]
         teacher_scores = (
             self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
             + self.decouple_outputs(teacher_head_feat, branch="one2one")["scores"]
         ) / 2
         # neck feature sizes vary per batch (e.g. multi_scale), so split scores by the live teacher feats
-        neck_feats = [self._teacher_feats[idx] for idx in self.teacher_feats_idx[:-1]]
+        neck_feats = [self._teacher_feats[i] for i in range(n)]
         parts = torch.split(teacher_scores, [f.shape[-2] * f.shape[-1] for f in neck_feats], dim=-1)
         teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
-        for i, (student_idx, teacher_idx) in enumerate(zip(self.feats_idx[:-1], self.teacher_feats_idx[:-1])):
-            teacher_feat = self.decouple_outputs(self._teacher_feats[teacher_idx])
-            student_feat = self.projector[i](self.decouple_outputs(self._student_feats[student_idx]))
+        for i in range(n):
+            teacher_feat = self.decouple_outputs(self._teacher_feats[i])
+            student_feat = self.projector[i](self.decouple_outputs(self._student_feats[i]))
             loss_distill += (
                 self.loss_sl2(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.dis
             )

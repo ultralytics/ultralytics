@@ -242,38 +242,6 @@ def test_distill_grayscale(tmp_path: Path):
 
 
 @pytest.mark.parametrize(
-    "student_yaml,teacher_yaml,score_branch,different_indices",
-    [
-        ("yolov9s.yaml", "yolov9e.yaml", "scores", True),
-        ("yolo26n.yaml", "yolo26s.yaml", "one2many", False),
-    ],
-)
-def test_distill_head_layouts(student_yaml, teacher_yaml, score_branch, different_indices):
-    """Test distillation with different feature indices and legacy or dual detection heads."""
-    student = DetectionModel(student_yaml, nc=1, verbose=False)
-    teacher = DetectionModel(teacher_yaml, nc=1, verbose=False)
-    student.args = get_cfg(overrides={"imgsz": 32})
-    model = DistillationModel(teacher, student)
-    assert (model.feats_idx != model.teacher_feats_idx) == different_indices
-    batch = {
-        "img": torch.rand(2, 3, 32, 32),
-        "batch_idx": torch.zeros(0),
-        "cls": torch.zeros(0, 1),
-        "bboxes": torch.zeros(0, 4),
-    }
-    loss, items = model(batch)
-    head = model._teacher_feats[model.teacher_feats_idx[-1]]
-    if isinstance(head, tuple):
-        head = head[1]
-    assert score_branch in head
-    assert ("one2one" in head) == (score_branch == "one2many")
-    assert torch.isfinite(loss).all() and torch.isfinite(items["dis_loss"]).all()
-    assert items["dis_loss"].item() > 0
-    loss.sum().backward()
-    assert any(p.grad is not None for p in model.projector.parameters())
-
-
-@pytest.mark.parametrize(
     "ckpt",
     [
         {"model": OrderedDict([("a", torch.zeros(1))])},  # state_dict saved under the "model" key

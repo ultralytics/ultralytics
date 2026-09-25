@@ -22,11 +22,11 @@ def onnx2tidl(
 ) -> str:
     """Compile an ONNX model to TI Deep Learning (TIDL) artifacts using ``edgeai-tidl-runtime``.
 
-    TIDL requires a static input shape, so the source ONNX graph is first rewritten to a fixed shape before
-    compilation; the resulting artifacts are only valid for that exact shape. Compilation runs entirely on the
-    host with no TI account or device connection required (``edgeai-tidl-runtime`` bundles the native TIDL tools
-    and the TIDL-enabled ONNX Runtime build), producing a self-contained artifacts directory that can be copied
-    directly to a TI Edge AI device.
+    TIDL requires a static input shape, so the source ONNX graph is first rewritten to a fixed shape before compilation;
+    the resulting artifacts are only valid for that exact shape. Compilation runs entirely on the host with no TI
+    account or device connection required (``edgeai-tidl-runtime`` bundles the native TIDL tools and the TIDL-enabled
+    ONNX Runtime build), producing a self-contained artifacts directory that can be copied directly to a TI Edge AI
+    device.
 
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
@@ -34,8 +34,8 @@ def onnx2tidl(
         target_device (str): Target TI SoC or device family, e.g. ``"tda4vh"``, ``"am62a"``.
         dataset (DataLoader): Calibration dataloader (from `Exporter.get_int8_calibration_dataloader`) used for
             quantization during compilation.
-        transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration item
-            to a normalized `float32` NCHW array.
+        transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration item to a
+            normalized `float32` NCHW array.
         imgsz (tuple[int, int]): Static export image size as `(height, width)`.
         batch (int): Static batch dimension of the fixed ONNX graph.
         tensor_bits (int): TIDL tensor/weight precision, 8 or 16.

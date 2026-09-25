@@ -16,8 +16,8 @@ class TIDLBackend(BaseBackend):
     """Texas Instruments TIDL inference backend for TI Edge AI (C7x DSP/MMA NPU) hardware.
 
     Loads and runs the TIDL artifacts produced by the Ultralytics TI export (`*_ti_model/`) using the
-    `edgeai-tidl-runtime` package, which bundles the native TIDL tools and TIDL-enabled ONNX Runtime build.
-    Inference runs on TI Edge AI MPU devices (e.g. TDA4VH, AM62A) via the C7x DSP/MMA NPU.
+    `edgeai-tidl-runtime` package, which bundles the native TIDL tools and TIDL-enabled ONNX Runtime build. Inference
+    runs on TI Edge AI MPU devices (e.g. TDA4VH, AM62A) via the C7x DSP/MMA NPU.
     """
 
     def load_model(self, weight: str | Path) -> None:

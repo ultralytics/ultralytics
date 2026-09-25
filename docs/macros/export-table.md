@@ -24,6 +24,6 @@
 | [Hailo]({{ integrations_path or "../integrations" }}/hailo.md) | `hailo` | `{{ model_name or "yolo26n" }}_hailo_model/` | ✅ | `imgsz`, `name`, `quantize`, `data`, `fraction`, `simplify`, `conf`, `iou`, `device` |
 | [Huawei Ascend]({{ integrations_path or "../integrations" }}/ascend.md) | `ascend` | `{{ model_name or "yolo26n" }}_ascend_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `opset`, `simplify`, `nms`{{ tip1 }}, `device` |
 | [Apple Core AI]({{ integrations_path or "../integrations" }}/coreai.md) | `coreai` | `{{ model_name or "yolo26n" }}.aimodel` | ✅ | `imgsz`, `batch`, `quantize` |
-| [TI Edge AI]({{ integrations_path or "../integrations" }}/ti-edge-ai.md) | `ti` | `{{ model_name or "yolo26n" }}_ti_model/` | ✅  | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
+| [TI Edge AI]({{ integrations_path or "../integrations" }}/ti-edge-ai.md) | `ti` | `{{ model_name or "yolo26n" }}_ti_model/` | ✅ | `imgsz`, `batch`, `name`, `quantize`, `simplify`, `opset`, `data`, `fraction`, `device` |
 
 `nms=None` defaults to raw outputs for external NMS. Set `nms=False` to select an available NMS-free head; unsupported formats fall back to their native output path. The `nms` entries above identify formats that can embed NMS with `nms=True`.

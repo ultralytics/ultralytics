@@ -43,7 +43,7 @@ import platform
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from copy import deepcopy
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import Any, Callable
 
@@ -353,18 +353,17 @@ class BasePredictor:
                 ops.Profile(device=self.device),
                 ops.Profile(device=self.device),
             )
+            dataset = self.dataset
+            batches = ((batch, dataset) for batch in dataset)
+            if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
+                self.device.type == "cuda"
+                and isinstance(dataset, LoadImagesAndVideos)
+                and (dataset.nf > dataset.ni or len(dataset) > 1)
+            ):
+                batches = _prefetch((batch, copy(dataset)) for batch in dataset)
             try:
                 self.run_callbacks("on_predict_start")
-                batches = iter(self.dataset)
-                if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
-                    self.device.type == "cuda"
-                    and isinstance(self.dataset, LoadImagesAndVideos)
-                    and self.dataset.ni == self.dataset.nf
-                    and len(self.dataset) > 1
-                ):
-                    batches = _prefetch(batches)
-                for batch in batches:
-                    self.batch = batch
+                for self.batch, self.dataset in batches:
                     self.run_callbacks("on_predict_batch_start")
                     paths, im0s, s = self.batch
 
@@ -420,8 +419,9 @@ class BasePredictor:
                 for v in self.vid_writer.values():
                     if isinstance(v, cv2.VideoWriter):
                         v.release()
-                if hasattr(self.dataset, "close"):  # stop LoadStreams threads and release source captures
-                    self.dataset.close()
+                batches.close()  # stop the prefetch worker before releasing the capture it reads
+                if hasattr(dataset, "close"):  # stop LoadStreams threads and release source captures
+                    dataset.close()
 
             # Final results, under the lock: seen is reset by every run, so reading it outside could divide this run's
             # profilers by a concurrent run's count. px and profilers are locals and are already private to this run.

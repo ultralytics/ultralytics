@@ -17,7 +17,7 @@ Deploying PyTorch models to production usually means juggling a different export
 - **Shared utility surface:** the export helpers live under `ultralytics.utils.export`, so once the backend packages are installed you can keep the same calling pattern across formats.
 - **Same code path as YOLO exports:** the same helpers power every Ultralytics YOLO export.
 - **FP16 and INT8 quantization** built in for formats that support it (OpenVINO, CoreML, and MNN; FP16 only for NCNN and Core AI).
-- **Works on CPU:** no GPU required for the export step itself, so you can run it locally on a laptop; CoreML export is not supported on Windows, and Core AI export needs macOS 26 or later on Apple silicon.
+- **Works on CPU:** no GPU required for the export step itself, so you can run it locally on a laptop; CoreML export is not supported on Windows, and Core AI export needs macOS 26 or later on Apple silicon, or x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14.
 
 ## Quick Start
 
@@ -37,19 +37,19 @@ torch2onnx(model, torch.randn(1, 3, 224, 224), output_file="resnet18.onnx")
 
 The `torch2*` functions take a standard `torch.nn.Module` and an example input tensor. MNN, TF SavedModel, and TF Frozen Graph go through an intermediate ONNX or Keras artifact. No YOLO-specific attributes are required in either case.
 
-| Format          | Function                                                          | Install                                                             | Output                         |
-| --------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------ |
-| ONNX            | [`torch2onnx()`](../reference/utils/export/engine.md)             | `pip install onnx`                                                  | `.onnx` file                   |
-| TorchScript     | [`torch2torchscript()`](../reference/utils/export/torchscript.md) | included with PyTorch                                               | `.torchscript` file            |
-| OpenVINO        | [`torch2openvino()`](../reference/utils/export/openvino.md)       | `pip install openvino`                                              | `_openvino_model/` directory   |
-| CoreML          | [`torch2coreml()`](../reference/utils/export/coreml.md)           | `pip install coremltools`                                           | `.mlpackage`                   |
-| TF SavedModel   | [`onnx2saved_model()`](../reference/utils/export/tensorflow.md)   | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `_saved_model/` directory      |
-| TF Frozen Graph | [`keras2pb()`](../reference/utils/export/tensorflow.md)           | [see detailed requirements below](#export-to-tensorflow-savedmodel) | `.pb` file                     |
-| NCNN            | [`torch2ncnn()`](../reference/utils/export/ncnn.md)               | `pip install ncnn pnnx`                                             | `_ncnn_model/` directory       |
-| MNN             | [`onnx2mnn()`](../reference/utils/export/mnn.md)                  | `pip install MNN`                                                   | `.mnn` file                    |
-| PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle`                                 | `_paddle_model/` directory     |
-| ExecuTorch      | [`torch2executorch()`](../reference/utils/export/executorch.md)   | `pip install executorch`                                            | `_executorch_model/` directory |
-| Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (macOS 26+ on Apple silicon)             | `.aimodel` directory           |
+| Format          | Function                                                          | Install                                                                                          | Output                         |
+| --------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------ |
+| ONNX            | [`torch2onnx()`](../reference/utils/export/engine.md)             | `pip install onnx`                                                                               | `.onnx` file                   |
+| TorchScript     | [`torch2torchscript()`](../reference/utils/export/torchscript.md) | included with PyTorch                                                                            | `.torchscript` file            |
+| OpenVINO        | [`torch2openvino()`](../reference/utils/export/openvino.md)       | `pip install openvino`                                                                           | `_openvino_model/` directory   |
+| CoreML          | [`torch2coreml()`](../reference/utils/export/coreml.md)           | `pip install coremltools`                                                                        | `.mlpackage`                   |
+| TF SavedModel   | [`onnx2saved_model()`](../reference/utils/export/tensorflow.md)   | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `_saved_model/` directory      |
+| TF Frozen Graph | [`keras2pb()`](../reference/utils/export/tensorflow.md)           | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `.pb` file                     |
+| NCNN            | [`torch2ncnn()`](../reference/utils/export/ncnn.md)               | `pip install ncnn pnnx`                                                                          | `_ncnn_model/` directory       |
+| MNN             | [`onnx2mnn()`](../reference/utils/export/mnn.md)                  | `pip install MNN`                                                                                | `.mnn` file                    |
+| PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle`                                                              | `_paddle_model/` directory     |
+| ExecuTorch      | [`torch2executorch()`](../reference/utils/export/executorch.md)   | `pip install executorch`                                                                         | `_executorch_model/` directory |
+| Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (Apple silicon macOS 26+, x86_64 Linux glibc 2.34+; Python 3.11-3.14) | `.aimodel` directory           |
 
 !!! note "ONNX as an intermediate format"
 
@@ -165,7 +165,10 @@ resnet18_saved_model/
 
 Pass `quantize=8` to add an INT8 `.tflite` alongside them.
 
-Requirements:
+TensorFlow export does not run on macOS with Python 3.13 or newer; use Python 3.12 or earlier on macOS, or Linux.
+
+Requirements on Python 3.12 or earlier (on Python 3.13 or newer the export requires `tensorflow>2.19.0`, `tf_keras>2.19.0`,
+`onnx2tf>=2.3.0,<2.3.16`, and `protobuf>=6.31.1,<7.0.0` instead):
 
 - `tensorflow>=2.0.0,<=2.19.0`
 - `onnx2tf>=1.26.3,<1.29.0`
@@ -233,8 +236,11 @@ The directory contains the PaddlePaddle model and parameter files:
 
 ```text
 resnet18_paddle_model/
-├── model.pdmodel
-└── model.pdiparams
+├── inference_model/
+│   ├── model.json
+│   └── model.pdiparams
+├── model.pdparams
+└── x2paddle_code.py
 ```
 
 Requires `x2paddle` and the correct PaddlePaddle distribution for your platform:
@@ -279,7 +285,7 @@ resnet18.aimodel/
 └── metadata.json
 ```
 
-Export runs on macOS 26 or later on Apple silicon (`pip install coreai-torch`), and `quantize=16` writes an FP16 asset that takes float16 inputs; the asset runs on iOS 27 and macOS 27. See the [Core AI integration](../integrations/coreai.md), including its note on FP16 assets that abort on load.
+Export runs on macOS 26 or later on Apple silicon, or on x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14 (`pip install coreai-torch`), and `quantize=16` writes an FP16 asset that takes float16 inputs; the asset runs on iOS 27 and macOS 27. See the [Core AI integration](../integrations/coreai.md), including its note on FP16 assets that abort on load.
 
 ## Verify Your Exported Model
 

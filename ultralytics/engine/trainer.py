@@ -1015,7 +1015,7 @@ class BaseTrainer:
                     "Resume checkpoint not found. Please pass a valid checkpoint to resume from, "
                     "i.e. 'yolo train resume model=path/to/last.pt'"
                 ) from e
-            if self.args.data or (not isinstance(ckpt_args["data"], dict) and not Path(ckpt_args["data"]).exists()):
+            if self.args.data:
                 ckpt_args["data"] = self.args.data
 
             resume = True

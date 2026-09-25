@@ -183,7 +183,7 @@ Choose the CPU and memory size in the resources controls and review the displaye
 
 !!! note "Auto-Generated Names"
 
-    The deployment name combines the model name with the region city, for example `yolo26n-iowa`. On the model `Deploy` tab, a numeric suffix is added when that model already has a deployment in the region (for example `yolo26n-iowa-2`). Names must be unique within a workspace — deploying a name that already exists returns an error rather than silently renaming.
+    The deployment name combines the model name with the region city, for example `yolo26n-iowa`. Names must be unique within a workspace: when the name is already taken, the dialog shows an inline error and disables **Create Deployment** until you choose another name.
 
 ### Deploy Tab (Quick Deploy)
 

@@ -159,13 +159,14 @@ class BOTSORT(BYTETracker):
         The class is designed to work with a YOLO object detection model and supports ReID only if enabled via args.
     """
 
-    def __init__(self, args: Any):
+    def __init__(self, args: Any, *, reset_id: bool = True):
         """Initialize BOTSORT object with ReID module and GMC algorithm.
 
         Args:
             args (Any): Parsed command-line arguments containing tracking parameters.
+            reset_id (bool): Whether to reset the shared track ID counter on construction.
         """
-        super().__init__(args)
+        super().__init__(args, reset_id=reset_id)
         self.gmc = GMC(method=args.gmc_method)
 
         # ReID module

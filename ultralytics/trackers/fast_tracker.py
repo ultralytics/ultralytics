@@ -149,7 +149,7 @@ class FASTTracker(BYTETracker):
 
     track_class = FastSTrack
 
-    def __init__(self, args):
+    def __init__(self, args, *, reset_id: bool = True):
         """Initialize FastTracker with tunables read from ``args``.
 
         Any FastTracker-specific key missing on ``args`` falls back to a sensible default, so
@@ -159,8 +159,9 @@ class FASTTracker(BYTETracker):
             args (Namespace | IterableSimpleNamespace): Parsed tracker config. Must provide the BYTETracker keys
                 (``track_high_thresh``, ``track_low_thresh``, ``new_track_thresh``, ``track_buffer``, ``match_thresh``,
                 ``fuse_score``) and may provide the FastTracker-specific keys described in the class docstring.
+            reset_id (bool): Whether to reset the shared track ID counter on construction.
         """
-        super().__init__(args)
+        super().__init__(args, reset_id=reset_id)
         # Occlusion-handling knobs (fall back to sensible defaults if absent on args)
         self.reset_velocity_offset_occ = int(getattr(args, "reset_velocity_offset_occ", 5))
         self.reset_pos_offset_occ = int(getattr(args, "reset_pos_offset_occ", 3))

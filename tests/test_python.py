@@ -599,6 +599,7 @@ class _TrackingModel:
             device=torch.device("cpu"),
         )
         self.batch_size = batch_size
+        self.boxes = [[40, 40, 120, 120, 0.9, 0]]
 
     def add_callback(self, event, callback):
         self.callbacks[event].append(callback)
@@ -613,7 +614,7 @@ class _TrackingModel:
                 orig_img=np.zeros((256, 256, 3), dtype=np.uint8),
                 path=f"frame{i}.jpg",
                 names={0: "object"},
-                boxes=torch.tensor([[40, 40, 120, 120, 0.9, 0]], dtype=torch.float32),
+                boxes=torch.tensor(self.boxes, dtype=torch.float32),
             )
             for i in range(self.batch_size)
         ]
@@ -678,6 +679,43 @@ def test_track_source_id_rejects_nonserial_sources():
     model = _TrackingModel(mode="video")
     with pytest.raises(ValueError, match="single image"):
         Model.track(model, "clip.mp4", persist=True, source_id="A")
+
+
+def test_track_source_id_new_objects_keep_unique_ids():
+    """Opening source B must not reuse an active source A ID when A detects another object."""
+    from ultralytics.engine.model import Model
+
+    model = _TrackingModel()
+    frame = np.zeros((256, 256, 3), dtype=np.uint8)
+    boxes_a = [[10, 10, 40, 40, 0.9, 0], [70, 70, 100, 100, 0.9, 0]]
+    model.boxes = boxes_a
+    first = Model.track(model, frame, persist=True, source_id="A")[0]
+    assert len(first.boxes.id) == 2
+
+    model.boxes = [[130, 130, 160, 160, 0.9, 0]]
+    Model.track(model, frame, persist=True, source_id="B")
+
+    model.boxes = [*boxes_a, [180, 180, 210, 210, 0.9, 0]]
+    Model.track(model, frame, persist=True, source_id="A")
+    result = Model.track(model, frame, persist=True, source_id="A")[0]
+    ids = result.boxes.id.tolist()
+    assert len(ids) == 3 and len(set(ids)) == 3
+
+
+@pytest.mark.parametrize("tracker_type", ["bytetrack", "botsort", "fasttrack", "ocsort", "deepocsort"])
+def test_track_source_id_preserves_counter_for_byte_tracker_family(tracker_type):
+    """Additional keyed trackers must not reset IDs already assigned by any ByteTrack-family backend."""
+    from ultralytics.trackers.basetrack import BaseTrack
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / f"cfg/trackers/{tracker_type}.yaml"), device="cpu")
+    tracker_cls = TRACKER_MAP[tracker_type]
+    tracker_cls(args)
+    assert BaseTrack.next_id() == 1
+    tracker_cls(args, reset_id=False)
+    assert BaseTrack.next_id() == 2
+    BaseTrack.reset_id()
 
 
 def test_track_stream_without_source_id():

@@ -247,11 +247,12 @@ class BYTETracker:
 
     track_class = STrack
 
-    def __init__(self, args):
+    def __init__(self, args, *, reset_id: bool = True):
         """Initialize a BYTETracker instance for object tracking.
 
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
+            reset_id (bool): Whether to reset the shared track ID counter on construction.
         """
         self.tracked_stracks: list[STrack] = []
         self.lost_stracks: list[STrack] = []
@@ -261,7 +262,8 @@ class BYTETracker:
         self.args = args
         self.max_frames_lost = args.track_buffer
         self.kalman_filter = self.get_kalmanfilter()
-        self.reset_id()
+        if reset_id:
+            self.reset_id()
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None, **kwargs) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""

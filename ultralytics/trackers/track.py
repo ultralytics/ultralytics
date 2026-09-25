@@ -123,7 +123,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False, source_
             tracker = predictor.source_trackers.get(source_id)
             if tracker is None:
                 default_tracker = predictor.trackers[0]
-                tracker = type(default_tracker)(args=default_tracker.args)
+                tracker_kwargs = {"reset_id": False} if isinstance(default_tracker, BYTETracker) else {}
+                tracker = type(default_tracker)(args=default_tracker.args, **tracker_kwargs)
                 predictor.source_trackers[source_id] = tracker
         else:
             tracker = predictor.trackers[i if is_stream else 0]

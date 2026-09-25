@@ -178,14 +178,15 @@ class OCSORT(BYTETracker):
 
     track_class = OCSortTrack
 
-    def __init__(self, args: Any):
+    def __init__(self, args: Any, *, reset_id: bool = True):
         """Initialize OC-SORT tracker.
 
         Args:
             args (Namespace | IterableSimpleNamespace): Parsed tracker config providing the BYTE keys plus `delta_t`,
                 `inertia`, and `use_byte`.
+            reset_id (bool): Whether to reset the shared track ID counter on construction.
         """
-        super().__init__(args)
+        super().__init__(args, reset_id=reset_id)
         self.delta_t = getattr(args, "delta_t", 3)
         self.inertia = getattr(args, "inertia", 0.2)
         self.use_byte = getattr(args, "use_byte", False)

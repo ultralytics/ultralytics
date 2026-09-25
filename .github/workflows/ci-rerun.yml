@@ -29,7 +29,7 @@ jobs:
           transient='lost communication with the server|The operation was canceled|received a shutdown signal|Retry limit reached|Github API request failed|Connect Timeout Error'
           setup_steps='^((Install|Pre-cache)[^,]*(,|$))+$'
           gh api "repos/$GH_REPO/actions/runs/$RUN_ID/attempts/1/jobs" --paginate \
-            --jq '.jobs[] | select(.conclusion == "failure") | [.id, .name, ([.steps[] | select(.conclusion == "failure") | .name] | join(","))] | @tsv' > failed.tsv
+            --jq '.jobs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | [.id, .name, ([.steps[] | select(.conclusion == "failure") | .name] | join(","))] | @tsv' > failed.tsv
           while IFS=$'\t' read -r id name steps; do
             text="$(gh api "repos/$GH_REPO/check-runs/$id/annotations" --paginate --jq '.[].message')"
             text+=$'\n'"$(gh api "repos/$GH_REPO/actions/jobs/$id/logs" | grep -m 1 -B 5 '##\[error\]' || true)"

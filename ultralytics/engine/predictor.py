@@ -43,7 +43,7 @@ import platform
 import re
 import threading
 from concurrent.futures import ThreadPoolExecutor
-from copy import deepcopy
+from copy import copy, deepcopy
 from pathlib import Path
 from typing import Any, Callable
 
@@ -354,16 +354,15 @@ class BasePredictor:
                 ops.Profile(device=self.device),
             )
             self.run_callbacks("on_predict_start")
-            batches = iter(self.dataset)
-            if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
+            dataset = self.dataset
+            batches = ((batch, dataset) for batch in dataset)
+            if (  # overlap loading with GPU work; each batch carries a snapshot of the loader's mode, frame and fps
                 self.device.type == "cuda"
-                and isinstance(self.dataset, LoadImagesAndVideos)
-                and self.dataset.ni == self.dataset.nf
-                and len(self.dataset) > 1
+                and isinstance(dataset, LoadImagesAndVideos)
+                and (dataset.nf > dataset.ni or len(dataset) > 1)
             ):
-                batches = _prefetch(batches)
-            for batch in batches:
-                self.batch = batch
+                batches = _prefetch((batch, copy(dataset)) for batch in dataset)
+            for self.batch, self.dataset in batches:
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 

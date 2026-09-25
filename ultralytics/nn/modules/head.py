@@ -805,8 +805,8 @@ class Depth(nn.Module):
             return {"depth": depth}
 
         depth = depth.pow(self.cal_a) * self.cal_b.exp()
-        if self.export:
-            depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=False)
+        if self.export:  # same align_corners=True resize as the depth loss, calibration and validator
+            depth = F.interpolate(depth, scale_factor=4.0, mode="bilinear", align_corners=True)
         return depth
 
 

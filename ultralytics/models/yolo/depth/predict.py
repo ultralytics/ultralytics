@@ -7,6 +7,7 @@ from typing import Any
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
@@ -39,7 +40,8 @@ class DepthPredictor(BasePredictor):
         if depth_maps.ndim == 3:
             depth_maps = depth_maps.unsqueeze(1)  # (B, H, W) → (B, 1, H, W)
         # Restore model-input resolution so all backends crop letterbox padding before scaling to the original image.
-        depth_maps = ops.scale_masks(depth_maps, img.shape[2:], padding=False)
+        # align_corners=True matches the depth loss and the exported head, so PyTorch and exported outputs agree.
+        depth_maps = F.interpolate(depth_maps.float(), size=img.shape[2:], mode="bilinear", align_corners=True)
 
         if not isinstance(orig_imgs, list):  # torch.Tensor source (B, 3, H, W)
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]

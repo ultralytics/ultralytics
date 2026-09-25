@@ -26,12 +26,13 @@ TRACKER_MAP = {
 }
 
 
-def on_predict_start(predictor: object, persist: bool = False) -> None:
+def on_predict_start(predictor: object, persist: bool = False, source_id: str | None = None) -> None:
     """Initialize trackers for object tracking during prediction.
 
     Args:
         predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
         persist (bool, optional): Whether to reuse existing trackers if they are already attached.
+        source_id (str, optional): Key for a single-image source with independent tracker state.
 
     Examples:
         Initialize trackers for a predictor object
@@ -41,6 +42,11 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
     if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
         raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
+
+    if source_id is not None and (
+        predictor.dataset.mode != "image" or predictor.dataset.bs != 1 or len(predictor.dataset) != 1
+    ):
+        raise ValueError("source_id requires a single image per track call")
 
     if hasattr(predictor, "trackers") and persist:
         return
@@ -81,6 +87,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         if predictor.dataset.mode != "stream":  # non-stream modes reuse a single tracker
             break
     predictor.trackers = trackers
+    predictor.source_trackers = {}  # cleared with the other tracker state when persist=False
     predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
 
     tracker_cls = TRACKER_MAP[cfg.tracker_type]
@@ -88,12 +95,13 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         tracker_cls.setup_predictor(predictor)
 
 
-def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None:
+def on_predict_postprocess_end(predictor: object, persist: bool = False, source_id: str | None = None) -> None:
     """Postprocess detected boxes and update with object tracking.
 
     Args:
         predictor (object): The predictor object containing the predictions.
         persist (bool, optional): Whether to persist the trackers if they already exist.
+        source_id (str, optional): Key for a single-image source with independent tracker state.
 
     Examples:
         Postprocess predictions and update with tracking
@@ -109,7 +117,14 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
     )
 
     for i, result in enumerate(predictor.results):
-        tracker = predictor.trackers[i if is_stream else 0]
+        if source_id is not None:
+            tracker = predictor.source_trackers.get(source_id)
+            if tracker is None:
+                default_tracker = predictor.trackers[0]
+                tracker = type(default_tracker)(args=default_tracker.args)
+                predictor.source_trackers[source_id] = tracker
+        else:
+            tracker = predictor.trackers[i if is_stream else 0]
         vid_path = result.path
         if not persist and predictor.vid_path[i if is_stream else 0] != vid_path:
             tracker.reset()
@@ -129,7 +144,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         predictor.results[i].update(**update_args)
 
 
-def register_tracker(model: object, persist: bool) -> None:
+def register_tracker(model: object, persist: bool, source_id: str | None = None) -> None:
     """Register or refresh the tracking callbacks on the model for object tracking during prediction.
 
     Any earlier registration is replaced in place, so repeat calls neither stack callbacks nor keep a stale `persist`.
@@ -137,6 +152,7 @@ def register_tracker(model: object, persist: bool) -> None:
     Args:
         model (object): The model to register tracking callbacks on, exposing a `callbacks` event mapping.
         persist (bool): Whether to persist the trackers if they already exist.
+        source_id (str, optional): Key for a single-image source with independent tracker state.
 
     Examples:
         Register tracking callbacks to a YOLO model
@@ -150,6 +166,6 @@ def register_tracker(model: object, persist: bool) -> None:
         callbacks = model.callbacks[event]
         i = next((i for i, cb in enumerate(callbacks) if getattr(cb, "func", None) is fn), None)
         if i is None:
-            model.add_callback(event, partial(fn, persist=persist))
+            model.add_callback(event, partial(fn, persist=persist, source_id=source_id))
         else:
-            callbacks[i] = partial(fn, persist=persist)
+            callbacks[i] = partial(fn, persist=persist, source_id=source_id)

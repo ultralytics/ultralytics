@@ -490,7 +490,7 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
 
 !!! tip "Persisting tracks and selecting a tracker"
 
-    Use `persist=True` only when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. Do not use `persist=True` across unrelated images or a different stream, since previous track state can carry over.
+    Use `persist=True` only when passing consecutive frames from the same video stream to `model.track()`. This lets the tracker reuse state from earlier frames and maintain consistent track IDs over time. For serial calls that interleave frames from different sources, also pass a distinct `source_id` for each source.
 
     You can also choose a tracker backend by passing a tracker configuration file, such as `tracker="botsort.yaml"`, `tracker="bytetrack.yaml"`, or `tracker="tracktrack.yaml"`.
 
@@ -537,6 +537,23 @@ Here is a Python script using [OpenCV](https://www.ultralytics.com/glossary/open
     ```
 
 Please note the change from `model(frame)` to `model.track(frame)`, which enables object tracking instead of simple detection. This modified script will run the tracker on each frame of the video, visualize the results, and display them in a window. The loop can be exited by pressing 'q'.
+
+### Interleaved Single-Frame Sources
+
+When one model receives frames from multiple cameras one at a time, pass a stable `source_id` with `persist=True` to keep their tracker states separate:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("yolo26n.pt")
+for camera_id, frame in incoming_frames:  # Each item is one camera ID and one image array.
+    result = model.track(frame, persist=True, source_id=camera_id)[0]
+    # Process result here.
+
+model.clear_tracker("camera-A")  # Release this source's state when it is no longer needed.
+```
+
+`source_id` accepts a non-empty string and supports serial single-image calls only. It does not apply to video inputs, image batches, or `stream=True`. Unkeyed calls and `.streams` inputs keep their existing tracking behavior. Call `clear_tracker(source_id)` when a source ends so its state does not accumulate in memory.
 
 ### Plotting Tracks Over Time
 

@@ -562,6 +562,7 @@ class Model(torch.nn.Module):
         source: str | Path | int | list | tuple | np.ndarray | torch.Tensor = None,
         stream: bool = False,
         persist: bool = False,
+        source_id: str | None = None,
         **kwargs: Any,
     ) -> list[Results]:
         """Conduct object tracking on the specified input source using the registered trackers.
@@ -575,6 +576,8 @@ class Model(torch.nn.Module):
                 tracking. Can be a file path, URL, or video stream.
             stream (bool): If True, treats the input source as a continuous video stream.
             persist (bool): If True, persists trackers between different calls to this method.
+            source_id (str, optional): Key for independent tracker state across serial single-image calls. Requires
+                `persist=True` and `stream=False`. Call `clear_tracker(source_id)` when the source is finished.
             **kwargs (Any): Additional keyword arguments for configuring the tracking process.
 
         Returns:
@@ -593,11 +596,30 @@ class Model(torch.nn.Module):
         """
         from ultralytics.trackers import register_tracker
 
-        register_tracker(self, persist)
+        if source_id is not None:
+            if not isinstance(source_id, str) or not source_id:
+                raise ValueError("source_id must be a non-empty string")
+            if not persist:
+                raise ValueError("source_id requires persist=True")
+            if stream:
+                raise ValueError("source_id requires stream=False")
+
+        register_tracker(self, persist, source_id)
         kwargs["conf"] = 0.1 if kwargs.get("conf") is None else kwargs["conf"]  # trackers need low-confidence input
         kwargs["batch"] = kwargs.get("batch") or 1  # batch-size 1 for tracking in videos
         kwargs["mode"] = "track"
         return self.predict(source=source, stream=stream, **kwargs)
+
+    def clear_tracker(self, source_id: str) -> None:
+        """Release tracker state for a source previously passed to `track(source_id=...)`.
+
+        Args:
+            source_id (str): Source key to remove. An unknown key has no effect.
+        """
+        if not isinstance(source_id, str) or not source_id:
+            raise ValueError("source_id must be a non-empty string")
+        if self.predictor is not None:
+            getattr(self.predictor, "source_trackers", {}).pop(source_id, None)
 
     def val(
         self,

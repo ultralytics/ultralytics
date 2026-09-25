@@ -8,8 +8,10 @@ import shutil
 import tarfile
 import urllib
 import zipfile
+from collections import defaultdict
 from copy import copy
 from pathlib import Path
+from types import SimpleNamespace
 
 import cv2
 import numpy as np
@@ -573,6 +575,120 @@ def test_youtube():
     # Handle internet connection errors and 'urllib.error.HTTPError: HTTP Error 429: Too Many Requests'
     except (urllib.error.HTTPError, ConnectionError) as e:
         LOGGER.error(f"YouTube Test Error: {e}")
+
+
+class _SourceFrameDataset:
+    """Represent a single image, a batch of images, or a stream batch."""
+
+    def __init__(self, batch_size, mode):
+        self.bs = batch_size
+        self.mode = mode
+
+    def __len__(self):
+        return self.bs
+
+
+class _TrackingModel:
+    """Exercise Model.track and its callbacks with deterministic detections instead of model inference."""
+
+    def __init__(self, batch_size=1, mode="image"):
+        self.callbacks = defaultdict(list)
+        self.predictor = SimpleNamespace(
+            args=SimpleNamespace(task="detect", tracker="bytetrack.yaml"),
+            dataset=_SourceFrameDataset(batch_size, mode),
+            device=torch.device("cpu"),
+        )
+        self.batch_size = batch_size
+
+    def add_callback(self, event, callback):
+        self.callbacks[event].append(callback)
+
+    def predict(self, source, stream=False, **kwargs):
+        from ultralytics.engine.results import Results
+
+        for callback in self.callbacks["on_predict_start"]:
+            callback(self.predictor)
+        self.predictor.results = [
+            Results(
+                orig_img=np.zeros((256, 256, 3), dtype=np.uint8),
+                path=f"frame{i}.jpg",
+                names={0: "object"},
+                boxes=torch.tensor([[40, 40, 120, 120, 0.9, 0]], dtype=torch.float32),
+            )
+            for i in range(self.batch_size)
+        ]
+        for callback in self.callbacks["on_predict_postprocess_end"]:
+            callback(self.predictor)
+        return self.predictor.results
+
+
+def test_track_source_id_interleaving_and_cleanup():
+    """A1, B1, A2, B2 retain independent trackers; cleanup only resets the selected source."""
+    from ultralytics.engine.model import Model
+
+    model = _TrackingModel()
+    frame = np.zeros((256, 256, 3), dtype=np.uint8)
+    ids = {}
+    for source_id in ("A", "B", "A", "B"):
+        result = Model.track(model, frame, persist=True, source_id=source_id)[0]
+        ids.setdefault(source_id, []).append(int(result.boxes.id[0]))
+
+    assert ids["A"][0] == ids["A"][1]
+    assert ids["B"][0] == ids["B"][1]
+    assert model.predictor.source_trackers["A"].frame_id == 2
+    assert model.predictor.source_trackers["B"].frame_id == 2
+    assert model.predictor.trackers[0].frame_id == 0
+
+    tracker_b = model.predictor.source_trackers["B"]
+    Model.clear_tracker(model, "A")
+    assert "A" not in model.predictor.source_trackers
+    assert model.predictor.source_trackers["B"] is tracker_b
+    Model.track(model, frame, persist=True, source_id="A")
+    assert model.predictor.source_trackers["A"].frame_id == 1
+    assert tracker_b.frame_id == 2
+
+    Model.track(model, frame, persist=True)
+    Model.track(model, frame, persist=True)
+    assert model.predictor.trackers[0].frame_id == 2
+    assert model.predictor.source_trackers["A"].frame_id == 1
+    assert tracker_b.frame_id == 2
+
+
+def test_track_source_id_rejects_nonserial_sources():
+    """A source key must not silently share state across batches or streaming inputs."""
+    from ultralytics.engine.model import Model
+
+    frame = np.zeros((256, 256, 3), dtype=np.uint8)
+    model = _TrackingModel()
+    with pytest.raises(ValueError, match="persist=True"):
+        Model.track(model, frame, source_id="A")
+    with pytest.raises(ValueError, match="stream=False"):
+        Model.track(model, frame, persist=True, stream=True, source_id="A")
+    with pytest.raises(ValueError, match="non-empty string"):
+        Model.track(model, frame, persist=True, source_id="")
+    with pytest.raises(ValueError, match="non-empty string"):
+        Model.track(model, frame, persist=True, source_id=1)
+    with pytest.raises(ValueError, match="non-empty string"):
+        Model.clear_tracker(model, "")
+
+    model = _TrackingModel(batch_size=2)
+    with pytest.raises(ValueError, match="single image"):
+        Model.track(model, [frame, frame], persist=True, source_id="A")
+
+    model = _TrackingModel(mode="video")
+    with pytest.raises(ValueError, match="single image"):
+        Model.track(model, "clip.mp4", persist=True, source_id="A")
+
+
+def test_track_stream_without_source_id():
+    """Stream batches continue to allocate one tracker for each stream."""
+    from ultralytics.engine.model import Model
+
+    model = _TrackingModel(batch_size=2, mode="stream")
+    Model.track(model, "cameras.streams", stream=True, persist=True)
+    Model.track(model, "cameras.streams", stream=True, persist=True)
+    assert len(model.predictor.trackers) == 2
+    assert [tracker.frame_id for tracker in model.predictor.trackers] == [2, 2]
 
 
 def test_track_second_association_indices():

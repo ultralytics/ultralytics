@@ -61,7 +61,7 @@ Inference:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
                          yolo26n_ascend_model       # Huawei Ascend
-                         yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
+                         yolo26n.aimodel            # Apple Core AI (export on macOS 26+ Apple silicon or x86_64 Linux)
 """
 
 from __future__ import annotations
@@ -1497,8 +1497,8 @@ class Exporter:
     @try_export
     def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
         """Export YOLO model to Apple Core AI *.aimodel format."""
-        assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
-            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
+        assert (MACOS and ARM64 and MACOS_VERSION >= "26.0") or (LINUX and not ARM64), (
+            "Core AI export requires macOS>=26 on Apple silicon or x86_64 Linux, the platforms coreai-core publishes."
         )
         assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.coreai import torch2coreai

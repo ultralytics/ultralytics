@@ -655,17 +655,3 @@ jobs:
       # WARNING: tests hang here for unknown reasons https://github.com/ultralytics/ultralytics/pull/21577
       # - name: test_python.py
       #   run: pytest ultralytics/tests/test_python.py -vv -s
-
-  Summary:
-    runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
-    if: always()
-    steps:
-      - name: Check for failure and notify
-        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
-        uses: slackapi/slack-github-action@v4.0.0
-        with:
-          webhook-type: incoming-webhook
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
-          payload: |
-            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}`  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"

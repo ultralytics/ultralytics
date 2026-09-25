@@ -1785,6 +1785,9 @@ def test_clip_boxes_and_coords_accept_list():
     clipped_coords = ops.clip_coords(coords, (640, 640))
     assert isinstance(clipped_coords, np.ndarray)
     assert np.allclose(clipped_coords, [[0.0, 20.0], [640.0, 640.0], [100.0, 200.0]])
+
+
+def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox
     from ultralytics.utils import ops

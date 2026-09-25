@@ -381,23 +381,22 @@ POST /api/datasets
 }
 ```
 
-| Field              | Type    | Required | Description                                                                                                              |
-| ------------------ | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `dataset`          | string  | Yes      | Dataset name used in Platform URLs (lowercase, hyphenated, max 128 chars)                                                |
-| `name`             | string  | Yes      | Display name (max 100 chars)                                                                                             |
-| `description`      | string  | No       | Description (max 1000 chars)                                                                                             |
-| `task`             | string  | No       | Task type (default: `detect`)                                                                                            |
-| `classNames`       | array   | No       | Class names in index order (max 25,000)                                                                                  |
-| `format`           | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                                             |
-| `visibility`       | string  | No       | `public` or `private`                                                                                                    |
-| `blurFaces`        | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces))                          |
-| `tags`             | array   | No       | Up to 50 tags of 50 characters each                                                                                      |
-| `license`          | string  | No       | Dataset license identifier                                                                                               |
-| `metadata`         | object  | No       | Custom JSON metadata                                                                                                     |
-| `owner`            | string  | No       | Team workspace handle; defaults to your personal workspace                                                               |
-| `requireExactSlug` | boolean | No       | Return `409` when `dataset` is already taken instead of creating a suffixed name such as `warehouse-2` (default `false`) |
+| Field         | Type    | Required | Description                                                                                     |
+| ------------- | ------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `dataset`     | string  | Yes      | Dataset name used in Platform URLs (lowercase, hyphenated, max 128 chars)                       |
+| `name`        | string  | Yes      | Display name (max 100 chars)                                                                    |
+| `description` | string  | No       | Description (max 1000 chars)                                                                    |
+| `task`        | string  | No       | Task type (default: `detect`)                                                                   |
+| `classNames`  | array   | No       | Class names in index order (max 25,000)                                                         |
+| `format`      | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                    |
+| `visibility`  | string  | No       | `public` or `private`                                                                           |
+| `blurFaces`   | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces)) |
+| `tags`        | array   | No       | Up to 50 tags of 50 characters each                                                             |
+| `license`     | string  | No       | Dataset license identifier                                                                      |
+| `metadata`    | object  | No       | Custom JSON metadata                                                                            |
+| `owner`       | string  | No       | Team workspace handle; defaults to your personal workspace                                      |
 
-The response returns the `dataset` slug that was actually created, so read it back before uploading unless you set `requireExactSlug`.
+A `dataset` slug that already exists in the workspace, including one in Trash, returns `409`.
 
 !!! note "Supported Tasks"
 
@@ -1260,6 +1259,8 @@ POST /api/projects
 
 **Response (`201`):** `id`, `owner`, `project`, `region`.
 
+A `project` slug that already exists in the workspace, including one in Trash, returns `409`.
+
 ### Update Project
 
 ```http
@@ -1708,8 +1709,8 @@ POST /api/models/{owner}/{project}/{model}/exports
     print(status["export"]["status"])
     ```
 
-**Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `gpuType`, `region`. An equivalent export that
-is already in flight returns `409`.
+**Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
+An equivalent export that is already in flight returns `409`.
 
 **Supported Formats:**
 
@@ -1726,8 +1727,8 @@ GET /api/models/{owner}/{project}/{model}/exports/{exportId}
 
 **Python SDK:** `client.exports.retrieve(owner, project, model, export_id)`
 
-Returns the `export` object with `status`, `format`, `args`, `gpuType`, timestamps, and — once complete — a `file`
-object containing `size`, `downloadUrl`, and `downloadFilename`.
+Returns the `export` object with `status`, `format`, `args`, `gpuType` (TensorRT only), timestamps, and — once complete —
+a `file` object containing `size`, `downloadUrl`, and `downloadFilename`.
 
 ### Cancel or Delete Export
 

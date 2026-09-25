@@ -109,6 +109,8 @@ class BasePredictor:
         pixels (int | None): Mean per-image inference area in pixels, once a run completes.
         windows (list[str]): List of window names for visualization.
         batch (tuple): Current batch data.
+        mode (str | None): Source mode of the current batch, 'image', 'video' or 'stream'.
+        frame (int | None): Frame number of the current batch, if it comes from a video or stream.
         results (list[Any]): Current batch results.
         transforms (Callable): Image transforms for classification.
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
@@ -166,6 +168,8 @@ class BasePredictor:
         self.windows = []
         self.screen = None  # cached screen resolution (width, height) for show=True scaling
         self.batch = None
+        self.mode = None
+        self.frame = None
         self.results = None
         self.transforms = None
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
@@ -355,15 +359,21 @@ class BasePredictor:
             )
             self.run_callbacks("on_predict_start")
             batches = iter(self.dataset)
-            if (  # overlap image loading with GPU work; videos keep frame state the predictor reads
+            if (  # overlap file loading with GPU work
                 self.device.type == "cuda"
                 and isinstance(self.dataset, LoadImagesAndVideos)
-                and self.dataset.ni == self.dataset.nf
-                and len(self.dataset) > 1
+                and (self.dataset.ni != self.dataset.nf or len(self.dataset) > 1)
             ):
                 batches = _prefetch(batches)
             for batch in batches:
                 self.batch = batch
+                if isinstance(self.dataset, LoadImagesAndVideos):
+                    match = re.match(r"video \d+/\d+ \(frame (\d+)/", self.batch[2][-1])  # loader's own video prefix
+                    self.mode = "video" if match else "image"
+                    self.frame = int(match[1]) if match else None
+                else:
+                    self.mode = self.dataset.mode
+                    self.frame = getattr(self.dataset, "count", None)
                 self.run_callbacks("on_predict_batch_start")
                 paths, im0s, s = self.batch
 
@@ -484,12 +494,12 @@ class BasePredictor:
             im = im[None]  # expand for batch dim
         if self.source_type.stream or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
             string += f"{i}: "
-            frame = self.dataset.count
+            frame = self.frame
         else:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -512,22 +522,28 @@ class BasePredictor:
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(self.save_dir / p.name, frame)
+            fps = (
+                self.dataset.video_fps[str(p)]
+                if isinstance(self.dataset, LoadImagesAndVideos) and self.mode == "video"
+                else None
+            )
+            self.save_predicted_images(self.save_dir / p.name, frame, fps)
 
         return string
 
-    def save_predicted_images(self, save_path: Path, frame: int = 0):
+    def save_predicted_images(self, save_path: Path, frame: int = 0, fps: int | None = None):
         """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.
             frame (int): Frame number for video mode.
+            fps (int, optional): Video frame rate, read from the current source when omitted.
         """
         im = self.plotted_img
 
         # Save videos and streams
-        if self.dataset.mode in {"stream", "video"}:
-            fps = self.dataset.fps if self.dataset.mode == "video" else 30
+        if self.mode in {"stream", "video"}:
+            fps = (self.dataset.fps if fps is None else fps) if self.mode == "video" else 30
             frames_path = self.save_dir / f"{save_path.stem}_frames"  # save frames to a separate directory
             if save_path not in self.vid_writer:  # new video
                 if self.args.save_frames:
@@ -568,7 +584,7 @@ class BasePredictor:
             except Exception:
                 cv2.resizeWindow(name, w, h)
         cv2.imshow(p, im)
-        if cv2.waitKey(300 if self.dataset.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
+        if cv2.waitKey(300 if self.mode == "image" else 1) & 0xFF == ord("q"):  # 300ms if image; else 1ms
             raise StopIteration
 
     def run_callbacks(self, event: str):

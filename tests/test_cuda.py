@@ -204,6 +204,27 @@ def test_predict_multiple_devices():
 
 
 @pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
+def test_predict_video_prefetch(tmp_path):
+    """Test prefetched CUDA video prediction saves each video at its own frame rate when they share a batch."""
+    import cv2
+    import numpy as np
+
+    (tmp_path / "src").mkdir()
+    for name, n in (("a", 5), ("b", 11)):  # n frames at n FPS
+        writer = cv2.VideoWriter(str(tmp_path / "src" / f"{name}.avi"), cv2.VideoWriter_fourcc(*"MJPG"), n, (64, 48))
+        for _ in range(n):
+            writer.write(np.zeros((48, 64, 3), np.uint8))
+        writer.release()
+
+    YOLO(MODEL).predict(
+        tmp_path / "src", device=DEVICES[0], batch=16, imgsz=32, save=True, project=tmp_path, name="out"
+    )
+    for name, n in (("a", 5), ("b", 11)):
+        cap = cv2.VideoCapture(str(tmp_path / "out" / f"{name}.avi"))
+        assert (cap.get(cv2.CAP_PROP_FPS), cap.get(cv2.CAP_PROP_FRAME_COUNT)) == (n, n)
+
+
+@pytest.mark.skipif(not DEVICES, reason="No CUDA devices available")
 def test_track_exported_model():
     """Track with an exported model on GPU; exported backends return raw preds as a single Tensor."""
     file = YOLO(MODEL).export(format="torchscript", imgsz=160, device=DEVICES[0])

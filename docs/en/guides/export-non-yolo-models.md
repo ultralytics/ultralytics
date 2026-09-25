@@ -165,7 +165,10 @@ resnet18_saved_model/
 
 Pass `quantize=8` to add an INT8 `.tflite` alongside them.
 
-Requirements:
+TensorFlow export does not run on macOS with Python 3.13 or newer; use Python 3.12 or earlier on macOS, or Linux.
+
+Requirements on Python 3.12 or earlier (on Python 3.13 or newer the export requires `tensorflow>2.19.0`, `tf_keras>2.19.0`,
+`onnx2tf>=2.3.0,<2.3.16`, and `protobuf>=6.31.1,<7.0.0` instead):
 
 - `tensorflow>=2.0.0,<=2.19.0`
 - `onnx2tf>=1.26.3,<1.29.0`
@@ -233,8 +236,11 @@ The directory contains the PaddlePaddle model and parameter files:
 
 ```text
 resnet18_paddle_model/
-├── model.pdmodel
-└── model.pdiparams
+├── inference_model/
+│   ├── model.json
+│   └── model.pdiparams
+├── model.pdparams
+└── x2paddle_code.py
 ```
 
 Requires `x2paddle` and the correct PaddlePaddle distribution for your platform:

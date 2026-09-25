@@ -1709,8 +1709,8 @@ POST /api/models/{owner}/{project}/{model}/exports
     print(status["export"]["status"])
     ```
 
-**Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `gpuType`, `region`. An equivalent export that
-is already in flight returns `409`.
+**Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
+An equivalent export that is already in flight returns `409`.
 
 **Supported Formats:**
 
@@ -1727,8 +1727,8 @@ GET /api/models/{owner}/{project}/{model}/exports/{exportId}
 
 **Python SDK:** `client.exports.retrieve(owner, project, model, export_id)`
 
-Returns the `export` object with `status`, `format`, `args`, `gpuType`, timestamps, and — once complete — a `file`
-object containing `size`, `downloadUrl`, and `downloadFilename`.
+Returns the `export` object with `status`, `format`, `args`, `gpuType` (TensorRT only), timestamps, and — once complete —
+a `file` object containing `size`, `downloadUrl`, and `downloadFilename`.
 
 ### Cancel or Delete Export
 

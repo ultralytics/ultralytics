@@ -126,6 +126,10 @@ Yes, YOLO26 models can be deployed on mobile devices using [LiteRT](../integrati
     === "Python"
 
         ```python
+        from ultralytics import YOLO
+
+        model = YOLO("yolo26n.pt")
+
         # Export command for NCNN format
         model.export(format="ncnn")
         ```

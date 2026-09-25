@@ -400,6 +400,11 @@ class LoadImagesAndVideos:
         if self.nf == 0:
             raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
 
+    def close(self):
+        """Release the current video capture object, e.g. when inference stops before the video ends."""
+        if self.cap:
+            self.cap.release()
+
     def __iter__(self):
         """Iterate through image/video files, yielding source paths, images, and metadata."""
         self.count = 0

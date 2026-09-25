@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 20 deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 21 deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -60,7 +60,7 @@ graph LR
     B --> D[Predict]:::proc
     B --> E[Export]:::proc
     B --> F[Deploy]:::proc
-    E --> G[20 Formats]:::out
+    E --> G[21 Formats]:::out
     F --> H[Endpoint]:::out
 
     classDef start fill:#4CAF50,color:#fff
@@ -165,7 +165,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 20 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 21 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -227,7 +227,7 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 20 deployment formats:
+Export your model to 21 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -242,7 +242,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [20 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, and Huawei Ascend.
+The Platform supports export to [21 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, Huawei Ascend, and Apple Core AI.
 
 ### Format Selection Guide
 
@@ -427,7 +427,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 20 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 21 export formats
 
 ## FAQ
 

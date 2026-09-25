@@ -219,6 +219,7 @@ def benchmark(
             assert model.task != "pose" or export_format != "pb", "GraphDef Pose inference is not supported"
             assert export_format != "edgetpu", "inference not supported"
             assert export_format != "coreml" or platform.system() == "Darwin", "inference requires macOS>=10.13"
+            assert export_format != "coreai" or MACOS, "inference requires macOS"
             assert export_format != "axelera", "inference only supported on Axelera hardware"
             exported_model.predict(
                 ASSETS / "bus.jpg",

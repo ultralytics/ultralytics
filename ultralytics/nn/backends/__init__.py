@@ -25,6 +25,7 @@ from .qnn import QNNBackend
 from .rknn import RKNNBackend
 from .tensorflow import TensorFlowBackend
 from .tensorrt import TensorRTBackend
+from .ti import TIDLBackend
 from .triton import TritonBackend
 
 __all__ = [
@@ -46,6 +47,7 @@ __all__ = [
     "PyTorchBackend",
     "QNNBackend",
     "RKNNBackend",
+    "TIDLBackend",
     "TensorFlowBackend",
     "TensorRTBackend",
     "TorchScriptBackend",

@@ -26,6 +26,7 @@ Usage - formats:
                      yolo26n_qnn.onnx           # Qualcomm QNN
                      yolo26n.tflite             # LiteRT
                      yolo26n_ascend_model       # Huawei Ascend
+                     yolo26n_ti_model           # TI Edge AI
 """
 
 from __future__ import annotations

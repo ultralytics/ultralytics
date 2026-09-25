@@ -36,6 +36,7 @@ from .backends import (
     RKNNBackend,
     TensorFlowBackend,
     TensorRTBackend,
+    TIDLBackend,
     TorchScriptBackend,
     TritonBackend,
 )
@@ -175,6 +176,7 @@ class AutoBackend(nn.Module):
         "hailo": HailoBackend,
         "ascend": AscendBackend,
         "coreai": CoreAIBackend,
+        "ti": TIDLBackend,
     }
 
     @smart_inference_mode(False)

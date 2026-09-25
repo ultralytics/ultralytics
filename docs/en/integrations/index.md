@@ -111,6 +111,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
 
+- [TI Edge AI](ti-edge-ai.md): Compile Ultralytics YOLO models locally into TI Deep Learning (TIDL) artifacts for accelerated inference on Texas Instruments Edge AI MPU devices (TDA4x, AM62A, and other AM6xA family SoCs) using the C7x DSP/MMA NPU.
+
 - [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
 
 - [LiteRT](litert.md): Developed by [Google](https://www.google.com/), LiteRT (formerly TensorFlow Lite) is the on-device runtime for the `.tflite` format, deploying a single model across mobile, embedded, edge, and the browser (via LiteRT.js).

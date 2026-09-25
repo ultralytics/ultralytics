@@ -26,6 +26,7 @@ LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 Apple Core AI           | `coreai`                  | yolo26n.aimodel
+TI Edge AI              | `ti`                      | yolo26n_ti_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -62,6 +63,7 @@ Inference:
                          yolo26n.tflite             # LiteRT
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
+                         yolo26n_ti_model           # TI Edge AI
 """
 
 from __future__ import annotations
@@ -111,6 +113,7 @@ from ultralytics.utils import (
     QNN_HTP_TARGETS,
     RKNN_CHIPS,
     SETTINGS,
+    TI_DEVICES,
     TORCH_VERSION,
     WINDOWS,
     YAML,
@@ -275,6 +278,15 @@ def export_formats():
             ["batch", "quantize"],
             "base",
         ],
+        [
+            "TI Edge AI",
+            "ti",
+            "_ti_model",
+            False,
+            False,
+            ["batch", "name", "quantize", "opset", "simplify", "data", "fraction"],
+            "isolated-ti",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -398,6 +410,17 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
+    "isolated-ti": {
+        # edgeai-tidl-runtime bundles a cp310/linux_x86_64-only onnxruntime_tidl build.
+        "python": "3.10",
+        "extras": ["export-base"],
+        "torch": None,
+        "requirements": ["edgeai-tidl-runtime"],
+        "indexes": [],  # TODO: point at the edgeai-tidl-runtime wheel host once published
+        # TI Edge AI (TIDL) export is only supported on non-aarch64 Linux.
+        "env": {},
+        "smoke": ["yolo export format=ti model=yolo26n.pt imgsz=32 name=j784s4 data=coco8.yaml"],
+    },
     "litert": {
         "python": "3.13",
         "extras": ["export-base", "export-litert"],
@@ -429,13 +452,14 @@ INT8_FORMATS = frozenset(
         "deepx",
         "hailo",
         "litert",
+        "ti",
     }
 )
 W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "ti"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -545,6 +569,7 @@ class Exporter:
         export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
+        export_ti: Export model to TI Edge AI (TIDL) format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -623,7 +648,7 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "ti"} and self.args.quantize not in {8, "w8a16"}:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo"} and not self.args.data:
@@ -771,6 +796,18 @@ class Exporter:
             self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73', 'v73', or a supported SoC
             assert self.args.name in QNN_HTP_TARGETS, (
                 f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {tuple(QNN_HTP_TARGETS)}."
+            )
+        if fmt == "ti":
+            assert LINUX and not ARM64, "TI Edge AI (TIDL) export is only supported on non-aarch64 Linux."
+            if not self.args.name:
+                LOGGER.warning(
+                    "TI Edge AI export requires a missing 'name' arg for the target device family. "
+                    "Using default name='j784s4'."
+                )
+                self.args.name = "j784s4"
+            self.args.name = str(self.args.name).lower()
+            assert self.args.name in TI_DEVICES, (
+                f"Invalid target device '{self.args.name}' for TI Edge AI export. Valid devices are {TI_DEVICES}."
             )
         if self.args.nms and "nms" not in fmt_keys:
             LOGGER.warning(f"format={fmt} does not support embedded NMS; exporting native outputs for external NMS.")
@@ -1636,6 +1673,25 @@ class Exporter:
             name=self.args.name,
             metadata=self.metadata,
             batch=0 if self.args.dynamic else self.args.batch,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_ti(self, prefix=colorstr("TI Edge AI:")):  # noqa: B008
+        """Export YOLO model to TI Deep Learning (TIDL) format for TI Edge AI C7x DSP/MMA NPU hardware."""
+        from ultralytics.utils.export.ti import onnx2tidl
+
+        f_onnx = self.export_onnx()
+        return onnx2tidl(
+            onnx_file=f_onnx,
+            output_dir=str(self.file).replace(self.file.suffix, "_ti_model/"),
+            target_device=self.args.name,
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            transform_fn=self._transform_fn,
+            imgsz=self.imgsz,
+            batch=self.args.batch,
+            tensor_bits=self.args.quantize,
+            metadata=self.metadata,
             prefix=prefix,
         )
 

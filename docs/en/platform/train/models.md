@@ -242,7 +242,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [21 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, Core AI, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, and Huawei Ascend.
+The Platform supports export to [21 deployment formats](../../modes/export.md#export-formats): ONNX, TorchScript, OpenVINO, TensorRT, CoreML, TF SavedModel, TF GraphDef, LiteRT, TF Edge TPU, PaddlePaddle, NCNN, MNN, RKNN, Qualcomm (QNN), IMX500, Axelera, ExecuTorch, DeepX, Hailo, Huawei Ascend, and Apple Core AI.
 
 ### Format Selection Guide
 

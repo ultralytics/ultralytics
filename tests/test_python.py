@@ -137,6 +137,19 @@ def test_obb_dataset_rejects_box_only_labels():
         data_build.build_yolo_dataset(cfg, data["val"], batch=2, data=data, mode="val")
 
 
+def test_obb_dataset_rejects_mixed_labels(tmp_path):
+    """Test an OBB dataset that mixes one OBB label file with one box-only label file fails at load time too."""
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    for i, row in enumerate(("0 0.1 0.1 0.4 0.1 0.4 0.4 0.1 0.4", "0 0.5 0.5 0.2 0.2")):  # one OBB, one plain box
+        cv2.imwrite(str(images / f"{i}.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+        (labels / f"{i}.txt").write_text(row + "\n")
+    cfg = get_cfg(overrides={"task": "obb", "imgsz": 32})
+    with pytest.raises(ValueError, match="OBB dataset requires equal numbers of boxes and segments"):
+        data_build.build_yolo_dataset(cfg, str(images), batch=2, data={"names": {0: "object"}}, mode="val")
+
+
 def test_build_yolo_dataset_hyp_isolated():
     """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
     data = check_det_dataset("coco8.yaml")

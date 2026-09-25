@@ -236,12 +236,11 @@ class DistillationModel(nn.Module):
         preds = self.student_model(batch["img"])  # hooks capture student features
 
         regular_loss, loss_items = self.student_model.loss(batch, preds)
-        teacher_head = self._teacher_feats[self.teacher_feats_idx[-1]]
-        if isinstance(teacher_head, tuple):
-            teacher_head = teacher_head[1]
-        teacher_scores = teacher_head["one2many"]["scores"] if "one2many" in teacher_head else teacher_head["scores"]
-        if "one2one" in teacher_head:
-            teacher_scores = (teacher_scores + teacher_head["one2one"]["scores"]) / 2
+        teacher_head_feat = self._teacher_feats[self.teacher_feats_idx[-1]]
+        teacher_scores = (
+            self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
+            + self.decouple_outputs(teacher_head_feat, branch="one2one")["scores"]
+        ) / 2
         # neck feature sizes vary per batch (e.g. multi_scale), so split scores by the live teacher feats
         neck_feats = [self._teacher_feats[idx] for idx in self.teacher_feats_idx[:-1]]
         parts = torch.split(teacher_scores, [f.shape[-2] * f.shape[-1] for f in neck_feats], dim=-1)

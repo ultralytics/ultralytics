@@ -135,9 +135,21 @@ jobs:
         if: steps.publish.outcome == 'failure'
         run: |
           rm -f dist/*.publish.attestation
-          sleep 30
+          sleep 120
       - name: Retry publish # transient sigstore/Rekor or PyPI network failures
+        id: retry
         if: steps.publish.outcome == 'failure'
+        continue-on-error: true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+      - name: Clean partial attestations before final retry # PyPI 502 outages can outlast the first retry
+        if: steps.retry.outcome == 'failure'
+        run: |
+          rm -f dist/*.publish.attestation
+          sleep 600
+      - name: Final retry publish
+        if: steps.retry.outcome == 'failure'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
@@ -193,8 +205,8 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
             text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ✅ `${{ github.repository }}` ${{ steps.release.outputs.title || needs.check.outputs.current_tag }}  <https://github.com/${{ github.repository }}/releases/tag/${{ needs.check.outputs.current_tag }}|*Release*>  ·  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
-      - name: Notify Failure
-        if: needs.publish.result != 'success' || needs.sbom.result != 'success'
+      - name: Notify Failure # automatic first attempts only; manual dispatches and re-runs stay quiet
+        if: (needs.publish.result != 'success' || needs.sbom.result != 'success') && github.event_name == 'push' && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

@@ -129,6 +129,14 @@ def test_image_cache_shared_with_spawned_workers():
     assert cache.buffer.is_shared()
 
 
+def test_obb_dataset_rejects_box_only_labels():
+    """Test an OBB dataset built from plain box labels fails at load time like a segment dataset does."""
+    data = check_det_dataset("coco8.yaml")
+    cfg = get_cfg(overrides={"task": "obb", "data": "coco8.yaml", "imgsz": 32})
+    with pytest.raises(ValueError, match="OBB dataset requires equal numbers of boxes and segments"):
+        data_build.build_yolo_dataset(cfg, data["val"], batch=2, data=data, mode="val")
+
+
 def test_build_yolo_dataset_hyp_isolated():
     """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
     data = check_det_dataset("coco8.yaml")

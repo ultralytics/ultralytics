@@ -184,12 +184,14 @@ def clip_boxes(boxes, shape):
     """Clip bounding boxes to image boundaries.
 
     Args:
-        boxes (torch.Tensor | np.ndarray): Bounding boxes to clip.
+        boxes (torch.Tensor | np.ndarray | list | tuple): Bounding boxes to clip.
         shape (tuple): Image shape as HWC or HW (supports both).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped bounding boxes.
     """
+    if isinstance(boxes, (list, tuple)):
+        boxes = np.asarray(boxes)
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(boxes, torch.Tensor):  # faster individually
         if NOT_MACOS14 and not (boxes.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):
@@ -212,12 +214,14 @@ def clip_coords(coords, shape):
     """Clip line coordinates to image boundaries.
 
     Args:
-        coords (torch.Tensor | np.ndarray): Line coordinates to clip.
+        coords (torch.Tensor | np.ndarray | list | tuple): Line coordinates to clip.
         shape (tuple): Image shape as HWC or HW (supports both).
 
     Returns:
         (torch.Tensor | np.ndarray): Clipped coordinates.
     """
+    if isinstance(coords, (list, tuple)):
+        coords = np.asarray(coords)
     h, w = shape[:2]  # supports both HWC or HW shapes
     if isinstance(coords, torch.Tensor):
         if NOT_MACOS14 and not (coords.device.type == "mps" and check_version(TORCH_VERSION, "<2.5.0")):

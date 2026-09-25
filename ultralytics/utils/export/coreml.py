@@ -205,9 +205,7 @@ def torch2coreml(
     for m in model.modules():  # MIL types int64 gather indices as fp32 and then rejects them
         if isinstance(m, Detect):
             m._gather = types.MethodType(_coreml_gather, m)
-    # check_trace=False: the re-trace-and-diff check is non-deterministic on NMS models and never changes the
-    # exported graph; TorchScript (#25525) and OpenVINO (#24883) already skip it.
-    ts = torch.jit.trace(model.eval(), im, strict=False, check_trace=False)  # TorchScript model
+    ts = torch.jit.trace(model.eval(), im, strict=False, check_trace=False)  # skip re-trace check, like other exports
     fp16 = quantize == 16
     weight_int8 = quantize in {8, "w8a16"}
 

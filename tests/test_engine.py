@@ -241,6 +241,26 @@ def test_distill_grayscale(tmp_path: Path):
     assert model.teacher_model.yaml["channels"] == 1
 
 
+def test_distill_yolov9_different_layer_indices():
+    """Distill between YOLOv9 models whose detection heads use different layer indices (https://github.com/ultralytics/ultralytics/issues/26332)."""
+    student = DetectionModel("yolov9s.yaml", nc=1, verbose=False)
+    teacher = DetectionModel("yolov9e.yaml", nc=1, verbose=False)
+    student.args = get_cfg(overrides={"imgsz": 32})
+    model = DistillationModel(teacher, student)
+    assert model.feats_idx != model.teacher_feats_idx
+    batch = {
+        "img": torch.rand(2, 3, 32, 32),
+        "batch_idx": torch.zeros(0),
+        "cls": torch.zeros(0, 1),
+        "bboxes": torch.zeros(0, 4),
+    }
+    loss, items = model(batch)
+    assert torch.isfinite(loss).all() and torch.isfinite(items["dis_loss"]).all()
+    assert items["dis_loss"].item() > 0
+    loss.sum().backward()
+    assert any(p.grad is not None for p in model.projector.parameters())
+
+
 @pytest.mark.parametrize(
     "ckpt",
     [

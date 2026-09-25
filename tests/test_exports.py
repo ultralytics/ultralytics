@@ -55,6 +55,24 @@ def test_export_torchscript(nms, isolated_model):
     assert model.predictor.imgsz == [32, 32]
 
 
+def test_export_single_dryrun_forward(isolated_model):
+    """Test the exporter runs one dry-run forward before export while preserving output_shape."""
+    model = YOLO(isolated_model).model
+    forward_calls = []
+
+    def count_export_forward(module, *_):
+        # Count only the dry run, excluding FLOPs profiling and TorchScript tracing.
+        if module.model[-1].export and not torch.jit.is_tracing():
+            forward_calls.append(1)
+
+    model.register_forward_hook(count_export_forward)
+    exporter = Exporter(overrides={"format": "torchscript", "imgsz": 32, "batch": 1})
+    exporter(model=model)
+
+    assert len(forward_calls) == 1  # a second dry-run pass would make this 2
+    assert exporter.output_shape == (1, 84, 21)  # yolo26n detect at imgsz=32, unchanged by the fix
+
+
 @pytest.mark.parametrize(("model_name", "nc"), [("yolo26n.yaml", 80), ("yolo26n-cls.yaml", 1000)])
 def test_export_torchscript_missing_names(model_name, nc, tmp_path):
     """Test TorchScript export reconstructs missing class names from the model head's class count."""

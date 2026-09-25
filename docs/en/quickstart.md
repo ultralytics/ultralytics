@@ -92,7 +92,7 @@ The pretrained `yolo26n.pt` weights download automatically, the model runs on tw
 yolo predict model=yolo26n.pt source=0 show=True
 ```
 
-`predict` is the **mode**, what to do with the model: `train`, `val`, `predict`, `export`, `track`, or `benchmark`. The **task** (`detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, or `obb`) is read from the model file, so the `yolo TASK MODE ARGS` syntax usually needs only the mode plus `arg=value` pairs such as `imgsz=640`. See the [CLI Guide](usage/cli.md) for every mode and the [Configuration](usage/cfg.md) page for all arguments.
+`predict` is the **mode**, what to do with the model: `train`, `val`, `predict`, `export`, `track`, or `benchmark`. The **task** (`detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`, or `s3d`) is read from the model file, so the `yolo TASK MODE ARGS` syntax usually needs only the mode plus `arg=value` pairs such as `imgsz=640`. See the [CLI Guide](usage/cli.md) for every mode and the [Configuration](usage/cfg.md) page for all arguments.
 
 ## Use Ultralytics with Python
 

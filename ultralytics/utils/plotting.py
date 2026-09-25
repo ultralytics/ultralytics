@@ -1078,7 +1078,9 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
                 columns = (
                     loss_keys[:loss_mid] + metric_keys[:metric_mid] + loss_keys[loss_mid:] + metric_keys[metric_mid:]
                 )
-                fig, ax = plt.subplots(2, (len(columns) + 1) // 2, figsize=(len(columns) + 2, 6), tight_layout=True)
+                fig, ax = plt.subplots(
+                    2, max((len(columns) + 1) // 2, 1), figsize=(len(columns) + 2, 6), tight_layout=True
+                )  # never 0 subplots
                 ax = ax.ravel()
                 ax[-1].set_visible(len(columns) % 2 == 0)
             x = data.select(data.columns[0]).to_numpy().flatten()

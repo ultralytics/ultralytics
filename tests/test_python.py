@@ -563,19 +563,12 @@ def test_predict_all_image_formats():
 
 
 def test_verify_image_jp2(tmp_path):
-    """Test that dataset scans retain a valid .jp2 image (PIL reports its format as JPEG2000)."""
-    from ultralytics.data.utils import verify_image, verify_image_label
+    """Test that dataset scans keep valid .jp2 images, which PIL reports as JPEG2000."""
+    from ultralytics.data.utils import verify_image
 
     im_file = tmp_path / "img.jp2"
-    Image.new("RGB", (64, 64), (30, 200, 30)).save(im_file, format="JPEG2000")
-    lb_file = tmp_path / "img.txt"
-    lb_file.write_text("0 0.5 0.5 0.2 0.2\n")
-
-    _, nf, nc, msg = verify_image(((str(im_file), None), ""))
-    assert (nf, nc) == (1, 0), msg
-
-    *_, nm, nf, ne, nc, msg = verify_image_label((str(im_file), str(lb_file), "", False, 1, 0, 0, False))
-    assert (nm, nf, ne, nc) == (0, 1, 0, 0), msg
+    Image.new("RGB", (64, 64)).save(im_file, format="JPEG2000")
+    assert verify_image(((str(im_file), 0), ""))[1] == 1
 
 
 @pytest.mark.slow

@@ -129,6 +129,23 @@ def test_image_cache_shared_with_spawned_workers():
     assert cache.buffer.is_shared()
 
 
+@pytest.mark.parametrize("kpt_shape", [[17, 3], [2, 2]])  # odd and even keypoint column counts
+def test_detect_dataset_keeps_the_box_of_pose_labels(tmp_path, kpt_shape):
+    """Test a pose label loaded for a detect task keeps its original box and drops the keypoints."""
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    nkpt, ndim = kpt_shape
+    keypoints = " ".join(f"{0.55 + 0.005 * i:.3f} 0.6" + (" 2" if ndim == 3 else "") for i in range(nkpt))
+    cv2.imwrite(str(images / "0.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    (labels / "0.txt").write_text(f"0 0.6 0.6 0.2 0.2 {keypoints}\n")
+    cfg = get_cfg(overrides={"task": "detect", "imgsz": 32})
+    data = {"names": {0: "person"}, "kpt_shape": kpt_shape}
+    label = data_build.build_yolo_dataset(cfg, str(images), batch=1, data=data, mode="val").labels[0]
+    assert np.allclose(label["bboxes"], [[0.6, 0.6, 0.2, 0.2]]), label["bboxes"]  # not the keypoints' bounding box
+    assert label["segments"] == [] and label["keypoints"] is None
+
+
 def test_build_yolo_dataset_hyp_isolated():
     """Test dataset construction never mutates hyperparameters on the shared cfg it was built from."""
     data = check_det_dataset("coco8.yaml")

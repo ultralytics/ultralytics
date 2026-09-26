@@ -72,7 +72,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         else:
             # Register hook to extract input of Detect layer
             def pre_hook(module, input):
-                predictor._feats = list(input[0])  # unroll to new list to avoid mutation in forward
+                # unroll to new list to avoid mutation in forward; plain predict() on this predictor extracts none
+                predictor._feats = list(input[0]) if predictor.args.mode == "track" else None
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 

@@ -433,6 +433,13 @@ def test_object_crop_with_show_True():
     solutions.ObjectCropper(show=True)
 
 
+def test_object_crop_obb(tmp_path):
+    """Test ObjectCropper crops OBB model detections, which are returned in results.obb instead of results.boxes."""
+    cropper = solutions.ObjectCropper(model="yolo26n-obb.yaml", crop_dir=str(tmp_path), conf=0.0, imgsz=64)
+    results = cropper.process(np.random.randint(0, 255, (64, 64, 3), dtype=np.uint8))
+    assert results.total_crop_objects == len(list(tmp_path.glob("crop_*.jpg"))) > 0
+
+
 def test_display_output_method():
     """Test that display_output triggers imshow, waitKey, and destroyAllWindows when enabled."""
     counter = solutions.ObjectCounter(show=True)

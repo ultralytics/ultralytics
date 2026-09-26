@@ -1292,6 +1292,51 @@ def test_data_utils(tmp_path):
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
+def test_check_det_dataset_downloads_tarball_url(tmp_path, monkeypatch):
+    """Test check_det_dataset() downloads and extracts a tar-family dataset URL instead of executing it."""
+    import threading
+    from functools import partial
+    from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+    import ultralytics.data.utils as du
+
+    dataset_dir = tmp_path / "myds"
+    (dataset_dir / "images" / "train").mkdir(parents=True)
+    (dataset_dir / "images" / "val").mkdir(parents=True)
+    cv2.imwrite(str(dataset_dir / "images" / "train" / "a.jpg"), np.zeros((16, 16, 3), dtype=np.uint8))
+    archive = tmp_path / "myds.tar.gz"
+    with tarfile.open(archive, "w:gz") as tar:
+        tar.add(dataset_dir, arcname="myds")
+    gets = []
+
+    class Handler(SimpleHTTPRequestHandler):
+        def do_GET(self):
+            gets.append(self.path)
+            super().do_GET()
+
+        def log_message(self, *args):
+            pass
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), partial(Handler, directory=tmp_path))
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        monkeypatch.setattr(du, "DATASETS_DIR", tmp_path / "datasets")
+        data_yaml = tmp_path / "data.yaml"
+        data_yaml.write_text(
+            f"path: {tmp_path / 'datasets' / 'myds'}\ntrain: images/train\nval: images/val\n"
+            f"names: {{0: thing}}\ndownload: http://127.0.0.1:{server.server_port}/myds.tar.gz\n"
+        )
+        data = check_det_dataset(data_yaml, autodownload=True)
+        assert gets == ["/myds.tar.gz"]  # the URL was fetched over HTTP, not handed to exec()
+        assert (tmp_path / "datasets" / "myds" / "images" / "train" / "a.jpg").is_file()
+        assert data["names"] == {0: "thing"}
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"

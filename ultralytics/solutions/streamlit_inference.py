@@ -150,7 +150,9 @@ class Inference:
 
     def configure(self) -> None:
         """Configure the model and load selected classes for inference."""
-        # Add dropdown menu for model selection, offering the standard size/task grid in order
+        # Add dropdown menu for model selection, offering the standard size/task grid in order.
+        # '-reid' is intentionally excluded: the demo passes box-style kwargs (conf, iou, classes)
+        # and renders via Results.plot(), neither of which applies to ReID embeddings.
         available_models = [
             f"{size}{task}".replace("yolo", "YOLO")
             for size in ("yolo26n", "yolo26s", "yolo26m", "yolo26l", "yolo26x")

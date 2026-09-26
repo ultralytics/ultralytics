@@ -203,6 +203,10 @@ calibration_*.npy
 # Training logs
 args.yaml
 results.csv
+reid-research/
+reid_test/
+docs/superpowers/
+tests/reid_audit/
 
 # CI test asset cache
 .ultralytics_cache/

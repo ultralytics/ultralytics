@@ -1,0 +1,24 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# reid8: tiny Market-1501 subset (8 identities) for testing and INT8 calibration
+# Mirrors the coco128 / dota128 / imagenet100 pattern — small enough for CI, large enough
+# to exercise the train → val → predict → export pipeline and INT8 quantization calibration.
+#
+# Composition: 8 identities × ~7 train + ~1 query + ~4 gallery images = ~100 images / ~250 KB
+# Source identities (Market-1501 pids): 0002, 0007, 0010, 0019, 0025, 0036, 0042, 0067
+# Example usage: yolo reid train data=reid8.yaml model=yolo26n-reid.yaml epochs=3 imgsz=128
+
+# Dataset root directory
+path: reid8 # dataset root dir
+train: train # train images (relative to 'path')
+val: query # query images for evaluation (relative to 'path')
+gallery: gallery # gallery images for matching against queries (relative to 'path')
+
+# Classes (training identities)
+nc: 8 # overridden by data=*.yaml -> nc when training on another dataset
+
+# Filename: 0002_c1s1_001051_00.jpg -> pid=2, camid=1 (1-indexed). Same regex as Market-1501.
+filename_re: market1501
+
+# Download
+download: https://github.com/ultralytics/assets/releases/download/v0.0.0/reid8.zip

@@ -119,6 +119,12 @@ Oriented Bounding Boxes (OBB) is a method in computer vision for detecting angle
 - [DOTA8](obb/dota8.md): A smaller subset of the first 8 images from the DOTAv1 split set, 4 for training and 4 for validation, suitable for quick tests.
 - [DOTA128](obb/dota128.md): A 128-image subset of the DOTA dataset with 128 images for training and validation, providing a good balance between size and diversity for testing OBB models.
 
+## [Re-Identification (ReID)](reid/index.md)
+
+Person re-identification (ReID) is a computer vision task that involves matching the same individual across different camera views or time instances. Unlike classification which categorizes images into fixed classes, ReID produces embedding vectors that can be compared by distance to determine identity matches.
+
+- [Market-1501](reid/market1501.md): The most widely used ReID benchmark with 32,668 images of 1,501 identities from 6 cameras.
+
 ## Contribute New Datasets
 
 Contributing a new dataset involves several steps to ensure that it aligns well with the existing infrastructure. Below are the necessary steps:

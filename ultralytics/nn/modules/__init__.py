@@ -85,6 +85,7 @@ from .head import (
     LRPCHead,
     Pose,
     Pose26,
+    ReID,
     RTDETRDecoder,
     Segment,
     Segment26,
@@ -107,6 +108,7 @@ from .transformer import (
     TransformerEncoderLayer,
     TransformerLayer,
 )
+from .vit_blocks import MHSABlock, UltraViTBlock
 
 __all__ = (
     "AIFI",
@@ -165,6 +167,7 @@ __all__ = (
     "LRPCHead",
     "LayerNorm2d",
     "LightConv",
+    "MHSABlock",
     "MLPBlock",
     "MSDeformAttn",
     "MaxSigmoidAttnBlock",
@@ -172,6 +175,7 @@ __all__ = (
     "Pose26",
     "Proto",
     "RTDETRDecoder",
+    "ReID",
     "RepC3",
     "RepConv",
     "RepNCSPELAN4",
@@ -186,6 +190,7 @@ __all__ = (
     "TransformerBlock",
     "TransformerEncoderLayer",
     "TransformerLayer",
+    "UltraViTBlock",
     "WorldDetect",
     "YOLOEDetect",
     "YOLOESegment",

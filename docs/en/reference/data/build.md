@@ -24,6 +24,14 @@ keywords: Ultralytics, Data Builders, InfiniteDataLoader, YOLO dataset, build.py
 
 <br><br><hr><br>
 
+## ::: ultralytics.data.build.IdentityBalancedSampler
+
+<br><br><hr><br>
+
+## ::: ultralytics.data.build.build_reid_dataloader
+
+<br><br><hr><br>
+
 ## ::: ultralytics.data.build.seed_worker
 
 <br><br><hr><br>

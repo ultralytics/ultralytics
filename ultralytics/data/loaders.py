@@ -357,6 +357,7 @@ class LoadImagesAndVideos:
             vid_stride (int): Video frame-rate stride.
             channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
+        source_path = path
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
             source_file = Path(path)
@@ -406,7 +407,7 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
+            raise FileNotFoundError(f"No images or videos found in {source_path}. {FORMATS_HELP_MSG}")
 
     def close(self):
         """Release the current video capture object, e.g. when inference stops before the video ends."""

@@ -414,6 +414,15 @@ def test_predict_csv_single_row(tmp_path):
     assert len(results) == 8, f"Expected 8 results from single-row CSV, got {len(results)}"
 
 
+@pytest.mark.parametrize(("suffix", "content"), [(".csv", "source\n"), (".txt", "")])
+def test_predict_empty_source_list(tmp_path, suffix, content):
+    """Report an empty source list using its file path."""
+    file = tmp_path / f"sources{suffix}"
+    file.write_text(content)
+    with pytest.raises(FileNotFoundError, match=file.name):
+        load_inference_source(file)
+
+
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types."""

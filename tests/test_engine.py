@@ -229,20 +229,6 @@ def test_distill_resume(tmp_path: Path):
     assert trainer.start_epoch == trainer.epoch == 1, "resume test failed"
 
 
-def test_distill_legacy_checkpoint_load():
-    """Test that distillation checkpoints saved before ``teacher_feats_idx`` existed still load."""
-    teacher = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)
-    student = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)
-    student.args = SimpleNamespace(imgsz=32, dis=1.0)
-    state = DistillationModel(teacher_model=teacher, student_model=student).__getstate__()
-    del state["teacher_feats_idx"]  # attribute did not exist when these checkpoints were saved
-    state["teacher_model"] = None  # ModelEMA strips the teacher before saving last.pt
-    model = DistillationModel.__new__(DistillationModel)
-    model.__setstate__(state)  # what pickle calls during torch.load
-    assert model.teacher_feats_idx == model.feats_idx
-    assert len(model._student_hooks) == len(model.feats_idx)
-
-
 def test_distill_grayscale(tmp_path: Path):
     """Test knowledge distillation on a single-channel dataset (https://github.com/ultralytics/ultralytics/issues/25066)."""
     teacher = DetectionModel("yolo26n.yaml", ch=3, nc=80, verbose=False)

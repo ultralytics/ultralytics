@@ -135,6 +135,10 @@ class DistillationModel(nn.Module):
     def __setstate__(self, state):
         """Clear stale features and hooks, and re-register forward hooks after unpickling."""
         self.__dict__.update(state)
+        if not hasattr(self, "teacher_feats_idx"):  # derived state, absent from checkpoints saved before it existed
+            self.teacher_feats_idx = (
+                self.get_distill_layers(self.teacher_model) if self.teacher_model else self.feats_idx
+            )
         self._teacher_feats = {}
         self._student_feats = {}
         self._register_feature_hooks()

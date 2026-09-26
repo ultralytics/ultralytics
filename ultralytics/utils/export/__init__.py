@@ -6,6 +6,7 @@ from .coreai import torch2coreai
 from .coreml import torch2coreml
 from .deepx import onnx2deepx
 from .engine import onnx2engine, torch2onnx
+from .ethos import torch2ethos
 from .executorch import torch2executorch
 from .imx import torch2imx
 from .mnn import onnx2mnn
@@ -30,6 +31,7 @@ __all__ = [
     "torch2axelera",
     "torch2coreai",
     "torch2coreml",
+    "torch2ethos",
     "torch2executorch",
     "torch2imx",
     "torch2ncnn",

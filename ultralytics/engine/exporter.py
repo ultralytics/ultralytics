@@ -26,6 +26,7 @@ LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
 Apple Core AI           | `coreai`                  | yolo26n.aimodel
+Ethos                   | `ethos`                   | yolo26n_ethos_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -141,6 +142,7 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_3,
     TORCH_2_8,
     TORCH_2_9,
+    TORCH_2_13,
     is_qat,
     select_device,
 )
@@ -276,6 +278,7 @@ def export_formats():
             ["batch", "quantize"],
             "base",
         ],
+        ["Ethos", "ethos", "_ethos_model", False, False, ["data", "quantize", "fraction", "name"], "ethos"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -408,6 +411,15 @@ EXPORT_ENVS = {
         "env": {},
         "smoke": ["yolo export format=litert model=yolo26n.pt imgsz=32"],
     },
+    "ethos": {
+        "python": "3.13",
+        "extras": ["export-base", "export-executorch"],
+        "torch": ">=2.12,<2.13",
+        "requirements": ["tosa-tools", "ethos-u-vela"],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=ethos model=yolo26n.pt imgsz=32 data=coco8.yaml"],
+    },
 }
 
 
@@ -430,13 +442,14 @@ INT8_FORMATS = frozenset(
         "deepx",
         "hailo",
         "litert",
+        "ethos",
     }
 )
 W8A16_FORMATS = frozenset(
     {"coreml", "imx", "qnn", "litert"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "ethos"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -624,7 +637,10 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "ethos"} and self.args.quantize not in {
+            8,
+            "w8a16",
+        }:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
         if fmt in {"axelera", "hailo"} and not self.args.data:
@@ -656,6 +672,13 @@ class Exporter:
                 raise ValueError(f"Invalid Hailo architecture '{self.args.name}'. Valid names are {hailo_archs}.")
         if fmt == "axelera" and model.task == "segment" and any(isinstance(m, Segment26) for m in model.modules()):
             raise ValueError("Axelera export does not currently support YOLO26 segmentation models.")
+        if fmt == "ethos":
+            if not self.args.name:
+                LOGGER.warning(
+                    "Arm Ethos-U export requires a missing 'name' arg for the target NPU. "
+                    "Using default name='ethos-u85-256'."
+                )
+            self.args.name = str(self.args.name or "ethos-u85-256").lower()
         if fmt == "imx":
             if model.task == "depth":
                 raise ValueError("IMX export is not supported for depth models.")
@@ -685,7 +708,7 @@ class Exporter:
         if hasattr(model, "end2end"):
             model.end2end = self.args.nms is False
         if getattr(model, "end2end", False):
-            if fmt in {"rknn", "ncnn", "executorch", "paddle", "imx", "edgetpu", "qnn"}:
+            if fmt in {"rknn", "ncnn", "executorch", "ethos", "paddle", "imx", "edgetpu", "qnn"}:
                 # Disable the end2end branch for formats without top-k support
                 model.end2end = False
                 LOGGER.warning("This export format does not support end2end models, disabling the end2end branch.")
@@ -873,7 +896,7 @@ class Exporter:
             from ultralytics.utils.export.tensorflow import tf_wrapper
 
             model = tf_wrapper(model)
-        if fmt == "executorch":
+        if fmt in {"executorch", "ethos"}:
             from ultralytics.utils.export.executorch import executorch_wrapper
 
             model = executorch_wrapper(model)
@@ -1491,6 +1514,22 @@ class Exporter:
             model=self.model,
             im=self.im,
             output_dir=str(self.file).replace(self.file.suffix, "_executorch_model/"),
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_ethos(self, prefix=colorstr("Ethos:")):  # noqa: B008
+        """Export YOLO model to Arm Ethos-U NPU ExecuTorch *.pte format."""
+        assert not TORCH_2_13, f"Ethos export requires torch<2.13 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.ethos import torch2ethos
+
+        return torch2ethos(
+            self.model,
+            self.file,
+            self.im,
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            target=self.args.name,
             metadata=self.metadata,
             prefix=prefix,
         )

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import glob
 import math
 import os
@@ -358,8 +359,15 @@ class LoadImagesAndVideos:
         """
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
-            parent, content = Path(path).parent, Path(path).read_text()
-            path = content.splitlines() if Path(path).suffix == ".txt" else content.split(",")  # list of sources
+            source_file = Path(path)
+            parent = source_file.parent
+            if source_file.suffix == ".txt":
+                path = source_file.read_text().splitlines()
+            else:
+                with source_file.open(newline="") as f:
+                    path = [source for row in csv.reader(f) for source in row]
+                if path and path[0].strip().lower() == "source":
+                    path.pop(0)
             path = [p.strip() for p in path]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:

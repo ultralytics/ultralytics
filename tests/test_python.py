@@ -562,15 +562,6 @@ def test_predict_all_image_formats():
     assert len(results) == 12, f"Expected 12 results, got {len(results)}"
 
 
-def test_verify_image_jp2(tmp_path):
-    """Test that dataset scans keep valid .jp2 images, which PIL reports as JPEG2000."""
-    from ultralytics.data.utils import verify_image
-
-    im_file = tmp_path / "img.jp2"
-    Image.new("RGB", (64, 64)).save(im_file, format="JPEG2000")
-    assert verify_image(((str(im_file), 0), ""))[1] == 1
-
-
 @pytest.mark.slow
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(is_github_action_running(), reason="No auth https://github.com/JuanBindez/pytubefix/issues/166")

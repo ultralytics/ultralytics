@@ -163,7 +163,7 @@ class ClassificationValidator(BaseValidator):
         dataset = self.build_dataset(dataset_path)
         if not dataset.samples:
             raise FileNotFoundError(f"No images from the model's classes found in {dataset_path}")
-        return build_dataloader(dataset, batch_size, self.args.workers, rank=-1, device=self.device)
+        return build_dataloader(dataset, batch_size, self.args.workers, shuffle=False, rank=-1, device=self.device)
 
     def print_results(self) -> None:
         """Print evaluation metrics for the classification model."""

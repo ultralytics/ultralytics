@@ -233,8 +233,9 @@ def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
     shape = exif_size(im)  # image size
     shape = (shape[1], shape[0])  # hw
     assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-    assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
-    if im.format.lower() in {"jpg", "jpeg"}:
+    fmt = im.format.lower()  # PIL reports "JPEG2000" for .jp2, the one listed format not named by its extension
+    assert fmt in IMG_FORMATS or fmt == "jpeg2000", f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
+    if fmt in {"jpg", "jpeg"}:
         with open(im_file, "rb") as f:
             f.seek(-2, 2)
             if f.read() != b"\xff\xd9":  # corrupt JPEG

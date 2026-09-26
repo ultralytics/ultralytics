@@ -252,14 +252,14 @@ def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     h, w = shape[-2:]
     masks = masks.flatten(0, -3) if len(shape) > 2 else masks.unsqueeze(0)
     # Get top and bottom edges
-    in_height = masks.any(-1)
+    in_height, _ = torch.max(masks, dim=-1)
     in_height_coords = in_height * torch.arange(h, device=in_height.device)[None, :]
     bottom_edges, _ = torch.max(in_height_coords, dim=-1)
     in_height_coords = in_height_coords + h * (~in_height)
     top_edges, _ = torch.min(in_height_coords, dim=-1)
 
     # Get left and right edges
-    in_width = masks.any(-2)
+    in_width, _ = torch.max(masks, dim=-2)
     in_width_coords = in_width * torch.arange(w, device=in_width.device)[None, :]
     right_edges, _ = torch.max(in_width_coords, dim=-1)
     in_width_coords = in_width_coords + w * (~in_width)

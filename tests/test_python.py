@@ -1812,6 +1812,35 @@ def test_nms_end2end_classes_before_max_det():
     assert torch.allclose(out[:, 4], torch.tensor([0.9, 0.8]))
 
 
+def test_nms_labels_with_return_idxs():
+    """A-priori label rows must carry -1 keep indices while prediction rows keep their original anchor indices."""
+    from ultralytics.utils.nms import non_max_suppression
+
+    # (1, 7, 4) predictions (cx, cy, w, h + 3 class scores, transposed); anchor 1 holds two classes above conf_thres
+    pred = torch.tensor(
+        [
+            [
+                [0, 20, 4, 40],  # cx
+                [0, 20, 4, 40],  # cy
+                [8, 8, 8, 8],  # w
+                [8, 8, 8, 8],  # h
+                [0.9, 0.3, 0.5, 0.0],  # cls 0
+                [0.1, 0.8, 0.0, 0.0],  # cls 1
+                [0.0, 0.0, 0.0, 0.3],  # cls 2
+            ]
+        ],
+        dtype=torch.float32,
+    )
+    labels = [torch.tensor([[0.0, 50.0, 50.0, 8.0, 8.0]])]  # class 0, xywh
+
+    for multi_label, expected in ((False, [0, 1, 2, 3]), (True, [0, 1, 1, 2, 3])):  # multi_label keeps anchor 1 twice
+        out, idx = non_max_suppression(pred, conf_thres=0.25, labels=labels, multi_label=multi_label, return_idxs=True)
+        is_label = out[0][:, 4] == 1.0  # a-priori label rows carry a one-hot class score
+        assert is_label.sum() == 1, "the label row should survive NMS"
+        assert (idx[0][is_label] == -1).all()
+        assert sorted(idx[0][~is_label].tolist()) == expected
+
+
 def test_process_mask_empty():
     """Process_mask/process_mask_native/scale_masks must handle 0 detections without crashing."""
     from ultralytics.utils import ops

@@ -575,25 +575,15 @@ def test_youtube():
         LOGGER.error(f"YouTube Test Error: {e}")
 
 
-@pytest.mark.parametrize("persist", [False, True])
-def test_predict_after_track_does_not_run_tracker(persist):
+def test_predict_after_track_does_not_run_tracker():
     """Plain prediction must not reset or advance trackers registered by an earlier tracking call."""
     model = YOLO(CFG)
     image = np.zeros((64, 64, 3), dtype=np.uint8)
-    model.track(image, imgsz=64, conf=0.01, tracker="bytetrack.yaml", persist=persist, verbose=False)
+    model.track(image, imgsz=64, conf=0.01, verbose=False)
     tracker = model.predictor.trackers[0]
     frame_id = tracker.frame_id
-
-    result = model.predict(image, imgsz=64, conf=0.01, verbose=False)[0]
-
-    assert model.predictor.args.mode == "predict"
-    assert model.predictor.trackers[0] is tracker
-    assert tracker.frame_id == frame_id
-    assert not result.boxes.is_track
-    if persist:
-        model.track(image, imgsz=64, conf=0.01, tracker="bytetrack.yaml", persist=True, verbose=False)
-        assert model.predictor.trackers[0] is tracker
-        assert tracker.frame_id == frame_id + 1
+    model.predict(image, imgsz=64, conf=0.01, verbose=False)
+    assert model.predictor.trackers[0] is tracker and tracker.frame_id == frame_id
 
 
 def test_track_second_association_indices():

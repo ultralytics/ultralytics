@@ -579,9 +579,9 @@ class Exporter:
             (str): Path to the exported file or directory (the last export artifact).
         """
         t = time.time()
-        fmt = self.args.format.lower()  # to lowercase
+        fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
-            fmt = "engine"
+            fmt = self.args.format = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
@@ -603,7 +603,7 @@ class Exporter:
                 msg = "Model is already in PyTorch format." if fmt == "pt" else f"Invalid export format='{fmt}'."
                 raise ValueError(f"{msg} Valid formats are {fmts}")
             LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
-            fmt = matches[0]
+            fmt = self.args.format = matches[0]
         is_tf_format = fmt in {"saved_model", "pb", "edgetpu"}
 
         # Device

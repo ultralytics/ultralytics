@@ -92,6 +92,17 @@ def test_export_onnx_nms_conf(isolated_model):
     assert 0.0 in thresholds
 
 
+@pytest.mark.parametrize("fmt", ["ONNX", "onx"])
+def test_export_onnx_format_case(fmt, tmp_path):
+    """Mixed-case and fuzzy-matched format names must still apply format-specific export options like FP16."""
+    import onnx
+
+    model = YOLO("yolo26n.yaml")
+    model.model.pt_path = str(tmp_path / "yolo26n.pt")
+    model = onnx.load(model.export(format=fmt, quantize=16, imgsz=32))
+    assert any(i.data_type == onnx.TensorProto.FLOAT16 for i in model.graph.initializer)
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("precision", [{"int8": True}, {"quantize": 8}])
 def test_export_onnx_int8(isolated_model, precision):

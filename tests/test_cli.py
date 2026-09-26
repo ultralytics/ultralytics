@@ -29,6 +29,22 @@ def test_special_modes() -> None:
     run("yolo cfg")
 
 
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["imgsz=[640,", "480]"],
+        ["imgsz", "=", "[640,", "480]"],
+        ["imgsz=", "[640,", "480]"],
+        ["imgsz", "=[640,", "480]"],
+    ],
+)
+def test_merge_equals_args_brackets(args: list) -> None:
+    """Test that CLI args split around '=' and inside brackets merge into a single argument."""
+    from ultralytics.cfg import merge_equals_args
+
+    assert merge_equals_args(args) == ["imgsz=[640,480]"]
+
+
 @pytest.mark.parametrize("api_key", ["legacy_api_key", "ul_" + "a" * 40])
 def test_settings_migration(tmp_path: Path, api_key: str) -> None:
     """Verify schema migration preserves user settings and only retains Platform API keys."""

@@ -697,17 +697,13 @@ def merge_equals_args(args: list[str]) -> list[str]:
 
         # Handle equals sign merging
         if arg == "=" and 0 < i < len(args) - 1:  # merge ['arg', '=', 'val']
-            new_args[-1] += f"={args[i + 1]}"
-            i += 2
-            continue
-        elif arg.endswith("=") and i < len(args) - 1 and "=" not in args[i + 1]:  # merge ['arg=', 'val']
-            new_args.append(f"{arg}{args[i + 1]}")
-            i += 2
-            continue
-        elif arg.startswith("=") and i > 0:  # merge ['arg', '=val']
-            new_args[-1] += arg
+            arg = f"{new_args.pop()}={args[i + 1]}"
             i += 1
-            continue
+        elif arg.endswith("=") and i < len(args) - 1 and "=" not in args[i + 1]:  # merge ['arg=', 'val']
+            arg += args[i + 1]
+            i += 1
+        elif arg.startswith("=") and i > 0:  # merge ['arg', '=val']
+            arg = new_args.pop() + arg
 
         # Handle bracket joining
         depth += arg.count("[") - arg.count("]")

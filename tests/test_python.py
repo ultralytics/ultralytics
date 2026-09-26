@@ -1772,6 +1772,21 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
+def test_clip_boxes_and_coords_accept_list():
+    """clip_boxes / clip_coords must accept list inputs like xyxy2xywh already does."""
+    from ultralytics.utils import ops
+
+    boxes = [[-10.0, -5.0, 700.0, 800.0], [10.0, 20.0, 30.0, 40.0]]
+    clipped = ops.clip_boxes(boxes, (640, 640))
+    assert isinstance(clipped, np.ndarray)
+    assert np.allclose(clipped, [[0.0, 0.0, 640.0, 640.0], [10.0, 20.0, 30.0, 40.0]])
+
+    coords = [[-10.0, 20.0], [700.0, 800.0], [100.0, 200.0]]
+    clipped_coords = ops.clip_coords(coords, (640, 640))
+    assert isinstance(clipped_coords, np.ndarray)
+    assert np.allclose(clipped_coords, [[0.0, 20.0], [640.0, 640.0], [100.0, 200.0]])
+
+
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

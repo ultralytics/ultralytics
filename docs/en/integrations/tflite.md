@@ -1,5 +1,5 @@
 ---
-title: TFLite Model Export for Edge Devices (Deprecated)
+title: TFLite Export for Edge (Deprecated)
 comments: true
 description: Historical guide to legacy YOLO TFLite model export and edge deployment. Use LiteRT for new exports.
 keywords: YOLO26, TFLite, model export, TensorFlow Lite, edge devices, deployment, Ultralytics, machine learning, on-device inference, model optimization

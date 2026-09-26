@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import glob
 import math
 import os
@@ -356,10 +357,18 @@ class LoadImagesAndVideos:
             vid_stride (int): Video frame-rate stride.
             channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
+        source_path = path
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
-            parent, content = Path(path).parent, Path(path).read_text()
-            path = content.splitlines() if Path(path).suffix == ".txt" else content.split(",")  # list of sources
+            source_file = Path(path)
+            parent = source_file.parent
+            if source_file.suffix == ".txt":
+                path = source_file.read_text().splitlines()
+            else:
+                with source_file.open(newline="") as f:
+                    path = [source for row in csv.reader(f) for source in row]
+                if path and path[0].strip().lower() == "source":
+                    path.pop(0)
             path = [p.strip() for p in path]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
@@ -398,7 +407,7 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
+            raise FileNotFoundError(f"No images or videos found in {source_path}. {FORMATS_HELP_MSG}")
 
     def close(self):
         """Release the current video capture object, e.g. when inference stops before the video ends."""

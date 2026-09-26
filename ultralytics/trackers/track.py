@@ -38,6 +38,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
+    if predictor.args.mode != "track":
+        return
     trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
     if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
         raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
@@ -100,6 +102,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
         >>> predictor = YourPredictorClass()
         >>> on_predict_postprocess_end(predictor, persist=True)
     """
+    if predictor.args.mode != "track":
+        return
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
 

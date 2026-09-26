@@ -360,15 +360,12 @@ class LoadImagesAndVideos:
         source_path = path
         parent = None
         if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
-            source_file = Path(path)
-            parent = source_file.parent
-            if source_file.suffix == ".txt":
-                path = source_file.read_text().splitlines()
+            parent, content = Path(path).parent, Path(path).read_text()
+            if Path(path).suffix == ".txt":
+                path = content.splitlines()
             else:
-                with source_file.open(newline="") as f:
-                    path = [source for row in csv.reader(f) for source in row]
-                if path and path[0].strip().lower() == "source":
-                    path.pop(0)
+                path = [p for row in csv.reader(content.splitlines()) for p in row]
+                path = path[1:] if path[:1] == ["source"] else path  # optional header
             path = [p.strip() for p in path]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:

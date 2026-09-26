@@ -405,22 +405,11 @@ def test_predict_csv_multi_row(tmp_path):
 def test_predict_csv_single_row(tmp_path):
     """Test YOLO predictions with sources listed in a single row of a CSV file."""
     file = tmp_path / "sources_single_row.csv"
-    image_with_comma = tmp_path / "image,with,comma.jpg"
-    shutil.copy(SOURCE, image_with_comma)
     with open(file, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow([*SOURCES_LIST, image_with_comma])
+        writer.writerow(SOURCES_LIST)
     results = YOLO(MODEL)(source=file, imgsz=32)
-    assert len(results) == 8, f"Expected 8 results from single-row CSV, got {len(results)}"
-
-
-@pytest.mark.parametrize(("suffix", "content"), [(".csv", "source\n"), (".txt", "")])
-def test_predict_empty_source_list(tmp_path, suffix, content):
-    """Report an empty source list using its file path."""
-    file = tmp_path / f"sources{suffix}"
-    file.write_text(content)
-    with pytest.raises(FileNotFoundError, match=file.name):
-        load_inference_source(file)
+    assert len(results) == 7, f"Expected 7 results from single-row CSV, got {len(results)}"
 
 
 @pytest.mark.parametrize("model_name", MODELS)

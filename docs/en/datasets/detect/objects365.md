@@ -123,7 +123,7 @@ The `Objects365.yaml` file defines the dataset configuration — the dataset pat
 
 !!! warning "712 GB download"
 
-    Objects365 downloads automatically on first use and requires about 712 GB of free disk space — 345 GB of downloaded zip archives plus 367 GB for the extracted dataset. The download script installs the `faster-coco-eval` package and converts the annotations to YOLO format, which can take a long time depending on your connection and hardware.
+    Objects365 downloads automatically on first use and requires about 712 GB of free disk space — 345 GB of downloaded zip archives plus 367 GB for the extracted dataset. The download script installs the `ultrafast-pycocotools` package and converts the annotations to YOLO format, which can take a long time depending on your connection and hardware.
 
 To train a YOLO26n model on the Objects365 dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, you can use the following code snippets. For a comprehensive list of available arguments, refer to the model [Training](../../modes/train.md) page.
 
@@ -186,7 +186,7 @@ The Ultralytics `Objects365.yaml` configuration covers 365 object classes split 
 
 ### How big is the Objects365 dataset download?
 
-Objects365 requires approximately 712 GB of disk space — about 345 GB of zip archives that download automatically the first time you train with `data="Objects365.yaml"`, plus 367 GB for the extracted dataset. The download script installs the `faster-coco-eval` package and converts the annotations to YOLO format. You can browse smaller alternatives in the [detection datasets overview](index.md).
+Objects365 requires approximately 712 GB of disk space — about 345 GB of zip archives that download automatically the first time you train with `data="Objects365.yaml"`, plus 367 GB for the extracted dataset. The download script installs the `ultrafast-pycocotools` package and converts the annotations to YOLO format. You can browse smaller alternatives in the [detection datasets overview](index.md).
 
 ### How can I train a YOLO26 model on the Objects365 dataset?
 

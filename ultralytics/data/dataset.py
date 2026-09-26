@@ -36,12 +36,15 @@ from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
     check_file_speeds,
+    get_cache_file_path,
     get_hash,
     get_split_fraction,
     img2label_paths,
     load_dataset_cache_file,
     load_depth,
+    parse_image_cache,
     polygons2masks_overlap,
+    prepare_cache_dir,
     save_dataset_cache_file,
     verify_image,
     verify_image_depth,
@@ -1147,6 +1150,7 @@ class ClassificationDataset:
     Attributes:
         cache_ram (bool): Indicates if caching in RAM is enabled.
         cache_disk (bool): Indicates if caching on disk is enabled.
+        cache_dir (Path | None): Directory holding the *.npy disk caches, or None to cache beside source images.
         samples (list): A list of lists, each containing the path to an image, its class index, path to its .npy cache
             file (if caching on disk), and optionally the loaded image array (if caching in RAM).
         torch_transforms (callable): PyTorch transforms to be applied to the images.
@@ -1166,7 +1170,8 @@ class ClassificationDataset:
         Args:
             root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
             args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
-                parameters, and cache settings.
+                parameters, and cache settings, where `cache="disk"` writes beside each image and a path-like value
+                writes under that directory.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Prefix for logging and cache filenames, aiding in dataset identification.
             names (dict[int, str], optional): Model class names; class folders are aligned to this order by name and
@@ -1192,8 +1197,13 @@ class ClassificationDataset:
             else self.samples
         )
         self.prefix = colorstr(f"{prefix}: ") if prefix else ""
-        self.cache_ram = args.cache is True or str(args.cache).lower() == "ram"  # cache images into RAM
-        self.cache_disk = str(args.cache).lower() == "disk"  # cache images on hard drive as uncompressed *.npy files
+        cache_mode, self.cache_dir = parse_image_cache(args.cache)
+        self.cache_ram = cache_mode == "ram"  # cache images into RAM
+        self.cache_disk = cache_mode == "disk"  # cache images on hard drive as uncompressed *.npy files
+        if self.cache_dir:
+            self.cache_dir = prepare_cache_dir(self.cache_dir, self.prefix)
+            if self.cache_dir is None:
+                self.cache_disk = False
         self.samples = self.verify_images()  # filter out bad images
         classes = self.base.classes  # this split's class folders, sorted, indexed by the ImageFolder target
         if args.single_cls:
@@ -1211,7 +1221,7 @@ class ClassificationDataset:
             LOGGER.warning(
                 f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {sorted(extra)}"
             )
-        self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        self.samples = [[*list(x), get_cache_file_path(x[0], self.cache_dir), None] for x in self.samples]
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # (0.08, 1.0)
@@ -1245,6 +1255,8 @@ class ClassificationDataset:
             im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists():  # load npy
+                if self.cache_dir:
+                    fn.parent.mkdir(parents=True, exist_ok=True)  # digest-sharded subdirectory
                 np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image

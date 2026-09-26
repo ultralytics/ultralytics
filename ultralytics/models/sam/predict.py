@@ -544,6 +544,7 @@ class Predictor(BasePredictor):
             else:
                 idx = pred_scores > self.args.conf
                 masks = ops.scale_masks(masks[idx][None].float(), orig_img.shape[:2], padding=False)[0]
+                masks = self._refine_masks(masks, orig_img)
                 if self.non_overlap_masks:
                     masks = self.model._apply_non_overlapping_constraints(masks[:, None])[:, 0]
                 masks = masks > self.model.mask_threshold  # to bool
@@ -560,6 +561,10 @@ class Predictor(BasePredictor):
         # Reset segment-all mode.
         self.segment_all = False
         return results
+
+    def _refine_masks(self, masks, img):
+        """Return full-resolution mask logits unchanged; SAM3Predictor refines them against the image."""
+        return masks
 
     @smart_inference_mode()
     def set_image(self, image):
@@ -2219,6 +2224,34 @@ class SAM3Predictor(SAM2Predictor):
         compile_mode = "default" if self.args.compile is True else self.args.compile or None
         return build_interactive_sam3(self.args.model, compile=compile_mode)
 
+    def _refine_masks(self, masks: torch.Tensor, img: np.ndarray) -> torch.Tensor:
+        """Snap full-resolution mask logits to image edges with a guided filter, using the grayscale image as guide.
+
+        Each mask is filtered only inside its box padded by the filter footprint, as pixels farther from the mask edge
+        do not change.
+
+        Args:
+            masks (torch.Tensor): Mask logits upscaled to the image size with shape (N, H, W).
+            img (np.ndarray): Source BGR image with shape (H, W, 3).
+
+        Returns:
+            (torch.Tensor): Masks with each box region replaced by the filtered probability minus 0.5.
+        """
+        r = max(1, round(max(masks.shape[1:]) * self.stride / (8 * max(self.imgsz))))  # half a low-res mask cell
+        guide = torch.from_numpy(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)).to(masks)[None] / 255
+
+        def box(t):
+            t = F.avg_pool2d(t, (2 * r + 1, 1), stride=1, padding=(r, 0), count_include_pad=False)
+            return F.avg_pool2d(t, (1, 2 * r + 1), stride=1, padding=(0, r), count_include_pad=False)
+
+        for m, (x0, y0, x1, y1) in zip(masks, batched_mask_to_box(masks > self.model.mask_threshold).int().tolist()):
+            y0, x0, y1, x1 = max(y0 - 2 * r, 0), max(x0 - 2 * r, 0), y1 + 2 * r + 1, x1 + 2 * r + 1
+            g, p = guide[:, y0:y1, x0:x1], m[None, y0:y1, x0:x1].sigmoid()
+            mean_g, mean_p = box(g), box(p)
+            a = (box(g * p) - mean_g * mean_p) / (box(g * g) - mean_g * mean_g + 1e-4)
+            m[y0:y1, x0:x1] = (box(a) * g + box(mean_p - a * mean_g))[0] - 0.5
+        return masks
+
 
 class SAM3SemanticPredictor(SAM3Predictor):
     """Segment Anything Model 3 (SAM3) Predictor for image segmentation tasks."""
@@ -2301,12 +2334,13 @@ class SAM3SemanticPredictor(SAM3Predictor):
         )
         return outputs
 
-    def _upscale_masks(self, masks: torch.Tensor, shape: tuple[int, int]) -> torch.Tensor:
+    def _upscale_masks(self, masks: torch.Tensor, shape: tuple[int, int], img=None) -> torch.Tensor:
         """Upscale (N, h, w) mask logits to a boolean (N, *shape) mask in memory-bounded chunks.
 
         Args:
             masks (torch.Tensor): Low resolution mask logits with shape (N, h, w).
             shape (tuple[int, int]): Target height and width.
+            img (np.ndarray, optional): Source BGR image; if given, mask edges are refined against it.
 
         Returns:
             (torch.Tensor): Binary masks with shape (N, *shape).
@@ -2315,8 +2349,9 @@ class SAM3SemanticPredictor(SAM3Predictor):
         upscaled = masks.new_empty((masks.shape[0], *shape), dtype=torch.bool)
         chunk = max(1, MAX_CHUNK_MEM * 2**20 // (4 * shape[0] * shape[1]))
         for i in range(0, masks.shape[0], chunk):
+            chunk_masks = F.interpolate(masks[i : i + chunk].float()[None], shape, mode="bilinear")[0]
             torch.gt(
-                F.interpolate(masks[i : i + chunk].float()[None], shape, mode="bilinear")[0],
+                chunk_masks if img is None else self._refine_masks(chunk_masks, img),
                 self.model.mask_threshold,
                 out=upscaled[i : i + chunk],
             )
@@ -2356,7 +2391,7 @@ class SAM3SemanticPredictor(SAM3Predictor):
             if masks.shape[0] == 0:
                 masks, boxes = None, torch.zeros((0, 6), device=pred_masks.device)
             else:
-                masks = self._upscale_masks(masks, orig_img.shape[:2])
+                masks = self._upscale_masks(masks, orig_img.shape[:2], orig_img)
                 boxes[..., [0, 2]] *= orig_img.shape[1]
                 boxes[..., [1, 3]] *= orig_img.shape[0]
             results.append(Results(orig_img, path=img_path, names=names, masks=masks, boxes=boxes))
@@ -2674,7 +2709,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
             pred_masks, pred_boxes = None, torch.zeros((0, 7), device=self.device)
         else:
             pred_masks = torch.cat([obj_id_to_mask[obj_id] for obj_id in curr_obj_ids], dim=0)
-            pred_masks = self._upscale_masks(pred_masks, orig_imgs[0].shape[:2])
+            pred_masks = self._upscale_masks(pred_masks, orig_imgs[0].shape[:2], orig_imgs[0])
             pred_ids = torch.tensor(curr_obj_ids, dtype=torch.int32, device=pred_masks.device)
             pred_scores = torch.tensor(
                 [preds["obj_id_to_score"][obj_id] for obj_id in curr_obj_ids], device=pred_masks.device

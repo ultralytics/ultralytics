@@ -1280,6 +1280,12 @@ def test_data_utils(tmp_path):
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
 
+    from ultralytics.data.dataset import YOLODataset
+
+    for task in ("detect", "segment", "obb"):
+        with pytest.raises(ValueError, match="cannot use a pose dataset"):
+            YOLODataset(data={"names": {0: "person"}, "kpt_shape": [17, 3]}, task=task)
+
     # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
     # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
     from ultralytics.data.utils import polygons2masks_overlap

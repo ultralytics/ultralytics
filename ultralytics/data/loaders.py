@@ -364,8 +364,9 @@ class LoadImagesAndVideos:
             if Path(path).suffix == ".txt":
                 path = content.splitlines()
             else:
-                path = [p for row in csv.reader(content.splitlines()) for p in row]
-                path = path[1:] if path[:1] == ["source"] else path  # optional header
+                rows = list(csv.reader(content.splitlines()))
+                rows = rows[1:] if rows[:1] == [["source"]] else rows  # optional header row
+                path = [p for row in rows for p in row]
             path = [p.strip() for p in path]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:

@@ -2,9 +2,13 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+import re
+from pathlib import Path
+
 from torch import nn
 
 from ultralytics.nn.modules.transformer import MLP
+from ultralytics.utils import LOGGER
 from ultralytics.utils.patches import torch_load
 
 from .modules.blocks import PositionEmbeddingSine, RoPEAttention
@@ -386,5 +390,12 @@ def _load_checkpoint(model, checkpoint, interactive=False):
             }
         )
         sam3_image_ckpt.update({k.replace("tracker.", ""): v for k, v in ckpt.items() if "tracker." in k})
-    model.load_state_dict(sam3_image_ckpt, strict=False)
+    # Track what stayed randomly initialized so a mismatched checkpoint fails loudly instead of silently
+    model.missing_keys = set(model.load_state_dict(sam3_image_ckpt, strict=False).missing_keys)
+    if model.missing_keys:
+        modules = sorted({re.sub(r"\.\d+", ".n", k).rsplit(".", 1)[0] for k in model.missing_keys})
+        LOGGER.warning(
+            f"{Path(checkpoint).name} left {len(model.missing_keys)} parameters randomly initialized in "
+            f"{len(modules)} modules, which are untrained and will produce wrong output. Modules {modules[:6]}"
+        )
     return model

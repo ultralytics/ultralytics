@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import math
+import weakref
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -325,7 +326,8 @@ class Annotator:
                 self.font = ImageFont.load_default()
             # Deprecation fix for w, h = getsize(string) -> _, _, w, h = getbox(string)
             if check_version(pil_version, "9.2.0"):
-                self.font.getsize = lambda x: self.font.getbbox(x)[2:4]  # text width, height
+                font = weakref.proxy(self.font)
+                self.font.getsize = lambda x: font.getbbox(x)[2:4]  # text width, height
         else:  # use cv2
             assert im.is_contiguous() if input_is_tensor else im.data.contiguous, (
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."

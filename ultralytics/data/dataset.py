@@ -239,10 +239,12 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
-        if self.use_segments and len_boxes != len_segments:
+        if (self.use_segments or self.use_obb) and len_boxes != len_segments:
+            task = "OBB" if self.use_obb else "Segment"
             raise ValueError(
-                f"Segment dataset requires equal numbers of boxes and segments, but got len(segments) = "
-                f"{len_segments}, len(boxes) = {len_boxes}. Please supply a segment dataset, not a detect dataset."
+                f"{task} dataset requires equal numbers of boxes and segments, but got len(segments) = "
+                f"{len_segments}, len(boxes) = {len_boxes}. Please supply {'an OBB' if self.use_obb else 'a segment'} "
+                "dataset, not a detect dataset."
             )
         if len_segments and len_boxes != len_segments:
             LOGGER.warning(

@@ -1152,13 +1152,10 @@ class Model(torch.nn.Module):
     def _val_data(self) -> str | None:
         """Return the checkpoint's dataset when it still resolves, otherwise the task default."""
         data = self.overrides.get("data")
+        if checks.check_data_portable(data):
+            return data
         if not isinstance(data, (str, Path)):  # absent, or a YOLOE multi-source training dict
             data = None
-        # a bare name (coco8.yaml, imagenet10) is portable; a path recorded on another host, or OS, is not
-        if data and (
-            "://" in str(data) or not any(sep in str(data) for sep in "/\\") or checks.check_file(data, hard=False)
-        ):
-            return data
         default = TASK2DATA.get(self.task)
         LOGGER.warning(
             f"Checkpoint dataset '{data}' was not found. Using default 'data={default}'. Pass data=... to validate on "

@@ -73,9 +73,10 @@ class ObjectCropper(BaseSolution):
                 imgsz=self.CFG["imgsz"],
                 verbose=False,
             )[0]
-            self.clss = results.boxes.cls.tolist()  # required for logging only.
+            boxes = results.obb if results.obb is not None else results.boxes  # OBB models only fill results.obb
+            self.clss = boxes.cls.tolist()  # required for logging only.
 
-        for box in results.boxes:
+        for box in boxes:
             self.crop_idx += 1
             save_one_box(
                 box.xyxy,

@@ -109,6 +109,8 @@ def non_max_suppression(
             v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
             v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
             x = torch.cat((x, v), 0)
+            if return_idxs:  # a-priori label rows carry no anchor index; -1 keeps xk aligned with the concatenated x
+                xk = torch.cat((xk, torch.full((len(lb), 1), -1, device=x.device, dtype=xk.dtype)), 0)
 
         # If none remain process next image
         if not x.shape[0]:

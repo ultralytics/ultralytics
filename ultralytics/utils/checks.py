@@ -1144,6 +1144,15 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and torch.cuda.is_available() and bool(getattr(torch.version, "hip", None))
+
+
 def is_rockchip():
     """Check if the current environment is running on a Rockchip SoC.
 
@@ -1211,5 +1220,6 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
+IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)

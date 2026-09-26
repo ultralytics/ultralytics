@@ -127,6 +127,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
+    rocm_is_available,
 )
 from ultralytics.utils.export.axelera import AXELERA_SDK
 from ultralytics.utils.files import file_size
@@ -1077,7 +1078,8 @@ class Exporter:
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+            # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
             requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]

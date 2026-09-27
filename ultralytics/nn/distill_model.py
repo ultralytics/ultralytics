@@ -134,6 +134,7 @@ class DistillationModel(nn.Module):
 
     def __setstate__(self, state):
         """Clear stale features and hooks, and re-register forward hooks after unpickling."""
+        state.setdefault("teacher_feats_idx", state["feats_idx"])  # checkpoints saved before teacher_feats_idx
         self.__dict__.update(state)
         self._teacher_feats = {}
         self._student_feats = {}

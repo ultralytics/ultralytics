@@ -65,7 +65,19 @@ DEPTH_PNG_SCALE = 1000  # uint16 millimeters by default; zero is invalid
 
 
 def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG_SCALE) -> None:
-    """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels."""
+    """Save metric depth as a scaled uint16 PNG with zero reserved for invalid pixels.
+
+    Args:
+        path (str | Path): Output PNG file path.
+        depth (np.ndarray): Metric depth map in meters, 2D after squeezing. Non-finite and non-positive values are saved
+            as 0 (invalid).
+        scale (float, optional): Multiplier applied to depth in meters before rounding to uint16, e.g. 1000 for
+            millimeters.
+
+    Raises:
+        ValueError: If scale is not a positive finite number, depth is not 2D, or scaled depth exceeds the uint16 range.
+        OSError: If the PNG cannot be written.
+    """
     if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not np.isfinite(scale) or scale <= 0:
         raise ValueError("Depth scale must be a positive finite number")
     depth = np.asarray(depth, dtype=np.float32).squeeze()
@@ -76,14 +88,29 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
     if valid.any():
         scaled = np.rint(depth[valid] * scale)
         if scaled.max() > np.iinfo(np.uint16).max:
-            raise ValueError(f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit")
+            raise ValueError(
+                f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit at scale={scale:g}. "
+                "Pass a lower scale, e.g. 256, and set the same 'depth_scale' in the dataset YAML."
+            )
         encoded[valid] = np.maximum(scaled, 1).astype(np.uint16)
     if not cv2.imwrite(str(path), encoded):
         raise OSError(f"Failed to save depth map to {path}")
 
 
 def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
-    """Load metric depth from a scaled uint16 PNG or floating-point meter NPY."""
+    """Load metric depth from a scaled uint16 PNG or floating-point meter NPY.
+
+    Args:
+        path (str | Path): Path to a *.png depth map (uint16 scaled by `scale`) or *.npy depth map (float, meters).
+        scale (float, optional): Divisor applied to PNG values to convert them to meters. Ignored for NPY files.
+
+    Returns:
+        (np.ndarray): Float32 depth map in meters with shape (H, W), where 0 marks invalid pixels.
+
+    Raises:
+        ValueError: If the depth file has an unsupported shape, dtype, or format, or scale is not a positive finite
+            number.
+    """
     path = Path(path)
     if path.suffix.lower() == ".npy":
         depth = np.load(path, allow_pickle=False)
@@ -102,13 +129,22 @@ def load_depth(path: str | Path, scale: float = DEPTH_PNG_SCALE) -> np.ndarray:
 
 
 def img2label_paths(img_paths: list[str | Path], label_dir: str = "labels", suffix: str = ".txt") -> list[str]:
-    """Convert image paths to label paths by replacing 'images' with 'labels' and extension with '.txt'."""
+    """Convert image paths to label paths by replacing the last 'images' directory and the file extension.
+
+    Args:
+        img_paths (list[str | Path]): List of image file paths.
+        label_dir (str, optional): Directory name that replaces the last '/images/' path component.
+        suffix (str, optional): File extension that replaces the image extension.
+
+    Returns:
+        (list[str]): List of label file paths.
+    """
     sa, sb = f"{os.sep}images{os.sep}", f"{os.sep}{label_dir}{os.sep}"  # /images/, /labels/ substrings
     return [sb.join(os.fspath(x).rsplit(sa, 1)).rsplit(".", 1)[0] + f"{suffix}" for x in img_paths]
 
 
 def check_file_speeds(
-    files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
+    files: list[str | Path], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
     """Check dataset file access speed and provide performance feedback.
 
@@ -116,7 +152,7 @@ def check_file_speeds(
     up to `max_files` files from the provided list and warns if access times exceed the threshold.
 
     Args:
-        files (list[str]): List of file paths to check for access speed.
+        files (list[str | Path]): List of file paths to check for access speed.
         threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
         threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
         max_files (int, optional): The maximum number of files to check.
@@ -131,7 +167,7 @@ def check_file_speeds(
         LOGGER.warning(f"{prefix}Image speed checks: No files to check")
         return
 
-    # Sample files (max 5)
+    # Sample up to max_files files
     files = random.sample(files, min(max_files, len(files)))
 
     # Test ping (stat time)
@@ -276,7 +312,7 @@ def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
     shape = exif_size(im)  # image size
     shape = (shape[1], shape[0])  # hw
     assert (shape[0] > 9) & (shape[1] > 9), f"image size {shape} <10 pixels"
-    assert im.format.lower() in IMG_FORMATS, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
+    assert im.format.lower() in IMG_FORMATS | {"jpeg2000"}, f"Invalid image format {im.format}. {FORMATS_HELP_MSG}"
     if im.format.lower() in {"jpg", "jpeg"}:
         with open(im_file, "rb") as f:
             f.seek(-2, 2)
@@ -287,7 +323,15 @@ def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
 
 
 def verify_image(args: tuple) -> tuple:
-    """Verify one image."""
+    """Verify one image for classification datasets.
+
+    Args:
+        args (tuple): Tuple of ((im_file, cls), prefix).
+
+    Returns:
+        (tuple): Tuple of ((im_file, cls), nf, nc, msg), where nf and nc are 1 if the image was found valid or corrupt
+            respectively, and msg is a log message.
+    """
     (im_file, cls), prefix = args
     # Number (found, corrupt), message
     nf, nc, msg = 0, 0, ""
@@ -302,7 +346,15 @@ def verify_image(args: tuple) -> tuple:
 
 
 def verify_image_depth(args: tuple) -> tuple:
-    """Verify that an image and its paired depth map exist and are readable."""
+    """Verify that an image and its paired depth map exist and are readable.
+
+    Args:
+        args (tuple): Tuple of (im_file, depth_file, prefix, scale).
+
+    Returns:
+        (tuple): Tuple of (im_file, shape, nf, nm, nc, msg), where im_file and shape (H, W) are None for rejected
+            samples, nf, nm, and nc are found, missing, and corrupt counts, and msg is a log message.
+    """
     im_file, depth_file, prefix, scale = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
@@ -339,7 +391,17 @@ def verify_image_depth(args: tuple) -> tuple:
 
 
 def verify_image_mask(args: tuple) -> tuple:
-    """Verify that an image and its semantic mask exist, are readable, and have matching shapes."""
+    """Verify that an image and its semantic mask exist, are readable, and have matching shapes.
+
+    Args:
+        args (tuple): Tuple of (im_file, mask_file, prefix). If mask_file is missing, masks with the same stem and
+            another image extension are tried.
+
+    Returns:
+        (tuple): Tuple of (im_file, mask_file, shape, is_1bit, nm, nf, nc, msg), where the first four are None for
+            rejected samples, is_1bit is whether the mask is a 1-bit PIL image, nm, nf, and nc are missing, found, and
+            corrupt counts, and msg is a log message.
+    """
     im_file, mask_file, prefix = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
@@ -370,8 +432,18 @@ def verify_image_mask(args: tuple) -> tuple:
     return None, None, None, None, nm, nf, nc, msg
 
 
-def verify_image_label(args: tuple) -> list:
-    """Verify one image-label pair."""
+def verify_image_label(args: tuple) -> tuple | list:
+    """Verify one image-label pair.
+
+    Args:
+        args (tuple): Tuple of (im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls).
+
+    Returns:
+        (tuple | list): Tuple of (im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg), where lb is an (N, 5)
+            array of [cls, x, y, w, h] labels, shape is (H, W), segments is a list of (K, 2) arrays, keypoints is an (N,
+            nkpt, 3) array or None, nm, nf, ne, and nc are missing, found, empty, and corrupt counts, and msg is a log
+            message. For corrupt samples, a list with the first five items set to None is returned.
+    """
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
     nm, nf, ne, nc, msg, segments, keypoints = 0, 0, 0, 0, "", [], None
@@ -385,6 +457,8 @@ def verify_image_label(args: tuple) -> list:
             nf = 1  # label found
             with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+                if nkpt and not keypoint:  # pose labels for a box task: keep the box, drop the keypoints
+                    lb = [x[:5] if len(x) == 5 + nkpt * ndim else x for x in lb]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
                     assert not any(len(x) == 5 for x in lb), "labels mix segment and detection rows"
                     classes = np.array([x[0] for x in lb], dtype=np.float32)
@@ -401,9 +475,10 @@ def verify_image_label(args: tuple) -> list:
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
                 assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
+                assert (lb[:, 0] % 1 == 0).all(), f"non-integer class labels {lb[:, 0][lb[:, 0] % 1 != 0]}"
 
                 # All labels
-                max_cls = 0 if single_cls else lb[:, 0].max()  # max label count
+                max_cls = 0 if single_cls else lb[:, 0].max()  # max class index
                 assert max_cls < num_cls, (
                     f"Label class {int(max_cls)} exceeds dataset class count {num_cls}. "
                     f"Possible class labels are 0-{num_cls - 1}"
@@ -434,16 +509,17 @@ def verify_image_label(args: tuple) -> list:
 
 
 def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
-    """Visualize YOLO annotations (bounding boxes and class labels) on an image.
+    """Visualize YOLO detection annotations (bounding boxes and class labels) on an image.
 
-    This function reads an image and its corresponding annotation file in YOLO format, then draws bounding boxes around
+    This function reads an image and its corresponding YOLO detection label file, then draws bounding boxes around
     detected objects and labels them with their respective class names. The bounding box colors are assigned based on
     the class ID, and the text color is dynamically adjusted for readability, depending on the background color's
     luminance.
 
     Args:
         image_path (str): Path to the image file to annotate. The file must be readable by PIL.
-        txt_path (str): Path to the annotation file in YOLO format, which should contain one line per object.
+        txt_path (str): Path to a YOLO detection label file with one `class x_center y_center width height` line per
+            object. Segmentation polygon and pose label rows are not supported.
         label_map (dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Examples:
@@ -489,7 +565,8 @@ def polygon2mask(
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
     Returns:
-        (np.ndarray): A binary mask of the specified image size with the polygons filled in.
+        (np.ndarray): Mask of shape (H // downsample_ratio, W // downsample_ratio) with the polygons filled with
+            `color`.
     """
     mask = np.zeros(imgsz, dtype=np.uint8)
     polygons = np.asarray(polygons, dtype=np.int32)
@@ -513,7 +590,8 @@ def polygons2masks(
         downsample_ratio (int, optional): Factor by which to downsample each mask.
 
     Returns:
-        (np.ndarray): A set of binary masks of the specified image size with the polygons filled in.
+        (np.ndarray): Masks of shape (N, H // downsample_ratio, W // downsample_ratio), one per polygon, filled with
+            `color`.
     """
     return np.array([polygon2mask(imgsz, [x.reshape(-1)], color, downsample_ratio) for x in polygons])
 
@@ -521,7 +599,18 @@ def polygons2masks(
 def polygons2masks_overlap(
     imgsz: tuple[int, int], segments: list[np.ndarray], downsample_ratio: int = 1
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return a downsampled overlap mask and sorted area indices."""
+    """Return a downsampled overlap mask and sorted area indices.
+
+    Args:
+        imgsz (tuple[int, int]): The size of the image as (height, width).
+        segments (list[np.ndarray]): A list of polygons, each reshapeable to (-1, 2) as (x, y) point pairs.
+        downsample_ratio (int, optional): Factor by which to downsample the mask.
+
+    Returns:
+        masks (np.ndarray): Mask of shape (H // downsample_ratio, W // downsample_ratio) where 0 is background and i + 1
+            marks the i-th instance in area-descending order, so smaller instances are drawn over larger ones.
+        index (np.ndarray): Indices that sort the segments by area in descending order.
+    """
     masks = np.zeros(
         (imgsz[0] // downsample_ratio, imgsz[1] // downsample_ratio),
         dtype=np.int32 if len(segments) > 255 else np.uint8,
@@ -568,7 +657,19 @@ def find_dataset_yaml(path: Path) -> Path:
 
 
 def get_split_fraction(fraction: float | list[float | int], split: str) -> float | int:
-    """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all)."""
+    """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all).
+
+    Args:
+        fraction (float | int | list[float | int]): Dataset fraction (ratio or image count), or a per-split list ordered
+            as [train, val, test]. A scalar only applies to the train split; missing list entries default to 1.0.
+        split (str): Dataset split name, e.g. 'train', 'val', or 'test'.
+
+    Returns:
+        (float | int): Fraction of the split to use as a ratio (float) or image count (int).
+
+    Raises:
+        ValueError: If the resolved fraction is 0 for the 'train' or 'val' split.
+    """
     if isinstance(fraction, list) and split in (splits := ("train", "val", "test")):
         index = splits.index(split)
         fraction = fraction[index] if index < len(fraction) else 1.0
@@ -580,8 +681,20 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     return fraction
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=None) -> str | Path:
-    """Convert an NDJSON dataset or Platform dataset URI to YOLO format."""
+def convert_ndjson_to_yolo_if_needed(
+    data: str | Path, fraction: float | list[float | int] = 1.0, *, split: str | None = None
+) -> str | Path:
+    """Convert an NDJSON dataset or Platform dataset URI to YOLO format.
+
+    Args:
+        data (str | Path): Dataset path, NDJSON file path or URL, or Ultralytics Platform dataset URI or web URL.
+        fraction (float | int | list[float | int], optional): Dataset fraction passed to the NDJSON converter.
+        split (str, optional): Dataset split passed to the NDJSON converter.
+
+    Returns:
+        (str | Path): Path to the converted dataset (YAML file or directory) for NDJSON inputs, otherwise the normalized
+            input data unchanged.
+    """
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
     if clean_url(data_str).endswith(".ndjson") or (data_str.startswith("ul://") and "/datasets/" in data_str):
@@ -593,7 +706,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=No
     return data
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") -> dict[str, Any]:
+def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str = "") -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
@@ -601,7 +714,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     resolves paths related to the dataset.
 
     Args:
-        dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
+        dataset (str | Path): Path to the dataset or dataset descriptor (like a YAML file).
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
         split (str, optional): Dataset split required by the caller.
 
@@ -696,7 +809,9 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
                 raise FileNotFoundError(m)
             t = time.time()
             r = None  # success
-            if s.startswith("http") and s.endswith(".zip"):  # URL
+            if s.startswith("http") and s.endswith(
+                (".zip", ".tar", ".gz", ".tgz", ".xz", ".bz2", ".txz", ".tbz2")
+            ):  # URL
                 safe_download(url=s, dir=DATASETS_DIR, delete=True)
             elif s.startswith("bash "):  # bash script
                 LOGGER.info(f"Running {s} ...")
@@ -720,17 +835,18 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     dataset is not found locally, it attempts to download the dataset from the internet and save it locally.
 
     Args:
-        dataset (str | Path): The name of the dataset.
-        split (str, optional): The split of the dataset. Either 'val', 'test', or ''.
+        dataset (str | Path): The dataset name, local directory path, archive file, or archive URL.
+        split (str, optional): The split of the dataset. Either 'train', 'val', 'test', or ''.
 
     Returns:
         (dict[str, Any]): A dictionary containing the following keys:
 
             - 'train' (Path): The directory path containing the training set of the dataset.
-            - 'val' (Path): The directory path containing the validation set of the dataset.
-            - 'test' (Path): The directory path containing the test set of the dataset.
+            - 'val' (Path | None): The directory path containing the validation set of the dataset.
+            - 'test' (Path | None): The directory path containing the test set of the dataset.
             - 'nc' (int): The number of classes in the dataset.
             - 'names' (dict[int, str]): A dictionary of class names in the dataset.
+            - 'channels' (int): The number of image channels, always 3.
     """
     if split and split not in {"train", "val", "test"}:
         raise ValueError(f"Invalid classification dataset split '{split}'. Use 'train', 'val', or 'test'.")
@@ -815,14 +931,16 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 
 
-def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, quality: int = 50):
-    """Compress a single image file to reduced size while preserving its aspect ratio and quality using either the
-    Python Imaging Library (PIL) or OpenCV library. If the input image is smaller than the maximum dimension, it
-    will not be resized.
+def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: int = 1920, quality: int = 50):
+    """Compress a single image file to reduced size while preserving its aspect ratio.
+
+    The image is saved as JPEG using the Python Imaging Library (PIL), falling back to OpenCV if PIL fails. If the input
+    image is smaller than the maximum dimension, it will not be resized.
 
     Args:
-        f (str): The path to the input image file.
-        f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
+        f (str | Path): The path to the input image file.
+        f_new (str | Path, optional): The path to the output image file. If not specified, the input file will be
+            overwritten.
         max_dim (int, optional): The maximum dimension (width or height) of the output image.
         quality (int, optional): The image compression quality as a percentage.
 
@@ -830,7 +948,7 @@ def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, qu
         >>> from pathlib import Path
         >>> from ultralytics.data.utils import compress_one_image
         >>> for f in Path("path/to/dataset").rglob("*.jpg"):
-        >>>    compress_one_image(f)
+        ...     compress_one_image(f)
     """
     try:  # use PIL
         Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
@@ -843,7 +961,7 @@ def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, qu
         im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
     except Exception as e:  # use OpenCV
         LOGGER.warning(f"Image compression PIL failure {f}: {e}")
-        im = cv2.imread(f)
+        im = cv2.imread(str(f))
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio
         if r < 1.0:  # image too large
@@ -852,7 +970,14 @@ def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, qu
 
 
 def load_dataset_cache_file(path: Path) -> dict:
-    """Load an Ultralytics *.cache dictionary from path."""
+    """Load an Ultralytics *.cache dictionary from path.
+
+    Args:
+        path (Path): Path to the *.cache file.
+
+    Returns:
+        (dict): The loaded cache dictionary.
+    """
     import gc
 
     gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
@@ -862,7 +987,14 @@ def load_dataset_cache_file(path: Path) -> dict:
 
 
 def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
-    """Save an Ultralytics dataset *.cache dictionary x to path."""
+    """Save an Ultralytics dataset *.cache dictionary x to path.
+
+    Args:
+        prefix (str): Prefix for log messages.
+        path (Path): Path to save the *.cache file.
+        x (dict): Cache dictionary to save. A 'version' key is added in place.
+        version (str): Cache version string.
+    """
     x["version"] = version  # add cache version
     if is_dir_writeable(path.parent):
         if path.exists():
@@ -873,7 +1005,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
             LOGGER.info(f"{prefix}New cache created: {path}")
         except Exception as e:
             Path(path).unlink(missing_ok=True)  # remove partially written file
-            LOGGER.warning(f"{prefix}WARNING ⚠️ Failed to save cache to {path}: {e}")
+            LOGGER.warning(f"{prefix}Failed to save cache to {path}: {e}")
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")
 
@@ -881,10 +1013,18 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
 def add_polygon_background(data: dict) -> dict:
     """Set up the background class for polygon-based semantic datasets without 'masks_dir'.
 
-    - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon
-    cls values are kept as foreground ids.
-    - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization
-    yields a {0=bg, 1=fg} mask regardless of the label cls value.
+    - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon cls values are kept as
+    foreground ids.
+    - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization yields a {0=bg, 1=fg} mask regardless of the
+    label cls value.
+
+    The data dictionary is modified in place and marked so repeated calls are no-ops.
+
+    Args:
+        data (dict): Dataset configuration dictionary.
+
+    Returns:
+        (dict): The updated dataset configuration dictionary, with 'bg_class_idx' set.
     """
     if data.get("masks_dir") or data.get("_polygon_bg_added"):
         return data

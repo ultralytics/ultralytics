@@ -156,7 +156,7 @@ ClearML's user-friendly interface allows easy cloning, editing, and enqueuing of
 
 ## Dataset Version Management
 
-ClearML also offers powerful [dataset version management](https://docs.clear.ml/docs/latest/docs/hyperdatasets/dataset/) capabilities that integrate seamlessly with YOLO26 training workflows. This feature allows you to:
+ClearML also offers powerful [dataset version management](https://docs.clear.ml/docs/latest/docs/clearml_data/) capabilities that integrate seamlessly with YOLO26 training workflows. This feature allows you to:
 
 - Version your datasets separately from your code
 - Track which dataset version was used for each experiment
@@ -203,7 +203,7 @@ You then configure ClearML with your credentials from the [ClearML Settings page
 
 ### Why should I use ClearML with Ultralytics YOLO26 for my machine learning projects?
 
-Using ClearML with Ultralytics YOLO26 enhances your machine learning projects by automating experiment tracking, streamlining workflows, and enabling robust model management. ClearML offers real-time metrics tracking, resource utilization monitoring, and a user-friendly interface for comparing experiments. These features help optimize your model's performance and make the development process more efficient. Learn more about the benefits and procedures in our [MLOps Integration guide](../modes/train.md).
+Using ClearML with Ultralytics YOLO26 enhances your machine learning projects by automating experiment tracking, streamlining workflows, and enabling robust model management. ClearML offers real-time metrics tracking, resource utilization monitoring, and a user-friendly interface for comparing experiments. These features help optimize your model's performance and make the development process more efficient. Learn more about the benefits and procedures in our [YOLO26 Model Training guide](../modes/train.md).
 
 ### How do I troubleshoot common issues during YOLO26 and ClearML integration?
 

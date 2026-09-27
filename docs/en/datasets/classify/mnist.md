@@ -21,7 +21,7 @@ Explore [MNIST on Ultralytics Platform](https://platform.ultralytics.com/ultraly
 ## Key Features
 
 - MNIST contains 60,000 training images and 10,000 test images of handwritten digits, for 70,000 in total.
-- Every image is a 28x28 grayscale picture of a single digit, normalized and anti-aliased into a fixed 28x28 [bounding box](https://www.ultralytics.com/glossary/bounding-box).
+- Every image is a 28x28 grayscale picture of a single digit, size-normalized and anti-aliased to fit a 20x20 box and centered in the 28x28 frame.
 - The 10 classes span the digits 0–9, with a roughly balanced number of images per class.
 - It ships with a predefined train/test split, so no manual or automatic splitting is required.
 - MNIST is a standard benchmark for [image classification](https://www.ultralytics.com/glossary/image-classification) and [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) research.

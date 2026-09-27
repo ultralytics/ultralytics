@@ -352,6 +352,7 @@ def build_sam(ckpt="sam_b.pt"):
         Supported pre-defined models include:
         - SAM: 'sam_h.pt', 'sam_l.pt', 'sam_b.pt', 'mobile_sam.pt'
         - SAM2: 'sam2_t.pt', 'sam2_s.pt', 'sam2_b.pt', 'sam2_l.pt'
+        - SAM2.1: 'sam2.1_t.pt', 'sam2.1_s.pt', 'sam2.1_b.pt', 'sam2.1_l.pt'
     """
     model_builder = None
     ckpt = str(ckpt)  # to allow Path ckpt types

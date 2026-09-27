@@ -28,7 +28,7 @@ When you manage datasets on [Ultralytics Platform](https://platform.ultralytics.
 
 ## Supported Formats
 
-The dataset includes one image for each of 12 supported format extensions defined in `ultralytics/data/utils.py`:
+The dataset includes one image for each of 12 of the 13 image format extensions in `IMG_FORMATS` (defined in `ultralytics/data/utils.py`); `.heif` is also supported but has no sample image:
 
 | Format | Extension | Description                          | Train/Val |
 | ------ | --------- | ------------------------------------ | --------- |

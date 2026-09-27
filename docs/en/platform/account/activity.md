@@ -28,7 +28,7 @@ The Activity Feed provides one place for:
 
 Navigate to the Activity Feed in any of the following ways:
 
-1. Click the activity indicator in the top navigation bar, then **View all**
+1. Click the activity indicator in the top navigation bar, then **View all activity**
 2. Open the profile menu at the bottom of the sidebar and select **Activity**
 3. Navigate directly to `/activity`
 

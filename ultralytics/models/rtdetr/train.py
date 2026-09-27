@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from copy import copy
 
+import torch
+
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import RTDETRDetectionModel
@@ -29,7 +31,7 @@ class RTDETRTrainer(DetectionTrainer):
     Methods:
         get_model: Initialize and return an RT-DETR model for object detection tasks.
         build_dataset: Build and return an RT-DETR dataset for training or validation.
-        get_validator: Return a DetectionValidator suitable for RT-DETR model validation.
+        get_validator: Return an RTDETRValidator suitable for RT-DETR model validation.
 
     Examples:
         >>> from ultralytics.models.rtdetr.train import RTDETRTrainer
@@ -42,12 +44,12 @@ class RTDETRTrainer(DetectionTrainer):
         - AMP training can lead to NaN outputs and may produce errors during bipartite graph matching.
     """
 
-    def get_model(self, cfg: dict | None = None, weights: str | None = None, verbose: bool = True):
+    def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Initialize and return an RT-DETR model for object detection tasks.
 
         Args:
-            cfg (dict, optional): Model configuration.
-            weights (str, optional): Path to pre-trained model weights.
+            cfg (str | dict, optional): Model configuration file path or dictionary.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Verbose logging if True.
 
         Returns:
@@ -60,7 +62,7 @@ class RTDETRTrainer(DetectionTrainer):
             model.load(weights)
         return model
 
-    def build_dataset(self, img_path: str, mode: str = "val", batch: int | None = None):
+    def build_dataset(self, img_path: str, mode: str = "train", batch: int | None = None):
         """Build and return an RT-DETR dataset for training or validation.
 
         Args:
@@ -90,4 +92,6 @@ class RTDETRTrainer(DetectionTrainer):
 
     def get_validator(self):
         """Return an RTDETRValidator suitable for RT-DETR model validation."""
-        return RTDETRValidator(self.test_loader, save_dir=self.save_dir, args=copy(self.args))
+        return RTDETRValidator(
+            self.test_loader, save_dir=self.save_dir, args=copy(self.args), _callbacks=self.callbacks
+        )

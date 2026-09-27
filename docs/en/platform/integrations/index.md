@@ -27,18 +27,18 @@ selected bucket before anything is saved.
 
 ## Available Integrations
 
-| Integration                                         | Category       | What it does                                                                 |
-| --------------------------------------------------- | -------------- | ---------------------------------------------------------------------------- |
-| [**On Premise**](on-premise.md)                     | Infrastructure | Indexes and trains on datasets that never leave your own computer            |
-| [**Amazon S3**](amazon-s3.md)                       | Infrastructure | Indexes datasets in place from your S3 buckets                               |
-| [**Google Cloud Storage**](google-cloud-storage.md) | Infrastructure | Indexes datasets in place from your GCS buckets                              |
-| [**Azure Blob Storage**](azure-blob-storage.md)     | Infrastructure | Indexes datasets in place from your blob containers                          |
-| [**Slack**](slack.md)                               | Notifications  | Posts selected training, export, and deployment results to one Slack channel |
-| [**Roboflow**](roboflow.md)                         | Imports        | Imports every supported dataset in a Roboflow workspace from an API key      |
-| [**Labelbox**](labelbox.md)                         | Imports        | Reads Labelbox NDJSON exports as datasets                                    |
-| [**LabelMe**](labelme.md)                           | Imports        | Imports the YOLO export produced by the LabelMe Toolkit                      |
-| [**CVAT**](cvat.md)                                 | Imports        | Imports CVAT Ultralytics YOLO and COCO exports — direct import coming soon   |
-| [**Label Studio**](label-studio.md)                 | Imports        | Imports Label Studio YOLO and COCO exports — direct import coming soon       |
+| Integration                                         | Category       | What it does                                                                                  |
+| --------------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| [**On Premise**](on-premise.md)                     | Infrastructure | Indexes and trains on datasets that never leave your own computer                             |
+| [**Amazon S3**](amazon-s3.md)                       | Infrastructure | Indexes datasets in place from your S3 buckets                                                |
+| [**Google Cloud Storage**](google-cloud-storage.md) | Infrastructure | Indexes datasets in place from your GCS buckets                                               |
+| [**Azure Blob Storage**](azure-blob-storage.md)     | Infrastructure | Indexes datasets in place from your blob containers                                           |
+| [**Slack**](slack.md)                               | Notifications  | Posts selected training, auto-annotation, export, and deployment results to one Slack channel |
+| [**Roboflow**](roboflow.md)                         | Imports        | Imports every supported dataset in a Roboflow workspace from an API key                       |
+| [**Labelbox**](labelbox.md)                         | Imports        | Reads Labelbox NDJSON exports as datasets                                                     |
+| [**LabelMe**](labelme.md)                           | Imports        | Imports the YOLO export produced by the LabelMe Toolkit                                       |
+| [**CVAT**](cvat.md)                                 | Imports        | Imports CVAT Ultralytics YOLO and COCO exports — direct import coming soon                    |
+| [**Label Studio**](label-studio.md)                 | Imports        | Imports Label Studio YOLO and COCO exports — direct import coming soon                        |
 
 ## Plans and Permissions
 

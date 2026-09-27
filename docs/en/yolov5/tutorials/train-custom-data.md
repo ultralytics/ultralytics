@@ -63,7 +63,7 @@ Below is the structure for `coco128.yaml` ([view on GitHub](https://github.com/u
 
 ```yaml
 # Dataset root directory relative to the yolov5 directory
-path: coco128
+path: ../datasets/coco128
 
 # Train/val/test sets: specify directories, *.txt files, or lists
 train: images/train2017 # 128 images for training
@@ -138,7 +138,7 @@ The recommended directory structure is:
 
 ## 2. Select a Model
 
-Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available [models](../../models/index.md).
+Choose a [pretrained model](../../models/index.md) to initiate the training process. Starting with pretrained weights significantly accelerates learning and improves performance compared to training from scratch. YOLOv5 offers various model sizes, each balancing speed and accuracy differently. For example, [YOLOv5s](https://github.com/ultralytics/yolov5/blob/master/models/yolov5s.yaml) is the second-smallest and second-fastest model, suitable for resource-constrained environments. Consult the [README table](https://github.com/ultralytics/yolov5#pretrained-checkpoints) for a detailed comparison of all available [models](../../models/index.md).
 
 <p align="center"><img width="800" alt="Comparison chart of YOLOv5 models showing size, speed, and accuracy" src="https://cdn.ul.run/i/d41839d4750825bc166761e37782ab31.avif"></p>
 

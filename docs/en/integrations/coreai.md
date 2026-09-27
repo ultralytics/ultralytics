@@ -106,7 +106,7 @@ On an iPhone 17 Pro running iOS 27.0, YOLO26n at 640 measures 3.01 ms with the h
 round-trip through `YOLO(...)` for inference. Use `nms=False` when a single graph call must return
 finished detections, or keep the default `nms=None` for external NMS.
 
-On iOS 27 or macOS 27, an application would then load and run the exported asset through Apple's Core AI Swift API. Exported assets use the entrypoint `main`, take a single `images` input of shape `[batch, 3, imgsz, imgsz]`, and return `output0`:
+On iOS 27 or macOS 27, an application would then load and run the exported asset through Apple's Core AI Swift API. Exported assets use the entrypoint `main`, take a single `images` input of shape `[batch, 3, imgsz, imgsz]`, and return `output0` (instance segmentation models also return `output1`):
 
 ```swift
 import CoreAI

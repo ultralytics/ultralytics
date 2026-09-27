@@ -25,7 +25,7 @@ from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
-def coco91_to_coco80_class() -> list[int]:
+def coco91_to_coco80_class() -> list[int | None]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
@@ -307,7 +307,7 @@ def convert_coco(
                 box[:2] += box[2:] / 2  # xy top-left corner to center
                 box[[0, 2]] /= w  # normalize x
                 box[[1, 3]] /= h  # normalize y
-                if box[2] <= 0 or box[3] <= 0:  # if w <= 0 and h <= 0
+                if box[2] <= 0 or box[3] <= 0:  # if w <= 0 or h <= 0
                     continue
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
@@ -374,8 +374,9 @@ def convert_coco(
 def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: int):
     """Convert a dataset of segmentation mask images to the YOLO segmentation format.
 
-    This function takes the directory containing the binary format mask images and converts them into YOLO segmentation
-    format. The converted masks are saved in the specified output directory.
+    This function takes the directory containing grayscale mask images, where each pixel value is the class index + 1
+    and 0 is background, and converts them into YOLO segmentation format. The converted labels are saved in the
+    specified output directory with the same file stems as the masks.
 
     Args:
         masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
@@ -400,10 +401,10 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
         After execution, the labels will be organized in the following structure:
 
             - output_dir
-                ├─ mask_yolo_01.txt
-                ├─ mask_yolo_02.txt
-                ├─ mask_yolo_03.txt
-                └─ mask_yolo_04.txt
+                ├─ mask_image_01.txt
+                ├─ mask_image_02.txt
+                ├─ mask_image_03.txt
+                └─ mask_image_04.txt
     """
     pixel_to_class_mapping = {i + 1: i for i in range(classes)}
     output_dir = Path(output_dir)
@@ -451,8 +452,8 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
 def convert_dota_to_yolo_obb(dota_root_path: str):
     """Convert DOTA dataset annotations to YOLO OBB (Oriented Bounding Box) format.
 
-    The function processes images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads the
-    associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
+    The function processes *.png images in the 'train' and 'val' folders of the DOTA dataset. For each image, it reads
+    the associated label from the original labels directory and writes new labels in YOLO OBB format to a new directory.
 
     Args:
         dota_root_path (str): The root directory path of the DOTA dataset.
@@ -556,10 +557,10 @@ def min_index(arr1: np.ndarray, arr2: np.ndarray):
 
 
 def merge_multi_segment(segments: list[list]):
-    """Merge multiple segments into one list by connecting the coordinates with the minimum distance between each
-    segment.
+    """Merge multiple segments into one by connecting them at their closest points.
 
-    This function connects these coordinates with a thin line to merge all segments into one.
+    This function connects the coordinates with the minimum distance between each segment with a thin line to merge all
+    segments into one.
 
     Args:
         segments (list[list]): Original segmentations in COCO's JSON file. Each element is a list of coordinates, like
@@ -606,7 +607,9 @@ def merge_multi_segment(segments: list[list]):
     return s
 
 
-def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
+def yolo_bbox2segment(
+    im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device: int | str | None = None
+):
     """Convert existing object detection dataset (bounding boxes) to segmentation dataset in YOLO format.
 
     Generates segmentation data using SAM auto-annotator as needed.
@@ -734,11 +737,12 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     Args:
         path (str | Path): Path to an image file or directory containing images to convert.
         n_channels (int): Number of spectral channels to generate in the output image.
-        replace (bool): Whether to replace the original image file with the converted one.
-        zip (bool): Whether to zip the converted images into a zip file.
+        replace (bool): Whether to delete the original image files after conversion (directory inputs only).
+        zip (bool): Whether to zip the converted directory into a zip file (directory inputs only).
 
     Examples:
         Convert a single image
+        >>> from ultralytics.data.converter import convert_to_multispectral
         >>> convert_to_multispectral("path/to/image.jpg", n_channels=10)
 
         Convert a dataset
@@ -786,6 +790,15 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
 
     Tries dims=3 first (x, y, visibility) with visibility validation ({0, 1, 2}), then falls back to dims=2 (x, y only)
     when values are unambiguously not divisible by 3.
+
+    Args:
+        image_records (list): NDJSON image records with optional 'annotations' -> 'pose' label lists.
+
+    Returns:
+        (list): Inferred kpt_shape as [num_keypoints, dims].
+
+    Raises:
+        ValueError: If no consistent keypoint shape can be inferred.
     """
     kpt_lengths = []
     samples = []  # raw keypoint value slices for visibility checking
@@ -816,13 +829,20 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0, *, split=None) -> Path:
+async def convert_ndjson_to_yolo(
+    ndjson_path: str | Path,
+    output_path: str | Path | None = None,
+    fraction: float | list[float | int] = 1.0,
+    *,
+    split: str | None = None,
+) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
     detection/segmentation/pose/obb tasks, it creates separate directories for images and labels. Depth datasets use
     parallel images/ and depth/ trees with scaled uint16 PNG targets. Classification tasks use the ImageNet-style
-    {split}/{class_name}/ folder structure. Downloads run concurrently.
+    {split}/{class_index}/ folder structure, with class names stored in a hidden .ndjson.yaml file. Downloads run
+    concurrently.
 
     The NDJSON format consists of:
     - First line: Dataset metadata with class names, task type, and configuration
@@ -832,21 +852,24 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
-        fraction (float | int | list): Train ratio/count or [train, val, test] ratios/counts to download.
-        split (str, optional): Validation split requested by training. Unused test images are skipped.
+        fraction (float | int | list[float | int]): Train ratio/count or [train, val, test] ratios/counts to download.
+        split (str, optional): Dataset split requested by the caller. When 'train' or 'val', unused test images are
+            skipped.
 
     Returns:
-        (Path): Path to the generated data.yaml file (detection) or dataset directory (classification).
+        (Path): Path to the generated data.yaml file (non-classification tasks) or dataset directory (classification).
 
     Examples:
         Convert a local NDJSON file:
-        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson")
+        >>> import asyncio
+        >>> from ultralytics.data.converter import convert_ndjson_to_yolo
+        >>> yaml_path = asyncio.run(convert_ndjson_to_yolo("dataset.ndjson"))
         >>> print(f"Dataset converted to: {yaml_path}")
 
         Convert with custom output directory:
-        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
+        >>> yaml_path = asyncio.run(convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets"))
 
-        Use with YOLO training
+        Train directly on an NDJSON dataset URL, which is converted automatically:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
@@ -887,7 +910,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction, split=None) -> Path:
+async def _convert_ndjson_to_yolo(
+    ndjson_path: Path,
+    output_path: Path,
+    local: bool,
+    fraction: float | list[float | int],
+    split: str | None = None,
+) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 
@@ -1095,7 +1124,7 @@ async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: b
             annotations = record.get("annotations", {})
 
             if is_classification:
-                # Classification: place image in {split}/{class_name}/ folder
+                # Classification: place image in {split}/{class_index}/ folder
                 class_ids = annotations.get("classification", [])
                 class_id = class_ids[0] if class_ids else 0
                 class_name = class_dirs[class_id]

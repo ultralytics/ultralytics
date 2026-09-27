@@ -41,11 +41,11 @@ The Coral Edge TPU is a compact device that adds an Edge TPU coprocessor to your
 - [Raspberry Pi 4B](https://www.raspberrypi.com/products/raspberry-pi-4-model-b/) (2GB or more recommended) or [Raspberry Pi 5](https://www.raspberrypi.com/products/raspberry-pi-5/) (Recommended)
 - [Raspberry Pi OS](https://www.raspberrypi.com/software/) Bullseye/Bookworm (64-bit) with desktop (Recommended)
 - [Coral USB Accelerator](https://developers.google.com/coral)
-- A non-ARM platform (Google Colab, an x86_64 Linux machine, or the [Ultralytics Docker container](docker-quickstart.md)) for exporting the model, since the Edge TPU compiler is not available on ARM
+- An x86_64 Linux platform (Google Colab, an x86_64 Linux machine, or the [Ultralytics Docker container](docker-quickstart.md) on an x86_64 host) for exporting the model, since the Edge TPU compiler is only available on x86_64 Linux
 
 This guide assumes you already have a working Raspberry Pi OS install with `ultralytics` and its dependencies installed. If not, follow the [quickstart guide](../quickstart.md) first.
 
-With the prerequisites ready, the workflow has three steps: [install the Edge TPU runtime](#install-the-edge-tpu-runtime) on the Pi, [export your model](#export-your-model-to-edge-tpu-format) on a non-ARM machine, and [run inference](#run-inference-on-the-edge-tpu) back on the Pi.
+With the prerequisites ready, the workflow has three steps: [install the Edge TPU runtime](#install-the-edge-tpu-runtime) on the Pi, [export your model](#export-your-model-to-edge-tpu-format) on an x86_64 Linux machine, and [run inference](#run-inference-on-the-edge-tpu) back on the Pi.
 
 ## Install the Edge TPU Runtime
 
@@ -84,7 +84,7 @@ After installing the runtime, plug your Coral Edge TPU into a USB 3.0 port on th
 
 ## Export Your Model to Edge TPU Format
 
-To use the Edge TPU, convert your model to a compatible format. Run the export on a non-ARM platform — Google Colab, an x86_64 Linux machine, the official [Ultralytics Docker container](docker-quickstart.md), or [Ultralytics Platform](../platform/quickstart.md) — since the Edge TPU compiler is not available on ARM. See the [Export mode](../modes/export.md) for the available arguments.
+To use the Edge TPU, convert your model to a compatible format. Run the export on x86_64 Linux — Google Colab, an x86_64 Linux machine, the official [Ultralytics Docker container](docker-quickstart.md) on an x86_64 host, or [Ultralytics Platform](../platform/quickstart.md) — since the Edge TPU compiler is only available on x86_64 Linux. See the [Export mode](../modes/export.md) for the available arguments.
 
 !!! example "Exporting the model"
 
@@ -110,7 +110,7 @@ The exported model is saved in the `<model_name>_saved_model/` folder as `<model
 
 !!! warning "Keep the `_edgetpu.tflite` suffix"
 
-    The file name must end with `_edgetpu.tflite`. If you rename it to anything else, Ultralytics will load it as a plain TensorFlow Lite model instead of detecting the Edge TPU and the accelerator will not be used.
+    The file name must end with `_edgetpu.tflite`. If you rename it to anything else, Ultralytics will load it as a plain LiteRT (`.tflite`) model instead of detecting the Edge TPU and the accelerator will not be used.
 
 ## Run Inference on the Edge TPU
 
@@ -204,7 +204,7 @@ On average:
 
 ## Conclusion
 
-A Coral Edge TPU turns a Raspberry Pi into a capable, low-power inference device for Ultralytics YOLO26. Export your model on a non-ARM machine, keep the `_edgetpu.tflite` suffix, and run it with `tflite-runtime` on the Pi to get accelerated edge inference. For more deployment options, see the [Raspberry Pi](raspberry-pi.md) guide.
+A Coral Edge TPU turns a Raspberry Pi into a capable, low-power inference device for Ultralytics YOLO26. Export your model on an x86_64 Linux machine, keep the `_edgetpu.tflite` suffix, and run it with `tflite-runtime` on the Pi to get accelerated edge inference. For more deployment options, see the [Raspberry Pi](raspberry-pi.md) guide.
 
 ## FAQ
 

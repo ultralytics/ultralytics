@@ -17,7 +17,7 @@ from .vl_combiner import SAM3VLBackbone
 
 
 def _update_out(out, out_name, out_value, auxiliary=True, update_aux=True):
-    """Helper function to update output dictionary with main and auxiliary outputs."""
+    """Update the output dictionary with main and, optionally, auxiliary outputs."""
     out[out_name] = out_value[-1] if auxiliary else out_value
     if auxiliary and update_aux:
         if "aux_outputs" not in out:
@@ -286,9 +286,19 @@ class SAM3SemanticModel(torch.nn.Module):
             backbone_out.pop("backbone_fpn", None)
 
     def forward_grounding(
-        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt = None
+        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt | None = None
     ):
-        """Forward pass for grounding (detection + segmentation) given input images and text."""
+        """Run grounding (detection + segmentation) on backbone features for the given text prompts.
+
+        Args:
+            backbone_out (dict[str, torch.Tensor]): Image backbone outputs with "backbone_fpn" and "vision_pos_enc".
+            text_ids (torch.Tensor): Indices of the text prompts (from set_classes) to ground, one per batch item.
+            geometric_prompt (Prompt | None): Optional box prompts, batched to match text_ids.
+
+        Returns:
+            (dict): Outputs including "pred_logits", "pred_boxes" (normalized CxCyWH), "pred_boxes_xyxy", and, when a
+                segmentation head is present, "pred_masks", "semantic_seg", and "presence_logit".
+        """
         if len(text_ids) > self.max_text_batch and (
             geometric_prompt is None or geometric_prompt.box_embeddings.shape[0] == 0
         ):

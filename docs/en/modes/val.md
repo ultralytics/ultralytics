@@ -45,7 +45,7 @@ These are the notable functionalities offered by YOLO26's Val mode:
 
 !!! tip
 
-    * YOLO26 models automatically remember their training settings, so `yolo val model=path/to/best.pt` or `YOLO("path/to/best.pt").val()` validates at the training image size on the original dataset. Official weights fall back to the task default dataset; pass `data` to override
+    * YOLO26 models automatically remember their training settings, so `yolo val model=path/to/best.pt` or `YOLO("path/to/best.pt").val()` validates at the training image size on the original dataset. Official weights fall back to the task default dataset; pass `data` to override.
 
 ## Usage Examples
 

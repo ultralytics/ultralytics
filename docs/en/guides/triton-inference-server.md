@@ -214,7 +214,7 @@ Key benefits of using [TensorRT](../integrations/tensorrt.md) with Triton includ
 - Support for reduced precision formats (INT8, FP16) while maintaining accuracy
 - Layer fusion to reduce computational overhead
 
-To use TensorRT directly, you can export your [Ultralytics YOLO26](../models/yolo26.md) model to TensorRT format:
+The `config.pbtxt` above already enables Triton's TensorRT accelerator for the ONNX model. To run TensorRT directly with Ultralytics instead, export your [Ultralytics YOLO26](../models/yolo26.md) model to TensorRT format:
 
 ```python
 from ultralytics import YOLO

@@ -239,7 +239,7 @@ def onnx2engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         output_file (Path | str | None): Path to save the generated TensorRT engine file.
-        workspace (int | None): Workspace size in GB for TensorRT.
+        workspace (int | None): Workspace size in GiB for TensorRT, or None for TensorRT auto-allocation.
         quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).

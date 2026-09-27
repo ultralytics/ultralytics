@@ -1,0 +1,21 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# COCO val2017 pose3d labels restricted to persons whose mid-hip root is inside the image (5,676 of 6,352).
+# Same labels as coco-pose3d-refocal, with the other group's rows removed, so root depth can be scored per
+# group: the mask in H9 is a fix if it leaves this split alone and a trade if it moves the two in opposite
+# directions. Every root here stays labelled, including the truncated ones, which is what lets the cost show.
+# Detection metrics are meaningless on these splits - persons were removed from images that still contain them,
+# so the missing ones score as false positives. Read only the 3D columns.
+
+path: /home/rick/coco-pose3d-val-framed
+train:
+val: val2017.txt
+test:
+
+kpt_shape: [18, 4]
+flip_idx: [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15, 17]
+kpt_oks_sigmas: [0.026, 0.025, 0.025, 0.035, 0.035, 0.079, 0.079, 0.072, 0.072, 0.062, 0.062, 0.107, 0.107, 0.087, 0.087, 0.089, 0.089, 0.107]
+focal_ratio: 1.2
+
+names:
+  0: person

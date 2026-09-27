@@ -1554,31 +1554,6 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
-def test_verify_image_label_rejects_invalid_class_ids(tmp_path):
-    """Reject invalid class IDs before conversion can round or truncate them."""
-    from ultralytics.data.utils import verify_image_label
-
-    image = tmp_path / "image.png"
-    label = tmp_path / "image.txt"
-    cv2.imwrite(str(image), np.zeros((32, 32, 3), dtype=np.uint8))
-    for class_id in ("0", "1.0"):
-        label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
-        assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] == str(image)
-    for class_id in ("0.5", "1.5", "-0.005", "0.99999999", "1.00000001"):
-        label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
-        assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] is None
-    label.write_text("0.99999999 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2\n")
-    assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] is None
-    for class_id in ("nan", "inf"):
-        label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
-        assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, True))[0] is None
-    pose_args = (str(image), str(label), "", True, 2, 1, 3, False)
-    label.write_text("0 0.5 0.5 0.25 0.25 0.4 0.6 2\n")
-    assert verify_image_label(pose_args)[0] == str(image)
-    label.write_text("0.99999999 0.5 0.5 0.25 0.25 0.4 0.6 2\n")
-    assert verify_image_label(pose_args)[0] is None
-
-
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

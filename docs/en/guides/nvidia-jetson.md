@@ -546,8 +546,8 @@ The below table represents the benchmark results for five different models (YOLO
         | TorchScript     | ✅     | 9.8               | 0.4770      | 4.60                   |
         | ONNX            | ✅     | 9.5               | 0.4770      | 9.87                   |
         | OpenVINO        | ✅     | 9.6               | 0.4820      | 28.80                  |
-        | TensorRT (FP32) | ✅     | 11.5              | 0.0450      | 4.18                   |
-        | TensorRT (FP16) | ✅     | 7.9               | 0.0450      | 2.62                   |
+        | TensorRT (FP32) | ✅     | 11.5              | 0.4770      | 4.18                   |
+        | TensorRT (FP16) | ✅     | 7.9               | 0.4789      | 2.62                   |
         | TensorRT (INT8) | ✅     | 5.4               | 0.4640      | 2.30                   |
         | TF SavedModel   | ✅     | 24.6              | 0.4760      | 71.10                  |
         | TF GraphDef     | ✅     | 9.5               | 0.4760      | 70.02                  |

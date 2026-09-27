@@ -66,12 +66,12 @@ data = {
         "github": "https://github.com/THU-MIG/yolov10",
         "docs": "https://docs.ultralytics.com/models/yolov10",
         "performance": {
-            "n": {"size": 640, "map": 39.5, "cpu": "", "t4": 1.56, "params": 2.3, "flops": 6.7},
-            "s": {"size": 640, "map": 46.7, "cpu": "", "t4": 2.66, "params": 7.2, "flops": 21.6},
-            "m": {"size": 640, "map": 51.3, "cpu": "", "t4": 5.48, "params": 15.4, "flops": 59.1},
-            "b": {"size": 640, "map": 52.7, "cpu": "", "t4": 6.54, "params": 19.1, "flops": 92.0},
-            "l": {"size": 640, "map": 53.3, "cpu": "", "t4": 8.33, "params": 24.4, "flops": 120.3},
-            "x": {"size": 640, "map": 54.4, "cpu": "", "t4": 12.2, "params": 29.5, "flops": 160.4},
+            "n": {"size": 640, "map": 38.5, "cpu": "", "t4": 1.84, "params": 2.3, "flops": 6.7},
+            "s": {"size": 640, "map": 46.3, "cpu": "", "t4": 2.49, "params": 7.2, "flops": 21.6},
+            "m": {"size": 640, "map": 51.1, "cpu": "", "t4": 4.74, "params": 15.4, "flops": 59.1},
+            "b": {"size": 640, "map": 52.5, "cpu": "", "t4": 5.74, "params": 19.1, "flops": 92.0},
+            "l": {"size": 640, "map": 53.2, "cpu": "", "t4": 7.28, "params": 24.4, "flops": 120.3},
+            "x": {"size": 640, "map": 54.4, "cpu": "", "t4": 10.70, "params": 29.5, "flops": 160.4},
         },
     },
     "YOLOv9": {

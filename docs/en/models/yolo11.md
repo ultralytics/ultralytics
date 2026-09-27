@@ -8,7 +8,7 @@ keywords: YOLO11, real-time object detection, YOLO series, Ultralytics, computer
 
 ## Overview
 
-YOLO11 was released by Ultralytics on September 10, 2024, delivering excellent [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. For the latest Ultralytics model with end-to-end NMS-free inference and optimized edge deployment, see [YOLO26](yolo26.md).
+YOLO11 was released by Ultralytics on September 27, 2024, delivering excellent [accuracy](https://www.ultralytics.com/glossary/accuracy), speed, and efficiency. Building upon the impressive advancements of previous YOLO versions, YOLO11 introduces significant improvements in architecture and training methods, making it a versatile choice for a wide range of [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks. For the latest Ultralytics model with end-to-end NMS-free inference and optimized edge deployment, see [YOLO26](yolo26.md).
 
 ![Ultralytics YOLO11 Comparison Plots](https://raw.githubusercontent.com/ultralytics/assets/refs/heads/main/yolo/performance-comparison.png)
 

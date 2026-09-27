@@ -1,5 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
+from pathlib import Path
+
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 
 try:
@@ -18,7 +22,7 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
     """Log files (images) as debug samples in the ClearML task.
 
     Args:
-        files (list[Path]): A list of file paths in PosixPath format.
+        files (list[Path]): A list of image file paths.
         title (str): A title that groups together images with the same values.
     """
     import re
@@ -27,13 +31,15 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
         for f in files:
             if f.exists():
                 it = re.search(r"_batch(\d+)", f.name)
-                iteration = int(it.groups()[0]) if it else 0
                 task.get_logger().report_image(
-                    title=title, series=f.name.replace(it.group(), ""), local_path=str(f), iteration=iteration
+                    title=title,
+                    series=f.name.replace(it.group(), "") if it else f.name,
+                    local_path=str(f),
+                    iteration=int(it.group(1)) if it else 0,
                 )
 
 
-def _log_plot(title: str, plot_path: str) -> None:
+def _log_plot(title: str, plot_path: str | Path) -> None:
     """Log an image as a plot in the plot section of ClearML.
 
     Args:

@@ -134,7 +134,8 @@ Admins and Owners can invite new members to the team:
 2. Click **Invite**
 3. Enter the invitee's email address
 4. Select a role (Admin, Editor, or Viewer)
-5. Click **Continue**, review the seat cost, then click **Confirm & invite**
+5. Click **Continue**, review the seat cost, then click **Confirm & invite** (workspaces without seat billing, such as
+   Enterprise, show **Send Invitation** instead)
 
 ![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/4f3fbc7dc21172bf12cd404a5ca0b863.avif)<!-- screenshot -->
 

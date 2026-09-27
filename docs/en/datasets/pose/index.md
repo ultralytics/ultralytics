@@ -57,6 +57,7 @@ The `train`, `val`, and `test` fields point to the training, validation, and tes
         path: datasets/coco8-pose # dataset root
         train: train.txt # a directory, a list e.g. [images/a, images/b], or a *.txt file
         val: val.txt
+        kpt_shape: [17, 3] # required for pose datasets
         names:
           0: person
         ```

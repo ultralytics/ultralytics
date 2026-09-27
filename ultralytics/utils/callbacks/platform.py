@@ -53,7 +53,7 @@ def _interp_plot(plot, n=101):
     else:
         y_new = np.array([np.interp(x_new, x, yi) for yi in y])
 
-    # Also interpolate ap if present (for PR curves)
+    # Keep ap as-is if present (per-class scalars for PR curves, not interpolated)
     result = {**plot, "x": x_new.tolist(), "y": y_new.tolist()}
     if "ap" in plot:
         result["ap"] = plot["ap"]  # Keep AP values as-is (per-class scalars)

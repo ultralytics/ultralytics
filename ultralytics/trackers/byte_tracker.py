@@ -30,7 +30,7 @@ class STrack(BaseTrack):
         score (float): Confidence score of the track.
         tracklet_len (int): Length of the tracklet.
         cls (Any): Class label for the object.
-        idx (int): Index or identifier for the object.
+        idx (int): Index of the matched detection in the current frame's detection set.
         frame_id (int): Current frame ID.
         start_frame (int): Frame where the object was first detected.
         angle (float | None): Optional angle information for oriented bounding boxes.
@@ -171,7 +171,7 @@ class STrack(BaseTrack):
 
     @property
     def xyxy(self) -> np.ndarray:
-        """Convert bounding box from (top left x, top left y, width, height) to (min x, min y, max x, max y) format."""
+        """Get the bounding box in (min x, min y, max x, max y) format from the current state estimate."""
         ret = self.tlwh  # already a fresh array, safe to mutate
         ret[2:] += ret[:2]
         return ret
@@ -201,7 +201,7 @@ class STrack(BaseTrack):
 
     @property
     def result(self) -> list[float]:
-        """Get the current tracking results in the appropriate bounding box format."""
+        """Get the current tracking result as `[*box, track_id, score, cls, idx]`, with box in xyxy or xywha (OBB)."""
         coords = self.xyxy if self.angle is None else self.xywha
         return [*coords.tolist(), self.track_id, self.score, self.cls, self.idx]
 
@@ -221,8 +221,9 @@ class BYTETracker:
         tracked_stracks (list[STrack]): List of successfully activated tracks.
         lost_stracks (list[STrack]): List of lost tracks.
         removed_stracks (list[STrack]): List of removed tracks.
+        removed_stracks_frame (list[STrack]): Tracks removed in the most recent frame.
         frame_id (int): The current frame ID.
-        args (Namespace): Command-line arguments.
+        args (Namespace): Tracker configuration parsed from the tracker YAML (e.g. bytetrack.yaml).
         max_frames_lost (int): The maximum frames for a track to be considered as 'lost'.
         kalman_filter (KalmanFilterXYAH): Kalman Filter object.
 
@@ -234,15 +235,16 @@ class BYTETracker:
         multi_predict: Predict the location of tracks.
         reset_id: Reset the ID counter of STrack.
         reset: Reset the tracker by clearing all tracks.
-        joint_stracks: Combine two lists of stracks.
-        sub_stracks: Filter out the stracks present in the second list from the first list.
-        remove_duplicate_stracks: Remove duplicate stracks based on IoU.
 
     Examples:
         Initialize BYTETracker and update with detection results
+        >>> from ultralytics import YOLO
+        >>> from ultralytics.utils import YAML, IterableSimpleNamespace
+        >>> from ultralytics.utils.checks import check_yaml
+        >>> args = IterableSimpleNamespace(**YAML.load(check_yaml("bytetrack.yaml")))
         >>> tracker = BYTETracker(args)
-        >>> results = yolo_model.detect(image)
-        >>> tracked_objects = tracker.update(results)
+        >>> result = YOLO("yolo26n.pt")("https://ultralytics.com/images/bus.jpg")[0]
+        >>> tracked_objects = tracker.update(result.boxes.cpu().numpy(), result.orig_img)
     """
 
     track_class = STrack
@@ -251,7 +253,8 @@ class BYTETracker:
         """Initialize a BYTETracker instance for object tracking.
 
         Args:
-            args (Namespace): Command-line arguments containing tracking parameters.
+            args (Namespace): Tracker configuration containing `track_high_thresh`, `track_low_thresh`,
+                `new_track_thresh`, `track_buffer`, `match_thresh`, and `fuse_score`.
         """
         self.tracked_stracks: list[STrack] = []
         self.lost_stracks: list[STrack] = []
@@ -264,7 +267,19 @@ class BYTETracker:
         self.reset_id()
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None, **kwargs) -> np.ndarray:
-        """Update the tracker with new detections and return the current list of tracked objects."""
+        """Update the tracker with new detections and return the current list of tracked objects.
+
+        Args:
+            results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
+                `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
+            img (np.ndarray | None): Current BGR frame, used for GMC and external ReID models.
+            feats (np.ndarray | None): Optional per-detection features for native (`model="auto"`) ReID.
+            **kwargs (Any): Additional tracker-specific inputs, ignored by BYTETracker.
+
+        Returns:
+            (np.ndarray): Array of shape (N, 8) with `[x1, y1, x2, y2, track_id, score, cls, idx]` rows, or (N, 9) with
+                `[x, y, w, h, angle, track_id, score, cls, idx]` rows for OBB, where `idx` is the detection index.
+        """
         self.frame_id += 1
         activated_stracks = []
         refind_stracks = []

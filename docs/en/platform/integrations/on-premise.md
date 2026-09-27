@@ -129,20 +129,20 @@ The setup command creates these folders, installs and starts Docker when needed,
 
 The installer runs one container and selects the [official Ultralytics base image](../../guides/docker-quickstart.md) for the host:
 
-| Host                               | Base image pattern                        |
-| ---------------------------------- | ----------------------------------------- |
-| Apple silicon or ARM64 Linux       | `ultralytics/ultralytics:<version>-arm64` |
-| x86-64 CPU                         | `ultralytics/ultralytics:<version>-cpu`   |
-| x86-64 with a supported NVIDIA GPU | `ultralytics/ultralytics:<version>`       |
+| Host                               | Base image pattern                     |
+| ---------------------------------- | -------------------------------------- |
+| Apple silicon or ARM64 Linux       | `ultralytics/ultralytics:latest-arm64` |
+| x86-64 CPU                         | `ultralytics/ultralytics:latest-cpu`   |
+| x86-64 with a supported NVIDIA GPU | `ultralytics/ultralytics:latest`       |
 
-The installer selects a version-pinned official image for the host. The worker adds its connectivity dependencies
-without reinstalling Ultralytics. It detects CUDA during setup, so an NVIDIA host still runs one container rather than
+The worker build adds its connectivity dependencies and updates the image's Ultralytics package to the latest version.
+It detects CUDA during setup, so an NVIDIA host still runs one container rather than
 separate CPU and GPU workers. Platform's cloud services handle model prediction and export after the best checkpoint
 uploads.
 
 !!! warning "Use CDI for GPU access"
 
-    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux, macOS, and Windows; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
+    CPU setup requires nothing beyond the guided installation. On Linux, NVIDIA GPU acceleration requires Docker >= 28.2 and NVIDIA Container Toolkit >= 1.18. Platform detects the supported GPU path automatically on Linux and Windows, while macOS hosts train on CPU; see the [Docker Quickstart Guide](../../guides/docker-quickstart.md#using-gpus) for setup details.
 
 ## Add a Dataset
 
@@ -238,7 +238,7 @@ Dataset pixels never do. They are read locally for ingest, preview, and training
 
 ### Do I need a GPU?
 
-No. Every host can ingest datasets and train on its CPU, and a compatible NVIDIA GPU on Linux accelerates larger jobs automatically. On Premise training does not use Platform compute credits.
+No. Every host can ingest datasets and train on its CPU, and a compatible NVIDIA GPU on Linux or Windows accelerates larger jobs automatically. On Premise training does not use Platform compute credits.
 
 ### What happens if the host goes offline?
 

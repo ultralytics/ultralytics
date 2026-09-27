@@ -59,6 +59,14 @@ step-matched control attributes **71% of the gain to the data rather than the co
 3DPW AbsRel(Z) goes 0.0398 -> 0.0445 -> 0.0456 across E, G, F — monotone in the data and indifferent to the
 schedule, because a person truncated at the frame edge has a mid-hip root the network cannot see.
 
+**An out-of-frame root should keep supervising, and the benchmark cannot tell you that (2026-09-27).** H9
+masked the root-depth term for the 10.4% of persons whose mid-hip leaves the image — one label column, since
+`Pose3DLoss` already masks off that channel. 3DPW called it a small win on every metric. COCO val split by root
+visibility called it a bad trade: framed persons improved by a rounding error (AbsRel 0.0562 -> 0.0560) while
+truncated persons went **0.109 -> 0.246** and MPJPE 128.6 -> 148.4 mm, leaving mixed COCO 23% worse. 3DPW test
+holds 3 truncated-root persons out of 7,097, so it is structurally blind to the cost. **Report every depth
+number on both splits.**
+
 Restricting COCO GT to the 1,168 images whose teacher labels survive validation cuts that gap to **0.0759** —
 **42% of it is the frame-edge images the loader dropped from training**. On those matched pixels the annotator
 alone is worth ~0.10 of swing: pose2d leads by 0.0759 under COCO's annotation and trails by 0.0259 under the

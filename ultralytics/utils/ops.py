@@ -595,8 +595,8 @@ def scale_masks(
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)); only the padding
-            is used.
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)), the letterbox
+            gains and its top-left padding.
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
         mode (str): Interpolation mode, e.g. 'bilinear' for logits or 'nearest' for integer class maps.
 
@@ -612,16 +612,16 @@ def scale_masks(
         return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
-        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - round(im0_w * gain)), (im1_h - round(im0_h * gain))  # wh padding
+        gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad_w, pad_h = (im1_w - round(im0_w * gain_w)), (im1_h - round(im0_h * gain_h))  # wh padding
         if padding:
             pad_w /= 2
             pad_h /= 2
     else:
-        pad_w, pad_h = ratio_pad[1]
+        (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom = im1_h - round(pad_h + 0.1)
-    right = im1_w - round(pad_w + 0.1)
+    # The bottom and right pads can be one pixel larger than the top and left ones, so end the crop at the content
+    bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 

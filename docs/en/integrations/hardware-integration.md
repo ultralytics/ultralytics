@@ -160,7 +160,9 @@ def export_partner_format(self, prefix=colorstr("Partner Format:")):
 
 #### Integration Registration
 
-Register the new format in `export_formats()`. Its `Arguments` list declares which existing configuration arguments the format accepts; the generic `validate_args()` function rejects any non-default export argument not on that list. New argument names must also be added to `ultralytics/cfg/default.yaml` and the matching `CFG_*_KEYS` type set in `ultralytics/cfg/__init__.py`.
+Register the new format in `export_formats()`. Its `Arguments` list declares which existing configuration arguments the format accepts; the generic `validate_args()` function rejects any non-default export argument not on that list.
+
+Reuse existing arguments instead of adding new ones. Select the hardware target (chip, SoC, or accelerator generation) with the shared `name` argument, and validate it in the export method against a constant of valid targets in `ultralytics/utils/__init__.py`, as RKNN (`RKNN_CHIPS`) and QNN (`QNN_HTP_TARGETS`) do. A new `ultralytics/cfg/default.yaml` argument applies to every mode and format, so a format-specific one is rejected in review (see [Pull Request Review](#pull-request-review)).
 
 ```python
 def export_formats():
@@ -207,7 +209,7 @@ Quantization-aware trained (QAT) models, produced by `quantize=8` in train mode,
 
 #### Argument Validation Framework
 
-Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry; a genuinely new argument must first be registered and validated in the shared configuration owner.
+Argument validation is generic — do not add per-format branches to `validate_args()`. Each format declares its supported existing argument names in the `Arguments` column of `export_formats()`, and `validate_args()` rejects any non-default export arg that is not on that list. To add support for an existing argument, extend the `Arguments` list for your format entry.
 
 A few arguments are exempt from this check. `conf`, `iou`, and `name` are skipped: listing them in `Arguments` still records them in the export metadata, but passing them to another format is not rejected. `nms` is skipped because the export flow gates it instead. `quantize` is also skipped and gated instead on the `FP16_FORMATS`, `INT8_FORMATS`, `W8A16_FORMATS`, `W8A32_FORMATS`, and `FP32_UNSUPPORTED_FORMATS` frozensets in `exporter.py`. Add your format to every precision set its runtime actually supports, and to `FP32_UNSUPPORTED_FORMATS` if it cannot run FP32 — a format that lists `quantize` in its `Arguments` column but is missing from `INT8_FORMATS` rejects `quantize=8` with an `AssertionError`.
 
@@ -472,12 +474,13 @@ docs/en/integrations/
 A new export format also needs an entry in every table and index that lists formats. Copy the row of a neighboring format rather than inventing a new layout:
 
 - `docs/macros/export-table.md`: the shared export formats table included in the Export and Benchmark mode pages, the task pages, and the integrations overview.
+- `docs/macros/export-args.md`: the shared export arguments table. Extend an existing argument's description when your format gives it a format-specific meaning, such as the hardware targets accepted by `name`.
 - `docs/en/modes/export.md`: the per-format precision support table for the `quantize` argument.
 - `docs/en/integrations/index.md`: the linked list of integrations.
 - `docs/en/guides/model-deployment-options.md`: the deployment format list and comparison table.
 - `mkdocs.yml`: the `Integrations` navigation, in alphabetical order.
 
-The same applies to the format lists in code: the `format` comment in `ultralytics/cfg/default.yaml`, the `Usage - formats` examples in the `ultralytics/engine/predictor.py` and `ultralytics/engine/validator.py` module docstrings, and the suffix table in the `AutoBackend` docstring. Export support on the [Ultralytics Platform](../platform/index.md) is enabled separately by Ultralytics, so do not edit the Platform docs.
+The same applies to the format lists in code: the `format` comment in `ultralytics/cfg/default.yaml`, the `Usage - formats` examples in the `ultralytics/engine/predictor.py` and `ultralytics/engine/validator.py` module docstrings, the suffix table in the `AutoBackend` docstring, and the export formats table in `examples/tutorial.ipynb`. API reference pages under `docs/en/reference/` are generated from docstrings, so run `python docs/build_reference.py` to create the stubs for your new modules rather than writing them by hand. Export support on the [Ultralytics Platform](../platform/index.md) is enabled separately by Ultralytics, so do not edit the Platform docs.
 
 ### Page Structure Template
 

@@ -10,9 +10,11 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
+Apple Core AI           | `coreai`                  | yolo26n.aimodel
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+LiteRT                  | `litert`                  | yolo26n.tflite
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -22,10 +24,8 @@ ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
-LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
-Apple Core AI           | `coreai`                  | yolo26n.aimodel
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -47,9 +47,11 @@ Inference:
                          yolo26n_openvino_model     # OpenVINO
                          yolo26n.engine             # TensorRT
                          yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n.aimodel            # Apple Core AI (export on macOS 26+ Apple silicon or x86_64 Linux)
                          yolo26n_saved_model        # TensorFlow SavedModel
                          yolo26n.pb                 # TensorFlow GraphDef
                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n.tflite             # LiteRT
                          yolo26n_paddle_model       # PaddlePaddle
                          yolo26n.mnn                # MNN
                          yolo26n_ncnn_model         # NCNN
@@ -59,10 +61,8 @@ Inference:
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
-                         yolo26n.tflite             # LiteRT
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
-                         yolo26n.aimodel            # Apple Core AI (export on macOS 26+ Apple silicon or x86_64 Linux)
 """
 
 from __future__ import annotations
@@ -190,6 +190,15 @@ def export_formats():
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
         [
+            "Core AI",
+            "coreai",
+            ".aimodel",
+            True,
+            False,
+            ["batch", "quantize"],
+            "base",
+        ],
+        [
             "TensorFlow SavedModel",
             "saved_model",
             "_saved_model",
@@ -208,6 +217,7 @@ def export_formats():
             ["data", "fraction", "quantize", "opset"],
             "tensorflow",
         ],
+        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
@@ -249,7 +259,6 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "fraction", "data"],
             "base",
         ],
-        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         [
             "Hailo",
             "hailo",
@@ -266,15 +275,6 @@ def export_formats():
             False,
             False,
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
-            "base",
-        ],
-        [
-            "Core AI",
-            "coreai",
-            ".aimodel",
-            True,
-            False,
-            ["batch", "quantize"],
             "base",
         ],
     ]
@@ -414,7 +414,7 @@ EXPORT_ENVS = {
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
 FP16_FORMATS = frozenset(
-    {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend", "coreai"}
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "coreai", "mnn", "ncnn", "rknn", "ascend"}
 )
 INT8_FORMATS = frozenset(
     {
@@ -424,17 +424,17 @@ INT8_FORMATS = frozenset(
         "coreml",
         "saved_model",
         "edgetpu",
+        "litert",
         "mnn",
         "imx",
         "rknn",
         "axelera",
         "deepx",
         "hailo",
-        "litert",
     }
 )
 W8A16_FORMATS = frozenset(
-    {"coreml", "imx", "qnn", "litert"}
+    {"coreml", "litert", "imx", "qnn"}
 )  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})

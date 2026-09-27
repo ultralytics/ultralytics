@@ -169,7 +169,7 @@ YOLO26 is specifically designed to run on hardware-constrained devices such as t
 
 ## Raspberry Pi 5 YOLO26 Benchmarks
 
-YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on eight different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, MNN, NCNN, ExecuTorch, LiteRT. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
+YOLO26 [benchmarks](../modes/benchmark.md) were run by the Ultralytics team on eight different model formats measuring speed and [accuracy](https://www.ultralytics.com/glossary/accuracy): PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch. Benchmarks were run on a Raspberry Pi 5 at FP32 [precision](https://www.ultralytics.com/glossary/precision) with default input image size of 640.
 
 ### Comparison Chart
 
@@ -182,7 +182,7 @@ We have only included benchmarks for YOLO26n and YOLO26s models because other mo
 
 ### Detailed Comparison Table
 
-The below table represents the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, MNN, NCNN, ExecuTorch, LiteRT), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
+The below table represents the benchmark results for two different models (YOLO26n, YOLO26s) across eight different formats (PyTorch, TorchScript, ONNX, OpenVINO, LiteRT, MNN, NCNN, ExecuTorch), running on a Raspberry Pi 5, giving us the status, size, mAP50-95(B) metric, and inference time for each combination.
 
 !!! tip "Performance"
 
@@ -194,10 +194,10 @@ The below table represents the benchmark results for two different models (YOLO2
         | TorchScript | ✅     | 9.8               | 0.4734      | 353.20                 |
         | ONNX        | ✅     | 9.5               | 0.4734      | 125.99                 |
         | OpenVINO    | ✅     | 9.6               | 0.4734      | 104.55                 |
+        | LiteRT      | ✅     | 9.8               | 0.4730      | 123.30                 |
         | MNN         | ✅     | 9.4               | 0.4749      | 91.87                  |
         | NCNN        | ✅     | 9.4               | 0.4784      | 67.03                  |
         | ExecuTorch  | ✅     | 9.4               | 0.4772      | 144.83                 |
-        | LiteRT      | ✅     | 9.8               | 0.4730      | 123.30                 |
 
     === "YOLO26s"
 
@@ -207,10 +207,10 @@ The below table represents the benchmark results for two different models (YOLO2
         | TorchScript | ✅     | 36.8              | 0.5632      | 1053.24                |
         | ONNX        | ✅     | 36.5              | 0.5632      | 355.69                 |
         | OpenVINO    | ✅     | 36.7              | 0.5632      | 281.78                 |
+        | LiteRT      | ✅     | 36.8              | 0.5630      | 360.00                 |
         | MNN         | ✅     | 36.4              | 0.5614      | 237.24                 |
         | NCNN        | ✅     | 36.4              | 0.5684      | 172.88                 |
         | ExecuTorch  | ✅     | 36.5              | 0.5670      | 376.48                 |
-        | LiteRT      | ✅     | 36.8              | 0.5630      | 360.00                 |
 
     Benchmarked with Ultralytics 8.4.108
 

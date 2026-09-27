@@ -110,10 +110,12 @@ class AutoBackend(nn.Module):
             | ONNX OpenCV DNN       | *.onnx (dnn=True)      |
             | OpenVINO              | *_openvino_model/      |
             | CoreML                | *.mlpackage            |
+            | Core AI               | *.aimodel              |
             | TensorRT              | *.engine               |
             | TensorFlow SavedModel | *_saved_model/         |
             | TensorFlow GraphDef   | *.pb                   |
             | TensorFlow Edge TPU   | *_edgetpu.tflite       |
+            | LiteRT                | *.tflite               |
             | PaddlePaddle          | *_paddle_model/        |
             | MNN                   | *.mnn                  |
             | NCNN                  | *_ncnn_model/          |
@@ -124,10 +126,8 @@ class AutoBackend(nn.Module):
             | Axelera AI            | *_axelera_model/       |
             | DEEPX                 | *_deepx_model/         |
             | Qualcomm QNN          | *_qnn.onnx             |
-            | LiteRT                | *.tflite               |
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
-            | Core AI               | *.aimodel              |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -160,9 +160,11 @@ class AutoBackend(nn.Module):
         "openvino": OpenVINOBackend,
         "engine": TensorRTBackend,
         "coreml": CoreMLBackend,
+        "coreai": CoreAIBackend,
         "saved_model": TensorFlowBackend,
         "pb": TensorFlowBackend,
         "edgetpu": TensorFlowBackend,
+        "litert": LiteRTBackend,
         "paddle": PaddleBackend,
         "mnn": MNNBackend,
         "ncnn": NCNNBackend,
@@ -173,10 +175,8 @@ class AutoBackend(nn.Module):
         "axelera": AxeleraBackend,
         "deepx": DeepXBackend,
         "qnn": QNNBackend,
-        "litert": LiteRTBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
-        "coreai": CoreAIBackend,
     }
 
     @smart_inference_mode(False)

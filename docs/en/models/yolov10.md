@@ -224,8 +224,8 @@ Due to the new operations introduced with YOLOv10, not all export formats provid
 | [CoreML](../integrations/coreml.md)               | ✅             | ✅                       | Limited to Apple devices.                                                              |
 | [TF SavedModel](../integrations/tf-savedmodel.md) | ✅             | ✅                       | [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)'s standard model format. |
 | [TF GraphDef](../integrations/tf-graphdef.md)     | ✅             | ✅                       | Legacy TensorFlow format.                                                              |
-| [LiteRT](../integrations/litert.md)               | ✅             | ✅                       | Optimized for mobile, embedded, and browser (LiteRT.js).                               |
 | [TF Edge TPU](../integrations/edge-tpu.md)        | ✅             | ✅                       | Specific to Google's Edge TPU devices.                                                 |
+| [LiteRT](../integrations/litert.md)               | ✅             | ✅                       | Optimized for mobile, embedded, and browser (LiteRT.js).                               |
 | [PaddlePaddle](../integrations/paddlepaddle.md)   | ❌             | ❌                       | Popular in China; less global support.                                                 |
 | [NCNN](../integrations/ncnn.md)                   | ✅             | ❌                       | The `torch.topk` operator is not supported by the NCNN runtime.                        |
 

@@ -43,13 +43,13 @@ The `torch2*` functions take a standard `torch.nn.Module` and an example input t
 | TorchScript     | [`torch2torchscript()`](../reference/utils/export/torchscript.md) | included with PyTorch                                                                            | `.torchscript` file            |
 | OpenVINO        | [`torch2openvino()`](../reference/utils/export/openvino.md)       | `pip install openvino`                                                                           | `_openvino_model/` directory   |
 | CoreML          | [`torch2coreml()`](../reference/utils/export/coreml.md)           | `pip install coremltools`                                                                        | `.mlpackage`                   |
+| Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (Apple silicon macOS 26+, x86_64 Linux glibc 2.34+; Python 3.11-3.14) | `.aimodel` directory           |
 | TF SavedModel   | [`onnx2saved_model()`](../reference/utils/export/tensorflow.md)   | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `_saved_model/` directory      |
 | TF Frozen Graph | [`keras2pb()`](../reference/utils/export/tensorflow.md)           | [see detailed requirements below](#export-to-tensorflow-savedmodel)                              | `.pb` file                     |
 | NCNN            | [`torch2ncnn()`](../reference/utils/export/ncnn.md)               | `pip install ncnn pnnx`                                                                          | `_ncnn_model/` directory       |
 | MNN             | [`onnx2mnn()`](../reference/utils/export/mnn.md)                  | `pip install MNN`                                                                                | `.mnn` file                    |
 | PaddlePaddle    | [`torch2paddle()`](../reference/utils/export/paddle.md)           | `pip install paddlepaddle x2paddle`                                                              | `_paddle_model/` directory     |
 | ExecuTorch      | [`torch2executorch()`](../reference/utils/export/executorch.md)   | `pip install executorch`                                                                         | `_executorch_model/` directory |
-| Core AI         | [`torch2coreai()`](../reference/utils/export/coreai.md)           | `pip install coreai-torch` (Apple silicon macOS 26+, x86_64 Linux glibc 2.34+; Python 3.11-3.14) | `.aimodel` directory           |
 
 !!! note "ONNX as an intermediate format"
 
@@ -139,6 +139,25 @@ Requires `coremltools>=9.0`, `torch>=1.11`, and `numpy<=2.3.5`. Not supported on
 !!! warning "`BlobWriter not loaded` error"
 
     `coremltools>=9.0` ships wheels for Python 3.10–3.13 on macOS and Linux. On newer Python versions the native C extension fails to load. Use Python 3.10–3.13 for CoreML export.
+
+### Export to Core AI
+
+```python
+from ultralytics.utils.export import torch2coreai
+
+torch2coreai(model, im, output_file="resnet18.aimodel")
+```
+
+The `.aimodel` asset is a directory:
+
+```text
+resnet18.aimodel/
+├── main.mlirb
+├── main.hash
+└── metadata.json
+```
+
+Export runs on macOS 26 or later on Apple silicon, or on x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14 (`pip install coreai-torch`), and `quantize=16` writes an FP16 asset that takes float16 inputs; the asset runs on iOS 27 and macOS 27. See the [Core AI integration](../integrations/coreai.md), including its note on FP16 assets that abort on load.
 
 ### Export to TensorFlow SavedModel
 
@@ -268,25 +287,6 @@ resnet18_executorch_model/
 
 Requires `torch>=2.9.0` and a matching ExecuTorch runtime (`pip install executorch`). For runtime usage, see the [ExecuTorch integration](../integrations/executorch.md).
 
-### Export to Core AI
-
-```python
-from ultralytics.utils.export import torch2coreai
-
-torch2coreai(model, im, output_file="resnet18.aimodel")
-```
-
-The `.aimodel` asset is a directory:
-
-```text
-resnet18.aimodel/
-├── main.mlirb
-├── main.hash
-└── metadata.json
-```
-
-Export runs on macOS 26 or later on Apple silicon, or on x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14 (`pip install coreai-torch`), and `quantize=16` writes an FP16 asset that takes float16 inputs; the asset runs on iOS 27 and macOS 27. See the [Core AI integration](../integrations/coreai.md), including its note on FP16 assets that abort on load.
-
 ## Verify Your Exported Model
 
 After exporting, verify numerical parity with the original PyTorch model before shipping. A quick smoke test with [`ONNXBackend`](../reference/nn/backends/onnx.md) from `ultralytics.nn.backends` compares outputs and flags tracing or quantization errors early:
@@ -341,13 +341,13 @@ For raw tensors without Ultralytics [preprocessing](https://www.ultralytics.com/
 | TorchScript                 | [`TorchScriptBackend`](../reference/nn/backends/pytorch.md)   | BCHW         |
 | OpenVINO                    | [`OpenVINOBackend`](../reference/nn/backends/openvino.md)     | BCHW         |
 | CoreML                      | [`CoreMLBackend`](../reference/nn/backends/coreml.md)         | BHWC         |
+| Core AI                     | [`CoreAIBackend`](../reference/nn/backends/coreai.md)         | BCHW         |
 | TF SavedModel, Frozen Graph | [`TensorFlowBackend`](../reference/nn/backends/tensorflow.md) | BHWC         |
 | LiteRT                      | [`LiteRTBackend`](../reference/nn/backends/litert.md)         | BCHW         |
 | NCNN                        | [`NCNNBackend`](../reference/nn/backends/ncnn.md)             | BCHW         |
 | PaddlePaddle                | [`PaddleBackend`](../reference/nn/backends/paddle.md)         | BCHW         |
 | MNN                         | [`MNNBackend`](../reference/nn/backends/mnn.md)               | BCHW         |
 | ExecuTorch                  | [`ExecuTorchBackend`](../reference/nn/backends/executorch.md) | BCHW         |
-| Core AI                     | [`CoreAIBackend`](../reference/nn/backends/coreai.md)         | BCHW         |
 
 `TensorFlowBackend` covers two formats and defaults to `format="saved_model"`, so pass `format="pb"` for a frozen graph.
 
@@ -359,7 +359,7 @@ Three things the `YOLO()` route handles for you and a direct call does not:
 
 ## Known Limitations
 
-- **Multi-input support is uneven**: `torch2onnx` and `torch2openvino` accept a tuple or list of example tensors for models with multiple inputs. `torch2torchscript`, `torch2coreml`, `torch2ncnn`, `torch2paddle`, `torch2executorch`, and `torch2coreai` assume a single input tensor.
+- **Multi-input support is uneven**: `torch2onnx` and `torch2openvino` accept a tuple or list of example tensors for models with multiple inputs. `torch2torchscript`, `torch2coreml`, `torch2coreai`, `torch2ncnn`, `torch2paddle`, and `torch2executorch` assume a single input tensor.
 - **ExecuTorch needs `flatc`**: The ExecuTorch runtime requires the FlatBuffers compiler. Install with `brew install flatbuffers` on macOS or `apt install flatbuffers-compiler` on Ubuntu.
 - **No embedded metadata**: the exports above carry no Ultralytics task or input-size metadata, so `YOLO()` cannot infer either and needs both passed explicitly. See [Run Your Exported Model](#run-your-exported-model).
 - **YOLO-only formats**: [Axelera](../integrations/axelera.md) and [Sony IMX500](../integrations/sony-imx500.md) exports require YOLO-specific model attributes and are not available for generic models.
@@ -377,7 +377,7 @@ Any `torch.nn.Module`. This includes models from timm, torchvision, or any custo
 
 ### Which export formats work without a GPU?
 
-All supported formats (TorchScript, ONNX, OpenVINO, CoreML, TF SavedModel, TF Frozen Graph, NCNN, PaddlePaddle, MNN, ExecuTorch, Core AI) can export on CPU. No GPU is required for the export process itself. TensorRT is the only format that requires an NVIDIA GPU.
+All supported formats (TorchScript, ONNX, OpenVINO, CoreML, Core AI, TF SavedModel, TF Frozen Graph, NCNN, PaddlePaddle, MNN, ExecuTorch) can export on CPU. No GPU is required for the export process itself. TensorRT is the only format that requires an NVIDIA GPU.
 
 ### What Ultralytics version do I need?
 

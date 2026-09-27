@@ -12,9 +12,11 @@ Usage - formats:
                      yolo26n_openvino_model     # OpenVINO
                      yolo26n.engine             # TensorRT
                      yolo26n.mlpackage          # CoreML (macOS-only)
+                     yolo26n.aimodel            # Apple Core AI
                      yolo26n_saved_model        # TensorFlow SavedModel
                      yolo26n.pb                 # TensorFlow GraphDef
                      yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                     yolo26n.tflite             # LiteRT
                      yolo26n_paddle_model       # PaddlePaddle
                      yolo26n.mnn                # MNN
                      yolo26n_ncnn_model         # NCNN
@@ -24,10 +26,8 @@ Usage - formats:
                      yolo26n_axelera_model      # Axelera AI
                      yolo26n_deepx_model        # DEEPX
                      yolo26n_qnn.onnx           # Qualcomm QNN
-                     yolo26n.tflite             # LiteRT
                      yolo26n_hailo_model        # Hailo
                      yolo26n_ascend_model       # Huawei Ascend
-                     yolo26n.aimodel            # Apple Core AI
 """
 
 from __future__ import annotations

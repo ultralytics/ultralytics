@@ -15,9 +15,11 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
+Core AI                 | `coreai`                  | yolo26n.aimodel
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+LiteRT                  | `litert`                  | yolo26n.tflite
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -27,10 +29,8 @@ ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
-LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
-Core AI                 | `coreai`                  | yolo26n.aimodel
 """
 
 from __future__ import annotations

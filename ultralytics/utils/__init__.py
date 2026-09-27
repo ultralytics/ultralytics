@@ -105,13 +105,7 @@ QNN_HTP_TARGETS = {
     "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
     "qcs8275": ("soc_model", "82"),
 }  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
-TI_DEVICES = frozenset(
-    {
-        "j784s4",  # TDA4VH / TDA4AH / AM69A
-        "am62a",  # AM62A3 / AM62A7
-    }
-)  # Texas Instruments TIDL device families available for TI export
-
+TI_DEVICES = ("j784s4", "am62a")  # TI TIDL device families: J784S4 (TDA4VH/TDA4AH/AM69A), AM62A (AM62A3/AM62A7)
 HELP_MSG = """
     Examples for running Ultralytics:
 

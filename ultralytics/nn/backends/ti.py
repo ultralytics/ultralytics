@@ -6,7 +6,7 @@ from pathlib import Path
 
 import torch
 
-from ultralytics.utils import LOGGER, YAML
+from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 
 from .base import BaseBackend
@@ -27,24 +27,19 @@ class TIDLBackend(BaseBackend):
             weight (str | Path): Path to the `*_ti_model/` directory produced by TI export.
 
         Raises:
-            ValueError: If the export metadata (and the target device it records) cannot be found.
+            ValueError: If the export metadata does not record the target device.
         """
         check_requirements("edgeai-tidl-runtime")
         from edgeai_tidl_runtime import create_session
 
         w = Path(weight)
-        metadata_file = w / "metadata.yaml"
-        if not metadata_file.exists():
-            raise ValueError(f"No metadata.yaml found in {w}; re-export with 'format=ti' to regenerate it.")
-        metadata = YAML.load(metadata_file)
-        target_device = metadata.get("args", {}).get("name")
-        if not target_device:
-            raise ValueError(f"No TIDL target device recorded in {metadata_file}; re-export with a valid 'name' arg.")
+        metadata = self.read_metadata(w)
+        args = metadata.get("args", {})
+        if not args.get("name"):
+            raise ValueError(f"No TIDL target device recorded in {w}; re-export with 'format=ti' and a valid 'name'.")
 
-        LOGGER.info(f"Loading {w} for TI Edge AI (TIDL) inference on '{target_device}'...")
-        self.session = create_session(
-            w, target_device=target_device, tensor_bits=metadata.get("args", {}).get("quantize", 8)
-        )
+        LOGGER.info(f"Loading {w} for TI Edge AI (TIDL) inference on '{args['name']}'...")
+        self.session = create_session(w, target_device=args["name"], tensor_bits=args.get("quantize", 8))
         self.output_names = [x.name for x in self.session.get_outputs()]
         self.apply_metadata(metadata)
 

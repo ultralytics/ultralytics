@@ -90,7 +90,7 @@ Hailo export is INT8-only. Ultralytics automatically downloads a task-specific c
 
 !!! danger "Use at least 1,024 calibration images for best accuracy"
 
-    Ultralytics forces DFC optimization level 2 and configures fine-tuning to use the actual calibration dataset size. Hailo recommends at least 1,024 diverse images; the built-in lightweight datasets compile at level 2 but may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
+    Unless a `model_script` is passed, Ultralytics uses DFC optimization level 2 and configures fine-tuning to use the actual calibration dataset size. Hailo recommends at least 1,024 diverse images; the built-in lightweight datasets compile at level 2 but may not represent the production domain. For production HEF exports, pass a representative dataset using `data="path/to/dataset.yaml"`.
 
 ```python
 model.export(format="hailo", name="hailo8", data="path/to/dataset.yaml")
@@ -365,7 +365,7 @@ Model and pipeline choices often matter more than compiler flags:
 | `conf`         | `float`                   | `0.25`    | YOLOv8/YOLO11 HailoRT NMS confidence threshold                                                                                                                              |
 | `iou`          | `float`                   | `0.7`     | YOLOv8/YOLO11 HailoRT NMS IoU threshold                                                                                                                                     |
 | `device`       | `str`                     | `None`    | Device for the intermediate ONNX export step, CPU by default (`device=cpu`). The Dataflow Compiler steps do not use it.                                                     |
-| `model_script` | `str`                     |           | Path to a Hailo model script (`.alls`) used instead of the generated one                                                                                                    |
+| `model_script` | `str`                     | `None`    | Path to a Hailo model script (`.alls`), or the script text itself, used instead of the generated one                                                                        |
 
 YOLOv8/YOLO11 detection exports receive HailoRT NMS. YOLO26 defaults to raw one-to-many outputs for host NMS; `nms=False` selects its NMS-free one-to-one outputs. Segmentation, pose, and OBB use raw head tensors, classification returns on-chip probabilities, and semantic segmentation returns raw logits on Hailo-8/8L and all single-class heads or baked class maps for multi-class Hailo-10H/15 heads. Depth estimation returns the raw depth logit, which Ultralytics decodes into a metric depth map at inference. Dynamic shapes, embedded Ultralytics NMS, FP16, and FP32 are not supported.
 

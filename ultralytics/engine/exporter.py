@@ -1683,7 +1683,7 @@ class Exporter:
         calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
         calibration_size = len(calibration_dataloader.dataset)
         LOGGER.warning(
-            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
+            f"\nHailo optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
             'Pass data="path/to/dataset.yaml". '
             "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"

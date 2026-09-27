@@ -796,7 +796,7 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if (
         not file
-        or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
+        or ("://" not in file and os.path.exists(file))  # '://' check required in Windows Python<3.10
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file

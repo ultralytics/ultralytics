@@ -24,7 +24,7 @@ class TritonRemoteModel:
         np_input_formats (list[type]): The numpy data types of the model inputs.
         input_names (list[str]): The names of the model inputs.
         output_names (list[str]): The names of the model outputs.
-        metadata: The metadata associated with the model.
+        metadata (dict | None): The metadata associated with the model, parsed from the model config parameters.
 
     Methods:
         __call__: Call the model with the given inputs and return the outputs.
@@ -40,13 +40,13 @@ class TritonRemoteModel:
     def __init__(self, url: str, endpoint: str = "", scheme: str = ""):
         """Initialize the TritonRemoteModel for interacting with a remote Triton Inference Server.
 
-        Arguments may be provided individually or parsed from a collective 'url' argument of the form
-        <scheme>://<netloc>/<endpoint>/<task_name>
+        Arguments may be provided individually or, when both `endpoint` and `scheme` are empty, parsed from a
+        collective 'url' argument of the form <scheme>://<netloc>/<endpoint>/<task_name>.
 
         Args:
             url (str): The URL of the Triton server.
             endpoint (str, optional): The name of the model on the Triton server.
-            scheme (str, optional): The communication scheme ('http' or 'grpc').
+            scheme (str, optional): The communication scheme ('http' or 'grpc'); any value other than 'http' uses gRPC.
         """
         if not endpoint and not scheme:  # Parse all args from URL string
             splits = urlsplit(url)

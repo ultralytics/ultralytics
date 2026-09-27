@@ -297,7 +297,7 @@ Then launch the training with the Python API:
 - **Default**: `{{ mixup }}`
 - **Usage**: Blends two images and their labels with given probability. The `mixup` hyperparameter defines the probability of applying the transformation, with `mixup=1.0` ensuring that all images are mixed and `mixup=0.0` disabling the transformation. For example, with `mixup=0.5`, each image has a 50% chance of being mixed with another image.
 - **Purpose**: Improves model robustness and reduces overfitting. For example, in retail product recognition systems, mixup helps the model learn more robust features by blending images of different products, teaching it to identify items even when they're partially visible or obscured by other products on crowded store shelves.
-- **Ultralytics' implementation**: [Mixup](../reference/data/augment.md#ultralytics.data.augment.MixUp)
+- **Ultralytics' implementation**: [MixUp](../reference/data/augment.md#ultralytics.data.augment.MixUp)
 - **Note**:
     - The `mixup` ratio is a random value picked from a `np.random.beta(32.0, 32.0)` beta distribution, meaning each image contributes approximately 50%, with slight variations.
 
@@ -483,7 +483,7 @@ The examples below need Albumentations 1.4.22 or newer, and therefore Python 3.9
 Choosing the right augmentations depends on your specific use case and dataset. Here are a few general guidelines to help you decide:
 
 - In most cases, slight variations in color and brightness are beneficial. The default values for `hsv_h`, `hsv_s`, and `hsv_v` are a solid starting point.
-- If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `rotation`, `translation`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary, and you need the model to be more robust, it's better to keep these augmentations.
+- If the camera's point of view is consistent and won't change once the model is deployed, you can likely skip geometric transformations such as `degrees` (rotation), `translate`, `scale`, `shear`, or `perspective`. However, if the camera angle may vary, and you need the model to be more robust, it's better to keep these augmentations.
 - Use the `mosaic` augmentation only if having partially occluded objects or multiple objects per image is acceptable and does not change the label value. Alternatively, you can keep `mosaic` active but increase the `close_mosaic` value to disable it earlier in the training process.
 
 In short: keep it simple. Start with a small set of augmentations and gradually add more as needed. The goal is to improve the model's generalization and robustness, not to overcomplicate the training process. Also, make sure the augmentations you apply reflect the same data distribution your model will encounter in production.

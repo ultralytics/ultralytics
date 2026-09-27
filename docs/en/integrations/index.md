@@ -105,7 +105,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](../models/yolo26.md) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
-- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/ja-jp/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 - [Texas Instruments Edge AI](ti-edge-ai.md): Compile Ultralytics YOLO ONNX exports with the TI Deep Learning (TIDL) toolchain for accelerated inference on the C7 NPU in TI TDA4x and other TI MPU devices used in automotive, industrial, and robotics applications.
 

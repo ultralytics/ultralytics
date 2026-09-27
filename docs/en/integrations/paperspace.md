@@ -9,7 +9,7 @@ keywords: YOLO26, Paperspace Gradient, MLOps, machine learning, training, GPUs, 
 
 Training computer vision models like [YOLO26](../models/yolo26.md) can be complicated. It involves managing large datasets, using different types of computer hardware like GPUs, TPUs, and CPUs, and making sure data flows smoothly during the training process. Typically, developers end up spending a lot of time managing their computer systems and environments. It can be frustrating when you just want to focus on building the best model.
 
-This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is a MLOps platform that lets you build, train, and deploy [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models all in one place. With Gradient, developers can focus on training their YOLO26 models without the hassle of managing infrastructure and environments.
+This is where a platform like Paperspace Gradient can make things simpler. Paperspace Gradient is an MLOps platform that lets you build, train, and deploy [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) models all in one place. With Gradient, developers can focus on training their YOLO26 models without the hassle of managing infrastructure and environments.
 
 ## Paperspace
 

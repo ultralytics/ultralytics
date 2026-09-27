@@ -39,6 +39,10 @@ def onnx2rknn(
 
     Returns:
         (str): Path to the exported ``_rknn_model`` directory.
+
+    Raises:
+        ValueError: If an INT8-only target is exported without ``quantize=8``, or the INT8 calibration list is missing.
+        RuntimeError: If an RKNN Toolkit API call fails.
     """
     use_int8 = quantize == 8
     if name in {"rv1103", "rv1106", "rv1103b", "rv1106b"} and not use_int8:

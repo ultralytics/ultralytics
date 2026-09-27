@@ -20,7 +20,7 @@ def test_rocm_migraphx_inference(isolated_model):
 
 @pytest.mark.slow
 @pytest.mark.skipif(not ROCM_IS_AVAILABLE, reason="ROCm/HIP not available")
-@pytest.mark.parametrize("task", sorted(TASKS))
+@pytest.mark.parametrize("task", TASKS)
 def test_rocm_migraphx_matrix(task, tmp_path):
     """Test every YOLO26 task exports to ONNX and runs on the MIGraphX execution provider."""
     file = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / TASK2MODEL[task])).export(format="onnx", imgsz=32, device=0)

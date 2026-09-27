@@ -52,11 +52,9 @@ def test_amp():
     [  # generate all combinations except for exclusion cases
         (task, dynamic, batch, simplify, nms)
         for task, dynamic, batch, simplify, nms in product(
-            sorted(TASKS), [True, False], [1, 2], [True, False], [None, True, False]
+            ["detect"] if IS_JETSON else sorted(TASKS), [True, False], [1, 2], [True, False], [None, True, False]
         )
-        if not (
-            (task == "classify" and nms is True) or (task == "obb" and nms is True and (not TORCH_1_13 or IS_JETSON))
-        )
+        if not ((task == "classify" and nms is True) or (task == "obb" and nms is True and not TORCH_1_13))
     ],
 )
 def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):

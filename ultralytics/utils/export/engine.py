@@ -379,6 +379,7 @@ def onnx2engine(
                     "dataset": calibration_data,
                     "dla": dla,
                     "dynamic": dynamic,
+                    "rect": getattr(dataset.dataset, "rect", None),
                     "shape": shape,
                     "tensorrt": trt.__version__,
                     "workspace": workspace,

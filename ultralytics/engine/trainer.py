@@ -1049,7 +1049,7 @@ class BaseTrainer:
             for k, v in overrides.items():
                 if k in allowed:
                     setattr(self.args, k, v)
-                elif k not in {"model", "data", "mode", "resume"} and v != getattr(self.args, k, None):
+                elif k not in {"model", "data", "mode", "resume", "pretrained"} and v != getattr(self.args, k, None):
                     ignored.append(k)
             if ignored:
                 LOGGER.warning(f"Resume ignores {ignored}, using checkpoint values. Start a new run to change them.")

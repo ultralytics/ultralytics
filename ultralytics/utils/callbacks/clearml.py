@@ -1,5 +1,9 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
+from pathlib import Path
+
 from ultralytics.utils import LOGGER, SETTINGS, TESTS_RUNNING
 
 try:
@@ -35,7 +39,7 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
                 )
 
 
-def _log_plot(title: str, plot_path) -> None:
+def _log_plot(title: str, plot_path: str | Path) -> None:
     """Log an image as a plot in the plot section of ClearML.
 
     Args:

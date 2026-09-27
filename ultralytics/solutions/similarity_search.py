@@ -44,12 +44,12 @@ class VisualAISearch:
         >>> results = searcher.search("a cat sitting on a chair", k=10)
     """
 
-    def __init__(self, data: str = "images", device: str = "cpu") -> None:
+    def __init__(self, data: str = "images", device: str | None = "cpu") -> None:
         """Initialize the VisualAISearch class with the embedding index and CLIP model.
 
         Args:
             data (str): Image directory to index and search, downloaded from Ultralytics assets if missing.
-            device (str): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0').
+            device (str | None): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0'), or None to auto-select.
 
         Raises:
             AssertionError: If the installed torch version is older than 2.4.
@@ -197,12 +197,12 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data: str = "images", device: str = "cpu") -> None:
+    def __init__(self, data: str = "images", device: str | None = None) -> None:
         """Initialize the SearchApp with VisualAISearch backend.
 
         Args:
             data (str): Path to directory containing images to index and search.
-            device (str): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0').
+            device (str | None): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0'), or None to auto-select.
         """
         check_requirements("flask>=3.0.1")
         from flask import Flask, render_template, request

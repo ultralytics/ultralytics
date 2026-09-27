@@ -882,6 +882,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
 
     if solution_name == "inference":
         checks.check_requirements("streamlit>=1.29.0")
+        if ignored := sorted(set(overrides) - {"model", "imgsz", "conf", "iou"}):
+            LOGGER.warning(f"'yolo solutions inference' only supports model, imgsz, conf and iou; ignoring {ignored}.")
         LOGGER.info("💡 Loading Ultralytics live inference app...")
         subprocess.run(
             [  # Run subprocess with Streamlit custom argument
@@ -890,7 +892,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                *(f"{k}={v}" for k, v in overrides.items()),  # Inference args: model, imgsz, conf, iou
+                *(f"{k}={v}" for k, v in overrides.items() if k in {"model", "imgsz", "conf", "iou"}),
             ],
             check=False,
         )

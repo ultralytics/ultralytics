@@ -49,7 +49,7 @@ We take several measures to ensure the privacy and security of the data you entr
 Crash reports are sent only when the `sentry-sdk` package is already installed, `sync=True` in your settings, Ultralytics is installed from pip (not a git clone), and the crash occurs in a `yolo` CLI command. A crash report may include:
 
 - **Error Messages and Stack Traces**: The exception message and the stack trace at the time of the crash.
-- **Runtime Context**: The Ultralytics version, operating system/environment, and install method.
+- **Runtime Context**: The Ultralytics version, operating system/environment, install method, an anonymized installation ID, the `yolo` executable path, the machine hostname, and installed Python package versions.
 
 To learn more about how Sentry handles data, please visit [Sentry's Privacy Policy](https://sentry.io/privacy/).
 
@@ -60,8 +60,8 @@ To learn more about how Sentry handles data, please visit [Sentry's Privacy Poli
 
 ### Privacy Considerations
 
-- **Excluded Data**: Local variables and command-line arguments are not included, and keyboard interrupts, missing-file errors, and out-of-memory errors are never reported. Error messages and stack traces can still contain file paths from your system.
-- **Controlled Collection**: Crash reporting gathers only what is needed for troubleshooting, and it is disabled whenever `sync=False`.
+- **Excluded Data**: Local variables and command-line options are not included, and keyboard interrupts, missing-file errors, and out-of-memory errors are never reported. Error messages and stack traces can still contain file paths from your system.
+- **Controlled Collection**: Crash reporting is limited to the crash context above, and it is disabled whenever `sync=False`.
 
 ## Disabling Data Collection
 

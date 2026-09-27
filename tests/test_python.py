@@ -1520,6 +1520,21 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
         assert str(tmp_path) not in captured["validation_split"]
 
 
+def test_segment_labels_sharing_a_box_are_kept(tmp_path):
+    """Keep two different polygons that share one bounding box and still drop an exact duplicate polygon row."""
+    images, labels = tmp_path / "images", tmp_path / "labels"
+    images.mkdir()
+    labels.mkdir()
+    cv2.imwrite(str(images / "0.jpg"), np.zeros((32, 32, 3), np.uint8))
+    halves = ["0 0.2 0.2 0.8 0.2 0.8 0.8", "0 0.2 0.2 0.2 0.8 0.8 0.8"]  # two triangles tiling one square
+    (labels / "0.txt").write_text("\n".join([*halves, halves[0]]) + "\n")
+    cfg = get_cfg(overrides={"task": "segment", "imgsz": 32})
+    ds = data_build.build_yolo_dataset(cfg, str(images), batch=1, data={"names": {0: "half"}, "nc": 1}, mode="val")
+    label = ds.labels[0]
+    assert len(label["cls"]) == len(label["segments"]) == 2  # the repeated row is dropped, the second triangle stays
+    assert not np.array_equal(label["segments"][0], label["segments"][1])
+
+
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset

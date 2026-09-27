@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import types
@@ -358,6 +359,33 @@ def onnx2engine(
 
     # Explicit Q/DQ graphs need neither calibration nor per-layer Sigmoid constraints.
     if calibrate and not is_trt11:
+        cache_id = hashlib.sha256()
+        with open(onnx_file, "rb") as file:
+            for chunk in iter(lambda: file.read(1024 * 1024), b""):
+                cache_id.update(chunk)
+        calibration_files = getattr(dataset.dataset, "im_files", None)
+        if calibration_files is None:
+            calibration_files = [x[0] for x in dataset.dataset.samples]
+        calibration_data = []
+        for file in calibration_files:
+            path = Path(file).resolve()
+            stat = path.stat()
+            calibration_data.append((str(path), stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns))
+        cache_id.update(
+            json.dumps(
+                {
+                    "algorithm": "entropy" if dla is not None else "minmax",
+                    "batch": dataset.batch_size,
+                    "dataset": calibration_data,
+                    "dla": dla,
+                    "dynamic": dynamic,
+                    "shape": shape,
+                    "tensorrt": trt.__version__,
+                    "workspace": workspace,
+                },
+                sort_keys=True,
+            ).encode()
+        )
 
         class EngineCalibrator(trt.IInt8Calibrator):
             """Custom INT8 calibrator for TensorRT engine optimization.
@@ -371,6 +399,8 @@ def onnx2engine(
                 algo (trt.CalibrationAlgoType): Calibration algorithm type.
                 batch (int): Batch size for calibration.
                 cache (Path): Path to save the calibration cache.
+                cache_id (Path): Path to the calibration cache identity sidecar.
+                identity (str): Hex digest of the model, input profile, dataset, algorithm, and target.
 
             Methods:
                 get_algorithm: Get the calibration algorithm to use.
@@ -384,6 +414,7 @@ def onnx2engine(
                 self,
                 dataset,  # ultralytics.data.build.InfiniteDataLoader
                 cache: str = "",
+                identity: str = "",
             ) -> None:
                 """Initialize the INT8 calibrator with dataset and cache path."""
                 trt.IInt8Calibrator.__init__(self)
@@ -396,6 +427,8 @@ def onnx2engine(
                 )
                 self.batch = dataset.batch_size
                 self.cache = Path(cache)
+                self.cache_id = self.cache.with_suffix(f"{self.cache.suffix}.id")
+                self.identity = identity
 
             def get_algorithm(self) -> trt.CalibrationAlgoType:
                 """Get the calibration algorithm to use."""
@@ -416,18 +449,36 @@ def onnx2engine(
                     return None
 
             def read_calibration_cache(self) -> bytes | None:
-                """Use existing cache instead of calibrating again, otherwise, implicitly return None."""
-                if self.cache.exists() and self.cache.suffix == ".cache":
-                    return self.cache.read_bytes()
+                """Reuse the cache only when its identity and byte hash still match, else implicitly return None."""
+                if not (self.cache.exists() and self.cache_id.exists()):
+                    return None
+                try:
+                    meta = json.loads(self.cache_id.read_text())
+                    cache = self.cache.read_bytes()
+                except (OSError, ValueError):
+                    return None  # a missing, unreadable, legacy, or corrupt sidecar forces one recalibration
+                if (
+                    isinstance(meta, dict)
+                    and meta.get("identity") == self.identity
+                    and meta.get("cache") == hashlib.sha256(cache).hexdigest()
+                ):
+                    return cache
 
             def write_calibration_cache(self, cache: bytes) -> None:
-                """Write calibration cache to disk."""
-                _ = self.cache.write_bytes(cache)
+                """Write the cache and an identity sidecar carrying its byte hash, each replaced atomically."""
+                cache_tmp = self.cache.with_suffix(f"{self.cache.suffix}.tmp")
+                _ = cache_tmp.write_bytes(cache)
+                cache_tmp.replace(self.cache)
+                meta = json.dumps({"identity": self.identity, "cache": hashlib.sha256(cache).hexdigest()})
+                identity_tmp = self.cache_id.with_suffix(f"{self.cache_id.suffix}.tmp")
+                _ = identity_tmp.write_text(meta)
+                identity_tmp.replace(self.cache_id)
 
         # Load dataset w/ builder (for batching) and calibrate
         config.int8_calibrator = EngineCalibrator(
             dataset=dataset,
             cache=str(Path(onnx_file).with_suffix(".cache")),
+            identity=cache_id.hexdigest(),
         )
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an

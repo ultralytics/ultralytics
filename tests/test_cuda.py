@@ -115,6 +115,7 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
     Path(file).unlink()  # cleanup
     if quantize == 8:
         Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache
+        Path(file).with_suffix(".cache.id").unlink(missing_ok=True)  # cleanup calibration cache identity
         Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
     if quantize == 16:
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX

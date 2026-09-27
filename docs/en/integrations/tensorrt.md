@@ -257,7 +257,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
 ???+ warning "Calibration Cache"
 
-    TensorRT will generate a calibration `.cache` which can be reused to speed up export of future model weights using the same data, but this may result in poor calibration when the data is vastly different or if the `batch` value is changed drastically. In these circumstances, the existing `.cache` should be renamed and moved to a different directory or deleted entirely.
+    On TensorRT 7–10, INT8 export runs implicit calibration and generates a calibration `.cache`, alongside a `.cache.id` sidecar recording the calibration inputs, to speed up future INT8 exports (TensorRT 11 and explicit Q/DQ graphs bake their ranges into the ONNX and write no cache). Ultralytics reuses it automatically only when the ONNX model, the selected calibration images, the `batch`, image size, calibration algorithm, DLA target, and TensorRT version all still match; any change triggers a fresh calibration, so a stale cache can no longer be silently applied to mismatched data. Delete the `.cache` (or its `.cache.id`) to force a full recalibration.
 
 #### Advantages of using YOLO with TensorRT INT8
 

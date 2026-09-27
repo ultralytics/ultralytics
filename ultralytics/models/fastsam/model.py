@@ -23,7 +23,7 @@ class FastSAM(Model):
 
     Methods:
         predict: Perform segmentation prediction on image or video source with optional prompts.
-        task_map: Returns mapping of segment task to predictor and validator classes.
+        task_map: Return mapping of segment task to predictor and validator classes.
 
     Examples:
         Initialize FastSAM model and run prediction
@@ -36,7 +36,11 @@ class FastSAM(Model):
     """
 
     def __init__(self, model: str | Path = "FastSAM-x.pt"):
-        """Initialize the FastSAM model with the specified pre-trained weights."""
+        """Initialize the FastSAM model with the specified pre-trained weights.
+
+        Args:
+            model (str | Path): Path to the pre-trained FastSAM weights file. "FastSAM.pt" is aliased to "FastSAM-x.pt".
+        """
         if str(model) == "FastSAM.pt":
             model = "FastSAM-x.pt"
         assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM only supports pre-trained weights."
@@ -44,12 +48,12 @@ class FastSAM(Model):
 
     def predict(
         self,
-        source,
+        source=None,
         stream: bool = False,
         bboxes: list | None = None,
         points: list | None = None,
         labels: list | None = None,
-        texts: list | None = None,
+        texts: str | list[str] | None = None,
         **kwargs: Any,
     ):
         """Perform segmentation prediction on image or video source.
@@ -58,13 +62,13 @@ class FastSAM(Model):
         and passes them to the parent class predict method for processing.
 
         Args:
-            source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image, or
-                numpy array.
+            source (str | PIL.Image | np.ndarray, optional): Input source for prediction, can be a file path, URL, PIL
+                image, or numpy array. Defaults to the package sample assets when None.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
             bboxes (list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
             points (list, optional): Point coordinates for prompted segmentation in format [[x, y]].
-            labels (list, optional): Class labels for prompted segmentation.
-            texts (list, optional): Text prompts for segmentation guidance.
+            labels (list, optional): Point prompt labels, 1 for foreground and 0 for background; all 1 if omitted.
+            texts (str | list[str], optional): Text prompts for segmentation guidance.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -75,5 +79,5 @@ class FastSAM(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Returns a dictionary mapping segment task to corresponding predictor and validator classes."""
+        """Return a dictionary mapping segment task to corresponding predictor and validator classes."""
         return {"segment": {"predictor": FastSAMPredictor, "validator": FastSAMValidator}}

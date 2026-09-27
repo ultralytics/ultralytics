@@ -49,7 +49,7 @@ class FastSTrack(STrack):
             xywh (np.ndarray): Bounding box in ``(x, y, w, h, idx)`` or ``(x, y, w, h, angle, idx)`` format.
             score (float): Detection confidence in `[0, 1]`.
             cls (Any): Class label for the detection.
-            history_len (int): Maximum number of past Kalman mean vectors kept for occlusion rollback.
+            history_len (int): Maximum number of past Kalman `(mean, covariance)` snapshots kept for occlusion rollback.
         """
         super().__init__(xywh, score, cls)
         self.mean_history: deque = deque(maxlen=history_len)
@@ -120,7 +120,8 @@ class FASTTracker(BYTETracker):
             onset.
         reset_pos_offset_occ (int): Number of frames to look back when restoring Kalman position at occlusion onset.
         enlarge_bbox_occ (float): One-shot multiplier applied to the bbox height when occlusion is first detected.
-        dampen_motion_occ (float): Multiplier in `[0, 1]` applied to Kalman velocity during occlusion.
+        dampen_motion_occ (float): Multiplier in `[0, 1]` applied once to Kalman velocity when occlusion is first
+            detected.
         active_occ_to_lost_thresh (int): Maximum consecutive occluded frames before a track is marked lost anyway.
         init_iou_suppress (float): IoU threshold above which a new detection is prevented from spawning a fresh track.
             Set to 1.0 to disable suppression.
@@ -142,9 +143,11 @@ class FASTTracker(BYTETracker):
         Drive FastTracker directly with your own detections:
         >>> from ultralytics.trackers import FASTTracker
         >>> from ultralytics.utils import YAML, IterableSimpleNamespace
-        >>> cfg = IterableSimpleNamespace(**YAML.load("ultralytics/cfg/trackers/fasttrack.yaml"))
+        >>> from ultralytics.utils.checks import check_yaml
+        >>> cfg = IterableSimpleNamespace(**YAML.load(check_yaml("fasttrack.yaml")))
         >>> tracker = FASTTracker(cfg)
-        >>> tracks = tracker.update(detections)
+        >>> result = model("https://ultralytics.com/images/bus.jpg")[0]
+        >>> tracks = tracker.update(result.boxes.cpu().numpy(), result.orig_img)
     """
 
     track_class = FastSTrack

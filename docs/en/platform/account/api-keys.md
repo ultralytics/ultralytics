@@ -146,15 +146,16 @@ See [Cloud Training](../train/cloud-training.md#remote-training) for the complet
 
 All keys are listed on the `Settings > API Keys` tab:
 
-Each key card shows the key name, the copyable key value, the relative creation time, and a revoke button.
+Each key row shows the key name, the key prefix, the creation date, a copy button for the full key, and a remove (trash)
+button.
 
 ### Revoke Key
 
 Revoke a key that's compromised or no longer needed:
 
 1. Find the key in the API Keys section
-2. Click the **Revoke** (trash) button
-3. Confirm revocation
+2. Click the remove (trash) button
+3. Click **Remove Key** to confirm
 
 !!! warning "Immediate Effect"
 
@@ -269,7 +270,7 @@ Keys don't expire automatically. They remain valid until revoked. Consider imple
 
 ### Can I see my key after creation?
 
-Yes, full key values are visible in the key list on `Settings > API Keys`. The Platform decrypts and displays your keys so you can copy them anytime.
+Yes. The key list on `Settings > API Keys` shows each key's prefix, and its copy button copies the full key value anytime.
 
 ### Are keys region-specific?
 

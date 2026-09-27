@@ -153,7 +153,7 @@ def generate_crop_boxes(
         crop_box_x0 = [int((crop_w - overlap) * i) for i in range(n_crops_per_side)]
         crop_box_y0 = [int((crop_h - overlap) * i) for i in range(n_crops_per_side)]
 
-        # Crops in XYWH format
+        # Crops in XYXY format
         for x0, y0 in product(crop_box_x0, crop_box_y0):
             box = [x0, y0, min(x0 + crop_w, im_w), min(y0 + crop_h, im_h)]
             crop_boxes.append(box)
@@ -234,10 +234,10 @@ def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     """Calculate bounding boxes in XYXY format around binary masks.
 
     Args:
-        masks (torch.Tensor): Binary masks with shape (B, H, W) or (B, C, H, W).
+        masks (torch.Tensor): Boolean masks with shape (H, W), (B, H, W) or (B, C, H, W).
 
     Returns:
-        (torch.Tensor): Bounding boxes in XYXY format with shape (B, 4) or (B, C, 4).
+        (torch.Tensor): Bounding boxes in XYXY format with shape (4,), (B, 4) or (B, C, 4).
 
     Notes:
         - Handles empty masks by returning zero boxes.
@@ -252,14 +252,14 @@ def batched_mask_to_box(masks: torch.Tensor) -> torch.Tensor:
     h, w = shape[-2:]
     masks = masks.flatten(0, -3) if len(shape) > 2 else masks.unsqueeze(0)
     # Get top and bottom edges
-    in_height, _ = torch.max(masks, dim=-1)
+    in_height = masks.amax(-1)
     in_height_coords = in_height * torch.arange(h, device=in_height.device)[None, :]
     bottom_edges, _ = torch.max(in_height_coords, dim=-1)
     in_height_coords = in_height_coords + h * (~in_height)
     top_edges, _ = torch.min(in_height_coords, dim=-1)
 
     # Get left and right edges
-    in_width, _ = torch.max(masks, dim=-2)
+    in_width = masks.amax(-2)
     in_width_coords = in_width * torch.arange(w, device=in_width.device)[None, :]
     right_edges, _ = torch.max(in_width_coords, dim=-1)
     in_width_coords = in_width_coords + w * (~in_width)

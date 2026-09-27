@@ -42,7 +42,7 @@ YOLO26 OBB models pretrained on the [DOTAv1](https://github.com/ultralytics/ultr
 {% include "macros/yolo-obb-perf.md" %}
 
 - **mAP<sup>test</sup>** values are for single-model multiscale on [DOTAv1](https://captain-whu.github.io/DOTA/index.html) dataset. <br>Reproduce with `yolo obb val data=DOTAv1.yaml device=0 split=test nms=False` and submit merged results to [DOTA evaluation](https://captain-whu.github.io/DOTA/evaluation.html).
-- **Speed** averaged over DOTAv1 val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo obb val data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
+- **Speed** averaged over DOTAv1 val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo obb val data=DOTAv1.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary DOTAv1 results.

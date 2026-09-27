@@ -97,7 +97,7 @@ Once trained, you can run [inference](../../modes/predict.md) on documents or vi
     === "CLI"
 
         ```bash
-        # Start prediction with a finetuned *.pt model
+        # Start prediction with a fine-tuned *.pt model
         yolo detect predict model='path/to/best.pt' imgsz=640 source="https://ultralytics.com/assets/signature-s.mp4" conf=0.75
         ```
 

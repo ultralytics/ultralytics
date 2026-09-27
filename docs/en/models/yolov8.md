@@ -70,7 +70,7 @@ This table provides an overview of the YOLOv8 model variants, highlighting their
 
     === "Detection (Open Images V7)"
 
-        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [Open Image V7](../datasets/detect/open-images-v7.md), which include 600 pretrained classes.
+        See [Detection Docs](../tasks/detect.md) for usage examples with these models trained on [Open Images V7](../datasets/detect/open-images-v7.md), which include 600 pretrained classes.
 
         | Model                                                          | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup> | Speed<br><sup>CPU ONNX<br>(ms)</sup> | Speed<br><sup>A100 TensorRT<br>(ms)</sup> | params<br><sup>(M)</sup> | FLOPs<br><sup>(B)</sup> |
         | -------------------------------------------------------------- | --------------------------- | -------------------------- | ------------------------------------ | ----------------------------------------- | ------------------------ | ----------------------- |
@@ -203,7 +203,7 @@ YOLOv8 is designed to improve real-time object detection performance with advanc
 
 ### How can I use YOLOv8 for different computer vision tasks?
 
-YOLOv8 supports a wide range of computer vision tasks, including object detection, instance segmentation, pose/keypoints detection, oriented object detection, and classification. Each model variant is optimized for its specific task and compatible with various operational modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section for more information.
+YOLOv8 supports a wide range of computer vision tasks, including object detection, instance segmentation, classification, pose/keypoints detection, and oriented object detection. Each model variant is optimized for its specific task and compatible with various operational modes like [Inference](../modes/predict.md), [Validation](../modes/val.md), [Training](../modes/train.md), and [Export](../modes/export.md). Refer to the [Supported Tasks and Modes](#supported-tasks-and-modes) section for more information.
 
 ### What are the performance metrics for YOLOv8 models?
 

@@ -121,7 +121,7 @@ For advanced inference options, including batch processing and video inference, 
 Absolutely! Ultralytics models are designed for versatile deployment across various platforms:
 
 - Edge devices: Optimize inference on devices like NVIDIA Jetson or Raspberry Pi using TensorRT, ONNX, or OpenVINO.
-- Mobile: Deploy on Android or iOS devices by converting models to LiteRT or Core ML.
+- Mobile: Deploy on Android or iOS devices by converting models to LiteRT or CoreML.
 - Cloud: Leverage frameworks like [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) Serving or TorchServe for scalable cloud deployments.
 - Web: Implement in-browser inference using ONNX Runtime Web.
 

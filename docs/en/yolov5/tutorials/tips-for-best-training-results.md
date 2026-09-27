@@ -69,7 +69,7 @@ Before modifying anything, **first train with default settings to establish a pe
 
 ## Advanced Optimization Techniques
 
-- **[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning).** For specialized datasets, start with pretrained weights and gradually unfreeze layers during training to adapt the model to your specific task.
+- **[Transfer learning](https://www.ultralytics.com/glossary/transfer-learning).** For specialized datasets, start with pretrained weights and optionally [freeze layers](transfer-learning-with-frozen-layers.md) with `--freeze` to adapt the model to your specific task.
 - **[Model pruning](https://www.ultralytics.com/glossary/model-pruning).** After training, consider pruning your model to remove redundant weights and reduce model size without significant performance loss.
 - **[Model ensemble](https://www.ultralytics.com/glossary/model-ensemble).** For critical applications, train multiple models with different configurations and combine their predictions for improved accuracy.
 - **[Test-time augmentation](test-time-augmentation.md).** Enable TTA during inference with `--augment` to improve prediction accuracy by averaging results from augmented versions of the input image.

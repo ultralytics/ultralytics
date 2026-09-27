@@ -45,7 +45,7 @@ Ultralytics' Environmental, Health, and Safety (EHS) policy is a comprehensive f
 
 ### How does Ultralytics ensure compliance with EHS regulations?
 
-Ultralytics ensures compliance with EHS regulations by adhering to all applicable laws, regulations, and standards. The company not only strives to meet these requirements but often exceeds them by implementing stringent internal policies. Regular audits, monitoring, and reviews are conducted to ensure ongoing compliance. Managers and supervisors are also accountable for ensuring these standards are maintained within their areas of control. For more details, refer to the [Policy Principles section](#policy-principles) on the documentation page.
+Ultralytics ensures compliance with EHS regulations by adhering to all applicable laws, regulations, and standards. The company not only strives to meet these requirements but also to exceed them where possible. Regular audits, monitoring, and reviews are conducted to ensure ongoing compliance. Managers and supervisors are also accountable for ensuring these standards are maintained within their areas of control. For more details, refer to the [Policy Principles section](#policy-principles) on the documentation page.
 
 ### Why is continuous improvement a key principle in Ultralytics' EHS policy?
 
@@ -57,7 +57,7 @@ Every employee and contractor at Ultralytics is responsible for adhering to the 
 
 ### How does Ultralytics handle emergency preparedness and response in its EHS policy?
 
-Ultralytics handles emergency preparedness and response by developing, maintaining, and regularly testing emergency plans to address potential EHS incidents effectively. These plans ensure that the company can respond swiftly and efficiently to minimize harm to employees, the environment, and property. Regular training and drills are conducted to keep the response teams prepared for various emergency scenarios. For additional context, refer to the [emergency preparedness and response measure](#implementation-measures).
+Ultralytics handles emergency preparedness and response by developing, maintaining, and regularly testing emergency plans to address potential EHS incidents effectively. These plans ensure that the company can respond swiftly and efficiently to minimize harm to employees, the environment, and property. For additional context, refer to the [emergency preparedness and response measure](#implementation-measures).
 
 ### How does Ultralytics engage with stakeholders regarding its EHS performance?
 

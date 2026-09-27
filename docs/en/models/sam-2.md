@@ -200,6 +200,8 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         yolo predict model=sam2.1_b.pt source=path/to/video.mp4
         ```
 
+- This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
+
 #### Segment Video and Track objects
 
 !!! example "Segment Video"
@@ -227,8 +229,6 @@ SAM 2 can be utilized across a broad spectrum of tasks, including real-time vide
         # Run inference with negative points prompt
         results = predictor(source="test.mp4", points=[[[920, 470], [909, 138]]], labels=[[1, 0]])
         ```
-
-- This example demonstrates how SAM 2 can be used to segment the entire content of an image or video if no prompts (bboxes/points/masks) are provided.
 
 ## Dynamic Interactive Segment and Track
 

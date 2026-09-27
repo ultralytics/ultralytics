@@ -264,7 +264,7 @@ For further optimizations, you might consider using [Coral Edge TPU](https://dev
 
 ### Can I use TFLite models on microcontrollers for YOLO26 predictions?
 
-Yes, TFLite supports deployment on microcontrollers with limited resources. TFLite's core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run basic YOLO26 models. This makes it suitable for deployment on devices with minimal computational power and memory.
+TFLite supports deployment on microcontrollers with limited resources: its core runtime requires only 16 KB of memory on an Arm Cortex M3 and can run many basic models. However, YOLO26 models are generally too large for typical microcontroller memory budgets, so single-board computers, mobile devices, or dedicated accelerators are better targets for YOLO26.
 
 To get started, visit the [TFLite Micro for Microcontrollers guide](https://developers.google.com/edge/litert/microcontrollers/overview).
 

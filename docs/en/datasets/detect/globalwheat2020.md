@@ -34,7 +34,7 @@ The Global Wheat Head Dataset is organized into three subsets defined by the `Gl
 
 !!! note "Validation split"
 
-    The validation set (748 images) is the `ethz_1` subset, which is also part of the training domains — so validation metrics reflect in-domain performance. The held-out test set from Australia, Japan, and China measures generalization to environments unseen during training.
+    The validation set (748 images) is the `ethz_1` subset, which is also included in the training set — so validation metrics are measured on images the model also trains on. The held-out test set from Australia, Japan, and China measures generalization to environments unseen during training.
 
 ## Applications
 

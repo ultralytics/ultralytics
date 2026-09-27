@@ -9,7 +9,7 @@ keywords: YOLO, image classification, dataset structure, CIFAR-10, Ultralytics, 
 
 ## Dataset Structure for YOLO Classification Tasks
 
-For [Ultralytics](https://www.ultralytics.com) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory. This structure includes a `train` directory and a `val` directory (`valid` and `validation` are also accepted), with an optional `test` directory. If no validation directory exists, the `test` directory is used for validation instead.
+For [Ultralytics](https://www.ultralytics.com) YOLO classification tasks, the dataset must be organized in a specific split-directory structure under the `root` directory. This structure includes a `train` directory and a `val` directory (`valid` and `validation` are also accepted), with an optional `test` directory. If no validation directory exists, the `test` directory is used for validation instead. If the root has no `train` directory at all but contains one folder per class, Ultralytics automatically splits the images 80/20 into a new `<root>_split` directory with `train` and `val` subdirectories.
 
 Each of these directories should contain one subdirectory for each class in the dataset. The subdirectories are named after the corresponding class and contain all the images for that class. Ensure that each image file is named uniquely and stored in a common format such as JPEG or PNG.
 
@@ -18,7 +18,7 @@ Each of these directories should contain one subdirectory for each class in the 
 Consider the [CIFAR-10](cifar10.md) dataset as an example. The folder structure should look like this:
 
 ```text
-cifar-10-/
+cifar10/
 |
 |-- train/
 |   |-- airplane/
@@ -113,7 +113,7 @@ Ultralytics supports the following datasets with automatic download. Most of the
 - [CIFAR-10](cifar10.md): A dataset of 60K 32x32 color images in 10 classes, with 6K images per class.
 - [CIFAR-100](cifar100.md): An extended version of CIFAR-10 with 100 object categories and 600 images per class.
 - [Fashion-MNIST](fashion-mnist.md): A dataset consisting of 70,000 grayscale images of 10 fashion categories for image classification tasks.
-- [ImageNet](imagenet.md): A large-scale dataset for [object detection](https://www.ultralytics.com/glossary/object-detection) and image classification with over 14 million images and 20,000 categories.
+- [ImageNet](imagenet.md): The ImageNet-1k (ILSVRC-2012) image classification benchmark with 1,000 classes, 1.28 million training images, and 50,000 validation images.
 - [ImageNet-10](imagenet10.md): A smaller subset of ImageNet with 10 categories for faster experimentation and testing.
 - [Imagenette](imagenette.md): A smaller subset of ImageNet that contains 10 easily distinguishable classes for quicker training and testing.
 - [Imagewoof](imagewoof.md): A more challenging subset of ImageNet containing 10 dog breed categories for image classification tasks.
@@ -131,7 +131,7 @@ If you have your own dataset and would like to use it for training classificatio
 To structure your dataset for Ultralytics YOLO classification tasks, you should follow a specific split-directory format. Organize your dataset into separate directories for `train` and `val`, and optionally `test`. Each of these directories should contain subdirectories named after each class, with the corresponding images inside. This facilitates smooth training and evaluation processes. For an example, consider the [CIFAR-10](cifar10.md) dataset format:
 
 ```text
-cifar-10-/
+cifar10/
 |-- train/
 |   |-- airplane/
 |   |-- automobile/

@@ -43,8 +43,8 @@ Here are some best practices to keep in mind while monitoring your computer visi
 
 The [Ultralytics Platform](../platform/index.md) provides built-in [model monitoring](https://www.ultralytics.com/glossary/model-monitoring) for deployed YOLO endpoints, so you can watch your model in production without assembling a separate monitoring stack. The [Deploy dashboard](../platform/deploy/monitoring.md) tracks key signals in real time:
 
-- **Request metrics**: Total request volume, error rate, and P95 latency for each endpoint, with sparkline trends over ranges from 1 hour to 30 days.
-- **Health checks**: Automatic endpoint health polling that flags unhealthy deployments and reports response latency.
+- **Request metrics**: Total request volume, error rate, and P95 latency for each endpoint, with 24-hour sparkline trends in the dashboard and ranges from 1 hour to 30 days through the metrics API.
+- **Health checks**: Endpoint health checks that flag unhealthy deployments and report response latency.
 - **Logs**: Severity-filtered request logs (from DEBUG to CRITICAL) for diagnosing failed requests and latency spikes.
 - **Global view**: An interactive world map and overview cards that summarize every deployment across regions in a single view.
 

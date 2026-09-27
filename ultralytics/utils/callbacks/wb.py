@@ -16,7 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """Create and log a custom metric visualization table.
+    """Create a custom metric visualization table for logging to wandb.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
@@ -31,7 +31,7 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
         y_title (str, optional): Label for the y-axis.
 
     Returns:
-        (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
+        (wandb.plot.CustomChart): A wandb custom chart object suitable for logging, showing the metric visualization.
     """
     import polars as pl  # scope for faster 'import ultralytics'
     import polars.selectors as cs
@@ -52,29 +52,27 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
 def _plot_curve(
     x,
     y,
-    names=None,
+    names,
     id="precision-recall",
     title="Precision Recall Curve",
     x_title="Recall",
     y_title="Precision",
     num_x=100,
-    only_mean=False,
 ):
     """Log a metric curve visualization.
 
-    This function generates a metric curve based on input data and logs the visualization to wandb. The curve can
-    represent aggregated data (mean) or individual class data, depending on the 'only_mean' flag.
+    This function generates a metric curve based on input data and logs the visualization to wandb, showing the mean
+    curve together with each individual class curve.
 
     Args:
         x (np.ndarray): Data points for the x-axis with length N.
         y (np.ndarray): Corresponding data points for the y-axis with shape (C, N), where C is the number of classes.
-        names (list, optional): Names of the classes corresponding to the y-axis data; length C.
+        names (list): Names of the classes corresponding to the y-axis data; length C.
         id (str, optional): Unique identifier for the logged data in wandb.
         title (str, optional): Title for the visualization plot.
         x_title (str, optional): Label for the x-axis.
         y_title (str, optional): Label for the y-axis.
         num_x (int, optional): Number of interpolated data points for visualization.
-        only_mean (bool, optional): Flag to indicate if only the mean curve should be plotted.
 
     Notes:
         The function leverages the '_custom_table' function to generate the actual visualization.
@@ -82,24 +80,18 @@ def _plot_curve(
     import numpy as np
 
     # Create new x
-    if names is None:
-        names = []
     x_new = np.linspace(x[0], x[-1], num_x).round(5)
 
     # Create arrays for logging
     x_log = x_new.tolist()
     y_log = np.interp(x_new, x, np.mean(y, axis=0)).round(3).tolist()
 
-    if only_mean:
-        table = wb.Table(data=list(zip(x_log, y_log)), columns=[x_title, y_title])
-        wb.run.log({title: wb.plot.line(table, x_title, y_title, title=title)})
-    else:
-        classes = ["mean"] * len(x_log)
-        for i, yi in enumerate(y):
-            x_log.extend(x_new)  # add new x
-            y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
-            classes.extend([names[i]] * len(x_new))  # add class names
-        wb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
+    classes = ["mean"] * len(x_log)
+    for i, yi in enumerate(y):
+        x_log.extend(x_new)  # add new x
+        y_log.extend(np.interp(x_new, x, yi))  # interpolate y to new x
+        classes.extend([names[i]] * len(x_new))  # add class names
+    wb.log({id: _custom_table(x_log, y_log, classes, title, x_title, y_title)}, commit=False)
 
 
 def _log_plots(plots, step):
@@ -109,8 +101,8 @@ def _log_plots(plots, step):
     plots to WandB at the specified step.
 
     Args:
-        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries containing plot
-            metadata including timestamps.
+        plots (dict): Dictionary of plots to log, where keys are plot file paths and values are dictionaries containing
+            plot metadata including timestamps.
         step (int): The step/epoch at which to log the plots in the WandB run.
 
     Notes:
@@ -147,7 +139,7 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    """Log training metrics and model information at the end of an epoch."""
+    """Log plots, validation metrics, and (on the first epoch) model information at the end of each fit epoch."""
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     if trainer.epoch == 0:
@@ -156,7 +148,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_epoch_end(trainer):
-    """Log metrics and save images at the end of each training epoch."""
+    """Log training losses and learning rates at each training epoch end, plus training plots after the second epoch."""
     wb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:

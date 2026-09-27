@@ -87,7 +87,7 @@ After exporting, you can run inference with the optimized model:
 # Load the OpenVINO model
 ov_model = YOLO("yolo26n_openvino_model/")
 
-# Run inference (Ultralytics auto-selects OpenVINO LATENCY mode for batch=1)
+# Run inference (Ultralytics compiles OpenVINO models with the LATENCY performance hint)
 results = ov_model("https://ultralytics.com/images/bus.jpg", verbose=True)
 ```
 

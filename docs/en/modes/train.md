@@ -213,7 +213,6 @@ The auto-selection algorithm prioritizes GPUs with:
 
 1. Lower current utilization percentages
 2. Higher available memory (free VRAM)
-3. Lower temperature and power consumption
 
 This feature is especially valuable in shared computing environments or when running multiple training jobs across different models. It automatically adapts to changing system conditions, ensuring optimal resource allocation without manual intervention.
 
@@ -345,7 +344,7 @@ To use Comet:
         # pip install comet_ml
         import comet_ml
 
-        comet_ml.init()
+        comet_ml.login()
         ```
 
 Remember to sign in to your Comet account on their website and get your API key. You will need to add this to your environment variables or your script to log your experiments.

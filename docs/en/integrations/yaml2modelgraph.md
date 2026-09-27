@@ -61,7 +61,7 @@ tool's `themes.py`.
 
 ## Limitations
 
-YAML2ModelGraph specially aligns standard `Detect` heads. Other task heads such as `OBB`, `Pose`, and `Segment` are
+YAML2ModelGraph specially aligns standard `Detect` heads. Other task heads such as `Segment`, `Pose`, and `OBB` are
 currently rendered as generic neck-lane nodes. See the
 [YAML2ModelGraph repository](https://github.com/WangQvQ/YAML2ModelGraph) for current support and usage details.
 
@@ -77,4 +77,4 @@ No. The tool writes SVG directly and depends only on PyYAML.
 
 ### Which heads are drawn with their scale-specific structure?
 
-Only standard `Detect` heads. `OBB`, `Pose`, and `Segment` heads are drawn as generic neck-lane nodes; check the [YAML2ModelGraph repository](https://github.com/WangQvQ/YAML2ModelGraph) for current support.
+Only standard `Detect` heads. `Segment`, `Pose`, and `OBB` heads are drawn as generic neck-lane nodes; check the [YAML2ModelGraph repository](https://github.com/WangQvQ/YAML2ModelGraph) for current support.

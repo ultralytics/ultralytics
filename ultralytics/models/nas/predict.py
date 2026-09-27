@@ -22,6 +22,7 @@ class NASPredictor(DetectionPredictor):
     Examples:
         >>> from ultralytics import NAS
         >>> model = NAS("yolo_nas_s")
+        >>> model.predict("ultralytics/assets/bus.jpg")  # creates model.predictor
         >>> predictor = model.predictor
 
         Assume that raw_preds, img, orig_imgs are available
@@ -45,10 +46,12 @@ class NASPredictor(DetectionPredictor):
                 coordinates back to original dimensions.
 
         Returns:
-            (list): List of Results objects containing the processed predictions for each image in the batch.
+            (list[Results]): List of Results objects containing the processed predictions for each image in the batch.
 
         Examples:
-            >>> predictor = NAS("yolo_nas_s").predictor
+            >>> model = NAS("yolo_nas_s")
+            >>> model.predict("ultralytics/assets/bus.jpg")  # creates model.predictor
+            >>> predictor = model.predictor
             >>> results = predictor.postprocess(raw_preds, img, orig_imgs)
         """
         boxes = ops.xyxy2xywh(preds_in[0][0])  # Convert bounding boxes from xyxy to xywh format

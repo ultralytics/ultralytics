@@ -50,7 +50,7 @@ class ClassificationValidator(BaseValidator):
         >>> validator()
 
     Notes:
-        Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+        Torchvision classification models can also be passed to the 'model' argument, e.g. model='resnet18'.
     """
 
     def __init__(self, dataloader=None, save_dir=None, args=None, _callbacks: dict | None = None) -> None:
@@ -114,6 +114,7 @@ class ClassificationValidator(BaseValidator):
 
         Examples:
             >>> validator = ClassificationValidator()
+            >>> validator.init_metrics(model)  # model with a `names` attribute, e.g. YOLO("yolo26n-cls.pt").model
             >>> validator.pred = [torch.tensor([[0, 1, 2]])]  # Top-3 predictions for one sample
             >>> validator.targets = [torch.tensor([0])]  # Ground truth class
             >>> validator.finalize_metrics()

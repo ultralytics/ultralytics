@@ -44,7 +44,7 @@ where `I` denotes mutual information, and `f` and `g` represent transformation f
 
 The concept of Reversible Functions is another cornerstone of YOLOv9's design. A function is deemed reversible if it can be inverted without any loss of information, as expressed by:
 
-```python
+```text
 X = v_zeta(r_psi(X))
 ```
 
@@ -141,7 +141,7 @@ This example provides simple YOLOv9 training and inference examples. For full do
         # Build a YOLOv9c model from scratch
         model = YOLO("yolov9c.yaml")
 
-        # Build a YOLOv9c model from pretrained weight
+        # Build a YOLOv9c model from pretrained weights
         model = YOLO("yolov9c.pt")
 
         # Display model information (optional)

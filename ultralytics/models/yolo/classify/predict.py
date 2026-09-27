@@ -35,7 +35,7 @@ class ClassificationPredictor(BasePredictor):
         >>> predictor.predict_cli()
 
     Notes:
-        - Torchvision classification models can also be passed to the 'model' argument, i.e. model='resnet18'.
+        - Torchvision classification models can also be passed to the 'model' argument, e.g. model='resnet18'.
     """
 
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):

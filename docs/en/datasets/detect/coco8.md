@@ -30,7 +30,7 @@ The [Ultralytics](https://www.ultralytics.com) COCO8 dataset is a compact yet po
 
 ## Dataset Structure
 
-COCO8 comprises the first 8 images from the COCO train 2017 set—4 for training and 4 for validation—covering the full set of 80 COCO object classes in [YOLO label format](../index.md):
+COCO8 comprises the first 8 images from the COCO train 2017 set—4 for training and 4 for validation—labeled with the 80 COCO class names in [YOLO label format](../index.md):
 
 ```text
 coco8/

@@ -363,7 +363,6 @@ def test_predict_txt(tmp_path):
     assert len(results) == 7, f"Expected 7 results from source list, got {len(results)}"
 
 
-@pytest.mark.skipif(True, reason="disabled for testing")
 def test_predict_csv_multi_row(tmp_path):
     """Test YOLO predictions with sources listed in multiple rows of a CSV file."""
     file = tmp_path / "sources_multi_row.csv"
@@ -375,7 +374,6 @@ def test_predict_csv_multi_row(tmp_path):
     assert len(results) == 7, f"Expected 7 results from multi-row CSV, got {len(results)}"
 
 
-@pytest.mark.skipif(True, reason="disabled for testing")
 def test_predict_csv_single_row(tmp_path):
     """Test YOLO predictions with sources listed in a single row of a CSV file."""
     file = tmp_path / "sources_single_row.csv"

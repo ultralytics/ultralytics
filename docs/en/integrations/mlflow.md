@@ -20,7 +20,7 @@ This documentation page is a comprehensive guide to setting up and utilizing the
 
 ## Features
 
-- **Metrics Logging**: Logs metrics at the end of each epoch and at the end of the training.
+- **Metrics Logging**: Logs learning rates, training losses, and validation metrics at the end of each epoch.
 - **Parameter Logging**: Logs all the parameters used in the training.
 - **Artifacts Logging**: Logs model artifacts, including weights and configuration files, at the end of the training.
 
@@ -104,7 +104,7 @@ Make sure that MLflow logging is enabled in Ultralytics settings. Usually, this 
 
 ### Logging
 
-The logging is taken care of by the `on_pretrain_routine_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
+The logging is taken care of by the `on_pretrain_routine_end`, `on_train_epoch_end`, `on_fit_epoch_end`, and `on_train_end` [callback functions](../reference/utils/callbacks/mlflow.md). These functions are automatically called during the respective stages of the training process, and they handle the logging of parameters, metrics, and artifacts.
 
 ## Examples
 

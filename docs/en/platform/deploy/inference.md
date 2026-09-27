@@ -279,6 +279,7 @@ with open("image.jpg", "rb") as f:
     ],
     "metadata": {
         "imageCount": 1,
+        "classNames": ["person", "bicycle", "car", "..."],
         "functionTimeAlive": 1284.51,
         "functionTimeCall": 0.018,
         "task": "detect",
@@ -296,19 +297,19 @@ with open("image.jpg", "rb") as f:
 
 ### Response Fields
 
-| Field                           | Type   | Description                                                          |
-| ------------------------------- | ------ | -------------------------------------------------------------------- |
-| `images`                        | array  | List of processed images, one entry per video frame for videos       |
-| `images[].shape`                | array  | Image dimensions [height, width]                                     |
-| `images[].results`              | array  | List of detections                                                   |
-| `images[].results[].class`      | int    | Class index (integer ID)                                             |
-| `images[].results[].name`       | string | Class name                                                           |
-| `images[].results[].confidence` | float  | Detection confidence (0-1)                                           |
-| `images[].results[].box`        | object | Bounding box coordinates                                             |
-| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                           |
-| `images[].depth`                | object | Per-pixel depth map (depth models only)                              |
-| `images[].speed`                | object | Processing times in milliseconds                                     |
-| `metadata`                      | object | Image count, service timings, task, and Ultralytics/PyTorch versions |
+| Field                           | Type   | Description                                                         |
+| ------------------------------- | ------ | ------------------------------------------------------------------- |
+| `images`                        | array  | List of processed images, one entry per video frame for videos      |
+| `images[].shape`                | array  | Image dimensions [height, width]                                    |
+| `images[].results`              | array  | List of detections                                                  |
+| `images[].results[].class`      | int    | Class index (integer ID)                                            |
+| `images[].results[].name`       | string | Class name                                                          |
+| `images[].results[].confidence` | float  | Detection confidence (0-1)                                          |
+| `images[].results[].box`        | object | Bounding box coordinates                                            |
+| `images[].semantic_mask`        | object | Per-pixel class map (semantic models only)                          |
+| `images[].depth`                | object | Per-pixel depth map (depth models only)                             |
+| `images[].speed`                | object | Processing times in milliseconds                                    |
+| `metadata`                      | object | Image count, model class names, service timings, task, and versions |
 
 ### Task-Specific Responses
 
@@ -477,7 +478,7 @@ In the **Predict** tab, the download button over the preview saves the current r
 itself returns JSON predictions. To visualize those:
 
 1. Use predictions to draw boxes locally
-2. Use Ultralytics `plot()` method:
+2. Run the model locally with Ultralytics and save the annotated result with `save()` (or get an array with `plot()`):
 
 ```python
 from ultralytics import YOLO

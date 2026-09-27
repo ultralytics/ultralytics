@@ -107,7 +107,6 @@ Now that you have the project structure and dependencies set up, you can impleme
 # src/app.py
 
 
-
 from ultralytics import YOLO
 
 # Model initialization and readiness state

@@ -886,7 +886,8 @@ class SAM2VideoPredictor(SAM2Predictor):
 
     Examples:
         >>> predictor = SAM2VideoPredictor(overrides=dict(model="sam2.1_b.pt", imgsz=1024))
-        >>> results = predictor(source="path/to/video.mp4", points=[[920, 470]], labels=[1])
+        >>> source = "https://github.com/ultralytics/assets/releases/download/v0.0.0/decelera_portrait_min.mov"
+        >>> results = predictor(source=source, points=[[440, 640]], labels=[1])
 
     Notes:
         Hole filling in predicted masks (`fill_hole_area`) is not supported in the current implementation.
@@ -953,6 +954,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         bboxes = self.prompts.pop("bboxes", bboxes)
         points = self.prompts.pop("points", points)
         masks = self.prompts.pop("masks", masks)
+        labels = self.prompts.pop("labels", labels)
 
         frame = self.dataset.frame
         self.inference_state["im"] = im
@@ -998,7 +1000,7 @@ class SAM2VideoPredictor(SAM2Predictor):
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key)
-        self.inference_state["frames_already_tracked"].append(frame)
+        self.inference_state["frames_already_tracked"].add(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
         pred_masks = pred_masks[(pred_masks > self.model.mask_threshold).sum((1, 2)) > 0]  # filter blank masks
 
@@ -1031,8 +1033,8 @@ class SAM2VideoPredictor(SAM2Predictor):
                 inference state.
 
         Returns:
-            pred_masks (torch.Tensor): The flattened predicted mask logits for all objects on this frame.
-            pred_scores (torch.Tensor): A single-element tensor of ones.
+            pred_masks (torch.Tensor): The predicted mask logits for all objects on this frame with shape (N, H, W).
+            pred_scores (torch.Tensor): A tensor of ones with length N, as the video predictor does not score masks.
 
         Raises:
             AssertionError: If both `masks` and `points` are provided, or neither is provided.
@@ -1111,7 +1113,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             inference_state=inference_state,
         )
         pred_masks = consolidated_out["pred_masks"].flatten(0, 1)
-        return pred_masks.flatten(0, 1), torch.ones(1, dtype=pred_masks.dtype, device=pred_masks.device)
+        return pred_masks, torch.ones(pred_masks.shape[0], dtype=pred_masks.dtype, device=pred_masks.device)
 
     @smart_inference_mode()
     def propagate_in_video_preflight(self, inference_state: dict[str, Any] | None = None):
@@ -1246,7 +1248,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             },
             # metadata for each tracking frame (e.g. which direction it's tracked)
             "tracking_has_started": False,
-            "frames_already_tracked": [],
+            "frames_already_tracked": set(),
         }
         return inference_state
 
@@ -1324,7 +1326,7 @@ class SAM2VideoPredictor(SAM2Predictor):
             raise RuntimeError(
                 f"Cannot add new object id {obj_id} after tracking starts. "
                 f"All existing object ids: {inference_state['obj_ids']}. "
-                f"Please call 'reset_state' to restart from scratch."
+                f"Please call 'clear_all_points_in_video' to restart from scratch."
             )
 
     def _run_single_frame_inference(
@@ -1815,7 +1817,7 @@ class SAM2VideoPredictor(SAM2Predictor):
                 # The frame is not a conditioning frame anymore since it's not receiving inputs,
                 # so we "downgrade" its output (if exists) to a non-conditioning frame output.
                 output_dict["non_cond_frame_outputs"][frame_idx] = out
-                inference_state["frames_already_tracked"].pop(frame_idx, None)
+                inference_state["frames_already_tracked"].discard(frame_idx)
             # Similarly, do it for the sliced output on each object.
             for obj_idx2 in range(batch_size):
                 obj_output_dict = inference_state["output_dict_per_obj"][obj_idx2]
@@ -2519,7 +2521,7 @@ class SAM3VideoPredictor(SAM2VideoPredictor, SAM3Predictor):
         # Create slices of per-object outputs for subsequent interaction with each
         # individual object after tracking.
         self._add_output_per_object(frame, current_out, storage_key, inference_state=inference_state)
-        inference_state["frames_already_tracked"].append(frame)
+        inference_state["frames_already_tracked"].add(frame)
         pred_masks = current_out["pred_masks"].flatten(0, 1)
         obj_scores = current_out["object_score_logits"]
 
@@ -2616,10 +2618,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self.fill_hole_area = fill_hole_area
         self._dist_pg_cpu = None  # CPU process group (lazy-initialized on first use)
 
-        max_num_objects = 10000  # no limit
-        num_obj_for_compile = 16
-        self.max_num_objects = max_num_objects
-        self.num_obj_for_compile = num_obj_for_compile
+        self.max_num_objects = max_num_objects if max_num_objects > 0 else 10000  # 10000 = no limit
         self.recondition_every_nth_frame = recondition_every_nth_frame
         self.masklet_confirmation_enable = masklet_confirmation_enable
         self.masklet_confirmation_consecutive_det_thresh = masklet_confirmation_consecutive_det_thresh
@@ -3052,7 +3051,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         self,
         frame_idx,
         det_out: dict[str, torch.Tensor],
-        trk_id_to_max_iou_high_conf_det: list[int],
+        trk_id_to_max_iou_high_conf_det: dict[int, int],
         tracker_states_local: list[Any],
         tracker_metadata: dict[str, np.ndarray],
         tracker_obj_scores_global: torch.Tensor,
@@ -3995,17 +3994,6 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         confirmation_data["status"] = status
         confirmation_data["consecutive_det_num"] = consecutive_det_num
         return metadata
-
-    def _load_checkpoint(self, ckpt_path: str, strict: bool = True):
-        sd = torch.load(ckpt_path, map_location="cpu", weights_only=True)["model"]
-        missing_keys, unexpected_keys = self.load_state_dict(sd, strict=strict)
-        if len(missing_keys) > 0 or len(unexpected_keys) > 0:
-            LOGGER.warning(f"Loaded ckpt with {missing_keys=}, {unexpected_keys=}")
-        else:
-            LOGGER.info("Loaded ckpt successfully without missing or unexpected keys")
-
-    def _encode_prompt(self, **kwargs):
-        return self.model._encode_prompt(**kwargs)
 
     @staticmethod
     def _drop_new_det_with_obj_limit(new_det_fa_inds, det_scores_np, num_to_keep):

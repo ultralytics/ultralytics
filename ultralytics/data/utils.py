@@ -954,7 +954,7 @@ def save_dataset_cache_file(prefix: str, path: Path, x: dict, version: str):
             LOGGER.info(f"{prefix}New cache created: {path}")
         except Exception as e:
             Path(path).unlink(missing_ok=True)  # remove partially written file
-            LOGGER.warning(f"{prefix}WARNING ⚠️ Failed to save cache to {path}: {e}")
+            LOGGER.warning(f"{prefix}Failed to save cache to {path}: {e}")
     else:
         LOGGER.warning(f"{prefix}Cache directory {path.parent} is not writable, cache not saved.")
 

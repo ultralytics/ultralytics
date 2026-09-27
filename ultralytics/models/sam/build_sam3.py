@@ -216,7 +216,6 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
             scale=None,
             temperature=10000,
         ),
-        encode_boxes_as_points=False,
         boxes_direct_project=True,
         boxes_pool=True,
         boxes_pos_enc=True,

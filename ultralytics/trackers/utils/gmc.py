@@ -266,12 +266,15 @@ class GMC:
 
         # Estimate transformation matrix using RANSAC
         if prevPoints.shape[0] > 4:
-            H, inliers = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
-
-            # Scale translation components back to original resolution
-            if self.downscale > 1.0:
-                H[0, 2] *= self.downscale
-                H[1, 2] *= self.downscale
+            H_est = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)[0]
+            if H_est is None:  # degenerate point sets: keep identity
+                LOGGER.warning("affine estimation failed")
+            else:
+                H = H_est
+                # Scale translation components back to original resolution
+                if self.downscale > 1.0:
+                    H[0, 2] *= self.downscale
+                    H[1, 2] *= self.downscale
         else:
             LOGGER.warning("not enough matching points")
 
@@ -326,12 +329,15 @@ class GMC:
 
         # Estimate transformation matrix using RANSAC
         if prevPoints.shape[0] > 4:
-            H, _ = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)
-
-            # Scale translation components back to original resolution
-            if self.downscale > 1.0:
-                H[0, 2] *= self.downscale
-                H[1, 2] *= self.downscale
+            H_est = cv2.estimateAffinePartial2D(prevPoints, currPoints, cv2.RANSAC)[0]
+            if H_est is None:  # degenerate point sets: keep identity
+                LOGGER.warning("affine estimation failed")
+            else:
+                H = H_est
+                # Scale translation components back to original resolution
+                if self.downscale > 1.0:
+                    H[0, 2] *= self.downscale
+                    H[1, 2] *= self.downscale
         else:
             LOGGER.warning("not enough matching points")
 

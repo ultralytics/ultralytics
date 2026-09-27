@@ -219,8 +219,6 @@ class DETRLoss(nn.Module):
                 gt_bboxes,
                 gt_cls,
                 gt_groups,
-                masks=masks[self.uni_match_ind] if masks is not None else None,
-                gt_mask=gt_mask,
             )
         for i, (aux_bboxes, aux_scores) in enumerate(zip(pred_bboxes, pred_scores)):
             aux_masks = masks[i] if masks is not None else None
@@ -326,9 +324,7 @@ class DETRLoss(nn.Module):
             (dict[str, torch.Tensor]): Dictionary of losses.
         """
         if match_indices is None:
-            match_indices = self.matcher(
-                pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups, masks=masks, gt_mask=gt_mask
-            )
+            match_indices = self.matcher(pred_bboxes, pred_scores, gt_bboxes, gt_cls, gt_groups)
 
         idx, gt_idx = self._get_index(match_indices)
         pred_bboxes, gt_bboxes = pred_bboxes[idx], gt_bboxes[gt_idx]

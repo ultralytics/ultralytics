@@ -1176,12 +1176,10 @@ def is_rockchip():
             with open("/proc/device-tree/compatible") as f:
                 dev_str = f.read()
                 *_, soc = dev_str.split(",")
-                if soc.replace("\x00", "").split("-", 1)[0] in RKNN_CHIPS:
-                    return True
+            return soc.replace("\x00", "").split("-", 1)[0] in RKNN_CHIPS
         except OSError:
             return False
-    else:
-        return False
+    return False
 
 
 def is_intel():

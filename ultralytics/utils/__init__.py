@@ -446,7 +446,7 @@ def plt_settings(rcparams=None, backend="Agg"):
     return decorator
 
 
-def set_logging(name="LOGGING_NAME", verbose=True):
+def set_logging(name=LOGGING_NAME, verbose=True):
     """Set up logging with UTF-8 encoding and configurable verbosity.
 
     This function configures logging for the Ultralytics library, setting the appropriate logging level and formatter

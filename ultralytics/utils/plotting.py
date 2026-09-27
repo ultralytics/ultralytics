@@ -1282,7 +1282,6 @@ def plot_tune_results(results_file: str = "tune_results.ndjson", exclude_zero_fi
         [[r.get("fitness", 0.0)] + [r.get("hyperparameters", {}).get(k, np.nan) for k in keys] for r in records],
         dtype=float,
     )
-    len(x)
     all_fitness = x[:, 0]  # fitness
     zero_mask = slice(None)
     if exclude_zero_fitness_points:

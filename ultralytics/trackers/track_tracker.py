@@ -155,7 +155,7 @@ def attach_raw_preds_hook(predictor) -> None:
 
 
 def compute_dets_del(predictor) -> list | None:
-    """Return per-batch `(xywh, conf, cls)` tuples for detections the tight NMS dropped, or None if unavailable."""
+    """Return per-batch `(xywh, conf, cls)` tuples (`xywhr` for OBB) for detections tight NMS dropped, or None."""
     raw = getattr(predictor, "_raw_preds", None)
     if raw is None or not isinstance(raw, torch.Tensor):
         return None
@@ -181,8 +181,7 @@ def compute_dets_del(predictor) -> list | None:
             continue
         dels = loose_boxes.data[mask].cpu()
         if is_obb:
-            xywh = dels[:, :5].numpy()  # xywhr
-            out.append((xywh, dels[:, 5].numpy(), dels[:, 6].numpy()))
+            out.append((dels[:, :5].numpy(), dels[:, 5].numpy(), dels[:, 6].numpy()))
         else:
             xywh = ops.xyxy2xywh(dels[:, :4]).numpy()
             out.append((xywh, dels[:, 4].numpy(), dels[:, 5].numpy()))
@@ -420,7 +419,7 @@ class TRACKTRACK:
 
     @classmethod
     def compute_frame_extras(cls, predictor):
-        """Return per-batch ``(xywh, conf, cls)`` tuples for detections dropped by tight NMS."""
+        """Return per-batch ``(xywh, conf, cls)`` tuples (``xywhr`` for OBB) for detections dropped by tight NMS."""
         return compute_dets_del(predictor)
 
     def _cost_matrix(self, tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.ndarray:
@@ -459,8 +458,9 @@ class TRACKTRACK:
             results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
                 `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
             img (np.ndarray | None): Current BGR frame, used for GMC and external ReID models.
-            dets_del (tuple[np.ndarray, np.ndarray, np.ndarray] | None): Optional `(xywh, conf, cls)` detections dropped
-                by tight NMS and recovered with a looser NMS, used as extra low-priority candidates.
+            dets_del (tuple[np.ndarray, np.ndarray, np.ndarray] | None): Optional `(xywh, conf, cls)` detections
+                (`xywhr` for OBB) dropped by tight NMS and recovered with a looser NMS, used as extra low-priority
+                candidates.
             **kwargs (Any): Additional inputs; `feats` supplies per-detection features for native (`model="auto"`) ReID.
 
         Returns:

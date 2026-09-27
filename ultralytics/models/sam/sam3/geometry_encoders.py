@@ -181,14 +181,11 @@ class SequenceGeometryEncoder(nn.Module):
 
     These three options are mutually compatible and will be summed if multiple are selected.
 
-    As an alternative, boxes can be encoded as two corner points (top-left and bottom-right).
-
     The encoded sequence can be further processed with a transformer.
     """
 
     def __init__(
         self,
-        encode_boxes_as_points: bool,
         boxes_direct_project: bool,
         boxes_pool: bool,
         boxes_pos_enc: bool,
@@ -206,41 +203,20 @@ class SequenceGeometryEncoder(nn.Module):
 
         self.d_model = d_model
         self.pos_enc = pos_enc
-        self.encode_boxes_as_points = encode_boxes_as_points
         self.roi_size = roi_size
 
-        # Label embeddings: 2 labels if encoding as boxes (pos/neg)
-        # 6 labels if encoding as points (regular pos/neg, top-left pos/neg, bottom-right pos/neg)
-        num_labels = 6 if self.encode_boxes_as_points else 2
-        self.label_embed = torch.nn.Embedding(num_labels, self.d_model)
+        self.label_embed = torch.nn.Embedding(2, self.d_model)  # positive/negative box labels
 
         # CLS token for pooling
         self.cls_embed = None
         if add_cls:
             self.cls_embed = torch.nn.Embedding(1, self.d_model)
 
-        # Point encoding (used when encode_boxes_as_points is True)
-        if encode_boxes_as_points:
-            self.points_direct_project = nn.Linear(2, self.d_model)
-            self.points_pool_project = None
-            self.points_pos_enc_project = None
-        else:
-            # Box encoding modules
-            assert boxes_direct_project or boxes_pos_enc or boxes_pool, "Error: need at least one way to encode boxes"
-            self.points_direct_project = None
-            self.points_pool_project = None
-            self.points_pos_enc_project = None
-
-            self.boxes_direct_project = None
-            self.boxes_pool_project = None
-            self.boxes_pos_enc_project = None
-
-            if boxes_direct_project:
-                self.boxes_direct_project = nn.Linear(4, self.d_model)
-            if boxes_pool:
-                self.boxes_pool_project = nn.Conv2d(self.d_model, self.d_model, self.roi_size)
-            if boxes_pos_enc:
-                self.boxes_pos_enc_project = nn.Linear(self.d_model + 2, self.d_model)
+        # Box encoding modules
+        assert boxes_direct_project or boxes_pos_enc or boxes_pool, "Error: need at least one way to encode boxes"
+        self.boxes_direct_project = nn.Linear(4, self.d_model) if boxes_direct_project else None
+        self.boxes_pool_project = nn.Conv2d(self.d_model, self.d_model, self.roi_size) if boxes_pool else None
+        self.boxes_pos_enc_project = nn.Linear(self.d_model + 2, self.d_model) if boxes_pos_enc else None
 
         self.final_proj = None
         if add_post_encode_proj:
@@ -248,7 +224,7 @@ class SequenceGeometryEncoder(nn.Module):
             self.norm = nn.LayerNorm(self.d_model)
 
         self.img_pre_norm = nn.Identity()
-        if self.points_pool_project is not None or self.boxes_pool_project is not None:
+        if self.boxes_pool_project is not None:
             self.img_pre_norm = nn.LayerNorm(self.d_model)
 
         self.encode = None
@@ -258,15 +234,6 @@ class SequenceGeometryEncoder(nn.Module):
             self.encode_norm = nn.LayerNorm(self.d_model)
 
         self.use_act_ckpt = use_act_ckpt
-
-    def _encode_points(self, points, points_mask, points_labels, img_feats):
-        """Encode points (used when boxes are converted to corner points)."""
-        # Direct projection of coordinates
-        points_embed = self.points_direct_project(points.to(img_feats.dtype))
-
-        # Add label embeddings
-        type_embed = self.label_embed(points_labels.long())
-        return type_embed + points_embed, points_mask
 
     def _encode_boxes(self, boxes, boxes_mask, boxes_labels, img_feats: torch.Tensor):
         """Encode boxes using configured encoding methods."""
@@ -345,7 +312,7 @@ class SequenceGeometryEncoder(nn.Module):
         )
 
         # Prepare image features for pooling if needed
-        if self.points_pool_project or self.boxes_pool_project:
+        if self.boxes_pool_project is not None:
             assert len(img_feats) == len(img_sizes)
             cur_img_feat = img_feats[-1]
             cur_img_feat = self.img_pre_norm(cur_img_feat)
@@ -357,36 +324,12 @@ class SequenceGeometryEncoder(nn.Module):
             cur_img_feat = cur_img_feat.view(N, C, H, W)
             img_feats = cur_img_feat
 
-        if self.encode_boxes_as_points:
-            # Convert boxes to corner points
-            assert boxes is not None and boxes.shape[-1] == 4
-
-            boxes_xyxy = xywh2xyxy(boxes)
-            top_left, bottom_right = boxes_xyxy.split(split_size=2, dim=-1)
-
-            # Adjust labels for corner points (offset by 2 and 4)
-            labels_tl = boxes_labels + 2
-            labels_br = boxes_labels + 4
-
-            # Concatenate top-left and bottom-right points
-            points = torch.cat([top_left, bottom_right], dim=0)
-            points_labels = torch.cat([labels_tl, labels_br], dim=0)
-            points_mask = torch.cat([boxes_mask, boxes_mask], dim=1)
-
-            final_embeds, final_mask = self._encode_points(
-                points=points,
-                points_mask=points_mask,
-                points_labels=points_labels,
-                img_feats=img_feats,
-            )
-        else:
-            # Encode boxes directly
-            final_embeds, final_mask = self._encode_boxes(
-                boxes=boxes,
-                boxes_mask=boxes_mask,
-                boxes_labels=boxes_labels,
-                img_feats=img_feats,
-            )
+        final_embeds, final_mask = self._encode_boxes(
+            boxes=boxes,
+            boxes_mask=boxes_mask,
+            boxes_labels=boxes_labels,
+            img_feats=img_feats,
+        )
 
         bs = final_embeds.shape[1]
         assert final_mask.shape[0] == bs

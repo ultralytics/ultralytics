@@ -237,7 +237,7 @@ def seed_worker(worker_id: int) -> None:
 
 def build_yolo_dataset(
     cfg: IterableSimpleNamespace,
-    img_path: str,
+    img_path: str | list[str],
     batch: int,
     data: dict[str, Any],
     mode: str = "train",
@@ -250,7 +250,7 @@ def build_yolo_dataset(
 
     Args:
         cfg (IterableSimpleNamespace): Configuration namespace with dataset and augmentation hyperparameters.
-        img_path (str): Path to the images directory, image list file, or list of either.
+        img_path (str | list[str]): Path to the images directory, image list file, or list of either.
         batch (int): Batch size.
         data (dict[str, Any]): Dataset configuration dictionary.
         mode (str, optional): Dataset mode, 'train' enables augmentation; any other value is treated as evaluation.

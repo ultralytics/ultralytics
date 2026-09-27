@@ -186,9 +186,8 @@ class ParkingManagement(BaseSolution):
         json_file (str): Path to the JSON file containing parking region details.
         json (list[dict]): Loaded JSON data containing parking region information.
         pr_info (dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
-        arc (tuple[int, int, int]): BGR color tuple for available region visualization.
-        occ (tuple[int, int, int]): BGR color tuple for occupied region visualization.
-        dc (tuple[int, int, int]): BGR color tuple for centroid visualization of detected objects (currently unused).
+        arc (tuple[int, int, int]): BGR color tuple for available region visualization (red).
+        occ (tuple[int, int, int]): BGR color tuple for occupied region visualization (green).
 
     Methods:
         process: Process the input image for parking lot management and visualization.
@@ -224,7 +223,6 @@ class ParkingManagement(BaseSolution):
 
         self.arc = (0, 0, 255)  # Available region color
         self.occ = (0, 255, 0)  # Occupied region color
-        self.dc = (255, 0, 189)  # Centroid color for each box
 
     def process(self, im0: np.ndarray) -> SolutionResults:
         """Process the input image for parking lot management and visualization.
@@ -259,7 +257,6 @@ class ParkingManagement(BaseSolution):
                 xc, yc = int((x0 + x1) / 2), int((y0 + y1) / 2)
                 inside_distance = cv2.pointPolygonTest(region_polygon, (xc, yc), False)
                 if inside_distance >= 0:
-                    # cv2.circle(im0, (xc, yc), radius=self.line_width * 4, color=self.dc, thickness=-1)
                     annotator.display_objects_labels(
                         im0, self.model.names[int(cls)], (104, 31, 17), (255, 255, 255), xc, yc, 10
                     )

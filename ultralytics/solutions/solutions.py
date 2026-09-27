@@ -210,7 +210,7 @@ class BaseSolution:
         """
         # Store tracking history
         self.track_line = self.track_history[track_id]
-        self.track_line.append(tuple(box.mean(dim=0)) if box.numel() > 4 else (box[:4:2].mean(), box[1:4:2].mean()))
+        self.track_line.append(tuple(box.reshape(-1, 2).mean(dim=0).tolist()))  # (x, y) center as Python floats
         if len(self.track_line) > 30:
             self.track_line.pop(0)
 
@@ -570,10 +570,10 @@ class SolutionAnnotator(Annotator):
 
     def plot_angle_and_count_and_stage(
         self,
-        angle_text: str,
-        count_text: str,
+        angle_text: float,
+        count_text: int,
         stage_text: str,
-        center_kpt: list[int],
+        center_kpt: list[float],
         color: tuple[int, int, int] = (104, 31, 17),
         txt_color: tuple[int, int, int] = (255, 255, 255),
     ):
@@ -828,8 +828,7 @@ class SolutionResults:
         email_sent (bool): A flag indicating whether an email notification was sent.
         total_tracks (int): The total number of tracked objects.
         region_counts (dict[str, int]): The count of objects within a specific region.
-        speed_dict (dict[str, float]): A dictionary for speed information of tracked objects (not populated by
-            SpeedEstimator, which reports speeds on `plot_im` only).
+        speed_dict (dict[int, int]): Estimated speed in km/h per track ID from SpeedEstimator.
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
     """

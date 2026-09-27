@@ -60,7 +60,6 @@ class ImageEncoderViT(nn.Module):
         act_layer: type[nn.Module] = nn.GELU,
         use_abs_pos: bool = True,
         use_rel_pos: bool = False,
-        rel_pos_zero_init: bool = True,
         window_size: int = 0,
         global_attn_indexes: tuple[int, ...] = (),
     ) -> None:
@@ -80,7 +79,6 @@ class ImageEncoderViT(nn.Module):
             act_layer (type[nn.Module]): Type of activation layer to use.
             use_abs_pos (bool): If True, uses absolute positional embeddings.
             use_rel_pos (bool): If True, adds relative positional embeddings to attention maps.
-            rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window for windowed attention blocks.
             global_attn_indexes (tuple[int, ...]): Indices of blocks that use global attention.
         """
@@ -109,7 +107,6 @@ class ImageEncoderViT(nn.Module):
                 norm_layer=norm_layer,
                 act_layer=act_layer,
                 use_rel_pos=use_rel_pos,
-                rel_pos_zero_init=rel_pos_zero_init,
                 window_size=window_size if i not in global_attn_indexes else 0,
                 input_size=(img_size // patch_size, img_size // patch_size),
             )
@@ -137,11 +134,9 @@ class ImageEncoderViT(nn.Module):
         """Process input through patch embedding, positional embedding, transformer blocks, and neck module."""
         x = self.patch_embed(x)
         if self.pos_embed is not None:
-            pos_embed = (
-                F.interpolate(self.pos_embed.permute(0, 3, 1, 2), scale_factor=self.img_size / 1024).permute(0, 2, 3, 1)
-                if self.img_size != 1024
-                else self.pos_embed
-            )
+            pos_embed = self.pos_embed
+            if pos_embed.shape[1:3] != x.shape[1:3]:  # resize to the patch grid, e.g. after set_imgsz()
+                pos_embed = F.interpolate(pos_embed.permute(0, 3, 1, 2), size=x.shape[1:3]).permute(0, 2, 3, 1)
             x = x + pos_embed
         for blk in self.blocks:
             x = blk(x)

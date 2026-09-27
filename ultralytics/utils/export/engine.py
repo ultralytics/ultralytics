@@ -224,7 +224,7 @@ def modelopt_quantize_onnx(
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
-    workspace: int | None = None,
+    workspace: float | None = None,
     quantize: int | str | None = None,
     dynamic: bool = False,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
@@ -239,7 +239,7 @@ def onnx2engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         output_file (Path | str | None): Path to save the generated TensorRT engine file.
-        workspace (int | None): Workspace size in GiB for TensorRT, or None for TensorRT auto-allocation.
+        workspace (float | None): Workspace size in GiB for TensorRT, or None for TensorRT auto-allocation.
         quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
@@ -350,7 +350,7 @@ def onnx2engine(
     if dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
+        max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
             inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))

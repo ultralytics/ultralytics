@@ -152,11 +152,11 @@ def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
         file (str): Path to the file that might need to be deleted.
 
     Examples:
-        >>> from ultralytics.models.yolo.detect import DetectionTrainer
+        >>> from types import SimpleNamespace
         >>> from ultralytics.utils.dist import ddp_cleanup, generate_ddp_file
-        >>> trainer = DetectionTrainer(overrides={"model": "yolo26n.pt", "data": "coco8.yaml"})
+        >>> trainer = SimpleNamespace(args=SimpleNamespace(), model=None, callbacks={})  # minimal trainer stand-in
         >>> file = generate_ddp_file(trainer)
-        >>> ddp_cleanup(trainer, file)
+        >>> ddp_cleanup(trainer, file)  # deletes the temporary .py script and its .pt state file
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)

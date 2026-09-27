@@ -9,7 +9,7 @@
 | [TensorRT]({{ integrations_path or "../integrations" }}/tensorrt.md) | `engine` | `{{ model_name or "yolo26n" }}.engine` | ✅ | `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `workspace`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
 | [CoreML]({{ integrations_path or "../integrations" }}/coreml.md) | `coreml` | `{{ model_name or "yolo26n" }}.mlpackage` | ✅ | `imgsz`, `dynamic`, `quantize`, `nms`{{ tip1 }}, `batch`, `device` |
 | [Apple Core AI]({{ integrations_path or "../integrations" }}/coreai.md) | `coreai` | `{{ model_name or "yolo26n" }}.aimodel` | ✅ | `imgsz`, `batch`, `quantize` |
-| [TF SavedModel]({{ integrations_path or "../integrations" }}/tf-savedmodel.md) | `saved_model` | `{{ model_name or "yolo26n" }}_saved_model/` | ✅ | `imgsz`, `keras`, `quantize`, `opset`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
+| [TF SavedModel]({{ integrations_path or "../integrations" }}/tf-savedmodel.md) | `saved_model` | `{{ model_name or "yolo26n" }}_saved_model/` | ✅ | `imgsz`, `quantize`, `opset`, `nms`{{ tip1 }}, `batch`, `data`, `fraction`, `device` |
 | [TF GraphDef]({{ integrations_path or "../integrations" }}/tf-graphdef.md) | `pb` | `{{ model_name or "yolo26n" }}.pb` | ❌ | `imgsz`, `opset`, `batch`, `device` |
 | [TF Edge TPU]({{ integrations_path or "../integrations" }}/edge-tpu.md) | `edgetpu` | `{{ model_name or "yolo26n" }}_edgetpu.tflite` | ✅ | `imgsz`, `quantize`, `opset`, `data`, `fraction`, `device` |
 | [LiteRT]({{ integrations_path or "../integrations" }}/litert.md) | `litert` | `{{ model_name or "yolo26n" }}.tflite` | ✅ | `imgsz`, `quantize`, `batch`, `data`, `fraction`, `device` |

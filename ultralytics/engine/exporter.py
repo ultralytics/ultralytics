@@ -204,7 +204,7 @@ def export_formats():
             "_saved_model",
             True,
             True,
-            ["batch", "data", "fraction", "quantize", "opset", "keras", "nms"],
+            ["batch", "data", "fraction", "quantize", "opset", "nms"],
             "tensorflow",
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch", "opset"], "tensorflow"],
@@ -433,9 +433,7 @@ INT8_FORMATS = frozenset(
         "hailo",
     }
 )
-W8A16_FORMATS = frozenset(
-    {"coreml", "litert", "imx", "qnn"}
-)  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
@@ -830,14 +828,10 @@ class Exporter:
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
-        if fmt == "edgetpu":
-            if not LINUX or ARM64:
-                raise SystemError(
-                    "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
-                )
-            elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
-                LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
-                self.args.batch = 1
+        if fmt == "edgetpu" and (not LINUX or ARM64):
+            raise SystemError(
+                "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
+            )
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -927,8 +921,8 @@ class Exporter:
 
         if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
-            # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
-            # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
+            # forces consumers to dequantize and argmax ~8M floats at 640px (~20M at 1024px) on the CPU every frame
+            # (measured erratic 123-1065 ms on Hexagon at 1024px). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
             # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
             # predict/val accept both forms.
             model = ClassMapModel(model)
@@ -1649,7 +1643,7 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
-            batch=0 if self.args.dynamic else self.args.batch,
+            batch=self.args.batch,
             prefix=prefix,
         )
 

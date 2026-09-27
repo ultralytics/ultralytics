@@ -1531,6 +1531,7 @@ class RTDETRDecoder(nn.Module):
     """
 
     export = False  # export mode
+    format = None  # export format
     max_det = 300  # max detections per image
     shapes = []
     anchors = torch.empty(0)

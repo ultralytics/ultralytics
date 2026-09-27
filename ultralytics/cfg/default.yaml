@@ -84,7 +84,6 @@ line_width: # (int, optional) line width of boxes; auto-scales with image size i
 
 # Export settings ------------------------------------------------------------------------------------------------------
 format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|coreai|saved_model|pb|edgetpu|litert|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx|qnn|hailo|ascend
-keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
 optimize: False # (bool) DEEPX only; higher compiler optimization (slower compile, faster inference)
 dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, coreml, mnn; enable variable image sizes
 simplify: True # (bool) supported ONNX-based exports (see export table); simplify intermediate ONNX graph

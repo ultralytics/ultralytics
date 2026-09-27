@@ -15,7 +15,7 @@ import torch
 from PIL import Image
 from torch.utils.data import ConcatDataset
 
-from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, colorstr
+from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
@@ -314,11 +314,11 @@ class YOLODataset(BaseDataset):
         self.verify_labels(labels, cache_path)
         return labels
 
-    def build_transforms(self, hyp: dict | None = None) -> Compose:
+    def build_transforms(self, hyp: IterableSimpleNamespace) -> Compose:
         """Build and append transforms to the list.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transforms.
+            hyp (IterableSimpleNamespace): Hyperparameters for transforms.
 
         Returns:
             (Compose): Composed transforms.
@@ -376,11 +376,11 @@ class YOLODataset(BaseDataset):
         threshold = min(max(category_freq.values()), 100)
         return [k for k, v in category_freq.items() if v >= threshold]
 
-    def close_mosaic(self, hyp: dict) -> None:
+    def close_mosaic(self, hyp: IterableSimpleNamespace) -> None:
         """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
-            hyp (dict): Hyperparameters for transforms.
+            hyp (IterableSimpleNamespace): Hyperparameters for transforms.
         """
         hyp.mosaic = 0.0
         hyp.copy_paste = 0.0
@@ -536,11 +536,11 @@ class DepthDataset(YOLODataset):
         label["depth"] = depth
         return label
 
-    def build_transforms(self, hyp=None):
+    def build_transforms(self, hyp: IterableSimpleNamespace) -> Compose:
         """Build transforms for depth estimation.
 
         Args:
-            hyp (dict): Hyperparameters.
+            hyp (IterableSimpleNamespace): Hyperparameters.
 
         Returns:
             (Compose): Composed transforms.
@@ -597,11 +597,11 @@ class YOLOMultiModalDataset(YOLODataset):
 
         return labels
 
-    def build_transforms(self, hyp: dict | None = None) -> Compose:
+    def build_transforms(self, hyp: IterableSimpleNamespace) -> Compose:
         """Enhance data transformations with text augmentation for multi-modal training.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transforms.
+            hyp (IterableSimpleNamespace): Hyperparameters for transforms.
 
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
@@ -823,11 +823,11 @@ class GroundingDataset(YOLODataset):
             LOGGER.info(f"Load {self.json_file} from cache file {cache_path}")
         return labels
 
-    def build_transforms(self, hyp: dict | None = None) -> Compose:
+    def build_transforms(self, hyp: IterableSimpleNamespace) -> Compose:
         """Configure augmentations for training with optional text loading.
 
         Args:
-            hyp (dict, optional): Hyperparameters for transforms.
+            hyp (IterableSimpleNamespace): Hyperparameters for transforms.
 
         Returns:
             (Compose): Composed transforms including text augmentation if applicable.
@@ -878,11 +878,11 @@ class YOLOConcatDataset(ConcatDataset):
         """
         return YOLODataset.collate_fn(batch)
 
-    def close_mosaic(self, hyp: dict) -> None:
+    def close_mosaic(self, hyp: IterableSimpleNamespace) -> None:
         """Disable mosaic, copy_paste, mixup and cutmix augmentations by setting their values to 0.0.
 
         Args:
-            hyp (dict): Hyperparameters for transforms.
+            hyp (IterableSimpleNamespace): Hyperparameters for transforms.
         """
         for dataset in self.datasets:
             if not hasattr(dataset, "close_mosaic"):

@@ -288,7 +288,7 @@ class ProfileModels:
 
     Attributes:
         paths (list[str]): Paths of the models to profile.
-        num_timed_runs (int): Number of timed runs for the profiling.
+        num_timed_runs (int): Minimum number of timed runs for ONNX profiling; TensorRT uses 50x this minimum.
         num_warmup_runs (int): Number of warmup runs before profiling.
         min_time (float): Minimum number of seconds to profile for.
         imgsz (int): Image size used in the models.
@@ -330,7 +330,7 @@ class ProfileModels:
 
         Args:
             paths (list[str]): List of paths of the models to be profiled.
-            num_timed_runs (int): Number of timed runs for the profiling.
+            num_timed_runs (int): Minimum number of timed runs for ONNX profiling; TensorRT uses 50x this minimum.
             num_warmup_runs (int): Number of warmup runs before the actual profiling starts.
             min_time (float): Minimum time in seconds for profiling a model.
             imgsz (int): Size of the image used during profiling.

@@ -1010,7 +1010,7 @@ class CBLinear(nn.Module):
         self.c2s = c2s
         self.conv = nn.Conv2d(c1, sum(c2s), k, s, autopad(k, p), groups=g, bias=True)
 
-    def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
+    def forward(self, x: torch.Tensor) -> tuple[torch.Tensor, ...]:
         """Forward pass through CBLinear layer."""
         return self.conv(x).split(self.c2s, dim=1)
 
@@ -2015,7 +2015,9 @@ class Proto26(Proto):
         self.feat_fuse = Conv(ch[0], c_, k=3)
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
-    def forward(self, x: torch.Tensor, return_semantic: bool = True) -> torch.Tensor:
+    def forward(
+        self, x: list[torch.Tensor], return_semantic: bool = True
+    ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """Perform a forward pass by fusing multi-scale feature maps and generating proto masks.
 
         Args:

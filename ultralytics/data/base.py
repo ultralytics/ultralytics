@@ -18,7 +18,7 @@ import torch
 from torch.utils.data import Dataset
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds, get_split_fraction
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace
 from ultralytics.utils.patches import imread
 
 
@@ -112,7 +112,7 @@ class BaseDataset(Dataset):
         imgsz: int = 640,
         cache: bool | str = False,
         augment: bool = True,
-        hyp: dict[str, Any] = DEFAULT_CFG,
+        hyp: IterableSimpleNamespace = DEFAULT_CFG,
         prefix: str = "",
         rect: bool = False,
         batch_size: int = 16,
@@ -130,7 +130,7 @@ class BaseDataset(Dataset):
             imgsz (int): Image size for resizing.
             cache (bool | str): Cache images to RAM (True or 'ram') or disk ('disk') during training.
             augment (bool): If True, data augmentation is applied.
-            hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
+            hyp (IterableSimpleNamespace): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
             rect (bool): If True, rectangular training is used.
             batch_size (int): Size of batches.
@@ -340,7 +340,7 @@ class BaseDataset(Dataset):
                 np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
             except Exception as e:
                 f.unlink(missing_ok=True)
-                LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
+                LOGGER.warning(f"{self.prefix}Failed to cache image {f}: {e}")
 
     def check_cache_disk(self, safety_margin: float = 0.1) -> bool:
         """Check if there's enough disk space for caching images.
@@ -457,11 +457,11 @@ class BaseDataset(Dataset):
         """Customize your label format here."""
         return label
 
-    def build_transforms(self, hyp: dict[str, Any] | None = None):
+    def build_transforms(self, hyp: IterableSimpleNamespace):
         """Build the augmentation pipeline; subclasses must override this.
 
         Args:
-            hyp (dict[str, Any], optional): Hyperparameters for the transforms.
+            hyp (IterableSimpleNamespace): Hyperparameters for the transforms.
 
         Returns:
             (Compose): Composed transforms applied to each sample.
@@ -473,7 +473,7 @@ class BaseDataset(Dataset):
             >>> from ultralytics.data.augment import Compose
             >>> from ultralytics.data.base import BaseDataset
             >>> class CustomDataset(BaseDataset):
-            ...     def build_transforms(self, hyp=None):
+            ...     def build_transforms(self, hyp):
             ...         return Compose([])  # add training or validation transforms here
         """
         raise NotImplementedError

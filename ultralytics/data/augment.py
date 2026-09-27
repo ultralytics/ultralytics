@@ -1384,6 +1384,13 @@ class RandomPerspective(BaseTransform):
 
         Depth values remain in meters; only their spatial support is warped. Nearest-neighbor interpolation avoids
         manufacturing spurious near-zero "valid" pixels when sparse or invalid regions border real depth.
+
+        Args:
+            labels (dict[str, Any]): Dictionary containing 'depth'.
+            params (dict | None): Parameters from get_params, including 'M' and 'size'.
+
+        Returns:
+            (dict): Updated labels with warped depth map, zero-filled outside the source image.
         """
         depth = labels.get("depth")
         if depth is None:
@@ -2798,8 +2805,6 @@ class RandomLoadText(BaseTransform):
             num_padding = self.max_samples - valid_labels
             if num_padding > 0:
                 texts += random.choices(self.padding_value, k=num_padding)
-
-        assert len(texts) == self.max_samples
 
         return {"valid_idx": valid_idx, "new_cls": np.array(new_cls), "texts": texts}
 

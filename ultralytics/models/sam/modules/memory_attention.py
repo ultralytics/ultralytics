@@ -233,8 +233,8 @@ class MemoryAttention(nn.Module):
         self,
         curr: torch.Tensor,  # self-attention inputs
         memory: torch.Tensor,  # cross-attention inputs
-        curr_pos: torch.Tensor | None = None,  # pos_enc for self-attention inputs
-        memory_pos: torch.Tensor | None = None,  # pos_enc for cross-attention inputs
+        curr_pos: torch.Tensor,  # pos_enc for self-attention inputs
+        memory_pos: torch.Tensor,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
     ) -> torch.Tensor:
         """Process inputs through attention layers, applying self and cross-attention with positional encoding.
@@ -243,10 +243,9 @@ class MemoryAttention(nn.Module):
             curr (torch.Tensor | list[torch.Tensor]): Self-attention input tensor representing the current state, with
                 shape (L, B, d_model), or a single-element list containing it.
             memory (torch.Tensor): Cross-attention input tensor representing memory information, with shape (S, B, C).
-            curr_pos (torch.Tensor | list[torch.Tensor] | None): Positional encoding for self-attention inputs, matching
+            curr_pos (torch.Tensor | list[torch.Tensor]): Positional encoding for self-attention inputs, matching
                 the type and shape of curr.
-            memory_pos (torch.Tensor | None): Positional encoding for cross-attention inputs with the same shape as
-                memory.
+            memory_pos (torch.Tensor): Positional encoding for cross-attention inputs with the same shape as memory.
             num_obj_ptr_tokens (int): Number of object pointer tokens to exclude from rotary position embedding.
 
         Returns:
@@ -273,7 +272,7 @@ class MemoryAttention(nn.Module):
         assert curr.shape[1] == memory.shape[1], "Batch size must be the same for curr and memory"
 
         output = curr
-        if self.pos_enc_at_input and curr_pos is not None:
+        if self.pos_enc_at_input:
             output = output + 0.1 * curr_pos
 
         if self.batch_first:
@@ -300,6 +299,5 @@ class MemoryAttention(nn.Module):
         if self.batch_first:
             # Convert back to seq first
             normed_output = normed_output.transpose(0, 1)
-            curr_pos = curr_pos.transpose(0, 1)
 
         return normed_output

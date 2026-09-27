@@ -146,20 +146,20 @@ class Bboxes:
             axis (int, optional): The axis along which to concatenate the bounding boxes.
 
         Returns:
-            (Bboxes): A new Bboxes object containing the concatenated bounding boxes (in the default 'xyxy' format), or
-                the input object itself if the list has a single element.
+            (Bboxes): A new Bboxes object containing the concatenated bounding boxes, or the input object itself if the
+                list has a single element.
 
         Notes:
-            The input should be a list or tuple of Bboxes objects.
+            The input should be a list or tuple of Bboxes objects sharing the same format, which the result keeps.
         """
         assert isinstance(boxes_list, (list, tuple))
         if not boxes_list:
-            return cls(np.empty(0))
+            return cls(np.empty((0, 4)))
         assert all(isinstance(box, Bboxes) for box in boxes_list)
 
         if len(boxes_list) == 1:
             return boxes_list[0]
-        return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis))
+        return cls(np.concatenate([b.bboxes for b in boxes_list], axis=axis), format=boxes_list[0].format)
 
     def __getitem__(self, index: int | np.ndarray | slice) -> Bboxes:
         """Retrieve a specific bounding box or a set of bounding boxes using indexing.
@@ -487,7 +487,7 @@ class Instances:
         """
         assert isinstance(instances_list, (list, tuple))
         if not instances_list:
-            return cls(np.empty(0))
+            return cls(np.empty((0, 4)))
         assert all(isinstance(instance, Instances) for instance in instances_list)
 
         if len(instances_list) == 1:

@@ -142,9 +142,10 @@ class TensorFlowBackend(BaseBackend):
                     else:
                         x[:, [0, 2]] *= w
                         x[:, [1, 3]] *= h
-                        if self.task == "pose":
-                            x[:, 5::3] *= w
-                            x[:, 6::3] *= h
+                        if self.task == "pose":  # keypoints follow the box (4) and class-score (nc) channels
+                            kpt_start = 4 + len(self.names)
+                            x[:, kpt_start::3] *= w
+                            x[:, kpt_start + 1 :: 3] *= h
                 y.append(x)
 
         if self.task == "segment":  # segment with (det, proto) output order reversed

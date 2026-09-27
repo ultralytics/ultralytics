@@ -217,7 +217,7 @@ class YOLOE(Model):
     """YOLOE object detection and segmentation model.
 
     YOLOE is an enhanced YOLO model that supports both object detection and instance segmentation tasks with improved
-    performance and additional features like visual and text positional embeddings.
+    performance and additional features like visual and text prompt embeddings.
 
     Attributes:
         model: The loaded YOLOE model instance.
@@ -227,8 +227,8 @@ class YOLOE(Model):
     Methods:
         __init__: Initialize YOLOE model with a pre-trained model file.
         task_map: Map tasks to their corresponding model, trainer, validator, and predictor classes.
-        get_text_pe: Get text positional embeddings for the given texts.
-        get_visual_pe: Get visual positional embeddings for the given image and visual features.
+        get_text_pe: Get text prompt embeddings for the given texts.
+        get_visual_pe: Get visual prompt embeddings for the given image and visual features.
         set_vocab: Set vocabulary and class names for the YOLOE model.
         get_vocab: Get the vocabulary for the given class names, which become the model's classes as the head is fused.
         set_classes: Set the model's class names and embeddings for detection.
@@ -280,21 +280,21 @@ class YOLOE(Model):
         }
 
     def get_text_pe(self, texts):
-        """Get text positional embeddings for the given texts.
+        """Get text prompt embeddings for the given texts.
 
         Args:
             texts (list[str]): Text prompts (e.g. class names) to embed.
 
         Returns:
-            (torch.Tensor): Text positional embeddings with shape (1, len(texts), embed_dim).
+            (torch.Tensor): Text prompt embeddings with shape (1, len(texts), embed_dim).
         """
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
 
     def get_visual_pe(self, img, visual):
-        """Get visual positional embeddings for the given image and visual features.
+        """Get visual prompt embeddings for the given image and visual features.
 
-        This method extracts positional embeddings from visual features based on the input image. It requires that the
+        This method extracts prompt embeddings from visual features based on the input image. It requires that the
         model is an instance of YOLOEModel.
 
         Args:
@@ -302,7 +302,7 @@ class YOLOE(Model):
             visual (torch.Tensor): Visual features extracted from the image.
 
         Returns:
-            (torch.Tensor): Visual positional embeddings.
+            (torch.Tensor): Visual prompt embeddings.
 
         Examples:
             >>> model = YOLOE("yoloe-11s-seg.pt")

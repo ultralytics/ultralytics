@@ -473,7 +473,7 @@ class v8DetectionLoss:
 
     def parse_output(
         self, preds: dict[str, torch.Tensor] | tuple[torch.Tensor, dict[str, torch.Tensor]]
-    ) -> torch.Tensor:
+    ) -> dict[str, torch.Tensor]:
         """Return the training outputs dict, taking the second element of an (inference, dict) predictions tuple."""
         return preds[1] if isinstance(preds, tuple) else preds
 
@@ -1381,7 +1381,7 @@ class TVPDetectLoss:
         vp_loss = self.vp_criterion(preds, batch)
         return vp_loss[0][1], dict(zip(self.loss_names, vp_loss[1].values()))
 
-    def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> list[torch.Tensor]:
+    def _get_vp_features(self, preds: dict[str, torch.Tensor]) -> torch.Tensor:
         """Update the criterion to the visual-prompt class count and return the visual-prompt scores."""
         scores = preds["scores"]
         vnc = scores.shape[1]

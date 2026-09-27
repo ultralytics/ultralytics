@@ -867,7 +867,6 @@ class Block(nn.Module):
         norm_layer: type[nn.Module] = nn.LayerNorm,
         act_layer: type[nn.Module] = nn.GELU,
         use_rel_pos: bool = False,
-        rel_pos_zero_init: bool = True,
         window_size: int = 0,
         input_size: tuple[int, int] | None = None,
     ) -> None:
@@ -885,7 +884,6 @@ class Block(nn.Module):
             norm_layer (type[nn.Module]): Type of normalization layer to use.
             act_layer (type[nn.Module]): Type of activation function to use in the MLP block.
             use_rel_pos (bool): If True, uses relative positional embeddings in attention.
-            rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             window_size (int): Size of attention window. If 0, uses global attention.
             input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
         """
@@ -896,7 +894,6 @@ class Block(nn.Module):
             num_heads=num_heads,
             qkv_bias=qkv_bias,
             use_rel_pos=use_rel_pos,
-            rel_pos_zero_init=rel_pos_zero_init,
             input_size=input_size if window_size == 0 else (window_size, window_size),
         )
 
@@ -955,7 +952,6 @@ class REAttention(nn.Module):
         num_heads: int = 8,
         qkv_bias: bool = True,
         use_rel_pos: bool = False,
-        rel_pos_zero_init: bool = True,
         input_size: tuple[int, int] | None = None,
     ) -> None:
         """Initialize a Relative Position Attention module for transformer-based architectures.
@@ -968,7 +964,6 @@ class REAttention(nn.Module):
             num_heads (int): Number of attention heads.
             qkv_bias (bool): If True, adds a learnable bias to query, key, value projections.
             use_rel_pos (bool): If True, uses relative positional encodings.
-            rel_pos_zero_init (bool): If True, initializes relative positional parameters to zero.
             input_size (tuple[int, int] | None): Input resolution for calculating relative positional parameter size.
                 Required if use_rel_pos is True.
         """

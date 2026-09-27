@@ -197,7 +197,7 @@ def torch_load(*args, **kwargs):
     Notes:
         For PyTorch versions 1.13 and above, this function automatically sets `weights_only=False` if the argument is
         not provided, since PyTorch 2.6+ defaults to `weights_only=True`, which rejects full model checkpoints, and
-        earlier versions warn when the argument is omitted.
+        PyTorch 2.4-2.5 emit a FutureWarning when the argument is omitted.
     """
     from ultralytics.utils.torch_utils import TORCH_1_13
 

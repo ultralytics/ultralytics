@@ -1104,7 +1104,7 @@ class WorldModel(DetectionModel):
     Methods:
         __init__: Initialize YOLOv8 world model.
         set_classes: Set classes for offline inference.
-        get_text_pe: Get text positional embeddings.
+        get_text_pe: Get text prompt embeddings.
         predict: Perform forward pass with text features.
         loss: Compute loss with text features.
 
@@ -1140,7 +1140,7 @@ class WorldModel(DetectionModel):
         self.model[-1].nc = len(text)
 
     def get_text_pe(self, text, batch=80, cache_clip_model=True):
-        """Get text positional embeddings using the CLIP model.
+        """Get text prompt embeddings using the CLIP model.
 
         Args:
             text (list[str]): List of class names.
@@ -1148,7 +1148,7 @@ class WorldModel(DetectionModel):
             cache_clip_model (bool): Whether to cache the CLIP model.
 
         Returns:
-            (torch.Tensor): Text positional embeddings.
+            (torch.Tensor): Text prompt embeddings.
         """
         from ultralytics.nn.text_model import build_text_model
 
@@ -1234,12 +1234,12 @@ class YOLOEModel(DetectionModel):
 
     Methods:
         __init__: Initialize YOLOE model.
-        get_text_pe: Get text positional embeddings.
+        get_text_pe: Get text prompt embeddings.
         get_visual_pe: Get visual embeddings.
         set_vocab: Set vocabulary for prompt-free model.
         get_vocab: Get fused vocabulary layer.
         set_classes: Set classes for offline inference.
-        get_cls_pe: Get class positional embeddings.
+        get_cls_pe: Get class prompt embeddings.
         predict: Perform forward pass with prompts.
         loss: Compute loss with prompts.
 
@@ -1263,7 +1263,7 @@ class YOLOEModel(DetectionModel):
 
     @smart_inference_mode()
     def get_text_pe(self, text, batch=80, cache_clip_model=False, without_reprta=False):
-        """Get text positional embeddings using the CLIP model.
+        """Get text prompt embeddings using the CLIP model.
 
         Args:
             text (list[str]): List of class names.
@@ -1272,7 +1272,7 @@ class YOLOEModel(DetectionModel):
             without_reprta (bool): Whether to return text embeddings without reprta module processing.
 
         Returns:
-            (torch.Tensor): Text positional embeddings in the model's parameter dtype.
+            (torch.Tensor): Text prompt embeddings in the model's parameter dtype.
         """
         from ultralytics.nn.text_model import build_text_model
 
@@ -1301,14 +1301,14 @@ class YOLOEModel(DetectionModel):
 
     @smart_inference_mode()
     def get_visual_pe(self, img, visual):
-        """Get visual positional embeddings.
+        """Get visual prompt embeddings.
 
         Args:
             img (torch.Tensor): Input image tensor.
             visual (torch.Tensor): Visual prompts, either (B, N, H, W) prompt masks or (B, N, D) embeddings.
 
         Returns:
-            (torch.Tensor): Visual positional embeddings.
+            (torch.Tensor): Visual prompt embeddings.
         """
         return self(img, vpe=visual, return_vpe=True)
 
@@ -1396,14 +1396,14 @@ class YOLOEModel(DetectionModel):
         self.model[-1].nc = len(names)
 
     def get_cls_pe(self, tpe, vpe):
-        """Get class positional embeddings.
+        """Get class prompt embeddings.
 
         Args:
-            tpe (torch.Tensor | None): Text positional embeddings.
-            vpe (torch.Tensor | None): Visual positional embeddings.
+            tpe (torch.Tensor | None): Text prompt embeddings.
+            vpe (torch.Tensor | None): Visual prompt embeddings.
 
         Returns:
-            (torch.Tensor): Class positional embeddings.
+            (torch.Tensor): Class prompt embeddings.
         """
         all_pe = []
         if tpe is not None:
@@ -1422,14 +1422,14 @@ class YOLOEModel(DetectionModel):
         Args:
             x (torch.Tensor): The input tensor.
             profile (bool): If True, profile the computation time for each layer.
-            tpe (torch.Tensor, optional): Text positional embeddings.
+            tpe (torch.Tensor, optional): Text prompt embeddings.
             augment (bool): Unused, accepted for API compatibility.
             embed (list, optional): A list of layer indices to return embeddings from.
-            vpe (torch.Tensor, optional): Visual positional embeddings.
-            return_vpe (bool): If True, return visual positional embeddings.
+            vpe (torch.Tensor, optional): Visual prompt embeddings.
+            return_vpe (bool): If True, return visual prompt embeddings.
 
         Returns:
-            (torch.Tensor | tuple): Model output, visual positional embeddings if `return_vpe`, or per-image embedding
+            (torch.Tensor | tuple): Model output, visual prompt embeddings if `return_vpe`, or per-image embedding
                 vectors if `embed` is given.
         """
         y, dt, embeddings = [], [], []  # outputs
@@ -1582,7 +1582,7 @@ class Ensemble(torch.nn.ModuleList):
             y (torch.Tensor): Predictions from all models concatenated along the anchor dimension.
             train_out (None): Always None for ensemble inference.
         """
-        y = [module(x, augment, profile)[0] for module in self]
+        y = [module(x, augment=augment, profile=profile)[0] for module in self]
         # y = torch.stack(y).max(0)[0]  # max ensemble
         # y = torch.stack(y).mean(0)  # mean ensemble
         y = torch.cat(y, 2)  # nms ensemble, y shape(B, C, HW*num_models)
@@ -1928,7 +1928,7 @@ def torch_safe_load(weight, safe_only=None):
             raise TypeError(
                 emojis(
                     f"ERROR ❌️ {weight} is not a loadable checkpoint — the file is empty, truncated or corrupted "
-                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-download or re-export the file, or to "
+                    f"({type(e).__name__}: {e}).\nRecommended fixes are to re-download or re-export the file, or to "
                     f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
@@ -1944,7 +1944,7 @@ def torch_safe_load(weight, safe_only=None):
                     f"ERROR ❌️ {weight} appears to be an Ultralytics YOLOv5 model originally trained "
                     f"with https://github.com/ultralytics/yolov5. This model is NOT forwards compatible with "
                     f"YOLOv8 at https://github.com/ultralytics/ultralytics."
-                    f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+                    f"\nRecommended fixes are to train a new model using the latest 'ultralytics' package or to "
                     f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
                 )
             ) from e
@@ -1969,7 +1969,7 @@ def torch_safe_load(weight, safe_only=None):
         LOGGER.warning(
             f"{weight} appears to require '{e.name}', which is not in Ultralytics requirements."
             f"\nAutoInstall will run now for '{e.name}' but this feature will be removed in the future."
-            f"\nRecommend fixes are to train a new model using the latest 'ultralytics' package or to "
+            f"\nRecommended fixes are to train a new model using the latest 'ultralytics' package or to "
             f"run a command with an official Ultralytics model, i.e. 'yolo predict model=yolo26n.pt'"
         )
         check_requirements(e.name)  # install missing module

@@ -138,10 +138,6 @@ class DetectionTrainer(BaseTrainer):
 
     def set_model_attributes(self):
         """Set model attributes based on dataset information."""
-        # Nl = de_parallel(self.model).model[-1].nl  # number of detection layers (to scale hyps)
-        # self.args.box *= 3 / nl  # scale to layers
-        # self.args.cls *= self.data["nc"] / 80 * 3 / nl  # scale to classes and layers
-        # self.args.cls *= (self.args.imgsz / 640) ** 2 * 3 / nl  # scale to image size and layers
         self.model.nc = self.data["nc"]  # attach number of classes to model
         self.model.names = self.data["names"]  # attach class names to model
         self.model.args = self.args  # attach hyperparameters to model

@@ -98,7 +98,7 @@ class ONNXBackend(BaseBackend):
                 # model-support issues, where the runtime's own message is the useful one.
                 raise TypeError(
                     f"ERROR ❌️ {weight} is not a loadable ONNX model — the file is empty, truncated or corrupted "
-                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-export it with "
+                    f"({type(e).__name__}: {e}).\nRecommended fixes are to re-export it with "
                     f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
                 ) from e
             if cuda and "CUDAExecutionProvider" not in self.session.get_providers():

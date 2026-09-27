@@ -139,9 +139,6 @@ class TransformerDecoderLayer(nn.Module):
 
     def _apply_self_attention(self, tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask):
         """Apply self-attention with optional DAC splitting."""
-        if self.self_attn is None:
-            return tgt
-
         if dac:
             # Split queries for DAC (divide-and-conquer)
             assert tgt.shape[0] % 2 == 0, "DAC requires even number of queries"

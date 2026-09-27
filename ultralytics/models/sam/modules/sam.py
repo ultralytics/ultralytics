@@ -152,11 +152,16 @@ class SAM2Model(torch.nn.Module):
         set_imgsz: Set image size to make model compatible with different image sizes.
 
     Examples:
-        >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
-        >>> image_batch = torch.rand(1, 3, 512, 512)
+        >>> import torch
+        >>> from ultralytics import SAM
+        >>> model = SAM("sam2.1_t.pt").model  # SAM2Model
+        >>> image_batch = torch.rand(1, 3, 1024, 1024)
         >>> backbone_out = model.forward_image(image_batch)
         >>> _, vision_feats, vision_pos_embeds, feat_sizes = model._prepare_backbone_features(backbone_out)
-        >>> track_results = model.track_step(0, True, vision_feats, vision_pos_embeds, feat_sizes, None, None, {}, 1)
+        >>> output_dict = {"cond_frame_outputs": {}, "non_cond_frame_outputs": {}}
+        >>> args = (vision_feats, vision_pos_embeds, feat_sizes, None, None, output_dict, 2)
+        >>> output_dict["cond_frame_outputs"][0] = model.track_step(0, True, *args)  # initial conditioning frame
+        >>> track_results = model.track_step(1, False, *args)  # track frame 1 using the frame 0 memory
     """
 
     mask_threshold: float = 0.0

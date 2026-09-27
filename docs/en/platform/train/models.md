@@ -326,7 +326,7 @@ Some export formats have architecture or task restrictions:
 
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 or W8A16                                                                                                                              |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                                                                                                                                  |
 | **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |

@@ -74,7 +74,8 @@ class SpeedEstimator(BaseSolution):
             im0 (np.ndarray): Input image for processing with shape (H, W, C) in OpenCV BGR format.
 
         Returns:
-            (SolutionResults): Contains processed image `plot_im` and `total_tracks` (number of tracked objects).
+            (SolutionResults): Contains processed image `plot_im`, `total_tracks` (number of tracked objects), and
+                `speed_dict` (dict[int, int], speed in km/h per track ID in this frame whose speed is locked).
 
         Examples:
             Process a frame for speed estimation
@@ -119,5 +120,6 @@ class SpeedEstimator(BaseSolution):
         plot_im = annotator.result()
         self.display_output(plot_im)  # Display output with base class function
 
-        # Return results with processed image and tracking summary
-        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids))
+        # Return results with processed image, tracking summary, and locked speeds of objects in this frame
+        speed_dict = {t: self.spd[t] for t in self.track_ids if t in self.spd}
+        return SolutionResults(plot_im=plot_im, total_tracks=len(self.track_ids), speed_dict=speed_dict)

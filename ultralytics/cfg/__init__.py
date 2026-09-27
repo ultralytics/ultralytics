@@ -135,7 +135,7 @@ SOLUTIONS_HELP_MSG = f"""
         yolo solutions parking source="path/to/video.mp4" json_file="bounding_boxes.json"
 
     10. Streamlit real-time webcam inference GUI
-        yolo streamlit-predict
+        yolo solutions inference
     """
 CLI_HELP_MSG = f"""
     Arguments received: {["yolo", *ARGV[1:]]!s}. Ultralytics 'yolo' commands use the following syntax:
@@ -197,7 +197,7 @@ QUANTIZE_ALIASES = {
     "w8a32": "w8a32",
 }
 QUANTIZE_DOCS_URL = "https://docs.ultralytics.com/modes/export#quantization-options"
-QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w8a16', or 'w8a32'"
+QUANTIZE_VALID_VALUES = "8, 16, 32, 'int8', 'fp16', 'fp32', 'w8a8', 'w16a16', 'w32a32', 'w8a16', or 'w8a32'"
 
 # Define keys for arg type checks
 CFG_FLOAT_KEYS = frozenset(
@@ -300,7 +300,6 @@ CFG_BOOL_KEYS = frozenset(
         "agnostic_nms",
         "retina_masks",
         "show_boxes",
-        "keras",
         "optimize",
         "dynamic",
         "simplify",
@@ -589,7 +588,7 @@ def _handle_deprecation(custom: dict) -> dict:
         This function modifies the input dictionary in-place, replacing deprecated keys with their current
         equivalents. It also handles value conversions where necessary, such as inverting boolean values for
         'hide_labels' and 'hide_conf', mapping 'end2end' onto 'nms', and mapping 'int8'/'half' onto 'quantize'.
-        Removed keys ('label_smoothing', 'save_hybrid', 'crop_fraction') are dropped with a warning.
+        Removed keys ('label_smoothing', 'save_hybrid', 'crop_fraction', 'keras') are dropped with a warning.
     """
     deprecated_mappings = {
         "boxes": ("show_boxes", lambda v: v),
@@ -597,7 +596,7 @@ def _handle_deprecation(custom: dict) -> dict:
         "hide_conf": ("show_conf", lambda v: not bool(v)),
         "line_thickness": ("line_width", lambda v: v),
     }
-    removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction"}
+    removed_keys = {"label_smoothing", "save_hybrid", "crop_fraction", "keras"}
 
     if "end2end" in custom:
         end2end = custom.pop("end2end")

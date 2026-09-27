@@ -320,8 +320,8 @@ Runtime dependency management is as critical as export dependency management. Ev
 
 #### Hardware Compatibility Requirements
 
-- **Host Machine Fallback**: If the target hardware is not available on the host machine, users must still be able to validate model performance through intermediate models or performance emulators.
-- **Emulation Support**: Provide accuracy and speed estimation capabilities without requiring physical hardware deployment.
+- **Host Machine Fallback**: Where possible, let users validate a model on a host without the target hardware, through intermediate models or emulators.
+- **Emulation Support**: Where the partner SDK offers an emulator, document how to use it to estimate accuracy and speed.
 - **Cross-platform compatibility**: For development environments where applicable.
 
 #### Validation Without Hardware
@@ -592,7 +592,7 @@ The integration supports the following configuration options:
 
 #### Benchmarks
 
-All model exports must include a benchmark section using standardized test configurations to guide users in selecting optimal export formats based on accuracy and speed requirements. Benchmarks must be conducted using the same dataset consistently across all export formats, utilizing default Ultralytics configurations to maintain consistency across formats including PyTorch, ONNX, TensorRT, OpenVINO, CoreML, TensorFlow variants, and mobile formats like NCNN and MNN. Test both CPU and GPU performance where supported, measure key metrics including mAP50-95 [accuracy](https://www.ultralytics.com/glossary/accuracy), inference time (ms/image), FPS, model file size, and memory usage, then present results in a standardized table showing export status (✅/⚠️/❌), performance deltas versus the PyTorch baseline, and clear recommendations for when each format is optimal.
+Include a benchmark table measured on the target hardware with default Ultralytics settings: mAP50-95 [accuracy](https://www.ultralytics.com/glossary/accuracy), inference time (ms/image), and model size for each model size, compared against the PyTorch baseline on the same dataset. State the device, precision, and SDK version used so results can be reproduced.
 
 ### Documentation Standards
 
@@ -740,22 +740,14 @@ This testing approach ensures that integrations maintain high quality standards 
 
 ## Maintenance and Support
 
-### Long-term Maintenance
+An integration stays in Ultralytics only while it keeps working, so contributors are expected to:
 
-- Contributors commit to maintaining their integration for the duration of the agreement.
-- Regular updates for new Ultralytics releases.
-- Security patch responsibility for integration-specific dependencies.
+- Keep the integration working across new Ultralytics releases, and fix CI failures in its export tests promptly.
+- Update the integration's dependency bounds and documentation when the partner SDK releases a new version.
+- Handle security fixes in integration-specific dependencies.
+- Provide a contact for integration issues, such as a GitHub handle that can be tagged on issues and PRs.
 
-### Support Channels
-
-- Clear escalation path for integration problems.
-- Response time commitments for critical issues.
-
-### Deprecation Policy
-
-- Two-month notice for any breaking changes.
-- Migration guides for version updates.
-- Backward compatibility maintenance when possible.
+An integration that stays broken or unmaintained may be removed in a future release.
 
 ## Pull Request Review
 
@@ -799,7 +791,7 @@ Use this checklist as a final review before opening a pull request for a new int
 - [ ] **API Reference**: Complete function and class documentation.
 - [ ] **Performance Documentation**: Benchmark results and performance characteristics.
 - [ ] **Troubleshooting Guide**: Common issues and solutions for hardware.
-- [ ] **Emulation Guide**: Detailed documentation on emulation capabilities and limitations.
+- [ ] **Emulation Guide**: How to use the partner emulator, and its limitations, when one exists.
 - [ ] **Hardware Requirements**: Clear hardware requirements and compatibility matrix.
 
 ### Dependency Management Requirements
@@ -808,15 +800,13 @@ Use this checklist as a final review before opening a pull request for a new int
 - [ ] **Conflict Analysis**: No conflicts with existing Ultralytics dependencies.
 - [ ] **Minimal Footprint**: Minimal sub-dependency requirements.
 - [ ] **Standard Distribution**: Available through PyPI or standard package managers.
-- [ ] **Emulation Dependencies**: Lightweight emulation dependencies for target platforms.
+- [ ] **Emulation Dependencies**: Lightweight emulator dependencies, when an emulator exists.
 
 ### Long-term Support Requirements
 
-- [ ] **Maintenance Commitment**: Maintenance commitment for the duration of the agreement.
-- [ ] **Update Responsibility**: Clear update process for new Ultralytics releases.
-- [ ] **Security Commitment**: Responsibility for security patches.
-- [ ] **Documentation Maintenance**: Commitment to keep documentation current.
-- [ ] **Performance Monitoring**: Ongoing performance regression monitoring.
+- [ ] **Maintainer Contact**: A contact who can be tagged on integration issues and CI failures.
+- [ ] **Release Updates**: A plan to keep the integration working across new Ultralytics and partner SDK releases.
+- [ ] **Documentation Maintenance**: Documentation kept current with the integration.
 
 ### Code Quality Requirements
 

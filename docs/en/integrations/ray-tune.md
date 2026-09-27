@@ -76,7 +76,7 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 ## Default Search Space Description
 
-The following table lists the default search space parameters for hyperparameter tuning in YOLO26 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`.
+The following table lists the default search space parameters for hyperparameter tuning in YOLO26 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`, except `close_mosaic`, which uses `tune.randint()`.
 
 | Parameter         | Range                      | Description                                                                                                                       |
 | ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |

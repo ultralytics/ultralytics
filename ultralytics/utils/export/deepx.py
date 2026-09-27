@@ -16,7 +16,7 @@ def onnx2deepx(
     metadata: dict | None = None,
     optimize: bool = False,
     prefix: str = "",
-) -> Path:
+) -> str:
     """Convert an ONNX model to DEEPX format using the DEEPX DX-Compiler.
 
     Args:
@@ -29,7 +29,7 @@ def onnx2deepx(
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
-        (Path): Path to the exported DEEPX model directory.
+        (str): Path to the exported DEEPX model directory.
     """
     try:
         import dx_com
@@ -70,4 +70,4 @@ def onnx2deepx(
     if metadata is not None:
         YAML.save(export_path / "metadata.yaml", metadata)
 
-    return export_path
+    return str(export_path)

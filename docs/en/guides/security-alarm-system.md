@@ -32,7 +32,7 @@ The `SecurityAlarm` solution tracks objects in your video feed and sends a singl
 
 !!! note "App password required"
 
-    Navigate to the [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project", and obtain a 16-digit password. Copy this password and paste it into the `password` field in the code below.
+    Navigate to the [App Password Generator](https://myaccount.google.com/apppasswords), designate an app name such as "security project", and obtain a 16-character password. Copy this password and paste it into the `password` field in the code below.
 
 !!! example "Security Alarm System using Ultralytics YOLO"
 
@@ -51,7 +51,7 @@ The `SecurityAlarm` solution tracks objects in your video feed and sends a singl
         video_writer = cv2.VideoWriter("security_output.avi", cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h))
 
         from_email = "abc@gmail.com"  # the sender email address
-        password = "---- ---- ---- ----"  # 16-digits password generated via: https://myaccount.google.com/apppasswords
+        password = "---- ---- ---- ----"  # 16-character app password generated via: https://myaccount.google.com/apppasswords
         to_email = "xyz@gmail.com"  # the receiver email address
 
         # Initialize security alarm object
@@ -116,13 +116,13 @@ Moreover, the following visualization settings are available:
 
 ## How It Works
 
-The Security Alarm System uses [object tracking](../modes/track.md) to monitor video feeds and detect potential security threats. When the system detects objects that exceed the specified threshold (set by the `records` parameter), it automatically sends an email notification with an image attachment showing the detected objects.
+The Security Alarm System uses [object tracking](../modes/track.md) to monitor video feeds and detect potential security threats. When the number of detected objects in a frame reaches the specified threshold (set by the `records` parameter), it automatically sends an email notification with an image attachment showing the detected objects.
 
 The system leverages the [SecurityAlarm class](../reference/solutions/security_alarm.md) which provides methods to:
 
 1. Process frames and extract object detections
 2. Annotate frames with bounding boxes around detected objects
-3. Send email notifications when detection thresholds are exceeded
+3. Send email notifications when detection thresholds are met
 
 This implementation is ideal for home security, retail surveillance, and other monitoring applications where immediate notification of detected objects is critical.
 

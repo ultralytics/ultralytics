@@ -259,6 +259,9 @@ class KalmanFilterXYAH:
             (np.ndarray): Returns an array of length N, where the i-th element contains the squared distance between
                 (mean, covariance) and `measurements[i]`.
 
+        Raises:
+            ValueError: If `metric` is not 'gaussian' or 'maha'.
+
         Examples:
             Compute gating distance using Mahalanobis metric:
             >>> kf = KalmanFilterXYAH()

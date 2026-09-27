@@ -17,10 +17,11 @@ from ultralytics.utils import LINUX, LOGGER, MACOS, RANK, WINDOWS
 class ConsoleLogger:
     """Console output capture with batched streaming to file, API, or custom callback.
 
-    Captures stdout/stderr output and streams it with intelligent deduplication and configurable batching.
+    Captures stdout/stderr and Ultralytics logger output and streams it with deduplication and configurable batching.
 
     Attributes:
         destination (str | Path | None): Target destination for streaming (URL, Path, or None for callback-only).
+        is_api (bool): Whether the destination is an HTTP(S) API endpoint.
         batch_size (int): Number of lines to batch before flushing (default: 1 for immediate).
         flush_interval (float): Seconds between automatic flushes (default: 5.0).
         on_flush (callable | None): Optional callback function called with batched content on flush.
@@ -280,7 +281,7 @@ class _DriveInfo:
     disambiguation.
 
     Examples:
-        >>> logger = SystemLogger(all_drives=True)
+        >>> logger = SystemLogger()
         >>> logger.mounts
         ['/']
     """
@@ -412,10 +413,12 @@ class SystemLogger:
     performance monitoring and analysis.
 
     Attributes:
-        pynvml: NVIDIA pynvml module instance if successfully imported, None otherwise.
+        pynvml (module | None): NVIDIA pynvml module if successfully imported, None otherwise.
         nvidia_initialized (bool): Whether NVIDIA GPU monitoring is available and initialized.
-        net_start: Initial network I/O counters for calculating cumulative usage.
-        disk_start: Initial disk I/O counters for calculating cumulative usage.
+        nvidia_versions (dict): NVIDIA 'driver_version' and 'cuda_version' strings read from NVML, if available.
+        net_start (namedtuple): Initial network I/O counters for calculating cumulative usage.
+        disk_start (namedtuple | None): Initial disk I/O counters for calculating cumulative usage.
+        mounts (list[str]): Mounted drive paths monitored for disk usage.
 
     Examples:
         Basic usage (single drive):
@@ -526,7 +529,8 @@ class SystemLogger:
             rates (bool): If True, return disk/network as MB/s rates instead of cumulative MB.
 
         Returns:
-            (dict): Metrics dictionary with cpu, ram, disk, network, and gpus keys.
+            (dict): Metrics dictionary with cpu, ram, disk, disk_io, network, and gpus keys, plus driver_version and
+                cuda_version on NVIDIA systems.
 
         Examples:
             >>> logger = SystemLogger()

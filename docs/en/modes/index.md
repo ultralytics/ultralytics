@@ -70,7 +70,7 @@ Track mode extends YOLO26's object detection capabilities to track objects acros
 
 ## [Benchmark](benchmark.md)
 
-Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection tasks or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
+Benchmark mode profiles the speed and accuracy of various export formats for YOLO26. This mode provides comprehensive metrics on model size, accuracy (mAP50-95 for detection, segmentation, pose, and OBB; mIoU for semantic segmentation; delta1 for depth; or accuracy_top1 for classification), and inference time across different formats like ONNX, [OpenVINO](../integrations/openvino.md), and TensorRT. Benchmarking helps you select the optimal export format based on your specific requirements for speed and accuracy in your deployment environment.
 
 [Benchmark Examples](benchmark.md){ .md-button }
 
@@ -108,7 +108,7 @@ For more detailed instructions, you can refer to the [Ultralytics Train Guide](.
 Ultralytics YOLO26 uses various metrics during the validation process to assess model performance. These include:
 
 - **mAP (mean Average Precision)**: This evaluates the accuracy of object detection.
-- **IOU (Intersection over Union)**: Measures the overlap between predicted and ground truth bounding boxes.
+- **IoU (Intersection over Union)**: Measures the overlap between predicted and ground truth bounding boxes.
 - **[Precision](https://www.ultralytics.com/glossary/precision) and [Recall](https://www.ultralytics.com/glossary/recall)**: Precision measures the ratio of true positive detections to the total detected positives, while recall measures the ratio of true positive detections to the total actual positives.
 
 You can run the following command to start the validation:

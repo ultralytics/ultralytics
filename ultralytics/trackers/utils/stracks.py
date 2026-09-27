@@ -26,12 +26,12 @@ def merge_track_pools(
     """Apply the standard end-of-frame bookkeeping to a tracker's persistent pools in place.
 
     Merges newly activated and re-found tracks into `tracker.tracked_stracks`, moves the transitioned tracks into
-    `tracker.lost_stracks`, dedups by IoU, appends removals to `tracker.removed_stracks`, and trims the removed buffer
-    to `removed_buffer` entries.
+    `tracker.lost_stracks`, dedups by IoU, stores this frame's removals in `tracker.removed_stracks_frame`, appends them
+    to `tracker.removed_stracks`, and trims the removed buffer to `removed_buffer` entries.
 
     Args:
         tracker (Any): Object exposing `tracked_stracks`, `lost_stracks`, `removed_stracks` lists.
-        activated (list): Tracks updated from the Tracked state this frame.
+        activated (list): Tracks updated from the Tracked state or newly activated this frame.
         refind (list): Tracks re-activated from the Lost state this frame.
         lost (list): Tracks transitioned to Lost this frame.
         removed (list): Tracks transitioned to Removed this frame.

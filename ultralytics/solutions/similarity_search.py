@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -18,21 +17,20 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # Avoid OpenMP conflict on some sys
 
 
 class VisualAISearch:
-    """A semantic image search system that leverages OpenAI's CLIP for generating high-quality image and text embeddings
-    and NumPy cosine similarity for fast similarity-based retrieval.
+    """A semantic image search system using CLIP embeddings and cosine similarity for image retrieval.
 
-    This class aligns image and text embeddings in a shared semantic space, enabling users to search large collections
-    of images using natural language queries with high accuracy and speed.
+    This class leverages OpenAI's CLIP for generating image and text embeddings and NumPy cosine similarity for fast
+    similarity-based retrieval. It aligns image and text embeddings in a shared semantic space, enabling users to search
+    large collections of images using natural language queries with high accuracy and speed.
 
     Attributes:
-        data (str): Directory containing images.
-        device (str): Computation device, e.g., 'cpu' or 'cuda'.
+        device (torch.device): Computation device selected from the `device` argument.
         index_path (str): Path to the numpy file storing image embeddings.
-        data_path_npy (str): Path to the numpy file storing image paths.
-        data_dir (Path): Path object for the data directory.
+        data_path_npy (str): Path to the numpy file storing image file names.
+        data_dir (Path): Path object for the image directory.
         model: Loaded CLIP model.
         index (np.ndarray): L2-normalized image embeddings used for cosine similarity search.
-        image_paths (list[str]): List of image file paths.
+        image_paths (list[str] | np.ndarray): Image file names, aligned with the rows of `index`.
 
     Methods:
         extract_image_feature: Extract CLIP embedding from an image.
@@ -46,15 +44,23 @@ class VisualAISearch:
         >>> results = searcher.search("a cat sitting on a chair", k=10)
     """
 
-    def __init__(self, **kwargs: Any) -> None:
-        """Initialize the VisualAISearch class with the embedding index and CLIP model."""
+    def __init__(self, data: str = "images", device: str | None = "cpu") -> None:
+        """Initialize the VisualAISearch class with the embedding index and CLIP model.
+
+        Args:
+            data (str): Image directory to index and search, downloaded from Ultralytics assets if missing.
+            device (str | None): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0'), or None to auto-select.
+
+        Raises:
+            AssertionError: If the installed torch version is older than 2.4.
+        """
         assert TORCH_2_4, f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})"
         from ultralytics.nn.text_model import build_text_model
 
         self.index_path = "embeddings.npy"
         self.data_path_npy = "paths.npy"
-        self.data_dir = Path(kwargs.get("data", "images"))
-        self.device = select_device(kwargs.get("device", "cpu"))
+        self.data_dir = Path(data)
+        self.device = select_device(device)
 
         if not self.data_dir.exists():
             from ultralytics.utils import ASSETS_URL
@@ -73,11 +79,11 @@ class VisualAISearch:
         self.load_or_build_index()
 
     def extract_image_feature(self, path: Path) -> np.ndarray:
-        """Extract CLIP image embedding from the given image path."""
+        """Extract CLIP image embedding with shape (1, D) from the given image path."""
         return self.model.encode_image(Image.open(path)).detach().cpu().numpy()
 
     def extract_text_feature(self, text: str) -> np.ndarray:
-        """Extract CLIP text embedding from the given text query."""
+        """Extract CLIP text embedding with shape (1, D) from the given text query."""
         return self.model.encode_text(self.model.tokenize([text])).detach().cpu().numpy()
 
     @staticmethod
@@ -98,6 +104,9 @@ class VisualAISearch:
         Checks if the embeddings and image paths exist on disk. If found, loads them directly. Otherwise, builds the
         index by extracting features from all images in the data directory, L2-normalizes them, and saves both the
         embeddings and image paths for future use.
+
+        Raises:
+            RuntimeError: If no image embeddings could be generated from the data directory.
         """
         # Check if the embeddings and corresponding image paths already exist
         if Path(self.index_path).exists() and Path(self.data_path_npy).exists():
@@ -142,7 +151,7 @@ class VisualAISearch:
             similarity_thresh (float, optional): Minimum similarity threshold for filtering results.
 
         Returns:
-            (list[str]): List of image filenames ranked by similarity score.
+            (list[str]): Image filenames with similarity >= `similarity_thresh`, ranked by descending similarity.
 
         Examples:
             Search for images matching a query
@@ -162,7 +171,7 @@ class VisualAISearch:
         return [r[0] for r in results]
 
     def __call__(self, query: str) -> list[str]:
-        """Direct call interface for the search function."""
+        """Search for images matching `query` using the default `search` arguments."""
         return self.search(query)
 
 
@@ -192,8 +201,8 @@ class SearchApp:
         """Initialize the SearchApp with VisualAISearch backend.
 
         Args:
-            data (str, optional): Path to directory containing images to index and search.
-            device (str, optional): Device to run inference on (e.g. 'cpu', 'cuda').
+            data (str): Path to directory containing images to index and search.
+            device (str | None): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0'), or None to auto-select.
         """
         check_requirements("flask>=3.0.1")
         from flask import Flask, render_template, request

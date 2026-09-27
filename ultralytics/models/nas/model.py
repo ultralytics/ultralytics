@@ -26,8 +26,7 @@ class NAS(Model):
     Attributes:
         model (torch.nn.Module): The loaded YOLO-NAS model.
         task (str): The task type for the model, defaults to 'detect'.
-        predictor (NASPredictor): The predictor instance for making predictions.
-        validator (NASValidator): The validator instance for model validation.
+        predictor (NASPredictor): The predictor instance for making predictions, created on the first prediction.
 
     Methods:
         info: Log model information and return model details.
@@ -42,7 +41,11 @@ class NAS(Model):
     """
 
     def __init__(self, model: str = "yolo_nas_s.pt") -> None:
-        """Initialize the NAS model with the provided or default model."""
+        """Initialize the NAS model with the provided or default model.
+
+        Args:
+            model (str): Path to a pre-trained NAS model file (.pt) or a super-gradients model name (e.g. "yolo_nas_s").
+        """
         assert Path(model).suffix not in {".yaml", ".yml"}, "YOLO-NAS models only support pre-trained models."
         super().__init__(model, task="detect")
 
@@ -72,17 +75,18 @@ class NAS(Model):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
 
-    def info(self, detailed: bool = False, verbose: bool = True) -> tuple:
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int] = 640) -> tuple:
         """Log model information.
 
         Args:
             detailed (bool): Show detailed information about model.
             verbose (bool): Controls verbosity.
+            imgsz (int | list[int]): Input image size used for FLOPs calculation.
 
         Returns:
             (tuple): Model information as a tuple of (layers, parameters, gradients, GFLOPs).
         """
-        return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
+        return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

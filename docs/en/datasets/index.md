@@ -36,16 +36,16 @@ Ultralytics provides support for various datasets to facilitate computer vision 
 - [Global Wheat 2020](detect/globalwheat2020.md): A dataset containing images of wheat heads for the Global Wheat Challenge 2020.
 - [HomeObjects-3K](detect/homeobjects-3k.md): A dataset of annotated indoor scenes featuring 12 common household items, ideal for developing and testing computer vision models in smart home systems, robotics, and augmented reality.
 - [KITTI](detect/kitti.md): A well-known autonomous driving dataset featuring stereo, LiDAR, and GPS/IMU inputs, used for 2D object detection in varied road scenes.
-- [LVIS](detect/lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
+- [LVIS](detect/lvis.md): A large-scale object detection and instance segmentation dataset with 1,203 object categories.
 - [Medical-pills](detect/medical-pills.md): A dataset containing labeled images of medical pills, designed to aid in tasks like pharmaceutical quality control, sorting, and ensuring compliance with industry standards.
-- [Objects365](detect/objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
+- [Objects365](detect/objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 1.7 million annotated images.
 - [OpenImagesV7](detect/open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
 - [RF100](detect/roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Signature](detect/signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
 - [SKU-110K](detect/sku-110k.md): A dataset featuring dense object detection in retail environments with over 11K images and 1.7 million bounding boxes.
 - [TT100K](detect/tt100k.md): The Tsinghua-Tencent 100K traffic sign dataset with 16,817 street-view images across 221 sign categories.
 - [VisDrone](detect/visdrone.md): A dataset containing object detection and multi-object tracking data from drone-captured imagery with over 10K images and video sequences.
-- [VOC](detect/voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 11K images.
+- [VOC](detect/voc.md): The Pascal Visual Object Classes (VOC) dataset for object detection and segmentation with 20 object classes and over 21K images.
 - [xView](detect/xview.md): A dataset for object detection in overhead imagery with 60 object categories and over 1 million annotated objects.
 
 ## [Instance Segmentation](segment/index.md)
@@ -194,7 +194,7 @@ By following these steps, you can contribute a new dataset that integrates well 
 Ultralytics supports a wide variety of datasets for [object detection](https://www.ultralytics.com/glossary/object-detection), including:
 
 - [COCO](detect/coco.md): A large-scale object detection, segmentation, and captioning dataset with 80 object categories.
-- [LVIS](detect/lvis.md): An extensive dataset with 1203 object categories, designed for more fine-grained object detection and segmentation.
+- [LVIS](detect/lvis.md): An extensive dataset with 1,203 object categories, designed for more fine-grained object detection and segmentation.
 - [Argoverse](detect/argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
 - [VisDrone](detect/visdrone.md): A dataset with object detection and multi-object tracking data from drone-captured imagery.
 - [SKU-110K](detect/sku-110k.md): Featuring dense object detection in retail environments with over 11K images.
@@ -208,7 +208,7 @@ Contributing a new dataset involves several steps:
 1. **Collect Images**: Gather images from public databases or personal collections.
 2. **Annotate Images**: Apply bounding boxes, segments, or keypoints, depending on the task.
 3. **Export Annotations**: Convert annotations into the YOLO `*.txt` format.
-4. **Organize Dataset**: Use the folder structure with `train/` and `val/` directories, each containing `images/` and `labels/` subdirectories.
+4. **Organize Dataset**: Use the folder structure with `images/` and `labels/` directories, each containing `train/` and `val/` subdirectories.
 5. **Create a `data.yaml` File**: Include dataset descriptions, classes, and other relevant information.
 6. **Optimize Images (Optional)**: Reduce dataset size for efficiency.
 7. **Zip Dataset**: Compress the dataset into a zip file.
@@ -232,7 +232,7 @@ The platform streamlines the transition from dataset management to model trainin
 Ultralytics YOLO models provide several unique features for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) tasks:
 
 - **Real-time Performance**: High-speed inference and training capabilities for time-sensitive applications.
-- **Versatility**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, and pose estimation tasks in a unified framework.
+- **Versatility**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding box (OBB) tasks in a unified framework.
 - **Pretrained Models**: Access to high-performing, pretrained models for various applications, reducing training time.
 - **Extensive Community Support**: Active community and comprehensive documentation for troubleshooting and development.
 - **Easy Integration**: Simple API for integrating with existing projects and workflows.

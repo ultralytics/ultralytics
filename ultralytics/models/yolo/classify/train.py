@@ -37,7 +37,6 @@ class ClassificationTrainer(BaseTrainer):
         preprocess_batch: Preprocess a batch of images and classes.
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
-        final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
     Examples:
@@ -67,12 +66,12 @@ class ClassificationTrainer(BaseTrainer):
         """Set the YOLO model's class names from the loaded dataset."""
         self.model.names = self.data["names"]
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a modified PyTorch model configured for training YOLO classification.
 
         Args:
-            cfg (Any, optional): Model configuration.
-            weights (Any, optional): Pre-trained model weights.
+            cfg (str | dict, optional): Model configuration file path or dictionary.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool, optional): Whether to display model information.
 
         Returns:

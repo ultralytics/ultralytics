@@ -154,7 +154,7 @@ Pixels with depth values `≤ 0` are treated as invalid and masked out from both
 
 Depth estimation validation reports the standard Depth Anything metric set:
 
-- **delta1 / delta2 / delta3** — percentage of pixels within 1.25×, 1.25²×, 1.25³× thresholds. Higher is better.
+- **delta1 / delta2 / delta3** — fraction of pixels within 1.25×, 1.25²×, 1.25³× thresholds. Higher is better.
 - **abs_rel** — mean absolute relative error. Lower is better.
 - **rmse** — root mean squared error in meters. Lower is better.
 - **silog** — scale-invariant logarithmic error. Lower is better.

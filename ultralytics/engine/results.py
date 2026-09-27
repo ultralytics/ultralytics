@@ -267,11 +267,12 @@ class Results(SimpleClass, DataExportMixin):
             boxes (torch.Tensor | None): A 2D tensor of bounding box coordinates for each detection.
             masks (torch.Tensor | None): A 3D tensor of detection masks, where each mask is a binary image.
             probs (torch.Tensor | None): A 1D tensor of probabilities of each class for classification task.
-            keypoints (torch.Tensor | None): A 2D tensor of keypoint coordinates for each detection.
+            keypoints (torch.Tensor | None): A 3D tensor of keypoints for each detection with shape (N, K, 2) or (N, K,
+                3).
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
-            speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:
@@ -341,8 +342,8 @@ class Results(SimpleClass, DataExportMixin):
     ):
         """Update the Results object with new detection data.
 
-        This method allows updating the boxes, masks, keypoints, probabilities, and oriented bounding boxes (OBB) of
-        the Results object. It ensures that boxes are clipped to the original image shape.
+        This method allows updating the boxes, masks, keypoints, probabilities, oriented bounding boxes (OBB), semantic
+        masks, and depth maps of the Results object. It ensures that boxes are clipped to the original image shape.
 
         Args:
             boxes (torch.Tensor | None): A tensor of shape (N, 6) containing bounding box coordinates and confidence
@@ -405,8 +406,9 @@ class Results(SimpleClass, DataExportMixin):
     def cpu(self):
         """Return a copy of the Results object with all its tensors moved to CPU memory.
 
-        This method creates a new Results object with all tensor attributes (boxes, masks, probs, keypoints, obb)
-        transferred to CPU memory. It's useful for moving data from GPU to CPU for further processing or saving.
+        This method creates a new Results object with all tensor attributes (boxes, masks, probs, keypoints, obb,
+        semantic_mask, depth) transferred to CPU memory. It's useful for moving data from GPU to CPU for further
+        processing or saving.
 
         Returns:
             (Results): A new Results object with all tensor attributes on CPU memory.
@@ -414,7 +416,7 @@ class Results(SimpleClass, DataExportMixin):
         Examples:
             >>> results = model("path/to/image.jpg")  # Perform inference
             >>> cpu_result = results[0].cpu()  # Move the first result to CPU
-            >>> print(cpu_result.boxes.device)  # Output: cpu
+            >>> print(cpu_result.boxes.data.device)  # Output: cpu
         """
         return self._apply("cpu")
 
@@ -612,7 +614,6 @@ class Results(SimpleClass, DataExportMixin):
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
                 annotator.kpts(
                     k,
-                    self.orig_shape,
                     radius=kpt_radius,
                     kpt_line=kpt_line,
                     kpt_color=colors(i, True) if color_mode == "instance" else None,
@@ -802,7 +803,7 @@ class Results(SimpleClass, DataExportMixin):
             ...     result.save_crop(save_dir="path/to/crops", file_name="detection")
 
         Notes:
-            - This method does not support Classify, Oriented Bounding Box (OBB), or Semantic Segmentation tasks.
+            - This method does not support Semantic Segmentation, Depth, Classify, or Oriented Bounding Box (OBB) tasks.
             - Crops are saved as 'save_dir/class_name/file_name.jpg'.
             - The method will create necessary subdirectories if they don't exist.
             - Original image is copied before cropping to avoid modifying the original.
@@ -833,7 +834,8 @@ class Results(SimpleClass, DataExportMixin):
         This method creates a list of detection dictionaries, each containing information about a single detection or
         classification result. For classification tasks, it returns the top 5 classes and their
         confidences. For detection tasks, it includes class information, bounding box coordinates, and
-        optionally mask segments and keypoints.
+        optionally mask segments and keypoints. For semantic segmentation, it returns the per-class pixel ratio, and
+        for depth estimation it returns an empty list.
 
         Args:
             normalize (bool): Whether to normalize bounding box coordinates by image dimensions.
@@ -1270,7 +1272,7 @@ class Keypoints(BaseTensor):
 
         Notes:
             - The returned coordinates are in pixel units relative to the original image dimensions.
-            - This property uses LRU caching to improve performance on repeated access.
+            - This property is cached after first access to improve performance on repeated access.
         """
         return self.data[..., :2]
 
@@ -1300,8 +1302,7 @@ class Keypoints(BaseTensor):
 
         Returns:
             (torch.Tensor | np.ndarray | None): A tensor or array containing confidence scores for each keypoint if
-                available, otherwise None. Shape is (num_detections, num_keypoints) for batched data or (num_keypoints,)
-                for single detection.
+                available, otherwise None. Shape is (num_detections, num_keypoints).
 
         Examples:
             >>> keypoints = Keypoints(torch.rand(1, 17, 3), orig_shape=(640, 640))  # 1 detection, 17 keypoints
@@ -1449,7 +1450,7 @@ class OBB(BaseTensor):
         to: Return a copy of the OBB object with tensors on specified device and dtype.
 
     Examples:
-        >>> boxes = torch.tensor([[100, 50, 150, 100, 30, 0.9, 0]])  # xywhr, conf, cls
+        >>> boxes = torch.tensor([[100, 50, 150, 100, 0.5, 0.9, 0]])  # xywhr (rotation in radians), conf, cls
         >>> obb = OBB(boxes, orig_shape=(480, 640))
         >>> print(obb.xyxyxyxy)
         >>> print(obb.conf)

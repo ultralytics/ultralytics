@@ -364,7 +364,7 @@ This guide covers [object detection](https://www.ultralytics.com/glossary/object
 
 ### Do augmentations work with this custom dataset?
 
-Yes. `COCODataset` extends `YOLODataset`, so all built-in [data augmentations](yolo-data-augmentation.md) — [mosaic](yolo-data-augmentation.md#mosaic-mosaic), [mixup](yolo-data-augmentation.md#mixup-mixup), [copy-paste](yolo-data-augmentation.md#copy-paste-copy_paste), and others — run without modification.
+Yes. `COCODataset` extends `YOLODataset`, so all built-in [data augmentations](yolo-data-augmentation.md) — [mosaic](yolo-data-augmentation.md#mosaic-mosaic), [mixup](yolo-data-augmentation.md#mixup-mixup), [CutMix](yolo-data-augmentation.md#cutmix-cutmix), and others — run without modification.
 
 ### How are category IDs mapped to class indices?
 

@@ -121,7 +121,7 @@ The `SpeedEstimator` solution allows the use of `track` parameters:
 Additionally, the following visualization options are supported:
 
 {% from "macros/visualization-args.md" import param_table %}
-{{ param_table(["show", "show_conf", "show_labels"]) }}
+{{ param_table(["show", "show_labels"]) }}
 
 ## FAQ
 

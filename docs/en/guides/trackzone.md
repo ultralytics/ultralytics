@@ -190,6 +190,8 @@ cv2.destroyAllWindows()
 Configuring zone points for video processing with Ultralytics TrackZone is simple and customizable. You can directly define and adjust the zones through a Python script, allowing precise control over the areas you want to monitor.
 
 ```python
+from ultralytics import solutions
+
 # Define region points
 region_points = [(150, 150), (1130, 150), (1130, 570), (150, 570)]
 
@@ -200,7 +202,7 @@ trackzone = solutions.TrackZone(
 )
 ```
 
-Remember that `TrackZone` reduces the points to their convex hull, so list them in order around the perimeter of the area you want to monitor.
+Remember that `TrackZone` reduces the points to their convex hull, so a concave outline is simplified to the smallest convex polygon that contains all of its points.
 
 ### When should I use TrackZone instead of ObjectCounter or RegionCounter?
 

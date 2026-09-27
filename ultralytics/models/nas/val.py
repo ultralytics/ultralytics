@@ -16,16 +16,13 @@ class NASValidator(DetectionValidator):
     ultimately producing the final detections.
 
     Attributes:
-        args (Namespace): Namespace containing various configurations for post-processing, such as confidence and IoU
-            thresholds.
-        lb (torch.Tensor): Optional tensor for multilabel NMS.
+        args (SimpleNamespace): Namespace containing various configurations for post-processing, such as confidence and
+            IoU thresholds.
 
     Examples:
         >>> from ultralytics import NAS
         >>> model = NAS("yolo_nas_s")
-        >>> validator = model.validator
-        >>> # Assumes that raw_preds are available
-        >>> final_preds = validator.postprocess(raw_preds)
+        >>> metrics = model.val(data="coco8.yaml")  # runs NASValidator internally
 
     Notes:
         This class is generally not instantiated directly but is used internally within the NAS class.

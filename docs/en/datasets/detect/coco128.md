@@ -32,7 +32,7 @@ This dataset is intended for use with [Ultralytics Platform](https://platform.ul
 
 ## Dataset Structure
 
-COCO128 contains the first 128 images from the COCO train 2017 set, covering all 80 COCO object classes in [YOLO label format](../index.md). The same 128 images serve as both the training and validation split, keeping it lightweight for quick sanity checks:
+COCO128 contains the first 128 images from the COCO train 2017 set, labeled with the 80 COCO class names (71 of which appear in these images) in [YOLO label format](../index.md). The same 128 images serve as both the training and validation split, keeping it lightweight for quick sanity checks:
 
 ```text
 coco128/

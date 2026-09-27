@@ -45,11 +45,11 @@ class PyTorchBackend(BaseBackend):
         self.end2end_override = end2end
         super().__init__(weight, device, fp16)
 
-    def load_model(self, weight: str | torch.nn.Module) -> None:
+    def load_model(self, weight: str | Path | nn.Module) -> None:
         """Load a PyTorch model from a checkpoint file or nn.Module instance.
 
         Args:
-            weight (str | torch.nn.Module): Path to the .pt checkpoint or a pre-loaded module.
+            weight (str | Path | nn.Module): Path to the .pt checkpoint or a pre-loaded module.
         """
         from ultralytics.nn.tasks import BaseModel, load_checkpoint
 
@@ -103,21 +103,11 @@ class TorchScriptBackend(BaseBackend):
     torch.jit.script. Supports FP16 precision and embedded metadata extraction.
     """
 
-    def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False):
-        """Initialize the TorchScript backend.
-
-        Args:
-            weight (str | Path): Path to the .torchscript model file.
-            device (torch.device): Device to run inference on (e.g., 'cpu', 'cuda:0').
-            fp16 (bool): Whether to use FP16 half-precision inference.
-        """
-        super().__init__(weight, device, fp16)
-
-    def load_model(self, weight: str) -> None:
+    def load_model(self, weight: str | Path) -> None:
         """Load a TorchScript model from a .torchscript file with optional embedded metadata.
 
         Args:
-            weight (str): Path to the .torchscript model file.
+            weight (str | Path): Path to the .torchscript model file.
         """
         import torchvision  # noqa - required for TorchScript model deserialization
 

@@ -99,7 +99,7 @@ Each deployment page shows real-time metrics above its `Overview`, `Monitoring`,
 | **HTTP Error Rate (24h)**  | Share of 4xx and 5xx responses                                       |
 | **HTTP P95 Latency (24h)** | Average of hourly 95th-percentile latencies                          |
 
-Each card shows a sparkline and refreshes every 60 seconds, next to a card linking to the deployed model. Metrics are
+Each card shows a sparkline and refreshes automatically, next to a card linking to the deployed model. Metrics are
 collected only for deployments in the **Ready** state. On the Deployments tab, metrics are fetched for the 20 most
 recent deployments.
 
@@ -192,7 +192,7 @@ Available charts depend on the task and collected predictions:
 
     Confidence measures the model's certainty, not correctness. Inspect examples and compare against reviewed labels when assessing accuracy. **Inference Time** measures model execution; the deployment's **P95 Latency** includes request handling and can also reflect non-inference traffic such as health checks.
 
-Monitoring refreshes about every **2 seconds** while its panel is open and visible. Polling pauses when the panel is offscreen or the browser tab is hidden. Successful inference through the deployment's **Predict** tab also triggers a statistics refresh.
+Monitoring refreshes automatically while its panel is open and visible, and pauses when the panel is offscreen or the browser tab is hidden. Successful inference through the deployment's **Predict** tab also triggers a statistics refresh.
 
 ## Logs
 
@@ -338,7 +338,7 @@ utilization, and instance count.
 With `sparkline=true`, the response is a compact summary — 24 hourly request counts plus total requests, error rate, and
 average latency. With `view=overview`, `summary` holds `totalRequests`, `errorRate`, and `p95LatencyMs`, and
 `timeSeries` holds `requests`, `errors`, and `latencyP95`; the stat cards on the deployment page use this view and
-refresh every 60 seconds.
+refresh automatically.
 
 ### Deployment Logs
 

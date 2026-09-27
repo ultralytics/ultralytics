@@ -88,14 +88,18 @@ Pass your video to the `ObjectCropper` solution and it detects objects each fram
         cv2.destroyAllWindows()  # destroy all opened windows
         ```
 
-        When you provide the optional `crop_dir` argument, every cropped object is written to that folder with sequentially numbered filenames (e.g. `crop_1.jpg`, `crop_2.jpg`). This makes it easy to inspect detections or build downstream datasets without writing extra code.
+        Every cropped object is written to the `crop_dir` folder (`cropped-detections` by default) with sequentially numbered filenames (e.g. `crop_1.jpg`, `crop_2.jpg`). This makes it easy to inspect detections or build downstream datasets without writing extra code.
 
 ### `ObjectCropper` Arguments
 
 Here's a table with the `ObjectCropper` arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "crop_dir"]) }}
+{{ param_table(["model", "crop_dir", "verbose"]) }}
+
+The `ObjectCropper` runs `predict` rather than `track`, so it supports the following inference parameters except `tracker`:
+
+{% include "macros/solutions-track-args.md" %}
 
 ## FAQ
 

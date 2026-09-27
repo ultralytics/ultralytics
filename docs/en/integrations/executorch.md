@@ -258,7 +258,7 @@ To reduce model size for deployment:
 
 - **Use Smaller Models**: Start with YOLO26n (nano) for the smallest footprint
 - **Lower Input Resolution**: Use smaller image sizes (e.g., `imgsz=320` or `imgsz=416`)
-- **Quantization**: Apply quantization techniques (supported in future ExecuTorch versions)
+- **Quantization**: Apply ExecuTorch quantization techniques outside Ultralytics (Ultralytics ExecuTorch export is FP32 only)
 
 ### Inference Speed Optimization
 

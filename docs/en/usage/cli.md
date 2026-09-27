@@ -239,7 +239,7 @@ You can then pass this file as `cfg=default_copy.yaml` along with any additional
 
 ## Solutions Commands
 
-Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. The `yolo solutions` command exposes object counting, cropping, blurring, workout monitoring, heatmaps, instance segmentation, VisionEye, speed estimation, queue management, analytics, Streamlit inference, and zone-based tracking — see the [Solutions](../solutions/index.md) page for the full catalog. Run `yolo solutions help` to list every supported solution and its arguments.
+Ultralytics provides ready-to-use solutions for common computer vision applications through the CLI. The `yolo solutions` command exposes object counting, cropping, blurring, workout monitoring, heatmaps, instance segmentation, VisionEye, speed estimation, queue management, analytics, Streamlit inference, zone-based tracking, region counting, security alarms, and parking management — see the [Solutions](../solutions/index.md) page for the full catalog. Run `yolo solutions help` to list every supported solution and its arguments.
 
 !!! example
 

@@ -76,13 +76,7 @@ Then, you can import the needed packages.
     === "Python"
 
         ```python
-        import glob
-        import os
-        import shutil
 
-        import yaml
-        from IPython.display import display
-        from PIL import Image
 
         import ultralytics
 

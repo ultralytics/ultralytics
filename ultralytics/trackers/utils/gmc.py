@@ -99,8 +99,8 @@ class GMC:
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (np.ndarray | list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
-                keypoint detection. Only used by the 'orb' and 'sift' methods.
+            detections (np.ndarray | list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are
+                excluded from keypoint detection. Only used by the 'orb' and 'sift' methods.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3). Identity when `method` is None.
@@ -167,8 +167,8 @@ class GMC:
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (np.ndarray | list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
-                keypoint detection.
+            detections (np.ndarray | list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are
+                excluded from keypoint detection.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).

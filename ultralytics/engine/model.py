@@ -699,8 +699,8 @@ class Model(torch.nn.Module):
         Args:
             data (str | None): Path to the dataset for benchmarking. If None, uses default dataset for the task.
             format (str): Export format name for specific benchmarking.
-            verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also
-                asserts that every successful format's metric exceeds this floor value.
+            verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts
+                that every successful format's metric exceeds this floor value.
             **kwargs (Any): Arbitrary keyword arguments to customize the benchmarking process. Common options include:
                 - imgsz (int | list[int]): Image size for benchmarking.
                 - quantize (int | str): Requested precision: 16 (FP16), 8 (INT8), or 32/None (FP32) where

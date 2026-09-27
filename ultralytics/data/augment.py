@@ -1715,8 +1715,8 @@ class LetterBox(BaseTransform):
         tasks. It supports various resizing modes including auto-sizing, scale-fill, and letterboxing.
 
         Args:
-            new_shape (int | tuple[int, int]): Target size (height, width) for the resized image, or an int for a
-                square target.
+            new_shape (int | tuple[int, int]): Target size (height, width) for the resized image, or an int for a square
+                target.
             auto (bool): If True, use minimum rectangle to resize. If False, use new_shape directly.
             scale_fill (bool): If True, stretch the image to new_shape without padding.
             scaleup (bool): If True, allow scaling up. If False, only scale down.

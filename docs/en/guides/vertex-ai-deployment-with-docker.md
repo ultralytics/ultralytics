@@ -106,10 +106,7 @@ Now that you have the project structure and dependencies set up, you can impleme
 ```python
 # src/app.py
 
-import io
-from typing import Any, Dict
 
-from PIL import Image
 
 from ultralytics import YOLO
 
@@ -235,15 +232,10 @@ First, create `src/main.py`, add the imports, create the FastAPI app, and config
 ```python
 # src/main.py
 
-import base64
-import os
 import sys
-from typing import Any, Dict, Optional
 
-from app import get_annotated_image, get_bytes_from_image, get_image_from_bytes, is_model_ready, run_inference
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI
 from loguru import logger
-from pydantic import BaseModel
 
 app = FastAPI()
 

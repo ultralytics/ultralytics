@@ -54,8 +54,8 @@ class OBBTrainer(yolo.detect.DetectionTrainer):
         Args:
             cfg (str | dict, optional): Model configuration. Can be a path to a YAML config file, a dictionary
                 containing configuration parameters, or None to use default configuration.
-            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model. If
-                None, random initialization is used.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model. If None,
+                random initialization is used.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:

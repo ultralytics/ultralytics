@@ -260,12 +260,12 @@ def onnx2engine(
 
     Notes:
         TensorRT version compatibility is handled for workspace size and engine building. On TensorRT 7-10, INT8
-        calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
-        enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
-        precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve
-        confidence-score calibration (see #24668) and the head's output convolutions in FP16 for accuracy. Metadata is
-        serialized and written to the engine file if provided.
+        calibration uses an ``IInt8Calibrator`` over ``dataset``, while FP16/INT8 are enabled with builder flags. On
+        TensorRT 11 these were removed in favor of strongly-typed networks, so reduced precision is baked into the ONNX
+        with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by `modelopt_quantize_onnx`. The
+        TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve confidence-score calibration (see #24668)
+        and the head's output convolutions in FP16 for accuracy. Metadata is serialized and written to the engine file
+        if provided.
     """
     import onnx
 
@@ -375,29 +375,24 @@ def onnx2engine(
             """Custom INT8 calibrator for TensorRT engine optimization.
 
             This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration using
-            a dataset. It handles batch generation, caching, and calibration algorithm selection.
+            a dataset. It handles batch generation and calibration algorithm selection.
 
             Attributes:
                 dataset: Dataset for calibration.
                 data_iter: Iterator over the calibration dataset.
                 algo (trt.CalibrationAlgoType): Calibration algorithm type.
                 batch (int): Batch size for calibration.
-                cache (Path): Path to save the calibration cache.
 
             Methods:
                 get_algorithm: Get the calibration algorithm to use.
                 get_batch_size: Get the batch size to use for calibration.
                 get_batch: Get the next batch to use for calibration.
-                read_calibration_cache: Use existing cache instead of calibrating again.
-                write_calibration_cache: Write calibration cache to disk.
+                read_calibration_cache: Return no cache so every export calibrates the current model and data.
+                write_calibration_cache: Discard the calibration cache.
             """
 
-            def __init__(
-                self,
-                dataset,  # ultralytics.data.build.InfiniteDataLoader
-                cache: str = "",
-            ) -> None:
-                """Initialize the INT8 calibrator with dataset and cache path."""
+            def __init__(self, dataset) -> None:  # ultralytics.data.build.InfiniteDataLoader
+                """Initialize the INT8 calibrator with a dataset."""
                 trt.IInt8Calibrator.__init__(self)
                 self.dataset = dataset
                 self.data_iter = iter(dataset)
@@ -407,7 +402,6 @@ def onnx2engine(
                     else trt.CalibrationAlgoType.MINMAX_CALIBRATION
                 )
                 self.batch = dataset.batch_size
-                self.cache = Path(cache)
 
             def get_algorithm(self) -> trt.CalibrationAlgoType:
                 """Get the calibration algorithm to use."""
@@ -427,20 +421,14 @@ def onnx2engine(
                     # Return None to signal to TensorRT there is no calibration data remaining
                     return None
 
-            def read_calibration_cache(self) -> bytes | None:
-                """Use existing cache instead of calibrating again, otherwise, implicitly return None."""
-                if self.cache.exists() and self.cache.suffix == ".cache":
-                    return self.cache.read_bytes()
+            def read_calibration_cache(self) -> None:
+                """Return no cache so every export calibrates the current model and data."""
 
             def write_calibration_cache(self, cache: bytes) -> None:
-                """Write calibration cache to disk."""
-                _ = self.cache.write_bytes(cache)
+                """Discard the calibration cache, which would be stale for any other model or data."""
 
         # Load dataset w/ builder (for batching) and calibrate
-        config.int8_calibrator = EngineCalibrator(
-            dataset=dataset,
-            cache=str(Path(onnx_file).with_suffix(".cache")),
-        )
+        config.int8_calibrator = EngineCalibrator(dataset)
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve

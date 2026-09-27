@@ -255,10 +255,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
-???+ warning "Calibration Cache"
-
-    TensorRT will generate a calibration `.cache` which can be reused to speed up export of future model weights using the same data, but this may result in poor calibration when the data is vastly different or if the `batch` value is changed drastically. In these circumstances, the existing `.cache` should be renamed and moved to a different directory or deleted entirely.
-
 #### Advantages of using YOLO with TensorRT INT8
 
 - **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times, lower storage requirements, and reduced memory footprint when deploying a model.

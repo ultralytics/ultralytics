@@ -38,7 +38,7 @@ NVIDIA Jetson is a series of embedded computing boards designed to bring acceler
 
 [NVIDIA Jetson AGX Thor](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-thor/) is the latest iteration of the NVIDIA Jetson family based on NVIDIA Blackwell architecture which brings drastically improved AI performance when compared to the previous generations. The table below compares a few of the Jetson devices in the ecosystem.
 
-|                   | Jetson AGX Thor(T5000)                                           | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
+|                   | Jetson AGX Thor (T5000)                                          | Jetson AGX Orin 64GB                                             | Jetson Orin NX 16GB                                             | Jetson Orin Nano Super                                        | Jetson AGX Xavier                                           | Jetson Xavier NX                                             | Jetson Nano                                 |
 | ----------------- | ---------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------- |
 | AI Performance    | 2070 TFLOPS                                                      | 275 TOPS                                                         | 100 TOPS                                                        | 67 TOPS                                                       | 32 TOPS                                                     | 21 TOPS                                                      | 472 GFLOPS                                  |
 | GPU               | 2560-core NVIDIA Blackwell architecture GPU with 96 Tensor Cores | 2048-core NVIDIA Ampere architecture GPU with 64 Tensor Cores    | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores   | 1024-core NVIDIA Ampere architecture GPU with 32 Tensor Cores | 512-core NVIDIA Volta architecture GPU with 64 Tensor Cores | 384-core NVIDIA Volta™ architecture GPU with 48 Tensor Cores | 128-core NVIDIA Maxwell™ architecture GPU   |
@@ -546,8 +546,8 @@ The below table represents the benchmark results for five different models (YOLO
         | TorchScript     | ✅     | 9.8               | 0.4770      | 4.60                   |
         | ONNX            | ✅     | 9.5               | 0.4770      | 9.87                   |
         | OpenVINO        | ✅     | 9.6               | 0.4820      | 28.80                  |
-        | TensorRT (FP32) | ✅     | 11.5              | 0.0450      | 4.18                   |
-        | TensorRT (FP16) | ✅     | 7.9               | 0.0450      | 2.62                   |
+        | TensorRT (FP32) | ✅     | 11.5              | 0.4770      | 4.18                   |
+        | TensorRT (FP16) | ✅     | 7.9               | 0.4789      | 2.62                   |
         | TensorRT (INT8) | ✅     | 5.4               | 0.4640      | 2.30                   |
         | TF SavedModel   | ✅     | 24.6              | 0.4760      | 71.10                  |
         | TF GraphDef     | ✅     | 9.5               | 0.4760      | 70.02                  |
@@ -1007,7 +1007,7 @@ Use `procrank` to profile per-process RAM usage and `sudo cat /sys/kernel/debug/
 
 ### Why does my TensorRT INT8 export disable NMS-free inference on JetPack 6?
 
-TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents INT8 engine builds when `nms=False` is enabled. When Ultralytics detects this combination, it automatically selects the one-to-many head to ensure the export succeeds.
+TensorRT 10.3.0 shipped with JetPack 6 has a known issue that prevents building NMS-free (`nms=False`) INT8 engines. When Ultralytics detects this combination, it automatically selects the one-to-many head to ensure the export succeeds.
 
 To restore NMS-free INT8 exports, upgrade TensorRT to a newer version (e.g., 10.7.0+):
 

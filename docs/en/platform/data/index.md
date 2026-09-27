@@ -88,7 +88,7 @@ Ultralytics Platform manages storage efficiently:
 Reference datasets using the `ul://` URI format (see [Using Platform Datasets](../api/index.md#using-platform-datasets)):
 
 ```bash
-yolo train data=ul://username/datasets/my-dataset
+yolo train model=yolo26n.pt data=ul://username/datasets/my-dataset
 ```
 
 This allows training on the platform's datasets from any machine with your [API key](../account/api-keys.md) configured.

@@ -60,7 +60,14 @@ class _NormalizeCoords(torch.nn.Module):
 
 
 def best_onnx_opset(onnx: types.ModuleType) -> int:
-    """Return max ONNX opset for this torch version with ONNX fallback."""
+    """Return max ONNX opset for this torch version with ONNX fallback.
+
+    Args:
+        onnx (types.ModuleType): The imported `onnx` module, used to cap the opset at the installed ONNX version.
+
+    Returns:
+        (int): The ONNX opset version to export with.
+    """
     version = ".".join(TORCH_VERSION.split(".")[:2])
     opset = {
         "1.8": 12,
@@ -140,12 +147,16 @@ def modelopt_quantize_onnx(
         quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``quantize=8``.
-        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
+        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for INT8 calibration shapes
+            of dynamic models and for the FP16 AutoCast calibration image.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the precision-converted ONNX file.
+
+    Raises:
+        ValueError: If ``quantize=8`` and no calibration dataset is provided.
     """
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
@@ -217,7 +228,7 @@ def modelopt_quantize_onnx(
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
-    workspace: int | None = None,
+    workspace: float | None = None,
     quantize: int | str | None = None,
     dynamic: bool = False,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
@@ -232,7 +243,7 @@ def onnx2engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         output_file (Path | str | None): Path to save the generated TensorRT engine file.
-        workspace (int | None): Workspace size in GB for TensorRT.
+        workspace (float | None): Workspace size in GiB for TensorRT, or None for TensorRT auto-allocation.
         quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
@@ -247,17 +258,18 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
-        RuntimeError: If the ONNX file cannot be parsed.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11.0,
+            or without FP16/INT8 precision.
+        RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:
         TensorRT version compatibility is handled for workspace size and engine building. On TensorRT 7-10, INT8
-        calibration uses an ``IInt8Calibrator`` over ``dataset`` and writes a calibration cache, while FP16/INT8 are
-        enabled with builder flags. On TensorRT 11 these were removed in favor of strongly-typed networks, so reduced
-        precision is baked into the ONNX with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by
-        `modelopt_quantize_onnx`. The TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve
-        confidence-score calibration (see #24668) and the head's output layers in FP16 for accuracy. Metadata is
-        serialized and written to the engine file if provided.
+        calibration uses an ``IInt8Calibrator`` over ``dataset``, while FP16/INT8 are enabled with builder flags. On
+        TensorRT 11 these were removed in favor of strongly-typed networks, so reduced precision is baked into the ONNX
+        with NVIDIA ModelOpt before building (FP16 AutoCast, INT8 explicit Q/DQ) by `modelopt_quantize_onnx`. The
+        TensorRT 7-10 path keeps the head Sigmoid layers in FP32 to preserve confidence-score calibration (see #24668)
+        and the head's output layers in FP16 for accuracy. Metadata is serialized and written to the engine file if
+        provided.
     """
     import onnx
 
@@ -342,7 +354,7 @@ def onnx2engine(
     if dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
+        max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
             inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))
@@ -367,29 +379,24 @@ def onnx2engine(
             """Custom INT8 calibrator for TensorRT engine optimization.
 
             This calibrator provides the necessary interface for TensorRT to perform INT8 quantization calibration using
-            a dataset. It handles batch generation, caching, and calibration algorithm selection.
+            a dataset. It handles batch generation and calibration algorithm selection.
 
             Attributes:
                 dataset: Dataset for calibration.
                 data_iter: Iterator over the calibration dataset.
                 algo (trt.CalibrationAlgoType): Calibration algorithm type.
                 batch (int): Batch size for calibration.
-                cache (Path): Path to save the calibration cache.
 
             Methods:
                 get_algorithm: Get the calibration algorithm to use.
                 get_batch_size: Get the batch size to use for calibration.
                 get_batch: Get the next batch to use for calibration.
-                read_calibration_cache: Use existing cache instead of calibrating again.
-                write_calibration_cache: Write calibration cache to disk.
+                read_calibration_cache: Return no cache so every export calibrates the current model and data.
+                write_calibration_cache: Discard the calibration cache.
             """
 
-            def __init__(
-                self,
-                dataset,  # ultralytics.data.build.InfiniteDataLoader
-                cache: str = "",
-            ) -> None:
-                """Initialize the INT8 calibrator with dataset and cache path."""
+            def __init__(self, dataset) -> None:  # ultralytics.data.build.InfiniteDataLoader
+                """Initialize the INT8 calibrator with a dataset."""
                 trt.IInt8Calibrator.__init__(self)
                 self.dataset = dataset
                 self.data_iter = iter(dataset)
@@ -399,7 +406,6 @@ def onnx2engine(
                     else trt.CalibrationAlgoType.MINMAX_CALIBRATION
                 )
                 self.batch = dataset.batch_size
-                self.cache = Path(cache)
 
             def get_algorithm(self) -> trt.CalibrationAlgoType:
                 """Get the calibration algorithm to use."""
@@ -419,20 +425,14 @@ def onnx2engine(
                     # Return None to signal to TensorRT there is no calibration data remaining
                     return None
 
-            def read_calibration_cache(self) -> bytes | None:
-                """Use existing cache instead of calibrating again, otherwise, implicitly return None."""
-                if self.cache.exists() and self.cache.suffix == ".cache":
-                    return self.cache.read_bytes()
+            def read_calibration_cache(self) -> None:
+                """Return no cache so every export calibrates the current model and data."""
 
             def write_calibration_cache(self, cache: bytes) -> None:
-                """Write calibration cache to disk."""
-                _ = self.cache.write_bytes(cache)
+                """Discard the calibration cache, which would be stale for any other model or data."""
 
         # Load dataset w/ builder (for batching) and calibrate
-        config.int8_calibrator = EngineCalibrator(
-            dataset=dataset,
-            cache=str(Path(onnx_file).with_suffix(".cache")),
-        )
+        config.int8_calibrator = EngineCalibrator(dataset)
 
         # Implicit quantization cannot exclude op types like ModelOpt on TRT 11, so keep the head Sigmoid (an
         # ACTIVATION layer named after its ONNX node) in FP32 via per-layer precision constraints to preserve

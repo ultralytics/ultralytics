@@ -24,7 +24,7 @@ pip install -r https://raw.githubusercontent.com/ultralytics/yolov5/master/requi
 
 ### Simple Example
 
-This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is the lightest and fastest YOLOv5 model. For details on all available models please see the [README](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This example loads a pretrained YOLOv5s model from PyTorch Hub as `model` and passes an image for inference. `'yolov5s'` is a small, fast YOLOv5 model. For details on all available models please see the [README](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```python
 import torch
@@ -48,7 +48,7 @@ results.pandas().xyxy[0]
 
 ### Detailed Example
 
-This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources. `results` can be **printed** to console, **saved** to `runs/hub`, **showed** to screen on supported environments, and returned as **tensors** or **pandas** dataframes.
+This example shows **batched inference** with **PIL** and **[OpenCV](https://www.ultralytics.com/glossary/opencv)** image sources. `results` can be **printed** to console, **saved** to `runs/hub`, **shown** on screen on supported environments, and returned as **tensors** or **pandas** dataframes.
 
 ```python
 import cv2
@@ -151,7 +151,7 @@ In this case the model will be composed of pretrained weights **except for** the
 
 ### Force Reload
 
-If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and force a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
+If you run into problems with the above steps, setting `force_reload=True` may help by discarding the existing cache and forcing a fresh download of the latest YOLOv5 version from PyTorch Hub. Cached copies live in `~/.cache/torch/hub`; deleting that folder achieves the same effect.
 
 ```python
 model = torch.hub.load("ultralytics/yolov5", "yolov5s", force_reload=True)  # force reload
@@ -278,7 +278,7 @@ results.pandas().xyxy[0].sort_values("xmin")  # sorted left-right
 Results can be returned in JSON format once converted to `.pandas()` dataframes using the `.to_json()` method. The JSON format can be modified using the `orient` argument. See pandas `.to_json()` [documentation](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.to_json.html) for details.
 
 ```python
-results = model(ims)  # inference
+results = model(im)  # inference
 results.pandas().xyxy[0].to_json(orient="records")  # JSON img1 predictions
 ```
 

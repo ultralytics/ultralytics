@@ -77,7 +77,7 @@ dependencies = [
     "psutil>=5.8.0", # system utilization
     "polars>=0.20.0",
     "nvidia-ml-py>=12.0.0", # NVIDIA GPU monitoring https://pypi.org/project/nvidia-ml-py
-    "ultralytics-thop>=2.1.6", # FLOPs computation https://github.com/ultralytics/thop
+    "ultralytics-thop>=2.2.0", # FLOPs computation https://github.com/ultralytics/thop
     "ultralytics-platform>=0.1.45; python_version >= '3.11'",
 ]
 
@@ -121,7 +121,7 @@ export-tensorflow = [
     "h5py!=3.11.0; platform_machine == 'aarch64'", # fix h5py build issues due to missing aarch64 wheels in 3.11 release
 ]
 export-coreai = [
-    "coreai-torch>=0.4.3; platform_system == 'Darwin' and platform_machine == 'arm64' and python_version >= '3.11' and python_version < '3.15'",  # Core AI export
+    "coreai-torch>=0.4.3; ((platform_system == 'Darwin' and platform_machine == 'arm64') or (platform_system == 'Linux' and platform_machine == 'x86_64')) and python_version >= '3.11' and python_version < '3.15'",  # Core AI export
 ]
 export-coreml = [
     "numpy<=2.3.5; platform_system != 'Windows' and python_version <= '3.13'",  # pin until CoreML>9.0 fixes numpy>=2.4 int() cast crash
@@ -154,7 +154,7 @@ solutions = [
     "shapely>=2.0.0",    # shapely for point and polygon data matching
     "lap>=0.5.12",  # for solution tracking linear assignment
     # CLIP for similarity search auto-installs on first use via ultralytics.nn.text_model (https://github.com/ultralytics/CLIP)
-    "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference on web browser, i.e `yolo streamlit-predict`
+    "streamlit>=1.51.0; python_version >= '3.10'",    # for live inference in a web browser, e.g. `yolo solutions inference`
     "streamlit>=1.29.0,<1.51.0; python_version < '3.10' and (platform_machine != 'aarch64' or platform_system != 'Linux')",
     "flask>=3.0.1",  # for similarity search solution
 ]

@@ -34,7 +34,7 @@ def _post(url: str, data: dict, timeout: float = 5.0) -> None:
 
 
 def _arch(model):
-    """Return the architecture a model is built from, i.e. 'yolo11n-seg', or None if it cannot be determined.
+    """Return the architecture a model is built from, e.g. 'yolo11n-seg', or None if it cannot be determined.
 
     The config travels inside a checkpoint, so fine-tuned models report the architecture they descend from however many
     generations back.
@@ -97,7 +97,7 @@ class Events:
 
         Args:
             cfg (IterableSimpleNamespace): The configuration object containing mode and task information.
-            device (torch.device | str, optional): The device type (e.g., 'cpu', 'cuda').
+            device (torch.device, optional): The device used by the run, e.g. torch.device('cuda:0').
             run (BasePredictor | BaseTrainer, optional): The completed run, read for the mode's result fields.
         """
         # An event is named for its mode, so an arbitrary mode becomes an arbitrary event name, and GA4 drops every new
@@ -189,7 +189,7 @@ class Events:
         if (t - self.t) < self.rate_limit:
             return
 
-        # Overrate limit: send a snapshot of queued events in a background thread
+        # Over rate limit: send a snapshot of queued events in a background thread
         payload_events = list(self.events)  # snapshot to avoid race with queue reset
         Thread(
             target=_post,

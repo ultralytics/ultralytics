@@ -1659,7 +1659,7 @@ class Exporter:
         calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
         calibration_size = len(calibration_dataloader.dataset)
         LOGGER.warning(
-            f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
+            f"\nHailo optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
             'Pass data="path/to/dataset.yaml". '
             "See https://docs.ultralytics.com/integrations/hailo#export-a-hailo-hef-model"
@@ -1719,8 +1719,10 @@ class Exporter:
             runner.translate_onnx_model(str(f_onnx), self.file.stem, end_node_names=end_nodes)
             model_script = [
                 "normalization1 = normalization([0, 0, 0], [255, 255, 255])",
-                "model_optimization_flavor(optimization_level=2)",
-                f"post_quantization_optimization(finetune, policy=enabled, dataset_size={calibration_size})",
+                # Hailo Model Zoo recipe: level 4 without compression and AdaRound over the full calibration set
+                f"model_optimization_config(calibration, batch_size=1, calibset_size={calibration_size})",
+                "model_optimization_flavor(optimization_level=4, compression_level=0)",
+                "post_quantization_optimization(adaround, policy=enabled, batch_size=1)",
             ]
             if raw_detect or task == "depth":
                 # a16 on the output(s): the DFL-free detect logits and the single dense depth logit both need the

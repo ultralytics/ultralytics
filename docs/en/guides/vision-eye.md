@@ -99,7 +99,7 @@ VisionEye works by establishing a fixed vision point in the frame and drawing li
 
 The `process` method in the VisionEye class performs several key operations:
 
-1. Extracts tracks (bounding boxes, classes, and masks) from the input image
+1. Extracts tracks (bounding boxes, classes, and track IDs) from the input image
 2. Creates an annotator to draw bounding boxes and labels
 3. For each detected object, draws a box label and creates a vision line from the vision point
 4. Returns the annotated image with tracking statistics
@@ -175,6 +175,6 @@ For more information on applications and benefits, check out the [Ultralytics YO
 
 ### How can I integrate VisionEye with other [machine learning](https://www.ultralytics.com/glossary/machine-learning-ml) tools like Comet or ClearML?
 
-Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [how to use YOLOv5 with Comet](https://www.ultralytics.com/blog/how-to-use-yolov5-with-comet) and [integrate YOLO26 with ClearML](../integrations/clearml.md) to get started.
+Ultralytics YOLO26 can integrate seamlessly with various machine learning tools like Comet and ClearML, enhancing experiment tracking, collaboration, and reproducibility. Follow the detailed guides on [integrating YOLO26 with Comet](../integrations/comet.md) and [integrating YOLO26 with ClearML](../integrations/clearml.md) to get started.
 
 For further exploration and integration examples, check our [Ultralytics Integrations Guide](../integrations/index.md).

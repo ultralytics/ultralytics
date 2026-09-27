@@ -42,7 +42,10 @@ class DistanceCalculation(BaseSolution):
         self.centroids: list[list[int]] = []  # Store centroids of selected objects
 
     def mouse_event_for_distance(self, event: int, x: int, y: int, flags: int, param: Any) -> None:
-        """Handle mouse events to select regions in a real-time video stream for distance calculation.
+        """Handle mouse events to select objects in a real-time video stream for distance calculation.
+
+        A left click selects the tracked object under the cursor (up to two objects); a right click clears the
+        selection.
 
         Args:
             event (int): Type of mouse event (e.g., cv2.EVENT_MOUSEMOVE, cv2.EVENT_LBUTTONDOWN).

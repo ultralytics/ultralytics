@@ -12,9 +12,11 @@ Usage - formats:
                      yolo26n_openvino_model     # OpenVINO
                      yolo26n.engine             # TensorRT
                      yolo26n.mlpackage          # CoreML (macOS-only)
+                     yolo26n.aimodel            # Apple Core AI
                      yolo26n_saved_model        # TensorFlow SavedModel
                      yolo26n.pb                 # TensorFlow GraphDef
                      yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                     yolo26n.tflite             # LiteRT
                      yolo26n_paddle_model       # PaddlePaddle
                      yolo26n.mnn                # MNN
                      yolo26n_ncnn_model         # NCNN
@@ -24,7 +26,7 @@ Usage - formats:
                      yolo26n_axelera_model      # Axelera AI
                      yolo26n_deepx_model        # DEEPX
                      yolo26n_qnn.onnx           # Qualcomm QNN
-                     yolo26n.tflite             # LiteRT
+                     yolo26n_hailo_model        # Hailo
                      yolo26n_ascend_model       # Huawei Ascend
 """
 
@@ -69,11 +71,11 @@ class BaseValidator:
         data (dict): Data dictionary containing dataset information.
         device (torch.device): Device to use for validation.
         batch_i (int): Current batch index.
-        training (bool): Whether the model is in training mode.
+        training (bool): Whether validation is running during training.
         names (dict): Class names mapping.
         seen (int): Number of images seen so far during validation.
         stats (dict): Statistics collected during validation.
-        confusion_matrix: Confusion matrix for classification evaluation.
+        confusion_matrix (ConfusionMatrix): Confusion matrix of predictions versus ground truth.
         nc (int): Number of classes.
         iouv (torch.Tensor): IoU thresholds from 0.50 to 0.95 in steps of 0.05.
         jdict (list): List to store JSON validation results.
@@ -88,6 +90,7 @@ class BaseValidator:
     Methods:
         __call__: Execute validation process, running inference on dataloader and computing performance metrics.
         match_predictions: Match predictions to ground truth objects using IoU.
+        get_model: Return the training EMA or an independent model for standalone validation.
         add_callback: Append the given callback to the specified event.
         run_callbacks: Run all callbacks associated with a specified event.
         get_dataloader: Get data loader from dataset path and batch size.
@@ -98,6 +101,7 @@ class BaseValidator:
         update_metrics: Update metrics based on predictions and batch.
         finalize_metrics: Finalize and return all metrics.
         get_stats: Return statistics about the model's performance.
+        gather_stats: Gather statistics from all GPUs during DDP training.
         print_results: Print the results of the model's predictions.
         get_desc: Get description of the YOLO model.
         on_plot: Register plots for visualization.
@@ -113,7 +117,7 @@ class BaseValidator:
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path, optional): Directory to save results.
-            args (SimpleNamespace, optional): Configuration for the validator.
+            args (dict | SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
@@ -153,7 +157,7 @@ class BaseValidator:
             **kwargs (Any): Task-specific model preparation arguments.
 
         Returns:
-            (dict): Dictionary containing validation statistics.
+            (dict | None): Dictionary containing validation statistics, or None on non-zero DDP ranks during training.
         """
         self.training = trainer is not None
         model = self.get_model(model, trainer, **kwargs)
@@ -174,7 +178,9 @@ class BaseValidator:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             with torch_distributed_zero_first(LOCAL_RANK):
-                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+                self.args.data = convert_ndjson_to_yolo_if_needed(
+                    self.args.data, self.args.fraction, split=self.args.split
+                )
             device_type = str(self.args.device).split(":", 1)[0]
             device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(
@@ -314,11 +320,12 @@ class BaseValidator:
         Args:
             pred_classes (torch.Tensor): Predicted class indices of shape (N,).
             true_classes (torch.Tensor): Target class indices of shape (M,).
-            iou (torch.Tensor): An NxM tensor containing the pairwise IoU values for predictions and ground truth.
+            iou (torch.Tensor): An MxN tensor containing the pairwise IoU values for ground truth (rows) and predictions
+                (columns).
             use_scipy (bool, optional): Whether to use Hungarian one-to-one matching (more precise).
 
         Returns:
-            (torch.Tensor): Correct tensor of shape (N, 10) for 10 IoU thresholds.
+            (torch.Tensor): Boolean correct tensor of shape (N, T) for T IoU thresholds (10 by default).
         """
         # Dx10 matrix, where D - detections, 10 - IoU thresholds
         correct = np.zeros((pred_classes.shape[0], self.iouv.shape[0])).astype(bool)
@@ -335,7 +342,7 @@ class BaseValidator:
                     if valid.any():
                         correct[detections_idx[valid], i] = True
             else:
-                matches = np.nonzero(iou >= threshold)  # IoU > threshold and classes match
+                matches = np.nonzero(iou >= threshold)  # IoU >= threshold and classes match
                 matches = np.array(matches).T
                 if matches.shape[0]:
                     if matches.shape[0] > 1:

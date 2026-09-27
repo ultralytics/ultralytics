@@ -2,7 +2,7 @@
 
 # ADE20K semantic segmentation dataset (150 classes)
 # Documentation: https://docs.ultralytics.com/datasets/semantic/ade20k
-# Example usage: yolo semantic train data=ade20k.yaml model=yolo26n-sem.pt
+# Example usage: yolo semantic train data=ade20k.yaml model=yolo26n-sem-ade20k.pt
 # parent
 # ├── ultralytics
 # └── datasets

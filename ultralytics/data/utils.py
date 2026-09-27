@@ -360,6 +360,9 @@ def verify_image_label(args: tuple) -> list:
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
                 assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
+                assert np.all(np.isfinite(lb[:, 0]) & (lb[:, 0] >= 0) & (lb[:, 0] == np.floor(lb[:, 0]))), (
+                    "class labels must be nonnegative integers"
+                )
 
                 # All labels
                 max_cls = 0 if single_cls else lb[:, 0].max()  # max label count

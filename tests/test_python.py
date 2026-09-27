@@ -1554,6 +1554,21 @@ def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     assert (depth.parent / "train.cache").exists()  # scan results cached next to the depth maps
 
 
+def test_verify_image_label_rejects_fractional_class_ids(tmp_path):
+    """Reject class IDs that training would silently truncate to a different class."""
+    from ultralytics.data.utils import verify_image_label
+
+    image = tmp_path / "image.png"
+    label = tmp_path / "image.txt"
+    cv2.imwrite(str(image), np.zeros((32, 32, 3), dtype=np.uint8))
+    for class_id in ("0", "1.0"):
+        label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
+        assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] == str(image)
+    for class_id in ("0.5", "1.5", "-0.005"):
+        label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
+        assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] is None
+
+
 def test_utils_init():
     """Test initialization utilities in the Ultralytics library."""
     from ultralytics.utils import get_ubuntu_version, is_github_action_running

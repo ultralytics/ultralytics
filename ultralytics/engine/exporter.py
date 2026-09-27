@@ -465,8 +465,8 @@ def hailo_model_script(generated, model_script=None):
     """
     if not model_script:
         return "\n".join(generated)
-    script = Path(model_script)
-    return script.read_text() if script.is_file() else model_script
+    # os.path.isfile, unlike Path.is_file on Python<3.14, returns False for inline text too long to be a path
+    return Path(model_script).read_text() if os.path.isfile(model_script) else model_script
 
 
 def validate_args(format, passed_args, valid_args):

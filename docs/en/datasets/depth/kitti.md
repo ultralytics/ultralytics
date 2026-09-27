@@ -26,7 +26,7 @@ The KITTI depth data used by Ultralytics is split into two subsets:
 1. **Training split**: 55,198 images (left `image_02` and right `image_03`). All 28 KITTI Eigen test drives are excluded from training to keep evaluation fair.
 2. **Evaluation split**: the KITTI Eigen test split — its 652 left-camera frames that have improved ground truth. Evaluation uses an 80 m depth cap and median (scale-only) alignment between predictions and ground truth.
 
-The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.yaml`) sets `max_depth: 80` accordingly.
+The depth range reaches approximately 80 m, and the dataset YAML (`depth-kitti.yaml`) sets `max_depth: 80` accordingly. On first use, the YAML automatically downloads the improved ground truth (~14 GB) and the matching raw drives (~175 GB) and converts them to the [Ultralytics depth dataset format](index.md).
 
 ## Role in YOLO26-Depth
 
@@ -118,7 +118,7 @@ If you use the KITTI dataset in your research or development work, please cite t
         }
         ```
 
-We would like to acknowledge the Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago for creating and maintaining the KITTI dataset, and Uhrig et al. for the depth densification method that makes dense supervision possible.
+We would like to acknowledge the Karlsruhe Institute of Technology and Toyota Technological Institute at Chicago for creating and maintaining the KITTI dataset, and Uhrig et al. for the depth densification method that makes denser supervision possible.
 
 ## FAQ
 

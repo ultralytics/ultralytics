@@ -16,13 +16,9 @@ keywords: Ultralytics, data collection, YOLO, Python package, Google Analytics, 
 
 ### What We Collect
 
-Events are sent only for the `train`, `val`, `predict`, `track`, and `export` modes, in batches at most once every 30 seconds. Each event includes:
-
-- **Environment**: Ultralytics, Python (major.minor), and PyTorch versions, operating system/environment, CPU model, GPU model (CUDA runs only), device string, whether the `yolo` CLI was used, and the install method (pip, git, or other).
-- **Run Context**: The mode and task, and the model file name (base name only, such as `yolo26n.pt`, never the full path).
-- **Training Runs**: The dataset file name (stem only, such as `coco8`), image size, epochs completed, batch size, training hours, number of training images, best fitness score, optimizer and initial learning rate, model architecture name, GPU count, and which of these options were enabled: pretrained, cosine LR, AMP, rect, multi-scale, freeze, dropout, early stopping, and resume.
-- **Prediction and Tracking Runs**: Images processed, mean image area, per-stage timing (preprocess, inference, postprocess), batch size, model format, number of classes, quantization, runtime execution provider, model architecture name, and whether compile, end-to-end, or test-time augmentation was used.
-- **Export Runs**: The target export format.
+- **Usage Metrics**: These metrics help us understand how frequently and in what ways the package is utilized, what features are favored, and the typical command-line arguments that are used.
+- **System Information**: We collect general non-identifiable information about your computing environment to ensure our package performs well across various systems.
+- **Performance Data**: Understanding the performance of our models during training, validation, and inference helps us in identifying optimization opportunities.
 
 For more information about Google Analytics and [data privacy](https://www.ultralytics.com/glossary/data-privacy), visit [Google Analytics Privacy](https://support.google.com/analytics/answer/6004245).
 
@@ -36,9 +32,7 @@ For more information about Google Analytics and [data privacy](https://www.ultra
 
 We take several measures to ensure the privacy and security of the data you entrust to us:
 
-- **Pseudonymous Identifiers**: Events carry a random per-session ID and a client ID that is a SHA-256 hash of a machine identifier. Neither contains your name, email address, or file paths.
-- **File Names**: Model and dataset names are sent as base names only. If these names are sensitive, rename the files or disable collection with `sync=False`.
-- **When Collection Happens**: Only when `sync=True` in your settings, in the main process (rank -1 or 0), while online, outside of tests, and when Ultralytics is installed from pip or the official GitHub repository.
+- **Anonymization**: We configure Google Analytics to anonymize the data collected, which means no personally identifiable information (PII) is gathered. You can use our services with the assurance that your personal details remain private.
 - **Aggregation**: Data is analyzed only in aggregate form. This practice ensures that patterns can be observed without revealing any individual user's activity.
 - **No Image Data Collection**: Ultralytics does not collect, process, or view any training or inference images.
 
@@ -52,10 +46,10 @@ We take several measures to ensure the privacy and security of the data you entr
 
 ### What We Collect
 
-If the `sentry-sdk` Python package is pre-installed on your system a crash event may send the following information:
+Crash reports are sent only when the `sentry-sdk` package is already installed, `sync=True` in your settings, Ultralytics is installed from pip (not a git clone), and the crash occurs in a `yolo` CLI command. A crash report may include:
 
-- **Crash Logs**: Detailed reports on the application's condition at the time of a crash, which are vital for our debugging efforts.
-- **Error Messages**: We record error messages generated during the operation of our package to understand and resolve potential issues quickly.
+- **Error Messages and Stack Traces**: The exception message and the stack trace at the time of the crash.
+- **Runtime Context**: The Ultralytics version, operating system/environment, and install method.
 
 To learn more about how Sentry handles data, please visit [Sentry's Privacy Policy](https://sentry.io/privacy/).
 
@@ -66,8 +60,8 @@ To learn more about how Sentry handles data, please visit [Sentry's Privacy Poli
 
 ### Privacy Considerations
 
-- **Sensitive Information**: We ensure that crash logs are scrubbed of any personally identifiable or sensitive user data, safeguarding the confidentiality of your information.
-- **Controlled Collection**: Our crash reporting mechanism is meticulously calibrated to gather only what is essential for troubleshooting while respecting user privacy.
+- **Excluded Data**: Local variables and command-line arguments are not included, and keyboard interrupts, missing-file errors, and out-of-memory errors are never reported. Error messages and stack traces can still contain file paths from your system.
+- **Controlled Collection**: Crash reporting gathers only what is needed for troubleshooting, and it is disabled whenever `sync=False`.
 
 ## Disabling Data Collection
 

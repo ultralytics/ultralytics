@@ -630,26 +630,12 @@ def model_info_for_loggers(trainer):
     return results
 
 
-def _attention_ops(m, x, y):
-    """Count the query-key and attention-value matmuls of an attention block for THOP.
-
-    Both run functionally on reshaped tensors, so no child-module hook observes them and the block would otherwise be
-    charged only for its qkv/proj/pe convolutions. Each output element of the two products costs one multiply-add over
-    the contracted axis, giving `tokens**2 * (key_dim + head_dim)` per head.
-    """
-    b, _, h, w = x[0].shape
-    area = getattr(m, "area", 1)  # area attention attends within that many independent groups, AAttn only
-    tokens = h * w // area
-    key_dim = getattr(m, "key_dim", m.head_dim)  # Attention narrows q and k by attn_ratio, AAttn does not
-    m.total_ops += b * area * m.num_heads * tokens * tokens * (key_dim + m.head_dim)
-
-
 def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
-    Uses THOP's stride-aware image profiling for efficiency and accurate size-independent operations, except for models
-    with attention blocks (whose cost is quadratic in image area) or an RT-DETR decoder, which are profiled at the full
-    image size. Returns 0.0 if thop is unavailable or profiling fails.
+    Uses THOP's stride-aware image profiling, which extrapolates exactly from small stride-aligned proxy images, with
+    the proxies widened past the anchor count at which an RT-DETR decoder's query selection saturates. Returns 0.0 if
+    thop is unavailable or profiling fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
@@ -667,22 +653,19 @@ def get_flops(model, imgsz=640):
         return 0.0  # if not installed return 0.0 GFLOPs
 
     try:
-        from ultralytics.nn.modules.block import AAttn, Attention  # imported here: block.py imports this module
-        from ultralytics.nn.modules.head import RTDETRDecoder
+        from ultralytics.nn.modules.head import RTDETRDecoder  # imported here: head.py imports this module
 
         model = unwrap_model(model)
         p = next(model.parameters())
         if not isinstance(imgsz, (list, tuple)):
             imgsz = [imgsz, imgsz]  # expand if int/float
-        attn = tuple(m for m in model.modules() if isinstance(m, (Attention, AAttn)))
-        rtdetr = any(isinstance(m, RTDETRDecoder) for m in model.modules())
-        # Attention costs are quadratic in image area, so disable THOP's affine proxy.
-        stride = None if attn else max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
+        stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
+        # an RT-DETR decoder selects num_queries anchors, and a stride cell holds (4**nl - 1) / 3 anchors over nl levels
+        min_cells = max(
+            (-(-m.num_queries * 3 // (4**m.nl - 1)) for m in model.modules() if isinstance(m, RTDETRDecoder)), default=1
+        )
         im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-        custom_ops = {Attention: _attention_ops, AAttn: _attention_ops} if attn else None
-        if rtdetr:  # RT-DETR cannot run the stride-sized proxy input
-            return thop.profile(model, inputs=[im], custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
-        return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
+        return thop.profile(model, inputs=[im], stride=stride, min_cells=min_cells, verbose=False)[0] / 1e9 * 2
     except Exception:
         return 0.0
 

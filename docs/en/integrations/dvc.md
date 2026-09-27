@@ -56,10 +56,10 @@ Begin by initializing a Git repository, as Git plays a crucial role in version c
         git config --local user.email "your-email"
         git config --local user.name "Your Name"
 
-        # Initialize DVCLive in your project
+        # Initialize DVC in your project
         dvc init -q
 
-        # Commit the DVCLive setup to your Git repository
+        # Commit the DVC setup to your Git repository
         git commit -m "DVC init"
         ```
 
@@ -250,7 +250,7 @@ To configure your environment for a smooth integration of DVCLive and YOLO26, fo
 
 1. **Install Required Packages**: Use `pip install ultralytics dvclive`.
 2. **Initialize Git Repository**: Run `git init -q`.
-3. **Setup DVCLive**: Execute `dvc init -q`.
+3. **Initialize DVC**: Execute `dvc init -q`.
 4. **Commit to Git**: Use `git commit -m "DVC init"`.
 
 These steps ensure proper version control and setup for experiment tracking. For in-depth configuration details, visit our [Configuration guide](../quickstart.md).

@@ -105,11 +105,11 @@ Before diving into the usage instructions for YOLO26 model training with Weights
 
 ### W&B Arguments
 
-| Argument | Default | Description                                                                                                        |
-| -------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
-| project  | `None`  | Specifies the name of the project logged locally and in W&B. This way you can group multiple runs together.        |
-| name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging |
-| save     | `True`  | Determines whether to upload the best checkpoint as a W&B model artifact.                                          |
+| Argument | Default | Description                                                                                                                                               |
+| -------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| project  | `None`  | Specifies the name of the project logged locally and in W&B, grouping multiple runs together. If unset, W&B runs are logged to the `Ultralytics` project. |
+| name     | `None`  | The name of the training run. This determines the name used to create subfolders and the name used for W&B logging.                                       |
+| save     | `True`  | Determines whether to upload the best checkpoint as a W&B model artifact.                                                                                 |
 
 !!! tip "Enable or Disable Weights & Biases"
 

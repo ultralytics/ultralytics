@@ -6,6 +6,7 @@ from copy import copy
 from typing import Any
 
 import numpy as np
+import torch
 
 from ultralytics.data.utils import add_polygon_background
 from ultralytics.models import yolo
@@ -45,12 +46,12 @@ class SemanticSegmentationTrainer(DetectionTrainer):
         """Parse the dataset YAML and add background metadata for polygon labels when required."""
         return add_polygon_background(super().get_dataset())
 
-    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True):
+    def get_model(self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a SemanticSegmentationModel with optional pretrained backbone.
 
         Args:
-            cfg (str, optional): Path to model configuration file.
-            weights (str | Path, optional): Path to model weights.
+            cfg (str | dict, optional): Model configuration file path or dictionary.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information.
 
         Returns:

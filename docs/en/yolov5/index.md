@@ -24,7 +24,7 @@ keywords: YOLOv5, Ultralytics, object detection, computer vision, deep learning,
 
 # Comprehensive Guide to Ultralytics YOLOv5
 
-Welcome to the Ultralytics [YOLOv5](https://github.com/ultralytics/yolov5)🚀 Documentation! Ultralytics YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" [object detection](https://www.ultralytics.com/glossary/object-detection) model, is designed to deliver high-speed, high-accuracy results in real-time. While YOLOv5 remains a powerful tool, consider exploring its successors, [Ultralytics YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md), for the latest advancements.
+Welcome to the Ultralytics [YOLOv5](https://github.com/ultralytics/yolov5) 🚀 Documentation! Ultralytics YOLOv5, the fifth iteration of the revolutionary "You Only Look Once" [object detection](https://www.ultralytics.com/glossary/object-detection) model, is designed to deliver high-speed, high-accuracy results in real-time. While YOLOv5 remains a powerful tool, consider exploring its successors, [Ultralytics YOLOv8](../models/yolov8.md), [YOLO11](../models/yolo11.md), and [YOLO26](../models/yolo26.md), for the latest advancements.
 
 Built on [PyTorch](https://pytorch.org/), this powerful [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) framework has garnered immense popularity for its versatility, ease of use, and high performance. Our documentation guides you through the installation process, explains the architectural nuances of the model, showcases various use cases, and provides a series of detailed tutorials. These resources will help you harness the full potential of YOLOv5 for your [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) projects. Let's get started!
 
@@ -92,7 +92,7 @@ We're excited to see the innovative ways you'll use YOLOv5. Dive in, experiment,
 
 ### What are the key features of Ultralytics YOLOv5?
 
-Ultralytics YOLOv5 is renowned for its high-speed and high-[accuracy](https://www.ultralytics.com/glossary/accuracy) object detection capabilities. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), it is versatile and user-friendly, making it suitable for various computer vision projects. Key features include real-time inference, support for multiple training tricks like Test-Time Augmentation (TTA) and Model Ensembling, and compatibility with export formats such as TFLite, ONNX, CoreML, and TensorRT. To delve deeper into how Ultralytics YOLOv5 can elevate your project, explore our [TFLite, ONNX, CoreML, TensorRT Export guide](tutorials/model-export.md).
+Ultralytics YOLOv5 is renowned for its high-speed and high-[accuracy](https://www.ultralytics.com/glossary/accuracy) object detection capabilities. Built on [PyTorch](https://www.ultralytics.com/glossary/pytorch), it is versatile and user-friendly, making it suitable for various computer vision projects. Key features include real-time inference, support for inference techniques like Test-Time Augmentation (TTA) and Model Ensembling, and compatibility with export formats such as TFLite, ONNX, CoreML, and TensorRT. To delve deeper into how Ultralytics YOLOv5 can elevate your project, explore our [TFLite, ONNX, CoreML, TensorRT Export guide](tutorials/model-export.md).
 
 ### How can I train a custom YOLOv5 model on my dataset?
 

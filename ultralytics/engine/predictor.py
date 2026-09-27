@@ -21,9 +21,11 @@ Usage - formats:
                          yolo26n_openvino_model     # OpenVINO
                          yolo26n.engine             # TensorRT
                          yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n.aimodel            # Apple Core AI
                          yolo26n_saved_model        # TensorFlow SavedModel
                          yolo26n.pb                 # TensorFlow GraphDef
                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n.tflite             # LiteRT
                          yolo26n_paddle_model       # PaddlePaddle
                          yolo26n.mnn                # MNN
                          yolo26n_ncnn_model         # NCNN
@@ -33,7 +35,7 @@ Usage - formats:
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
-                         yolo26n.tflite             # LiteRT
+                         yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
 """
 
@@ -96,9 +98,10 @@ class BasePredictor:
     Attributes:
         args (SimpleNamespace): Configuration for the predictor.
         save_dir (Path): Directory to save results.
-        done_warmup (bool): Whether the predictor has finished setup.
+        done_warmup (bool): Whether the model has been warmed up.
         model (torch.nn.Module): Model used for prediction.
         data (str | Path | None): Copy of args.data, the dataset YAML AutoBackend falls back to for class names.
+        imgsz (list[int]): Checked inference image size (height, width).
         device (torch.device): Device used for prediction.
         dataset (Dataset): Dataset used for prediction.
         vid_writer (dict[Path, cv2.VideoWriter]): Dictionary of {save_path: video_writer} for saving video output.
@@ -259,7 +262,7 @@ class BasePredictor:
             return list(self.stream_inference(source, model, *args, **kwargs))  # merge list of Results into one
 
     def predict_cli(self, source=None, model=None):
-        """Method used for Command Line Interface (CLI) prediction.
+        """Run prediction for the Command Line Interface (CLI).
 
         This function is designed to run predictions using the CLI. It sets up the source and model, then processes the
         inputs in a streaming manner. This method ensures that no outputs accumulate in memory by consuming the
@@ -321,7 +324,8 @@ class BasePredictor:
             **kwargs (Any): Additional keyword arguments for the inference method.
 
         Yields:
-            (ultralytics.engine.results.Results): Results objects.
+            (ultralytics.engine.results.Results | torch.Tensor): Results objects, or embedding tensors when `embed` is
+                set.
         """
         if self.args.verbose:
             LOGGER.info("")
@@ -518,12 +522,12 @@ class BasePredictor:
 
         return string
 
-    def save_predicted_images(self, save_path: Path, frame: int = 0):
+    def save_predicted_images(self, save_path: Path, frame: int | None = 0):
         """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:
             save_path (Path): Path to save the results.
-            frame (int): Frame number for video mode.
+            frame (int | None): Frame number for video mode.
         """
         im = self.plotted_img
 

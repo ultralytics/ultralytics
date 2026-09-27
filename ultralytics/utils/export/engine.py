@@ -60,7 +60,14 @@ class _NormalizeCoords(torch.nn.Module):
 
 
 def best_onnx_opset(onnx: types.ModuleType) -> int:
-    """Return max ONNX opset for this torch version with ONNX fallback."""
+    """Return max ONNX opset for this torch version with ONNX fallback.
+
+    Args:
+        onnx (types.ModuleType): The imported `onnx` module, used to cap the opset at the installed ONNX version.
+
+    Returns:
+        (int): The ONNX opset version to export with.
+    """
     version = ".".join(TORCH_VERSION.split(".")[:2])
     opset = {
         "1.8": 12,
@@ -140,12 +147,16 @@ def modelopt_quantize_onnx(
         quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``quantize=8``.
-        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
+        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for INT8 calibration shapes
+            of dynamic models and for the FP16 AutoCast calibration image.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the precision-converted ONNX file.
+
+    Raises:
+        ValueError: If ``quantize=8`` and no calibration dataset is provided.
     """
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
@@ -213,7 +224,7 @@ def modelopt_quantize_onnx(
 def onnx2engine(
     onnx_file: str,
     output_file: Path | str | None = None,
-    workspace: int | None = None,
+    workspace: float | None = None,
     quantize: int | str | None = None,
     dynamic: bool = False,
     shape: tuple[int, int, int, int] = (1, 3, 640, 640),
@@ -228,7 +239,7 @@ def onnx2engine(
     Args:
         onnx_file (str): Path to the ONNX file to be converted.
         output_file (Path | str | None): Path to save the generated TensorRT engine file.
-        workspace (int | None): Workspace size in GB for TensorRT.
+        workspace (float | None): Workspace size in GiB for TensorRT, or None for TensorRT auto-allocation.
         quantize (int | str | None): Precision scheme, 16 for FP16 or 8 for INT8.
         dynamic (bool, optional): Enable dynamic input shapes.
         shape (tuple[int, int, int, int], optional): Input shape (batch, channels, height, width).
@@ -243,8 +254,9 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
-        RuntimeError: If the ONNX file cannot be parsed.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11.0,
+            or without FP16/INT8 precision.
+        RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:
         TensorRT version compatibility is handled for workspace size and engine building. On TensorRT 7-10, INT8
@@ -338,7 +350,7 @@ def onnx2engine(
     if dynamic:
         profile = builder.create_optimization_profile()
         min_shape = (1, shape[1], 32, 32)  # minimum input shape
-        max_shape = (*shape[:2], *(int(max(2, workspace or 2) * d) for d in shape[2:]))  # max input shape
+        max_shape = (*shape[:2], *(2 * d for d in shape[2:]))  # max input shape, 2x imgsz
         for inp in inputs:
             inp_min = tuple(d if d != -1 else lo for d, lo in zip(inp.shape, min_shape))
             inp_max = tuple(d if d != -1 else hi for d, hi in zip(inp.shape, max_shape))

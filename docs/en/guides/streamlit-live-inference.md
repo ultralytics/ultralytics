@@ -77,7 +77,7 @@ This will launch the Streamlit application in your default web browser. You will
 
 Under the hood, the Streamlit application uses the [Ultralytics solutions module](../reference/solutions/streamlit_inference.md) to create an interactive interface. When you start the inference, the application:
 
-1. Captures video from your webcam or uploaded video file
+1. Captures frames from your webcam, an uploaded video file, or uploaded images
 2. Processes each frame through the YOLO26 model
 3. Applies object detection with your specified confidence and IoU thresholds
 4. Displays both the original and annotated frames in real-time

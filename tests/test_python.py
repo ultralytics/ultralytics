@@ -412,6 +412,39 @@ def test_predict_csv_single_row(tmp_path):
     assert len(results) == 7, f"Expected 7 results from single-row CSV, got {len(results)}"
 
 
+@pytest.mark.parametrize(
+    ("suffix", "contents"),
+    [("txt", "requested.png\n\n"), ("csv", "source\nrequested.png,\n")],
+)
+def test_predict_source_list_ignores_empty_entries(tmp_path, monkeypatch, suffix, contents):
+    """An empty source-list entry must not include unrelated images from the working directory."""
+    source_dir = tmp_path / "sources"
+    source_dir.mkdir()
+    requested = source_dir / "requested.png"
+    Image.new("RGB", (4, 4)).save(requested)
+    Image.new("RGB", (4, 4)).save(tmp_path / "unrelated.png")
+    source_file = source_dir / f"inputs.{suffix}"
+    source_file.write_text(contents)
+    monkeypatch.chdir(tmp_path)
+
+    dataset = load_inference_source(source_file, batch=3)
+    paths, images, _ = next(iter(dataset))
+    assert paths == [str(requested)]
+    assert len(images) == 1
+
+
+@pytest.mark.parametrize(("suffix", "contents"), [("txt", "\n"), ("csv", "source\n,\n")])
+def test_predict_source_list_with_no_paths_raises(tmp_path, monkeypatch, suffix, contents):
+    """A source list without paths must not fall back to images in the working directory."""
+    Image.new("RGB", (4, 4)).save(tmp_path / "unrelated.png")
+    source_file = tmp_path / f"inputs.{suffix}"
+    source_file.write_text(contents)
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(FileNotFoundError, match="No images or videos found"):
+        load_inference_source(source_file)
+
+
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types."""

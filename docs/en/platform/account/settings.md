@@ -18,8 +18,8 @@ extra-wide screens a sidebar next to the tabs lists your five most recent traini
 
 ## Profile Tab
 
-The `Profile` tab contains your profile information, social links, data region, security, and account management
-options.
+The `Profile` tab contains your profile information, social links, data region, connected accounts, and account
+management options.
 
 ### Profile Information
 
@@ -131,10 +131,8 @@ View your data region on the `Profile` tab:
 
 ### Security
 
-The `Profile` tab includes a Security card:
-
-- **Two-Factor Authentication**: marked **Coming Soon** in Platform settings
-- **Connected Accounts**: shows the OAuth provider linked to your sign-in
+The `Profile` tab includes a **Connected accounts** card that lists the Google and GitHub accounts linked to your
+sign-in. Click **Connect Google** or **Connect GitHub** to link another provider, or **Disconnect** to remove one.
 
 ### Storage Usage
 
@@ -204,6 +202,7 @@ The export is a single JSON file of metadata — images and model weights are no
 - Profile information
 - Storage usage records
 - Project metadata
+- Saved [Agents](../agents.md) workflows
 - Dataset metadata
 - Model metadata
 - Full activity history
@@ -452,8 +451,8 @@ If you signed up with email and password, use the password reset flow on the sig
 
 ### Is two-factor authentication available?
 
-Platform currently marks two-factor authentication as **Coming Soon** in its Security card. If you sign in through
-Google or GitHub, configure multi-factor authentication with that provider.
+Platform settings do not include a two-factor authentication option. If you sign in through Google or GitHub, configure
+multi-factor authentication with that provider.
 
 ### How long until deleted data is removed?
 

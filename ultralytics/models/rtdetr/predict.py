@@ -16,7 +16,7 @@ class RTDETRPredictor(BasePredictor):
 
     Attributes:
         imgsz (int): Image size for inference (must be square and scale-filled).
-        args (dict): Argument overrides for the predictor.
+        args (SimpleNamespace): Configuration arguments for the predictor.
         model (torch.nn.Module): The loaded RT-DETR model.
         batch (list): Current batch of processed inputs.
 
@@ -40,8 +40,8 @@ class RTDETRPredictor(BasePredictor):
         boxes.
 
         Args:
-            preds (list | tuple): List of [predictions, extra] from the model, where predictions have shape (bs,
-                num_queries, 6) with format [cx, cy, w, h, score, class].
+            preds (torch.Tensor | list | tuple): Model predictions with shape (bs, num_queries, 6) and format [cx, cy,
+                w, h, score, class] with normalized box coordinates, or a list/tuple whose first element is that tensor.
             img (torch.Tensor): Processed input images with shape (N, 3, H, W).
             orig_imgs (list | torch.Tensor): Original, unprocessed images.
 

@@ -80,13 +80,13 @@ Common training problems and their fixes are covered below.
 
 **Issue**: You are unsure whether the configuration settings in the `.yaml` file are being applied correctly during model training.
 
-**Solution**: The configuration settings in the `.yaml` file should be applied when using the `model.train()` function. To ensure that these settings are correctly applied, follow these steps:
+**Solution**: Dataset settings and training settings live in different `.yaml` files and are passed through different arguments of `model.train()`. To ensure that these settings are correctly applied, follow these steps:
 
-- Confirm that the path to your `.yaml` configuration file is correct.
-- Make sure you pass the path to your `.yaml` file as the `data` argument when calling `model.train()`, as shown below:
+- Confirm that the paths to your `.yaml` files are correct.
+- Pass your dataset `.yaml` (paths, class names, splits) as the `data` argument, and a custom training-settings `.yaml` (for example `epochs` or `lr0`) as the `cfg` argument. Arguments passed directly to `model.train()` take priority over both:
 
     ```python
-    model.train(data="/path/to/your/data.yaml", batch=4)
+    model.train(data="/path/to/your/data.yaml", cfg="/path/to/your/cfg.yaml", batch=4)
     ```
 
 #### Accelerating Training with Multiple GPUs
@@ -202,7 +202,7 @@ Common problems encountered during model prediction and their fixes are covered 
     y2 = y2 / 640
     ```
 
-- File Name: To obtain the file name of the image you're predicting on, access the image file path directly from the result object within your prediction loop.
+- File Name: To obtain the file name of the image you're predicting on, read the image file path from the `path` attribute of each result object (for example `result.path`) within your prediction loop.
 
 #### Filtering Objects in YOLO26 Predictions
 

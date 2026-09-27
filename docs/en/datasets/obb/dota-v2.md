@@ -93,7 +93,7 @@ Use the YAML that matches the release you downloaded, or author a custom YAML if
 
 ## Split DOTA images
 
-The raw imagery routinely exceeds 10,000 pixels on a side, so tiling is required before feeding the data to YOLO. Use the helper below to slice the source imagery into overlapping 1024 × 1024 crops at multiple scales while keeping the annotations in sync.
+The raw imagery routinely exceeds 10,000 pixels on a side, so tiling is recommended before feeding the data to YOLO. Use the helper below to slice the source imagery into overlapping 1024 × 1024 crops at multiple scales while keeping the annotations in sync.
 
 !!! example "Split images"
 
@@ -155,7 +155,7 @@ To train a model on the DOTA v1 dataset, you can utilize the following code snip
 
 Having a glance at the dataset illustrates its depth:
 
-![DOTA dataset  with oriented bounding box annotations](https://cdn.ul.run/i/088eb7273a274b58c389da29578dfe28.avif)
+![DOTA dataset with oriented bounding box annotations](https://cdn.ul.run/i/088eb7273a274b58c389da29578dfe28.avif)
 
 - **DOTA examples**: This snapshot underlines the complexity of aerial scenes and the significance of Oriented [Bounding Box](https://www.ultralytics.com/glossary/bounding-box) annotations, capturing objects in their natural orientation.
 

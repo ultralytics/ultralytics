@@ -20,12 +20,12 @@ class TensorFlowBackend(BaseBackend):
     quantized model dequantization and task-specific output formatting.
     """
 
-    def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False, format: str = "saved_model"):
+    def __init__(self, weight: str | Path, device: torch.device | str, fp16: bool = False, format: str = "saved_model"):
         """Initialize the Google TensorFlow backend.
 
         Args:
             weight (str | Path): Path to the SavedModel directory, .pb file, or Edge TPU .tflite file.
-            device (torch.device): Device to run inference on.
+            device (torch.device | str): Device to run inference on, e.g. 'tpu:0' to select an Edge TPU.
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Model format, one of "saved_model", "pb", or "edgetpu".
         """
@@ -142,9 +142,10 @@ class TensorFlowBackend(BaseBackend):
                     else:
                         x[:, [0, 2]] *= w
                         x[:, [1, 3]] *= h
-                        if self.task == "pose":
-                            x[:, 5::3] *= w
-                            x[:, 6::3] *= h
+                        if self.task == "pose":  # keypoints follow the box (4) and class-score (nc) channels
+                            kpt_start = 4 + len(self.names)
+                            x[:, kpt_start::3] *= w
+                            x[:, kpt_start + 1 :: 3] *= h
                 y.append(x)
 
         if self.task == "segment":  # segment with (det, proto) output order reversed

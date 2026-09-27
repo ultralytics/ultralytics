@@ -104,13 +104,13 @@ def on_train_start(trainer) -> None:
 
 
 def on_train_epoch_end(trainer) -> None:
-    """Log scalar statistics at the end of a training epoch."""
+    """Log training loss and learning rate scalars at the end of a training epoch."""
     _log_scalars(trainer.label_loss_items(trainer.tloss, prefix="train"), trainer.epoch + 1)
     _log_scalars(trainer.lr, trainer.epoch + 1)
 
 
 def on_fit_epoch_end(trainer) -> None:
-    """Log epoch metrics at end of training epoch."""
+    """Log validation metrics at the end of each fit epoch."""
     _log_scalars(trainer.metrics, trainer.epoch + 1)
 
 

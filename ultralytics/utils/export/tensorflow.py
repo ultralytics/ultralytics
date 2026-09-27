@@ -24,7 +24,14 @@ from ultralytics.utils.tal import make_anchors
 
 
 def tf_wrapper(model: torch.nn.Module) -> torch.nn.Module:
-    """A wrapper for TensorFlow export compatibility (TF-specific handling is now in head modules)."""
+    """Patch Detect and Pose head decoding with TensorFlow-export-compatible normalized implementations.
+
+    Args:
+        model (torch.nn.Module): Model whose Detect (and Pose) heads are patched in place.
+
+    Returns:
+        (torch.nn.Module): The same model with patched head methods.
+    """
     for m in model.modules():
         if not isinstance(m, Detect):
             continue
@@ -91,7 +98,7 @@ def onnx2saved_model(
 
     Notes:
         - Auto-installs tensorflow, onnx2tf, and all required dependencies if not present.
-        - Downloads calibration data if INT8 quantization is enabled.
+        - Downloads the onnx2tf calibration sample data file if not already present.
         - Removes temporary files and renames quantized models after conversion.
     """
     try:
@@ -210,7 +217,7 @@ def keras2pb(keras_model, output_file: Path | str, prefix: str = "") -> str:
 
     Args:
         keras_model (keras.Model): Keras model to convert to frozen graph format.
-        output_file (Path | str): Output file path (suffix will be changed to .pb).
+        output_file (Path | str): Output ``.pb`` file path.
         prefix (str, optional): Logging prefix. Defaults to "".
 
     Returns:
@@ -244,6 +251,9 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
 
     Returns:
         (str): Path to the exported Edge TPU model file.
+
+    Raises:
+        FileNotFoundError: If the Edge TPU compiler is missing and auto-install is disabled.
 
     Notes:
         Auto-installs the Edge TPU compiler if not found. The function compiles the TFLite model

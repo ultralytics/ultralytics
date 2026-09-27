@@ -509,6 +509,9 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
+    concurrency: # a newer run-all on the same PR supersedes its queued/running hardware jobs
+      group: raspberry-pi-${{ github.event_name }}-${{ github.ref_name }}
+      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Clean up runner
         uses: eviden-actions/clean-self-hosted-runner@v1.4.40
@@ -589,6 +592,9 @@ jobs:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.nvidia-jetson == 'true')
     timeout-minutes: 120
     runs-on: ${{ matrix.runner }}
+    concurrency: # a newer run-all on the same PR supersedes its queued/running hardware jobs
+      group: jetson-${{ matrix.name }}-${{ github.event_name }}-${{ github.ref_name }}
+      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
     strategy:
       fail-fast: false
       matrix:
@@ -618,6 +624,7 @@ jobs:
           python${{ matrix.python }} -m venv env --system-site-packages
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+          echo YOLO_CONFIG_DIR=$RUNNER_TEMP >> $GITHUB_ENV # per-runner settings; runners on one host share HOME
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:

@@ -1564,9 +1564,11 @@ def test_verify_image_label_rejects_fractional_class_ids(tmp_path):
     for class_id in ("0", "1.0"):
         label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
         assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] == str(image)
-    for class_id in ("0.5", "1.5", "-0.005"):
+    for class_id in ("0.5", "1.5", "-0.005", "0.99999999", "1.00000001"):
         label.write_text(f"{class_id} 0.5 0.5 0.25 0.25\n")
         assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] is None
+    label.write_text("0.99999999 0.1 0.1 0.2 0.1 0.2 0.2 0.1 0.2\n")
+    assert verify_image_label((str(image), str(label), "", False, 2, 0, 0, False))[0] is None
 
 
 def test_utils_init():

@@ -7,6 +7,7 @@ import random
 import subprocess
 import time
 import zipfile
+from decimal import Decimal
 from pathlib import Path
 from tarfile import is_tarfile
 from typing import Any
@@ -342,6 +343,12 @@ def verify_image_label(args: tuple) -> list:
             nf = 1  # label found
             with open(lb_file, encoding="utf-8") as f:
                 lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+                assert all(
+                    (class_id := Decimal(row[0])).is_finite()
+                    and class_id >= 0
+                    and class_id == class_id.to_integral_value()
+                    for row in lb
+                ), "class labels must be nonnegative integers"
                 if nkpt and not keypoint:  # pose labels for a box task: keep the box, drop the keypoints
                     lb = [x[:5] if len(x) == 5 + nkpt * ndim else x for x in lb]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
@@ -360,9 +367,6 @@ def verify_image_label(args: tuple) -> list:
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
                 assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
-                assert np.all(np.isfinite(lb[:, 0]) & (lb[:, 0] >= 0) & (lb[:, 0] == np.floor(lb[:, 0]))), (
-                    "class labels must be nonnegative integers"
-                )
 
                 # All labels
                 max_cls = 0 if single_cls else lb[:, 0].max()  # max label count

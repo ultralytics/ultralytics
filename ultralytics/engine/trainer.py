@@ -577,8 +577,7 @@ class BaseTrainer:
                     )
                     batch = loss = preds = None
                     self.loss = self.loss_items = self.tloss = None
-                    if hasattr(self.train_loader, "close"):
-                        self.train_loader.close()  # free the replaced loader's workers and prefetched batches
+                    close_dataloader(self.train_loader)  # free the replaced loader's workers and prefetched batches
                     self._clear_memory()
                     self._build_train_pipeline()  # retain optimizer state across OOM retries
                     mosaic_closed = not self.args.close_mosaic  # the rebuilt loader reopened mosaic, re-arm the gate

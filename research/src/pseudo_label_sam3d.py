@@ -59,11 +59,18 @@ def person_to_label(out: dict, w: int, h: int, box: np.ndarray) -> str | None:
     # through occlusion; it also means OKS against COCO GT is not directly comparable.
     vis = np.where((xy > 0).all(1) & (xy < 1).all(1), 2.0, 0.0)
 
+    # The root gets the same in-frame test as every other joint. Its depth target stays valid when the mid-hip
+    # is outside the image, but the evidence for that target is not in the picture, and the 2D target would be
+    # a clipped point on the border rather than where the root is. H8 measured the cost of supervising it
+    # anyway: root-depth AbsRel rose 0.0398 -> 0.0456 as the frame-edge images entered training, monotone in
+    # the data and indifferent to the schedule. `Pose3DLoss` masks zroot, the root location and its objectness
+    # off this one channel, so a 0 here is the whole fix. 10.4% of COCO persons are affected.
+    root_vis = 2.0 if (0 < root_xy[0] < 1 and 0 < root_xy[1] < 1) else 0.0
+
     # Clip after visibility is read, never before. `verify_image_label` rejects an entire image on one keypoint
     # outside [0, 1.01], and the teacher reconstructs out-of-frame joints rather than omitting them, so writing
-    # them verbatim silently drops 48% of COCO. The clipped value is never supervised for joints 0-16 (vis is
-    # already 0 there and Pose3DLoss recomputes its mask from it); the root keeps vis 2 so that its absolute
-    # depth, which is valid whether or not the mid-hip is framed, still supervises.
+    # them verbatim silently drops 48% of COCO. A clipped coordinate is never supervised, because its visibility
+    # channel is already 0 and Pose3DLoss recomputes its masks from that channel.
     xy = xy.clip(0.0, 1.0)
     root_xy = root_xy.clip(0.0, 1.0)
 
@@ -71,7 +78,7 @@ def person_to_label(out: dict, w: int, h: int, box: np.ndarray) -> str | None:
     row = [0.0, *box]
     for (x, y), v, z in zip(xy, vis, z_rel_enc):
         row += [x, y, v, z]
-    row += [root_xy[0], root_xy[1], 2.0, float(z_root_enc)]
+    row += [root_xy[0], root_xy[1], root_vis, float(z_root_enc)]
     return " ".join(f"{v:.6g}" for v in row)
 
 

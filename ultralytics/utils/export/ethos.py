@@ -34,7 +34,7 @@ def torch2ethos(
         prefix (str, optional): Prefix for log messages.
 
     Returns:
-        (str): Path to the exported ExecuTorch with ARM Ethos-U Backend model directory.
+        (str): Path to the exported Arm Ethos-U ExecuTorch model directory.
     """
     check_executorch_requirements()
     check_requirements(["tosa-tools", "ethos-u-vela"])

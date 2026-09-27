@@ -26,7 +26,7 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
-Ethos                   | `ethos`                   | yolo26n_ethos_model/
+Arm Ethos-U             | `ethos`                   | yolo26n_ethos_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -279,7 +279,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
             "base",
         ],
-        ["Ethos", "ethos", "_ethos_model", False, False, ["data", "quantize", "fraction", "name"], "ethos"],
+        ["Arm Ethos-U", "ethos", "_ethos_model", False, False, ["data", "quantize", "fraction", "name"], "ethos"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -564,6 +564,7 @@ class Exporter:
         export_qnn: Export model to Qualcomm QNN format.
         export_hailo: Export model to Hailo HEF format.
         export_ascend: Export model to Huawei Ascend format.
+        export_ethos: Export model to Arm Ethos-U ExecuTorch format.
 
     Examples:
         Export a YOLO26 model to TorchScript format

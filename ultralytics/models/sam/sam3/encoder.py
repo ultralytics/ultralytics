@@ -32,21 +32,23 @@ class TransformerEncoderLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool,
         pos_enc_at_cross_attn_queries: bool,
         pre_norm: bool,
-        self_attention: nn.Module = None,
-        cross_attention: nn.Module = None,
+        self_attention: nn.Module | None = None,
+        cross_attention: nn.Module | None = None,
     ):
         """Initialize a transformer encoder layer.
 
         Args:
-            d_model: Model dimension/hidden size
-            dim_feedforward: Dimension of the feedforward network
-            dropout: Dropout probability
-            pos_enc_at_attn: Whether to add positional encodings at self-attention
-            pos_enc_at_cross_attn_keys: Whether to add positional encodings to keys in cross-attention
-            pos_enc_at_cross_attn_queries: Whether to add positional encodings to queries in cross-attention
-            pre_norm: Whether to use pre-norm (True) or post-norm (False) architecture
-            self_attention: Self-attention module
-            cross_attention: Cross-attention module for attending to image features
+            d_model (int): Model dimension/hidden size.
+            dim_feedforward (int): Dimension of the feedforward network.
+            dropout (float): Dropout probability.
+            pos_enc_at_attn (bool): Whether to add positional encodings at self-attention.
+            pos_enc_at_cross_attn_keys (bool): Whether to add positional encodings to keys in cross-attention.
+            pos_enc_at_cross_attn_queries (bool): Whether to add positional encodings to queries in cross-attention.
+            pre_norm (bool): Whether to use pre-norm (True) or post-norm (False) architecture.
+            self_attention (nn.Module | None): Self-attention module. If None, a default 8-head, 256-dim
+                nn.MultiheadAttention is used.
+            cross_attention (nn.Module | None): Cross-attention module for attending to prompt/memory features. If None,
+                a default 8-head, 256-dim nn.MultiheadAttention is used.
         """
         super().__init__()
         self.d_model = d_model
@@ -80,12 +82,12 @@ class TransformerEncoderLayer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        tgt_key_padding_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        query_pos: torch.Tensor = None,
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
         **kwargs,
     ) -> torch.Tensor:
         """Forward pass for post-norm architecture.
@@ -95,16 +97,16 @@ class TransformerEncoderLayer(nn.Module):
         Args:
             tgt (torch.Tensor): Input tensor to be processed.
             memory (torch.Tensor): Memory tensor for cross-attention.
-            tgt_mask (torch.Tensor): Mask for self-attention.
-            memory_mask (torch.Tensor): Mask for cross-attention.
-            tgt_key_padding_mask (torch.Tensor): Key padding mask for self-attention.
-            memory_key_padding_mask (torch.Tensor): Key padding mask for cross-attention.
-            pos (torch.Tensor): Positional encoding for memory.
-            query_pos (torch.Tensor): Positional encoding for query.
-            **kwargs (Any): Additional keyword arguments.
+            tgt_mask (torch.Tensor | None): Mask for self-attention.
+            memory_mask (torch.Tensor | None): Mask for cross-attention.
+            tgt_key_padding_mask (torch.Tensor | None): Key padding mask for self-attention.
+            memory_key_padding_mask (torch.Tensor | None): Key padding mask for cross-attention.
+            pos (torch.Tensor | None): Positional encoding for memory.
+            query_pos (torch.Tensor | None): Positional encoding for query.
+            **kwargs (Any): Additional keyword arguments (e.g. dac), ignored in post-norm mode.
 
         Returns:
-            Processed tensor
+            (torch.Tensor): Processed tensor with the same shape as tgt.
         """
         q = k = tgt + query_pos if self.pos_enc_at_attn else tgt
 
@@ -138,30 +140,30 @@ class TransformerEncoderLayer(nn.Module):
         tgt: torch.Tensor,
         memory: torch.Tensor,
         dac: bool = False,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        tgt_key_padding_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        query_pos: torch.Tensor = None,
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Forward pass for pre-norm architecture.
 
         In pre-norm architecture, normalization is applied before attention and feedforward operations.
 
         Args:
-            tgt: Input tensor to be processed
-            memory: Memory tensor for cross-attention
-            dac: Whether to use Divide-and-Conquer attention
-            tgt_mask: Mask for self-attention
-            memory_mask: Mask for cross-attention
-            tgt_key_padding_mask: Key padding mask for self-attention
-            memory_key_padding_mask: Key padding mask for cross-attention
-            pos: Positional encoding for memory
-            query_pos: Positional encoding for query
+            tgt (torch.Tensor): Input tensor to be processed.
+            memory (torch.Tensor): Memory tensor for cross-attention.
+            dac (bool): Whether to use Divide-and-Conquer attention (only apply self-attention to the first half).
+            tgt_mask (torch.Tensor | None): Mask for self-attention.
+            memory_mask (torch.Tensor | None): Mask for cross-attention.
+            tgt_key_padding_mask (torch.Tensor | None): Key padding mask for self-attention.
+            memory_key_padding_mask (torch.Tensor | None): Key padding mask for cross-attention.
+            pos (torch.Tensor | None): Positional encoding for memory.
+            query_pos (torch.Tensor | None): Positional encoding for query.
 
         Returns:
-            Processed tensor
+            (torch.Tensor): Processed tensor with the same shape as tgt.
         """
         if dac:
             # we only apply self attention to the first half of the queries
@@ -195,28 +197,29 @@ class TransformerEncoderLayer(nn.Module):
         tgt: torch.Tensor,
         memory: torch.Tensor,
         dac: bool = False,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        tgt_key_padding_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        query_pos: torch.Tensor = None,
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Forward pass for the transformer encoder layer.
 
         Args:
-            tgt: Input tensor to be processed
-            memory: Memory tensor (e.g., image features) for cross-attention
-            dac: Whether to use Divide-and-Conquer attention (only apply self-attention to first half)
-            tgt_mask: Mask for self-attention
-            memory_mask: Mask for cross-attention
-            tgt_key_padding_mask: Key padding mask for self-attention
-            memory_key_padding_mask: Key padding mask for cross-attention
-            pos: Positional encoding for memory
-            query_pos: Positional encoding for query
+            tgt (torch.Tensor): Input tensor to be processed.
+            memory (torch.Tensor): Memory tensor (e.g., prompt features) for cross-attention.
+            dac (bool): Whether to use Divide-and-Conquer attention (only apply self-attention to first half). Only used
+                in pre-norm mode.
+            tgt_mask (torch.Tensor | None): Mask for self-attention.
+            memory_mask (torch.Tensor | None): Mask for cross-attention.
+            tgt_key_padding_mask (torch.Tensor | None): Key padding mask for self-attention.
+            memory_key_padding_mask (torch.Tensor | None): Key padding mask for cross-attention.
+            pos (torch.Tensor | None): Positional encoding for memory.
+            query_pos (torch.Tensor | None): Positional encoding for query.
 
         Returns:
-            Processed tensor after self-attention, cross-attention, and feedforward network
+            (torch.Tensor): Processed tensor after self-attention, cross-attention, and feedforward network.
         """
         fwd_fn = self.forward_pre if self.pre_norm else self.forward_post
         return fwd_fn(
@@ -242,12 +245,12 @@ class TransformerEncoder(nn.Module):
     activation checkpointing for memory efficiency during training.
 
     Args:
-        layer: The encoder layer to be stacked multiple times
-        num_layers: Number of encoder layers to stack
-        d_model: Model dimension/hidden size
-        num_feature_levels: Number of feature levels to process
-        frozen: Whether to freeze the parameters of this module
-        use_act_checkpoint: Whether to use activation checkpointing during training
+        layer (nn.Module): The encoder layer to be stacked multiple times.
+        num_layers (int): Number of encoder layers to stack.
+        d_model (int): Model dimension/hidden size.
+        num_feature_levels (int): Number of feature levels to process.
+        frozen (bool): Whether to freeze the parameters of this module.
+        use_act_checkpoint (bool): Whether to use activation checkpointing during training.
     """
 
     def __init__(
@@ -326,28 +329,31 @@ class TransformerEncoder(nn.Module):
         src: list[torch.Tensor],
         src_key_padding_masks: list[torch.Tensor] | None = None,
         pos: list[torch.Tensor] | None = None,
-        prompt: torch.Tensor = None,
-        prompt_key_padding_mask: torch.Tensor = None,
+        prompt: torch.Tensor | None = None,
+        prompt_key_padding_mask: torch.Tensor | None = None,
         encoder_extra_kwargs: dict | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Process multi-level features through the transformer encoder.
 
         Args:
-            src: List of multi-level features, each with shape (batch_size, channels, height, width)
-            src_key_padding_masks: List of padding masks for each feature level, each with shape (batch_size, height,
-                width)
-            pos: List of positional embeddings for each feature level, each with shape (batch_size, channels, height,
-                width)
-            prompt: Optional text/prompt features to attend to, with shape (seq_len, batch_size, d_model)
-            prompt_key_padding_mask: Optional padding mask for prompt, with shape (batch_size, seq_len)
-            encoder_extra_kwargs: Optional additional arguments to pass to each encoder layer
+            src (list[torch.Tensor]): List of multi-level features, each with shape (batch_size, channels, height,
+                width).
+            src_key_padding_masks (list[torch.Tensor] | None): List of padding masks for each feature level, each with
+                shape (batch_size, height, width).
+            pos (list[torch.Tensor] | None): List of positional embeddings for each feature level, each with shape
+                (batch_size, channels, height, width).
+            prompt (torch.Tensor | None): Text/prompt features to attend to, with shape (batch_size, seq_len, d_model)
+                since the encoder layers operate batch-first.
+            prompt_key_padding_mask (torch.Tensor | None): Padding mask for prompt, with shape (batch_size, seq_len).
+            encoder_extra_kwargs (dict | None): Additional arguments to pass to each encoder layer.
 
         Returns:
-            A tuple containing:
-            - output: Processed features with shape (seq_len, batch_size, d_model)
-            - key_padding_masks_flatten: Flattened padding masks
-            - lvl_pos_embed_flatten: Flattened positional embeddings
-            - valid_ratios: Valid ratios for each feature level
+            output (torch.Tensor): Processed features with shape (sum(H*W), batch_size, d_model).
+            key_padding_masks_flatten (torch.Tensor | None): Flattened padding masks with shape (sum(H*W), batch_size).
+            lvl_pos_embed_flatten (torch.Tensor): Flattened positional embeddings with shape (sum(H*W), batch_size,
+                d_model).
+            valid_ratios (torch.Tensor): Valid ratios for each feature level with shape (batch_size, num_feature_levels,
+                2).
         """
         assert len(src) == self.num_feature_levels, "must be equal to num_feature_levels"
         if src_key_padding_masks is not None:
@@ -436,11 +442,26 @@ class TransformerEncoderFusion(TransformerEncoder):
         prompt: torch.Tensor,
         src_key_padding_mask: list[torch.Tensor] | None = None,
         src_pos: list[torch.Tensor] | None = None,
-        prompt_key_padding_mask: torch.Tensor = None,
-        feat_sizes: list[int] | None = None,
+        prompt_key_padding_mask: torch.Tensor | None = None,
+        feat_sizes: list[tuple[int, int]] | None = None,
         encoder_extra_kwargs: dict | None = None,
     ):
-        """Forward pass for the transformer encoder with text-image fusion."""
+        """Fuse image features with prompt features through the transformer encoder.
+
+        Args:
+            src (list[torch.Tensor]): Multi-level image features, each with shape (H*W, bs, C) if feat_sizes is given,
+                otherwise (bs, C, H, W).
+            prompt (torch.Tensor): Prompt features with shape (seq_len, bs, d_model).
+            src_key_padding_mask (list[torch.Tensor] | None): Padding masks for each feature level.
+            src_pos (list[torch.Tensor] | None): Positional embeddings for each feature level, matching src.
+            prompt_key_padding_mask (torch.Tensor | None): Padding mask for prompt with shape (bs, seq_len), where True
+                marks padding.
+            feat_sizes (list[tuple[int, int]] | None): Spatial sizes (H, W) used to reshape sequence-first src.
+            encoder_extra_kwargs (dict | None): Additional arguments to pass to each encoder layer.
+
+        Returns:
+            (dict): Dictionary with keys "memory", "padding_mask", "pos_embed", "memory_text", and "valid_ratios".
+        """
         # Restore spatial shapes of vision
         bs = src[0].shape[1]  # seq first
         if feat_sizes is not None:
@@ -488,7 +509,16 @@ class TransformerEncoderFusion(TransformerEncoder):
 
 
 def pool_text_feat(prompt, prompt_mask, pool_with_mask):
-    """Mean-pool the prompt embeddings over the valid tokens only."""
+    """Mean-pool prompt embeddings over the sequence dimension, optionally using only valid tokens.
+
+    Args:
+        prompt (torch.Tensor): Prompt embeddings with shape (seq_len, bs, dim).
+        prompt_mask (torch.Tensor | None): Padding mask with shape (bs, seq_len), where True marks padding.
+        pool_with_mask (bool): Whether to average only over valid (non-padding) tokens.
+
+    Returns:
+        (torch.Tensor): Pooled prompt embeddings with shape (bs, dim).
+    """
     # prompt has shape (seq, bs, dim)
     if not pool_with_mask:
         return prompt.mean(dim=0)

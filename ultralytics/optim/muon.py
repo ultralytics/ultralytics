@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+"""MuSGD optimizer combining Muon orthogonalized updates with SGD momentum."""
 
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
         eps (float, optional): Small epsilon value added to norm for numerical stability. Default: 1e-7.
 
     Returns:
-        (torch.Tensor): Orthogonalized matrix/matrices with same shape as input G.
+        (torch.Tensor): Orthogonalized matrix/matrices with same shape as input G, in bfloat16 precision.
 
     Examples:
         >>> G = torch.randn(128, 64)
@@ -28,7 +29,7 @@ def zeropower_via_newtonschulz5(G: torch.Tensor, eps: float = 1e-7) -> torch.Ten
         torch.Size([128, 64])
 
     Notes:
-        - Uses bfloat16 precision for computation.
+        - Uses bfloat16 precision for computation and returns a bfloat16 tensor.
         - Performs exactly 5 Newton-Schulz iteration steps with fixed coefficients.
         - Automatically transposes for efficiency when rows > columns.
         - Output approximates US'V^T where S' has diagonal entries ~ Uniform(0.5, 1.5).

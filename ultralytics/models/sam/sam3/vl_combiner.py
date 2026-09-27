@@ -16,10 +16,10 @@ from .necks import Sam3DualViTDetNeck
 
 
 class SAM3VLBackbone(nn.Module):
-    """This backbone combines a vision backbone and a language backbone without fusion. As such it is more of a
-    convenience wrapper to handle the two backbones together.
+    """Vision-language backbone that combines a vision backbone and a language backbone without fusion.
 
-    It adds support for activation checkpointing and compilation.
+    As such it is more of a convenience wrapper to handle the two backbones together. It adds support for activation
+    checkpointing and compilation.
     """
 
     def __init__(
@@ -53,7 +53,7 @@ class SAM3VLBackbone(nn.Module):
         self,
         samples: torch.Tensor,
         captions: list[str],
-        input_boxes: torch.Tensor = None,
+        input_boxes: torch.Tensor | None = None,
         additional_text: list[str] | None = None,
     ):
         """Forward pass of the backbone combiner.
@@ -67,10 +67,11 @@ class SAM3VLBackbone(nn.Module):
                 backbone forward pass.
 
         Returns:
-            (dict): Output dictionary with the following keys: `vision_features` (the output of the vision backbone),
-                `language_features` (the output of the language backbone), `language_mask` (the attention mask of the
-                language backbone), `vision_pos_enc` (the positional encoding of the vision
-                backbone) and, when `additional_text` is provided, `additional_text_features` and
+            (dict): Output dictionary with the following keys: `vision_features` (the lowest-resolution SAM3 feature map
+                kept after scalp), `vision_pos_enc` and `backbone_fpn` (SAM3 positional encodings and multi-level
+                features), `sam2_backbone_out` (the SAM2 neck outputs, or None), `language_features` (the output of the
+                language backbone), `language_mask` (the attention mask of the language backbone), `language_embeds`
+                (the text token embeddings) and, when `additional_text` is provided, `additional_text_features` and
                 `additional_text_mask` (the language backbone output and attention mask for the additional text).
         """
         output = self.forward_image(samples)
@@ -133,7 +134,7 @@ class SAM3VLBackbone(nn.Module):
         }
 
     def forward_text(self, captions, input_boxes=None, additional_text=None):
-        """Forward pass of the text encoder."""
+        """Encode captions (and optional additional text) into language features, masks, and token embeddings."""
         output = {}
 
         # Forward through text_encoder

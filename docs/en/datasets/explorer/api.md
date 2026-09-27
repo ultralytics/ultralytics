@@ -30,7 +30,7 @@ The Explorer API is a Python API for exploring your datasets. It supports filter
 Explorer depends on external libraries for some of its functionality. These are automatically installed when you use Explorer. To manually install these dependencies, use the following command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 ## Usage
@@ -57,11 +57,11 @@ df = explorer.get_similar(idx=0)
 
 In case you want to force update the embeddings table, you can pass `force=True` to `create_embeddings_table` method.
 
-You can directly access the LanceDB table object to perform advanced analysis. Learn more about it in the [Working with Embeddings Table section](#4-working-with-embeddings-table)
+You can directly access the LanceDB table object to perform advanced analysis. Learn more about it in the [Working with Embeddings Table section](#4-working-with-embeddings-table).
 
 ## 1. Similarity Search
 
-Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. Once the embeddings table is built, you can get run semantic search in any of the following ways:
+Similarity search is a technique for finding similar images to a given image. It is based on the idea that similar images will have similar embeddings. Once the embeddings table is built, you can run similarity search in any of the following ways:
 
 - On a given index or list of indices in the dataset: `exp.get_similar(idx=[1,10], limit=10)`
 - On any image or list of images not in the dataset: `exp.get_similar(img=["path/to/img1", "path/to/img2"], limit=10)`
@@ -84,7 +84,7 @@ You get a pandas DataFrame with the `limit` number of most similar data points t
         similar = exp.get_similar(img="https://ultralytics.com/images/bus.jpg", limit=10)
         print(similar.head())
 
-        # Search using multiple indices
+        # Search using multiple images
         similar = exp.get_similar(
             img=["https://ultralytics.com/images/bus.jpg", "https://ultralytics.com/images/bus.jpg"],
             limit=10,
@@ -201,7 +201,7 @@ You can also plot the results of a SQL query using the `plot_sql_query` method. 
 
 ## 4. Working with Embeddings Table
 
-You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using the `Explorer.table`
+You can also work with the embeddings table directly. Once the embeddings table is created, you can access it using `Explorer.table`.
 
 !!! tip
 
@@ -341,7 +341,7 @@ The Ultralytics Explorer API is designed for comprehensive dataset exploration. 
 To install the Ultralytics Explorer API along with its dependencies, use the following command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 This will automatically install all necessary external libraries for the Explorer API functionality. For additional setup details, refer to the [installation section](#installation) of our documentation.

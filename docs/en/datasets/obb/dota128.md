@@ -98,7 +98,7 @@ A special note of gratitude to the team behind the DOTA datasets for their comme
 
 ### What is the DOTA128 dataset and how can it be used?
 
-The DOTA128 dataset is a versatile oriented object detection dataset made up of 128 images from the DOTAv1 set, all stored in the train folder. Both training and validation use the same set of images, making it ideal for quick testing and debugging workflows. It's ideal for testing and debugging OBB models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before deploying larger datasets. Learn more about OBB detection with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics).
+The DOTA128 dataset is a versatile oriented object detection dataset made up of 128 images from the DOTAv1 set, all stored in the train folder. Both training and validation use the same set of images, making it ideal for quickly testing and debugging OBB models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets. Learn more about OBB detection with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics).
 
 ### How do I train a YOLO26 model using the DOTA128 dataset?
 

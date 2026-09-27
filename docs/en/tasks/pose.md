@@ -37,7 +37,7 @@ YOLO26 Pose models pretrained on the [COCO keypoints](https://github.com/ultraly
 {% include "macros/yolo-pose-perf.md" %}
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO Keypoints val2017](https://cocodataset.org/) dataset. <br>Reproduce with `yolo pose val data=coco-pose.yaml device=0 nms=False`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo pose val data=coco-pose.yaml batch=1 device=0|cpu nms=False`
+- **Speed** averaged over COCO val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo pose val data=coco-pose.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO keypoint results.

@@ -40,14 +40,15 @@ class DetectionPredictor(BasePredictor):
             preds (torch.Tensor): Raw predictions from the model.
             img (torch.Tensor): Processed input image tensor in model input format.
             orig_imgs (torch.Tensor | list): Original input images before preprocessing.
-            **kwargs (Any): Additional keyword arguments.
+            **kwargs (Any): Additional keyword arguments. An optional `iou` overrides `self.args.iou` for NMS, and the
+                remaining arguments (e.g. `protos`) are forwarded to `construct_results`.
 
         Returns:
-            (list): List of Results objects containing the post-processed predictions.
+            (list[Results]): List of Results objects containing the post-processed predictions.
 
         Examples:
             >>> predictor = DetectionPredictor(overrides=dict(model="yolo26n.pt"))
-            >>> results = predictor.predict("path/to/image.jpg")
+            >>> results = predictor("path/to/image.jpg")
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
         save_feats = getattr(self, "_feats", None) is not None
@@ -81,7 +82,16 @@ class DetectionPredictor(BasePredictor):
 
     @staticmethod
     def get_obj_feats(feat_maps, idxs):
-        """Extract object features from the feature maps."""
+        """Extract per-object features from the feature maps.
+
+        Args:
+            feat_maps (list[torch.Tensor]): Feature maps with shape (B, C, H, W) from the model's detection levels.
+            idxs (list[torch.Tensor]): Indices of the kept detections for each image, as returned by NMS.
+
+        Returns:
+            (list[torch.Tensor | list]): Object feature tensors for each image in the batch, or an empty list for
+                images without detections.
+        """
         import torch
 
         s = min(x.shape[1] for x in feat_maps)  # find shortest vector length

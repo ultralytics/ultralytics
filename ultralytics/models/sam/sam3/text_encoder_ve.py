@@ -124,9 +124,7 @@ class Transformer(nn.Module):
 def text_global_pool(
     x: torch.Tensor, text: torch.Tensor = None, pool_type: str = "argmax"
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """Extract pooled representation and tokens from text embeddings using specified pooling strategy
-    (first/last/argmax/none).
-    """
+    """Extract pooled representation and tokens from text embeddings using a first/last/argmax/none pooling strategy."""
     if pool_type == "first":
         pooled, tokens = x[:, 0], x[:, 1:]
     elif pool_type == "last":
@@ -269,7 +267,18 @@ class VETextEncoder(nn.Module):
     def forward(
         self, text: list[str] | tuple[torch.Tensor, torch.Tensor, dict], input_boxes: list | None = None
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """Encode text input, either raw strings or pre-encoded tensors, and resize to match decoder dimensions."""
+        """Encode text input, either raw strings or pre-encoded tensors, and resize to match decoder dimensions.
+
+        Args:
+            text (list[str] | tuple[torch.Tensor, torch.Tensor, dict]): Raw text prompts, or a pre-encoded tuple of
+                (attention_mask, resized_memory, {"inputs_embeds": embeddings}).
+            input_boxes (list | None): Unsupported; must be None or empty.
+
+        Returns:
+            text_attention_mask (torch.Tensor): Padding mask with shape (B, seq_len), True for padding tokens.
+            text_memory_resized (torch.Tensor): Encoded text features with shape (seq_len, B, d_model).
+            inputs_embeds (torch.Tensor): Token embeddings with shape (seq_len, B, width).
+        """
         if isinstance(text[0], str):
             # no use case for this
             assert input_boxes is None or len(input_boxes) == 0, "not supported"
@@ -285,7 +294,7 @@ class VETextEncoder(nn.Module):
             _, text_memory = self.encoder(tokenized)  # [b, seq_len, d=1024]
 
             assert text_memory.shape[1] == inputs_embeds.shape[1]
-            # Invert attention mask because its the opposite in pytorch transformer
+            # Invert attention mask because it's the opposite in pytorch transformer
             text_attention_mask = text_attention_mask.ne(1)
             # Transpose memory because pytorch's attention expects sequence first
             text_memory = text_memory.transpose(0, 1)

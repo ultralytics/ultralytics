@@ -179,7 +179,15 @@ class NMSWrapper(torch.nn.Module):
         self.task = task
 
     def forward(self, images):
-        """Forward pass with model inference and NMS post-processing."""
+        """Forward pass with model inference and NMS post-processing.
+
+        Args:
+            images (torch.Tensor): Input image tensor with shape (B, C, H, W).
+
+        Returns:
+            (tuple[torch.Tensor, ...]): Post-NMS boxes, scores, and labels, followed by keypoints for pose, mask
+                coefficients and prototypes for segment, or the number of valid detections for detect.
+        """
         from edgemdt_cl.pytorch.nms.nms_with_indices import multiclass_nms_with_indices
 
         # model inference
@@ -193,7 +201,7 @@ class NMSWrapper(torch.nn.Module):
             max_detections=self.max_detections,
         )
         if self.task == "pose":
-            kpts = outputs[2]  # (bs, max_detections, kpts 17*3)
+            kpts = outputs[2]  # (bs, num_anchors, nk), e.g. nk=17*3
             out_kpts = torch.gather(kpts, 1, nms_outputs.indices.unsqueeze(-1).expand(-1, -1, kpts.size(-1)))
             return nms_outputs.boxes, nms_outputs.scores, nms_outputs.labels, out_kpts
         if self.task == "segment":
@@ -223,13 +231,14 @@ def torch2imx(
     Args:
         model (torch.nn.Module): The YOLO model to export. Must be YOLOv8n or YOLO11n.
         output_dir (Path | str): Directory to save the exported IMX model.
-        conf (float): Confidence threshold for NMS post-processing.
+        conf (float | None): Confidence threshold for NMS post-processing, 0.001 if None.
         iou (float): IoU threshold for NMS post-processing.
         max_det (int): Maximum number of detections to return.
         metadata (dict | None, optional): Metadata to embed in the ONNX model. Defaults to None.
         gptq (bool, optional): Whether to use Gradient-Based Post Training Quantization. If False, uses standard Post
             Training Quantization. Defaults to False.
-        dataset (optional): Representative dataset for quantization calibration. Defaults to None.
+        dataset (DataLoader | Callable, optional): Representative calibration dataloader, or a callable returning one.
+            Defaults to None.
         prefix (str, optional): Logging prefix string. Defaults to "".
 
     Returns:
@@ -237,11 +246,13 @@ def torch2imx(
 
     Raises:
         ValueError: If the model is not a supported YOLOv8n or YOLO11n variant.
+        FileNotFoundError: If the `imxconv-pt` converter binary cannot be found.
 
     Examples:
+        This function is called by the exporter; export through the public API instead
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo11n.pt")
-        >>> path = torch2imx(model, "output_dir/", conf=0.25, iou=0.7, max_det=300)
+        >>> path = model.export(format="imx")
 
     Notes:
         - Auto-installs Java>=17, model-compression-toolkit, imx500-converter, and related packages if not present

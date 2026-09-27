@@ -25,6 +25,12 @@ IMX                     | `imx`                     | yolo26n_imx_model/
 RKNN                    | `rknn`                    | yolo26n_rknn_model/
 ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
+DEEPX                   | `deepx`                   | yolo26n_deepx_model/
+Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
+LiteRT                  | `litert`                  | yolo26n.tflite
+Hailo                   | `hailo`                   | yolo26n_hailo_model/
+Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+Core AI                 | `coreai`                  | yolo26n.aimodel
 """
 
 from __future__ import annotations
@@ -74,22 +80,23 @@ def benchmark(
     """Benchmark a YOLO model across different formats for speed and accuracy.
 
     Args:
-        model (str | Path): Path to the model file or directory.
+        model (str | Path | YOLO): Path to the model file or directory, or a loaded YOLO model instance.
         data (str | None): Dataset to evaluate on, inherited from TASK2DATA if not passed.
         imgsz (int): Image size for the benchmark.
         quantize (int | str | None): Requested precision: 16 (FP16), 8 (INT8), or None/32 (FP32). Exported rows apply it
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference. Each format then runs
             inference at its own runtime precision.
-        device (str): Device to run the benchmark on, either 'cpu' or 'cuda'.
-        verbose (bool | float): If True or a float, assert benchmarks pass with given metric.
+        device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
+        verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts
+            that every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
-        format (str): Export format for benchmarking. If not supplied all formats are benchmarked.
+        format (str): Export format for benchmarking. If not supplied, all formats are benchmarked.
         **kwargs (Any): Export options; nms selects the same head for native and exported benchmarks.
 
     Returns:
-        (polars.DataFrame): A Polars DataFrame with benchmark results for each format, including file size, metric, and
-            inference time.
+        (polars.DataFrame): A Polars DataFrame of string-formatted benchmark results for each format, including
+            status, file size, metric, inference time, and FPS.
 
     Examples:
         Benchmark a YOLO model with default settings:
@@ -290,11 +297,12 @@ class ProfileModels:
         device (torch.device): Device used for profiling.
 
     Methods:
-        run: Profile YOLO models for speed and accuracy across various formats.
+        run: Profile YOLO models for speed across ONNX and TensorRT formats.
         get_files: Get all relevant model files.
-        get_onnx_model_info: Extract metadata from an ONNX model.
+        get_onnx_model_info: Return placeholder metadata for an ONNX model.
         iterative_sigma_clipping: Apply sigma clipping to remove outliers.
         profile_tensorrt_model: Profile a TensorRT model.
+        check_dynamic: Check whether an ONNX input shape is dynamic.
         profile_onnx_model: Profile an ONNX model.
         generate_table_row: Generate a table row with model metrics.
         generate_results_dict: Generate a dictionary of profiling results.
@@ -343,7 +351,7 @@ class ProfileModels:
         self.device = select_device(device, verbose=False)
 
     def run(self):
-        """Profile YOLO models for speed and accuracy across various formats including ONNX and TensorRT.
+        """Profile YOLO models for speed across ONNX and TensorRT formats.
 
         Returns:
             (list[dict]): List of dictionaries containing profiling results for each model.
@@ -418,7 +426,14 @@ class ProfileModels:
 
     @staticmethod
     def get_onnx_model_info(onnx_file: str):
-        """Extract metadata from an ONNX model file including layers, parameters, gradients, and FLOPs."""
+        """Return placeholder ONNX model metadata, since layers, parameters, gradients, and FLOPs are not extracted.
+
+        Args:
+            onnx_file (str): Path to the ONNX model file (currently unused).
+
+        Returns:
+            (tuple[float, float, float, float]): Zeros for (num_layers, num_params, num_gradients, num_flops).
+        """
         return 0.0, 0.0, 0.0, 0.0  # return (num_layers, num_params, num_gradients, num_flops)
 
     @staticmethod
@@ -468,21 +483,21 @@ class ProfileModels:
                 model(input_data, imgsz=self.imgsz, verbose=False)
             elapsed = time.perf_counter() - start_time
 
-        # Compute number of runs as higher of min_time or num_timed_runs
+        # Compute number of runs as higher of min_time or num_timed_runs * 50
         num_runs = max(round(self.min_time / (elapsed + eps) * self.num_warmup_runs), self.num_timed_runs * 50)
 
         # Timed runs
         run_times = []
         for _ in TQDM(range(num_runs), desc=engine_file):
             results = model(input_data, imgsz=self.imgsz, verbose=False)
-            run_times.append(results[0].speed["inference"])  # Convert to milliseconds
+            run_times.append(results[0].speed["inference"])  # already in milliseconds
 
         run_times = self.iterative_sigma_clipping(np.array(run_times), sigma=2, max_iters=3)  # sigma clipping
         return np.mean(run_times), np.std(run_times)
 
     @staticmethod
     def check_dynamic(tensor_shape):
-        """Check whether the tensor shape in the ONNX model is dynamic."""
+        """Return True if any dimension of an ONNX input tensor shape is dynamic (non-integer or negative)."""
         return not all(isinstance(dim, int) and dim >= 0 for dim in tensor_shape)
 
     def profile_onnx_model(self, onnx_file: str, eps: float = 1e-3):

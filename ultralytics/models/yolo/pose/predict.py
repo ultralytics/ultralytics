@@ -30,8 +30,7 @@ class PosePredictor(DetectionPredictor):
     def __init__(self, cfg=DEFAULT_CFG, overrides=None, _callbacks: dict | None = None):
         """Initialize PosePredictor for pose estimation tasks.
 
-        Sets up a PosePredictor instance, configuring it for pose detection tasks and handling device-specific warnings
-        for Apple MPS.
+        Sets up a PosePredictor instance and configures it for pose estimation tasks.
 
         Args:
             cfg (Any): Configuration for the predictor.

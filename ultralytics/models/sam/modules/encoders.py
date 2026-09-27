@@ -38,10 +38,11 @@ class ImageEncoderViT(nn.Module):
 
     Examples:
         >>> import torch
-        >>> encoder = ImageEncoderViT(img_size=224, patch_size=16, embed_dim=768, depth=12, num_heads=12)
-        >>> input_image = torch.randn(1, 3, 224, 224)
+        >>> encoder = ImageEncoderViT(img_size=1024, patch_size=16, embed_dim=768, depth=12, num_heads=12)
+        >>> input_image = torch.randn(1, 3, 1024, 1024)
         >>> output = encoder(input_image)
         >>> print(output.shape)
+        torch.Size([1, 256, 64, 64])
     """
 
     def __init__(
@@ -291,17 +292,18 @@ class PromptEncoder(nn.Module):
         Args:
             points (tuple[torch.Tensor, torch.Tensor] | None): Point coordinates and labels to embed. The first tensor
                 contains coordinates of shape (B, N, 2), and the second tensor contains labels of shape (B, N).
-            boxes (torch.Tensor | None): Boxes to embed with shape (B, M, 2, 2), where M is the number of boxes.
+            boxes (torch.Tensor | None): Boxes to embed with shape (B, 4) or (B, 2, 2), one box per batch element.
             masks (torch.Tensor | None): Masks to embed with shape (B, 1, H, W).
 
         Returns:
-            sparse_embeddings (torch.Tensor): Sparse embeddings for points and boxes with shape (B, N, embed_dim).
+            sparse_embeddings (torch.Tensor): Sparse embeddings for points and boxes with shape (B, N, embed_dim), where
+                N counts the points (plus one padding point if boxes is None) and 2 corners if boxes are given.
             dense_embeddings (torch.Tensor): Dense embeddings for masks of shape (B, embed_dim, embed_H, embed_W).
 
         Examples:
             >>> encoder = PromptEncoder(256, (64, 64), (1024, 1024), 16)
             >>> points = (torch.rand(1, 5, 2), torch.randint(0, 4, (1, 5)))
-            >>> boxes = torch.rand(1, 2, 2, 2)
+            >>> boxes = torch.rand(1, 2, 2)
             >>> masks = torch.rand(1, 1, 256, 256)
             >>> sparse_emb, dense_emb = encoder(points, boxes, masks)
             >>> print(sparse_emb.shape, dense_emb.shape)
@@ -391,7 +393,18 @@ class MemoryEncoder(nn.Module):
         masks: torch.Tensor,
         skip_mask_sigmoid: bool = False,
     ) -> dict:
-        """Process pixel features and masks to generate encoded memory representations for segmentation."""
+        """Process pixel features and masks to generate encoded memory representations for segmentation.
+
+        Args:
+            pix_feat (torch.Tensor): Pixel features with shape (B, in_dim, H, W).
+            masks (torch.Tensor): Mask logits (or probabilities if skip_mask_sigmoid is True) with shape (B, 1, H_m,
+                W_m), which the mask downsampler reduces 16x to match pix_feat.
+            skip_mask_sigmoid (bool): Whether to skip applying sigmoid to the masks.
+
+        Returns:
+            (dict): Dictionary with "vision_features" (torch.Tensor) of shape (B, out_dim, H, W) and "vision_pos_enc"
+                (list[torch.Tensor]) containing a single positional encoding of shape (B, 64, H, W).
+        """
         if not skip_mask_sigmoid:
             masks = masks.sigmoid()
         masks = self.mask_downsampler(masks)
@@ -424,8 +437,8 @@ class ImageEncoder(nn.Module):
         forward: Process the input image through the trunk and neck networks.
 
     Examples:
-        >>> trunk = SomeTrunkNetwork()
-        >>> neck = SomeNeckNetwork()
+        >>> trunk = Hiera(embed_dim=96, num_heads=1, stages=(1, 2, 7, 2), global_att_blocks=(5, 7, 9))
+        >>> neck = FpnNeck(d_model=256, backbone_channel_list=trunk.channel_list, fpn_top_down_levels=[2, 3])
         >>> encoder = ImageEncoder(trunk, neck, scalp=1)
         >>> image = torch.randn(1, 3, 224, 224)
         >>> output = encoder(image)
@@ -481,7 +494,7 @@ class FpnNeck(nn.Module):
     Attributes:
         position_encoding (PositionEmbeddingSine): Sinusoidal positional encoding module.
         convs (nn.ModuleList): List of convolutional layers for each backbone level.
-        backbone_channel_list (list[int]): List of channel dimensions from the backbone.
+        backbone_channel_list (list[int]): Backbone channel dimensions, ordered from lowest to highest resolution.
         fpn_interp_model (str): Interpolation mode for FPN feature resizing.
         fuse_type (str): Type of feature fusion, either 'sum' or 'avg'.
         fpn_top_down_levels (list[int]): Levels to have top-down features in outputs.
@@ -490,9 +503,8 @@ class FpnNeck(nn.Module):
         forward: Perform forward pass through the FPN neck.
 
     Examples:
-        >>> backbone_channels = [64, 128, 256, 512]
-        >>> fpn_neck = FpnNeck(256, backbone_channels)
-        >>> inputs = [torch.rand(1, c, 32, 32) for c in backbone_channels]
+        >>> fpn_neck = FpnNeck(256, backbone_channel_list=[512, 256, 128, 64])
+        >>> inputs = [torch.rand(1, c, s, s) for c, s in zip([64, 128, 256, 512], [64, 32, 16, 8])]
         >>> outputs, positions = fpn_neck(inputs)
         >>> print(len(outputs), len(positions))
         4 4
@@ -516,7 +528,8 @@ class FpnNeck(nn.Module):
 
         Args:
             d_model (int): Dimension of the model.
-            backbone_channel_list (list[int]): List of channel dimensions from the backbone.
+            backbone_channel_list (list[int]): Backbone channel dimensions, ordered from lowest to highest resolution
+                (the reverse of the forward input order).
             kernel_size (int): Kernel size for the convolutional layers.
             stride (int): Stride for the convolutional layers.
             padding (int): Padding for the convolutional layers.
@@ -562,16 +575,17 @@ class FpnNeck(nn.Module):
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
 
         Args:
-            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C, H, W).
+            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C_i, H_i, W_i), ordered
+                from highest to lowest resolution with each level half the spatial size of the previous one.
 
         Returns:
-            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape (B, d_model, H,
-                W).
+            out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape (B, d_model,
+                H_i, W_i).
             pos (list[torch.Tensor]): List of positional encodings corresponding to each output feature map.
 
         Examples:
-            >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[64, 128, 256, 512])
-            >>> inputs = [torch.rand(1, c, 32, 32) for c in [64, 128, 256, 512]]
+            >>> fpn_neck = FpnNeck(d_model=256, backbone_channel_list=[512, 256, 128, 64])
+            >>> inputs = [torch.rand(1, c, s, s) for c, s in zip([64, 128, 256, 512], [64, 32, 16, 8])]
             >>> outputs, positions = fpn_neck(inputs)
             >>> print(len(outputs), len(positions))
             4 4

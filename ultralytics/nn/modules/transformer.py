@@ -64,7 +64,7 @@ class TransformerEncoderLayer(nn.Module):
             cm (int): Hidden dimension in the feedforward network.
             num_heads (int): Number of attention heads.
             dropout (float): Dropout probability.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.GELU() if None.
             normalize_before (bool): Whether to apply normalization before attention and feedforward.
         """
         super().__init__()
@@ -191,7 +191,7 @@ class AIFI(TransformerEncoderLayer):
             cm (int): Hidden dimension in the feedforward network.
             num_heads (int): Number of attention heads.
             dropout (float): Dropout probability.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.GELU() if None.
             normalize_before (bool): Whether to apply normalization before attention and feedforward.
         """
         super().__init__(c1, cm, num_heads, dropout, act, normalize_before)
@@ -266,7 +266,7 @@ class TransformerLayer(nn.Module):
         """Apply a transformer block to the input x and return the output.
 
         Args:
-            x (torch.Tensor): Input tensor.
+            x (torch.Tensor): Input tensor with shape (seq_len, batch, c).
 
         Returns:
             (torch.Tensor): Output tensor after transformer layer.
@@ -360,6 +360,8 @@ class MLP(nn.Module):
         layers (nn.ModuleList): List of linear layers.
         sigmoid (bool): Whether to apply sigmoid to the output.
         act (nn.Module): Activation function.
+        residual (bool): Whether to add the input to the output.
+        out_norm (nn.Module): Normalization layer applied to the output (nn.Identity if not provided).
     """
 
     def __init__(
@@ -627,9 +629,9 @@ class DeformableTransformerDecoderLayer(nn.Module):
             n_heads (int): Number of attention heads.
             d_ffn (int): Dimension of the feedforward network.
             dropout (float): Dropout probability.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.ReLU() if None.
             n_levels (int): Number of feature levels.
-            n_points (int): Number of sampling points.
+            n_points (int): Number of sampling points per attention head per feature level.
         """
         super().__init__()
 
@@ -682,10 +684,10 @@ class DeformableTransformerDecoderLayer(nn.Module):
         """Perform the forward pass through the entire decoder layer.
 
         Args:
-            embed (torch.Tensor): Input embeddings.
-            refer_bbox (torch.Tensor): Reference bounding boxes.
-            feats (torch.Tensor): Feature maps.
-            shapes (list): Feature shapes.
+            embed (torch.Tensor): Input embeddings with shape (bs, num_queries, d_model).
+            refer_bbox (torch.Tensor): Normalized reference bounding boxes with shape (bs, num_queries, 4).
+            feats (torch.Tensor): Flattened multi-level feature maps with shape (bs, sum(H_i * W_i), d_model).
+            shapes (list): Feature shapes [(H_0, W_0), ..., (H_{L-1}, W_{L-1})].
             padding_mask (torch.Tensor, optional): Padding mask.
             attn_mask (torch.Tensor, optional): Attention mask.
             query_pos (torch.Tensor, optional): Query position embeddings.
@@ -758,19 +760,20 @@ class DeformableTransformerDecoder(nn.Module):
         """Perform the forward pass through the entire decoder.
 
         Args:
-            embed (torch.Tensor): Decoder embeddings.
-            refer_bbox (torch.Tensor): Reference bounding boxes.
-            feats (torch.Tensor): Image features.
-            shapes (list): Feature shapes.
-            bbox_head (nn.Module): Bounding box prediction head.
-            score_head (nn.Module): Score prediction head.
-            pos_mlp (nn.Module): Position MLP.
+            embed (torch.Tensor): Decoder embeddings with shape (bs, num_queries, hidden_dim).
+            refer_bbox (torch.Tensor): Reference bounding boxes as unnormalized logits (sigmoid is applied internally).
+            feats (torch.Tensor): Flattened multi-level image features with shape (bs, sum(H_i * W_i), hidden_dim).
+            shapes (list): Feature shapes [(H_0, W_0), ..., (H_{L-1}, W_{L-1})].
+            bbox_head (nn.ModuleList): Per-layer bounding box prediction heads.
+            score_head (nn.ModuleList): Per-layer score prediction heads.
+            pos_mlp (nn.Module): MLP generating query position embeddings from reference boxes.
             attn_mask (torch.Tensor, optional): Attention mask.
             padding_mask (torch.Tensor, optional): Padding mask.
 
         Returns:
-            dec_bboxes (torch.Tensor): Decoded bounding boxes.
-            dec_cls (torch.Tensor): Decoded classification scores.
+            dec_bboxes (torch.Tensor): Decoded normalized bounding boxes with shape (L, bs, num_queries, 4), where L is
+                num_layers in training and 1 (the `eval_idx` layer) in inference.
+            dec_cls (torch.Tensor): Classification logits with shape (L, bs, num_queries, nc).
         """
         output = embed
         dec_bboxes = []

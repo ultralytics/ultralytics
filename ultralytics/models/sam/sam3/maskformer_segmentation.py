@@ -18,7 +18,7 @@ class LinearPresenceHead(nn.Sequential):
     """Linear presence head for predicting the presence of classes in an image."""
 
     def __init__(self, d_model):
-        """Initializes the LinearPresenceHead."""
+        """Initialize the LinearPresenceHead."""
         # a hack to make `LinearPresenceHead` compatible with old checkpoints
         super().__init__(nn.Identity(), nn.Identity(), nn.Linear(d_model, 1))
 
@@ -31,12 +31,12 @@ class MaskPredictor(nn.Module):
     """Predicts masks from object queries and pixel embeddings."""
 
     def __init__(self, hidden_dim, mask_dim):
-        """Initializes the MaskPredictor."""
+        """Initialize the MaskPredictor."""
         super().__init__()
         self.mask_embed = MLP(hidden_dim, hidden_dim, mask_dim, 3)
 
     def forward(self, obj_queries, pixel_embed):
-        """Predicts masks from object queries and pixel embeddings."""
+        """Predict masks from object queries and pixel embeddings."""
         if len(obj_queries.shape) == 3:
             if pixel_embed.ndim == 3:
                 # batch size was omitted
@@ -69,7 +69,7 @@ class SegmentationHead(nn.Module):
         shared_conv=False,
         compile_mode_pixel_decoder=None,
     ):
-        """Initializes the SegmentationHead."""
+        """Initialize the SegmentationHead."""
         super().__init__()
         self.use_encoder_inputs = use_encoder_inputs
         self.aux_masks = aux_masks
@@ -94,7 +94,7 @@ class SegmentationHead(nn.Module):
         self.instance_keys = ["pred_masks"]
 
     def _embed_pixels(self, backbone_feats: list[torch.Tensor], encoder_hidden_states) -> torch.Tensor:
-        """Embeds pixels using the pixel decoder."""
+        """Embed pixels using the pixel decoder."""
         if self.use_encoder_inputs:
             backbone_visual_feats = [bb_feat.clone() for bb_feat in backbone_feats]
             # Extract visual embeddings
@@ -151,7 +151,7 @@ class PixelDecoder(nn.Module):
         shared_conv=False,
         compile_mode=None,
     ):
-        """Initializes the PixelDecoder."""
+        """Initialize the PixelDecoder."""
         super().__init__()
         self.hidden_dim = hidden_dim
         self.num_upsampling_stages = num_upsampling_stages
@@ -189,7 +189,7 @@ class PixelDecoder(nn.Module):
 
 
 class UniversalSegmentationHead(SegmentationHead):
-    """This module handles semantic+instance segmentation."""
+    """Segmentation head that predicts both semantic and instance segmentation masks."""
 
     def __init__(
         self,
@@ -203,7 +203,7 @@ class UniversalSegmentationHead(SegmentationHead):
         dot_product_scorer=None,
         cross_attend_prompt=None,
     ):
-        """Initializes the UniversalSegmentationHead."""
+        """Initialize the UniversalSegmentationHead."""
         super().__init__(
             hidden_dim=hidden_dim,
             upsampling_stages=upsampling_stages,

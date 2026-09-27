@@ -68,8 +68,7 @@ class ObjectCounter(BaseSolution):
 
         Examples:
             >>> counter = ObjectCounter()
-            >>> track_line = {1: [100, 200], 2: [110, 210], 3: [120, 220]}
-            >>> box = [130, 230, 150, 250]
+            >>> counter.initialize_region()
             >>> track_id_num = 1
             >>> previous_position = (120, 220)
             >>> class_to_count = 0  # In COCO model, class 0 = person
@@ -125,7 +124,11 @@ class ObjectCounter(BaseSolution):
             self.counted_ids.add(track_id)
 
     def forget_tracks(self, track_ids: list[int]) -> None:
-        """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution)."""
+        """Drop retired IDs from `counted_ids` so it doesn't grow across a 24/7 stream (see BaseSolution).
+
+        Args:
+            track_ids (list[int]): Track IDs removed by the tracker in the latest frame.
+        """
         super().forget_tracks(track_ids)
         self.counted_ids.difference_update(track_ids)
 
@@ -150,7 +153,7 @@ class ObjectCounter(BaseSolution):
             self.annotator.display_analytics(plot_im, labels_dict, (104, 31, 17), (255, 255, 255), self.margin)
 
     def process(self, im0) -> SolutionResults:
-        """Process input data (frames or object tracks) and update object counts.
+        """Process an input frame and update object counts.
 
         This method initializes the counting region, extracts tracks, draws bounding boxes and regions, updates object
         counts, and displays the results on the input image.
@@ -161,7 +164,7 @@ class ObjectCounter(BaseSolution):
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'in_count' (int, count of objects entering the
                 region), 'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class
-                object count), and 'total_tracks' (int, total number of tracked objects).
+                {"IN": int, "OUT": int} counts), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> counter = ObjectCounter()
@@ -181,7 +184,7 @@ class ObjectCounter(BaseSolution):
 
         # Iterate over bounding boxes, track ids and classes index
         for box, track_id, cls, conf in zip(self.boxes, self.track_ids, self.clss, self.confs):
-            # Draw bounding box and counting region
+            # Draw bounding box and label
             self.annotator.box_label(box, label=self.adjust_box_label(cls, conf, track_id), color=colors(cls, True))
             self.store_tracking_history(track_id, box)  # Store track history
 

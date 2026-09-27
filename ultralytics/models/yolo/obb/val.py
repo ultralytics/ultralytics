@@ -29,11 +29,12 @@ class OBBValidator(DetectionValidator):
     Methods:
         init_metrics: Initialize evaluation metrics for YOLO.
         _process_batch: Process batch of detections and ground truth boxes to compute IoU matrix.
+        postprocess: Postprocess OBB predictions by concatenating angles to bounding boxes.
         _prepare_batch: Prepare batch data for OBB validation.
-        _prepare_pred: Prepare predictions for evaluation against ground truth.
         plot_predictions: Plot predicted bounding boxes on input images.
         pred_to_json: Serialize YOLO predictions to COCO json format.
         save_one_txt: Save YOLO detections to a txt file in normalized coordinates.
+        scale_preds: Scale predictions to the original image size.
         eval_json: Evaluate YOLO output in JSON format and return performance statistics.
 
     Examples:
@@ -120,6 +121,7 @@ class OBBValidator(DetectionValidator):
                 - ori_shape: Original image shapes
                 - img: Batch of images
                 - ratio_pad: Ratio and padding information
+                - im_file: Image file paths
 
         Returns:
             (dict[str, Any]): Prepared batch data with scaled bounding boxes and metadata.
@@ -231,7 +233,7 @@ class OBBValidator(DetectionValidator):
         ).save_txt(file, save_conf=save_conf)
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale predictions to the original image size."""
         return {
             **predn,
             "bboxes": ops.scale_boxes(

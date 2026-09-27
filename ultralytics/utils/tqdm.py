@@ -40,7 +40,7 @@ class TQDM:
         initial (int): Initial counter value.
         n (int): Current iteration count.
         closed (bool): Whether the progress bar is closed.
-        bar_format (str | None): Custom bar format string.
+        bar_format (str | None): Custom bar format string, kept for API compatibility but not used for formatting.
         file (IO[str]): Output file stream.
 
     Methods:
@@ -106,11 +106,12 @@ class TQDM:
             leave (bool, optional): Whether to leave the progress bar after completion.
             file (IO[str], optional): Output file stream for progress display.
             mininterval (float, optional): Minimum time interval between updates (default 0.1s, 60s in GitHub Actions).
-            disable (bool, optional): Whether to disable the progress bar. Auto-detected if None.
+            disable (bool, optional): Whether to disable the progress bar. If None, disabled when Ultralytics is not
+                verbose or the logger level is above INFO.
             unit (str, optional): String for units of iteration (default "it" for items).
             unit_scale (bool, optional): Auto-scale units for bytes/data units.
             unit_divisor (int, optional): Divisor for unit scaling (default 1000).
-            bar_format (str, optional): Custom bar format string.
+            bar_format (str, optional): Custom bar format string, kept for API compatibility but not used.
             initial (int, optional): Initial counter value.
             **kwargs (Any): Additional keyword arguments for compatibility (ignored).
         """

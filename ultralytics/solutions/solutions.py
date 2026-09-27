@@ -35,7 +35,7 @@ class BaseSolution:
         annotator: Annotator instance for drawing on images.
         tracks: YOLO tracking results from the latest inference.
         track_data: Extracted tracking data (boxes or OBB) from tracks.
-        boxes (list): Bounding box coordinates from tracking results.
+        boxes (torch.Tensor | list): Bounding boxes from tracking results, as (N, 4) xyxy or (N, 4, 2) OBB corners.
         clss (list[int]): Class indices from tracking results.
         track_ids (list[int]): Track IDs from tracking results.
         confs (list[float]): Confidence scores from tracking results.
@@ -60,6 +60,8 @@ class BaseSolution:
         adjust_box_label: Generate formatted label for bounding box.
         extract_tracks: Apply object tracking and extract tracks from input image.
         store_tracking_history: Store object tracking history for given track ID and bounding box.
+        forget_tracks: Drop tracking history for track IDs retired by the tracker.
+        get_enclosing_box: Return the axis-aligned [x1, y1, x2, y2] box enclosing a detection or OBB box.
         initialize_region: Initialize counting region and line segment based on configuration.
         display_output: Display processing results including frames or saved results.
         process: Process method to be implemented by each Solution subclass.
@@ -183,7 +185,11 @@ class BaseSolution:
         self.forget_tracks([track.track_id for track in self.model.predictor.trackers[0].removed_stracks_frame])
 
     def forget_tracks(self, track_ids: list[int]) -> None:
-        """Drop bookkeeping for IDs retired by the active tracker."""
+        """Drop bookkeeping for IDs retired by the active tracker.
+
+        Args:
+            track_ids (list[int]): Track IDs removed by the tracker in the latest frame.
+        """
         for track_id in track_ids:
             self.track_history.pop(track_id, None)
 
@@ -195,11 +201,12 @@ class BaseSolution:
 
         Args:
             track_id (int): The unique identifier for the tracked object.
-            box (list[float]): The bounding box coordinates of the object in the format [x1, y1, x2, y2].
+            box (torch.Tensor): The bounding box of the object in [x1, y1, x2, y2] format or as (4, 2) OBB corners.
 
         Examples:
+            >>> import torch
             >>> solution = BaseSolution()
-            >>> solution.store_tracking_history(1, [100, 200, 300, 400])
+            >>> solution.store_tracking_history(1, torch.tensor([100.0, 200.0, 300.0, 400.0]))
         """
         # Store tracking history
         self.track_line = self.track_history[track_id]
@@ -237,8 +244,7 @@ class BaseSolution:
         )  # region or line
 
     def display_output(self, plot_im: np.ndarray) -> None:
-        """Display the results of the processing, which could involve showing frames, printing counts, or saving
-        results.
+        """Display the processed frame in an OpenCV window when `show=True` and the environment supports it.
 
         This method is responsible for visualizing the output of the object detection and tracking process. It displays
         the processed frame with annotations, and allows for user interaction to close the display.
@@ -499,8 +505,8 @@ class SolutionAnnotator(Annotator):
 
         Args:
             keypoints (list[list[float]]): Keypoints data to be plotted, each in format [x, y, confidence].
-            indices (list[int], optional): Keypoint indices to be plotted. The drawing order follows the order of this
-                list.
+            indices (list[int], optional): Keypoint indices to be plotted, defaults to [2, 5, 7]. The drawing order
+                follows the order of this list.
             radius (int): Keypoint radius.
             conf_thresh (float): Confidence threshold for keypoints.
 
@@ -574,10 +580,10 @@ class SolutionAnnotator(Annotator):
         """Plot the pose angle, count value, and step stage for workout monitoring.
 
         Args:
-            angle_text (str): Angle value for workout monitoring.
-            count_text (str): Counts value for workout monitoring.
+            angle_text (float): Angle value in degrees for workout monitoring, displayed with 2 decimals.
+            count_text (int): Repetition count for workout monitoring.
             stage_text (str): Stage decision for workout monitoring.
-            center_kpt (list[int]): Centroid pose index for workout monitoring.
+            center_kpt (list[float]): Keypoint (x, y) coordinates used as the anchor position for the text.
             color (tuple[int, int, int]): Text background color.
             txt_color (tuple[int, int, int]): Text foreground color.
         """
@@ -810,7 +816,8 @@ class SolutionResults:
         plot_im (np.ndarray): Processed image with counts, blurred, or other effects from solutions.
         in_count (int): The total number of "in" counts in a video stream.
         out_count (int): The total number of "out" counts in a video stream.
-        classwise_count (dict[str, int]): A dictionary containing counts of objects categorized by class.
+        classwise_count (dict[str, dict[str, int] | int]): Per-class counts, e.g. {"person": {"IN": 2, "OUT": 1}} for
+            ObjectCounter and Heatmap, or {"person": 3} for Analytics.
         queue_count (int): The count of objects in a queue or waiting area.
         workout_count (list[int]): Per-track workout repetition counts (one entry per currently tracked individual).
         workout_angle (list[float]): Per-track exercise angles for currently tracked individuals.
@@ -821,7 +828,8 @@ class SolutionResults:
         email_sent (bool): A flag indicating whether an email notification was sent.
         total_tracks (int): The total number of tracked objects.
         region_counts (dict[str, int]): The count of objects within a specific region.
-        speed_dict (dict[str, float]): A dictionary containing speed information for tracked objects.
+        speed_dict (dict[str, float]): A dictionary for speed information of tracked objects (not populated by
+            SpeedEstimator, which reports speeds on `plot_im` only).
         total_crop_objects (int): Total number of cropped objects using ObjectCropper class.
         speed (dict[str, float]): Performance timing information for tracking and solution processing.
     """

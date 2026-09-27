@@ -18,7 +18,7 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
     """Log files (images) as debug samples in the ClearML task.
 
     Args:
-        files (list[Path]): A list of file paths in PosixPath format.
+        files (list[Path]): A list of image file paths.
         title (str): A title that groups together images with the same values.
     """
     import re

@@ -30,7 +30,7 @@ class SolutionConfig:
         up_angle (float): Upper angle threshold used in pose-based workouts monitoring.
         down_angle (int): Lower angle threshold used in pose-based workouts monitoring.
         kpts (list[int]): Keypoint indices to monitor, e.g., for pose analytics.
-        analytics_type (str): Type of analytics to perform ("line", "area", "bar", "pie", etc.).
+        analytics_type (str): Type of analytics chart to generate ("line", "bar", "pie", or "area").
         figsize (tuple[float, float], optional): Size of the matplotlib figure used for analytical plots (width,
             height).
         blur_ratio (float): Ratio used to blur objects in the video frames (0.0 to 1.0).
@@ -42,7 +42,7 @@ class SolutionConfig:
         fps (float): Frame rate (Frames Per Second) for speed estimation calculation.
         max_hist (int): Maximum number of historical points or states stored per tracked object for speed estimation.
         meter_per_pixel (float): Scale for real-world measurement, used in speed or distance calculations.
-        max_speed (int): Maximum speed limit (e.g., km/h or mph) used in visual alerts or constraints.
+        max_speed (int): Maximum speed in km/h; speed estimates above this value are capped.
         show (bool): Whether to display the visual output on screen.
         iou (float): Intersection-over-Union threshold for detection filtering.
         conf (float): Confidence threshold for keeping predictions.
@@ -51,6 +51,7 @@ class SolutionConfig:
         quantize (int | str | None): Inference precision, e.g. 16 (FP16). Only PyTorch and TorchScript models compute in
             it; elsewhere the artifact and runtime decide, though 16 rounds OpenVINO inputs. Replaces the deprecated
             half flag.
+        imgsz (int): Input image size for inference.
         tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
@@ -102,7 +103,17 @@ class SolutionConfig:
     data: str = "images"
 
     def update(self, **kwargs: Any):
-        """Update configuration parameters with new values provided as keyword arguments."""
+        """Update configuration parameters with new values provided as keyword arguments.
+
+        Args:
+            **kwargs (Any): Configuration keys and values to set. The deprecated `half` key is mapped to `quantize`.
+
+        Returns:
+            (SolutionConfig): The updated configuration instance.
+
+        Raises:
+            ValueError: If a key is not a valid solution argument.
+        """
         if "half" in kwargs:  # deprecated alias, forwarded to quantize
             from ultralytics.utils import deprecation_warn
 

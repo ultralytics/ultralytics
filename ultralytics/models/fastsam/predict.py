@@ -160,7 +160,8 @@ class FastSAMPredictor(SegmentationPredictor):
             texts (list[str]): List of prompt texts, each should be a string object.
 
         Returns:
-            (torch.Tensor): Similarity matrix between given images and texts with shape (M, N).
+            (torch.Tensor): Similarity matrix between texts and images with shape (M, N), where M is the number of
+                texts and N is the number of images.
         """
         from ultralytics.nn.text_model import CLIP
 

@@ -96,12 +96,14 @@ class BaseTrainer:
         epochs (int): Number of epochs to train for.
         start_epoch (int): Starting epoch for training.
         device (torch.device): Device to use for training.
+        world_size (int): Number of devices used for training (0 for CPU/MPS).
         amp (bool): Whether Automatic Mixed Precision is enabled.
         scaler (torch.amp.GradScaler): Gradient scaler for AMP.
         data (dict): Dataset dictionary containing paths and metadata.
         ema (ModelEMA): EMA (Exponential Moving Average) of the model.
         resume (bool): Resume training from a checkpoint.
-        lf (callable): Learning rate scheduling function.
+        lf (Callable): Learning rate scheduling function.
+        optimizer (torch.optim.Optimizer): Optimizer for training.
         scheduler (torch.optim.lr_scheduler._LRScheduler): Learning rate scheduler.
         best_fitness (float): The best fitness value achieved.
         fitness (float): Current fitness value.
@@ -122,8 +124,9 @@ class BaseTrainer:
         build_optimizer: Construct an optimizer for the model.
 
     Examples:
-        Initialize a trainer and start training
-        >>> trainer = BaseTrainer(cfg="config.yaml")
+        Initialize a task trainer (a BaseTrainer subclass) and start training
+        >>> from ultralytics.models.yolo.detect import DetectionTrainer
+        >>> trainer = DetectionTrainer(overrides={"model": "yolo26n.pt", "data": "coco8.yaml", "epochs": 1})
         >>> trainer.train()
     """
 
@@ -752,7 +755,11 @@ class BaseTrainer:
                 m.eval()
 
     def save_model(self):
-        """Save model training checkpoints with additional metadata."""
+        """Save model training checkpoints with additional metadata.
+
+        Returns:
+            (bool): True once the checkpoints have been written.
+        """
         import io
 
         # A transient NaN/Inf permanently poisons the EMA running average (ema = decay*ema + (1-decay)*model), so
@@ -822,6 +829,9 @@ class BaseTrainer:
 
         Returns:
             (dict): A dictionary containing the training/validation/test dataset and category names.
+
+        Raises:
+            RuntimeError: If the dataset cannot be found or checked.
         """
         try:
             self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction, split=self.args.split)
@@ -922,7 +932,7 @@ class BaseTrainer:
         return metrics, fitness
 
     def get_model(self, cfg=None, weights=None, verbose=True):
-        """Get model and raise NotImplementedError for loading cfg files."""
+        """Raise NotImplementedError (must return a model built from cfg and weights in subclasses)."""
         raise NotImplementedError("This task trainer doesn't support loading cfg files")
 
     def get_validator(self):
@@ -1140,6 +1150,9 @@ class BaseTrainer:
 
         Returns:
             (torch.optim.Optimizer): The constructed optimizer.
+
+        Raises:
+            NotImplementedError: If the optimizer name is not supported.
         """
         g = [{}, {}, {}, {}]  # optimizer parameter groups
         bn = tuple(v for k, v in nn.__dict__.items() if "Norm" in k)  # normalization layers, i.e. BatchNorm2d()

@@ -31,7 +31,7 @@ The Responses API is the default. Pass a prompt and read `output_text`:
 ```python
 from ultralytics import LLM
 
-llm = LLM("gpt-5.6-luna")
+llm = LLM("gpt-6-luna")
 response = llm("What is YOLO?")
 print(response.output_text)
 ```
@@ -43,7 +43,7 @@ Pass a path, HTTP URL, data URI, NumPy array, or PIL image through `image`:
 ```python
 from ultralytics import LLM
 
-llm = LLM("gpt-5.6-luna")
+llm = LLM("gpt-6-luna")
 response = llm("What is happening in this image?", image="https://ultralytics.com/images/bus.jpg")
 print(response.output_text)
 ```
@@ -53,7 +53,7 @@ Local files and image objects are encoded as JPEG data URIs. NumPy arrays use Op
 Use `prompt` for an instruction shared by every request:
 
 ```python
-llm = LLM("gpt-5.6-luna", prompt="Answer in one sentence.")
+llm = LLM("gpt-6-luna", prompt="Answer in one sentence.")
 response = llm("Describe this image.", image="bus.jpg")
 ```
 
@@ -64,7 +64,7 @@ Select Chat Completions when required by the endpoint, and read its native respo
 ```python
 from ultralytics import LLM
 
-llm = LLM("gpt-5.6-luna", api="chat.completions")
+llm = LLM("gpt-6-luna", api="chat.completions")
 response = llm("What is non-maximum suppression?")
 print(response.choices[0].message.content)
 ```
@@ -83,7 +83,7 @@ Pass native message objects when you need conversation history. They are forward
 SDK request arguments pass through unchanged, including `stream=True`:
 
 ```python
-llm = LLM("gpt-5.6-luna")
+llm = LLM("gpt-6-luna")
 for event in llm("Explain object detection.", stream=True):
     if event.type == "response.output_text.delta":
         print(event.delta, end="", flush=True)
@@ -96,7 +96,7 @@ import asyncio
 
 from ultralytics import LLM
 
-llm = LLM("gpt-5.6-luna")
+llm = LLM("gpt-6-luna")
 
 
 async def main():
@@ -134,7 +134,7 @@ Run YOLO first, then call the LLM only when a person is detected:
 from ultralytics import LLM, YOLO
 
 yolo = YOLO("yolo26n.pt")
-llm = LLM("gpt-5.6-luna")
+llm = LLM("gpt-6-luna")
 image = "https://ultralytics.com/images/bus.jpg"
 
 result = yolo(image)[0]
@@ -146,14 +146,14 @@ if any(result.names[int(cls)] == "person" for cls in result.boxes.cls):
 
 ## API Reference
 
-| Argument   | Default          | Description                                                                            |
-| ---------- | ---------------- | -------------------------------------------------------------------------------------- |
-| `model`    | `"gpt-5.6-luna"` | Model identifier sent to the selected endpoint                                         |
-| `api`      | `"responses"`    | API format: `"responses"` or `"chat.completions"`                                      |
-| `base_url` | `None`           | Optional OpenAI-compatible endpoint                                                    |
-| `api_key`  | `None`           | API key; otherwise the SDK reads `OPENAI_API_KEY`                                      |
-| `prompt`   | `None`           | Instruction prepended to plain text and image requests                                 |
-| `**kwargs` |                  | Default SDK request arguments; per-call arguments override matching constructor values |
+| Argument   | Default        | Description                                                                            |
+| ---------- | -------------- | -------------------------------------------------------------------------------------- |
+| `model`    | `"gpt-6-luna"` | Model identifier sent to the selected endpoint                                         |
+| `api`      | `"responses"`  | API format: `"responses"` or `"chat.completions"`                                      |
+| `base_url` | `None`         | Optional OpenAI-compatible endpoint                                                    |
+| `api_key`  | `None`         | API key; otherwise the SDK reads `OPENAI_API_KEY`                                      |
+| `prompt`   | `None`         | Instruction prepended to plain text and image requests                                 |
+| `**kwargs` |                | Default SDK request arguments; per-call arguments override matching constructor values |
 
 `source` accepts text, a native message list, or an image object. `image` accepts an image URL, data URI, path, NumPy array, or PIL image. Calling `model()` with a configured `prompt` sends the prompt by itself.
 

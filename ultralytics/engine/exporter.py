@@ -60,6 +60,7 @@ Inference:
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n.tflite             # LiteRT
+                         yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
                          yolo26n.aimodel            # Apple Core AI (export on macOS 26+ Apple silicon or x86_64 Linux)
 """
@@ -452,12 +453,12 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (SimpleNamespace): The arguments used during export.
-        valid_args (list): List of valid arguments for the format.
+        valid_args (list | None): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    # Format-specific args come from the export table; skip inference args and quantize (validated above)
+    # Format-specific args from the export table; skip conf/iou/name, nms (handled by Exporter) and quantize (below)
     export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize", "nms"})
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
@@ -524,6 +525,8 @@ class Exporter:
         pretty_name (str): Formatted model name for display purposes.
         metadata (dict): Model metadata including description, author, version, etc.
         device (torch.device): Device on which the model is loaded.
+        dla (str | None): TensorRT DLA core ('0' or '1') when exporting with device='dla:N', otherwise None.
+        qat (bool): Whether the model is a quantization-aware trained (QAT) model.
         imgsz (list): Input image size for the model.
 
     Methods:
@@ -533,6 +536,7 @@ class Exporter:
         export_onnx: Export model to ONNX format.
         export_openvino: Export model to OpenVINO format.
         export_paddle: Export model to PaddlePaddle format.
+        export_litert: Export model to LiteRT format.
         export_mnn: Export model to MNN format.
         export_ncnn: Export model to NCNN format.
         export_coreml: Export model to CoreML format.
@@ -546,6 +550,9 @@ class Exporter:
         export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
+        export_qnn: Export model to Qualcomm QNN format.
+        export_hailo: Export model to Hailo HEF format.
+        export_ascend: Export model to Huawei Ascend format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -575,8 +582,14 @@ class Exporter:
     def __call__(self, model=None) -> str:
         """Export a model and return the final exported path as a string.
 
+        Args:
+            model (torch.nn.Module): The YOLO PyTorch model to export.
+
         Returns:
             (str): Path to the exported file or directory (the last export artifact).
+
+        Raises:
+            ValueError: If the export format is invalid or the model/arguments are unsupported for the format.
         """
         t = time.time()
         fmt = self.args.format = self.args.format.lower()  # to lowercase
@@ -1583,7 +1596,7 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):  # noqa: B008
         """Export YOLO model to IMX format."""
         assert LINUX, (
-            "Export only supported on Linux."
+            "Export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
@@ -1802,7 +1815,7 @@ class Exporter:
         """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
         return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):

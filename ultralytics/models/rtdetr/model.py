@@ -1,6 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""
-Interface for Baidu's RT-DETR, a Vision Transformer-based real-time object detector.
+"""Interface for Baidu's RT-DETR, a Vision Transformer-based real-time object detector.
 
 RT-DETR offers real-time performance and high accuracy, excelling in accelerated backends like CUDA with TensorRT.
 It features an efficient hybrid encoder and IoU-aware query selection for enhanced detection accuracy.

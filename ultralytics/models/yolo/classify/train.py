@@ -37,7 +37,6 @@ class ClassificationTrainer(BaseTrainer):
         preprocess_batch: Preprocess a batch of images and classes.
         progress_string: Return a formatted string showing training progress.
         get_validator: Return an instance of ClassificationValidator.
-        final_eval: Evaluate trained model and save validation results.
         plot_training_samples: Plot training samples with their annotations.
 
     Examples:

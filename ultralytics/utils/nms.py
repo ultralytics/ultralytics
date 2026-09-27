@@ -29,34 +29,40 @@ def non_max_suppression(
     """Perform non-maximum suppression (NMS) on prediction results.
 
     Applies NMS to filter overlapping bounding boxes based on confidence and IoU thresholds. Supports multiple detection
-    formats including standard boxes, rotated boxes, and masks.
+    formats including standard boxes, rotated boxes, and masks. End-to-end outputs are only filtered by confidence,
+    class, and max_det.
 
     Args:
-        prediction (torch.Tensor): Predictions with shape (batch_size, num_classes + 4 + num_masks, num_boxes)
-            containing boxes, classes, and optional masks.
+        prediction (torch.Tensor | list | tuple): Predictions with shape (batch_size, 4 + num_classes + num_extra,
+            num_boxes) containing xywh boxes, class scores, and optional extra channels (mask coefficients, keypoints,
+            or angle), or end-to-end predictions with shape (batch_size, num_boxes, 6 + num_extra). For a list or
+            tuple, the first element is used.
         conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
         iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
         classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.
         max_det (int): Maximum number of detections to keep per image.
-        nc (int): Number of classes. Indices after this are considered masks.
+        nc (int): Number of classes; channels after 4 + nc are treated as extra channels. If 0, inferred as
+            prediction.shape[1] - 4.
         max_time_img (float): Maximum time in seconds for processing one image.
         max_nms (int): Maximum number of boxes for NMS.
-        max_wh (int): Maximum box width and height in pixels.
+        max_wh (int): Per-class coordinate offset in pixels used to separate classes for class-aware NMS.
         rotated (bool): Whether to handle Oriented Bounding Boxes (OBB).
         end2end (bool): Whether the model is end-to-end and doesn't require NMS.
         return_idxs (bool): Whether to return the indices of kept detections.
 
     Returns:
         (list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]]): List of detections per image with shape
-            (num_boxes, 6 + num_masks) containing (x1, y1, x2, y2, confidence, class, mask1, mask2, ...). If
-            return_idxs=True, returns a tuple of (output, keepi) where keepi contains indices of kept detections.
+            (num_boxes, 6 + num_extra) containing (x1, y1, x2, y2, confidence, class, extra1, extra2, ...); with
+            rotated=True the boxes stay in (x, y, w, h) format and the angle is the last extra channel. If
+            return_idxs=True, returns a tuple of (output, keepi) where keepi contains, per image, the indices of the
+            kept detections in the input predictions.
     """
     # Checks
     assert 0 <= conf_thres <= 1, f"Invalid Confidence threshold {conf_thres}, valid values are between 0.0 and 1.0"
     assert 0 <= iou_thres <= 1, f"Invalid IoU {iou_thres}, valid values are between 0.0 and 1.0"
-    if isinstance(prediction, (list, tuple)):  # YOLOv8 model in validation mode, output = (inference_out, loss_out)
+    if isinstance(prediction, (list, tuple)):  # model in validation mode, output = (inference_out, loss_out)
         prediction = prediction[0]  # select only inference output
     if classes is not None:
         classes = torch.tensor(classes, device=prediction.device)
@@ -191,15 +197,17 @@ class TorchNMS:
         """Fast-NMS implementation from https://arxiv.org/pdf/1904.02689 using upper triangular matrix operations.
 
         Args:
-            boxes (torch.Tensor): Bounding boxes with shape (N, 4) in xyxy format.
+            boxes (torch.Tensor): Bounding boxes with shape (N, 4) in xyxy format, or (N, 5) in xywhr format when
+                iou_func is batch_probiou.
             scores (torch.Tensor): Confidence scores with shape (N,).
             iou_threshold (float): IoU threshold for suppression.
-            use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations.
+            use_triu (bool): Whether to use torch.triu operator for upper triangular matrix operations. If False, an
+                export-friendly path zeroes suppressed scores in place and returns all N indices sorted by score.
             iou_func (callable): Function to compute IoU between boxes.
-            exit_early (bool): Whether to exit early if there are no boxes.
+            exit_early (bool): Whether to return early if there are no boxes.
 
         Returns:
-            (torch.Tensor): Indices of boxes to keep after NMS.
+            (torch.Tensor): Indices of boxes to keep after NMS, sorted by descending score.
 
         Examples:
             Apply NMS to a set of boxes
@@ -215,7 +223,7 @@ class TorchNMS:
         ious = iou_func(boxes, boxes)
         if use_triu:
             ious = ious.triu_(diagonal=1)
-            # NOTE: handle the case when len(boxes) hence exportable by eliminating if-else condition
+            # NOTE: no if-else on len(boxes), keeping this path exportable
             pick = torch.nonzero((ious >= iou_threshold).sum(0) <= 0).squeeze_(-1)
         else:
             n = boxes.shape[0]

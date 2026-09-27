@@ -139,7 +139,8 @@ class ONNXBackend(BaseBackend):
                 input names to tensors/arrays for multi-input ONNX Runtime models.
 
         Returns:
-            (torch.Tensor | list[torch.Tensor] | np.ndarray): Model predictions as tensor(s) or numpy array(s).
+            (np.ndarray | list[np.ndarray] | list[torch.Tensor]): Model predictions as a numpy array (OpenCV DNN), a
+                list of numpy arrays (ONNX Runtime), or a list of bound output tensors (CUDA IO binding).
         """
         if self.format == "dnn":
             # OpenCV DNN
@@ -215,7 +216,7 @@ class ONNXIMXBackend(ONNXBackend):
             # boxes, conf, cls
             return np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
         elif self.task == "pose":
-            # boxes, conf, kpts
+            # boxes, conf, cls, kpts
             return np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype)
         elif self.task == "segment":
             return (

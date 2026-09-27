@@ -133,15 +133,15 @@ def _create_sam3_transformer() -> TransformerWrapper:
 
 
 def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
-    """Build SAM3 image model.
+    """Build the SAM3 semantic (text and box prompted) image model.
 
     Args:
-        checkpoint_path: Optional path to model checkpoint
-        enable_segmentation: Whether to enable segmentation head
-        compile: Whether to enable compilation of the model
+        checkpoint_path (str): Path to the model checkpoint.
+        enable_segmentation (bool): Whether to build the segmentation head.
+        compile (bool): Whether to compile the vision backbone and pixel decoder with the "default" compile mode.
 
     Returns:
-        A SAM3 image model
+        (SAM3SemanticModel): A configured and initialized SAM3 image model in eval mode.
     """
     try:
         import clip
@@ -256,7 +256,7 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
 
 
 def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=True) -> SAM3Model:
-    """Build the SAM3 Tracker module for video tracking.
+    """Build the interactive SAM3 tracker model used for point/box prompted and video segmentation.
 
     Args:
         checkpoint_path (str): Path to model checkpoint.

@@ -24,7 +24,8 @@ class DeepOCSortTrack(OCSortTrack):
         smooth_feat (np.ndarray | None): Smoothed feature vector via EMA.
         curr_feat (np.ndarray | None): Current frame's feature vector.
         alpha_fixed_emb (float): Base EMA factor for embedding updates.
-        det_thresh (float): Confidence threshold below which a new embedding is ignored rather than blended.
+        det_thresh (float): Confidence threshold at or below which a new embedding does not update an existing
+            smoothed feature.
     """
 
     def __init__(
@@ -46,8 +47,8 @@ class DeepOCSortTrack(OCSortTrack):
             delta_t (int): Temporal window for OCM velocity direction computation.
             feat (np.ndarray | None): Optional appearance feature vector for this detection.
             alpha_fixed_emb (float): Base EMA factor for embedding updates; higher = slower updates.
-            det_thresh (float): Detection-confidence threshold below which the embedding is replaced rather than
-                blended.
+            det_thresh (float): Detection-confidence threshold at or below which a new embedding leaves an existing
+                smoothed feature unchanged rather than being blended in.
         """
         super().__init__(xywh, score, cls, delta_t)
         self.smooth_feat = None

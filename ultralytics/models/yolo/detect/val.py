@@ -33,7 +33,6 @@ class DetectionValidator(BaseValidator):
         iouv (torch.Tensor): IoU thresholds for mAP calculation.
         niou (int): Number of IoU thresholds.
         jdict (list[dict[str, Any]]): List for storing JSON detection results.
-        stats (dict[str, list[torch.Tensor]]): Dictionary for storing statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.detect import DetectionValidator
@@ -209,7 +208,7 @@ class DetectionValidator(BaseValidator):
             pred (dict[str, torch.Tensor]): Post-processed predictions from the model.
 
         Returns:
-            (dict[str, torch.Tensor]): Prepared predictions in native space.
+            (dict[str, torch.Tensor]): Predictions with classes set to 0 when `single_cls` is enabled.
         """
         if self.args.single_cls:
             pred["cls"] *= 0
@@ -501,13 +500,13 @@ class DetectionValidator(BaseValidator):
             pbatch (dict[str, Any]): Batch dictionary containing 'imgsz', 'ori_shape', 'ratio_pad', and 'im_file'.
 
         Examples:
-             >>> result = {
-             ...     "image_id": 42,
-             ...     "file_name": "42.jpg",
-             ...     "category_id": 18,
-             ...     "bbox": [258.15, 41.29, 348.26, 243.78],
-             ...     "score": 0.236,
-             ... }
+            >>> result = {
+            ...     "image_id": 42,
+            ...     "file_name": "42.jpg",
+            ...     "category_id": 18,
+            ...     "bbox": [258.15, 41.29, 348.26, 243.78],
+            ...     "score": 0.236,
+            ... }
         """
         path = Path(pbatch["im_file"])
         stem = path.stem
@@ -526,7 +525,7 @@ class DetectionValidator(BaseValidator):
             )
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale predictions to the original image size."""
         return {
             **predn,
             "bboxes": ops.scale_boxes(

@@ -94,7 +94,7 @@ For storage and scalability information, check out our [installation instruction
 
 ### What is the Ask AI feature in Ultralytics Explorer?
 
-The Ask AI feature in Ultralytics Explorer allows users to interact with their datasets using natural language queries. Powered by [OpenAI](https://www.ultralytics.com/blog/openai-gpt-4o-showcases-ai-potential), this feature enables you to ask complex questions and receive insightful answers without needing to write SQL queries or similar commands. To use this feature, you'll need to set your OpenAI API key the first time you run the GUI:
+The Ask AI feature in Ultralytics Explorer allows users to interact with their datasets using natural language queries. Powered by [OpenAI](https://openai.com/), this feature enables you to ask complex questions and receive insightful answers without needing to write SQL queries or similar commands. To use this feature, you'll need to set your OpenAI API key the first time you run the GUI:
 
 ```bash
 yolo settings openai_api_key="YOUR_API_KEY"

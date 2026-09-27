@@ -16,7 +16,7 @@ except (ImportError, AssertionError):
 
 
 def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall", y_title="Precision"):
-    """Create and log a custom metric visualization table.
+    """Create a custom metric visualization table for logging to wandb.
 
     This function crafts a custom metric visualization that mimics the behavior of the default wandb precision-recall
     curve while allowing for enhanced customization. The visual metric is useful for monitoring model performance across
@@ -31,7 +31,7 @@ def _custom_table(x, y, classes, title="Precision Recall Curve", x_title="Recall
         y_title (str, optional): Label for the y-axis.
 
     Returns:
-        (wandb.Object): A wandb object suitable for logging, showcasing the crafted metric visualization.
+        (wandb.plot.CustomChart): A wandb custom chart object suitable for logging, showing the metric visualization.
     """
     import polars as pl  # scope for faster 'import ultralytics'
     import polars.selectors as cs
@@ -109,8 +109,8 @@ def _log_plots(plots, step):
     plots to WandB at the specified step.
 
     Args:
-        plots (dict): Dictionary of plots to log, where keys are plot names and values are dictionaries containing plot
-            metadata including timestamps.
+        plots (dict): Dictionary of plots to log, where keys are plot file paths and values are dictionaries containing
+            plot metadata including timestamps.
         step (int): The step/epoch at which to log the plots in the WandB run.
 
     Notes:
@@ -147,7 +147,7 @@ def on_pretrain_routine_start(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    """Log training metrics and model information at the end of an epoch."""
+    """Log plots, validation metrics, and (on the first epoch) model information at the end of each fit epoch."""
     _log_plots(trainer.plots, step=trainer.epoch + 1)
     _log_plots(trainer.validator.plots, step=trainer.epoch + 1)
     if trainer.epoch == 0:
@@ -156,7 +156,7 @@ def on_fit_epoch_end(trainer):
 
 
 def on_train_epoch_end(trainer):
-    """Log metrics and save images at the end of each training epoch."""
+    """Log training losses and learning rates at each training epoch end, plus training plots after the second epoch."""
     wb.run.log(trainer.label_loss_items(trainer.tloss, prefix="train"), step=trainer.epoch + 1)
     wb.run.log(trainer.lr, step=trainer.epoch + 1)
     if trainer.epoch == 1:

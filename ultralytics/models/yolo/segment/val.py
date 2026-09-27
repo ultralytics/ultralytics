@@ -25,7 +25,6 @@ class SegmentationValidator(DetectionValidator):
         process (callable): Function to process masks based on save_json and save_txt flags.
         args (SimpleNamespace): Arguments for the validator.
         metrics (SegmentMetrics): Metrics calculator for segmentation tasks.
-        stats (dict): Dictionary to store statistics during validation.
 
     Examples:
         >>> from ultralytics.models.yolo.segment import SegmentationValidator
@@ -62,7 +61,7 @@ class SegmentationValidator(DetectionValidator):
         return batch
 
     def init_metrics(self, model: torch.nn.Module) -> None:
-        """Initialize metrics and select mask processing function based on save_json flag.
+        """Initialize metrics and select mask processing function based on save_json and save_txt flags.
 
         Args:
             model (torch.nn.Module): Model to validate.
@@ -209,18 +208,22 @@ class SegmentationValidator(DetectionValidator):
         """
 
         def to_string(counts: list[int]) -> str:
-            """Converts the RLE object into a compact string representation. Each count is delta-encoded and
-            variable-length encoded as a string.
+            """Convert RLE counts into a compact string representation.
+
+            Each count is delta-encoded and variable-length encoded as a string, matching the COCO compressed RLE format.
 
             Args:
                 counts (list[int]): List of RLE counts.
+
+            Returns:
+                (str): Compressed RLE string.
             """
             result = []
 
             for i in range(len(counts)):
                 x = int(counts[i])
 
-                # Apply delta encoding for all counts after the second entry
+                # Apply delta encoding for all counts after the third entry
                 if i > 2:
                     x -= int(counts[i - 2])
 
@@ -291,7 +294,7 @@ class SegmentationValidator(DetectionValidator):
             self.jdict[-len(rles) + i]["segmentation"] = r  # segmentation
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Scales predictions to the original image size."""
+        """Scale predictions to the original image size."""
         return {
             **super().scale_preds(predn, pbatch),
             "masks": ops.scale_masks(predn["masks"][None], pbatch["ori_shape"], ratio_pad=pbatch["ratio_pad"])[

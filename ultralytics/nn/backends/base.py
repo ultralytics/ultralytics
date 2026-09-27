@@ -18,7 +18,7 @@ def _read_proto_map(file: Path, path: tuple[int, ...]) -> dict:
     """Read a protobuf ``map<string, string>`` at a nested field path, without importing the format's framework.
 
     Args:
-        file (Path): Path to the protobuf file, i.e. an ONNX or CoreML model.
+        file (Path): Path to the protobuf file, e.g. an ONNX or CoreML model.
         path (tuple[int, ...]): Field numbers to descend, the last holding the repeated ``key``/``value`` entries.
 
     Returns:
@@ -70,7 +70,7 @@ class BaseBackend(ABC):
         nhwc (bool): Whether the model expects NHWC input format instead of NCHW.
         stride (int): Model stride, typically 32 for YOLO models.
         names (dict): Dictionary mapping class indices to class names.
-        task (str | None): The task type (detect, segment, semantic, classify, pose, obb).
+        task (str | None): The task type (detect, segment, semantic, depth, classify, pose, obb).
         batch (int): Batch size for inference.
         imgsz (tuple): Input image size as (height, width).
         channels (int): Number of input channels, typically 3 for RGB.
@@ -126,9 +126,7 @@ class BaseBackend(ABC):
         raise NotImplementedError
 
     def __call__(self, *args, **kwargs) -> Any:
-        """Allow the backend instance to be called directly to perform inference, forwarding arguments to the `forward`
-        method.
-        """
+        """Run inference by forwarding all arguments to `forward`."""
         return self.forward(*args, **kwargs)
 
     @staticmethod

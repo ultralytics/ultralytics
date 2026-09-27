@@ -96,7 +96,7 @@ class SAM2Model(torch.nn.Module):
 
     Attributes:
         mask_threshold (float): Threshold value for mask prediction.
-        image_encoder (ImageEncoderViT): Visual encoder for extracting image features.
+        image_encoder (nn.Module): Visual encoder for extracting image features.
         memory_attention (nn.Module): Module for attending to memory features.
         memory_encoder (nn.Module): Encoder for generating memory representations.
         num_maskmem (int): Number of accessible memory frames.
@@ -154,8 +154,9 @@ class SAM2Model(torch.nn.Module):
     Examples:
         >>> model = SAM2Model(image_encoder, memory_attention, memory_encoder)
         >>> image_batch = torch.rand(1, 3, 512, 512)
-        >>> features = model.forward_image(image_batch)
-        >>> track_results = model.track_step(0, True, features, None, None, None, {})
+        >>> backbone_out = model.forward_image(image_batch)
+        >>> _, vision_feats, vision_pos_embeds, feat_sizes = model._prepare_backbone_features(backbone_out)
+        >>> track_results = model.track_step(0, True, vision_feats, vision_pos_embeds, feat_sizes, None, None, {}, 1)
     """
 
     mask_threshold: float = 0.0
@@ -348,10 +349,10 @@ class SAM2Model(torch.nn.Module):
         return next(self.parameters()).device
 
     def forward(self, *args, **kwargs):
-        """Process image and prompt inputs to generate object masks and scores in video sequences."""
+        """Raise NotImplementedError, as inference is handled by SAM2VideoPredictor methods."""
         raise NotImplementedError(
-            "Please use the corresponding methods in SAM2VideoPredictor for inference."
-            "See notebooks/video_predictor_example.ipynb for an example."
+            "Please use the corresponding methods in SAM2VideoPredictor for inference. "
+            "See https://docs.ultralytics.com/models/sam-2/ for examples."
         )
 
     def _build_sam_heads(self):
@@ -506,8 +507,7 @@ class SAM2Model(torch.nn.Module):
             # Spatial memory mask is a *hard* choice between obj and no obj, consistent with actual mask prediction
             low_res_multimasks = torch.where(is_obj_appearing[:, None, None], low_res_multimasks, NO_OBJ_SCORE)
 
-        # convert masks from possibly bfloat16 (or float16) to float32
-        # (older PyTorch versions before 2.1 don't support `interpolate` on bf16)
+        # Upsample low-resolution mask logits to the input image size
         high_res_multimasks = F.interpolate(
             low_res_multimasks,
             size=(self.image_size, self.image_size),
@@ -937,7 +937,27 @@ class SAM2Model(torch.nn.Module):
         # The previously predicted SAM mask logits (which can be fed together with new clicks in demo).
         prev_sam_mask_logits=None,
     ):
-        """Perform a single tracking step, updating object masks and memory features based on current frame inputs."""
+        """Perform a single tracking step, updating object masks and memory features based on current frame inputs.
+
+        Args:
+            frame_idx (int): Index of the current frame.
+            is_init_cond_frame (bool): Whether the current frame is an initial conditioning frame.
+            current_vision_feats (list[torch.Tensor]): Flattened multi-level image features, each with shape (HW, B, C).
+            current_vision_pos_embeds (list[torch.Tensor]): Flattened positional embeddings matching
+                current_vision_feats.
+            feat_sizes (list[tuple[int, int]]): Spatial size (H, W) of each feature level.
+            point_inputs (dict[str, torch.Tensor] | None): Point prompts with keys 'point_coords' and 'point_labels'.
+            mask_inputs (torch.Tensor | None): Mask prompts with shape (B, 1, H_img, W_img).
+            output_dict (dict): Dictionary with 'cond_frame_outputs' and 'non_cond_frame_outputs' from previous frames.
+            num_frames (int): Total number of frames in the video.
+            track_in_reverse (bool): Whether tracking is performed in reverse time order.
+            run_mem_encoder (bool): Whether to run the memory encoder on the predicted masks.
+            prev_sam_mask_logits (torch.Tensor | None): Previously predicted SAM mask logits to use as mask prompts.
+
+        Returns:
+            (dict): Current frame outputs with keys 'pred_masks', 'pred_masks_high_res', 'obj_ptr',
+                'maskmem_features', 'maskmem_pos_enc', and 'object_score_logits' (inference only).
+        """
         sam_outputs, _, _ = self._track_step(
             frame_idx,
             is_init_cond_frame,
@@ -1013,12 +1033,8 @@ class SAM2Model(torch.nn.Module):
             self.image_encoder.set_imgsz(imgsz)
         self.image_size = imgsz[0]
         self.sam_prompt_encoder.input_image_size = imgsz
-        self.sam_prompt_encoder.image_embedding_size = [
-            x // self.backbone_stride for x in imgsz
-        ]  # fixed ViT patch size of 16
-        self.sam_prompt_encoder.mask_input_size = [
-            x // self.backbone_stride * 4 for x in imgsz
-        ]  # fixed ViT patch size of 16
+        self.sam_prompt_encoder.image_embedding_size = [x // self.backbone_stride for x in imgsz]
+        self.sam_prompt_encoder.mask_input_size = [x // self.backbone_stride * 4 for x in imgsz]
         self.sam_image_embedding_size = self.image_size // self.backbone_stride  # update image embedding size
 
 
@@ -1063,7 +1079,7 @@ class SAM3Model(SAM2Model):
         sam_mask_decoder_extra_args=None,
         compile_image_encoder: bool = False,
     ):
-        """SAM3Model class for Segment Anything Model 3 with memory-based video object segmentation capabilities."""
+        """Initialize SAM3Model with the same arguments as SAM2Model, replacing the mask decoder transformer."""
         super().__init__(
             image_encoder,
             memory_attention,
@@ -1148,8 +1164,9 @@ class SAM3Model(SAM2Model):
         return pred_masks_after
 
     def _suppress_object_pw_area_shrinkage(self, pred_masks):
-        """This function suppresses masks that shrink in area after applying pixelwise non-overlapping constraints. Note
-        that the final output can still be overlapping.
+        """Suppress masks that shrink in area after applying pixelwise non-overlapping constraints.
+
+        Note that the final output can still be overlapping.
         """
         # Apply pixel-wise non-overlapping constraint based on mask scores
         pixel_level_non_overlapping_masks = self._apply_non_overlapping_constraints(pred_masks)

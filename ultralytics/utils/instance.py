@@ -105,8 +105,8 @@ class Bboxes:
         """Multiply bounding box coordinates by scale factor(s).
 
         Args:
-            scale (int | tuple | list): Scale factor(s) for four coordinates. If int, the same scale is applied to all
-                coordinates.
+            scale (int | float | tuple | list): Scale factor(s) for four coordinates. If a single number, the same scale
+                is applied to all coordinates.
         """
         if isinstance(scale, Number):
             scale = to_4tuple(scale)
@@ -121,8 +121,8 @@ class Bboxes:
         """Add offset to bounding box coordinates.
 
         Args:
-            offset (int | tuple | list): Offset(s) for four coordinates. If int, the same offset is applied to all
-                coordinates.
+            offset (int | float | tuple | list): Offset(s) for four coordinates. If a single number, the same offset is
+                applied to all coordinates.
         """
         if isinstance(offset, Number):
             offset = to_4tuple(offset)
@@ -146,7 +146,8 @@ class Bboxes:
             axis (int, optional): The axis along which to concatenate the bounding boxes.
 
         Returns:
-            (Bboxes): A new Bboxes object containing the concatenated bounding boxes.
+            (Bboxes): A new Bboxes object containing the concatenated bounding boxes (in the default 'xyxy' format), or
+                the input object itself if the list has a single element.
 
         Notes:
             The input should be a list or tuple of Bboxes objects.
@@ -189,8 +190,8 @@ class Instances:
 
     Attributes:
         _bboxes (Bboxes): Internal object for handling bounding box operations.
-        keypoints (np.ndarray): Keypoints with shape (N, 17, 3) in format (x, y, visible).
-        normalized (bool): Flag indicating whether the bounding box coordinates are normalized.
+        keypoints (np.ndarray | None): Keypoints with shape (N, K, 3) in format (x, y, visible), e.g. K=17 for COCO.
+        normalized (bool): Flag indicating whether the coordinates are normalized.
         segments (np.ndarray): Segments array with shape (N, M, 2) after resampling.
 
     Methods:
@@ -210,8 +211,10 @@ class Instances:
         Create instances with bounding boxes and segments
         >>> instances = Instances(
         ...     bboxes=np.array([[10, 10, 30, 30], [20, 20, 40, 40]]),
-        ...     segments=[np.array([[5, 5], [10, 10]]), np.array([[15, 15], [20, 20]])],
-        ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]]),
+        ...     segments=np.array([[[5, 5], [10, 10]], [[15, 15], [20, 20]]], dtype=np.float32),
+        ...     keypoints=np.array([[[5, 5, 1], [10, 10, 1]], [[15, 15, 1], [20, 20, 1]]], dtype=np.float32),
+        ...     bbox_format="xyxy",
+        ...     normalized=False,
         ... )
     """
 
@@ -227,9 +230,9 @@ class Instances:
 
         Args:
             bboxes (np.ndarray): Bounding boxes with shape (N, 4).
-            segments (np.ndarray, optional): Segmentation masks.
-            keypoints (np.ndarray, optional): Keypoints with shape (N, 17, 3) in format (x, y, visible).
-            bbox_format (str): Format of bboxes.
+            segments (np.ndarray, optional): Segment polygons with shape (N, M, 2), where M is the number of points.
+            keypoints (np.ndarray, optional): Keypoints with shape (N, K, 3) in format (x, y, visible).
+            bbox_format (str): Format of bboxes, one of 'xyxy', 'xywh', or 'ltwh'.
             normalized (bool): Whether the coordinates are normalized.
         """
         self._bboxes = Bboxes(bboxes=bboxes, format=bbox_format)
@@ -247,7 +250,7 @@ class Instances:
 
     @property
     def bbox_areas(self) -> np.ndarray:
-        """Calculate the area of bounding boxes."""
+        """Return the areas of the bounding boxes."""
         return self._bboxes.areas()
 
     def scale(self, scale_w: float, scale_h: float, bbox_only: bool = False):
@@ -305,8 +308,8 @@ class Instances:
         """Add padding to coordinates.
 
         Args:
-            padw (int): Padding width.
-            padh (int): Padding height.
+            padw (int): Horizontal padding added to x coordinates.
+            padh (int): Vertical padding added to y coordinates.
         """
         assert not self.normalized, "you should add padding with absolute coordinates."
         self._bboxes.add(offset=(padw, padh, padw, padh))
@@ -375,10 +378,14 @@ class Instances:
     def clip(self, w: int, h: int, preserve_obb: bool = False) -> None:
         """Clip coordinates to stay within image boundaries.
 
+        Keypoints outside the image get zero visibility before being clipped.
+
         Args:
             w (int): Image width.
             h (int): Image height.
-            preserve_obb (bool): Preserve oriented-box direction while clipping segments.
+            preserve_obb (bool): Preserve oriented-box direction while clipping segments: each segment extending
+                outside the image is replaced by the rectangle, aligned with its original orientation, that bounds its
+                visible part, and its box by the axis-aligned bounds of that visible part.
         """
         ori_format = self._bboxes.format
         self.convert_bbox(format="xyxy")

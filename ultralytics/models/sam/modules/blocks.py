@@ -272,7 +272,7 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
         norm2 (nn.LayerNorm): Layer normalization after the second attention block.
         mlp (MLP): MLP block for transforming query embeddings.
         norm3 (nn.LayerNorm): Layer normalization after the MLP block.
-        norm4 (nn.LayerNorm): Layer normalization after the third attention block.
+        norm4 (nn.LayerNorm): Layer normalization after the image-to-token attention block.
         cross_attn_image_to_token (Attention): Cross-attention layer from keys to queries.
         skip_first_layer_pe (bool): Flag to skip positional encoding in the first layer.
 
@@ -281,9 +281,9 @@ class SAM2TwoWayAttentionBlock(TwoWayAttentionBlock):
 
     Examples:
         >>> block = SAM2TwoWayAttentionBlock(embedding_dim=256, num_heads=8)
-        >>> sparse_input = torch.randn(1, 100, 256)
-        >>> dense_input = torch.randn(1, 256, 16, 16)
-        >>> sparse_output, dense_output = block(sparse_input, dense_input)
+        >>> queries, query_pe = torch.randn(1, 100, 256), torch.randn(1, 100, 256)
+        >>> keys, key_pe = torch.randn(1, 256, 256), torch.randn(1, 256, 256)
+        >>> queries, keys = block(queries, keys, query_pe, key_pe)
     """
 
     def __init__(
@@ -335,10 +335,11 @@ class SAM2TwoWayTransformer(TwoWayTransformer):
     Examples:
         >>> transformer = SAM2TwoWayTransformer(depth=5, embedding_dim=256, num_heads=8, mlp_dim=2048)
         >>> image_embedding = torch.randn(1, 256, 64, 64)
+        >>> image_pe = torch.randn(1, 256, 64, 64)
         >>> query_embedding = torch.randn(1, 100, 256)
-        >>> output = transformer(image_embedding, query_embedding)
+        >>> output = transformer(image_embedding, image_pe, query_embedding)
         >>> print(output[0].shape, output[1].shape)
-        torch.Size([1, 100, 256]) torch.Size([1, 256, 64, 64])
+        torch.Size([1, 100, 256]) torch.Size([1, 4096, 256])
     """
 
     def __init__(

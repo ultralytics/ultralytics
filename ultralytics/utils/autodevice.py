@@ -13,18 +13,16 @@ class GPUInfo:
 
     Provides methods to query detailed GPU statistics (utilization, memory, temp, power) and select the most idle GPUs
     based on configurable criteria. It safely handles the absence or initialization failure of the pynvml library by
-    logging warnings and disabling related features, preventing application crashes.
-
-    Includes fallback logic using `torch.cuda` for basic device counting if NVML is unavailable during GPU
-    selection. Manages NVML initialization and shutdown internally.
+    logging warnings and disabling related features, preventing application crashes. Manages NVML initialization and
+    shutdown internally.
 
     Attributes:
         pynvml (module | None): The `pynvml` module if successfully imported and initialized, otherwise `None`.
         nvml_available (bool): Indicates if `pynvml` is ready for use. True if `nvmlInit()` succeeded, False otherwise.
         gpu_stats (list[dict[str, Any]]): A list of dictionaries, each holding stats for one GPU, populated on
-        initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%), 'memory_used' (MiB),
-            'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W), 'power_limit' (W or 'N/A').
-            Empty if NVML is unavailable or queries fail.
+            initialization and by `refresh_stats()`. Keys include: 'index', 'name', 'utilization' (%), 'memory_used'
+            (MiB), 'memory_total' (MiB), 'memory_free' (MiB), 'temperature' (C), 'power_draw' (W), 'power_limit' (W).
+            Numeric values are -1 when a query fails. Empty if NVML is unavailable or queries fail.
 
     Methods:
         refresh_stats: Refresh the internal gpu_stats list by querying NVML.
@@ -34,6 +32,7 @@ class GPUInfo:
 
     Examples:
         Initialize GPUInfo and print status
+        >>> from ultralytics.utils.autodevice import GPUInfo
         >>> gpu_info = GPUInfo()
         >>> gpu_info.print_status()
 
@@ -150,11 +149,11 @@ class GPUInfo:
                 CUDA_VISIBLE_DEVICES restriction. None searches all GPUs.
 
         Returns:
-            (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization first).
+            (list[int]): Indices of the selected GPUs, sorted by idleness (lowest utilization, then most free memory).
 
         Notes:
-             Returns fewer than 'count' if not enough qualify or exist.
-             Returns empty list if NVML stats are unavailable or no GPUs meet the criteria.
+            Returns fewer than 'count' if not enough qualify or exist.
+            Returns empty list if NVML stats are unavailable or no GPUs meet the criteria.
         """
         assert min_memory_fraction <= 1.0, f"min_memory_fraction must be <= 1.0, got {min_memory_fraction}"
         assert min_util_fraction <= 1.0, f"min_util_fraction must be <= 1.0, got {min_util_fraction}"

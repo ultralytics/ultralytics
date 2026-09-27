@@ -29,7 +29,7 @@ class RTDETRTrainer(DetectionTrainer):
     Methods:
         get_model: Initialize and return an RT-DETR model for object detection tasks.
         build_dataset: Build and return an RT-DETR dataset for training or validation.
-        get_validator: Return a DetectionValidator suitable for RT-DETR model validation.
+        get_validator: Return an RTDETRValidator suitable for RT-DETR model validation.
 
     Examples:
         >>> from ultralytics.models.rtdetr.train import RTDETRTrainer

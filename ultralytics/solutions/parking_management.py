@@ -41,7 +41,7 @@ class ParkingPtsSelection:
         draw_box: Draw a bounding box on the canvas using the provided coordinates.
         remove_last_bounding_box: Remove the last bounding box from the list and redraw the canvas.
         redraw_canvas: Redraw the canvas with the image and all bounding boxes.
-        save_to_json: Save the selected parking zone points to a JSON file with scaled coordinates.
+        save_to_json: Save the selected parking zone points to `bounding_boxes.json` with scaled coordinates.
 
     Examples:
         >>> parking_selector = ParkingPtsSelection()
@@ -163,7 +163,7 @@ class ParkingPtsSelection:
             self.draw_box(box)
 
     def save_to_json(self) -> None:
-        """Save the selected parking zone points to a JSON file with scaled coordinates."""
+        """Save the selected parking zone points to `bounding_boxes.json`, scaled to original image coordinates."""
         scale_w, scale_h = self.imgw / self.canvas.winfo_width(), self.imgh / self.canvas.winfo_height()
         data = [{"points": [(int(x * scale_w), int(y * scale_h)) for x, y in box]} for box in self.rg_data]
 
@@ -188,7 +188,7 @@ class ParkingManagement(BaseSolution):
         pr_info (dict[str, int]): Dictionary storing parking information (Occupancy and Available spaces).
         arc (tuple[int, int, int]): BGR color tuple for available region visualization.
         occ (tuple[int, int, int]): BGR color tuple for occupied region visualization.
-        dc (tuple[int, int, int]): BGR color tuple for centroid visualization of detected objects.
+        dc (tuple[int, int, int]): BGR color tuple for centroid visualization of detected objects (currently unused).
 
     Methods:
         process: Process the input image for parking lot management and visualization.
@@ -196,12 +196,20 @@ class ParkingManagement(BaseSolution):
     Examples:
         >>> from ultralytics.solutions import ParkingManagement
         >>> parking_manager = ParkingManagement(model="yolo26n.pt", json_file="parking_regions.json")
-        >>> print(f"Occupied spaces: {parking_manager.pr_info['Occupancy']}")
-        >>> print(f"Available spaces: {parking_manager.pr_info['Available']}")
+        >>> results = parking_manager.process(cv2.imread("parking_lot.jpg"))
+        >>> print(f"Occupied spaces: {results.filled_slots}, Available spaces: {results.available_slots}")
     """
 
     def __init__(self, **kwargs: Any) -> None:
-        """Initialize the parking management system with a YOLO model and visualization settings."""
+        """Initialize the parking management system with a YOLO model and visualization settings.
+
+        Args:
+            **kwargs (Any): Keyword arguments passed to the parent class, including `json_file` (str), the path to the
+                JSON file with parking region points.
+
+        Raises:
+            ValueError: If `json_file` is not provided.
+        """
         super().__init__(**kwargs)
 
         self.json_file = self.CFG["json_file"]  # Load parking regions JSON data

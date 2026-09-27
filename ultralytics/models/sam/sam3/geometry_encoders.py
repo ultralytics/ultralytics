@@ -10,9 +10,7 @@ from ultralytics.utils.ops import xywh2xyxy
 
 
 def is_right_padded(mask: torch.Tensor):
-    """Given a padding mask (following pytorch convention, 1s for padded values), returns whether the padding is on the
-    right or not.
-    """
+    """Return whether a padding mask (PyTorch convention, 1s for padded values) is right-padded."""
     return (mask.long() == torch.sort(mask.long(), dim=-1)[0]).all()
 
 
@@ -72,22 +70,20 @@ def concat_padded_sequences(seq1, mask1, seq2, mask2, return_index: bool = False
 
 
 class Prompt:
-    """Utility class to manipulate geometric prompts.
+    """Utility class to manipulate geometric box prompts.
 
-    We expect the sequences in pytorch convention, that is sequence first, batch second The dimensions are expected as
-    follows: box_embeddings shape: N_boxes x B x C_box box_mask shape: B x N_boxes. Can be None if nothing is masked out
-    point_embeddings shape: N_points x B x C_point point_mask shape: B x N_points. Can be None if nothing is masked out
-    mask_embeddings shape: N_masks x B x 1 x H_mask x W_mask mask_mask shape: B x N_masks. Can be None if nothing is
-    masked out
+    Sequences follow PyTorch convention (sequence first, batch second), while masks are batch-first.
 
-    We also store positive/negative labels. These tensors are also stored batch-first If they are None, we'll assume
-    positive labels everywhere box_labels: long tensor of shape N_boxes x B point_labels: long tensor of shape N_points
-    x B mask_labels: long tensor of shape N_masks x B
+    Attributes:
+        box_embeddings (torch.Tensor | None): Boxes with shape (N_boxes, B, 4) in normalized CxCyWH format.
+        box_mask (torch.Tensor | None): Padding mask with shape (B, N_boxes), True for padded entries. Defaults to all
+            False if not provided.
+        box_labels (torch.Tensor | None): Long tensor with shape (N_boxes, B) of positive (1) or negative (0) labels.
+            Defaults to all positive if not provided.
     """
 
     def __init__(self, box_embeddings=None, box_mask=None, box_labels=None):
         """Initialize the Prompt object."""
-        # Check for null prompt
         # Check for null prompt
         if box_embeddings is None:
             self.box_embeddings = None
@@ -181,7 +177,7 @@ class SequenceGeometryEncoder(nn.Module):
     Boxes can be encoded with any of the three possibilities:
     - direct projection: linear projection from coordinate space to d_model
     - pooling: RoI align features from the backbone
-    - pos encoder: position encoding of the box center
+    - pos encoder: sinusoidal position encoding of the box center plus its width and height
 
     These three options are mutually compatible and will be summed if multiple are selected.
 
@@ -330,12 +326,14 @@ class SequenceGeometryEncoder(nn.Module):
 
         Args:
             geo_prompt (Prompt): Prompt object containing box embeddings, masks, and labels.
-            img_feats (list[torch.Tensor]): List of image features from backbone.
+            img_feats (list[torch.Tensor]): List of sequence-first image features from the backbone, each with shape
+                (H*W, B, C).
             img_sizes (list[tuple[int, int]]): List of (H, W) tuples for each feature level.
             img_pos_embeds (list[torch.Tensor] | None): Optional position embeddings for image features.
 
         Returns:
-            Tuple of (encoded_embeddings, attention_mask)
+            final_embeds (torch.Tensor): Encoded prompt embeddings with shape (N, B, d_model).
+            final_mask (torch.Tensor): Padding mask with shape (B, N), True for padded entries.
         """
         boxes = geo_prompt.box_embeddings
         boxes_mask = geo_prompt.box_mask

@@ -62,12 +62,12 @@ class YOLOETrainer(DetectionTrainer):
             (YOLOEModel | YOLOESegModel): The initialized YOLOE model.
 
         Notes:
-            - The number of classes (nc) is hard-coded to a maximum of 80 following the official configuration.
+            - The number of classes (nc) is capped at 80 following the official configuration.
             - The nc parameter here represents the maximum number of different text samples in one image,
               rather than the actual number of classes.
         """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
-        # NOTE: Following the official config, nc hard-coded to 80 for now.
+        # NOTE: Following the official config, nc is capped at 80 for now.
         model = (YOLOESegModel if self.args.task == "segment" else YOLOEModel)(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
@@ -117,7 +117,7 @@ class YOLOEPETrainer(DetectionTrainer):
 
         Args:
             cfg (dict | str, optional): Model configuration.
-            weights (str, optional): Path to pretrained weights.
+            weights (str): Path to pretrained weights, required for linear probing.
             verbose (bool): Whether to display model information.
 
         Returns:
@@ -226,7 +226,7 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
     """
 
     def preprocess_batch(self, batch):
-        """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
+        """Preprocess a batch of images for prompt-free YOLOE training without adding text features."""
         return DetectionTrainer.preprocess_batch(self, batch)
 
     def set_text_embeddings(self, datasets, batch: int):

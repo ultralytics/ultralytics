@@ -16,17 +16,20 @@ torch.classes.__path__ = []  # Torch module __path__._path issue: https://github
 
 
 class Inference:
-    """A class to perform object detection, image classification, image segmentation and pose estimation inference.
+    """A class to perform Ultralytics YOLO inference in a Streamlit web application.
 
-    This class provides functionalities for loading models, configuring settings, uploading video files, and performing
-    real-time inference using Streamlit and Ultralytics YOLO models.
+    This class provides functionalities for loading models, configuring settings, uploading video or image files, and
+    performing real-time inference using Streamlit and Ultralytics YOLO models for tasks such as detection,
+    segmentation, semantic segmentation, depth estimation, classification, pose estimation, and oriented bounding boxes.
 
     Attributes:
         st (module): Streamlit module for UI creation.
         temp_dict (dict): Temporary dictionary to store the model path and other configuration.
         model_path (str): Path to the loaded model.
         model (YOLO): The YOLO model instance.
-        source (str): Selected video source (webcam or video file).
+        source (str): Selected input source ("webcam", "video", or "image").
+        img_file_names (list[dict[str, str]]): Uploaded images as dicts with temporary file "path" and original "name".
+        imgsz (int): Inference image size, default 640.
         enable_trk (bool): Enable tracking option.
         conf (float): Confidence threshold for detection.
         iou (float): IoU threshold for non-maximum suppression.
@@ -38,9 +41,10 @@ class Inference:
     Methods:
         web_ui: Set up the Streamlit web interface with custom HTML elements.
         sidebar: Configure the Streamlit sidebar for model and inference settings.
-        source_upload: Handle video file uploads through the Streamlit interface.
+        source_upload: Handle video and image file uploads through the Streamlit interface.
         configure: Configure the model and load selected classes for inference.
-        inference: Perform real-time object detection inference.
+        image_inference: Perform inference on uploaded images.
+        inference: Run the Streamlit app and perform inference on the selected source.
 
     Examples:
         Create an Inference instance with a custom model
@@ -56,7 +60,8 @@ class Inference:
         """Initialize the Inference class, checking Streamlit requirements and setting up the model path.
 
         Args:
-            **kwargs (Any): Additional keyword arguments for model configuration.
+            **kwargs (Any): Additional keyword arguments for model configuration, e.g. `model` (str) for a custom model
+                path and `imgsz` (int) for the inference image size.
         """
         check_requirements("streamlit>=1.29.0")  # scope imports for faster ultralytics package load speeds
         import streamlit as st
@@ -124,7 +129,7 @@ class Inference:
             self.ann_frame = col2.empty()  # Container for annotated frame
 
     def source_upload(self) -> None:
-        """Handle video file uploads through the Streamlit interface."""
+        """Handle video and image file uploads, or webcam selection, through the Streamlit interface."""
         from ultralytics.data.utils import IMG_FORMATS, VID_FORMATS  # scope import
 
         self.vid_file_name = ""
@@ -201,7 +206,7 @@ class Inference:
                 self.st.error("Could not load the uploaded image.")
 
     def inference(self) -> None:
-        """Perform real-time object detection inference on video or webcam feed."""
+        """Run the Streamlit app and perform inference on the selected webcam, video, or image source."""
         self.web_ui()  # Initialize the web interface
         self.sidebar()  # Create the sidebar
         self.source_upload()  # Upload the video source

@@ -35,13 +35,13 @@ class DetectionTrainer(BaseTrainer):
     Methods:
         build_dataset: Build YOLO dataset for training or validation.
         get_dataloader: Construct and return dataloader for the specified mode.
-        preprocess_batch: Preprocess a batch of images by scaling and converting to float.
+        preprocess_batch: Move a batch to the device, normalize images, and apply optional multi-scale resizing.
         set_model_attributes: Set model attributes based on dataset information.
         get_model: Return a YOLO detection model.
         get_validator: Return a validator for model evaluation.
         progress_string: Return a formatted string of training progress.
         plot_training_samples: Plot training samples with their annotations.
-        plot_training_labels: Create a labeled training plot of the YOLO model.
+        plot_training_labels: Plot the class and bounding box label distributions of the training dataset.
         auto_batch: Calculate optimal batch size based on model memory requirements.
 
     Examples:
@@ -105,7 +105,7 @@ class DetectionTrainer(BaseTrainer):
         )
 
     def preprocess_batch(self, batch: dict) -> dict:
-        """Preprocess a batch of images by scaling and converting to float.
+        """Move a batch to the device, normalize images to [0, 1], and apply optional multi-scale resizing.
 
         Args:
             batch (dict): Dictionary containing batch data with 'img' tensor.
@@ -240,7 +240,7 @@ class DetectionTrainer(BaseTrainer):
         )
 
     def plot_training_labels(self):
-        """Create a labeled training plot of the YOLO model."""
+        """Plot the class and bounding box label distributions of the training dataset."""
         boxes = np.concatenate([lb["bboxes"] for lb in self.train_loader.dataset.labels], 0)
         cls = np.concatenate([lb["cls"] for lb in self.train_loader.dataset.labels], 0)
         plot_labels(boxes, cls.squeeze(), names=self.data["names"], save_dir=self.save_dir, on_plot=self.on_plot)

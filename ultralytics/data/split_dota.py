@@ -151,7 +151,17 @@ def get_windows(
 
 
 def get_window_obj(anno: dict[str, Any], windows: np.ndarray, iof_thr: float = 0.7) -> list[np.ndarray]:
-    """Get objects for each window based on IoF threshold."""
+    """Get objects for each window based on IoF threshold.
+
+    Args:
+        anno (dict[str, Any]): Annotation dict with 'ori_size' (H, W) and 'label' (N, 9) keys, where each label row is
+            [cls, x1, y1, x2, y2, x3, y3, x4, y4] in normalized coordinates. The labels are denormalized in place.
+        windows (np.ndarray): Array of window coordinates with shape (M, 4) as [x_start, y_start, x_stop, y_stop].
+        iof_thr (float, optional): IoF threshold at or above which an object is assigned to a window.
+
+    Returns:
+        (list[np.ndarray]): List of M label arrays, one per window, with pixel coordinates in the original image.
+    """
     h, w = anno["ori_size"]
     label = anno["label"]
     if len(label):

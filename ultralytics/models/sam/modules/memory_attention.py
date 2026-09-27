@@ -44,7 +44,7 @@ class MemoryAttentionLayer(nn.Module):
         >>> layer = MemoryAttentionLayer(d_model=256, dim_feedforward=2048, dropout=0.1)
         >>> tgt = torch.randn(1, 100, 256)
         >>> memory = torch.randn(1, 100, 64)
-        >>> pos = torch.randn(1, 100, 256)
+        >>> pos = torch.randn(1, 100, 64)
         >>> query_pos = torch.randn(1, 100, 256)
         >>> output = layer(tgt, memory, pos, query_pos)
         >>> print(output.shape)
@@ -151,9 +151,10 @@ class MemoryAttentionLayer(nn.Module):
 
         Args:
             tgt (torch.Tensor): Target tensor for self-attention with shape (N, L, D).
-            memory (torch.Tensor): Memory tensor for cross-attention with shape (N, S, D).
-            pos (torch.Tensor | None): Positional encoding for memory tensor.
-            query_pos (torch.Tensor | None): Positional encoding for target tensor.
+            memory (torch.Tensor): Memory tensor for cross-attention with shape (N, S, D_kv), where D_kv is the
+                cross-attention key/value input dimension (64 for the default cross-attention module).
+            pos (torch.Tensor | None): Positional encoding for memory tensor with the same shape as memory.
+            query_pos (torch.Tensor | None): Positional encoding for target tensor with the same shape as tgt.
             num_k_exclude_rope (int): Number of keys to exclude from rotary position embedding.
 
         Returns:
@@ -180,7 +181,8 @@ class MemoryAttention(nn.Module):
         num_layers (int): The number of attention layers.
         norm (nn.LayerNorm): Layer normalization applied to the output.
         pos_enc_at_input (bool): Whether to apply positional encoding at the input.
-        batch_first (bool): Whether the input tensors are in batch-first format.
+        batch_first (bool): Whether the layers expect batch-first input, in which case sequence-first inputs are
+            transposed before and after the layers.
 
     Methods:
         forward: Processes input tensors through the attention layers.
@@ -189,13 +191,13 @@ class MemoryAttention(nn.Module):
         >>> d_model = 256
         >>> layer = MemoryAttentionLayer(d_model)
         >>> attention = MemoryAttention(d_model, pos_enc_at_input=True, layer=layer, num_layers=3)
-        >>> curr = torch.randn(10, 32, d_model)  # (seq_len, batch_size, d_model)
-        >>> memory = torch.randn(20, 32, d_model)  # (mem_len, batch_size, d_model)
-        >>> curr_pos = torch.randn(10, 32, d_model)
-        >>> memory_pos = torch.randn(20, 32, d_model)
+        >>> curr = torch.randn(16, 2, d_model)  # (seq_len, batch_size, d_model), 4x4 spatial tokens
+        >>> memory = torch.randn(32, 2, 64)  # (mem_len, batch_size, mem_dim)
+        >>> curr_pos = torch.randn(16, 2, d_model)
+        >>> memory_pos = torch.randn(32, 2, 64)
         >>> output = attention(curr, memory, curr_pos, memory_pos)
         >>> print(output.shape)
-        torch.Size([10, 32, 256])
+        torch.Size([16, 2, 256])
     """
 
     def __init__(
@@ -216,7 +218,8 @@ class MemoryAttention(nn.Module):
             pos_enc_at_input (bool): Whether to apply positional encoding at the input.
             layer (nn.Module): The attention layer to be used in the module.
             num_layers (int): The number of attention layers.
-            batch_first (bool): Whether the input tensors are in batch-first format.
+            batch_first (bool): Whether the layers expect batch-first input, in which case sequence-first inputs are
+                transposed before and after the layers.
         """
         super().__init__()
         self.d_model = d_model
@@ -237,26 +240,30 @@ class MemoryAttention(nn.Module):
         """Process inputs through attention layers, applying self and cross-attention with positional encoding.
 
         Args:
-            curr (torch.Tensor): Self-attention input tensor, representing the current state.
-            memory (torch.Tensor): Cross-attention input tensor, representing memory information.
-            curr_pos (torch.Tensor | None): Positional encoding for self-attention inputs.
-            memory_pos (torch.Tensor | None): Positional encoding for cross-attention inputs.
+            curr (torch.Tensor | list[torch.Tensor]): Self-attention input tensor representing the current state, with
+                shape (L, B, d_model), or a single-element list containing it.
+            memory (torch.Tensor): Cross-attention input tensor representing memory information, with shape (S, B, C).
+            curr_pos (torch.Tensor | list[torch.Tensor] | None): Positional encoding for self-attention inputs, matching
+                the type and shape of curr.
+            memory_pos (torch.Tensor | None): Positional encoding for cross-attention inputs with the same shape as
+                memory.
             num_obj_ptr_tokens (int): Number of object pointer tokens to exclude from rotary position embedding.
 
         Returns:
-            (torch.Tensor): Processed output tensor after applying attention layers and normalization.
+            (torch.Tensor): Processed output tensor after applying attention layers and normalization, with shape (L, B,
+                d_model).
 
         Examples:
             >>> d_model = 256
             >>> layer = MemoryAttentionLayer(d_model)
             >>> attention = MemoryAttention(d_model, pos_enc_at_input=True, layer=layer, num_layers=3)
-            >>> curr = torch.randn(10, 32, d_model)  # (seq_len, batch_size, d_model)
-            >>> memory = torch.randn(20, 32, d_model)  # (mem_len, batch_size, d_model)
-            >>> curr_pos = torch.randn(10, 32, d_model)
-            >>> memory_pos = torch.randn(20, 32, d_model)
+            >>> curr = torch.randn(16, 2, d_model)  # (seq_len, batch_size, d_model), 4x4 spatial tokens
+            >>> memory = torch.randn(32, 2, 64)  # (mem_len, batch_size, mem_dim)
+            >>> curr_pos = torch.randn(16, 2, d_model)
+            >>> memory_pos = torch.randn(32, 2, 64)
             >>> output = attention(curr, memory, curr_pos, memory_pos)
             >>> print(output.shape)
-            torch.Size([10, 32, 256])
+            torch.Size([16, 2, 256])
         """
         if isinstance(curr, list):
             assert isinstance(curr_pos, list)

@@ -95,7 +95,15 @@ class ReID:
 
     @torch.no_grad()
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray | None]:
-        """Extract embeddings for detected objects."""
+        """Extract embeddings for detected objects.
+
+        Args:
+            img (np.ndarray): BGR image containing the detections.
+            dets (np.ndarray): Detections in xywh format (first 4 columns used).
+
+        Returns:
+            (list[np.ndarray | None]): One embedding per detection, or None where the crop is empty.
+        """
         crops = self._crop_detections(img, dets)
         valid = [bool(c.size) for c in crops]
         valid_crops = [crop for crop, keep in zip(crops, valid) if keep]

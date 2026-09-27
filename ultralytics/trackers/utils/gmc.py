@@ -11,13 +11,15 @@ from ultralytics.utils import LOGGER
 
 
 class GMC:
-    """Generalized Motion Compensation (GMC) class for tracking and object detection in video frames.
+    """Generalized Motion Compensation (GMC) class for estimating camera motion between video frames.
 
-    This class provides methods for tracking and detecting objects based on several tracking algorithms including ORB,
-    SIFT, ECC, and Sparse Optical Flow. It also supports downscaling of frames for computational efficiency.
+    This class estimates a 2x3 affine warp between consecutive frames using one of several methods including ORB, SIFT,
+    ECC, and Sparse Optical Flow, so trackers can compensate for camera motion. It also supports downscaling of frames
+    for computational efficiency.
 
     Attributes:
-        method (str | None): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', None.
+        method (str | None): The motion estimation method to use. Options include 'orb', 'sift', 'ecc',
+            'sparseOptFlow', or None (identity warp).
         downscale (int): Factor by which to downscale the frames for processing.
         prevFrame (np.ndarray | None): Previous frame for tracking.
         prevKeyPoints (tuple | np.ndarray | None): Keypoints from the previous frame.
@@ -44,8 +46,12 @@ class GMC:
         """Initialize a Generalized Motion Compensation (GMC) object with tracking method and downscale factor.
 
         Args:
-            method (str): The tracking method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow', 'none'.
-            downscale (int): Downscale factor for processing frames.
+            method (str): The motion estimation method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow',
+                'none'.
+            downscale (int): Downscale factor for processing frames, clamped to a minimum of 1.
+
+        Raises:
+            ValueError: If `method` is not a supported GMC method.
         """
         super().__init__()
 
@@ -89,14 +95,15 @@ class GMC:
         self.initializedFirstFrame = False
 
     def apply(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
-        """Estimate a 2×3 motion compensation warp for a frame.
+        """Estimate a 2x3 motion compensation warp for a frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): List of detections to be used in the processing.
+            detections (list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
+                keypoint detection. Only used by the 'orb' and 'sift' methods.
 
         Returns:
-            (np.ndarray): Transformation matrix with shape (2, 3).
+            (np.ndarray): Transformation matrix with shape (2, 3). Identity when `method` is None.
 
         Examples:
             >>> gmc = GMC(method="sparseOptFlow")
@@ -160,7 +167,8 @@ class GMC:
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): List of detections to be used in the processing.
+            detections (list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
+                keypoint detection.
 
         Returns:
             (np.ndarray): Transformation matrix with shape (2, 3).

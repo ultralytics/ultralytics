@@ -64,10 +64,10 @@ class DFL(nn.Module):
     """
 
     def __init__(self, c1: int = 16):
-        """Initialize a convolutional layer with a given number of input channels.
+        """Initialize the DFL module with a fixed, non-trainable integral convolution.
 
         Args:
-            c1 (int): Number of input channels.
+            c1 (int): Number of distribution bins per box side (reg_max).
         """
         super().__init__()
         self.conv = nn.Conv2d(c1, 1, 1, bias=False).requires_grad_(False)
@@ -76,7 +76,7 @@ class DFL(nn.Module):
         self.c1 = c1
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply the DFL module to input tensor and return transformed output."""
+        """Decode distributions of shape (B, 4 * c1, A) into expected box distances of shape (B, 4, A)."""
         b, _, a = x.shape  # batch, channels, anchors
         return self.conv(x.view(b, 4, self.c1, a).transpose(2, 1).softmax(1)).view(b, 4, a)
         # return self.conv(x.view(b, self.c1, 4, a).softmax(1)).view(b, 4, a)
@@ -100,7 +100,7 @@ class Proto(nn.Module):
         self.cv3 = Conv(c_, c2)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Perform a forward pass through layers using an upsampled input image."""
+        """Generate prototype masks from the input feature map, upsampled 2x, with shape (B, c2, 2H, 2W)."""
         return self.cv3(self.cv2(self.upsample(self.cv1(x))))
 
 
@@ -167,7 +167,7 @@ class HGBlock(nn.Module):
             n (int): Number of LightConv or Conv blocks.
             lightconv (bool): Whether to use LightConv.
             shortcut (bool): Whether to use shortcut connection.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.ReLU() if None.
         """
         super().__init__()
         act = nn.ReLU() if act is None else act
@@ -222,7 +222,7 @@ class SPPF(nn.Module):
             shortcut (bool): Whether to use shortcut connection.
 
         Notes:
-            This module is equivalent to SPP(k=(5, 9, 13)).
+            With the default k=5 and n=3, this module is equivalent to SPP(k=(5, 9, 13)).
         """
         super().__init__()
         c_ = c1 // 2  # hidden channels
@@ -523,7 +523,7 @@ class ResNetBlock(nn.Module):
 
         Args:
             c1 (int): Input channels.
-            c2 (int): Output channels.
+            c2 (int): Bottleneck channels. The block outputs e * c2 channels.
             s (int): Stride.
             e (int): Expansion ratio.
         """
@@ -547,7 +547,7 @@ class ResNetLayer(nn.Module):
 
         Args:
             c1 (int): Input channels.
-            c2 (int): Output channels.
+            c2 (int): Output channels if `is_first`, otherwise bottleneck channels (the layer outputs e * c2 channels).
             s (int): Stride.
             is_first (bool): Whether this is the first layer.
             n (int): Number of ResNet blocks.
@@ -808,7 +808,7 @@ class BNContrastiveHead(nn.Module):
 
     @staticmethod
     def forward_fuse(x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
-        """Passes image features through unchanged after fusing."""
+        """Pass image features through unchanged after fusing."""
         return x
 
     def forward(self, x: torch.Tensor, w: torch.Tensor) -> torch.Tensor:
@@ -1070,7 +1070,7 @@ class C3f(nn.Module):
 
 
 class C3k2(C2f):
-    """Faster Implementation of CSP Bottleneck with 2 convolutions."""
+    """C2f variant whose inner blocks are Bottleneck, C3k, or Bottleneck + PSABlock attention modules."""
 
     def __init__(
         self,
@@ -1250,7 +1250,7 @@ class C2fCIB(C2f):
         shortcut (bool, optional): Whether to use shortcut connection. Defaults to False.
         lk (bool, optional): Whether to use large kernel. Defaults to False.
         g (int, optional): Number of groups for grouped convolution. Defaults to 1.
-        e (float, optional): Expansion ratio for CIB modules. Defaults to 0.5.
+        e (float, optional): Expansion ratio for hidden channels. Defaults to 0.5.
     """
 
     def __init__(
@@ -1287,6 +1287,7 @@ class Attention(nn.Module):
         qkv (Conv): Convolutional layer for computing the query, key, and value.
         proj (Conv): Convolutional layer for projecting the attended values.
         pe (Conv): Convolutional layer for positional encoding.
+        format (str | None): Export format set at export time; "coreml" uses `F.scaled_dot_product_attention`.
     """
 
     format = None
@@ -1592,9 +1593,11 @@ class TorchVision(nn.Module):
     Args:
         model (str): Name of the torchvision model to load.
         weights (str, optional): Pre-trained weights to load. Default is "DEFAULT".
-        unwrap (bool, optional): Unwraps the model to a sequential containing all but the last `truncate` layers.
+        unwrap (bool, optional): Unwrap the model to a sequential containing all but the last `truncate` layers.
+            Default is True.
         truncate (int, optional): Number of layers to truncate from the end if `unwrap` is True. Default is 2.
-        split (bool, optional): Returns output from intermediate child modules as list. Default is False.
+        split (bool, optional): Return the input and the outputs of all child modules as a list if `unwrap` is True.
+            Default is False.
 
     Attributes:
         m (nn.Module): The loaded torchvision model, possibly truncated and unwrapped.
@@ -1636,7 +1639,8 @@ class TorchVision(nn.Module):
             x (torch.Tensor): Input tensor.
 
         Returns:
-            (torch.Tensor | list[torch.Tensor]): Output tensor or list of tensors.
+            (torch.Tensor | list[torch.Tensor]): Output tensor, or if `split` is True, a list containing the input
+                followed by the output of each child module.
         """
         if self.split:
             y = [x]
@@ -1957,7 +1961,16 @@ class SAVPE(nn.Module):
         self.cv6 = nn.Sequential(Conv(2 * self.c, self.c, 3), nn.Conv2d(self.c, self.c, 3, padding=1))
 
     def forward(self, x: list[torch.Tensor], vp: torch.Tensor) -> torch.Tensor:
-        """Process input features and visual prompts to generate enhanced embeddings."""
+        """Process input features and visual prompts to generate visual prompt embeddings.
+
+        Args:
+            x (list[torch.Tensor]): Multi-scale feature maps from the neck.
+            vp (torch.Tensor): Visual prompt masks with shape (B, Q, H, W), matching the first feature map's spatial
+                size.
+
+        Returns:
+            (torch.Tensor): L2-normalized prompt embeddings with shape (B, Q, embed).
+        """
         y = [self.cv2[i](xi) for i, xi in enumerate(x)]
         y = self.cv4(torch.cat(y, dim=1))
 
@@ -2003,7 +2016,16 @@ class Proto26(Proto):
         self.semseg = nn.Sequential(Conv(ch[0], c_, k=3), Conv(c_, c_, k=3), nn.Conv2d(c_, nc, 1))
 
     def forward(self, x: torch.Tensor, return_semantic: bool = True) -> torch.Tensor:
-        """Perform a forward pass by fusing multi-scale feature maps and generating proto masks."""
+        """Perform a forward pass by fusing multi-scale feature maps and generating proto masks.
+
+        Args:
+            x (list[torch.Tensor]): Multi-scale feature maps, highest resolution first.
+            return_semantic (bool): Whether to also return semantic segmentation logits during training.
+
+        Returns:
+            (torch.Tensor | tuple[torch.Tensor, torch.Tensor]): Prototype masks, or a tuple of (prototype masks,
+                semantic logits) when training with `return_semantic` True.
+        """
         feat = x[0]
         for i, f in enumerate(self.feat_refine):
             up_feat = f(x[i + 1])
@@ -2040,6 +2062,7 @@ class RealNVP(nn.Module):
         return nn.Sequential(nn.Linear(2, 64), nn.SiLU(), nn.Linear(64, 64), nn.SiLU(), nn.Linear(64, 2))
 
     def __init__(self):
+        """Initialize RealNVP with 6 alternating-mask coupling layers."""
         super().__init__()
 
         # loc/cov are no longer read (the prior is the closed-form standard normal in log_prob) but stay registered so
@@ -2059,8 +2082,14 @@ class RealNVP(nn.Module):
                 nn.init.xavier_uniform_(m.weight, gain=0.01)
 
     def backward_p(self, x):
-        """Apply mapping from the data space to the latent space and calculate the log determinant of the Jacobian
-        matrix.
+        """Map data-space samples to the latent space and compute the log-determinant of the Jacobian.
+
+        Args:
+            x (torch.Tensor): Samples in data space with shape (N, 2).
+
+        Returns:
+            z (torch.Tensor): Latent samples with shape (N, 2).
+            log_det_jacob (torch.Tensor): Log-determinant of the Jacobian with shape (N,).
         """
         log_det_jacob, z = x.new_zeros(x.shape[0]), x
         for i in reversed(range(len(self.t))):
@@ -2072,7 +2101,14 @@ class RealNVP(nn.Module):
         return z, log_det_jacob
 
     def log_prob(self, x):
-        """Calculate the log probability of given sample in data space."""
+        """Calculate the log probability of given samples in data space.
+
+        Args:
+            x (torch.Tensor): Samples in data space with shape (N, 2).
+
+        Returns:
+            (torch.Tensor): Log probabilities with shape (N,).
+        """
         if x.dtype == torch.float32 and self.s[0][0].weight.dtype != torch.float32:
             self.float()
         z, log_det = self.backward_p(x)

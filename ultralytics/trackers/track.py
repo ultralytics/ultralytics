@@ -33,6 +33,10 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
         persist (bool, optional): Whether to reuse existing trackers if they are already attached.
 
+    Raises:
+        ValueError: If the predictor's task does not support tracking.
+        AssertionError: If the tracker config specifies an unsupported `tracker_type`.
+
     Examples:
         Initialize trackers for a predictor object
         >>> predictor = SomePredictorClass()
@@ -96,7 +100,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool, optional): Whether to persist the trackers if they already exist.
+        persist (bool, optional): Whether to keep tracker state when the source video changes. If False, the tracker
+            is reset whenever a new video path is encountered.
 
     Examples:
         Postprocess predictions and update with tracking
@@ -145,7 +150,8 @@ def register_tracker(model: object, persist: bool) -> None:
 
     Examples:
         Register tracking callbacks to a YOLO model
-        >>> model = YOLOModel()
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo26n.pt")
         >>> register_tracker(model, persist=True)
     """
     for event, fn in (

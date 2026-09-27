@@ -766,7 +766,7 @@ class TinyViT(nn.Module):
         img_size (int): Input image size.
         num_classes (int): Number of classification classes.
         depths (tuple[int, int, int, int]): Number of blocks in each stage.
-        num_layers (int): Total number of layers in the network.
+        num_layers (int): Number of stages in the network.
         mlp_ratio (float): Ratio of MLP hidden dimension to embedding dimension.
         patch_embed (PatchEmbed): Module for patch embedding.
         patches_resolution (tuple[int, int]): Resolution of embedded patches.

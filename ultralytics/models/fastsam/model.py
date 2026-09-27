@@ -23,7 +23,7 @@ class FastSAM(Model):
 
     Methods:
         predict: Perform segmentation prediction on image or video source with optional prompts.
-        task_map: Returns mapping of segment task to predictor and validator classes.
+        task_map: Return mapping of segment task to predictor and validator classes.
 
     Examples:
         Initialize FastSAM model and run prediction
@@ -36,7 +36,11 @@ class FastSAM(Model):
     """
 
     def __init__(self, model: str | Path = "FastSAM-x.pt"):
-        """Initialize the FastSAM model with the specified pre-trained weights."""
+        """Initialize the FastSAM model with the specified pre-trained weights.
+
+        Args:
+            model (str | Path): Path to the pre-trained FastSAM weights file. "FastSAM.pt" is aliased to "FastSAM-x.pt".
+        """
         if str(model) == "FastSAM.pt":
             model = "FastSAM-x.pt"
         assert Path(model).suffix not in {".yaml", ".yml"}, "FastSAM only supports pre-trained weights."
@@ -75,5 +79,5 @@ class FastSAM(Model):
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:
-        """Returns a dictionary mapping segment task to corresponding predictor and validator classes."""
+        """Return a dictionary mapping segment task to corresponding predictor and validator classes."""
         return {"segment": {"predictor": FastSAMPredictor, "validator": FastSAMValidator}}

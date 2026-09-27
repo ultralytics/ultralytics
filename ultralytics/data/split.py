@@ -55,6 +55,7 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
 
     Examples:
         Split dataset with default 80/20 ratio
+        >>> from ultralytics.data.split import split_classify_dataset
         >>> split_classify_dataset("path/to/caltech")
 
         Split with custom ratio
@@ -100,8 +101,7 @@ def autosplit(
     weights: tuple[float, float, float] = (0.9, 0.1, 0.0),
     annotated_only: bool = False,
 ) -> None:
-    """Automatically split a dataset into train/val/test splits and save the resulting splits into autosplit_*.txt
-    files.
+    """Automatically split a dataset into train/val/test splits saved as autosplit_*.txt files.
 
     Args:
         path (Path): Path to images directory.

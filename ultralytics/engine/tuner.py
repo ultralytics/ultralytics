@@ -1,7 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""
-Module provides functionalities for hyperparameter tuning of the Ultralytics YOLO models for object detection, instance
-segmentation, image classification, and pose estimation.
+"""Hyperparameter tuning for Ultralytics YOLO models across all supported tasks.
 
 Hyperparameter tuning is the process of systematically searching for the optimal set of hyperparameters
 that yield the best model performance. This is particularly crucial in deep learning models like YOLO,
@@ -44,7 +42,7 @@ class Tuner:
         model (torch.nn.Module): Base model whose weights seed each iteration.
         callbacks (dict): Callback functions to be executed during tuning.
         prefix (str): Prefix string for logging messages.
-        mongodb (MongoClient): Optional MongoDB client for distributed tuning.
+        mongodb (MongoClient | None): Optional MongoDB client for distributed tuning.
         collection (Collection): MongoDB collection for storing tuning results.
 
     Methods:
@@ -56,23 +54,23 @@ class Tuner:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo26n.pt")
         >>> model.tune(
-        >>>     data="coco8.yaml",
-        >>>     epochs=10,
-        >>>     iterations=300,
-        >>>     plots=False,
-        >>>     save=False,
-        >>>     val=False
-        >>> )
+        ...     data="coco8.yaml",
+        ...     epochs=10,
+        ...     iterations=300,
+        ...     plots=False,
+        ...     save=False,
+        ...     val=False,
+        ... )
 
         Tune with distributed MongoDB Atlas coordination across multiple machines:
         >>> model.tune(
-        >>>     data="coco8.yaml",
-        >>>     epochs=10,
-        >>>     iterations=300,
-        >>>     mongodb_uri="mongodb+srv://user:pass@cluster.mongodb.net/",
-        >>>     mongodb_db="ultralytics",
-        >>>     mongodb_collection="tune_results"
-        >>> )
+        ...     data="coco8.yaml",
+        ...     epochs=10,
+        ...     iterations=300,
+        ...     mongodb_uri="mongodb+srv://user:pass@cluster.mongodb.net/",
+        ...     mongodb_db="ultralytics",
+        ...     mongodb_collection="tuner_results",
+        ... )
 
         Tune with custom search space:
         >>> model.tune(space={"lr0": (1e-5, 1e-2), "momentum": (0.7, 0.98)})
@@ -89,14 +87,14 @@ class Tuner:
         self.space = args.pop("space", None) or {  # key: (min, max, gain(optional))
             # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
             "lr0": (1e-5, 1e-2),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
-            "lrf": (0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
+            "lrf": (0.01, 1.0),  # final learning rate fraction (lr0 * lrf)
             "momentum": (0.7, 0.98, 0.3),  # SGD momentum/Adam beta1
             "weight_decay": (0.0, 0.001),  # optimizer weight decay 5e-4
             "warmup_epochs": (0.0, 5.0),  # warmup epochs (fractions ok)
             "warmup_momentum": (0.0, 0.95),  # warmup initial momentum
             "box": (1.0, 20.0),  # box loss gain
             "cls": (0.1, 4.0),  # cls loss gain (scale with pixels)
-            "cls_pw": (0.0, 1.0),  # cls power weight
+            "cls_pw": (0.0, 1.0),  # class weights power
             "dfl": (0.4, 12.0),  # dfl loss gain
             "hsv_h": (0.0, 0.1),  # image HSV-Hue augmentation (fraction)
             "hsv_s": (0.0, 0.9),  # image HSV-Saturation augmentation (fraction)
@@ -152,6 +150,10 @@ class Tuner:
 
         Returns:
             (MongoClient): Connected MongoDB client instance.
+
+        Raises:
+            ConnectionFailure: If the connection still fails after `max_retries` attempts.
+            ServerSelectionTimeoutError: If server selection still times out after `max_retries` attempts.
         """
         check_requirements("pymongo")
 
@@ -196,7 +198,7 @@ class Tuner:
 
         Notes:
             - Creates a fitness index when workers start a new collection
-            - Falls back to local NDJSON mode if connection fails
+            - Raises the connection error if all connection retries fail
             - Uses connection pooling and retry logic for production reliability
         """
         self.mongodb = self._connect(mongodb_uri)
@@ -362,6 +364,9 @@ class Tuner:
 
         Returns:
             (dict[str, float]): A dictionary containing mutated hyperparameters.
+
+        Raises:
+            RuntimeError: If no unique mutation can be generated or the search space has no mutable range.
         """
         history = None
 
@@ -477,7 +482,7 @@ class Tuner:
 
         Args:
             iterations (int): The number of generations to run the evolution for.
-            cleanup (bool): Whether to delete iteration weights to reduce storage space during tuning.
+            cleanup (bool): Whether to delete non-best iteration run directories to reduce storage space during tuning.
         """
         from ultralytics.engine.trainer import MultiTrainer
 

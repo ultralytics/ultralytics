@@ -24,8 +24,6 @@ class DETRLoss(nn.Module):
         nc (int): Number of classes.
         loss_gain (dict[str, float]): Coefficients for different loss components.
         aux_loss (bool): Whether to compute auxiliary losses.
-        use_fl (bool): Whether to use FocalLoss.
-        use_vfl (bool): Whether to use VarifocalLoss.
         use_uni_match (bool): Whether to use a fixed layer for auxiliary branch label assignment.
         uni_match_ind (int): Index of fixed layer to use if use_uni_match is True.
         matcher (HungarianMatcher): Object to compute matching cost and indices.
@@ -94,7 +92,7 @@ class DETRLoss(nn.Module):
 
         Notes:
             The function supports different classification loss types:
-            - Varifocal Loss (if self.vfl is not None and num_gts > 0)
+            - Varifocal Loss (if self.fl and self.vfl are not None and num_gts > 0)
             - Focal Loss (if self.fl is not None)
             - BCE Loss (default fallback)
         """

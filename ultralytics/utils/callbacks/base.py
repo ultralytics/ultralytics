@@ -36,8 +36,9 @@ def on_before_zero_grad(trainer):
 
 
 def on_train_batch_end(trainer):
-    """Called at the end of each training batch, after the backward pass. Optimizer step may be deferred by
-    accumulation.
+    """Called at the end of each training batch, after the backward pass and any optimizer step.
+
+    The optimizer step may be deferred to a later batch by gradient accumulation.
     """
 
 
@@ -46,7 +47,10 @@ def on_train_epoch_end(trainer):
 
 
 def on_fit_epoch_end(trainer):
-    """Called at the end of each fit epoch (train + val), after validation and any checkpoint save."""
+    """Called at the end of each fit epoch (train + val), after validation and any checkpoint save.
+
+    Also called once more after training with the final evaluation metrics of the best model.
+    """
 
 
 def on_model_save(trainer):
@@ -155,9 +159,9 @@ def get_default_callbacks():
     """Get the default callbacks for Ultralytics training, validation, prediction, and export processes.
 
     Returns:
-        (dict): Dictionary of default callbacks for various training events. Each key represents an event during the
-            training process, and the corresponding value is a list of callback functions executed when that
-            event occurs.
+        (defaultdict): Dictionary of default callbacks with a list default factory. Each key represents an event
+            during training, validation, prediction, or export, and the corresponding value is a list of callback
+            functions executed when that event occurs.
 
     Examples:
         >>> callbacks = get_default_callbacks()

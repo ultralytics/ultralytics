@@ -64,8 +64,8 @@ class YOLO(Model):
         YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, i.e. 'yolo26n.pt', 'yolo26n.yaml'.
-            task (str, optional): YOLO task specification, i.e. 'detect', 'segment', 'semantic', 'depth', 'classify',
+            model (str | Path): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml'.
+            task (str, optional): YOLO task specification, e.g. 'detect', 'segment', 'semantic', 'depth', 'classify',
                 'pose', 'obb'. Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
         """
@@ -201,7 +201,7 @@ class YOLOWorld(Model):
         """Set the model's class names for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
         # Remove background if it's given
@@ -280,7 +280,14 @@ class YOLOE(Model):
         }
 
     def get_text_pe(self, texts):
-        """Get text positional embeddings for the given texts."""
+        """Get text positional embeddings for the given texts.
+
+        Args:
+            texts (list[str]): Text prompts (e.g. class names) to embed.
+
+        Returns:
+            (torch.Tensor): Text positional embeddings with shape (1, len(texts), embed_dim).
+        """
         assert isinstance(self.model, YOLOEModel)
         return self.model.get_text_pe(texts)
 
@@ -334,7 +341,14 @@ class YOLOE(Model):
         self.model.set_vocab(vocab, names=names, one2one_vocab=one2one_vocab)
 
     def get_vocab(self, names):
-        """Get the vocabulary for the given class names, which become the model's classes as the head is fused."""
+        """Get the vocabulary for the given class names, which become the model's classes as the head is fused.
+
+        Args:
+            names (list[str]): Class names to build the vocabulary for.
+
+        Returns:
+            (torch.nn.ModuleList): Fused classification layers to pass to `set_vocab` with the same names.
+        """
         assert isinstance(self.model, YOLOEModel)
         self.predictor = None  # the delegate destructively fuses the promptable head
         return self.model.get_vocab(names)
@@ -343,7 +357,7 @@ class YOLOE(Model):
         """Set the model's class names and embeddings for detection.
 
         Args:
-            classes (list[str]): A list of categories i.e. ["person"].
+            classes (list[str]): A list of categories, e.g. ["person"].
             embeddings (torch.Tensor, optional): Embeddings corresponding to the classes.
         """
         # Verify no background class is present
@@ -436,13 +450,13 @@ class YOLOE(Model):
         """Validate the model using text or visual prompts.
 
         Args:
-            validator (callable, optional): A callable validator function. If None, a default validator is loaded.
+            validator (type, optional): Validator class to instantiate. If None, the task's default validator is used.
             load_vp (bool): Whether to load visual prompts. If False, text prompts are used.
             refer_data (str, optional): Path to the reference data for visual prompts.
             **kwargs (Any): Additional keyword arguments to override default settings.
 
         Returns:
-            (dict): Validation statistics containing metrics computed during validation.
+            (DetMetrics | SegmentMetrics): Validation metrics computed by the validator.
         """
         custom = {"rect": not load_vp}  # method defaults
         if kwargs.get("data") is None:
@@ -474,8 +488,7 @@ class YOLOE(Model):
                 model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
                 image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (callable): Custom predictor class for visual prompt predictions. Defaults to
-                YOLOEVPDetectPredictor.
+            predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

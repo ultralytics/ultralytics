@@ -31,20 +31,20 @@ class LLM:
 
     Examples:
         >>> from ultralytics import LLM
-        >>> model = LLM("gpt-5.6-luna")
+        >>> model = LLM("gpt-6-luna")
         >>> response = model("What is YOLO?")
 
         Analyze an image:
         >>> response = model("Describe this image", image="bus.jpg")
 
         Use the Chat Completions API:
-        >>> model = LLM("gpt-5.6-luna", api="chat.completions")
+        >>> model = LLM("gpt-6-luna", api="chat.completions")
         >>> response = model("What is YOLO?")
     """
 
     def __init__(
         self,
-        model: str = "gpt-5.6-luna",
+        model: str = "gpt-6-luna",
         api: str = "responses",
         base_url: str | None = None,
         api_key: str | None = None,
@@ -60,6 +60,9 @@ class LLM:
             api_key (str, optional): API key. Defaults to the OPENAI_API_KEY environment variable.
             prompt (str, optional): Instruction prepended to scalar text or image inputs.
             **kwargs (Any): Default arguments passed to each API request.
+
+        Raises:
+            ValueError: If `api` is not "responses" or "chat.completions".
         """
         if api not in {"responses", "chat.completions"}:
             raise ValueError(f"Unsupported API format {api!r}. Use 'responses' or 'chat.completions'.")
@@ -74,7 +77,18 @@ class LLM:
         self._api_key = api_key
 
     def __call__(self, source: Any = None, image: Any = None, **kwargs: Any) -> Any:
-        """Run inference with the configured model."""
+        """Run inference with the configured model.
+
+        Args:
+            source (Any, optional): Text prompt (str), image (Path, PIL image, or array), or native Responses input /
+                chat messages (list, tuple, or dict) passed through unchanged. If None, the constructor `prompt` is sent.
+            image (Any, optional): Image (URL, path, PIL image, or array) to analyze, with `source` used as its text
+                prompt.
+            **kwargs (Any): Request arguments overriding the constructor defaults.
+
+        Returns:
+            (Any): Native OpenAI SDK response object for the configured API.
+        """
         return self._call(self._prepare(source, image), kwargs)
 
     def _call(self, source: Any, kwargs: dict[str, Any]) -> Any:
@@ -86,7 +100,18 @@ class LLM:
         )
 
     async def async_call(self, source: Any = None, image: Any = None, **kwargs: Any) -> Any:
-        """Run asynchronous inference with the configured model."""
+        """Run asynchronous inference with the configured model.
+
+        Args:
+            source (Any, optional): Text prompt (str), image (Path, PIL image, or array), or native Responses input /
+                chat messages (list, tuple, or dict) passed through unchanged. If None, the constructor `prompt` is sent.
+            image (Any, optional): Image (URL, path, PIL image, or array) to analyze, with `source` used as its text
+                prompt.
+            **kwargs (Any): Request arguments overriding the constructor defaults.
+
+        Returns:
+            (Any): Native OpenAI SDK response object for the configured API.
+        """
         return await self._async_call(self._prepare(source, image), kwargs)
 
     async def _async_call(self, source: Any, kwargs: dict[str, Any]) -> Any:

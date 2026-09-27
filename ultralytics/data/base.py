@@ -128,7 +128,7 @@ class BaseDataset(Dataset):
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
-            cache (bool | str): Cache images to RAM or disk during training.
+            cache (bool | str): Cache images to RAM (True or 'ram') or disk ('disk') during training.
             augment (bool): If True, data augmentation is applied.
             hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
@@ -164,7 +164,7 @@ class BaseDataset(Dataset):
             self.set_rectangle()
 
         # Buffer thread for mosaic images
-        self.buffer = []  # buffer size = batch size
+        self.buffer = []  # indices of recently loaded images kept in memory for mosaic
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
@@ -222,7 +222,7 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: list[int] | None) -> None:
-        """Update labels to include only specified classes.
+        """Update labels to include only specified classes, and set all classes to 0 if single_cls is True.
 
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
@@ -252,8 +252,8 @@ class BaseDataset(Dataset):
         Args:
             i (int): Index of the image to load.
             rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
-            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
-                rect_mode when True.
+            resize_short (bool): Whether to resize the shorter side (instead of the longer side) to imgsz while
+                maintaining aspect ratio. Only used when rect_mode is True.
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
@@ -388,7 +388,7 @@ class BaseDataset(Dataset):
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             b += self.load_image(random.randrange(self.ni))[0].nbytes
-        mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
+        mem_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset into RAM
         mem = __import__("psutil").virtual_memory()
         if mem_required > mem.available:
             self.cache = None
@@ -465,8 +465,8 @@ class BaseDataset(Dataset):
             ...     # Training transforms
             ...     return Compose([])
             >>> else:
-            ...    # Val transforms
-            ...    return Compose([])
+            ...     # Val transforms
+            ...     return Compose([])
         """
         raise NotImplementedError
 
@@ -483,7 +483,7 @@ class BaseDataset(Dataset):
             ...     segments=segments,  # xy
             ...     keypoints=keypoints,  # xy
             ...     normalized=True,  # or False
-            ...     bbox_format="xyxy",  # or xywh, ltwh
+            ...     bbox_format="xywh",  # or xyxy, ltwh
             ... )
         """
         raise NotImplementedError

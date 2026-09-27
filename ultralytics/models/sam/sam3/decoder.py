@@ -1,10 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
-"""
-Transformer decoder.
-Inspired from Pytorch's version, adds the pre-norm variant.
-"""
+"""Transformer decoder for SAM3 with iterative box refinement and an optional presence token."""
 
 from __future__ import annotations
 
@@ -64,7 +61,7 @@ class TransformerDecoderLayer(nn.Module):
         return tensor if pos is None else tensor + pos
 
     def forward_ffn(self, tgt):
-        """Feedforward network forward pass."""
+        """Apply the feedforward network with a residual connection and layer normalization."""
         tgt2 = self.linear2(self.dropout3(self.activation(self.linear1(tgt))))
         tgt = tgt + self.dropout4(tgt2)
         tgt = self.norm3(tgt)
@@ -91,7 +88,13 @@ class TransformerDecoderLayer(nn.Module):
         # skip inside deformable attn
         **kwargs,  # additional kwargs for compatibility
     ):
-        """Forward pass of the TransformerDecoderLayer."""
+        """Apply self-attention, optional text cross-attention, image cross-attention, and the FFN to the queries.
+
+        Returns:
+            tgt (torch.Tensor): Updated queries with shape (nq, bs, d_model).
+            presence_token_out (torch.Tensor | None): Updated presence token with shape (1, bs, d_model), or None if no
+                presence token was provided.
+        """
         # self attention
         tgt, tgt_query_pos = self._apply_self_attention(
             tgt, tgt_query_pos, dac, dac_use_selfatt_ln, presence_token, self_attn_mask
@@ -140,7 +143,7 @@ class TransformerDecoderLayer(nn.Module):
             return tgt
 
         if dac:
-            # Split queries for DAC (detect-and-classify)
+            # Split queries for DAC (divide-and-conquer)
             assert tgt.shape[0] % 2 == 0, "DAC requires even number of queries"
             num_o2o_queries = tgt.shape[0] // 2
             tgt_o2o = tgt[:num_o2o_queries]
@@ -370,7 +373,17 @@ class TransformerDecoder(nn.Module):
         obj_roi_memory_mask=None,
         box_head_trk=None,
     ):
-        """Forward pass of the TransformerDecoder."""
+        """Decode queries against image memory with iterative box refinement.
+
+        Returns:
+            intermediate (torch.Tensor): Normalized outputs of each layer with shape (num_layers, nq, bs, d_model).
+            intermediate_ref_boxes (torch.Tensor): Reference boxes in normalized (cx, cy, w, h) format used as input to
+                each layer, with shape (num_layers, nq, bs, 4).
+            intermediate_presence_logits (torch.Tensor | None): Presence logits of each layer with shape (num_layers,
+                1, bs), or None if the presence token is disabled or is_instance_prompt is True.
+            presence_feats (torch.Tensor | None): Presence token features from the last layer with shape (1, bs,
+                d_model), or None.
+        """
         if memory_mask is not None:
             assert self.boxRPB == "none", (
                 "inputting a memory_mask in the presence of boxRPB is unexpected/not implemented"

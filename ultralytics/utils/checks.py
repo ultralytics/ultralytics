@@ -85,14 +85,14 @@ def resolve_platform_uri(uri, hard=True):
         hard (bool): Whether to raise an error if resolution fails.
 
     Returns:
-        (str | None): Signed URL on success, None if not found and hard=False.
+        (str | None): Signed URL on success, None if not found or the request fails and hard=False.
 
     Raises:
         ValueError: If the API key or URI is invalid.
         PermissionError: If access is denied.
         RuntimeError: If the resource is not ready or Platform returns another error.
         FileNotFoundError: If the resource is not found and hard=True.
-        ConnectionError: If the request fails and hard=True.
+        ConnectionError: If the request fails or Platform returns HTTP 408, 429, or 5xx, and hard=True.
     """
     from ultralytics import APIConnectionError, APIError, Platform
     from ultralytics.utils import SETTINGS
@@ -150,8 +150,9 @@ def parse_requirements(file_path=ROOT.parent / "requirements.txt", package=""):
     """Parse a requirements.txt file, ignoring lines that start with '#' and any text after '#'.
 
     Args:
-        file_path (Path): Path to the requirements.txt file.
-        package (str, optional): Python package to use instead of requirements.txt file.
+        file_path (str | Path): Path to the requirements.txt file.
+        package (str, optional): Installed Python package whose non-extra requirements are parsed instead of the
+            requirements.txt file.
 
     Returns:
         requirements (list[SimpleNamespace]): List of parsed requirements as SimpleNamespace objects with `name` and
@@ -194,10 +195,11 @@ def parse_version(version="0.0.0") -> tuple:
     equal to '1.0'. Use the `packaging` library where exact pre-release ordering matters.
 
     Args:
-        version (str): Version string, i.e. '2.0.1+cpu', '4.13.0.92', or 'v2.1'
+        version (str): Version string, e.g. '2.0.1+cpu', '4.13.0.92', or 'v2.1'.
 
     Returns:
-        (tuple): Tuple of integers representing the release segments, at least 3 long, i.e. (2, 0, 1)
+        (tuple): Tuple of integers representing the release segments, at least 3 long, e.g. (2, 0, 1), or (0, 0, 0) if
+            parsing fails.
     """
     try:
         nums = [int(x) for x in re.search(r"\d+(?:\.\d+)*", version).group(0).split(".")]
@@ -220,18 +222,26 @@ def is_ascii(s) -> bool:
 
 
 def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
-    """Verify image size is a multiple of the given stride in each dimension. If the image size is not a multiple of the
-    stride, update it to the nearest multiple of the stride that is greater than or equal to the given floor value.
+    """Verify image size is a multiple of the given stride in each dimension.
+
+    If the image size is not a multiple of the stride, update it to the nearest multiple of the stride that is greater
+    than or equal to the given floor value.
 
     Args:
-        imgsz (int | list[int]): Image size.
-        stride (int): Stride value.
-        min_dim (int): Minimum number of dimensions.
-        max_dim (int): Maximum number of dimensions.
+        imgsz (int | list[int] | tuple[int, ...] | str): Image size, e.g. 640, [640, 480], '640', or '[640,480]'.
+        stride (int | torch.Tensor): Stride value. For a tensor, its maximum is used.
+        min_dim (int): Minimum number of dimensions. A single size is returned as an int if 1 or expanded to [sz, sz]
+            if 2.
+        max_dim (int): Maximum number of dimensions. If 1, longer inputs are reduced to their maximum with a warning;
+            otherwise, exceeding it raises a ValueError.
         floor (int): Minimum allowed value for image size.
 
     Returns:
         (list[int] | int): Updated image size.
+
+    Raises:
+        ValueError: If `imgsz` is an unparsable string or has more than `max_dim` dimensions when `max_dim` != 1.
+        TypeError: If `imgsz` is not an int, list, tuple, or str.
     """
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
@@ -280,7 +290,7 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
 
 @functools.lru_cache
 def check_uv():
-    """Check if uv package manager is installed and can run successfully."""
+    """Return True if the uv package manager is installed and can run successfully."""
     try:
         return subprocess.run(["uv", "-V"], capture_output=True, check=False).returncode == 0
     except FileNotFoundError:
@@ -319,7 +329,7 @@ def check_version(
         Check if current version is less than or equal to 22.04
         >>> check_version(current="22.04", required="<=22.04")
 
-        Check if current version is between 20.04 (inclusive) and 22.04 (exclusive)
+        Check if current version is between 20.04 and 22.04 (both exclusive)
         >>> check_version(current="21.10", required=">20.04,<22.04")
     """
     if not current:  # if current is '' or None
@@ -430,7 +440,8 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        (Path | str): Resolved font file path.
+        (Path | str | None): Resolved font file path, or None if the font is not found locally and cannot be
+            downloaded.
     """
     from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
@@ -519,20 +530,25 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
     """Check if installed dependencies meet Ultralytics YOLO models requirements and attempt to auto-update if needed.
 
     Args:
-        requirements (Path | str | list[str|tuple] | tuple[str]): Path to a requirements.txt file, a single package
-            requirement as a string, a list of package requirements as strings, or a list containing strings and tuples
-            of interchangeable packages.
-        exclude (tuple): Tuple of package names to exclude from checking.
+        requirements (Path | str | list[str | tuple] | tuple[str]): Path object pointing to a requirements.txt file, a
+            single package requirement as a string, a list of package requirements as strings, or a list containing
+            strings and tuples of interchangeable packages.
+        exclude (tuple): Tuple of package names to exclude from checking when `requirements` is a requirements.txt
+            Path.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
         constrain (tuple | list): Extra version constraints always appended to the install command even if already
             satisfied, preventing the resolver from upgrading those packages during install.
 
+    Returns:
+        (bool): True if all requirements are met or were successfully installed, False otherwise.
+
     Examples:
+        >>> from pathlib import Path
         >>> from ultralytics.utils.checks import check_requirements
 
         Check a requirements.txt file
-        >>> check_requirements("path/to/requirements.txt")
+        >>> check_requirements(Path("path/to/requirements.txt"))
 
         Check a single package
         >>> check_requirements("ultralytics>=8.3.200", cmds="--index-url https://download.pytorch.org/whl/cpu")
@@ -705,6 +721,9 @@ def check_suffix(file="yolo26n.pt", suffix=".pt", msg=""):
         file (str | list[str]): File or list of files to check.
         suffix (str | tuple): Acceptable suffix or tuple of suffixes.
         msg (str): Additional message to display in case of error.
+
+    Raises:
+        AssertionError: If a file has a suffix that is not acceptable.
     """
     if file and suffix:
         if isinstance(suffix, str):
@@ -760,14 +779,18 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     """Search/download file (if necessary), check suffix (if provided), and return path.
 
     Args:
-        file (str): File name or path, URL, platform URI (ul://), or GCS path (gs://).
+        file (str | Path): File name or path, URL, Ultralytics Platform URI (ul://) or web URL, or GCS path (gs://).
         suffix (str | tuple): Acceptable suffix or tuple of suffixes to validate against the file.
         download (bool): Whether to download the file if it doesn't exist locally.
-        download_dir (str): Directory to download the file to.
-        hard (bool): Whether to raise an error if the file is not found.
+        download_dir (str | Path): Directory to download the file to.
+        hard (bool): Whether to raise an error if the file is not found or multiple files match.
 
     Returns:
-        (str | list): Path to the file, or an empty list if not found.
+        (str | list): Path to the file, or an empty list if not found and hard=False.
+
+    Raises:
+        FileNotFoundError: If the file is not found or multiple files match, and hard=True.
+        ValueError: If an Ultralytics Platform URI contains an unsafe path.
     """
     file = normalize_platform_uri(file)  # accept Platform web URLs (rewritten to ul://)
     check_suffix(file, suffix)  # optional
@@ -822,7 +845,7 @@ def check_yaml(file, suffix=(".yaml", ".yml"), hard=True):
         hard (bool): Whether to raise an error if the file is not found or multiple files are found.
 
     Returns:
-        (str): Path to the YAML file.
+        (str | list): Path to the YAML file, or an empty list if not found and hard=False.
     """
     return check_file(file, suffix, hard=hard)
 
@@ -851,7 +874,7 @@ def check_is_path_safe(basedir: Path | str, path: Path | str) -> bool:
         path (Path | str): The path to check.
 
     Returns:
-        (bool): True if the path is safe, False otherwise.
+        (bool): True if the path exists and is under `basedir`, False otherwise.
     """
     base_dir_resolved = Path(basedir).resolve()
     path_resolved = Path(path).resolve()

@@ -24,10 +24,10 @@ def _sanitize_tune_value(value: dict):
     """Convert NumPy-backed Tune values into native Python types for YAML serialization.
 
     Args:
-        value (dict): The value to convert. Can be a dict, list, tuple, NumPy scalar, or NumPy array.
+        value (Any): The value to convert. Can be a dict, list, tuple, NumPy scalar, NumPy array, or any other value.
 
     Returns:
-        The converted value with NumPy types replaced by native Python types.
+        (Any): The converted value with NumPy types replaced by native Python types.
     """
     if isinstance(value, dict):
         return {k: _sanitize_tune_value(v) for k, v in value.items()}
@@ -46,11 +46,12 @@ def _get_ray_search_alg_kind(search_alg):
     """Return the normalized Ray Tune search algorithm kind for known searcher objects.
 
     Args:
-        search_alg (str | ray.tune.search.Searcher): The search algorithm to identify. Can be None, a string, or a Ray
-            Tune searcher object.
+        search_alg (str | ray.tune.search.Searcher | None): The search algorithm to identify. Can be None, a string, or
+            a Ray Tune searcher object.
 
     Returns:
-        str | None: The normalized search algorithm name, or None if not recognized.
+        (str | None): The stripped, lowercased name for a non-empty string, the algorithm name for a recognized Ax,
+            BOHB, or ZOOpt searcher object, or None otherwise.
     """
     if search_alg is None:
         return None
@@ -76,7 +77,7 @@ def _validate_ax_search_space(space):
         space (dict): The hyperparameter search space to validate.
 
     Returns:
-        list: The converted Ax parameters.
+        (list): The converted Ax parameters.
 
     Raises:
         ImportError: If the required 'ax-platform' package is not installed.
@@ -96,7 +97,7 @@ def _create_ax_search(space, task):
         task (str): The task type (e.g., 'detect', 'segment', 'classify').
 
     Returns:
-        AxSearch (ray.tune.search.Searcher): The configured Ax search algorithm.
+        (ray.tune.search.ax.AxSearch): The configured Ax search algorithm.
 
     Raises:
         ImportError: If required Ax packages are not installed.
@@ -125,7 +126,8 @@ def _convert_bohb_search_space(space):
         (tuple): A tuple containing the ConfigSpace object and a dict of fixed parameters.
 
     Raises:
-        ValueError: If the search space contains grid search parameters or unsupported samplers.
+        ValueError: If the search space contains grid search parameters.
+        TypeError: If the search space contains quantized or otherwise unsupported samplers.
         ImportError: If required BOHB packages are not installed.
     """
     checks.check_requirements(RAY_SEARCH_ALG_REQUIREMENTS["bohb"])
@@ -199,7 +201,7 @@ def _create_nevergrad_search(task):
         task (str): The task type (e.g., 'detect', 'segment', 'classify').
 
     Returns:
-        (NevergradSearch): The configured Nevergrad search algorithm.
+        (ray.tune.search.nevergrad.NevergradSearch): The configured Nevergrad search algorithm.
 
     Raises:
         ImportError: If the 'nevergrad' package is not installed.
@@ -371,6 +373,9 @@ def run_ray_tune(
     Returns:
         (ray.tune.ResultGrid): A ResultGrid containing the results of the hyperparameter search.
 
+    Raises:
+        ModuleNotFoundError: If Ray Tune is not installed or the chosen search algorithm's dependencies are missing.
+
     Examples:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo26n.pt")  # Load a YOLO26n model
@@ -392,14 +397,14 @@ def run_ray_tune(
     default_space = {
         # 'optimizer': tune.choice(['SGD', 'Adam', 'AdamW', 'NAdam', 'RAdam', 'RMSProp']),
         "lr0": tune.uniform(1e-5, 1e-2),  # initial learning rate (i.e. SGD=1E-2, Adam=1E-3)
-        "lrf": tune.uniform(0.01, 1.0),  # final OneCycleLR learning rate (lr0 * lrf)
+        "lrf": tune.uniform(0.01, 1.0),  # final learning rate fraction (lr0 * lrf)
         "momentum": tune.uniform(0.7, 0.98),  # SGD momentum/Adam beta1
         "weight_decay": tune.uniform(0.0, 0.001),  # optimizer weight decay
         "warmup_epochs": tune.uniform(0.0, 5.0),  # warmup epochs (fractions ok)
         "warmup_momentum": tune.uniform(0.0, 0.95),  # warmup initial momentum
         "box": tune.uniform(1.0, 20.0),  # box loss gain
         "cls": tune.uniform(0.1, 4.0),  # cls loss gain (scale with pixels)
-        "cls_pw": tune.uniform(0.0, 1.0),  # cls power weight (scale with pixels)
+        "cls_pw": tune.uniform(0.0, 1.0),  # class weights power for class imbalance (0.0=disable)
         "dfl": tune.uniform(0.4, 12.0),  # dfl loss gain
         "hsv_h": tune.uniform(0.0, 0.1),  # image HSV-Hue augmentation (fraction)
         "hsv_s": tune.uniform(0.0, 0.9),  # image HSV-Saturation augmentation (fraction)

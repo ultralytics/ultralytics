@@ -60,7 +60,14 @@ class _NormalizeCoords(torch.nn.Module):
 
 
 def best_onnx_opset(onnx: types.ModuleType) -> int:
-    """Return max ONNX opset for this torch version with ONNX fallback."""
+    """Return max ONNX opset for this torch version with ONNX fallback.
+
+    Args:
+        onnx (types.ModuleType): The imported `onnx` module, used to cap the opset at the installed ONNX version.
+
+    Returns:
+        (int): The ONNX opset version to export with.
+    """
     version = ".".join(TORCH_VERSION.split(".")[:2])
     opset = {
         "1.8": 12,
@@ -140,12 +147,16 @@ def modelopt_quantize_onnx(
         quantize (int | str | None): Precision scheme, 8 for INT8 Q/DQ nodes or 16 for FP16 precision.
         dataset (ultralytics.data.build.InfiniteDataLoader | None): Dataloader providing INT8 calibration images.
             Required when ``quantize=8``.
-        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for dynamic calibration.
+        shape (tuple[int, int, int, int]): Input shape (batch, channels, height, width) used for INT8 calibration
+            shapes of dynamic models and for the FP16 AutoCast calibration image.
         dynamic (bool): Whether the ONNX model uses dynamic input shapes.
         prefix (str): Prefix for log messages.
 
     Returns:
         (str): Path to the precision-converted ONNX file.
+
+    Raises:
+        ValueError: If ``quantize=8`` and no calibration dataset is provided.
     """
     if quantize == 8 and dataset is None:
         raise ValueError("INT8 ModelOpt quantization requires a calibration dataset.")
@@ -243,8 +254,9 @@ def onnx2engine(
         (str): Path to the exported engine file.
 
     Raises:
-        ValueError: If DLA is enabled on non-Jetson devices or required precision is not set.
-        RuntimeError: If the ONNX file cannot be parsed.
+        ValueError: If INT8 calibration lacks a dataset, or DLA is requested on a non-Jetson device, on TensorRT 11.0,
+            or without FP16/INT8 precision.
+        RuntimeError: If the ONNX file cannot be parsed or the engine build fails.
 
     Notes:
         TensorRT version compatibility is handled for workspace size and engine building. On TensorRT 7-10, INT8

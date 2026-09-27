@@ -37,7 +37,7 @@ YOLO26 Segment models pretrained on the [COCO](https://github.com/ultralytics/ul
 {% include "macros/yolo-seg-perf.md" %}
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce with `yolo segment val data=coco.yaml device=0 nms=False`
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo segment val data=coco.yaml batch=1 device=0|cpu nms=False`
+- **Speed** averaged over COCO val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo segment val data=coco.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 These checkpoints segment the 80 COCO classes. To segment categories outside that list without retraining, see [YOLOE](../models/yoloe.md), which takes the classes as a text prompt, a visual example, or a built-in vocabulary.

@@ -2,9 +2,9 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
-"""
-ViTDet backbone adapted from Detectron2.
-This module implements Vision Transformer (ViT) backbone for object detection.
+"""ViTDet backbone adapted from Detectron2.
+
+This module implements a Vision Transformer (ViT) backbone for object detection.
 
 Rope embedding code adopted from:
 1. https://github.com/meta-llama/codellama/blob/main/llama/model.py
@@ -54,19 +54,20 @@ class Attention(nn.Module):
         rope_pt_size: tuple[int, int] | None = None,
         rope_interp: bool = False,
     ):
-        """
+        """Initialize the attention block.
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads.
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (tuple[int, int] or None): Input resolution for calculating the relative positional parameter
-                size or rope size.
+            input_size (tuple[int, int] | None): Input resolution for calculating the relative positional parameter size
+                or rope size.
             cls_token (bool): Whether a cls_token is present.
             use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
             rope_theta (float): Control frequencies of rope.
-            rope_pt_size (tuple[int, int] or None): Size of rope in previous stage of training, needed for interpolation
+            rope_pt_size (tuple[int, int] | None): Size of rope in previous stage of training, needed for interpolation
                 or tiling.
             rope_interp (bool): Whether to interpolate (or extrapolate) rope to match input size.
         """
@@ -93,7 +94,7 @@ class Attention(nn.Module):
         self._setup_rope_freqs(input_size)
 
     def _setup_rel_pos(self, rel_pos_zero_init: bool = True, input_size: tuple[int, int] | None = None) -> None:
-        """Setup relative positional embeddings."""
+        """Set up relative positional embeddings."""
         if not self.use_rel_pos:
             self.rel_pos_h = None
             self.rel_pos_w = None
@@ -117,7 +118,7 @@ class Attention(nn.Module):
         self.relative_coords = relative_coords.long()
 
     def _setup_rope_freqs(self, input_size: tuple[int, int] | None = None) -> None:
-        """Setup 2d-rope frequencies."""
+        """Set up 2d-rope frequencies."""
         if not self.use_rope:
             self.freqs_cis = None
             return
@@ -213,7 +214,7 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
-    """Transformer blocks with support of window attention."""
+    """Transformer block with support for window attention."""
 
     def __init__(
         self,
@@ -235,7 +236,8 @@ class Block(nn.Module):
         dropout: float = 0.0,
         init_values: float | None = None,
     ):
-        """
+        """Initialize the transformer block.
+
         Args:
             dim (int): Number of input channels.
             num_heads (int): Number of attention heads in each ViT block.
@@ -311,8 +313,10 @@ class Block(nn.Module):
 
 
 class ViT(nn.Module):
-    """This module implements Vision Transformer (ViT) backbone in :paper:`vitdet`. "Exploring Plain Vision Transformer
-    Backbones for Object Detection", https://arxiv.org/abs/2203.16527.
+    """Vision Transformer (ViT) backbone from ViTDet.
+
+    Implements the backbone from "Exploring Plain Vision Transformer Backbones for Object Detection",
+    https://arxiv.org/abs/2203.16527.
     """
 
     def __init__(
@@ -349,7 +353,8 @@ class ViT(nn.Module):
         compile_mode: str | None = None,
         use_act_checkpoint: bool = True,
     ):
-        """
+        """Initialize the ViT backbone.
+
         Args:
             img_size (int): Input image size. Only relevant for rel pos or rope.
             patch_size (int): Patch size.
@@ -360,17 +365,18 @@ class ViT(nn.Module):
             mlp_ratio (float): Ratio of mlp hidden dim to embedding dim.
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
             drop_path_rate (float): Stochastic depth rate.
-            norm_layer (Callable or str): Normalization layer constructor or name.
+            norm_layer (Callable | str): Normalization layer constructor or name.
             act_layer (Callable): Activation layer constructor.
             use_abs_pos (bool): If True, use absolute positional embeddings.
             tile_abs_pos (bool): If True, tile absolute positional embeddings instead of interpolation.
-            rel_pos_blocks (tuple[int, ...] | bool): Blocks which have rel pos embeddings.
+            rel_pos_blocks (tuple[int, ...] | bool): Blocks which have rel pos embeddings, or True for all blocks.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
             window_size (int): Window size for window attention blocks.
             global_att_blocks (tuple[int, ...]): Indexes for blocks using global attention (other blocks use window
                 attention).
             use_rope (bool): Whether to use rope 2d (independent of rel_pos_blocks, as it can be used together).
             rope_pt_size (int | None): Size of rope in previous stage of training, needed for interpolation or tiling.
+                Defaults to window_size if None.
             use_interp_rope (bool): Whether to interpolate (or extrapolate) rope to match target input size, expected to
                 specify source size as rope_pt_size.
             pretrain_img_size (int): Input image size for pretraining models.
@@ -495,7 +501,7 @@ class ViT(nn.Module):
             nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
-        """Vit forward path and get feature maps."""
+        """Run the ViT forward pass and return (B, C, H, W) feature maps from the last or all global attention blocks."""
         x = self.patch_embed(x)
         h, w = x.shape[1], x.shape[2]
 
@@ -540,7 +546,7 @@ class ViT(nn.Module):
         return outputs
 
     def set_imgsz(self, imgsz: list[int] | None = None):
-        """Setup rel pos embeddings and rope freqs for a new input image size."""
+        """Set up rel pos embeddings and rope freqs of global attention blocks for a new input image size."""
         imgsz = imgsz if imgsz is not None else [1008, 1008]
         for block in self.blocks:
             if block.window_size != 0:

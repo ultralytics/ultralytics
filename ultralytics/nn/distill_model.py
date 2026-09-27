@@ -134,6 +134,7 @@ class DistillationModel(nn.Module):
 
     def __setstate__(self, state):
         """Clear stale features and hooks, and re-register forward hooks after unpickling."""
+        state.setdefault("teacher_feats_idx", state["feats_idx"])  # checkpoints saved before teacher_feats_idx
         self.__dict__.update(state)
         self._teacher_feats = {}
         self._student_feats = {}
@@ -176,6 +177,15 @@ class DistillationModel(nn.Module):
 
         Returns the Detect head's input layer indices plus the head layer index itself.
         E.g. YOLO26 -> [16, 19, 22, 23], YOLOv8 -> [15, 18, 21, 22].
+
+        Args:
+            model (nn.Module): Model whose `model` layers contain a Detect head.
+
+        Returns:
+            (list[int]): Detect head input layer indices followed by the head layer index.
+
+        Raises:
+            ValueError: If the model has no Detect head.
         """
         for m in model.model:
             if isinstance(m, Detect):
@@ -198,22 +208,43 @@ class DistillationModel(nn.Module):
         return self
 
     def forward(self, x, *args, **kwargs):
-        """Forward pass through the student model."""
+        """Run the student model, or compute the combined loss when given a training batch.
+
+        Args:
+            x (torch.Tensor | dict): Input image tensor, or a batch dict with images and labels for loss computation.
+            *args (Any): Additional positional arguments passed to `loss()` or the student `predict()`.
+            **kwargs (Any): Additional keyword arguments passed to `loss()` or the student `predict()`.
+
+        Returns:
+            (Any): Loss tuple if x is a dict, otherwise student model predictions.
+        """
         if isinstance(x, dict):  # for cases of training and validating while training.
             return self.loss(x, *args, **kwargs)
         return self.student_model.predict(x, *args, **kwargs)
 
-    def fuse(self, verbose: bool = True, imgsz: int | list[int, int] = 640):
-        """Fuse and return the student model, dropping the training-only distillation wrapper."""
+    def fuse(self, verbose: bool = True, imgsz: int | list[int] = 640):
+        """Fuse and return the student model, dropping the training-only distillation wrapper.
+
+        Args:
+            verbose (bool): Whether to print model information after fusion.
+            imgsz (int | list[int]): Input image size used for FLOPs calculation.
+
+        Returns:
+            (nn.Module): The fused student model.
+        """
         self._remove_feature_hooks()
         return self.student_model.fuse(verbose=verbose, imgsz=imgsz)
 
     def loss(self, batch, preds=None):
-        """Compute loss.
+        """Compute combined detection and distillation loss.
 
         Args:
             batch (dict): Batch to compute loss on.
-            preds (torch.Tensor | list[torch.Tensor], optional): Predictions.
+            preds (torch.Tensor | list[torch.Tensor], optional): Student predictions, used only in validation mode.
+
+        Returns:
+            loss (torch.Tensor): Student loss with the distillation loss appended.
+            loss_items (dict[str, torch.Tensor]): Detached loss components, including `dis_loss`.
         """
         loss_distill = torch.zeros(1, device=batch["img"].device)
         if not self.training:  # for loss calculation during validation while training

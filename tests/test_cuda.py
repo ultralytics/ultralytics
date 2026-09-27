@@ -13,7 +13,7 @@ from ultralytics.cfg import TASK2DATA, TASK2MODEL, TASKS
 from ultralytics.utils import ASSETS, IS_JETSON, WEIGHTS_DIR
 from ultralytics.utils.autodevice import GPUInfo
 from ultralytics.utils.checks import check_amp, check_tensorrt
-from ultralytics.utils.torch_utils import TORCH_1_13, parse_device
+from ultralytics.utils.torch_utils import TORCH_1_13
 
 # Try to find idle devices if CUDA is available
 DEVICES = []
@@ -112,7 +112,6 @@ def test_export_engine_matrix(task, dynamic, quantize, batch):
     model.val(data=TASK2DATA[task], imgsz=32, device=DEVICES[0], batch=batch)  # exported model validation
     Path(file).unlink()  # cleanup
     if quantize == 8:
-        Path(file).with_suffix(".cache").unlink(missing_ok=True)  # cleanup TensorRT 7-10 INT8 calibration cache
         Path(file).with_suffix(".int8.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt INT8 ONNX
     if quantize == 16:
         Path(file).with_suffix(".fp16.onnx").unlink(missing_ok=True)  # cleanup TensorRT 11 ModelOpt FP16 ONNX
@@ -140,14 +139,12 @@ def test_semantic_loss_all_ignore_amp(nc):
 @pytest.mark.skipif(IS_JETSON, reason="Edge devices not intended for training")
 def test_train():
     """Test model training on a minimal dataset using available CUDA devices."""
-    device = tuple(DEVICES) if len(DEVICES) > 1 else DEVICES[0]
-    expected = parse_device(device)  # canonical torch indices, e.g. physical ids translate under external CVD
+    device = "-1,-1" if len(DEVICES) > 1 else DEVICES[0]  # DDP picks idle GPUs at launch; shared GPUs fill up later
     visible = os.environ.get("CUDA_VISIBLE_DEVICES")
     results = YOLO(MODEL).train(data="coco8-grayscale.yaml", imgsz=64, epochs=1, device=DEVICES[0], batch=-1)
     model = YOLO(MODEL)
     results = model.train(data="coco8.yaml", imgsz=64, epochs=1, device=device, batch=15, compile=True)
-    assert model.trainer.args.device == expected, "trained on wrong GPUs"
-    assert model.trainer.device.index == int(expected.split(",")[0]), "trained on wrong GPU"
+    assert model.trainer.device.index == int(model.trainer.args.device.split(",")[0]), "trained on wrong GPU"
     assert os.environ.get("CUDA_VISIBLE_DEVICES") == visible, "CUDA_VISIBLE_DEVICES must never be mutated"
     results = YOLO(MODEL).train(data="coco128.yaml", imgsz=64, epochs=1, device=device, batch=15, val=False)
     # Both single-GPU and DDP return metrics (recovered from the saved checkpoint under DDP)

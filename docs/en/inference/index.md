@@ -92,7 +92,7 @@ Common flags:
 | Flag             | Default        | Description                                                                     |
 | ---------------- | -------------- | ------------------------------------------------------------------------------- |
 | `--model`, `-m`  | `yolo26n.onnx` | Path to an ONNX model; a known YOLO name is downloaded automatically.           |
-| `--task`         | `detect`       | One of `detect`, `segment`, `pose`, `obb`, `classify`, `semantic`, `depth`.     |
+| `--task`         | `detect`       | One of `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb`.     |
 | `--source`, `-s` | sample         | Image, directory, glob, video, webcam index, or URL.                            |
 | `--conf`         | `0.25`         | Confidence threshold.                                                           |
 | `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                      |

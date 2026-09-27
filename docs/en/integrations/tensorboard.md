@@ -88,7 +88,7 @@ Before diving into the usage instructions, be sure to check out the range of [YO
 Upon running the usage code snippet above, you can expect the following output:
 
 ```bash
-TensorBoard: Start with 'tensorboard --logdir path_to_your_tensorboard_logs', view at localhost:6006
+TensorBoard: Start with 'tensorboard --logdir runs/detect/train', view at http://localhost:6006/
 ```
 
 This output indicates that TensorBoard is now actively monitoring your YOLO26 training session. You can access the TensorBoard dashboard at `localhost:6006` to view real-time training metrics and model performance. For users working in [Google Colab](../integrations/google-colab.md), the TensorBoard will be displayed in the same cell where you executed the TensorBoard configuration commands.
@@ -127,16 +127,16 @@ Scalars in the TensorBoard are crucial for plotting and analyzing simple metrics
 
 #### Key Features of Scalars in TensorBoard
 
-- **Learning Rate (lr) Tags**: These tags show the variations in the learning rate across different segments (e.g., `pg0`, `pg1`, `pg2`). This helps us understand the impact of learning rate adjustments on the training process.
+- **Learning Rate (lr) Tags**: These tags show the variations in the learning rate across different segments (e.g., `lr/pg0`, `lr/pg1`, `lr/pg2`). This helps us understand the impact of learning rate adjustments on the training process.
 
 - **Metrics Tags**: Scalars include performance indicators such as:
-    - `mAP50 (B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
+    - `metrics/mAP50(B)`: Mean Average [Precision](https://www.ultralytics.com/glossary/precision) at 50% [Intersection over Union](https://www.ultralytics.com/glossary/intersection-over-union-iou) (IoU), crucial for assessing object detection accuracy.
 
-    - `mAP50-95 (B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
+    - `metrics/mAP50-95(B)`: [Mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) calculated over a range of IoU thresholds, offering a more comprehensive evaluation of accuracy.
 
-    - `Precision (B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction [accuracy](https://www.ultralytics.com/glossary/accuracy).
+    - `metrics/precision(B)`: Indicates the ratio of correctly predicted positive observations, key to understanding prediction [accuracy](https://www.ultralytics.com/glossary/accuracy).
 
-    - `Recall (B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
+    - `metrics/recall(B)`: Important for models where missing a detection is significant, this metric measures the ability to detect all relevant instances.
 
     - To learn more about the different metrics, read our guide on [performance metrics](../guides/yolo-performance-metrics.md).
 
@@ -184,7 +184,7 @@ To monitor training metrics while training a YOLO26 model with TensorBoard, foll
 
 1. **Install TensorBoard and YOLO26:** Run `pip install ultralytics tensorboard`.
 2. **Enable TensorBoard Logging:** Run `yolo settings tensorboard=True`. During training, YOLO26 writes metrics to the run directory.
-3. **Start TensorBoard:** Launch TensorBoard using the command `tensorboard --logdir path/to/your/tensorboard/logs`.
+3. **Start TensorBoard:** Launch TensorBoard with `tensorboard --logdir path/to/runs`, pointing it at the training run directory (e.g., `runs/detect/train`).
 
 The TensorBoard dashboard, accessible at `localhost:6006`, provides real-time insights into various training metrics. For a deeper dive into training configurations, visit our [YOLO26 Configuration guide](../usage/cfg.md).
 

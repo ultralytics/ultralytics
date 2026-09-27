@@ -449,7 +449,7 @@ decode it.
 
     Dedicated endpoints accept both images and videos via the `file` parameter.
 
-    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
     - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
     Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.

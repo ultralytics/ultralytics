@@ -161,7 +161,7 @@ The Segment Anything Model can be employed for a multitude of downstream tasks t
 
     All the returned `results` in the above examples are [Results](../modes/predict.md#working-with-results) objects which allow access to predicted masks and source image easily.
 
-- More additional args for `Segment everything` see [`Predictor/generate` Reference](../reference/models/sam/predict.md).
+- For more `Segment everything` args, see the [`Predictor/generate` Reference](../reference/models/sam/predict.md).
 
 ## SAM Comparison vs YOLO
 

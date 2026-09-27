@@ -18,7 +18,16 @@ class HailoBackend(BaseBackend):
     """HailoRT inference backend for Ultralytics Hailo HEF models."""
 
     def load_model(self, weight: str | Path) -> None:
-        """Load a Hailo export directory and its Ultralytics metadata."""
+        """Load a Hailo export directory and its Ultralytics metadata.
+
+        Args:
+            weight (str | Path): Path to the Hailo model directory containing the .hef file.
+
+        Raises:
+            ImportError: If HailoRT (`hailo_platform`) is not installed.
+            FileNotFoundError: If no .hef file is found in the given directory.
+            ValueError: If the model task is not supported by the Hailo backend.
+        """
         try:
             from hailo_platform import (
                 HEF,
@@ -73,8 +82,16 @@ class HailoBackend(BaseBackend):
         if stack := getattr(self, "_stack", None):
             stack.close()
 
-    def forward(self, im: torch.Tensor) -> np.ndarray | list[torch.Tensor]:
-        """Run Hailo inference and return decoded detections, or dense outputs and prototypes for segmentation."""
+    def forward(self, im: torch.Tensor) -> np.ndarray | torch.Tensor | list[torch.Tensor]:
+        """Run Hailo inference and decode the raw outputs on the host into the predictor's expected format.
+
+        Args:
+            im (torch.Tensor): Input image tensor in BCHW format, normalized to [0, 1].
+
+        Returns:
+            (np.ndarray | torch.Tensor | list[torch.Tensor]): Decoded detections, dense outputs (plus prototypes for
+                segmentation), class probabilities, semantic logits or class map, or a depth map, depending on task.
+        """
         im = np.ascontiguousarray(np.clip(im.permute(0, 2, 3, 1).cpu().numpy() * 255, 0, 255).astype(np.uint8))
         results = self.model.infer({self.input_info.name: im})
         outputs = [results[x.name] for x in self.output_infos]

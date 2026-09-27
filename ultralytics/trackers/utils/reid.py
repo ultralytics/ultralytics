@@ -34,7 +34,8 @@ class ReID:
             imgsz (int): Square input size used for crop preprocessing on the AutoBackend path. Overridden by the
                 model's own static input size when one is detected.
             device (str | torch.device | None): Inference device; defaults to CUDA if available.
-            fp16 (bool): Use half precision when the backend supports it.
+            fp16 (bool): Request half precision on the AutoBackend path when the backend supports it. Ignored for `.pt`
+                models; models exported with FP16 inputs run in half precision regardless.
         """
         self.imgsz = imgsz
         self.batch_size = None
@@ -95,7 +96,15 @@ class ReID:
 
     @torch.no_grad()
     def __call__(self, img: np.ndarray, dets: np.ndarray) -> list[np.ndarray | None]:
-        """Extract embeddings for detected objects."""
+        """Extract embeddings for detected objects.
+
+        Args:
+            img (np.ndarray): BGR image containing the detections.
+            dets (np.ndarray): Detections in xywh format (first 4 columns used).
+
+        Returns:
+            (list[np.ndarray | None]): One embedding per detection, or None where the crop is empty.
+        """
         crops = self._crop_detections(img, dets)
         valid = [bool(c.size) for c in crops]
         valid_crops = [crop for crop, keep in zip(crops, valid) if keep]

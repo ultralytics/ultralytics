@@ -19,7 +19,7 @@ from ultralytics.utils.checks import check_requirements
 
 AXELERA_SDK = "1.8.0"
 
-# Axelera exports mutate process-global state (the PROTOCOL_BUFFERS env var below, plus any working-directory
+# Axelera exports mutate process-global state (the PROTOCOL_BUFFERS and PATH env vars below, plus any working-directory
 # files the compiler emits), so a module-level lock serializes concurrent in-process exports. Cross-process
 # Platform workers each hold their own lock and never contend.
 _AXELERA_EXPORT_LOCK = threading.Lock()

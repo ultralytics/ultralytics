@@ -28,7 +28,7 @@ graph TB
 
 ## Create Project
 
-Navigate to **Projects** in the sidebar and click **New Project**.
+Open **Train** in the sidebar and click the `+` to open the **New Project** dialog.
 
 ![Ultralytics Platform Projects List](https://cdn.ul.run/i/11ba0c7e59d846cbc7bde563701bc141.avif)<!-- screenshot -->
 

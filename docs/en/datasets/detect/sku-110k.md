@@ -13,7 +13,7 @@ keywords: SKU-110K, dataset, object detection, retail shelf images, densely pack
 
 # SKU-110K Dataset
 
-The SKU-110K dataset is a single-class [object detection](../../tasks/detect.md) dataset of 11,743 densely packed retail-shelf images, split into 8,219 training, 588 validation, and 2,936 test images. Every product is annotated with one bounding box under a single class, `object` — the name refers to the more than 110,000 unique store-keeping units (SKUs) pictured across the scenes, not to 110,000 detection classes. Created by Eran Goldman et al. for the CVPR 2019 paper [Precise Detection in Densely Packed Scenes](https://github.com/eg4000/SKU110K_CVPR19), it carries over 1.7 million annotated products — an average of roughly 147 per image — making it a demanding benchmark for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in crowded retail environments.
+The SKU-110K dataset is a single-class [object detection](../../tasks/detect.md) dataset of 11,743 densely packed retail-shelf images, split into 8,219 training, 588 validation, and 2,936 test images. Every product is annotated with one bounding box under a single class, `object` — the name refers to the more than 110,000 unique stock-keeping units (SKUs) pictured across the scenes, not to 110,000 detection classes. Created by Eran Goldman et al. for the CVPR 2019 paper [Precise Detection in Densely Packed Scenes](https://github.com/eg4000/SKU110K_CVPR19), it carries over 1.7 million annotated products — an average of roughly 147 per image — making it a demanding benchmark for [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models in crowded retail environments.
 
 <p align="center">
   <br>
@@ -128,11 +128,11 @@ We would like to acknowledge Eran Goldman et al. for creating and maintaining th
 
 ### What is the SKU-110K dataset used for?
 
-The SKU-110K dataset is a single-class object detection dataset of 11,743 densely packed retail-shelf images, created by Eran Goldman et al. for their CVPR 2019 paper. Every product is labeled with one `object` bounding box, and the imagery spans more than 110,000 unique store-keeping units (SKUs), making it a strong benchmark for detecting objects in crowded scenes and for building retail [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems.
+The SKU-110K dataset is a single-class object detection dataset of 11,743 densely packed retail-shelf images, created by Eran Goldman et al. for their CVPR 2019 paper. Every product is labeled with one `object` bounding box, and the imagery spans more than 110,000 unique stock-keeping units (SKUs), making it a strong benchmark for detecting objects in crowded scenes and for building retail [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) systems.
 
 ### Does the SKU-110K dataset have 110,000 classes?
 
-No. SKU-110K is single-class: every product is annotated with one bounding box under the class `object` (`names: {0: object}`). The "110K" in the name refers to the number of unique store-keeping units (SKUs) pictured across the images, not to the number of detection classes.
+No. SKU-110K is single-class: every product is annotated with one bounding box under the class `object` (`names: {0: object}`). The "110K" in the name refers to the number of unique stock-keeping units (SKUs) pictured across the images, not to the number of detection classes.
 
 ### How many images and classes are in the SKU-110K dataset?
 

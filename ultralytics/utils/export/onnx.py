@@ -10,6 +10,15 @@ def onnx_calibration_reader(dataset, transform_fn, input_name: str = "images", b
 
     `batch` is the graph's static batch dimension (0 for dynamic-batch models): calibration datasets smaller than the
     export batch yield undersized batches that static graphs reject, so samples are tiled up to exactly `batch`.
+
+    Args:
+        dataset (Iterable): Calibration dataloader yielding batch dicts.
+        transform_fn (Callable): Function converting a batch dict to a float32 NCHW numpy array.
+        input_name (str): Name of the ONNX graph input to feed.
+        batch (int): Static batch dimension of the graph, or 0 for dynamic-batch models.
+
+    Returns:
+        (onnxruntime.quantization.CalibrationDataReader): Calibration data reader over `dataset`.
     """
     from onnxruntime.quantization import CalibrationDataReader
 
@@ -43,7 +52,20 @@ def onnx_int8_quantize(
     batch: int = 0,
     prefix: str = "",
 ) -> str:
-    """Quantize an ONNX model to INT8 using ONNX Runtime static quantization."""
+    """Quantize an ONNX model to INT8 using ONNX Runtime static quantization.
+
+    Args:
+        onnx_file (str | Path): Path to the FP32 ONNX model.
+        output_file (str | Path): Path to save the INT8 ONNX model.
+        dataset (Iterable): Calibration dataloader yielding batch dicts.
+        transform_fn (Callable): Function converting a batch dict to a float32 NCHW numpy array.
+        input_name (str): Name of the ONNX graph input to feed.
+        batch (int): Static batch dimension of the graph, or 0 for dynamic-batch models.
+        prefix (str): Prefix for log messages.
+
+    Returns:
+        (str): Path to the quantized ONNX file.
+    """
     import onnx
     from onnxruntime.quantization import quantize_static
 

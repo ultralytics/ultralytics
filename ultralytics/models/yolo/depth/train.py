@@ -7,6 +7,8 @@ from copy import copy
 from pathlib import Path
 from typing import Any
 
+import torch
+
 from ultralytics.models import yolo
 from ultralytics.models.yolo.detect import DetectionTrainer
 from ultralytics.nn.tasks import DepthModel
@@ -35,11 +37,11 @@ class DepthTrainer(DetectionTrainer):
         overrides["task"] = "depth"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg: str | None = None, weights: str | None = None, verbose: bool = True) -> DepthModel:
+    def get_model(
+        self, cfg: str | dict | None = None, weights: torch.nn.Module | None = None, verbose: bool = True
+    ) -> DepthModel:
         """Return a DepthModel initialized with the given config and weights."""
-        model = DepthModel(
-            cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK in {-1, 0}
-        )
+        model = DepthModel(cfg, ch=self.data.get("channels", 3), nc=self.data["nc"], verbose=verbose and RANK == -1)
         if weights:
             model.load(weights)
         return model

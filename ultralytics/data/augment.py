@@ -2588,9 +2588,9 @@ class SemanticFormat(Format):
             params (dict[str, Any] | None): Unused parameters for API compatibility.
 
         Returns:
-            (dict[str, Any]): Updated labels with unused keys removed.
+            (dict[str, Any]): Updated labels with unused keys removed, keeping 'ori_shape' for saving val predictions.
         """
-        for k in ("cls", "instances", "resized_shape", "ori_shape", "ratio_pad"):
+        for k in ("cls", "instances", "resized_shape", "ratio_pad"):
             labels.pop(k, None)
         return labels
 

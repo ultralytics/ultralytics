@@ -804,6 +804,30 @@ def test_val_save_txt_pose(tmp_path):
                 assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
 
 
+def test_val_save_json_semantic(tmp_path):
+    """Semantic val(save_json=True) writes the class maps at the original image size without the letterbox padding."""
+    if IS_RASPBERRYPI:
+        skip_rpi_semantic()
+    data = check_det_dataset("cityscapes8.yaml")
+    lut = np.full(256, 255, dtype=np.uint8)  # raw Cityscapes id -> train id, 255 = ignore
+    for k, v in data["label_mapping"].items():
+        if isinstance(v, int) and k >= 0:
+            lut[k] = v
+    model = YOLO(WEIGHTS_DIR / "yolo26n-sem.pt")
+    # imgsz=640: the 1024x2048 images get a 320x640 rect batch (val default) or a 640x640 letterbox with 160 padded rows
+    for rect in (True, False):
+        metrics = model.val(data="cityscapes8.yaml", imgsz=640, save_json=True, rect=rect, project=tmp_path, name="val")
+        correct = total = 0
+        for png in (Path(metrics.save_dir) / "results").glob("*.png"):
+            pred = lut[np.asarray(Image.open(png))]
+            gt = lut[np.asarray(Image.open(Path(data["path"]) / data["masks_dir"] / "val" / png.name))]
+            assert pred.shape == gt.shape, f"rect={rect}: {png.name} saved as {pred.shape}, image is {gt.shape}"
+            correct += ((pred == gt) & (gt != 255)).sum()
+            total += (gt != 255).sum()
+        # the saved masks score like the letterbox-space pixel accuracy; padding stretched into the image halves it
+        assert abs(correct / total - metrics.results_dict["metrics/pixel_acc"]) < 0.05, f"rect={rect}: masks misaligned"
+
+
 def test_pose_metrics_curves():
     """Test that pose curve labels contain four unique box and pose series."""
     from ultralytics.utils.metrics import PoseMetrics

@@ -37,7 +37,7 @@ YOLO26 Detect models pretrained on the [COCO](https://github.com/ultralytics/ult
 {% include "macros/yolo-det-perf.md" %}
 
 - **mAP<sup>val</sup>** values are for single-model single-scale on [COCO val2017](https://cocodataset.org/) dataset. <br>Reproduce with `yolo detect val data=coco.yaml device=0`. Add `nms=False` to reproduce the e2e column.
-- **Speed** averaged over COCO val images using an [Amazon EC2 P4d](https://aws.amazon.com/ec2/instance-types/p4/) instance. <br>Reproduce with `yolo detect val data=coco.yaml batch=1 device=0|cpu nms=False`
+- **Speed** averaged over COCO val images with ONNX on CPU and TensorRT10 on an NVIDIA T4 GPU. <br>Reproduce with `yolo detect val data=coco.yaml batch=1 device=0|cpu nms=False`
 - **Params** and **FLOPs** values are for fused models after Conv/BatchNorm folding and removal of the unused detection branch. Pretrained checkpoints retain the full training architecture and may show higher counts.
 
 See the [unreleased YOLO27 preview](../models/yolo27.md#performance-metrics) for preliminary COCO detection results.
@@ -234,7 +234,7 @@ For detailed configuration options, visit the [Configuration](../usage/cfg.md) p
 
 ### What pretrained models are available in YOLO26?
 
-Ultralytics YOLO26 offers various pretrained models for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), and [pose estimation](pose.md). These models are pretrained on the COCO dataset, Cityscapes for semantic segmentation, or ImageNet for classification tasks. Here are some of the available models:
+Ultralytics YOLO26 offers various pretrained models for [object detection](detect.md), [instance segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose estimation](pose.md), and [oriented bounding boxes](obb.md). These models are pretrained on the COCO dataset, Cityscapes for semantic segmentation, a multi-dataset mix for depth estimation, ImageNet for classification, or DOTAv1 for OBB. Here are some of the available models:
 
 - [YOLO26n](https://platform.ultralytics.com/ultralytics/yolo26/yolo26n)
 - [YOLO26s](https://platform.ultralytics.com/ultralytics/yolo26/yolo26s)

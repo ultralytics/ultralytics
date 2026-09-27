@@ -300,7 +300,7 @@ Albumentations enhances various [computer vision tasks](../tasks/index.md) inclu
 
 - [Object Detection](../tasks/detect.md): Improves model robustness to lighting, scale, and orientation variations
 - [Instance Segmentation](../tasks/segment.md): Enhances mask prediction accuracy through diverse transformations
-- [Classification](../tasks/classify.md): Increases model generalization with color and geometric augmentations
 - [Pose Estimation](../tasks/pose.md): Helps models adapt to different viewpoints and lighting conditions
+- [Oriented Bounding Box Detection](../tasks/obb.md): Adds color and noise variation for aerial and rotated-object imagery
 
-The library's diverse augmentation options make it valuable for any vision task requiring robust model performance.
+The library's diverse augmentation options make it valuable for vision tasks requiring robust model performance. In Ultralytics YOLO26, classification training uses its own torchvision-based augmentation pipeline and does not apply Albumentations transforms.

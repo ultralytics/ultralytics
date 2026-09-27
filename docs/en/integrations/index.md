@@ -107,7 +107,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [SONY IMX500](sony-imx500.md): Optimize and deploy [Ultralytics YOLO26](../models/yolo26.md) models on Raspberry Pi AI Cameras with the IMX500 sensor for fast, low-power performance.
 
-- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/ja-jp/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
+- [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 

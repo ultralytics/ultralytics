@@ -160,7 +160,7 @@ By leveraging the power of pretrained models, auto-annotation can significantly 
 
 ### Visualize Dataset Annotations
 
-Before training your model, it's often helpful to visualize your dataset annotations to ensure they're correct. Ultralytics provides a utility function for this purpose:
+Before training your model, it's often helpful to visualize your dataset annotations to ensure they're correct. Ultralytics provides a utility function for this purpose. It reads detection-format box labels (`<class-index> <x_center> <y_center> <width> <height>`) only, so it cannot parse segmentation polygon label files:
 
 ```python
 from ultralytics.data.utils import visualize_image_annotations
@@ -182,7 +182,7 @@ This function draws bounding boxes, labels objects with class names, and adjusts
 
 ### Converting Segmentation Masks to YOLO Format
 
-If you have segmentation masks in binary format, you can convert them to the YOLO segmentation format using:
+If you have grayscale mask images where each pixel value is the class index + 1 (0 is background), you can convert them to the YOLO segmentation format using:
 
 ```python
 from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
@@ -191,13 +191,13 @@ from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
 ```
 
-This utility converts binary mask images into the YOLO segmentation format and saves them in the specified output directory.
+This utility converts the mask images into the YOLO segmentation format and saves them in the specified output directory.
 
 ## FAQ
 
 ### What dataset formats does Ultralytics YOLO support for instance segmentation?
 
-Ultralytics YOLO supports several dataset formats for instance segmentation, with the primary format being its own Ultralytics YOLO format. Each image in your dataset needs a corresponding text file with object information segmented into multiple rows (one row per object), listing the class index and normalized bounding coordinates. For more detailed instructions on the YOLO dataset format, visit the [Instance Segmentation Datasets Overview](#instance-segmentation-datasets-overview).
+Ultralytics YOLO supports several dataset formats for instance segmentation, with the primary format being its own Ultralytics YOLO format. Each image in your dataset needs a corresponding text file with object information segmented into multiple rows (one row per object), listing the class index and normalized polygon coordinates. For more detailed instructions on the YOLO dataset format, visit the [Instance Segmentation Datasets Overview](#instance-segmentation-datasets-overview).
 
 ### How can I convert COCO dataset annotations to the YOLO format?
 

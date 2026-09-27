@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from copy import copy
-from pathlib import Path
+
+import torch
 
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import SegmentationModel
@@ -39,12 +40,12 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
         overrides["task"] = "segment"
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg: dict | str | None = None, weights: str | Path | None = None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Initialize and return a SegmentationModel with specified configuration and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration. Can be a dictionary, a path to a YAML file, or None.
-            weights (str | Path, optional): Path to pretrained weights file.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -52,8 +53,7 @@ class SegmentationTrainer(yolo.detect.DetectionTrainer):
 
         Examples:
             >>> trainer = SegmentationTrainer()
-            >>> model = trainer.get_model(cfg="yolo26n-seg.yaml")
-            >>> model = trainer.get_model(weights="yolo26n-seg.pt", verbose=False)
+            >>> model = trainer.get_model(cfg="yolo26n-seg.yaml", verbose=False)
         """
         model = self.set_model_names_for_load(
             SegmentationModel(cfg, nc=self.data["nc"], ch=self.data["channels"], verbose=verbose and RANK == -1)

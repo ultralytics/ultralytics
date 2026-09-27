@@ -27,7 +27,7 @@ Here's how YOLOv5 implements layer freezing in its [training script](https://git
 
 ```python
 # Freeze specified layers
-freeze = [f"model.{x}." for x in range(freeze)]  # Define layers to freeze based on module index
+freeze = [f"model.{x}." for x in (freeze if len(freeze) > 1 else range(freeze[0]))]  # layers to freeze
 for k, v in model.named_parameters():
     v.requires_grad = True  # Ensure all parameters are initially trainable
     if any(x in k for x in freeze):
@@ -46,9 +46,9 @@ for name, param in model.named_parameters():
 
 """
 Example Output:
-model.0.conv.conv.weight
-model.0.conv.bn.weight
-model.0.conv.bn.bias
+model.0.conv.weight
+model.0.bn.weight
+model.0.bn.bias
 model.1.conv.weight
 model.1.bn.weight
 model.1.bn.bias
@@ -86,7 +86,7 @@ head:
 
 ## Freezing Options
 
-You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen. Use `model.model` (a `nn.Sequential`) to inspect the module ordering if you need to confirm which indices correspond to a particular block.
+You can control which layers are frozen using the `--freeze` argument in the training command. This argument specifies the index of the first _unfrozen_ module; all modules before this index will have their weights frozen. Passing several indices instead (e.g., `--freeze 0 1 2`) freezes exactly those modules. Use `model.model` (a `nn.Sequential`) to inspect the module ordering if you need to confirm which indices correspond to a particular block.
 
 ### Freeze Backbone Only
 

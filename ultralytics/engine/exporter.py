@@ -10,9 +10,11 @@ ONNX                    | `onnx`                    | yolo26n.onnx
 OpenVINO                | `openvino`                | yolo26n_openvino_model/
 TensorRT                | `engine`                  | yolo26n.engine
 CoreML                  | `coreml`                  | yolo26n.mlpackage
+Apple Core AI           | `coreai`                  | yolo26n.aimodel
 TensorFlow SavedModel   | `saved_model`             | yolo26n_saved_model/
 TensorFlow GraphDef     | `pb`                      | yolo26n.pb
 TensorFlow Edge TPU     | `edgetpu`                 | yolo26n_edgetpu.tflite
+LiteRT                  | `litert`                  | yolo26n.tflite
 PaddlePaddle            | `paddle`                  | yolo26n_paddle_model/
 MNN                     | `mnn`                     | yolo26n.mnn
 NCNN                    | `ncnn`                    | yolo26n_ncnn_model/
@@ -22,10 +24,8 @@ ExecuTorch              | `executorch`              | yolo26n_executorch_model/
 Axelera AI              | `axelera`                 | yolo26n_axelera_model/
 DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
-LiteRT                  | `litert`                  | yolo26n.tflite
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
-Apple Core AI           | `coreai`                  | yolo26n.aimodel
 ExportedProgram         | `exported_program`        | yolo26n.pt2
 
 Requirements:
@@ -48,9 +48,11 @@ Inference:
                          yolo26n_openvino_model     # OpenVINO
                          yolo26n.engine             # TensorRT
                          yolo26n.mlpackage          # CoreML (macOS-only)
+                         yolo26n.aimodel            # Apple Core AI (export on macOS 26+ Apple silicon or x86_64 Linux)
                          yolo26n_saved_model        # TensorFlow SavedModel
                          yolo26n.pb                 # TensorFlow GraphDef
                          yolo26n_edgetpu.tflite     # TensorFlow Edge TPU
+                         yolo26n.tflite             # LiteRT
                          yolo26n_paddle_model       # PaddlePaddle
                          yolo26n.mnn                # MNN
                          yolo26n_ncnn_model         # NCNN
@@ -60,9 +62,8 @@ Inference:
                          yolo26n_axelera_model      # Axelera AI
                          yolo26n_deepx_model        # DEEPX
                          yolo26n_qnn.onnx           # Qualcomm QNN
-                         yolo26n.tflite             # LiteRT
+                         yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
-                         yolo26n.aimodel            # Apple Core AI (macOS 26+, Apple silicon)
 """
 
 from __future__ import annotations
@@ -123,6 +124,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_9,
     IS_PYTHON_MINIMUM_3_13,
+    check_data_portable,
     check_imgsz,
     check_requirements,
     check_version,
@@ -189,12 +191,21 @@ def export_formats():
         ],
         ["CoreML", "coreml", ".mlpackage", True, False, ["batch", "dynamic", "quantize", "nms"], "coreml"],
         [
+            "Core AI",
+            "coreai",
+            ".aimodel",
+            True,
+            False,
+            ["batch", "quantize"],
+            "base",
+        ],
+        [
             "TensorFlow SavedModel",
             "saved_model",
             "_saved_model",
             True,
             True,
-            ["batch", "data", "fraction", "quantize", "opset", "keras", "nms"],
+            ["batch", "data", "fraction", "quantize", "opset", "nms"],
             "tensorflow",
         ],
         ["TensorFlow GraphDef", "pb", ".pb", True, True, ["batch", "opset"], "tensorflow"],
@@ -207,6 +218,7 @@ def export_formats():
             ["data", "fraction", "quantize", "opset"],
             "tensorflow",
         ],
+        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         ["PaddlePaddle", "paddle", "_paddle_model", True, True, ["batch"], "base"],
         ["MNN", "mnn", ".mnn", True, True, ["batch", "dynamic", "quantize", "opset", "simplify", "nms"], "mnn"],
         ["NCNN", "ncnn", "_ncnn_model", True, True, ["batch", "quantize"], "ncnn"],
@@ -248,7 +260,6 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "fraction", "data"],
             "base",
         ],
-        ["LiteRT", "litert", ".tflite", True, False, ["batch", "quantize", "data", "fraction"], "litert"],
         [
             "Hailo",
             "hailo",
@@ -265,15 +276,6 @@ def export_formats():
             False,
             False,
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
-            "base",
-        ],
-        [
-            "Core AI",
-            "coreai",
-            ".aimodel",
-            True,
-            False,
-            ["batch", "quantize"],
             "base",
         ],
         ["ExportedProgram", "exported_program", ".pt2", False, False, ["batch"], "base"],
@@ -414,7 +416,7 @@ EXPORT_ENVS = {
 
 # Export precision support per format. Unset/32 requests are FP32 except for formats listed in FP32_UNSUPPORTED_FORMATS.
 FP16_FORMATS = frozenset(
-    {"torchscript", "onnx", "openvino", "engine", "coreml", "mnn", "ncnn", "rknn", "ascend", "coreai"}
+    {"torchscript", "onnx", "openvino", "engine", "coreml", "coreai", "mnn", "ncnn", "rknn", "ascend"}
 )
 INT8_FORMATS = frozenset(
     {
@@ -424,18 +426,16 @@ INT8_FORMATS = frozenset(
         "coreml",
         "saved_model",
         "edgetpu",
+        "litert",
         "mnn",
         "imx",
         "rknn",
         "axelera",
         "deepx",
         "hailo",
-        "litert",
     }
 )
-W8A16_FORMATS = frozenset(
-    {"coreml", "imx", "qnn", "litert"}
-)  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
+W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
 FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
@@ -453,12 +453,12 @@ def validate_args(format, passed_args, valid_args):
     Args:
         format (str): The export format.
         passed_args (SimpleNamespace): The arguments used during export.
-        valid_args (list): List of valid arguments for the format.
+        valid_args (list | None): List of valid arguments for the format.
 
     Raises:
         AssertionError: If an unsupported argument is used, or if the format lacks supported argument listings.
     """
-    # Format-specific args come from the export table; skip inference args and quantize (validated above)
+    # Format-specific args from the export table; skip conf/iou/name, nms (handled by Exporter) and quantize (below)
     export_args = sorted(set().union(*export_formats()["Arguments"]) - {"conf", "iou", "name", "quantize", "nms"})
 
     assert valid_args is not None, f"ERROR ❌️ valid arguments for '{format}' not listed."
@@ -525,6 +525,8 @@ class Exporter:
         pretty_name (str): Formatted model name for display purposes.
         metadata (dict): Model metadata including description, author, version, etc.
         device (torch.device): Device on which the model is loaded.
+        dla (str | None): TensorRT DLA core ('0' or '1') when exporting with device='dla:N', otherwise None.
+        qat (bool): Whether the model is a quantization-aware trained (QAT) model.
         imgsz (list): Input image size for the model.
 
     Methods:
@@ -534,6 +536,7 @@ class Exporter:
         export_onnx: Export model to ONNX format.
         export_openvino: Export model to OpenVINO format.
         export_paddle: Export model to PaddlePaddle format.
+        export_litert: Export model to LiteRT format.
         export_mnn: Export model to MNN format.
         export_ncnn: Export model to NCNN format.
         export_coreml: Export model to CoreML format.
@@ -547,6 +550,9 @@ class Exporter:
         export_coreai: Export model to Apple Core AI format.
         export_axelera: Export model to Axelera format.
         export_deepx: Export model to DEEPX format.
+        export_qnn: Export model to Qualcomm QNN format.
+        export_hailo: Export model to Hailo HEF format.
+        export_ascend: Export model to Huawei Ascend format.
         export_exported_program: Export model to ExportedProgram (PT2) format.
 
     Examples:
@@ -574,16 +580,22 @@ class Exporter:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         callbacks.add_integration_callbacks(self)
 
-    def __call__(self, model=None) -> str:
+    def __call__(self, model: torch.nn.Module) -> str:
         """Export a model and return the final exported path as a string.
+
+        Args:
+            model (torch.nn.Module): The YOLO PyTorch model to export.
 
         Returns:
             (str): Path to the exported file or directory (the last export artifact).
+
+        Raises:
+            ValueError: If the export format is invalid or the model/arguments are unsupported for the format.
         """
         t = time.time()
-        fmt = self.args.format.lower()  # to lowercase
+        fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
-            fmt = "engine"
+            fmt = self.args.format = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
@@ -605,7 +617,7 @@ class Exporter:
                 msg = "Model is already in PyTorch format." if fmt == "pt" else f"Invalid export format='{fmt}'."
                 raise ValueError(f"{msg} Valid formats are {fmts}")
             LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
-            fmt = matches[0]
+            fmt = self.args.format = matches[0]
         is_tf_format = fmt in {"saved_model", "pb", "edgetpu"}
 
         # Device
@@ -819,14 +831,10 @@ class Exporter:
                 )
         if (fmt in {"engine", "coreml"} or self.args.nms) and self.args.dynamic and self.args.batch == 1:
             LOGGER.warning("'dynamic=True' export requires a maximum batch size, e.g. 'batch=16'.")
-        if fmt == "edgetpu":
-            if not LINUX or ARM64:
-                raise SystemError(
-                    "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
-                )
-            elif self.args.batch != 1:  # see github.com/ultralytics/ultralytics/pull/13420
-                LOGGER.warning("Edge TPU export requires batch size 1, setting batch=1.")
-                self.args.batch = 1
+        if fmt == "edgetpu" and (not LINUX or ARM64):
+            raise SystemError(
+                "Edge TPU export only supported on non-aarch64 Linux. See https://coral.ai/docs/edgetpu/compiler"
+            )
         self.qat = is_qat(model)  # quantization-aware trained model: ranges are baked in, calibration is a no-op
         if self.qat:
             assert fmt in {"onnx", "engine"}, (
@@ -880,7 +888,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
+            if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
@@ -916,15 +924,13 @@ class Exporter:
 
         if model.task == "semantic" and fmt in {"qnn", "coreml", "ascend"}:
             # NPU-targeted semantic exports ship a compact uint8 class map instead of float logits: emitting logits
-            # forces consumers to dequantize and argmax ~20M floats on the CPU every frame (measured erratic
-            # 123-1065 ms on Hexagon). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
+            # forces consumers to dequantize and argmax ~8M floats at 640px (~20M at 1024px) on the CPU every frame
+            # (measured erratic 123-1065 ms on Hexagon at 1024px). Not applied to LiteRT, where the GPU delegate cannot compile ArgMax (int64
             # indices) and a whole-graph CPU fallback is slower than GPU logits + consumer-side argmax. Python
             # predict/val accept both forms.
             model = ClassMapModel(model)
 
-        y = None
-        for _ in range(2):  # dry runs
-            y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)
+        y = NMSModel(model, self.args)(im) if self.args.nms and fmt not in {"coreml", "imx"} else model(im)  # dry run
         if self.args.quantize == 16 and fmt in {"onnx", "torchscript"} and self.device.type != "cpu":
             im, model = im.half(), model.half()  # to FP16
 
@@ -991,9 +997,11 @@ class Exporter:
             )
             imgsz = self.imgsz[0] if square else str(self.imgsz)[1:-1].replace(" ", "")
             q = "quantize=16" if self.args.quantize == 16 else ""  # FP16 inference flag for the val/predict hint
+            d = f"data={data}" if check_data_portable(data) else ""  # omit host paths that would not run here
             inference_commands = (
                 f"\nPredict:         yolo predict task={model.task} model={f} imgsz={imgsz} {q}"
-                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} data={data} {q} {s}"
+                f"\nValidate:        yolo val task={model.task} model={f} imgsz={imgsz} "
+                f"{d} {q} {s}"
                 if fmt in AutoBackend._BACKEND_MAP
                 else ""
             )
@@ -1016,14 +1024,14 @@ class Exporter:
         if self.model.task == "classify":
             import torchvision.transforms as T  # scope for faster 'import ultralytics'
 
-            data = check_cls_dataset(self.args.data, split=self.args.split)
+            data = check_cls_dataset(self.args.data, split=split)
             if not isinstance(cfg.fraction, list):
                 cfg.fraction = [cfg.fraction] * 3
             dataset = ClassificationDataset(data[split], args=cfg, augment=False, prefix=split)
             # INT8 backends divide images by 255, so emit uint8 [0, 255] center-cropped like classify inference
             dataset.torch_transforms = T.Compose([T.Resize(cfg.imgsz), T.CenterCrop(cfg.imgsz), T.PILToTensor()])
         else:
-            data = check_det_dataset(self.args.data, split=self.args.split)
+            data = check_det_dataset(self.args.data, split=split)
             cfg.fraction = get_split_fraction(cfg.fraction, split) if isinstance(cfg.fraction, list) else cfg.fraction
             dataset = build_yolo_dataset(
                 cfg,
@@ -1322,7 +1330,7 @@ class Exporter:
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):  # noqa: B008
         """Export YOLO model to CoreML format."""
-        mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
+        mlmodel = self.args.format == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633
@@ -1514,8 +1522,8 @@ class Exporter:
     @try_export
     def export_coreai(self, prefix=colorstr("Core AI:")):  # noqa: B008
         """Export YOLO model to Apple Core AI *.aimodel format."""
-        assert MACOS and ARM64 and MACOS_VERSION >= "26.0", (
-            "Core AI export requires macOS>=26 on Apple silicon; coreai-core publishes macosx_26_0_arm64 wheels only."
+        assert (MACOS and ARM64 and MACOS_VERSION >= "26.0") or (LINUX and not ARM64), (
+            "Core AI export requires macOS>=26 on Apple silicon or x86_64 Linux, the platforms coreai-core publishes."
         )
         assert TORCH_2_8, f"Core AI export requires torch>=2.8.0 but torch=={TORCH_VERSION} is installed"
         from ultralytics.utils.export.coreai import torch2coreai
@@ -1530,7 +1538,7 @@ class Exporter:
         )
 
     @try_export
-    def export_edgetpu(self, tflite_model="", prefix=colorstr("Edge TPU:")):  # noqa: B008
+    def export_edgetpu(self, tflite_model: Path, prefix=colorstr("Edge TPU:")):  # noqa: B008
         """Export YOLO model to Edge TPU format https://coral.ai/docs/edgetpu/models-intro/."""
         from ultralytics.utils.export.tensorflow import tflite2edgetpu
 
@@ -1599,7 +1607,7 @@ class Exporter:
     def export_imx(self, prefix=colorstr("IMX:")):  # noqa: B008
         """Export YOLO model to IMX format."""
         assert LINUX, (
-            "Export only supported on Linux."
+            "Export only supported on Linux. "
             "See https://developer.aitrios.sony-semicon.com/en/docs/raspberry-pi-ai-camera/imx500-converter?version=3.17.3&progLang="
         )
         assert IS_PYTHON_MINIMUM_3_9, "IMX export is only supported on Python 3.9 or above."
@@ -1652,7 +1660,7 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
-            batch=0 if self.args.dynamic else self.args.batch,
+            batch=self.args.batch,
             prefix=prefix,
         )
 
@@ -1818,7 +1826,7 @@ class Exporter:
         """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
-        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to fp16/32 and 0 - 255 to 0.0 - 1.0
+        im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
         return im[None] if im.ndim == 3 else im
 
     def add_callback(self, event: str, callback):

@@ -182,7 +182,7 @@ Use a public dataset for your training:
     - The destination slug is auto-renamed if the name is already taken in your workspace
     - You can modify classes, annotations, and splits
     - Changes don't affect the original dataset
-    - Image bytes reuse content-addressable storage (CAS), but the clone still counts toward the destination workspace's storage quota
+    - Image files are reused rather than copied, but the clone still counts toward the destination workspace's storage quota
 
 See [Datasets](data/datasets.md) for managing and annotating your cloned dataset.
 

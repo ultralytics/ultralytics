@@ -62,7 +62,7 @@ A [YAML](https://www.ultralytics.com/glossary/yaml) file defines the dataset con
 
 ## Usage
 
-To train an [Ultralytics YOLO26n](../../models/yolo26.md) model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. The dataset (~103 MB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training page](../../modes/train.md).
+To train an [Ultralytics YOLO26n-seg](../../models/yolo26.md) model on the Package Segmentation dataset for 100 [epochs](https://www.ultralytics.com/glossary/epoch) with an image size of 640, use the following code snippets. The dataset (~103 MB) downloads automatically on first use. For a comprehensive list of available arguments, refer to the model [Training page](../../modes/train.md).
 
 !!! example "Train Example"
 

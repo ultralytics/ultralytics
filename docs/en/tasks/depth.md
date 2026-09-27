@@ -36,7 +36,7 @@ YOLO26 depth models pretrained on a broad multi-dataset mix (indoor + outdoor, ~
 
 {% include "macros/yolo-depth-perf.md" %}
 
-- **delta1<sup>NYU</sup>** is the percentage of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
+- **delta1<sup>NYU</sup>** is the fraction of pixels where the predicted depth is within a factor of 1.25 of the ground truth, on the NYU Depth V2 Eigen test split (654 images) with multi-scale + horizontal-flip TTA and log-least-squares alignment.
 - Single-scale accuracy without TTA is reproducible with `yolo depth val model=yolo26n-depth.pt data=nyu-depth.yaml imgsz=768 device=0` (substitute `model=` for each size), which uses median (scale-only) alignment and scores lower: delta1 0.783 (n), 0.793 (s), 0.840 (m), 0.853 (l), 0.860 (x).
 - **abs_rel** is the mean absolute relative error between predicted and ground-truth depth values.
 - **rmse** is the root mean squared error in meters.
@@ -199,7 +199,7 @@ Additional tips:
 
 ### Calibrating the depth scale
 
-The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form fit of a two-parameter log-affine against a small labeled set, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
+The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form, scale-only fit of the head's log-affine transform against a small labeled set, kept only when it improves cross-validated held-out δ1, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
 
 !!! example "Scale calibration"
 
@@ -238,7 +238,7 @@ Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/gl
 
         # Validate the model
         metrics = model.val(data="nyu-depth.yaml")
-        metrics.delta1  # percentage of pixels within threshold δ=1.25
+        metrics.delta1  # fraction of pixels within threshold δ=1.25
         metrics.abs_rel  # mean absolute relative error
         metrics.rmse  # root mean squared error (meters)
         metrics.silog  # scale-invariant logarithmic error
@@ -411,7 +411,7 @@ Check the [Configuration](../usage/cfg.md) page for more available arguments.
 
 Depth estimation validation reports the metric set used by Depth Anything and related monocular-depth work:
 
-- **delta1 / delta2 / delta3** — percentage of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
+- **delta1 / delta2 / delta3** — fraction of pixels where the ratio of predicted to ground-truth depth (or its inverse) is below 1.25, 1.25², and 1.25³ respectively. Higher is better.
 - **abs_rel** — mean absolute relative error. Lower is better.
 - **rmse** — root mean squared error in meters. Lower is better.
 - **silog** — scale-invariant logarithmic error. Lower is better.

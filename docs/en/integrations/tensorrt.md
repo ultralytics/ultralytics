@@ -255,10 +255,6 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
         ```
 
-???+ warning "Calibration Cache"
-
-    On TensorRT 7–10, INT8 export runs implicit calibration and generates a calibration `.cache`, alongside a `.cache.id` sidecar recording the calibration inputs, to speed up future INT8 exports (TensorRT 11 and explicit Q/DQ graphs bake their ranges into the ONNX and write no cache). Ultralytics reuses it automatically only when the ONNX model, the selected calibration images, the `batch`, image size, calibration algorithm, DLA target, and TensorRT version all still match; any change triggers a fresh calibration, so a stale cache can no longer be silently applied to mismatched data. Delete the `.cache` (or its `.cache.id`) to force a full recalibration.
-
 #### Advantages of using YOLO with TensorRT INT8
 
 - **Reduced model size:** Quantization from FP32 to INT8 can reduce the model size by 4x (on disk or in memory), leading to faster download times, lower storage requirements, and reduced memory footprint when deploying a model.

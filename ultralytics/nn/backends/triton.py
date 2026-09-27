@@ -15,14 +15,14 @@ class TritonBackend(BaseBackend):
     """NVIDIA Triton Inference Server backend for remote model serving.
 
     Connects to and runs inference with models hosted on an NVIDIA Triton Inference Server instance via HTTP or gRPC
-    protocols. The model is specified using a triton:// URL scheme.
+    protocols. The model is specified as an http:// or grpc:// URL.
     """
 
     def load_model(self, weight: str | Path) -> None:
         """Connect to a remote model on an NVIDIA Triton Inference Server.
 
         Args:
-            weight (str | Path): Triton model URL (e.g., 'triton://host:8000/model_name').
+            weight (str | Path): Triton model URL (e.g., 'http://localhost:8000/model_name').
         """
         check_requirements("tritonclient[all]")
         from ultralytics.utils.triton import TritonRemoteModel

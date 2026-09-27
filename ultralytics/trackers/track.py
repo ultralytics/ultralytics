@@ -33,11 +33,17 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         predictor (ultralytics.engine.predictor.BasePredictor): The predictor object to initialize trackers for.
         persist (bool, optional): Whether to reuse existing trackers if they are already attached.
 
+    Raises:
+        ValueError: If the predictor's task does not support tracking.
+        AssertionError: If the tracker config specifies an unsupported `tracker_type`.
+
     Examples:
         Initialize trackers for a predictor object
         >>> predictor = SomePredictorClass()
         >>> on_predict_start(predictor, persist=True)
     """
+    if predictor.args.mode != "track":
+        return
     trackable = ("detect", "segment", "pose", "obb")  # tasks whose results carry boxes, in canonical order
     if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
         raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
@@ -70,7 +76,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
         else:
             # Register hook to extract input of Detect layer
             def pre_hook(module, input):
-                predictor._feats = list(input[0])  # unroll to new list to avoid mutation in forward
+                # unroll to new list to avoid mutation in forward; plain predict() on this predictor extracts none
+                predictor._feats = list(input[0]) if predictor.args.mode == "track" else None
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
@@ -93,13 +100,16 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool, optional): Whether to persist the trackers if they already exist.
+        persist (bool, optional): Whether to keep tracker state when the source video changes. If False, the tracker is
+            reset whenever a new video path is encountered.
 
     Examples:
         Postprocess predictions and update with tracking
         >>> predictor = YourPredictorClass()
         >>> on_predict_postprocess_end(predictor, persist=True)
     """
+    if predictor.args.mode != "track":
+        return
     is_obb = predictor.args.task == "obb"
     is_stream = predictor.dataset.mode == "stream"
 
@@ -140,7 +150,8 @@ def register_tracker(model: object, persist: bool) -> None:
 
     Examples:
         Register tracking callbacks to a YOLO model
-        >>> model = YOLOModel()
+        >>> from ultralytics import YOLO
+        >>> model = YOLO("yolo26n.pt")
         >>> register_tracker(model, persist=True)
     """
     for event, fn in (

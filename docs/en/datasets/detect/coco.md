@@ -35,7 +35,7 @@ The [COCO](https://cocodataset.org/#home) (Common Objects in Context) dataset is
 - COCO contains 330K images, with 200K images having annotations for object detection, segmentation, and captioning tasks.
 - The dataset comprises 80 object categories, including common objects like cars, bicycles, and animals, as well as more specific categories such as umbrellas, handbags, and sports equipment.
 - Annotations include object bounding boxes, segmentation masks, and captions for each image.
-- COCO provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) for object detection, and mean Average [Recall](https://www.ultralytics.com/glossary/recall) (mAR) for segmentation tasks, making it suitable for comparing model performance.
+- COCO provides standardized evaluation metrics like [mean Average Precision](https://www.ultralytics.com/glossary/mean-average-precision-map) (mAP) and Average [Recall](https://www.ultralytics.com/glossary/recall) (AR) for object detection and segmentation, making it suitable for comparing model performance.
 
 ## Dataset Structure
 
@@ -156,7 +156,7 @@ The COCO dataset includes:
 
 - 330K images, with 200K annotated for object detection, segmentation, and captioning.
 - 80 object categories ranging from common items like cars and animals to specific ones like handbags and sports equipment.
-- Standardized evaluation metrics for object detection (mAP) and segmentation (mean Average Recall, mAR).
+- Standardized evaluation metrics (mAP and Average Recall) for object detection and segmentation.
 - **Mosaicing** technique in training batches to enhance model generalization across various object sizes and contexts.
 
 ### Where can I find pretrained YOLO26 models trained on the COCO dataset?

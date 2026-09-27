@@ -648,8 +648,8 @@ def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
     Uses THOP's stride-aware image profiling, which extrapolates exactly from small stride-aligned proxy images when the
-    cost is quadratic in image area (convolutions and attention). RT-DETR, whose decoder query count saturates beyond the
-    proxy sizes, is profiled at the full image size. Returns 0.0 if thop is unavailable or profiling fails.
+    cost is quadratic in image area (convolutions and attention). RT-DETR, whose decoder query count saturates beyond
+    the proxy sizes, is profiled at the full image size. Returns 0.0 if thop is unavailable or profiling fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.

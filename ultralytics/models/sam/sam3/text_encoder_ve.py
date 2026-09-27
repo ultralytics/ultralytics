@@ -278,8 +278,7 @@ class VETextEncoder(nn.Module):
         """Encode text input, either raw strings or pre-encoded tensors, and resize to match decoder dimensions.
 
         Args:
-            text (list[str] | tuple[torch.Tensor, torch.Tensor, dict]): Raw text prompts, or a pre-encoded tuple of
-            (attention_mask, resized_memory, {"inputs_embeds": embeddings}).
+            text (list[str] | tuple[torch.Tensor, torch.Tensor, dict]): Raw text prompts or a pre-encoded tuple.
             input_boxes (list | None): Unsupported; must be None or empty.
 
         Returns:

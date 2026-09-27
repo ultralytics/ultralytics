@@ -104,7 +104,7 @@ sudo docker pull $t && sudo docker run -it --ipc=host --device nvidia.com/gpu=al
 
 The CDI device request above applies to DGX Spark running DGX OS. For PyTorch workloads on Jetson AGX Thor, see the separate host requirements and TensorRT restriction in the [NVIDIA Jetson guide](nvidia-jetson.md).
 
-This image uses NVIDIA PyTorch 26.08, CUDA 13.4, and TensorRT 11. Update the DGX OS host driver to a version supported by [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), and rebuild TensorRT engines after changing the image or target GPU.
+This image uses NVIDIA PyTorch 26.08, CUDA 13.4, and TensorRT 11.2. Update the DGX OS host driver to a version supported by [NVIDIA PyTorch 26.08](https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-26-08.html), and rebuild TensorRT engines after changing the image or target GPU.
 
 After this is done, skip to [Use TensorRT on NVIDIA DGX Spark section](#use-tensorrt-on-nvidia-dgx-spark).
 
@@ -406,7 +406,7 @@ Deploying Ultralytics YOLO26 on NVIDIA DGX Spark is straightforward. You can use
 
 ### What performance can I expect from YOLO26 on NVIDIA DGX Spark?
 
-YOLO26 models deliver excellent performance on DGX Spark thanks to the GB10 Grace Blackwell Superchip. The TensorRT format provides the best inference performance. Check the [Detailed Comparison Table](#detailed-comparison-table) section for specific benchmark results across different model sizes and formats.
+YOLO26 models deliver excellent performance on DGX Spark thanks to the GB10 Grace Blackwell Superchip. The TensorRT format provides the best inference performance. Check the [Detailed Comparison Table](#detailed-comparison-table) section for YOLO11 benchmark results on DGX Spark across different model sizes and formats.
 
 ### Why should I use TensorRT for YOLO26 on DGX Spark?
 

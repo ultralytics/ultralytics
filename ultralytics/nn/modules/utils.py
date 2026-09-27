@@ -1,4 +1,5 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+"""Utility functions for neural network modules."""
 
 import copy
 
@@ -34,9 +35,8 @@ def bias_init_with_prob(prior_prob=0.01):
     """Initialize conv/fc bias value according to a given probability value.
 
     This function calculates the bias initialization value based on a prior probability using the inverse sigmoid
-    (logit)
-    function. It's commonly used in object detection models to initialize classification layers with a specific positive
-    prediction probability.
+    (logit) function. It's commonly used in object detection models to initialize classification layers with a specific
+    positive prediction probability.
 
     Args:
         prior_prob (float, optional): Prior probability for bias initialization.
@@ -59,13 +59,14 @@ def inverse_sigmoid(x, eps=1e-5):
     operations, particularly in attention mechanisms and coordinate transformations.
 
     Args:
-        x (torch.Tensor): Input tensor with values in range [0, 1].
+        x (torch.Tensor): Input tensor with values in range [0, 1]; values outside this range are clamped.
         eps (float, optional): Small epsilon value to prevent numerical instability.
 
     Returns:
         (torch.Tensor): Tensor after applying the inverse sigmoid function.
 
     Examples:
+        >>> import torch
         >>> x = torch.tensor([0.2, 0.5, 0.8])
         >>> inverse_sigmoid(x)
         tensor([-1.3863,  0.0000,  1.3863])

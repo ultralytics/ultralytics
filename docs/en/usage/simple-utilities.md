@@ -77,8 +77,8 @@ The converted masks will be saved in the specified output directory.
 ```python
 from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
-# The classes here is the total classes in the dataset.
-# for COCO dataset we have 80 classes.
+# `classes` is the total number of classes in the dataset.
+# For the COCO dataset, there are 80 classes.
 convert_segment_masks_to_yolo_seg(masks_dir="path/to/masks_dir", output_dir="path/to/output_dir", classes=80)
 ```
 
@@ -144,7 +144,7 @@ from ultralytics.data.converter import yolo_bbox2segment
 
 yolo_bbox2segment(
     im_dir="path/to/images",
-    save_dir=None,  # saved to "labels-segment" in images directory
+    save_dir=None,  # saved to "labels-segment" next to the images directory
     sam_model="sam_b.pt",
 )
 ```
@@ -223,7 +223,7 @@ import numpy as np
 from ultralytics.data.utils import polygon2mask
 
 imgsz = (1080, 810)
-polygon = np.array([805, 392, 797, 400, ..., 808, 714, 808, 392])  # (238, 2)
+polygon = np.array([805, 392, 797, 400, ..., 808, 714, 808, 392])  # (N,) flat x, y coordinates
 
 mask = polygon2mask(
     imgsz,  # tuple
@@ -438,7 +438,7 @@ Ultralytics includes an `Annotator` class for annotating various data types. It'
 
         from ultralytics.utils.plotting import Annotator, colors
 
-        obb_names = {10: "small vehicle"}
+        obb_names = {0: "plane", 9: "large vehicle"}
         obb_image = cv.imread("datasets/dota8/images/train/P1142__1024__0___824.jpg")
         obb_boxes = np.array(
             [
@@ -764,7 +764,7 @@ from ultralytics.data.converter import yolo_bbox2segment
 
 yolo_bbox2segment(
     im_dir="path/to/images",
-    save_dir=None,  # saved to "labels-segment" in the images directory
+    save_dir=None,  # saved to "labels-segment" next to the images directory
     sam_model="sam_b.pt",
 )
 ```

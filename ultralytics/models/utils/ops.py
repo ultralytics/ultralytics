@@ -103,8 +103,8 @@ class HungarianMatcher(nn.Module):
             (list[tuple[torch.Tensor, torch.Tensor]]): A list of size batch_size, each element is a tuple (index_i,
                 index_j), where index_i is the tensor of indices of the selected predictions (in order) and index_j is
                 the tensor of indices of the corresponding selected ground truth targets (in order), offset into the
-                concatenated `gt_bboxes`. For each batch element, len(index_i) = len(index_j) = min(num_queries,
-                num_target_boxes).
+                concatenated `gt_bboxes`. For each batch element, len(index_i) = len(index_j) =
+                min(num_queries, num_target_boxes).
         """
         bs, nq, _ = pred_scores.shape
 
@@ -220,8 +220,8 @@ def get_cdn_group(
         padding_cls (torch.Tensor | None): Modified class embeddings for denoising with shape (bs, num_dn, embed_dim).
         padding_bbox (torch.Tensor | None): Modified bounding boxes for denoising with shape (bs, num_dn, 4).
         attn_mask (torch.Tensor | None): Attention mask for denoising with shape (tgt_size, tgt_size).
-        dn_meta (dict[str, Any] | None): Meta information dictionary with 'dn_pos_idx', 'dn_gt_idx', 'dn_num_group',
-            and 'dn_num_split' keys.
+        dn_meta (dict[str, Any] | None): Meta information dictionary with 'dn_pos_idx', 'dn_gt_idx', 'dn_num_group', and
+            'dn_num_split' keys.
 
     Examples:
         Generate denoising group for training

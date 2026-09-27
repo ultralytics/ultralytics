@@ -273,8 +273,8 @@ class LoadScreenshots:
 
         Args:
             source (str): Screen capture source string starting with "screen", optionally followed by a screen number
-                and/or a "left top width height" capture region, e.g. "screen", "screen 1", or
-                "screen 0 100 100 640 480".
+                and/or a "left top width height" capture region, e.g. "screen", "screen 1", or "screen 0 100 100
+                640 480".
             channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         check_requirements("mss")

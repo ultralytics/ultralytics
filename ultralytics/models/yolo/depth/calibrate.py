@@ -223,8 +223,8 @@ def fit_calibration_selective(
         max_depth (float): Maximum valid GT depth in meters; pixels beyond it are excluded.
 
     Returns:
-        (dict | None): The :func:`select_calibration_cv` result dict plus ``images`` (number of images used), or None
-            if no Depth head / too few images.
+        (dict | None): The :func:`select_calibration_cv` result dict plus ``images`` (number of images used), or None if
+            no Depth head / too few images.
     """
     head = _depth_head(model)
     if head is None:

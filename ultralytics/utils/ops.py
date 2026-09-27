@@ -145,8 +145,8 @@ def scale_boxes(
         xywh (bool): Whether box format is xywh (True) or xyxy (False).
 
     Returns:
-        (torch.Tensor | np.ndarray): Rescaled bounding boxes in the same format as input, clipped to img0_shape for
-            xyxy boxes.
+        (torch.Tensor | np.ndarray): Rescaled bounding boxes in the same format as input, clipped to img0_shape for xyxy
+            boxes.
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
@@ -595,8 +595,8 @@ def scale_masks(
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)); only the
-            padding is used.
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)); only the padding
+            is used.
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
         mode (str): Interpolation mode, e.g. 'bilinear' for logits or 'nearest' for integer class maps.
 
@@ -685,8 +685,8 @@ def masks2segments(masks: np.ndarray | torch.Tensor, strategy: str = "all") -> l
 
     Args:
         masks (np.ndarray | torch.Tensor): Binary masks with shape (N, H, W).
-        strategy (str): Segmentation strategy, either 'all' to merge all contours or 'largest' to keep the contour
-            with the most points.
+        strategy (str): Segmentation strategy, either 'all' to merge all contours or 'largest' to keep the contour with
+            the most points.
 
     Returns:
         (list[np.ndarray]): List of (K, 2) float32 segment point arrays, one per mask ((0, 2) if no contour).

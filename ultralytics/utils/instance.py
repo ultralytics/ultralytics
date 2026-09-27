@@ -383,9 +383,9 @@ class Instances:
         Args:
             w (int): Image width.
             h (int): Image height.
-            preserve_obb (bool): Preserve oriented-box direction while clipping segments: each segment extending
-                outside the image is replaced by the rectangle, aligned with its original orientation, that bounds its
-                visible part, and its box by the axis-aligned bounds of that visible part.
+            preserve_obb (bool): Preserve oriented-box direction while clipping segments: each segment extending outside
+                the image is replaced by the rectangle, aligned with its original orientation, that bounds its visible
+                part, and its box by the axis-aligned bounds of that visible part.
         """
         ori_format = self._bboxes.format
         self.convert_bbox(format="xyxy")

@@ -88,15 +88,15 @@ def benchmark(
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference. Each format then runs
             inference at its own runtime precision.
         device (str): Device to run the benchmark on, e.g. 'cpu', 'cuda:0' or 'mps'.
-        verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts
-            that every successful format's metric exceeds this floor value.
+        verbose (bool | float): If True or a float, raise on non-assertion benchmark failures; a float also asserts that
+            every successful format's metric exceeds this floor value.
         eps (float): Epsilon value for divide by zero prevention.
         format (str): Export format for benchmarking. If not supplied, all formats are benchmarked.
         **kwargs (Any): Export options; nms selects the same head for native and exported benchmarks.
 
     Returns:
-        (polars.DataFrame): A Polars DataFrame of string-formatted benchmark results for each format, including
-            status, file size, metric, inference time, and FPS.
+        (polars.DataFrame): A Polars DataFrame of string-formatted benchmark results for each format, including status,
+            file size, metric, inference time, and FPS.
 
     Examples:
         Benchmark a YOLO model with default settings:

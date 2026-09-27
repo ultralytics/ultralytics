@@ -187,9 +187,9 @@ class Detect(nn.Module):
 
         Returns:
             (dict | torch.Tensor | tuple): In training, the raw prediction dict (with "one2many" and "one2one" keys for
-                end-to-end heads). In inference, decoded predictions of shape (B, 4 + nc, num_anchors), or
-                (B, max_det, 6) with [x1, y1, x2, y2, score, class_index] when end-to-end; returned alone in export
-                mode and otherwise as a (predictions, raw prediction dict) tuple.
+                end-to-end heads). In inference, decoded predictions of shape (B, 4 + nc, num_anchors), or (B, max_det,
+                6) with [x1, y1, x2, y2, score, class_index] when end-to-end; returned alone in export mode and
+                otherwise as a (predictions, raw prediction dict) tuple.
         """
         preds = self.forward_head(x, **self.one2many)
         if getattr(self, "one2one_cv2", None) is not None:
@@ -809,8 +809,8 @@ class Depth(nn.Module):
             x (list[torch.Tensor]): Feature tensors [P3, P4, P5] from the backbone/neck.
 
         Returns:
-            (dict[str, torch.Tensor] | torch.Tensor): In training, a dict {"depth": (B, 1, H/4, W/4)} with the raw
-                head output the loss supervises. In eval, a (B, 1, H/4, W/4) tensor with calibration applied; the
+            (dict[str, torch.Tensor] | torch.Tensor): In training, a dict {"depth": (B, 1, H/4, W/4)} with the raw head
+                output the loss supervises. In eval, a (B, 1, H/4, W/4) tensor with calibration applied; the
                 predictor/validator resize it to image/GT size. In export mode, a (B, 1, H, W) tensor upsampled 4x to
                 the input size. Depth values are positive (exp of the clamped head output).
         """
@@ -887,8 +887,8 @@ class Classify(nn.Module):
                 channel dimension.
 
         Returns:
-            (torch.Tensor | tuple): Logits of shape (B, c2) in training; softmax probabilities in export mode;
-                otherwise a (probabilities, logits) tuple.
+            (torch.Tensor | tuple): Logits of shape (B, c2) in training; softmax probabilities in export mode; otherwise
+                a (probabilities, logits) tuple.
         """
         if isinstance(x, list):
             x = torch.cat(x, 1)
@@ -1708,8 +1708,8 @@ class RTDETRDecoder(nn.Module):
             eps (float, optional): Small value for numerical stability.
 
         Returns:
-            anchors (torch.Tensor): Anchor boxes in inverse-sigmoid (logit) space with shape (1, sum(h * w), 4), set
-                to inf where invalid.
+            anchors (torch.Tensor): Anchor boxes in inverse-sigmoid (logit) space with shape (1, sum(h * w), 4), set to
+                inf where invalid.
             valid_mask (torch.Tensor): Boolean mask of valid anchors with shape (1, sum(h * w), 1).
         """
         anchors = []

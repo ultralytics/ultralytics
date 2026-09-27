@@ -81,7 +81,8 @@ class LLM:
 
         Args:
             source (Any, optional): Text prompt (str), image (Path, PIL image, or array), or native Responses input /
-                chat messages (list, tuple, or dict) passed through unchanged. If None, the constructor `prompt` is sent.
+                chat messages (list, tuple, or dict) passed through unchanged. If None, the constructor `prompt`
+                is sent.
             image (Any, optional): Image (URL, path, PIL image, or array) to analyze, with `source` used as its text
                 prompt.
             **kwargs (Any): Request arguments overriding the constructor defaults.
@@ -104,7 +105,8 @@ class LLM:
 
         Args:
             source (Any, optional): Text prompt (str), image (Path, PIL image, or array), or native Responses input /
-                chat messages (list, tuple, or dict) passed through unchanged. If None, the constructor `prompt` is sent.
+                chat messages (list, tuple, or dict) passed through unchanged. If None, the constructor `prompt`
+                is sent.
             image (Any, optional): Image (URL, path, PIL image, or array) to analyze, with `source` used as its text
                 prompt.
             **kwargs (Any): Request arguments overriding the constructor defaults.

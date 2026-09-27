@@ -575,8 +575,8 @@ class FpnNeck(nn.Module):
         and top-down feature fusion. It generates output feature maps and corresponding positional encodings.
 
         Args:
-            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C_i, H_i, W_i), ordered
-                from highest to lowest resolution with each level half the spatial size of the previous one.
+            xs (list[torch.Tensor]): List of input tensors from the backbone, each with shape (B, C_i, H_i, W_i),
+                ordered from highest to lowest resolution with each level half the spatial size of the previous one.
 
         Returns:
             out (list[torch.Tensor]): List of output feature maps after FPN processing, each with shape (B, d_model,

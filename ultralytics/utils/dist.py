@@ -113,8 +113,8 @@ if __name__ == "__main__":
 def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     """Generate command for distributed training.
 
-    Removes the trainer's save directory unless resuming, writes the temporary DDP file, and selects a free port for
-    the `torch.distributed` launcher.
+    Removes the trainer's save directory unless resuming, writes the temporary DDP file, and selects a free port for the
+    `torch.distributed` launcher.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.

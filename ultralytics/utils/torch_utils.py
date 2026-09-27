@@ -1005,8 +1005,8 @@ def cuda_memory_usage(device=None):
     then records the reserved memory on the specified device.
 
     Args:
-        device (torch.device, optional): The accelerator device to query memory usage for. CPU and MPS devices are
-            not measured.
+        device (torch.device, optional): The accelerator device to query memory usage for. CPU and MPS devices are not
+            measured.
 
     Yields:
         (dict): A dictionary with a key 'memory' initialized to 0, updated with reserved memory in bytes.
@@ -1038,8 +1038,8 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
             AutoBatch. Requires `ops` to have `stride` and `names` attributes. 0 disables the simulation.
 
     Returns:
-        (list): Profile results for each input and operation pair, each either a list of [parameters, GFLOPs,
-            memory (GB), forward time (ms), backward time (ms), input shape, output shape] or None if profiling failed.
+        (list): Profile results for each input and operation pair, each either a list of [parameters, GFLOPs, memory
+            (GB), forward time (ms), backward time (ms), input shape, output shape] or None if profiling failed.
 
     Examples:
         >>> from ultralytics.utils.torch_utils import profile_ops
@@ -1131,8 +1131,8 @@ class EarlyStopping:
         """Initialize early stopping object.
 
         Args:
-            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping. 0 or
-                None disables early stopping.
+            patience (int, optional): Number of epochs to wait after fitness stops improving before stopping. 0 or None
+                disables early stopping.
         """
         self.best_fitness = 0.0  # i.e. mAP
         self.best_epoch = 0

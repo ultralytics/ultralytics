@@ -35,8 +35,8 @@ def non_max_suppression(
     Args:
         prediction (torch.Tensor | list | tuple): Predictions with shape (batch_size, 4 + num_classes + num_extra,
             num_boxes) containing xywh boxes, class scores, and optional extra channels (mask coefficients, keypoints,
-            or angle), or end-to-end predictions with shape (batch_size, num_boxes, 6 + num_extra). For a list or
-            tuple, the first element is used.
+            or angle), or end-to-end predictions with shape (batch_size, num_boxes, 6 + num_extra). For a list or tuple,
+            the first element is used.
         conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
         iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
         classes (list[int], optional): List of class indices to consider. If None, all classes are considered.

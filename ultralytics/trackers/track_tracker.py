@@ -459,8 +459,8 @@ class TRACKTRACK:
             results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
                 `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
             img (np.ndarray | None): Current BGR frame, used for GMC and external ReID models.
-            dets_del (tuple[np.ndarray, np.ndarray, np.ndarray] | None): Optional `(xywh, conf, cls)` detections
-                dropped by tight NMS and recovered with a looser NMS, used as extra low-priority candidates.
+            dets_del (tuple[np.ndarray, np.ndarray, np.ndarray] | None): Optional `(xywh, conf, cls)` detections dropped
+                by tight NMS and recovered with a looser NMS, used as extra low-priority candidates.
             **kwargs (Any): Additional inputs; `feats` supplies per-detection features for native (`model="auto"`) ReID.
 
         Returns:

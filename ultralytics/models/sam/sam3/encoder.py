@@ -47,8 +47,8 @@ class TransformerEncoderLayer(nn.Module):
             pre_norm (bool): Whether to use pre-norm (True) or post-norm (False) architecture.
             self_attention (nn.Module | None): Self-attention module. If None, a default 8-head, 256-dim
                 nn.MultiheadAttention is used.
-            cross_attention (nn.Module | None): Cross-attention module for attending to prompt/memory features. If
-                None, a default 8-head, 256-dim nn.MultiheadAttention is used.
+            cross_attention (nn.Module | None): Cross-attention module for attending to prompt/memory features. If None,
+                a default 8-head, 256-dim nn.MultiheadAttention is used.
         """
         super().__init__()
         self.d_model = d_model
@@ -209,8 +209,8 @@ class TransformerEncoderLayer(nn.Module):
         Args:
             tgt (torch.Tensor): Input tensor to be processed.
             memory (torch.Tensor): Memory tensor (e.g., prompt features) for cross-attention.
-            dac (bool): Whether to use Divide-and-Conquer attention (only apply self-attention to first half). Only
-                used in pre-norm mode.
+            dac (bool): Whether to use Divide-and-Conquer attention (only apply self-attention to first half). Only used
+                in pre-norm mode.
             tgt_mask (torch.Tensor | None): Mask for self-attention.
             memory_mask (torch.Tensor | None): Mask for cross-attention.
             tgt_key_padding_mask (torch.Tensor | None): Key padding mask for self-attention.
@@ -352,8 +352,8 @@ class TransformerEncoder(nn.Module):
             key_padding_masks_flatten (torch.Tensor | None): Flattened padding masks with shape (sum(H*W), batch_size).
             lvl_pos_embed_flatten (torch.Tensor): Flattened positional embeddings with shape (sum(H*W), batch_size,
                 d_model).
-            valid_ratios (torch.Tensor): Valid ratios for each feature level with shape (batch_size,
-                num_feature_levels, 2).
+            valid_ratios (torch.Tensor): Valid ratios for each feature level with shape (batch_size, num_feature_levels,
+                2).
         """
         assert len(src) == self.num_feature_levels, "must be equal to num_feature_levels"
         if src_key_padding_masks is not None:

@@ -955,8 +955,8 @@ class SAM2Model(torch.nn.Module):
             prev_sam_mask_logits (torch.Tensor | None): Previously predicted SAM mask logits to use as mask prompts.
 
         Returns:
-            (dict): Current frame outputs with keys 'pred_masks', 'pred_masks_high_res', 'obj_ptr',
-                'maskmem_features', 'maskmem_pos_enc', and 'object_score_logits' (inference only).
+            (dict): Current frame outputs with keys 'pred_masks', 'pred_masks_high_res', 'obj_ptr', 'maskmem_features',
+                'maskmem_pos_enc', and 'object_score_logits' (inference only).
         """
         sam_outputs, _, _ = self._track_step(
             frame_idx,

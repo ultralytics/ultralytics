@@ -2523,8 +2523,8 @@ class Format(BaseTransform):
             h (int): Height of the image.
 
         Returns:
-            masks (np.ndarray): Bitmap masks with shape (N, H // mask_ratio, W // mask_ratio), or (1, H // mask_ratio,
-                W // mask_ratio) if mask_overlap is True.
+            masks (np.ndarray): Bitmap masks with shape (N, H // mask_ratio, W // mask_ratio), or (1, H // mask_ratio, W
+                // mask_ratio) if mask_overlap is True.
             instances (Instances): Updated instances object with sorted segments if mask_overlap is True.
             cls (np.ndarray): Updated class labels, sorted if mask_overlap is True.
 
@@ -3101,9 +3101,8 @@ class DepthFormat(Format):
 class ClassifyLetterBox:
     """A class for resizing and padding images for classification tasks.
 
-    This class is designed to be part of a transformation pipeline, e.g.,
-    T.Compose([ClassifyLetterBox(size), ToTensor()]). It resizes and pads images to a specified size while maintaining
-    the original aspect ratio.
+    This class is designed to be part of a transformation pipeline, e.g., T.Compose([ClassifyLetterBox(size),
+    ToTensor()]). It resizes and pads images to a specified size while maintaining the original aspect ratio.
 
     Attributes:
         h (int): Target height of the image.
@@ -3238,8 +3237,8 @@ class CenterCrop:
 class ToTensor:
     """Convert an image from a numpy array to a PyTorch tensor.
 
-    This class is designed to be part of a transformation pipeline, e.g.,
-    T.Compose([ClassifyLetterBox(size), ToTensor()]).
+    This class is designed to be part of a transformation pipeline, e.g., T.Compose([ClassifyLetterBox(size),
+    ToTensor()]).
 
     Attributes:
         half (bool): If True, converts the image to half precision (float16).

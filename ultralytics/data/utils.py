@@ -394,9 +394,9 @@ def verify_image_label(args: tuple) -> list:
 
     Returns:
         (tuple | list): Tuple of (im_file, lb, shape, segments, keypoints, nm, nf, ne, nc, msg), where lb is an (N, 5)
-            array of [cls, x, y, w, h] labels, shape is (H, W), segments is a list of (K, 2) arrays, keypoints is an
-            (N, nkpt, 3) array or None, nm, nf, ne, and nc are missing, found, empty, and corrupt counts, and msg is a
-            log message. For corrupt samples, a list with the first five items set to None is returned.
+            array of [cls, x, y, w, h] labels, shape is (H, W), segments is a list of (K, 2) arrays, keypoints is an (N,
+            nkpt, 3) array or None, nm, nf, ne, and nc are missing, found, empty, and corrupt counts, and msg is a log
+            message. For corrupt samples, a list with the first five items set to None is returned.
     """
     im_file, lb_file, prefix, keypoint, num_cls, nkpt, ndim, single_cls = args
     # Number (missing, found, empty, corrupt), message, segments, keypoints
@@ -559,8 +559,8 @@ def polygons2masks_overlap(
         downsample_ratio (int, optional): Factor by which to downsample the mask.
 
     Returns:
-        masks (np.ndarray): Mask of shape (H // downsample_ratio, W // downsample_ratio) where 0 is background and
-            i + 1 marks the i-th instance in area-descending order, so smaller instances are drawn over larger ones.
+        masks (np.ndarray): Mask of shape (H // downsample_ratio, W // downsample_ratio) where 0 is background and i + 1
+            marks the i-th instance in area-descending order, so smaller instances are drawn over larger ones.
         index (np.ndarray): Indices that sort the segments by area in descending order.
     """
     masks = np.zeros(
@@ -642,8 +642,8 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=No
         split (str, optional): Dataset split passed to the NDJSON converter.
 
     Returns:
-        (str | Path): Path to the converted dataset (YAML file or directory) for NDJSON inputs, otherwise the
-            normalized input data unchanged.
+        (str | Path): Path to the converted dataset (YAML file or directory) for NDJSON inputs, otherwise the normalized
+            input data unchanged.
     """
     data = normalize_platform_uri(data)  # accept Platform web URLs (https://platform.ultralytics.com/.../datasets/...)
     data_str = str(data)
@@ -963,9 +963,9 @@ def add_polygon_background(data: dict) -> dict:
     """Set up the background class for polygon-based semantic datasets without 'masks_dir'.
 
     - nc > 1: appends a 'background' class at id=nc and bumps data['nc'] to nc+1; polygon cls values are kept as
-      foreground ids.
+    foreground ids.
     - nc == 1: keeps nc=1 (binary segmentation). Polygon rasterization yields a {0=bg, 1=fg} mask regardless of the
-      label cls value.
+    label cls value.
 
     The data dictionary is modified in place and marked so repeated calls are no-ops.
 

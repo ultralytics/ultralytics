@@ -100,8 +100,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
     Args:
         predictor (object): The predictor object containing the predictions.
-        persist (bool, optional): Whether to keep tracker state when the source video changes. If False, the tracker
-            is reset whenever a new video path is encountered.
+        persist (bool, optional): Whether to keep tracker state when the source video changes. If False, the tracker is
+            reset whenever a new video path is encountered.
 
     Examples:
         Postprocess predictions and update with tracking

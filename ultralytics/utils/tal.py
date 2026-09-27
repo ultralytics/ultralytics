@@ -435,8 +435,8 @@ def make_anchors(feats, strides, grid_cell_offset=0.5):
         grid_cell_offset (float): Offset added to grid cell indices, 0.5 for cell centers.
 
     Returns:
-        anchor_points (torch.Tensor): Anchor points in grid units with shape (N, 2), where N is the sum of h*w over
-            all levels.
+        anchor_points (torch.Tensor): Anchor points in grid units with shape (N, 2), where N is the sum of h*w over all
+            levels.
         stride_tensor (torch.Tensor): Stride of each anchor point with shape (N, 1).
     """
     anchor_points, stride_tensor = [], []

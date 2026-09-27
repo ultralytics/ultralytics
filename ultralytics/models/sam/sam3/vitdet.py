@@ -62,8 +62,8 @@ class Attention(nn.Module):
             qkv_bias (bool): If True, add a learnable bias to query, key, value.
             use_rel_pos (bool): If True, add relative positional embeddings to the attention map.
             rel_pos_zero_init (bool): If True, zero initialize relative positional parameters.
-            input_size (tuple[int, int] | None): Input resolution for calculating the relative positional parameter
-                size or rope size.
+            input_size (tuple[int, int] | None): Input resolution for calculating the relative positional parameter size
+                or rope size.
             cls_token (bool): Whether a cls_token is present.
             use_rope (bool): Whether to use rope 2d (independent of use_rel_pos, as it can be used together).
             rope_theta (float): Control frequencies of rope.

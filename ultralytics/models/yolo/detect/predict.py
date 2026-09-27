@@ -89,8 +89,8 @@ class DetectionPredictor(BasePredictor):
             idxs (list[torch.Tensor]): Indices of the kept detections for each image, as returned by NMS.
 
         Returns:
-            (list[torch.Tensor | list]): Object feature tensors for each image in the batch, or an empty list for
-                images without detections.
+            (list[torch.Tensor | list]): Object feature tensors for each image in the batch, or an empty list for images
+                without detections.
         """
         import torch
 

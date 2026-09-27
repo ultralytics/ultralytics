@@ -230,8 +230,8 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     Args:
         imgsz (int | list[int] | tuple[int, ...] | str): Image size, e.g. 640, [640, 480], '640', or '[640,480]'.
         stride (int | torch.Tensor): Stride value. For a tensor, its maximum is used.
-        min_dim (int): Minimum number of dimensions. A single size is returned as an int if 1 or expanded to [sz, sz]
-            if 2.
+        min_dim (int): Minimum number of dimensions. A single size is returned as an int if 1 or expanded to [sz, sz] if
+            2.
         max_dim (int): Maximum number of dimensions. If 1, longer inputs are reduced to their maximum with a warning;
             otherwise, exceeding it raises a ValueError.
         floor (int): Minimum allowed value for image size.
@@ -440,8 +440,7 @@ def check_font(font="Arial.ttf"):
         font (str): Path or name of font.
 
     Returns:
-        (Path | str | None): Resolved font file path, or None if the font is not found locally and cannot be
-            downloaded.
+        (Path | str | None): Resolved font file path, or None if the font is not found locally and cannot be downloaded.
     """
     from matplotlib import font_manager  # scope for faster 'import ultralytics'
 
@@ -533,8 +532,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
         requirements (Path | str | list[str | tuple] | tuple[str]): Path object pointing to a requirements.txt file, a
             single package requirement as a string, a list of package requirements as strings, or a list containing
             strings and tuples of interchangeable packages.
-        exclude (tuple): Tuple of package names to exclude from checking when `requirements` is a requirements.txt
-            Path.
+        exclude (tuple): Tuple of package names to exclude from checking when `requirements` is a requirements.txt Path.
         install (bool): If True, attempt to auto-update packages that don't meet requirements.
         cmds (str): Additional commands to pass to the pip install command when auto-updating.
         constrain (tuple | list): Extra version constraints always appended to the install command even if already

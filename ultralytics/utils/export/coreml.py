@@ -200,8 +200,8 @@ def torch2coreml(
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
         output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
-        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for 8-bit k-means
-            palettized weights.
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for 8-bit k-means palettized
+            weights.
         metadata (dict | None): Metadata to embed in the CoreML model.
         prefix (str): Prefix for log messages.
 

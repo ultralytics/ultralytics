@@ -164,7 +164,7 @@ class ObjectCounter(BaseSolution):
         Returns:
             (SolutionResults): Contains processed image `plot_im`, 'in_count' (int, count of objects entering the
                 region), 'out_count' (int, count of objects exiting the region), 'classwise_count' (dict, per-class
-                {"IN": int, "OUT": int} counts), and 'total_tracks' (int, total number of tracked objects).
+            {"IN": int, "OUT": int} counts), and 'total_tracks' (int, total number of tracked objects).
 
         Examples:
             >>> counter = ObjectCounter()

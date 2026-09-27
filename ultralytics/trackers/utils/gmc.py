@@ -18,8 +18,8 @@ class GMC:
     for computational efficiency.
 
     Attributes:
-        method (str | None): The motion estimation method to use. Options include 'orb', 'sift', 'ecc',
-            'sparseOptFlow', or None (identity warp).
+        method (str | None): The motion estimation method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow',
+            or None (identity warp).
         downscale (int): Factor by which to downscale the frames for processing.
         prevFrame (np.ndarray | None): Previous frame for tracking.
         prevKeyPoints (tuple | np.ndarray | None): Keypoints from the previous frame.

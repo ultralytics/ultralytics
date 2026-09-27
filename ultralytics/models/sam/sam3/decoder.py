@@ -379,8 +379,8 @@ class TransformerDecoder(nn.Module):
             intermediate (torch.Tensor): Normalized outputs of each layer with shape (num_layers, nq, bs, d_model).
             intermediate_ref_boxes (torch.Tensor): Reference boxes in normalized (cx, cy, w, h) format used as input to
                 each layer, with shape (num_layers, nq, bs, 4).
-            intermediate_presence_logits (torch.Tensor | None): Presence logits of each layer with shape (num_layers,
-                1, bs), or None if the presence token is disabled or is_instance_prompt is True.
+            intermediate_presence_logits (torch.Tensor | None): Presence logits of each layer with shape (num_layers, 1,
+                bs), or None if the presence token is disabled or is_instance_prompt is True.
             presence_feats (torch.Tensor | None): Presence token features from the last layer with shape (1, bs,
                 d_model), or None.
         """

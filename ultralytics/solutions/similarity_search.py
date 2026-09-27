@@ -21,8 +21,8 @@ class VisualAISearch:
     """A semantic image search system using CLIP embeddings and cosine similarity for image retrieval.
 
     This class leverages OpenAI's CLIP for generating image and text embeddings and NumPy cosine similarity for fast
-    similarity-based retrieval. It aligns image and text embeddings in a shared semantic space, enabling users to
-    search large collections of images using natural language queries with high accuracy and speed.
+    similarity-based retrieval. It aligns image and text embeddings in a shared semantic space, enabling users to search
+    large collections of images using natural language queries with high accuracy and speed.
 
     Attributes:
         device (torch.device): Computation device selected from the `device` argument.

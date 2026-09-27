@@ -2679,7 +2679,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         predictor.inference_state = inference_state
 
     @smart_inference_mode()
-    def predict_frames(self, frames: list[np.ndarray], text: list[str] | None = None, **kwargs):
+    def predict_frames(self, frames: list[np.ndarray], text: str | list[str] | None = None, **kwargs):
         """Run video inference with temporal memory over in-memory NumPy frames.
 
         Thin wrapper that routes ordered frames through the standard
@@ -2688,7 +2688,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
 
         Args:
             frames (list[np.ndarray]): Non-empty list of BGR uint8 frames with shape [(H, W, 3) x N].
-            text (list[str] | None): Text prompts applied to the sequence.
+            text (str | list[str] | None): Text prompt(s) applied to the sequence.
             **kwargs (Any): Additional keyword arguments forwarded to ``inference()``.
 
         Returns:

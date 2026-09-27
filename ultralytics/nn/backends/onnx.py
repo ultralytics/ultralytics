@@ -61,7 +61,9 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file.
         """
-        cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
+        if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
+            self.device = torch.device("cpu")
+        cuda = torch.cuda.is_available() and self.device.type != "cpu"
 
         self.apply_metadata(self.read_metadata(weight))
 
@@ -99,7 +101,7 @@ class ONNXBackend(BaseBackend):
                 # model-support issues, where the runtime's own message is the useful one.
                 raise TypeError(
                     f"ERROR ❌️ {weight} is not a loadable ONNX model — the file is empty, truncated or corrupted "
-                    f"({type(e).__name__}: {e}).\nRecommend fixes are to re-export it with "
+                    f"({type(e).__name__}: {e}).\nRecommended fixes are to re-export it with "
                     f"'yolo export model=yolo26n.pt format=onnx', or to re-download the file."
                 ) from e
             if cuda and "CUDAExecutionProvider" not in self.session.get_providers():
@@ -132,7 +134,7 @@ class ONNXBackend(BaseBackend):
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]
-    ) -> torch.Tensor | list[torch.Tensor] | np.ndarray:
+    ) -> np.ndarray | list[np.ndarray] | list[torch.Tensor]:
         """Run ONNX inference using IO binding (CUDA) or standard session execution.
 
         Args:
@@ -140,7 +142,8 @@ class ONNXBackend(BaseBackend):
                 input names to tensors/arrays for multi-input ONNX Runtime models.
 
         Returns:
-            (torch.Tensor | list[torch.Tensor] | np.ndarray): Model predictions as tensor(s) or numpy array(s).
+            (np.ndarray | list[np.ndarray] | list[torch.Tensor]): Model predictions as a numpy array (OpenCV DNN), a
+                list of numpy arrays (ONNX Runtime), or a list of bound output tensors (CUDA IO binding).
         """
         if self.format == "dnn":
             # OpenCV DNN
@@ -216,7 +219,7 @@ class ONNXIMXBackend(ONNXBackend):
             # boxes, conf, cls
             return np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None]], axis=-1)
         elif self.task == "pose":
-            # boxes, conf, kpts
+            # boxes, conf, cls, kpts
             return np.concatenate([y[0], y[1][:, :, None], y[2][:, :, None], y[3]], axis=-1, dtype=y[0].dtype)
         elif self.task == "segment":
             return (

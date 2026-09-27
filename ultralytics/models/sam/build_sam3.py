@@ -2,6 +2,8 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates. All Rights Reserved
 
+from __future__ import annotations
+
 import re
 from pathlib import Path
 
@@ -136,16 +138,17 @@ def _create_sam3_transformer() -> TransformerWrapper:
     return TransformerWrapper(encoder=encoder, decoder=decoder, d_model=256)
 
 
-def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool = False):
-    """Build SAM3 image model.
+def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = True, compile: bool | str = False):
+    """Build the SAM3 semantic (text and box prompted) image model.
 
     Args:
-        checkpoint_path: Optional path to model checkpoint
-        enable_segmentation: Whether to enable segmentation head
-        compile: Whether to enable compilation of the model
+        checkpoint_path (str): Path to the model checkpoint.
+        enable_segmentation (bool): Whether to build the segmentation head.
+        compile (bool | str): torch.compile mode for the vision backbone and pixel decoder; True means "default" and
+            False disables compilation.
 
     Returns:
-        A SAM3 image model
+        (SAM3SemanticModel): A configured and initialized SAM3 image model in eval mode.
     """
     try:
         import clip
@@ -155,7 +158,7 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
         check_requirements("git+https://github.com/ultralytics/CLIP.git")
         import clip
     # Create visual components
-    compile_mode = "default" if compile else None
+    compile_mode = "default" if compile is True else compile or None
     vision_encoder = _create_vision_backbone(compile_mode=compile_mode, enable_inst_interactivity=True)
 
     # Create text components
@@ -220,7 +223,6 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
             scale=None,
             temperature=10000,
         ),
-        encode_boxes_as_points=False,
         boxes_direct_project=True,
         boxes_pool=True,
         boxes_pos_enc=True,
@@ -259,12 +261,13 @@ def build_sam3_image_model(checkpoint_path: str, enable_segmentation: bool = Tru
     return model
 
 
-def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=True) -> SAM3Model:
-    """Build the SAM3 Tracker module for video tracking.
+def build_interactive_sam3(checkpoint_path: str, compile: bool | str = False, with_backbone: bool = True) -> SAM3Model:
+    """Build the interactive SAM3 tracker model used for point/box prompted and video segmentation.
 
     Args:
         checkpoint_path (str): Path to model checkpoint.
-        compile (str | None): Compilation mode for the vision backbone.
+        compile (bool | str): torch.compile mode for the vision backbone; True means "default" and False disables
+            compilation.
         with_backbone (bool): Whether to include the vision backbone in the model.
 
     Returns:
@@ -303,8 +306,9 @@ def build_interactive_sam3(checkpoint_path: str, compile=None, with_backbone=Tru
         num_layers=4,
     )
 
+    compile_mode = "default" if compile is True else compile or None
     backbone = (
-        SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile), text=None)
+        SAM3VLBackbone(scalp=1, visual=_create_vision_backbone(compile_mode=compile_mode), text=None)
         if with_backbone
         else None
     )

@@ -127,10 +127,10 @@ If you are running in the cloud, you may get an error that OpenCV cannot find `l
 apt-get install libgl1
 ```
 
-Or use the headless Ultralytics package that avoids GUI dependencies entirely:
+Or use the headless OpenCV build that avoids GUI dependencies entirely:
 
 ```bash
-pip install ultralytics-opencv-headless
+pip install opencv-python-headless
 ```
 
 #### HTTP Server

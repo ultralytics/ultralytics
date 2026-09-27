@@ -316,9 +316,10 @@ class SAM2MaskDecoder(nn.Module):
             high_res_features (list[torch.Tensor] | None, optional): Optional high-resolution features.
 
         Returns:
-            masks (torch.Tensor): Batched predicted masks with shape (B, N, H, W).
+            masks (torch.Tensor): Batched predicted mask logits with shape (B, N, 4*H, 4*W).
             iou_pred (torch.Tensor): Batched predictions of mask quality with shape (B, N).
-            sam_tokens_out (torch.Tensor): Batched SAM token for mask output with shape (B, N, C).
+            sam_tokens_out (torch.Tensor): Batched SAM output tokens used as object pointers with shape (B, 1, C), or
+                (B, 3, C) when multimask_output and use_multimask_token_for_obj_ptr are True.
             object_score_logits (torch.Tensor): Batched object score logits with shape (B, 1).
 
         Examples:

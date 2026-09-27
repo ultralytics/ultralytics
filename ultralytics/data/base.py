@@ -18,7 +18,7 @@ import torch
 from torch.utils.data import Dataset
 
 from ultralytics.data.utils import FORMATS_HELP_MSG, HELP_URL, IMG_FORMATS, check_file_speeds, get_split_fraction
-from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM
+from ultralytics.utils import DEFAULT_CFG, LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace
 from ultralytics.utils.patches import imread
 
 
@@ -110,9 +110,9 @@ class BaseDataset(Dataset):
         self,
         img_path: str | list[str],
         imgsz: int = 640,
-        cache: bool | str = False,
+        cache: bool | str | None = False,
         augment: bool = True,
-        hyp: dict[str, Any] = DEFAULT_CFG,
+        hyp: IterableSimpleNamespace = DEFAULT_CFG,
         prefix: str = "",
         rect: bool = False,
         batch_size: int = 16,
@@ -128,9 +128,9 @@ class BaseDataset(Dataset):
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
-            cache (bool | str): Cache images to RAM or disk during training.
+            cache (bool | str | None): Cache images to RAM (True or 'ram') or disk ('disk'); False or None disables.
             augment (bool): If True, data augmentation is applied.
-            hyp (dict[str, Any]): Hyperparameters to apply data augmentation.
+            hyp (IterableSimpleNamespace): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.
             rect (bool): If True, rectangular training is used.
             batch_size (int): Size of batches.
@@ -164,7 +164,7 @@ class BaseDataset(Dataset):
             self.set_rectangle()
 
         # Buffer thread for mosaic images
-        self.buffer = []  # buffer size = batch size
+        self.buffer = []  # indices of recently loaded images kept in memory for mosaic
         self.max_buffer_length = min((self.ni, self.batch_size * 8, 1000)) if self.augment else 0
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
@@ -222,7 +222,7 @@ class BaseDataset(Dataset):
         return im_files
 
     def update_labels(self, include_class: list[int] | None) -> None:
-        """Update labels to include only specified classes.
+        """Update labels to include only specified classes, and set all classes to 0 if single_cls is True.
 
         Args:
             include_class (list[int], optional): List of classes to include. If None, all classes are included.
@@ -304,8 +304,8 @@ class BaseDataset(Dataset):
         Args:
             i (int): Index of the image to load.
             rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
-            resize_short (bool): Whether to resize the shorter side to imgsz while maintaining aspect ratio. Overrides
-                rect_mode when True.
+            resize_short (bool): Whether to resize the shorter side (instead of the longer side) to imgsz while
+                maintaining aspect ratio. Only used when rect_mode is True.
 
         Returns:
             im (np.ndarray): Loaded image as a NumPy array.
@@ -381,7 +381,7 @@ class BaseDataset(Dataset):
                 np.save(f.as_posix(), im, allow_pickle=False)
             except Exception as e:
                 f.unlink(missing_ok=True)
-                LOGGER.warning(f"{self.prefix}WARNING ⚠️ Failed to cache image {f}: {e}")
+                LOGGER.warning(f"{self.prefix}Failed to cache image {f}: {e}")
 
     def check_cache_disk(self, safety_margin: float = 0.1) -> bool:
         """Check if there's enough disk space for caching images.
@@ -429,7 +429,7 @@ class BaseDataset(Dataset):
         n = min(self.ni, 30)  # extrapolate from 30 random images
         for _ in range(n):
             b += self.load_image(random.randrange(self.ni))[0].nbytes
-        mem_required = b * self.ni / n * (1 + safety_margin)  # GB required to cache dataset into RAM
+        mem_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset into RAM
         mem = __import__("psutil").virtual_memory()
         if mem_required > mem.available:
             self.cache = None
@@ -498,16 +498,24 @@ class BaseDataset(Dataset):
         """Customize your label format here."""
         return label
 
-    def build_transforms(self, hyp: dict[str, Any] | None = None):
-        """Users can customize augmentations here.
+    def build_transforms(self, hyp: IterableSimpleNamespace):
+        """Build the augmentation pipeline; subclasses must override this.
+
+        Args:
+            hyp (IterableSimpleNamespace): Hyperparameters for the transforms.
+
+        Returns:
+            (Compose): Composed transforms applied to each sample.
+
+        Raises:
+            NotImplementedError: If a subclass does not override this method.
 
         Examples:
-            >>> if self.augment:
-            ...     # Training transforms
-            ...     return Compose([])
-            >>> else:
-            ...    # Val transforms
-            ...    return Compose([])
+            >>> from ultralytics.data.augment import Compose
+            >>> from ultralytics.data.base import BaseDataset
+            >>> class CustomDataset(BaseDataset):
+            ...     def build_transforms(self, hyp):
+            ...         return Compose([])  # add training or validation transforms here
         """
         raise NotImplementedError
 
@@ -524,7 +532,7 @@ class BaseDataset(Dataset):
             ...     segments=segments,  # xy
             ...     keypoints=keypoints,  # xy
             ...     normalized=True,  # or False
-            ...     bbox_format="xyxy",  # or xywh, ltwh
+            ...     bbox_format="xywh",  # or xyxy, ltwh
             ... )
         """
         raise NotImplementedError

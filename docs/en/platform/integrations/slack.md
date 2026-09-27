@@ -1,8 +1,8 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Connect Slack to Ultralytics Platform and choose which training, export, and deployment results are posted to your channel.
-keywords: Ultralytics Platform, Slack, alerts, notifications, training, model export, deployment, YOLO, computer vision
+description: Connect Slack to Ultralytics Platform and choose which training, auto-annotation, export, and deployment results are posted to your channel.
+keywords: Ultralytics Platform, Slack, alerts, notifications, training, auto-annotation, model export, deployment, YOLO, computer vision
 title: Slack Alerts - Ultralytics Platform
 ---
 
@@ -19,8 +19,8 @@ You do not need a Slack API key, webhook, or technical setup. Before you start, 
 2. Review the setup summary and click **Continue to Slack**.
 3. Choose a channel and click **Allow**. Platform requests permission to post only to that channel. If Slack shows
    **Request approval**, send the request and ask your Slack workspace admin to approve the app.
-4. After returning to Platform, choose the alerts you want and click **Save alerts**. **Training complete** and
-   **Training failed** are selected initially.
+4. After returning to Platform, choose the alerts you want and click **Save alerts**. **Training complete**,
+   **Training failed**, **Annotation complete**, and **Annotation failed** are selected initially.
 
 ![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/9a47efa8a0df9db1d13e941e7572ca49.avif)<!-- screenshot -->
 
@@ -32,16 +32,18 @@ Platform posts a confirmation in the selected channel as soon as the connection 
 
 ## Available Alerts
 
-| Alert                 | When it is sent                                                                |
-| --------------------- | ------------------------------------------------------------------------------ |
-| **Training complete** | A model [finishes training](../train/cloud-training.md#training-job-lifecycle) |
-| **Training failed**   | A training run stops with an error                                             |
-| **Export complete**   | A [model export](../train/models.md#export-model) is ready                     |
-| **Export failed**     | A model export stops with an error                                             |
-| **Deployment ready**  | A [deployment](../deploy/endpoints.md#deployment-lifecycle) is ready           |
-| **Deployment failed** | A deployment fails to start                                                    |
+| Alert                   | When it is sent                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------- |
+| **Training complete**   | A model [finishes training](../train/cloud-training.md#training-job-lifecycle)     |
+| **Training failed**     | A training run stops with an error                                                 |
+| **Export complete**     | A [model export](../train/models.md#export-model) is ready                         |
+| **Export failed**       | A model export stops with an error                                                 |
+| **Annotation complete** | A dataset finishes [batch auto-annotation](../data/annotation.md#batch-annotation) |
+| **Annotation failed**   | Auto-annotation stops with an error                                                |
+| **Deployment ready**    | A [deployment](../deploy/endpoints.md#deployment-lifecycle) is ready               |
+| **Deployment failed**   | A deployment fails to start                                                        |
 
-Each message says what finished and links straight to the related model or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments tab](../deploy/index.md#deployments-tab).
+Each message says what finished and links straight to the related model, dataset, or deployment in Platform. Training alerts add the dataset name, the model's primary metric, how long the run took, and what it cost; export alerts add the format and file size. Failed-job alerts include a short error summary when one is available, as an inline note or a code block for longer messages. Slack delivery does not change the result of the training, auto-annotation, export, or deployment. Review the current result from the model's [training](../train/cloud-training.md#monitor-training) or [export](../train/models.md#export-model) page, or from the [Deployments tab](../deploy/index.md#deployments-tab).
 
 ## Agents Workflow Messages
 

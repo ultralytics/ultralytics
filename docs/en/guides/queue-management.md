@@ -130,9 +130,9 @@ When implementing queue management with YOLO26, consider these best practices:
 
 To use Ultralytics YOLO26 for real-time queue management, you can follow these steps:
 
-1. Load the YOLO26 model with `YOLO("yolo26n.pt")`.
-2. Capture the video feed using `cv2.VideoCapture`.
-3. Define the region of interest (ROI) for queue management.
+1. Capture the video feed using `cv2.VideoCapture`.
+2. Define the region of interest (ROI) for queue management.
+3. Initialize `solutions.QueueManager` with a YOLO26 model such as `yolo26n.pt` and the region.
 4. Process frames to detect objects and manage queues.
 
 Here's a minimal example:
@@ -154,14 +154,15 @@ queuemanager = solutions.QueueManager(
 
 while cap.isOpened():
     success, im0 = cap.read()
-    if success:
-        results = queuemanager(im0)
+    if not success:
+        break
+    results = queuemanager(im0)
 
 cap.release()
 cv2.destroyAllWindows()
 ```
 
-Leveraging [Ultralytics Platform](../platform/index.md) can streamline this process by providing a user-friendly platform for deploying and managing your queue management solution.
+Leveraging [Ultralytics Platform](../platform/index.md) can streamline this process by providing a user-friendly platform for training and deploying the models behind your queue management solution.
 
 ### What are the key advantages of using Ultralytics YOLO26 for queue management?
 
@@ -169,7 +170,7 @@ Using Ultralytics YOLO26 for queue management offers several benefits:
 
 - **Plummeting Waiting Times:** Efficiently organizes queues, reducing customer wait times and boosting satisfaction.
 - **Enhancing Efficiency:** Analyzes queue data to optimize staff deployment and operations, thereby reducing costs.
-- **Real-time Alerts:** Provides real-time notifications for long queues, enabling quick intervention.
+- **Real-time Insights:** Provides live queue counts for every frame, enabling quick intervention when lines grow.
 - **Scalability:** Easily scalable across different environments like retail, airports, and healthcare.
 
 For more details, explore our [Queue Management](../reference/solutions/queue_management.md) solutions.

@@ -109,7 +109,7 @@ A special note of gratitude to the team behind the DOTA datasets for their comme
 
 ### What is the DOTA8 dataset and how can it be used?
 
-The DOTA8 dataset is a small, versatile oriented object detection dataset made up of the first 8 images from the DOTAv1 split set, with 4 images designated for training and 4 for validation. It's ideal for testing and debugging object detection models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before deploying larger datasets. Learn more about object detection with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics).
+The DOTA8 dataset is a small, versatile oriented object detection dataset made up of the first 8 images from the DOTAv1 split set, with 4 images designated for training and 4 for validation. It's ideal for testing and debugging object detection models like Ultralytics YOLO26. Due to its manageable size and diversity, it helps in identifying pipeline errors and running sanity checks before training on larger datasets. Learn more about object detection with [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics).
 
 ### How do I train a YOLO26 model using the DOTA8 dataset?
 

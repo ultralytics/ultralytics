@@ -298,7 +298,7 @@ To use an NDJSON dataset with YOLO26, simply specify the path to the `.ndjson` f
 Here is a list of the supported datasets and a brief description for each. Most of these datasets are also hosted on [Ultralytics Platform](https://platform.ultralytics.com), where you can browse the images and annotations, view dataset statistics, and clone them for cloud training.
 
 - [African-wildlife](african-wildlife.md): A dataset featuring images of African wildlife, including buffalo, elephant, rhino, and zebras.
-- [Argoverse](argoverse.md): A dataset containing 3D tracking and motion forecasting data from urban environments with rich annotations.
+- [Argoverse](argoverse.md): The Argoverse-HD 2D detection dataset of 54,446 urban autonomous-driving images across 8 road-object classes.
 - [Brain-tumor](brain-tumor.md): A dataset for detecting brain tumors includes MRI or CT scan images with details on tumor presence, location, and characteristics.
 - [COCO](coco.md): Common Objects in Context (COCO) is a large-scale [object detection](https://www.ultralytics.com/glossary/object-detection), segmentation, and captioning dataset with 80 object categories.
 - [COCO8](coco8.md): A smaller subset of the first 8 images from COCO train2017, 4 for training and 4 for validation, suitable for quick tests.
@@ -314,9 +314,9 @@ Here is a list of the supported datasets and a brief description for each. Most 
 - [HomeObjects-3K](homeobjects-3k.md): A dataset of indoor household items including beds, chairs, TVs, and more—ideal for applications in smart home automation, robotics, augmented reality, and room layout analysis.
 - [KITTI](kitti.md): A dataset featuring real-world driving scenes with stereo, LiDAR, and GPS/IMU data, used here for **2D object detection** tasks such as identifying cars, pedestrians, and cyclists in urban, rural, and highway environments.
 - [KITTI Stereo 3D](kitti-stereo.md): A specialized format for **stereo-based 3D object detection** using the KITTI dataset, with an 18-value label format including stereo 2D boxes, 3D dimensions, orientation, camera coordinates, and occlusion attributes.
-- [LVIS](lvis.md): A large-scale object detection, segmentation, and captioning dataset with 1203 object categories.
+- [LVIS](lvis.md): A large-scale object detection and instance segmentation dataset with 1,203 object categories.
 - [Medical-pills](medical-pills.md): A dataset featuring images of medical-pills, annotated for applications such as pharmaceutical quality assurance, pill sorting, and regulatory compliance.
-- [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 600K annotated images.
+- [Objects365](objects365.md): A high-quality, large-scale dataset for object detection with 365 object categories and over 1.7M training images.
 - [OpenImagesV7](open-images-v7.md): A comprehensive dataset by Google with 1.7M train images and 42k validation images.
 - [Roboflow 100](roboflow-100.md): A diverse object detection benchmark with 100 datasets spanning seven imagery domains for comprehensive model evaluation.
 - [Signature](signature.md): A dataset featuring images of various documents with annotated signatures, supporting document verification and fraud detection research.
@@ -417,4 +417,4 @@ Refer to the [Usage](#usage-example) section for more details on utilizing diffe
 
 ### Where can I find practical examples of using Ultralytics YOLO for object detection?
 
-Ultralytics provides numerous examples and practical guides for using YOLO26 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLO26. For specific examples, check the [Usage](../../modes/predict.md) section in the documentation.
+Ultralytics provides numerous examples and practical guides for using YOLO26 in diverse applications. For a comprehensive overview, visit the [Ultralytics Blog](https://www.ultralytics.com/blog) where you can find case studies, detailed tutorials, and community stories showcasing object detection, segmentation, and more with YOLO26. For specific examples, check the [Predict mode](../../modes/predict.md) page in the documentation.

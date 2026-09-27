@@ -73,7 +73,7 @@ Pass your video to the `Analytics` solution and select a chart with `analytics_t
             "analytics_output.avi",
             cv2.VideoWriter_fourcc(*"MJPG"),
             fps,
-            (1280, 720),  # this is fixed
+            (1280, 720),  # chart size for the default figsize=(12.8, 7.2)
         )
 
         # Initialize analytics object
@@ -90,7 +90,7 @@ Pass your video to the `Analytics` solution and select a chart with `analytics_t
             success, im0 = cap.read()
             if success:
                 frame_count += 1
-                results = analytics(im0, frame_count)  # update analytics graph every frame
+                results = analytics(im0, frame_count)  # track objects and update the analytics graph
 
                 # print(results)  # access the output
 
@@ -108,7 +108,7 @@ Pass your video to the `Analytics` solution and select a chart with `analytics_t
 Here's a table outlining the Analytics arguments:
 
 {% from "macros/solutions-args.md" import param_table %}
-{{ param_table(["model", "analytics_type", "line_width", "verbose"]) }}
+{{ param_table(["model", "analytics_type", "figsize", "line_width", "verbose"]) }}
 
 You can also leverage different [`track`](../modes/track.md) arguments in the `Analytics` solution.
 
@@ -160,7 +160,7 @@ To generate a pie chart, set `analytics_type="pie"` in the [Python example above
 
 ### Can Ultralytics YOLO26 be used to track objects and dynamically update visualizations?
 
-Yes. Tracking is built into the `Analytics` solution: it tracks multiple objects in real time and updates the chart from the tracked objects' data every frame, so line graphs, bar plots, pie charts, and area plots all reflect live counts. This is exactly what the frame loop in the [Python example above](#generate-analytics-graphs) does. To learn about the underlying tracking functionality, see the [Tracking](../modes/track.md) section.
+Yes. Tracking is built into the `Analytics` solution: it tracks multiple objects in real time and refreshes the chart from the tracked objects' data every 30 frames, so line graphs, bar plots, pie charts, and area plots all reflect live counts. This is exactly what the frame loop in the [Python example above](#generate-analytics-graphs) does. To learn about the underlying tracking functionality, see the [Tracking](../modes/track.md) section.
 
 ### What makes Ultralytics YOLO26 different from other object detection solutions like [OpenCV](https://www.ultralytics.com/glossary/opencv) and [TensorFlow](https://www.ultralytics.com/glossary/tensorflow)?
 

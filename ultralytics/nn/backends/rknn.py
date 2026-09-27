@@ -62,8 +62,7 @@ class RKNNBackend(BaseBackend):
         """
         h, w = im.shape[1:3]
         im = (im.cpu().numpy() * 255).astype("uint8")
-        im = im if isinstance(im, (list, tuple)) else [im]
-        y = self.model.inference(inputs=im)
+        y = self.model.inference(inputs=[im])
         # INT8 exports use input-relative coordinates so a single per-tensor scale preserves class scores.
         if (
             self.metadata.get("args", {}).get("quantize") == 8

@@ -28,7 +28,16 @@ __all__ = (
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
-    """Pad to 'same' shape outputs."""
+    """Compute padding for 'same' shape outputs.
+
+    Args:
+        k (int | list[int]): Kernel size.
+        p (int | list[int], optional): Padding. If None, it is computed automatically.
+        d (int): Dilation.
+
+    Returns:
+        (int | list[int]): Padding size.
+    """
     if d > 1:
         k = d * (k - 1) + 1 if isinstance(k, int) else [d * (x - 1) + 1 for x in k]  # actual kernel-size
     if p is None:
@@ -164,7 +173,7 @@ class LightConv(nn.Module):
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
             k (int): Kernel size for depthwise convolution.
-            act (nn.Module): Activation function.
+            act (nn.Module, optional): Activation function. Defaults to nn.ReLU() if None.
         """
         super().__init__()
         act = nn.ReLU() if act is None else act
@@ -359,7 +368,8 @@ class RepConv(nn.Module):
     Attributes:
         conv1 (Conv): 3x3 convolution.
         conv2 (Conv): 1x1 convolution.
-        bn (nn.BatchNorm2d, optional): Batch normalization for identity branch.
+        bn (nn.BatchNorm2d | None): Batch normalization for identity branch.
+        conv (nn.Conv2d): Fused convolution, created by `fuse_convs()`.
         act (nn.Module): Activation function.
         default_act (nn.Module): Default activation function (SiLU).
 
@@ -375,14 +385,14 @@ class RepConv(nn.Module):
         Args:
             c1 (int): Number of input channels.
             c2 (int): Number of output channels.
-            k (int): Kernel size.
+            k (int): Kernel size. Must be 3.
             s (int): Stride.
-            p (int): Padding.
+            p (int): Padding. Must be 1.
             g (int): Groups.
             d (int): Dilation.
             act (bool | nn.Module): Activation function.
             bn (bool): Use batch normalization for identity branch.
-            deploy (bool): Deploy mode for inference.
+            deploy (bool): Deploy mode for inference (currently unused).
         """
         super().__init__()
         assert k == 3 and p == 1
@@ -422,8 +432,8 @@ class RepConv(nn.Module):
         """Calculate equivalent kernel and bias by fusing convolutions.
 
         Returns:
-            (torch.Tensor): Equivalent kernel
-            (torch.Tensor): Equivalent bias
+            kernel (torch.Tensor): Equivalent kernel.
+            bias (torch.Tensor): Equivalent bias.
         """
         kernel3x3, bias3x3 = self._fuse_bn_tensor(self.conv1)
         kernel1x1, bias1x1 = self._fuse_bn_tensor(self.conv2)
@@ -438,7 +448,7 @@ class RepConv(nn.Module):
             kernel1x1 (torch.Tensor): 1x1 convolution kernel.
 
         Returns:
-            (torch.Tensor): Padded 3x3 kernel.
+            (torch.Tensor | int): Padded 3x3 kernel, or 0 if `kernel1x1` is None.
         """
         if kernel1x1 is None:
             return 0
@@ -452,8 +462,8 @@ class RepConv(nn.Module):
             branch (Conv | nn.BatchNorm2d | None): Branch to fuse.
 
         Returns:
-            kernel (torch.Tensor): Fused kernel.
-            bias (torch.Tensor): Fused bias.
+            kernel (torch.Tensor | int): Fused kernel, or 0 if `branch` is None.
+            bias (torch.Tensor | int): Fused bias, or 0 if `branch` is None.
         """
         if branch is None:
             return 0, 0
@@ -502,8 +512,6 @@ class RepConv(nn.Module):
             para.detach_()
         self.__delattr__("conv1")
         self.__delattr__("conv2")
-        if hasattr(self, "nm"):
-            self.__delattr__("nm")
         if hasattr(self, "bn"):
             self.__delattr__("bn")
         if hasattr(self, "id_tensor"):

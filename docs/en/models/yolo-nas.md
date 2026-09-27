@@ -58,7 +58,7 @@ In this example we validate YOLO-NAS-s on the COCO8 dataset.
 
     === "Python"
 
-        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` models files can be passed to the `NAS()` class to create a model instance in Python:
+        [PyTorch](https://www.ultralytics.com/glossary/pytorch) pretrained `*.pt` model files can be passed to the `NAS()` class to create a model instance in Python:
 
         ```python
         from ultralytics import NAS

@@ -579,9 +579,9 @@ class Exporter:
             (str): Path to the exported file or directory (the last export artifact).
         """
         t = time.time()
-        fmt = self.args.format.lower()  # to lowercase
+        fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
-            fmt = "engine"
+            fmt = self.args.format = "engine"
         if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
             fmt = "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
@@ -603,7 +603,7 @@ class Exporter:
                 msg = "Model is already in PyTorch format." if fmt == "pt" else f"Invalid export format='{fmt}'."
                 raise ValueError(f"{msg} Valid formats are {fmts}")
             LOGGER.warning(f"Invalid export format='{fmt}', updating to format='{matches[0]}'")
-            fmt = matches[0]
+            fmt = self.args.format = matches[0]
         is_tf_format = fmt in {"saved_model", "pb", "edgetpu"}
 
         # Device
@@ -878,7 +878,7 @@ class Exporter:
 
             model = executorch_wrapper(model)
         for m in model.modules():
-            if isinstance(m, Attention) and fmt == "coreml" and self.args.format.lower() != "mlmodel":
+            if isinstance(m, Attention) and fmt == "coreml" and self.args.format != "mlmodel":
                 m.format = fmt
             if isinstance(m, (Classify, SemanticSegment, Depth)):
                 m.export = True
@@ -1320,7 +1320,7 @@ class Exporter:
     @try_export
     def export_coreml(self, prefix=colorstr("CoreML:")):  # noqa: B008
         """Export YOLO model to CoreML format."""
-        mlmodel = self.args.format.lower() == "mlmodel"  # legacy *.mlmodel export format requested
+        mlmodel = self.args.format == "mlmodel"  # legacy *.mlmodel export format requested
         from ultralytics.utils.export.coreml import IOSDetectModel, pipeline_coreml, torch2coreml
 
         # numpy 2.4.x breaks coremltools CoreML export https://github.com/apple/coremltools/issues/2633

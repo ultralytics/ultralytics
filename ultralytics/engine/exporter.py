@@ -419,7 +419,6 @@ EXPORT_ENVS = {
         "torch": None,
         "requirements": ["edgeai-tidl-runtime"],
         "indexes": [],  # TODO: point at the edgeai-tidl-runtime wheel host once published
-        # TI Edge AI (TIDL) export is only supported on non-aarch64 Linux.
         "env": {},
         "smoke": ["yolo export format=ti model=yolo26n.pt imgsz=32 name=j784s4 data=coco8.yaml"],
     },

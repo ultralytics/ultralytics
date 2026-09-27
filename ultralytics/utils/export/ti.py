@@ -31,14 +31,14 @@ def onnx2tidl(
     Args:
         onnx_file (str | Path): Path to the source ONNX file (already exported).
         output_dir (Path | str): Directory to save the compiled TIDL model artifacts.
-        target_device (str): Target TI SoC or device family, e.g. ``"tda4vh"``, ``"am62a"``.
+        target_device (str): Target TI SoC or device family, one of ``TI_DEVICES``, e.g. ``"j784s4"`` or ``"am62a"``.
         dataset (DataLoader): Calibration dataloader (from `Exporter.get_int8_calibration_dataloader`) used for
             quantization during compilation.
         transform_fn (Callable): Preprocessing transform (`Exporter._transform_fn`) converting a calibration item to a
             normalized `float32` NCHW array.
         imgsz (tuple[int, int]): Static export image size as `(height, width)`.
         batch (int): Static batch dimension of the fixed ONNX graph.
-        tensor_bits (int): TIDL tensor/weight precision, 8 or 16.
+        tensor_bits (int): TIDL tensor/weight precision in bits.
         metadata (dict | None): Ultralytics model metadata saved as `metadata.yaml` alongside the artifacts.
         prefix (str): Prefix for log messages.
 

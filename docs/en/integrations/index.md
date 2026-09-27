@@ -107,13 +107,11 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [TensorRT](tensorrt.md): Developed by [NVIDIA](https://www.nvidia.com/), this high-performance [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) inference framework and model format optimizes AI models for accelerated speed and efficiency on NVIDIA GPUs, ensuring streamlined deployment.
 
-- [Texas Instruments Edge AI](ti-edge-ai.md): Compile Ultralytics YOLO ONNX exports with the TI Deep Learning (TIDL) toolchain for accelerated inference on the C7 NPU in TI TDA4x and other TI MPU devices used in automotive, industrial, and robotics applications.
-
 - [TF GraphDef](tf-graphdef.md): Developed by [Google](https://www.google.com/), GraphDef is TensorFlow's format for representing computation graphs, enabling optimized execution of machine learning models across diverse hardware.
 
 - [TF SavedModel](tf-savedmodel.md): Developed by [Google](https://www.google.com/), TF SavedModel is a universal serialization format for [TensorFlow](https://www.ultralytics.com/glossary/tensorflow) models, enabling easy sharing and deployment across a wide range of platforms, from servers to edge devices.
 
-- [TI Edge AI](ti-edge-ai.md): Compile Ultralytics YOLO models locally into TI Deep Learning (TIDL) artifacts for accelerated inference on Texas Instruments Edge AI MPU devices (TDA4x, AM62A, and other AM6xA family SoCs) using the C7x DSP/MMA NPU.
+- [TI Edge AI](ti-edge-ai.md): Developed by [Texas Instruments](https://www.ti.com/), the TIDL toolchain compiles YOLO models into INT8 artifacts for accelerated inference on the C7x NPU in TDA4x and AM6xA edge AI processors used in automotive, industrial, and robotics applications.
 
 - [TFLite Edge TPU](edge-tpu.md): Developed by [Google](https://www.google.com/) for optimizing TensorFlow Lite models on Edge TPUs, this model format ensures high-speed, efficient [edge computing](https://www.ultralytics.com/glossary/edge-computing).
 

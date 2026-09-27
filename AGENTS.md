@@ -29,14 +29,14 @@ NEVER push to `main`. NEVER force push. Always start work in a new git worktree 
   with a linked tracking issue; require the issue to document the evidence needed to re-enable it.
 - Require production-ready behavior across supported tasks, platforms, versions, and integrations affected by the owner change.
 - Remind unsigned contributors to complete the CLA. Do not close PRs opened by Ultralytics organization team members.
-- Merge only the exact cold-reviewed live head after terminal-green checks and zero unresolved review threads.
+- Merge only the exact cold-reviewed live head after terminal-green checks with no unresolved human review threads; automated review threads are advisory and never block a merge.
 - Fix accepted contributions on their existing PR branches; never create replacement or follow-up PRs for review repairs.
 
 ## PR Workflow
 
 After opening a PR:
 
-1. Wait for the automated PR review and auto-format commit from Ultralytics Actions (`format.yml`), then pull and address every finding.
+1. Pull the auto-format commit from Ultralytics Actions (`format.yml`). Fix automated review findings that are valid, but never wait on or request automated reviews; your own full-diff review and green CI are the gate.
 2. Review the full diff in-session against the Core Principles, performance, and the review gate above, then batch the fixes into one commit and push. After each round of bot or human commits, pull and resume the same reviewer on `<last-reviewed-sha>..HEAD` plus anything that delta could have invalidated. Repeat until the local head matches the live head.
 3. Hand off or merge only on a clean final pass: one cold full-diff review returning LGTM with no findings, on a head that is still live at merge time.
 4. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never reset or revert commits you did not author.

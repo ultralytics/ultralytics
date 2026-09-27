@@ -2689,7 +2689,7 @@ class SAM3VideoSemanticPredictor(SAM3SemanticPredictor):
         Args:
             frames (list[np.ndarray]): Non-empty list of BGR uint8 frames with shape [(H, W, 3) x N].
             text (list[str] | None): Text prompts applied to the sequence.
-            **kwargs: Additional keyword arguments forwarded to ``inference()``.
+            **kwargs (Any): Additional keyword arguments forwarded to ``inference()``.
 
         Returns:
             (list[ultralytics.engine.results.Results]): One ``Results`` object per input frame.

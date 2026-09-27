@@ -458,15 +458,23 @@ class BaseDataset(Dataset):
         return label
 
     def build_transforms(self, hyp: dict[str, Any] | None = None):
-        """Users can customize augmentations here.
+        """Build the augmentation pipeline; subclasses must override this.
+
+        Args:
+            hyp (dict[str, Any], optional): Hyperparameters for the transforms.
+
+        Returns:
+            (Compose): Composed transforms applied to each sample.
+
+        Raises:
+            NotImplementedError: If a subclass does not override this method.
 
         Examples:
-            >>> if self.augment:
-            ...     # Training transforms
-            ...     return Compose([])
-            >>> else:
-            ...     # Val transforms
-            ...     return Compose([])
+            >>> from ultralytics.data.augment import Compose
+            >>> from ultralytics.data.base import BaseDataset
+            >>> class CustomDataset(BaseDataset):
+            ...     def build_transforms(self, hyp=None):
+            ...         return Compose([])  # add training or validation transforms here
         """
         raise NotImplementedError
 

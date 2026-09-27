@@ -853,13 +853,15 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
 
     Examples:
         Convert a local NDJSON file:
-        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson")
+        >>> import asyncio
+        >>> from ultralytics.data.converter import convert_ndjson_to_yolo
+        >>> yaml_path = asyncio.run(convert_ndjson_to_yolo("dataset.ndjson"))
         >>> print(f"Dataset converted to: {yaml_path}")
 
         Convert with custom output directory:
-        >>> yaml_path = await convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets")
+        >>> yaml_path = asyncio.run(convert_ndjson_to_yolo("dataset.ndjson", output_path="./converted_datasets"))
 
-        Use with YOLO training
+        Train directly on an NDJSON dataset URL, which is converted automatically:
         >>> from ultralytics import YOLO
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")

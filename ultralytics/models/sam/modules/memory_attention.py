@@ -243,8 +243,8 @@ class MemoryAttention(nn.Module):
             curr (torch.Tensor | list[torch.Tensor]): Self-attention input tensor representing the current state, with
                 shape (L, B, d_model), or a single-element list containing it.
             memory (torch.Tensor): Cross-attention input tensor representing memory information, with shape (S, B, C).
-            curr_pos (torch.Tensor | list[torch.Tensor]): Positional encoding for self-attention inputs, matching
-                the type and shape of curr.
+            curr_pos (torch.Tensor | list[torch.Tensor]): Positional encoding for self-attention inputs, matching the
+                type and shape of curr.
             memory_pos (torch.Tensor): Positional encoding for cross-attention inputs with the same shape as memory.
             num_obj_ptr_tokens (int): Number of object pointer tokens to exclude from rotary position embedding.
 

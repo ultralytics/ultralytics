@@ -57,7 +57,7 @@ def _log_plots(plots: dict, prefix: str = "") -> None:
     """Log plot images for training progress if they have not been previously processed.
 
     Args:
-        plots (dict): Dictionary containing plot information with timestamps.
+        plots (dict): Dictionary mapping plot image paths to plot information with a 'timestamp' key.
         prefix (str, optional): Optional prefix to add to the logged image paths.
     """
     for name, params in plots.items():

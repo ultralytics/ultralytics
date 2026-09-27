@@ -47,7 +47,7 @@ similar = exp.get_similar(idx=1, limit=10)
 similar.head()
 ```
 
-You can also plot the similar samples directly using the `plot_similar` util
+You can also plot the similar samples directly using the `plot_similar` util:
 
 ![Similar images found by vector search](https://cdn.ul.run/i/2c62a2c28653d628ae17c5cc4568680a.avif)
 
@@ -71,12 +71,7 @@ df = exp.ask_ai("show me images containing more than 10 objects with at least 2 
 df.head(5)
 ```
 
-To plot these results, you can use the `plot_query_result` utility. Example:
-
-```python
-plt = plot_query_result(exp.ask_ai("show me 10 images containing exactly 2 persons"))
-Image.fromarray(plt)
-```
+To plot these results, you can use the `plot_query_result` utility:
 
 ![Ask AI query result showing matched images](https://cdn.ul.run/i/338a00d3c6a4ebc907f1353991900120.avif)
 
@@ -114,7 +109,7 @@ table = exp.sql_query("WHERE labels LIKE '%person, person%' AND labels LIKE '%do
 print(table)
 ```
 
-Just like similarity search, you also get a util to directly plot the sql queries using `exp.plot_sql_query`
+Just like similarity search, you also get a util to directly plot the SQL queries using `exp.plot_sql_query`
 
 ![SQL query matched images visualization](https://cdn.ul.run/i/86cc437bdadbe876ee3dc564add4bbb4.avif)
 

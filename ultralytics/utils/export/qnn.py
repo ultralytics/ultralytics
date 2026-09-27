@@ -71,6 +71,9 @@ def onnx2qnn(
     Returns:
         (str): Path to the exported `*_qnn.onnx` file.
 
+    Raises:
+        RuntimeError: If no QNN devices are found after plugin registration, or the context binary is not generated.
+
     Notes:
         `onnxruntime-qnn` wheels may expose QNN either as a plugin library or as a built-in ONNX Runtime provider.
     """

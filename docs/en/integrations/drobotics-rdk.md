@@ -25,17 +25,19 @@ This step does not include runtime/backend integration or board-side inference s
 RDK export currently requires:
 
 - an x86_64 Linux host
-- the RDK export toolchain installed with:
+- the D-Robotics `hb_mapper` compiler available in your `PATH`
+
+The toolchain wheels are built for Python 3.10 and pin dependencies such as `opencv-python==4.6.0.66` and `numpy==1.23.0` that conflict with Ultralytics, so install them in a separate virtual environment and append its `bin` directory to your `PATH`. Ultralytics runs `hb_mapper` as a subprocess, so the two environments never share packages:
 
 ```bash
-pip install rdkx5-yolo-mapper
+python3.10 -m venv ~/rdk-toolchain
+~/rdk-toolchain/bin/pip install rdkx5-yolo-mapper "setuptools<81" # the toolchain still imports pkg_resources
+export PATH="$PATH:$HOME/rdk-toolchain/bin"
 ```
-
-- `hb_mapper` available in your `PATH`
 
 ## Usage
 
-The exported model is always [INT8](../modes/export.md#quantization-options) quantized by `hb_mapper`, so a calibration dataset is required. Ultralytics falls back to `data=coco128.yaml` when `data` is not passed. Use `name` to select the target BPU microarchitecture, i.e. `name="bayes-e"` for RDK X5.
+The exported model is always [INT8](../modes/export.md#quantization-options) quantized by `hb_mapper`, so a calibration dataset is required. Ultralytics falls back to `data=coco128.yaml` when `data` is not passed. Use `name` to select the target BPU microarchitecture, e.g. `name="bayes-e"` for RDK X5.
 
 !!! example "CLI"
 

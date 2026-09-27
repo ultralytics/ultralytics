@@ -33,8 +33,8 @@ def _check_hb_mapper() -> None:
     if not shutil.which("hb_mapper"):
         raise FileNotFoundError(
             "RDK export requires the D-Robotics 'hb_mapper' compiler, which was not found on PATH. Install the "
-            "toolchain, i.e. `pip install rdkx5-yolo-mapper` for RDK X5, and ensure `hb_mapper` is on your PATH. "
-            "See https://docs.ultralytics.com/integrations/drobotics-rdk"
+            "toolchain in a separate Python 3.10 environment, e.g. `pip install rdkx5-yolo-mapper` for RDK X5, and "
+            "add its bin directory to your PATH. See https://docs.ultralytics.com/integrations/drobotics-rdk"
         )
 
 

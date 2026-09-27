@@ -814,7 +814,7 @@ def ap_per_class(
 
     Args:
         tp (np.ndarray): Binary array of shape (N, 10) indicating whether each detection is correct (True) or not
-            (False) at each of the 10 IoU thresholds 0.5: 0.95.
+        (False) at each of the 10 IoU thresholds 0.5: 0.95.
         conf (np.ndarray): Array of confidence scores of the detections.
         pred_cls (np.ndarray): Array of predicted classes of the detections.
         target_cls (np.ndarray): Array of true classes of the targets.

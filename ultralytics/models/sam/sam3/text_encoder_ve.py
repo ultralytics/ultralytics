@@ -279,7 +279,7 @@ class VETextEncoder(nn.Module):
 
         Args:
             text (list[str] | tuple[torch.Tensor, torch.Tensor, dict]): Raw text prompts, or a pre-encoded tuple of
-                (attention_mask, resized_memory, {"inputs_embeds": embeddings}).
+            (attention_mask, resized_memory, {"inputs_embeds": embeddings}).
             input_boxes (list | None): Unsupported; must be None or empty.
 
         Returns:

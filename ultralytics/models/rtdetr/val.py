@@ -30,26 +30,12 @@ class RTDETRDataset(YOLODataset):
 
     Methods:
         load_image: Load one image from dataset index.
-        build_transforms: Build transformation pipeline for the dataset.
 
     Examples:
         Initialize an RT-DETR dataset
-        >>> dataset = RTDETRDataset(img_path="path/to/images", imgsz=640)
+        >>> dataset = RTDETRDataset(img_path="path/to/images", data={"names": {0: "person"}}, imgsz=640)
         >>> image, hw0, hw = dataset.load_image(0)
     """
-
-    def __init__(self, *args, data=None, **kwargs):
-        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
-
-        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection TRansformer)
-        model, building upon the base YOLODataset functionality.
-
-        Args:
-            *args (Any): Variable length argument list passed to the parent YOLODataset class.
-            data (dict | None): Dictionary containing dataset information. If None, default values will be used.
-            **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
-        """
-        super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
         """Load one image from dataset index 'i'.
@@ -65,15 +51,14 @@ class RTDETRDataset(YOLODataset):
 
         Examples:
             Load an image from the dataset
-            >>> dataset = RTDETRDataset(img_path="path/to/images")
+            >>> dataset = RTDETRDataset(img_path="path/to/images", data={"names": {0: "person"}})
             >>> image, hw0, hw = dataset.load_image(0)
         """
         return super().load_image(i=i, rect_mode=rect_mode)
 
 
 class RTDETRValidator(DetectionValidator):
-    """RTDETRValidator extends the DetectionValidator class to provide validation capabilities specifically tailored for
-    the RT-DETR (Real-Time DETR) object detection model.
+    """Validator extending DetectionValidator for the RT-DETR (Real-Time DETR) object detection model.
 
     The class allows building of an RTDETR-specific dataset for validation, applies confidence thresholding for
     post-processing, and updates evaluation metrics accordingly.
@@ -84,7 +69,9 @@ class RTDETRValidator(DetectionValidator):
 
     Methods:
         build_dataset: Build an RTDETR Dataset for validation.
+        scale_preds: Return predictions unchanged since they are already in model input pixel space.
         postprocess: Apply confidence thresholding to prediction outputs.
+        pred_to_json: Serialize predictions to COCO JSON format.
 
     Examples:
         Initialize and run RT-DETR validation
@@ -127,7 +114,7 @@ class RTDETRValidator(DetectionValidator):
         )
 
     def scale_preds(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> dict[str, torch.Tensor]:
-        """Return predictions unchanged as RT-DETR handles scaling in postprocessing."""
+        """Return predictions unchanged as RT-DETR handles scaling in postprocessing and `pred_to_json`."""
         return predn
 
     def postprocess(
@@ -162,7 +149,7 @@ class RTDETRValidator(DetectionValidator):
         ]
 
     def pred_to_json(self, predn: dict[str, torch.Tensor], pbatch: dict[str, Any]) -> None:
-        """Serialize YOLO predictions to COCO json format.
+        """Serialize RT-DETR predictions to COCO JSON format.
 
         Args:
             predn (dict[str, torch.Tensor]): Predictions dictionary containing 'bboxes', 'conf', and 'cls' keys with

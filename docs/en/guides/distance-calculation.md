@@ -156,7 +156,7 @@ To delete points drawn during distance calculation with Ultralytics YOLO26, you 
 The key arguments for initializing the `DistanceCalculation` class in Ultralytics YOLO26 include:
 
 - `model`: Path to the YOLO26 model file.
-- `tracker`: Tracking algorithm to use (Solutions default to `botsort.yaml`).
+- `tracker`: Tracking algorithm to use (Solutions default to `tracktrack.yaml`).
 - `conf`: Confidence threshold for detections.
 - `show`: Flag to display the output.
 

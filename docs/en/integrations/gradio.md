@@ -146,7 +146,7 @@ def predict_image(img, conf_threshold, iou_threshold):
         show_labels=True,
         show_conf=True,
     )
-    return results[0].plot() if results else None
+    return results[0].plot(pil=True)  # RGB PIL image; plot() without pil=True returns a BGR array
 
 
 iface = gr.Interface(

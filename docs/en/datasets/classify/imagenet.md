@@ -13,7 +13,7 @@ keywords: ImageNet, ILSVRC-2012, image classification, deep learning, computer v
 
 # ImageNet Dataset
 
-The **Ultralytics ImageNet** dataset (`data="imagenet"`) is the ImageNet-1k / ILSVRC-2012 subset used to train and benchmark [image classification](../../tasks/classify.md) models. It contains **1,000 object classes** with **1,281,167 training images** and **50,000 validation images** at a **224x224** image size, and downloads to roughly **144 GB** of data. The broader [ImageNet](https://www.image-net.org/) database is far larger — over 14 million high-resolution images annotated with WordNet synsets across more than 20,000 categories — but Ultralytics trains on the standardized 1,000-class ILSVRC subset that became the de-facto benchmark for [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
+The **Ultralytics ImageNet** dataset (`data="imagenet"`) is the ImageNet-1k / ILSVRC-2012 subset used to train and benchmark [image classification](../../tasks/classify.md) models. It contains **1,000 object classes** with **1,281,167 training images** and **50,000 validation images**, is typically trained at a **224x224** image size, and downloads to roughly **144 GB** of data. The broader [ImageNet](https://www.image-net.org/) database is far larger — over 14 million high-resolution images annotated with WordNet synsets across more than 20,000 categories — but Ultralytics trains on the standardized 1,000-class ILSVRC subset that became the de-facto benchmark for [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) in [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv).
 
 ## ImageNet Pretrained Models
 
@@ -112,7 +112,7 @@ The [ImageNet dataset](https://www.image-net.org/) is a large-scale image databa
 
 ### How many classes and images does the ImageNet dataset have?
 
-The Ultralytics `imagenet` dataset uses the ILSVRC-2012 subset with **1,000 classes**, **1,281,167 training images**, and **50,000 validation images** at a 224x224 image size, for a total download of roughly 144 GB. The full ImageNet database is much larger (over 14 million images across more than 20,000 WordNet synsets), but the 1,000-class subset is the one used for classification training and benchmarking.
+The Ultralytics `imagenet` dataset uses the ILSVRC-2012 subset with **1,000 classes**, **1,281,167 training images**, and **50,000 validation images**, typically trained at a 224x224 image size, for a total download of roughly 144 GB. The full ImageNet database is much larger (over 14 million images across more than 20,000 WordNet synsets), but the 1,000-class subset is the one used for classification training and benchmarking.
 
 ### How can I train a YOLO model for image classification on the ImageNet dataset?
 

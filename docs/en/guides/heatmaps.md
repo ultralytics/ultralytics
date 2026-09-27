@@ -156,7 +156,7 @@ The [Heatmap solution](../reference/solutions/heatmap.md) extends the [ObjectCou
 1. YOLO26 tracking detects and follows every object in the frame
 2. For each tracked object, the heatmap intensity increases within a circular region centered in its bounding box
 
-Once per frame, the accumulated intensity layer is normalized, colorized with the selected colormap, and blended with the original frame. The overlay appears as soon as at least one object is tracked; frames without tracked objects are shown without the heatmap overlay.
+Once per frame, the accumulated intensity layer is normalized, colorized with the selected colormap, and blended with the original frame. The overlay appears once at least one object has been tracked; until then, frames are shown without the heatmap overlay.
 
 The result is a dynamic visualization that builds up over time, revealing traffic patterns, crowd movements, or other spatial behaviors in your video data. When a `region` is set, the solution also [counts objects](object-counting.md) entering and exiting that region while the heatmap builds.
 

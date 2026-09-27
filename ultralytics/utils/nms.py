@@ -17,7 +17,6 @@ def non_max_suppression(
     classes=None,
     agnostic: bool = False,
     multi_label: bool = False,
-    labels=(),
     max_det: int = 300,
     nc: int = 0,  # number of classes (optional)
     max_time_img: float = 0.05,
@@ -40,7 +39,6 @@ def non_max_suppression(
         classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.
-        labels (list[torch.Tensor]): A priori labels for each image.
         max_det (int): Maximum number of detections to keep per image.
         nc (int): Number of classes. Indices after this are considered masks.
         max_time_img (float): Maximum time in seconds for processing one image.
@@ -101,14 +99,6 @@ def non_max_suppression(
             x[:, :4] = xywh2xyxy(x[:, :4])
         if return_idxs:
             xk = xk[filt]
-
-        # Cat apriori labels if autolabelling
-        if labels and len(labels[xi]) and not rotated:
-            lb = labels[xi]
-            v = torch.zeros((len(lb), nc + extra + 4), device=x.device)
-            v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
-            v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
-            x = torch.cat((x, v), 0)
 
         # If none remain process next image
         if not x.shape[0]:

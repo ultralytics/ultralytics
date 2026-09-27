@@ -43,11 +43,11 @@ For detailed information on monitoring and optimizing GPU usage, refer to the AW
 
 ### Configuring Your Instance
 
-Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances allow you to bid on unused EC2 capacity, often at a significant discount compared to On-Demand prices. For training that must survive an interruption, choose a **persistent request** and set the interruption behavior to **stop** rather than terminate, so the EBS volume and your training outputs are kept and the instance restarts when capacity returns.
+Consider using Amazon EC2 Spot Instances for a more cost-effective approach. Spot Instances let you use unused EC2 capacity, often at a significant discount compared to On-Demand prices. For training that must survive an interruption, choose a **persistent request** and set the interruption behavior to **stop** rather than terminate, so the EBS volume and your training outputs are kept and the instance restarts when capacity returns.
 
 ![Spot Request Configuration](https://cdn.ul.run/i/ef8dca50c53d56c949c91231dec18a69.avif)
 
-Proceed through Steps 4-7 of the instance launch wizard to configure storage, add tags, set up security groups (ensure SSH port 22 is open from your IP), and review your settings before clicking **Launch**. You'll also need to create or select an existing key pair for secure SSH access.
+Proceed through the remaining launch settings to configure storage, add tags, set up security groups (ensure SSH port 22 is open from your IP), and review your settings before clicking **Launch**. You'll also need to create or select an existing key pair for secure SSH access.
 
 ## Step 3: Connect to Your Instance
 

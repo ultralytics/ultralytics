@@ -9,7 +9,7 @@ from ultralytics.models.yolo.segment import SegmentationPredictor
 
 
 class YOLOEVPDetectPredictor(DetectionPredictor):
-    """A class extending DetectionPredictor for YOLO-EVP (Enhanced Visual Prompting) predictions.
+    """A class extending DetectionPredictor for YOLOE visual prompt (VP) predictions.
 
     This class provides common functionality for YOLO models that use visual prompting, including model setup, prompt
     handling, and preprocessing transformations.
@@ -21,7 +21,7 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
         visuals (torch.Tensor): The prompts rasterized against the shapes of the batch being preprocessed.
 
     Methods:
-        setup_model: Initialize the YOLO model and set it to evaluation mode.
+        setup_model: Initialize the YOLO model and skip warmup.
         set_prompts: Set the visual prompts for the model.
         is_per_image: Report whether the prompts hold one array per image.
         preprocess: Preprocess a batch of images and rasterize its visual prompts.
@@ -128,4 +128,4 @@ class YOLOEVPDetectPredictor(DetectionPredictor):
 
 
 class YOLOEVPSegPredictor(YOLOEVPDetectPredictor, SegmentationPredictor):
-    """Predictor for YOLO-EVP segmentation tasks combining detection and segmentation capabilities."""
+    """Predictor for YOLOE visual prompt segmentation tasks combining detection and segmentation capabilities."""

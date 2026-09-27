@@ -23,7 +23,7 @@ keywords: Visual Studio Code, VS Code, deep learning, convolutional neural netwo
 
 ✅ Do you despise writing the same blocks of code repeatedly?
 
-✅ Are you always forgetting the arguments or default values for the [export](../modes/export.md), [predict](../modes/predict.md), [train](../modes/train.md), [track](../modes/track.md), or [val](../modes/val.md) methods?
+✅ Are you always forgetting the arguments or default values for the [train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), [export](../modes/export.md), or [track](../modes/track.md) methods?
 
 ✅ Looking to get started with Ultralytics and wish you had an _easier_ way to reference or run code examples?
 
@@ -128,7 +128,7 @@ These are the current snippet categories available to the Ultralytics-snippets e
 | Category  | Starting Prefix  | Description                                                                                                                                                                                                           |
 | :-------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Examples  | `ultra.examples` | Example code to help learn or for getting started with Ultralytics. Examples are copies of or similar to code from documentation pages.                                                                               |
-| Kwargs    | `ultra.kwargs`   | Speed up development by adding snippets for [train](../modes/train.md), [track](../modes/track.md), [predict](../modes/predict.md), and [val](../modes/val.md) methods with all keyword arguments and default values. |
+| Kwargs    | `ultra.kwargs`   | Speed up development by adding snippets for [train](../modes/train.md), [val](../modes/val.md), [predict](../modes/predict.md), and [track](../modes/track.md) methods with all keyword arguments and default values. |
 | Imports   | `ultra.imports`  | Snippets to quickly import common Ultralytics objects.                                                                                                                                                                |
 | Models    | `ultra.yolo`     | Insert code blocks for initializing various [models](../models/index.md) (`yolo`, `sam`, `rtdetr`, etc.), including dropdown configuration options.                                                                   |
 | Results   | `ultra.result`   | Code blocks for common operations when [working with inference results](../modes/predict.md#working-with-results).                                                                                                    |
@@ -226,7 +226,7 @@ The Ultralytics-Snippets extension for VS Code is designed to empower data scien
 
 New snippets can be requested using the Issues on the Ultralytics-Snippets [repo](https://github.com/Burhan-Q/ultralytics-snippets).
 
-### How much does the Ultralytics-Extension Cost?
+### How much does the Ultralytics-Snippets extension cost?
 
 It's 100% free!
 

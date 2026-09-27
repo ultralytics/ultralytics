@@ -98,7 +98,7 @@ export COMET_LOG_CONFUSION_MATRIX=false            # Set to disable logging a Co
 export COMET_MAX_IMAGE_UPLOADS=30                  # Controls how many total image predictions to log to Comet. Defaults to 100.
 export COMET_LOG_PER_CLASS_METRICS=true            # Set to log evaluation metrics for each detected class at the end of training. Defaults to false
 export COMET_DEFAULT_CHECKPOINT_FILENAME="last.pt" # Set this if you would like to resume training from a different checkpoint. Defaults to 'last.pt'
-export COMET_LOG_BATCH_LEVEL_METRICS=true          # Set this if you would like to log training metrics at the batch level. Defaults to false.
+export COMET_LOG_BATCH_METRICS=true                # Set this if you would like to log training metrics at the batch level. Defaults to false.
 export COMET_LOG_PREDICTIONS=true                  # Set this to false to disable logging model predictions
 ```
 
@@ -122,7 +122,7 @@ By default, model predictions (images, ground truth labels and bounding boxes) w
 
 You can control the frequency of logged predictions and the associated images by passing the `bbox_interval` command line argument. Predictions can be visualized using Comet's [Object Detection](https://www.ultralytics.com/glossary/object-detection) Custom Panel. This frequency corresponds to every Nth batch of data per [epoch](https://www.ultralytics.com/glossary/epoch). In the example below, we are logging every 2nd batch of data for each epoch.
 
-**Note:** The YOLOv5 validation dataloader will default to a [batch size](https://www.ultralytics.com/glossary/batch-size) of 32, so you will have to set the logging frequency accordingly.
+**Note:** The YOLOv5 validation dataloader uses twice the training [batch size](https://www.ultralytics.com/glossary/batch-size) (32 for `--batch 16`), so you will have to set the logging frequency accordingly.
 
 Here is an [example project using the Panel](https://www.comet.com/examples/comet-example-yolov5?shareable=YcwMiJaZSXfcEXpGOHDD12vA1&utm_source=yolov5&utm_medium=partner&utm_campaign=partner_yolov5_2022&utm_content=github)
 

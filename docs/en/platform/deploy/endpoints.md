@@ -183,7 +183,7 @@ Choose the CPU and memory size in the resources controls and review the displaye
 
 !!! note "Auto-Generated Names"
 
-    The deployment name combines the model name with the region city, for example `yolo26n-iowa`. On the model `Deploy` tab, a numeric suffix is added when that model already has a deployment in the region (for example `yolo26n-iowa-2`). Names must be unique within a workspace — deploying a name that already exists returns an error rather than silently renaming.
+    The deployment name combines the model name with the region city, for example `yolo26n-iowa`. Names must be unique within a workspace: when the name is already taken, the dialog shows an inline error and disables **Create Deployment** until you choose another name.
 
 ### Deploy Tab (Quick Deploy)
 
@@ -449,7 +449,7 @@ decode it.
 
     Dedicated endpoints accept both images and videos via the `file` parameter.
 
-    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
     - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
     Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.

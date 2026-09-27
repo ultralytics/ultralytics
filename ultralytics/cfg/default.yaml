@@ -52,7 +52,7 @@ dropout: 0.0 # (float) dropout for classification head (classify only)
 val: True # (bool) run validation/testing during training
 split: val # (str) dataset split to evaluate: 'val', 'test' or 'train'
 save_json: False # (bool) save COCO JSON (detect/segment/pose), compute detect size metrics, or save semantic PNG masks
-conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001
+conf: # (float, optional) confidence threshold; defaults: predict=0.25, val=0.001 (0.01 for obb)
 iou: 0.7 # (float) IoU threshold used for NMS
 max_det: 300 # (int) maximum number of detections per image
 quantize: # (int|str, optional) precision: predict/val 16/fp16 or 32/fp32/None sets pt/torchscript compute; elsewhere the artifact/runtime decides, though 16 rounds openvino inputs; export also supports 8/int8 and w8a8|w16a16|w8a16|w8a32; train uses 8/int8 for quantization-aware training (QAT); replaces deprecated half/int8 args
@@ -84,10 +84,9 @@ show_boxes: True # (bool) draw bounding boxes on images
 line_width: # (int, optional) line width of boxes; auto-scales with image size if not set
 
 # Export settings ------------------------------------------------------------------------------------------------------
-format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|saved_model|pb|edgetpu|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx|qnn|litert|hailo|ascend
-keras: False # (bool) TF SavedModel only (format=saved_model); enable Keras layers during export
+format: torchscript # (str) target format, e.g. torchscript|onnx|openvino|engine|coreml|coreai|saved_model|pb|edgetpu|litert|paddle|mnn|ncnn|imx|rknn|executorch|axelera|deepx|qnn|hailo|ascend
 optimize: False # (bool) DEEPX only; higher compiler optimization (slower compile, faster inference)
-dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, coreml; enable variable image sizes
+dynamic: False # (bool) dynamic shapes for torchscript, onnx, openvino, engine, coreml, mnn; enable variable image sizes
 simplify: True # (bool) supported ONNX-based exports (see export table); simplify intermediate ONNX graph
 opset: # (int, optional) supported ONNX-based exports (see export table); intermediate ONNX opset version
 workspace: # (float, optional) engine (TensorRT) only; workspace size in GiB, e.g. 4
@@ -128,8 +127,8 @@ bgr: 0.0 # (float) RGB↔BGR channel swap probability
 mosaic: 1.0 # (float) mosaic augmentation probability
 mixup: 0.0 # (float) MixUp augmentation probability
 cutmix: 0.0 # (float) CutMix augmentation probability
-copy_paste: 0.0 # (float) segment/obb copy-paste fraction of eligible objects
-copy_paste_mode: flip # (str) copy-paste strategy for segment/obb: flip or mixup
+copy_paste: 0.0 # (float) segment/semantic/obb copy-paste fraction of eligible objects
+copy_paste_mode: flip # (str) copy-paste strategy for segment/semantic/obb: flip or mixup
 auto_augment: randaugment # (str) classification auto augmentation policy: randaugment, autoaugment, augmix
 erasing: 0.4 # (float) random erasing probability for classification (0.0–1.0)
 

@@ -26,6 +26,12 @@ The 127-joint layout was established structurally, not assumed: joint 0 sits 26 
 eye midpoint, left and right limb lengths agree within 5%, and the hand blocks at 25-39 and 40-54 cluster on
 joints 20 and 21 respectively. That is the standard SMPL-X joint set, so the names follow from its spec.
 
+The same label set also ships AGORA (`agora-body.npz`, `agora-bfh.npz`, `--include-agora`), in the identical
+format and joint layout but a different image layout, handled in `convert_npz`. AGORA also varies focal length
+*within* a file — fx is 640, 995.6 or 1777.8 on a 1280-wide frame — so its conversion factor runs 0.86 to 2.4
+and the far end of its depth range crosses the 50 m encoding cap. Those rows are dropped and counted rather
+than silently clipped, which is why the per-sequence drop count is worth reading.
+
 Usage:
     python research/src/convert_bedlam.py --npz-dir <root>/labels/all_npz_12_training \
         --images <root>/images --out /home/rick/bedlam-pose3d --focal-ratio 1.2
@@ -105,7 +111,10 @@ def frame_rows(kps: np.ndarray, z_true: float, w: int, h: int, conv: float) -> s
 def convert_npz(npz: Path, images: Path, out: Path, focal_ratio: float, stride: int) -> tuple[int, int, int]:
     """Convert one sequence. Returns (frames written, persons written, persons dropped)."""
     seq = npz.stem
-    img_root = images / seq / "png"
+    # Two layouts share this label set. A BEDLAM sequence unpacks to <seq>/png/<subseq>/<frame>.png and its
+    # imgname carries the <subseq>/ prefix; the AGORA tar unpacks to one flat images/ pool that both agora npz
+    # index by bare filename (3,700 and 10,563 images, verified disjoint, so nothing is written twice).
+    img_root = images / "images" if seq.startswith("agora") else images / seq / "png"
     if not img_root.is_dir():
         print(f"skip {seq}: no images at {img_root}")
         return 0, 0, 0
@@ -180,5 +189,5 @@ if __name__ == "__main__":
     parser.add_argument("--out", type=Path, default=Path("/home/rick/bedlam-pose3d"))
     parser.add_argument("--focal-ratio", type=float, default=1.2, help="declared focal as a multiple of max(w, h)")
     parser.add_argument("--stride", type=int, default=1, help="keep every Nth frame; the 6fps sets are already thinned")
-    parser.add_argument("--include-agora", action="store_true", help="also convert the two agora-*.npz files")
+    parser.add_argument("--include-agora", action="store_true", help="also convert agora-body.npz and agora-bfh.npz")
     main(**vars(parser.parse_args()))

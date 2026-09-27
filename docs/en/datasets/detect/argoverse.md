@@ -18,7 +18,7 @@ Explore [Argoverse-HD on Ultralytics Platform](https://platform.ultralytics.com/
 
 !!! note "Manual download required"
 
-    The Argoverse-HD `*.zip` file (~31.5 GB) needed for training was removed from Amazon S3 after the shutdown of Argo AI by Ford. It is available for manual download from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link) — automatic download will not work, so download the archive before training.
+    The Argoverse-HD `*.zip` file (~31.5 GB) needed for training was removed from Amazon S3 after the shutdown of Argo AI by Ford. It is available for manual download from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link) — automatic download will not work, so download the archive and extract it into the `Argoverse` folder of your datasets directory before training.
 
 ## Key Features
 
@@ -189,7 +189,7 @@ For a detailed explanation of the arguments, refer to the model [Training](../..
 
 ### Where can I download the Argoverse dataset now that it has been removed from Amazon S3?
 
-The Argoverse-HD `*.zip` file (~31.5 GB), previously hosted on Amazon S3, can now be downloaded manually from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link). Automatic download will not work, so fetch the archive before running your training command.
+The Argoverse-HD `*.zip` file (~31.5 GB), previously hosted on Amazon S3, can now be downloaded manually from [Google Drive](https://drive.google.com/file/d/1st9qW3BeIwQsnR0t8mRpvbsSWIo16ACi/view?usp=drive_link). Automatic download will not work, so fetch the archive and extract it into the `Argoverse` folder of your datasets directory before running your training command.
 
 ### Can I use the Argoverse dataset with Ultralytics Platform?
 

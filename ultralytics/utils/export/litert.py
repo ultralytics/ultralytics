@@ -30,12 +30,12 @@ def _litert_gather(self, x: torch.Tensor, index: torch.Tensor) -> torch.Tensor:
 def torch2litert(
     model: torch.nn.Module,
     im: torch.Tensor,
-    file: Path,
-    quantize: int | str | None,
-    calibration_dataset: torch.utils.data.DataLoader | None,
-    metadata: dict | None,
-    prefix: str,
-) -> Path:
+    file: Path | str,
+    quantize: int | str | None = None,
+    calibration_dataset: torch.utils.data.DataLoader | None = None,
+    metadata: dict | None = None,
+    prefix: str = "",
+) -> str:
     """Export a PyTorch model to LiteRT format using litert_torch, with optional INT8 quantization.
 
     Three INT8 schemes are supported via ``quantize``: ``8`` applies static INT8 (int8 weights + int8 activations) and
@@ -56,7 +56,7 @@ def torch2litert(
         prefix (str): Prefix for log messages.
 
     Returns:
-        (Path): Path to the exported ``.tflite`` file with metadata embedded as a ``metadata.json`` entry.
+        (str): Path to the exported ``.tflite`` file with metadata embedded as a ``metadata.json`` entry.
     """
     from ultralytics.utils.checks import check_requirements
 
@@ -66,6 +66,8 @@ def torch2litert(
     static_int8 = quantize == 8
     static_int16 = quantize == "w8a16"
     dynamic_int8 = quantize == "w8a32"
+    if (static_int8 or static_int16) and calibration_dataset is None:
+        raise ValueError(f"LiteRT quantize={quantize!r} export requires a calibration dataset.")
     LOGGER.info(f"\n{prefix} starting export with litert_torch {litert_torch.__version__}...")
     file = Path(file)
     quant_tag = "_int8" if static_int8 else "_w8a16" if static_int16 else "_w8a32" if dynamic_int8 else ""
@@ -131,4 +133,4 @@ def torch2litert(
     # self-contained file that LiteRTBackend reads back at load time.
     with zipfile.ZipFile(tflite_file, "a", zipfile.ZIP_DEFLATED) as zf:
         zf.writestr("metadata.json", json.dumps(metadata or {}))
-    return tflite_file
+    return str(tflite_file)

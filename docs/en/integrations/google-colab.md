@@ -152,7 +152,7 @@ Yes, you can use custom datasets to train YOLO26 models in Google Colab. Upload 
 If your Google Colab training session is interrupted:
 
 1. **Save Regularly:** Avoid losing unsaved progress by regularly saving your work to Google Drive or GitHub.
-2. **Resume Training:** Restart your session and re-run the cells from where the interruption occurred.
-3. **Use Checkpoints:** Incorporate checkpointing in your training script to save progress periodically.
+2. **Resume Training:** Restart your session, load the interrupted run's `last.pt` checkpoint, and continue with `model.train(resume=True)` (see [Resuming Interrupted Trainings](../modes/train.md#resuming-interrupted-trainings)).
+3. **Use Checkpoints:** Save the training `project` directory to Google Drive so `last.pt` survives a disconnected runtime, and use `save_period` to keep periodic epoch checkpoints.
 
 These practices help ensure your progress is secure. Learn more about session management on [Google Colab's FAQ page](https://research.google.com/colaboratory/faq.html).

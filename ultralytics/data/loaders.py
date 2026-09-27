@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import glob
 import math
 import os
@@ -77,9 +78,9 @@ class LoadStreams:
     Methods:
         update: Read stream frames in daemon thread.
         close: Close stream loader and release resources.
-        __iter__: Returns an iterator object for the class.
-        __next__: Returns source paths, transformed, and original images for processing.
-        __len__: Return the length of the sources object.
+        __iter__: Return an iterator object for the class.
+        __next__: Return source names, latest frames, and empty info strings for processing.
+        __len__: Return the number of video streams.
 
     Examples:
         >>> stream_loader = LoadStreams("rtsp://example.com/stream1.mp4")
@@ -158,8 +159,14 @@ class LoadStreams:
             raise
         LOGGER.info("")  # newline
 
-    def update(self, i: int, cap: cv2.VideoCapture, stream: str):
-        """Read stream frames in daemon thread and update image buffer."""
+    def update(self, i: int, cap: cv2.VideoCapture, stream: str | int):
+        """Read stream frames in daemon thread and update image buffer.
+
+        Args:
+            i (int): Index of the stream in the loader.
+            cap (cv2.VideoCapture): Video capture object for the stream.
+            stream (str | int): Stream source or webcam index, used to re-open the stream if the signal is lost.
+        """
         n, f = 0, self.frames[i]  # frame number, total frames
         while self.running and cap.isOpened() and n < (f - 1):
             if len(self.imgs[i]) < 30:  # keep a <=30-image buffer
@@ -178,7 +185,7 @@ class LoadStreams:
                     else:
                         self.imgs[i] = [im]
             else:
-                time.sleep(0.01)  # wait until the buffer is empty
+                time.sleep(0.01)  # wait until the buffer has room
 
     def close(self):
         """Terminate stream loader, stop threads, and release video capture resources."""
@@ -252,11 +259,11 @@ class LoadScreenshots:
         cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
-        __iter__: Returns an iterator object.
-        __next__: Captures the next screenshot and returns it.
+        __iter__: Return an iterator object.
+        __next__: Capture the next screenshot and return it.
 
     Examples:
-        >>> loader = LoadScreenshots("0 100 100 640 480")  # screen 0, top-left (100,100), 640x480
+        >>> loader = LoadScreenshots("screen 0 100 100 640 480")  # screen 0, top-left (100,100), 640x480
         >>> for sources, imgs, info in loader:
         ...     print(f"Captured frame: {imgs[0].shape}")
     """
@@ -265,7 +272,9 @@ class LoadScreenshots:
         """Initialize screenshot capture with specified screen and region parameters.
 
         Args:
-            source (str): Screen capture source string in format "screen_num left top width height".
+            source (str): Screen capture source string starting with "screen", optionally followed by a screen number
+                and/or a "left top width height" capture region, e.g. "screen", "screen 1", or "screen 0 100 100
+                640 480".
             channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         check_requirements("mss")
@@ -323,17 +332,20 @@ class LoadImagesAndVideos:
         bs (int): Batch size.
         cap (cv2.VideoCapture): Video capture object for OpenCV.
         frame (int): Frame counter for video.
-        frames (int): Total number of frames in the video.
+        frames (int): Number of frames in the current video after applying vid_stride.
+        fps (int): Frames per second of the current video.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
         cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
 
     Methods:
         __init__: Initialize the LoadImagesAndVideos object.
-        __iter__: Returns an iterator object for VideoStream or ImageFolder.
-        __next__: Returns the next batch of images or video frames along with their paths and metadata.
-        _new_video: Creates a new video capture object for the given path.
-        __len__: Returns the number of batches in the object.
+        close: Release the current video capture object.
+        __iter__: Return an iterator object for VideoStream or ImageFolder.
+        __next__: Return the next batch of images or video frames along with their paths and metadata.
+        _append_image: Append a decoded image to the batch lists, or warn and skip it if decoding failed.
+        _new_video: Create a new video capture object for the given path.
+        __len__: Return the number of batches in the object.
 
     Examples:
         >>> loader = LoadImagesAndVideos("path/to/data", batch=32, vid_stride=1)
@@ -344,22 +356,29 @@ class LoadImagesAndVideos:
     Notes:
         - Supports various image formats including HEIC.
         - Handles both local files and directories.
-        - Can read from a text file containing paths to images and videos.
+        - Can read from a *.txt or *.csv file containing paths to images and videos.
     """
 
-    def __init__(self, path: str | Path | list, batch: int = 1, vid_stride: int = 1, channels: int = 3):
+    def __init__(self, path: str | Path | list | tuple, batch: int = 1, vid_stride: int = 1, channels: int = 3):
         """Initialize dataloader for images and videos, supporting various input formats.
 
         Args:
-            path (str | Path | list): Path to images/videos, directory, or list of paths.
+            path (str | Path | list | tuple): Path to an image/video file, directory, glob pattern, *.txt or *.csv file
+                of source paths, or list of paths.
             batch (int): Batch size for processing.
             vid_stride (int): Video frame-rate stride.
             channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
+        source_path = path
         parent = None
-        if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
+        if isinstance(path, (str, Path)) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
             parent, content = Path(path).parent, Path(path).read_text()
-            path = content.splitlines() if Path(path).suffix == ".txt" else content.split(",")  # list of sources
+            if Path(path).suffix == ".txt":
+                path = content.splitlines()
+            else:
+                rows = list(csv.reader(content.splitlines()))
+                rows = rows[1:] if rows[:1] == [["source"]] else rows  # optional header row
+                path = [p for row in rows for p in row]
             path = [p.strip() for p in path]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
@@ -398,7 +417,12 @@ class LoadImagesAndVideos:
         else:
             self.cap = None
         if self.nf == 0:
-            raise FileNotFoundError(f"No images or videos found in {p}. {FORMATS_HELP_MSG}")
+            raise FileNotFoundError(f"No images or videos found in {source_path}. {FORMATS_HELP_MSG}")
+
+    def close(self):
+        """Release the current video capture object, e.g. when inference stops before the video ends."""
+        if self.cap:
+            self.cap.release()
 
     def __iter__(self):
         """Iterate through image/video files, yielding source paths, images, and metadata."""
@@ -436,16 +460,17 @@ class LoadImagesAndVideos:
                         paths.append(path)
                         imgs.append(im0)
                         info.append(f"video {self.count + 1}/{self.nf} (frame {self.frame}/{self.frames}) {path}: ")
-                        if self.frame == self.frames:  # end of video
+                        if self.frame == self.frames:  # end of video, flush so a batch never spans two videos
                             self.count += 1
                             self.cap.release()
+                            break
                 else:
                     # Move to the next file if the current video ended or failed to open
                     self.count += 1
                     if self.cap:
                         self.cap.release()
-                    if self.count < self.nf:
-                        self._new_video(self.files[self.count])
+                    if imgs:  # flush so a batch never spans two videos, the next video opens on the next call
+                        break
             else:
                 # Handle image files
                 self.mode = "image"
@@ -673,7 +698,7 @@ class LoadTensor:
         paths (list[str]): List of image paths or auto-generated filenames.
 
     Methods:
-        _single_check: Validates and formats an input tensor.
+        _single_check: Validate and format an input tensor.
 
     Examples:
         >>> import torch
@@ -718,12 +743,12 @@ class LoadTensor:
         return im
 
     def __iter__(self):
-        """Yield an iterator object for iterating through tensor image data."""
+        """Return an iterator object for iterating through tensor image data."""
         self.count = 0
         return self
 
     def __next__(self) -> tuple[list[str], torch.Tensor, list[str]]:
-        """Yield the next batch of tensor images and metadata for processing."""
+        """Return the next batch of tensor images and metadata for processing."""
         if self.count == 1:
             raise StopIteration
         self.count += 1
@@ -735,7 +760,18 @@ class LoadTensor:
 
 
 def autocast_list(source: list[Any]) -> list[Image.Image | np.ndarray]:
-    """Convert a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction."""
+    """Convert a list of sources into a list of numpy arrays or PIL images for Ultralytics prediction.
+
+    Args:
+        source (list[Any]): List of file paths, URLs, PIL images, or numpy arrays.
+
+    Returns:
+        (list[PIL.Image.Image | np.ndarray]): List of PIL images (paths and URLs are opened and EXIF-transposed) or
+            numpy arrays.
+
+    Raises:
+        TypeError: If an element is not a supported source type.
+    """
     files = []
     for im in source:
         if isinstance(im, (str, Path)):  # filename or uri
@@ -777,7 +813,8 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
 
     Notes:
         - Requires additional libraries based on the chosen method: pytubefix, pafy, or yt-dlp.
-        - The function prioritizes streams with at least 1080p resolution when available.
+        - The "pytube" and "yt-dlp" methods only return streams of at least 1080p resolution, and return None if
+          none is found.
         - For the "yt-dlp" method, it looks for formats with video codec, no audio, and *.mp4 extension.
     """
     if method == "pytube":
@@ -785,11 +822,11 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
         check_requirements("pytubefix>=6.5.2")
         from pytubefix import YouTube
 
-        streams = YouTube(url).streams.filter(file_extension="mp4", only_video=True)
-        streams = sorted(streams, key=lambda s: s.resolution, reverse=True)  # sort streams by resolution
-        for stream in streams:
-            if stream.resolution and int(stream.resolution[:-1]) >= 1080:  # check if resolution is at least 1080p
-                return stream.url
+        stream = (
+            YouTube(url).streams.filter(file_extension="mp4", only_video=True).order_by("resolution").desc().first()
+        )
+        if stream and int(stream.resolution[:-1]) >= 1080:  # check if highest resolution is at least 1080p
+            return stream.url
 
     elif method == "pafy":
         check_requirements(("pafy", "youtube_dl==2020.12.2"))

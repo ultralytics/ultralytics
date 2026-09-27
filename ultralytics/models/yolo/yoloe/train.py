@@ -49,25 +49,25 @@ class YOLOETrainer(DetectionTrainer):
         overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a task-appropriate YOLOE model initialized with the specified configuration and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key, a direct
                 path to a YAML file, or None to use default configuration.
-            weights (str | Path, optional): Path to pretrained weights file to load into the model.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
             (YOLOEModel | YOLOESegModel): The initialized YOLOE model.
 
         Notes:
-            - The number of classes (nc) is hard-coded to a maximum of 80 following the official configuration.
+            - The number of classes (nc) is capped at 80 following the official configuration.
             - The nc parameter here represents the maximum number of different text samples in one image,
               rather than the actual number of classes.
         """
         # NOTE: This `nc` here is the max number of different text samples in one image, rather than the actual `nc`.
-        # NOTE: Following the official config, nc hard-coded to 80 for now.
+        # NOTE: Following the official config, nc is capped at 80 for now.
         model = (YOLOESegModel if self.args.task == "segment" else YOLOEModel)(
             cfg["yaml_file"] if isinstance(cfg, dict) else cfg,
             ch=self.data["channels"],
@@ -112,12 +112,12 @@ class YOLOEPETrainer(DetectionTrainer):
         get_validator: Return a task-appropriate validator.
     """
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a task-appropriate YOLOE model initialized with specified config and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration.
-            weights (str, optional): Path to pretrained weights.
+            weights (torch.nn.Module): Pretrained model whose weights are loaded, required for linear probing.
             verbose (bool): Whether to display model information.
 
         Returns:
@@ -226,15 +226,15 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
     """
 
     def preprocess_batch(self, batch):
-        """Preprocess a batch of images for YOLOE training, adjusting formatting and dimensions as needed."""
+        """Preprocess a batch of images for prompt-free YOLOE training without adding text features."""
         return DetectionTrainer.preprocess_batch(self, batch)
 
-    def set_text_embeddings(self, datasets, batch: int):
+    def set_text_embeddings(self, datasets, batch: int | None):
         """No-op override for prompt-free training that does not require text embeddings.
 
         Args:
             datasets (list[Dataset]): List of datasets containing category names to process.
-            batch (int): Batch size for processing text embeddings.
+            batch (int | None): Batch size for processing text embeddings.
         """
 
 

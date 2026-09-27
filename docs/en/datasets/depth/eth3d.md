@@ -27,7 +27,7 @@ Evaluation uses multi-scale and horizontal-flip test-time augmentation (TTA), fo
 
 ## Results
 
-The table below reports the `delta1` accuracy (percentage of pixels within a 1.25× threshold, higher is better) on the ETH3D evaluation images by model size.
+The table below reports the `delta1` accuracy (fraction of pixels within a 1.25× threshold, higher is better) on the ETH3D evaluation images by model size.
 
 | Model         | delta1 |
 | ------------- | ------ |
@@ -68,7 +68,7 @@ ETH3D is an external benchmark, so models are typically run with `predict` on it
 
 ## Pretrained Models
 
-The YOLO26 depth family is evaluated zero-shot on the ETH3D benchmark. These models auto-download from the latest Ultralytics release, for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth) from v8.4.0, and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
+The YOLO26 depth family is evaluated zero-shot on the ETH3D benchmark. These models auto-download on first use from the Ultralytics [v8.4.0 assets release](https://github.com/ultralytics/assets/releases/tag/v8.4.0), for example [YOLO26x-depth](https://platform.ultralytics.com/ultralytics/yolo26/yolo26x-depth), and span a range of sizes (yolo26n/s/m/l/x-depth) for different accuracy and resource requirements.
 
 ## Citations and Acknowledgments
 

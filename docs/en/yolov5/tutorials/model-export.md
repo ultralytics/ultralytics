@@ -100,7 +100,7 @@ Benchmarks complete (241.20s)
 
 ## Export a Trained YOLOv5 Model
 
-This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts i.e. `yolov5s6.pt` or you own custom training checkpoint i.e. `runs/exp/weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
+This command exports a pretrained YOLOv5s model to TorchScript and ONNX formats. `yolov5s.pt` is the 'small' model, the second-smallest model available. Other options are `yolov5n.pt`, `yolov5m.pt`, `yolov5l.pt` and `yolov5x.pt`, along with their P6 counterparts i.e. `yolov5s6.pt` or your own custom training checkpoint, i.e. `runs/train/exp/weights/best.pt`. For details on all available models please see our README [table](https://github.com/ultralytics/yolov5#pretrained-checkpoints).
 
 ```bash
 python export.py --weights yolov5s.pt --include torchscript onnx
@@ -138,7 +138,7 @@ PyTorch Hub:     model = torch.hub.load('ultralytics/yolov5', 'custom', 'yolov5s
 Visualize:       https://netron.app/
 ```
 
-The 3 exported models will be saved alongside the original PyTorch model:
+The exported models will be saved alongside the original PyTorch model:
 
 <p align="center"><img width="700" src="https://cdn.ul.run/i/c6887df5000c6206cd8cee3edcdffb3c.avif" alt="YOLO export locations"></p>
 
@@ -153,7 +153,7 @@ The 3 exported models will be saved alongside the original PyTorch model:
 ```bash
 python detect.py --weights yolov5s.pt             # PyTorch
 python detect.py --weights yolov5s.torchscript    # TorchScript
-python detect.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
+python detect.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with --dnn
 python detect.py --weights yolov5s_openvino_model # OpenVINO
 python detect.py --weights yolov5s.engine         # TensorRT
 python detect.py --weights yolov5s.mlpackage      # CoreML (macOS only)
@@ -169,7 +169,7 @@ python detect.py --weights yolov5s_paddle_model   # PaddlePaddle
 ```bash
 python val.py --weights yolov5s.pt             # PyTorch
 python val.py --weights yolov5s.torchscript    # TorchScript
-python val.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with dnn=True
+python val.py --weights yolov5s.onnx           # ONNX Runtime or OpenCV DNN with --dnn
 python val.py --weights yolov5s_openvino_model # OpenVINO
 python val.py --weights yolov5s.engine         # TensorRT
 python val.py --weights yolov5s.mlpackage      # CoreML (macOS only)

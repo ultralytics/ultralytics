@@ -647,9 +647,9 @@ def _attention_ops(m, x, y):
 def get_flops(model, imgsz=640):
     """Calculate FLOPs (floating point operations) for a model in GFLOPs.
 
-    Uses THOP's stride-aware image profiling for efficiency and accurate size-independent operations, except for models
-    with attention blocks (whose cost is quadratic in image area) or an RT-DETR decoder, which are profiled at the full
-    image size. Returns 0.0 if thop is unavailable or profiling fails.
+    Uses THOP's stride-aware image profiling, which extrapolates exactly from small stride-aligned proxy images when the
+    cost is quadratic in image area (convolutions and attention). RT-DETR, whose decoder query count saturates beyond the
+    proxy sizes, is profiled at the full image size. Returns 0.0 if thop is unavailable or profiling fails.
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
@@ -674,13 +674,11 @@ def get_flops(model, imgsz=640):
         p = next(model.parameters())
         if not isinstance(imgsz, (list, tuple)):
             imgsz = [imgsz, imgsz]  # expand if int/float
-        attn = tuple(m for m in model.modules() if isinstance(m, (Attention, AAttn)))
         rtdetr = any(isinstance(m, RTDETRDecoder) for m in model.modules())
-        # Attention costs are quadratic in image area, so disable THOP's affine proxy.
-        stride = None if attn else max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
+        stride = max(int(model.stride.max()), 32) if hasattr(model, "stride") else 32
         im = torch.empty((1, p.shape[1], *imgsz), device=p.device, dtype=p.dtype)  # input image in BCHW format
-        custom_ops = {Attention: _attention_ops, AAttn: _attention_ops} if attn else None
-        if rtdetr:  # RT-DETR cannot run the stride-sized proxy input
+        custom_ops = {Attention: _attention_ops, AAttn: _attention_ops}
+        if rtdetr:  # RT-DETR decoder query count saturates beyond the proxy input sizes
             return thop.profile(model, inputs=[im], custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
         return thop.profile(model, inputs=[im], stride=stride, custom_ops=custom_ops, verbose=False)[0] / 1e9 * 2
     except Exception:

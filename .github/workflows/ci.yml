@@ -571,6 +571,7 @@ jobs:
           python${{ matrix.python }} -m venv env --system-site-packages
           source env/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
+          echo YOLO_CONFIG_DIR=$RUNNER_TEMP >> $GITHUB_ENV # per-runner settings; runners on one host share HOME
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:

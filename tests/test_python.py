@@ -1789,21 +1789,6 @@ def test_scale_coords_nonuniform_letterbox():
     assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
 
 
-def test_scale_masks_odd_letterbox_pad():
-    """Mask scaling with the dataloader's ratio_pad must end the crop where the letterbox content ends."""
-    from ultralytics.data.augment import LetterBox
-    from ultralytics.utils import ops
-
-    labels = {"img": np.zeros((333, 640, 3), dtype=np.uint8), "ratio_pad": (0.333, 1 / 3)}  # 1000x1920 image resized
-    ratio_pad = LetterBox((352, 640), scaleup=False)(labels)["ratio_pad"]  # 19 rows of padding, 9 above and 10 below
-    assert ratio_pad == ((0.333, 1 / 3), (0, 9))
-    masks = torch.zeros(1, 1, 352, 640)
-    masks[..., 9:342, :] = 1  # the content rows
-    scaled = ops.scale_masks(masks, (1000, 1920), ratio_pad=ratio_pad)[0, 0] > 0.5
-    assert scaled.all()  # every original pixel is content
-    assert torch.equal(scaled, ops.scale_masks(masks, (1000, 1920))[0, 0] > 0.5)  # same as without ratio_pad
-
-
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression

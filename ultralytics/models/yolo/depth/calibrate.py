@@ -52,7 +52,7 @@ def _rewind(dataloader) -> None:
 def _delta1_none(log_pred: np.ndarray, log_gt: np.ndarray, a: float, b: float) -> float:
     """δ1 under no per-image alignment after applying ``d' = exp(a·log_pred + b)``.
 
-    δ1 is the fraction of pixels with ``max(d'/gt, gt/d') < 1.25``; in log space that is ``|a·log_pred + b − log_gt| <
+    δ1 is the fraction of pixels with ``max(d'/gt, gt/d') < 1.25``; in log space that is ``|a·log_pred + b - log_gt| <
     log(1.25)``. This is the deployment metric (raw absolute scale, the ``align="none"`` protocol) the policy optimizes
     — the val scoreboard's default ``align="median"`` is scale-invariant and cannot see calibration.
     """
@@ -71,13 +71,20 @@ def select_calibration(
     Two candidates are fit on the ``*_fit`` log-pixel arrays and scored on the independent ``*_score`` arrays under
     :func:`_delta1_none`:
     - ``identity`` (a=1, b=0): no calibration,
-    - ``scale-only`` (a=1, b=mean(log_gt − log_pred)): a global scale.
+    - ``scale-only`` (a=1, b=mean(log_gt - log_pred)): a global scale.
     The winner is the highest held-out δ1, with ties favoring identity — so a calibration that does not generalize is
     rejected and auto-cal does no harm. (An affine log-slope candidate was evaluated and removed: the extra parameter
     overfits within-dataset cross-validation and harms cross-distribution generalization.)
 
+    Args:
+        lp_fit (np.ndarray): Log predicted depths used to fit the candidates.
+        lg_fit (np.ndarray): Log ground-truth depths used to fit the candidates.
+        lp_score (np.ndarray): Held-out log predicted depths used to score the candidates.
+        lg_score (np.ndarray): Held-out log ground-truth depths used to score the candidates.
+
     Returns:
-        dict with ``a``, ``b`` (floats of the winner), ``name``, and ``scores`` (per-candidate δ1).
+        (dict[str, Any]): Dictionary with ``a``, ``b`` (floats of the winner), ``name``, and ``scores`` (per-candidate
+            δ1).
     """
     lp_fit = np.asarray(lp_fit, dtype=np.float64)
     lg_fit = np.asarray(lg_fit, dtype=np.float64)
@@ -103,8 +110,14 @@ def select_calibration_cv(
     selected. The winning *type* must beat identity's mean held-out δ1 by ``margin`` (ties favor the simpler type); the
     final ``(a, b)`` is then refit on all pairs.
 
+    Args:
+        pairs (list[tuple[np.ndarray, np.ndarray]]): Per-image ``(log_pred, log_gt)`` arrays.
+        margin (float): Minimum mean held-out δ1 improvement over identity required to select a calibration.
+        folds (int): Number of cross-validation folds, clamped to ``[2, len(pairs)]``.
+
     Returns:
-        dict with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per type).
+        (dict[str, Any]): Dictionary with ``a``, ``b`` (floats), ``name``, and ``cv_scores`` (mean held-out δ1 per
+            type).
     """
     names = ["identity", "scale-only"]
     k = max(2, min(folds, len(pairs)))
@@ -201,8 +214,17 @@ def fit_calibration_selective(
     leakage), chooses identity / scale-only by cross-validated raw-scale δ1, and writes the winner into the head's
     ``cal_a``/``cal_b``.
 
+    Args:
+        model (torch.nn.Module): Depth model whose head carries ``cal_a``/``cal_b`` buffers.
+        dataloader (object): Yields batches with ``img`` (uint8, Bx3xHxW) and ``depth`` (BxHxW meters).
+        device (str | torch.device): Torch device to run inference on.
+        max_images (int): Maximum number of images to collect from the loader.
+        margin (float): Minimum mean held-out δ1 improvement over identity required to select a calibration.
+        max_depth (float): Maximum valid GT depth in meters; pixels beyond it are excluded.
+
     Returns:
-        (dict | None): The :func:`select_calibration_cv` result dict, or None if no Depth head / too few images.
+        (dict | None): The :func:`select_calibration_cv` result dict plus ``images`` (number of images used), or None if
+            no Depth head / too few images.
     """
     head = _depth_head(model)
     if head is None:
@@ -299,6 +321,10 @@ def calibrate_checkpoint(
         validation_split (str, optional): Dataset-root-relative split used to collect calibration images.
         max_depth (float): Maximum valid GT depth in meters; pixels beyond it are excluded from the fit and the held-out
             δ1 scoring, matching the val metrics' Eigen protocol.
+
+    Returns:
+        (dict | None): Calibration provenance stored in the checkpoint under ``depth_calibration``, or None if the
+            checkpoint has no Depth head or calibration was skipped.
     """
     from copy import deepcopy
 

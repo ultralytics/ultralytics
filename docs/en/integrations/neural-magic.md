@@ -27,7 +27,7 @@ This guide shows you how to deploy YOLO26 using Neural Magic's DeepSparse, how t
 
 Before diving into how to deploy YOLO26 using DeepSparse, let's understand the benefits of using DeepSparse. Some key advantages include:
 
-- **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLO11n), significantly speeding up YOLO's inference capabilities compared to traditional methods.
+- **Enhanced Inference Speed**: Achieves up to 525 FPS (on YOLOv8n), significantly speeding up YOLO's inference capabilities compared to traditional methods.
 
 <p align="center">
   <img width="640" src="https://cdn.ul.run/i/381d75e89a2246172df54ed54b95a401.avif" alt="Neural Magic DeepSparse inference acceleration">
@@ -43,7 +43,7 @@ Before diving into how to deploy YOLO26 using DeepSparse, let's understand the b
 
 - **Streamlined Integration and Deployment**: Offers user-friendly tools for easy integration of YOLO26 into applications, including image and video annotation features.
 
-- **Support for Various Model Types**: Compatible with both standard and sparsity-optimized YOLO26 models, adding deployment flexibility.
+- **Support for Various Model Types**: Compatible with both standard and sparsity-optimized YOLO models, adding deployment flexibility.
 
 - **Cost-Effective and Scalable Solution**: Reduces operational expenses and offers scalable deployment of advanced object detection models.
 
@@ -61,9 +61,9 @@ Neural Magic's DeepSparse technology is inspired by the human brain's efficiency
 
 ## Creating A Sparse Version of YOLO26 Trained on a Custom Dataset
 
-[SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLO26 model checkpoints](https://github.com/neuralmagic/sparsezoo/blob/main/README.md). With [SparseML](https://github.com/neuralmagic/sparseml), seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.
+[SparseZoo](https://github.com/neuralmagic/sparsezoo/blob/main/README.md), an open-source model repository by Neural Magic, offers [a collection of pre-sparsified YOLOv8 model checkpoints](https://github.com/neuralmagic/sparsezoo/blob/main/README.md). With [SparseML](https://github.com/neuralmagic/sparseml), seamlessly integrated with Ultralytics, users can effortlessly fine-tune these sparse checkpoints on their specific datasets using a straightforward command-line interface.
 
-Check out [Neural Magic's SparseML YOLO26 documentation](https://github.com/neuralmagic/sparseml/tree/main/integrations/ultralytics-yolov8) for more details.
+Check out [Neural Magic's SparseML YOLOv8 documentation](https://github.com/neuralmagic/sparseml/tree/main/integrations/ultralytics-yolov8) for more details.
 
 ## Usage: Deploying YOLO26 using DeepSparse
 
@@ -160,7 +160,7 @@ After running the eval command, you will receive detailed output metrics such as
 
 This guide explored integrating Ultralytics' YOLO26 with Neural Magic's DeepSparse Engine. It highlighted how this integration enhances YOLO26's performance on CPU platforms, offering GPU-level efficiency and advanced neural network sparsity techniques.
 
-For more detailed information and advanced usage, visit the [DeepSparse repository by Neural Magic](https://github.com/neuralmagic/deepsparse). You can also [explore the YOLO26 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
+For more detailed information and advanced usage, visit the [DeepSparse repository by Neural Magic](https://github.com/neuralmagic/deepsparse). You can also [explore the YOLOv8 integration guide](https://github.com/neuralmagic/deepsparse/tree/main/src/deepsparse/yolov8#yolov8-inference-pipelines) and [watch a walkthrough session on YouTube](https://www.youtube.com/watch?v=qtJ7bdt52x8).
 
 Additionally, for a broader understanding of various YOLO26 integrations, visit the [Ultralytics integration guide page](../integrations/index.md), where you can discover a range of other exciting integration possibilities.
 
@@ -204,11 +204,11 @@ This command will provide you with vital performance metrics. For more details, 
 
 Integrating Neural Magic's DeepSparse with YOLO26 offers several benefits:
 
-- **Enhanced Inference Speed:** Achieves up to 525 FPS (on YOLO11n), demonstrating DeepSparse's optimization capabilities.
+- **Enhanced Inference Speed:** Achieves up to 525 FPS (on YOLOv8n), demonstrating DeepSparse's optimization capabilities.
 - **Optimized Model Efficiency:** Uses sparsity, pruning, and quantization techniques to reduce model size and computational needs while maintaining accuracy.
 - **High Performance on Standard CPUs:** Offers GPU-like performance on cost-effective CPU hardware.
 - **Streamlined Integration:** User-friendly tools for easy deployment and integration.
-- **Flexibility:** Supports both standard and sparsity-optimized YOLO26 models.
+- **Flexibility:** Supports both standard and sparsity-optimized YOLO models.
 - **Cost-Effective:** Reduces operational expenses through efficient resource utilization.
 
 For a deeper dive into these advantages, visit the [Benefits of Integrating Neural Magic's DeepSparse with YOLO26 section](#benefits-of-integrating-neural-magics-deepsparse-with-yolo26).

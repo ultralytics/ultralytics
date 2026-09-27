@@ -19,14 +19,12 @@ class WorldTrainerFromScratch(WorldTrainer):
     supporting training YOLO-World models with combined vision-language capabilities.
 
     Attributes:
-        cfg (dict): Configuration dictionary with default parameters for model training.
-        overrides (dict): Dictionary of parameter overrides to customize the configuration.
-        _callbacks (dict): Dictionary of callback functions to be executed during different stages of training.
         data (dict): Final processed data configuration containing train/val paths and metadata.
         training_data (dict): Dictionary mapping training dataset paths to their configurations.
 
     Methods:
         build_dataset: Build YOLO Dataset for training or validation with mixed dataset support.
+        check_data_config: Check and load the data configuration from a YAML file or dictionary.
         get_dataset: Get train and validation paths from data dictionary.
         plot_training_labels: Skip label plotting for YOLO-World training.
         final_eval: Perform final evaluation and validation for the YOLO-World model.
@@ -186,9 +184,6 @@ class WorldTrainerFromScratch(WorldTrainer):
         """Perform final evaluation and validation for the YOLO-World model.
 
         Configures the validator with appropriate dataset and split information before running evaluation.
-
-        Returns:
-            (dict): Dictionary containing evaluation metrics and results.
         """
         val = self.args.data["val"]["yolo_data"][0]
         self.validator.args.data = val

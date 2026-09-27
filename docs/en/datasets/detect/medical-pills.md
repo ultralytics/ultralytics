@@ -107,7 +107,7 @@ To train a YOLO26n model on the Medical Pills dataset for 100 [epochs](https://w
 
 ## Sample Images and Annotations
 
-The Medical Pills dataset features labeled images showcasing the diversity of pills. Below is an example of a labeled image from the dataset:
+The Medical Pills dataset features labeled images showcasing the diversity of pills. Below is an example of a mosaiced training batch from the dataset:
 
 ![Medical Pills dataset sample image](https://cdn.ul.run/i/70a06a40bd512ead35b4f4fb8bcd7966.avif)
 

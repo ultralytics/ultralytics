@@ -39,7 +39,15 @@ class IOSDetectModel(nn.Module):
             )
 
     def forward(self, x: torch.Tensor):
-        """Normalize predictions of object detection model with input size-dependent factors."""
+        """Normalize predictions of object detection model with input size-dependent factors.
+
+        Args:
+            x (torch.Tensor): Input image tensor with shape (B, C, H, W).
+
+        Returns:
+            cls (torch.Tensor): Class scores, padded to a multiple of 80 classes for MLProgram.
+            xywh (torch.Tensor): xywh boxes normalized to [0, 1] by image size.
+        """
         xywh, cls = self.model(x)[0].transpose(0, 1).split((4, self.nc), 1)
         if self.mlprogram and self.nc % 80 != 0:  # NMS bug https://github.com/ultralytics/ultralytics/issues/22309
             pad_length = int(((self.nc + 79) // 80) * 80) - self.nc  # pad class length to multiple of 80
@@ -61,18 +69,18 @@ def pipeline_coreml(
     """Create CoreML pipeline with NMS for YOLO detection models.
 
     Args:
-        model: CoreML model.
+        model (ct.models.MLModel): CoreML detection model to combine with an NMS stage.
         output_shape (tuple[int, ...]): Output shape tuple from the exporter.
         metadata (dict): Model metadata.
         mlmodel (bool): Whether the model is an MLModel (vs MLProgram).
-        iou (float): IoU threshold for NMS.
+        iou (float): IoU threshold for NMS, default 0.45; the exporter passes its `iou` arg (default 0.7).
         conf (float): Confidence threshold for NMS.
         agnostic_nms (bool): Whether to use class-agnostic NMS.
         weights_dir (Path | str | None): Weights directory for MLProgram models.
         prefix (str): Prefix for log messages.
 
     Returns:
-        CoreML pipeline model.
+        (ct.models.MLModel): CoreML pipeline model with NMS.
     """
     import coremltools as ct
 
@@ -192,7 +200,8 @@ def torch2coreml(
         classifier_names (list[str] | None): Class names for classifier config, or None if not a classifier.
         output_file (Path | str | None): Output file path, or None to skip saving.
         mlmodel (bool): Whether to export as ``.mlmodel`` (neural network) instead of ``.mlpackage`` (ML program).
-        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for INT8 weights.
+        quantize (int | str | None): Precision scheme, e.g. 16 for FP16 or 8/``"w8a16"`` for 8-bit k-means palettized
+            weights.
         metadata (dict | None): Metadata to embed in the CoreML model.
         prefix (str): Prefix for log messages.
 
@@ -210,7 +219,7 @@ def torch2coreml(
     weight_int8 = quantize in {8, "w8a16"}
 
     # Based on apple's documentation it is better to leave out the minimum_deployment target and let that get set
-    # Internally based on the model conversion and output type.
+    # internally based on the model conversion and output type.
     # Setting minimum_deployment_target >= iOS16 will require setting compute_precision=ct.precision.FLOAT32.
     # iOS16 adds in better support for FP16, but none of the CoreML NMS specifications handle FP16 as input.
     convert_kwargs = {

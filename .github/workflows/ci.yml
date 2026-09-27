@@ -485,7 +485,7 @@ jobs:
         run: |
           uv pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/ --index-strategy unsafe-best-match
           uv pip install -e . pytest-cov "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82"
-          uv pip install onnxruntime-ep-migraphx migraphx-libs --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ --index-strategy unsafe-best-match
+          uv pip install "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ --index-strategy unsafe-best-match
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment

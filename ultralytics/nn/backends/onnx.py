@@ -263,10 +263,10 @@ class ONNXBackend(BaseBackend):
                     providers = ["CPUExecutionProvider"]
                     if cuda:
                         ep_name = "MIGraphXExecutionProvider" if rocm else "CUDAExecutionProvider"
-                        pkg = "onnxruntime-ep-migraphx" if rocm else "onnxruntime-gpu"
-                        fix = f"pip install {pkg}" + (f" {ROCM_EXTRA_INDEX}" if rocm else "")
+                        pkgs = " ".join(ROCM_EP_PACKAGES) if rocm else "onnxruntime-gpu"
+                        fix = f"pip install {pkgs}" + (f" {ROCM_EXTRA_INDEX}" if rocm else "")
                         if rocm and not wheels:
-                            fix = f"Python>=3.11 on x86_64, the only platforms {pkg} supports"
+                            fix = "Python>=3.11 on x86_64, the only platforms onnxruntime-ep-migraphx supports"
                         LOGGER.warning(f"GPU requested but {ep_name} not available. Using CPU... Fix with '{fix}'")
                         self.device = torch.device("cpu")
                         cuda = False

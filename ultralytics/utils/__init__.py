@@ -86,8 +86,9 @@ ROCM_EXTRA_INDEX = (
     "--extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/"
 )
 # The plugin declares only onnxruntime as a dependency, so migraphx-libs (libmigraphx_c.so) is named explicitly
-# (ROCm/AMDMIGraphX#5235). The migraphx Python bindings are not needed for the EP path.
-ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx", "migraphx-libs"]
+# (ROCm/AMDMIGraphX#5235). The migraphx Python bindings are not needed for the EP path. Exact local-version pins keep
+# the rolling whl-next indexes on the validated stack and can only resolve from AMD's index (PyPI rejects local versions).
+ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx==1.0.0+rocm10.0.0", "migraphx-libs==2.17.0+rocm10.0.0"]
 IS_VSCODE = os.environ.get("TERM_PROGRAM") == "vscode"
 RKNN_CHIPS = frozenset(
     {

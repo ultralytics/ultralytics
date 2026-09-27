@@ -141,6 +141,8 @@ def attach_raw_preds_hook(predictor) -> None:
 
     @wraps(orig)
     def _wrapped(preds, img, orig_imgs, *args, **kwargs):
+        if predictor.args.mode != "track":  # plain predict() on this predictor needs no capture
+            return orig(preds, img, orig_imgs, *args, **kwargs)
         raw = preds[0] if isinstance(preds, (list, tuple)) else preds  # PyTorch models return [inference, extras]
         # clone() so the in-place NMS xywh->xyxy conversion can't mutate this capture; keep source device for box_iou
         predictor._raw_preds = raw.detach().clone() if isinstance(raw, torch.Tensor) else raw

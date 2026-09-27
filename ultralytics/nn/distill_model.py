@@ -221,12 +221,12 @@ class DistillationModel(nn.Module):
             return self.loss(x, *args, **kwargs)
         return self.student_model.predict(x, *args, **kwargs)
 
-    def fuse(self, verbose: bool = True, imgsz: int | list[int, int] = 640):
+    def fuse(self, verbose: bool = True, imgsz: int | list[int] = 640):
         """Fuse and return the student model, dropping the training-only distillation wrapper.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
-            imgsz (int | list[int, int]): Input image size used for FLOPs calculation.
+            imgsz (int | list[int]): Input image size used for FLOPs calculation.
 
         Returns:
             (nn.Module): The fused student model.

@@ -100,8 +100,8 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
 
 def get_windows(
     im_size: tuple[int, int],
-    crop_sizes: tuple[int, ...] = (1024,),
-    gaps: tuple[int, ...] = (200,),
+    crop_sizes: tuple[int, ...] | list[int] = (1024,),
+    gaps: tuple[int, ...] | list[int] = (200,),
     im_rate_thr: float = 0.6,
     eps: float = 0.01,
 ) -> np.ndarray:
@@ -109,8 +109,8 @@ def get_windows(
 
     Args:
         im_size (tuple[int, int]): Original image size, (H, W).
-        crop_sizes (tuple[int, ...], optional): Crop size of windows.
-        gaps (tuple[int, ...], optional): Gap between crops.
+        crop_sizes (tuple[int, ...] | list[int], optional): Crop size of windows.
+        gaps (tuple[int, ...] | list[int], optional): Gap between crops.
         im_rate_thr (float, optional): Threshold for the ratio of image area within a window to the total window area.
         eps (float, optional): Epsilon value for math operations.
 
@@ -229,8 +229,8 @@ def split_images_and_labels(
     data_root: str,
     save_dir: str,
     split: str = "train",
-    crop_sizes: tuple[int, ...] = (1024,),
-    gaps: tuple[int, ...] = (200,),
+    crop_sizes: tuple[int, ...] | list[int] = (1024,),
+    gaps: tuple[int, ...] | list[int] = (200,),
 ) -> None:
     """Split both images and labels for a given dataset split.
 
@@ -238,8 +238,8 @@ def split_images_and_labels(
         data_root (str): Root directory of the dataset.
         save_dir (str): Directory to save the split dataset.
         split (str, optional): The split data set, could be 'train' or 'val'.
-        crop_sizes (tuple[int, ...], optional): Tuple of crop sizes.
-        gaps (tuple[int, ...], optional): Tuple of gaps between crops.
+        crop_sizes (tuple[int, ...] | list[int], optional): Crop sizes.
+        gaps (tuple[int, ...] | list[int], optional): Gaps between crops.
 
     Notes:
         The directory structure assumed for the DOTA dataset:

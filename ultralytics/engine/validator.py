@@ -117,7 +117,7 @@ class BaseValidator:
         Args:
             dataloader (torch.utils.data.DataLoader, optional): DataLoader to be used for validation.
             save_dir (Path, optional): Directory to save results.
-            args (SimpleNamespace, optional): Configuration for the validator.
+            args (dict | SimpleNamespace, optional): Configuration for the validator.
             _callbacks (dict, optional): Dictionary to store various callback functions.
         """
         import torchvision  # noqa (import here so torchvision import time not recorded in postprocess time)
@@ -178,7 +178,9 @@ class BaseValidator:
                 LOGGER.warning("validating an untrained model YAML will result in 0 mAP.")
             callbacks.add_integration_callbacks(self)
             with torch_distributed_zero_first(LOCAL_RANK):
-                self.args.data = convert_ndjson_to_yolo_if_needed(self.args.data, self.args.fraction)
+                self.args.data = convert_ndjson_to_yolo_if_needed(
+                    self.args.data, self.args.fraction, split=self.args.split
+                )
             device_type = str(self.args.device).split(":", 1)[0]
             device_type = device_type if device_type in {"npu", "xpu"} else "cuda"
             model = AutoBackend(

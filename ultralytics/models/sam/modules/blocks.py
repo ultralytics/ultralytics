@@ -455,7 +455,7 @@ class RoPEAttention(Attention):
         return out
 
 
-def do_pool(x: torch.Tensor, pool: nn.Module, norm: nn.Module = None) -> torch.Tensor:
+def do_pool(x: torch.Tensor, pool: nn.Module | None, norm: nn.Module | None = None) -> torch.Tensor:
     """Apply pooling and optional normalization to a tensor, handling spatial dimension permutations."""
     if pool is None:
         return x
@@ -504,7 +504,7 @@ class MultiScaleAttention(nn.Module):
         dim: int,
         dim_out: int,
         num_heads: int,
-        q_pool: nn.Module = None,
+        q_pool: nn.Module | None = None,
     ):
         """Initialize multiscale attention with optional query pooling for efficient feature extraction."""
         super().__init__()

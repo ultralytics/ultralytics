@@ -32,8 +32,8 @@ class TransformerEncoderLayer(nn.Module):
         pos_enc_at_cross_attn_keys: bool,
         pos_enc_at_cross_attn_queries: bool,
         pre_norm: bool,
-        self_attention: nn.Module = None,
-        cross_attention: nn.Module = None,
+        self_attention: nn.Module | None = None,
+        cross_attention: nn.Module | None = None,
     ):
         """Initialize a transformer encoder layer.
 
@@ -82,12 +82,12 @@ class TransformerEncoderLayer(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        tgt_key_padding_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        query_pos: torch.Tensor = None,
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
         **kwargs,
     ) -> torch.Tensor:
         """Forward pass for post-norm architecture.
@@ -140,12 +140,12 @@ class TransformerEncoderLayer(nn.Module):
         tgt: torch.Tensor,
         memory: torch.Tensor,
         dac: bool = False,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        tgt_key_padding_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        query_pos: torch.Tensor = None,
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Forward pass for pre-norm architecture.
 
@@ -197,12 +197,12 @@ class TransformerEncoderLayer(nn.Module):
         tgt: torch.Tensor,
         memory: torch.Tensor,
         dac: bool = False,
-        tgt_mask: torch.Tensor = None,
-        memory_mask: torch.Tensor = None,
-        tgt_key_padding_mask: torch.Tensor = None,
-        memory_key_padding_mask: torch.Tensor = None,
-        pos: torch.Tensor = None,
-        query_pos: torch.Tensor = None,
+        tgt_mask: torch.Tensor | None = None,
+        memory_mask: torch.Tensor | None = None,
+        tgt_key_padding_mask: torch.Tensor | None = None,
+        memory_key_padding_mask: torch.Tensor | None = None,
+        pos: torch.Tensor | None = None,
+        query_pos: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Forward pass for the transformer encoder layer.
 
@@ -329,8 +329,8 @@ class TransformerEncoder(nn.Module):
         src: list[torch.Tensor],
         src_key_padding_masks: list[torch.Tensor] | None = None,
         pos: list[torch.Tensor] | None = None,
-        prompt: torch.Tensor = None,
-        prompt_key_padding_mask: torch.Tensor = None,
+        prompt: torch.Tensor | None = None,
+        prompt_key_padding_mask: torch.Tensor | None = None,
         encoder_extra_kwargs: dict | None = None,
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Process multi-level features through the transformer encoder.
@@ -442,8 +442,8 @@ class TransformerEncoderFusion(TransformerEncoder):
         prompt: torch.Tensor,
         src_key_padding_mask: list[torch.Tensor] | None = None,
         src_pos: list[torch.Tensor] | None = None,
-        prompt_key_padding_mask: torch.Tensor = None,
-        feat_sizes: list[int] | None = None,
+        prompt_key_padding_mask: torch.Tensor | None = None,
+        feat_sizes: list[tuple[int, int]] | None = None,
         encoder_extra_kwargs: dict | None = None,
     ):
         """Fuse image features with prompt features through the transformer encoder.

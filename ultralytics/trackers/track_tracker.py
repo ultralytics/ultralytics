@@ -74,7 +74,7 @@ def _confidence_distance(tracks: list[TTSTrack], dets: list[TTSTrack]) -> np.nda
     return np.abs(track_proj_scores[:, None] - det_scores[None])
 
 
-def _iterative_associate(cost: np.ndarray, match_thr: float, reduce_step: float = 0.05) -> tuple[list]:
+def _iterative_associate(cost: np.ndarray, match_thr: float, reduce_step: float = 0.05) -> tuple[list, list, list]:
     """Greedy mutually-nearest matching with a threshold that shrinks each iteration.
 
     Returns (matches, unmatched_tracks, unmatched_dets).

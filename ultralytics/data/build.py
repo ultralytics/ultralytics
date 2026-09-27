@@ -342,12 +342,11 @@ def build_grounding(
         prefix=colorstr(f"{mode}: "),
         task=cfg.task,
         classes=cfg.classes,
-        fraction=get_split_fraction(cfg.fraction, mode),
     )
 
 
 def build_dataloader(
-    dataset,
+    dataset: Dataset,
     batch: int,
     workers: int,
     shuffle: bool = True,

@@ -48,12 +48,12 @@ class FastSAM(Model):
 
     def predict(
         self,
-        source,
+        source=None,
         stream: bool = False,
         bboxes: list | None = None,
         points: list | None = None,
         labels: list | None = None,
-        texts: list | None = None,
+        texts: str | list[str] | None = None,
         **kwargs: Any,
     ):
         """Perform segmentation prediction on image or video source.
@@ -62,13 +62,13 @@ class FastSAM(Model):
         and passes them to the parent class predict method for processing.
 
         Args:
-            source (str | PIL.Image | np.ndarray): Input source for prediction, can be a file path, URL, PIL image, or
-                numpy array.
+            source (str | PIL.Image | np.ndarray, optional): Input source for prediction, can be a file path, URL, PIL
+                image, or numpy array. Defaults to the package sample assets when None.
             stream (bool): Whether to enable real-time streaming mode for video inputs.
             bboxes (list, optional): Bounding box coordinates for prompted segmentation in format [[x1, y1, x2, y2]].
             points (list, optional): Point coordinates for prompted segmentation in format [[x, y]].
-            labels (list, optional): Class labels for prompted segmentation.
-            texts (list, optional): Text prompts for segmentation guidance.
+            labels (list, optional): Point prompt labels, 1 for foreground and 0 for background; all 1 if omitted.
+            texts (str | list[str], optional): Text prompts for segmentation guidance.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

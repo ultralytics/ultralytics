@@ -420,7 +420,8 @@ class ConfusionMatrix(DataExportMixin):
             batch (dict[str, Any]): Batch dictionary containing ground truth data with 'bboxes' (Array[M, 4]| Array[M,
                 5]) and 'cls' (Array[M]) keys, where M is the number of ground truth objects.
             conf (float, optional): Confidence threshold for detections.
-            iou_thres (float, optional): IoU threshold for matching detections to ground truth.
+            iou_thres (float, optional): IoU threshold for matching detections to ground truth. This is a matching
+                threshold, not the NMS `iou` argument, and the detection validator uses this 0.45 default.
         """
         gt_cls, gt_bboxes = batch["cls"], batch["bboxes"]
         if self.matches is not None:  # only if visualization is enabled
@@ -541,12 +542,12 @@ class ConfusionMatrix(DataExportMixin):
 
     @TryExcept(msg="ConfusionMatrix plot failure")
     @plt_settings()
-    def plot(self, normalize: bool = True, save_dir: str = "", on_plot=None):
+    def plot(self, normalize: bool = True, save_dir: str | Path = "", on_plot=None):
         """Plot the confusion matrix using matplotlib and save it to a file.
 
         Args:
             normalize (bool, optional): Whether to normalize the confusion matrix.
-            save_dir (str, optional): Directory where the plot will be saved.
+            save_dir (str | Path, optional): Directory where the plot will be saved.
             on_plot (callable, optional): An optional callback to pass plots path and data when they are rendered.
         """
         import matplotlib.pyplot as plt  # scope for faster 'import ultralytics'
@@ -1609,7 +1610,7 @@ class ClassifyMetrics(SimpleClass, DataExportMixin):
         self.top5 = 0
         self.speed = {"preprocess": 0.0, "inference": 0.0, "loss": 0.0, "postprocess": 0.0}
 
-    def process(self, targets: torch.Tensor, pred: torch.Tensor):
+    def process(self, targets: list[torch.Tensor], pred: list[torch.Tensor]):
         """Process target classes and predicted classes to compute metrics.
 
         Args:
@@ -1999,7 +2000,10 @@ class DepthMetrics(SimpleClass, DataExportMixin):
             self._count += 1.0
 
     def process(self, *args, **kwargs) -> None:
-        """Finalize metrics by averaging the accumulated per-image results."""
+        """Finalize metrics by averaging the accumulated per-image results.
+
+        Arguments are accepted for interface parity with the other metrics classes and ignored.
+        """
         if self._totals is None or self._count == 0:
             self._results = dict.fromkeys(self.keys, 0.0)
             return

@@ -60,7 +60,9 @@ class ONNXBackend(BaseBackend):
         Args:
             weight (str | Path): Path to the .onnx model file.
         """
-        cuda = isinstance(self.device, torch.device) and torch.cuda.is_available() and self.device.type != "cpu"
+        if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
+            self.device = torch.device("cpu")
+        cuda = torch.cuda.is_available() and self.device.type != "cpu"
 
         self.apply_metadata(self.read_metadata(weight))
 
@@ -131,7 +133,7 @@ class ONNXBackend(BaseBackend):
 
     def forward(
         self, im: torch.Tensor | dict[str, torch.Tensor | np.ndarray]
-    ) -> torch.Tensor | list[torch.Tensor] | np.ndarray:
+    ) -> np.ndarray | list[np.ndarray] | list[torch.Tensor]:
         """Run ONNX inference using IO binding (CUDA) or standard session execution.
 
         Args:

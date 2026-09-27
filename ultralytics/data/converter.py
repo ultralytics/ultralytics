@@ -25,7 +25,7 @@ from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
 
-def coco91_to_coco80_class() -> list[int]:
+def coco91_to_coco80_class() -> list[int | None]:
     """Convert 91-index COCO class IDs to 80-index COCO class IDs.
 
     Returns:
@@ -607,7 +607,9 @@ def merge_multi_segment(segments: list[list]):
     return s
 
 
-def yolo_bbox2segment(im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device=None):
+def yolo_bbox2segment(
+    im_dir: str | Path, save_dir: str | Path | None = None, sam_model: str = "sam_b.pt", device: int | str | None = None
+):
     """Convert existing object detection dataset (bounding boxes) to segmentation dataset in YOLO format.
 
     Generates segmentation data using SAM auto-annotator as needed.
@@ -827,7 +829,13 @@ def _infer_ndjson_kpt_shape(image_records: list) -> list:
     raise ValueError("Pose dataset missing required 'kpt_shape'. See https://docs.ultralytics.com/datasets/pose")
 
 
-async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, fraction=1.0, *, split=None) -> Path:
+async def convert_ndjson_to_yolo(
+    ndjson_path: str | Path,
+    output_path: str | Path | None = None,
+    fraction: float | list[float | int] = 1.0,
+    *,
+    split: str | None = None,
+) -> Path:
     """Convert NDJSON dataset format to Ultralytics YOLO dataset structure.
 
     This function converts datasets stored in NDJSON (Newline Delimited JSON) format to the standard YOLO format. For
@@ -844,7 +852,7 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         ndjson_path (str | Path): Path to the input NDJSON file containing dataset information.
         output_path (str | Path | None, optional): Directory where the converted YOLO dataset will be saved. If None,
             uses the DATASETS_DIR directory. Defaults to None.
-        fraction (float | int | list): Train ratio/count or [train, val, test] ratios/counts to download.
+        fraction (float | int | list[float | int]): Train ratio/count or [train, val, test] ratios/counts to download.
         split (str, optional): Dataset split requested by the caller. When 'train' or 'val', unused test images are
             skipped.
 
@@ -902,7 +910,13 @@ async def convert_ndjson_to_yolo(ndjson_path: str | Path, output_path=None, frac
         return await convert()
 
 
-async def _convert_ndjson_to_yolo(ndjson_path: Path, output_path: Path, local: bool, fraction, split=None) -> Path:
+async def _convert_ndjson_to_yolo(
+    ndjson_path: Path,
+    output_path: Path,
+    local: bool,
+    fraction: float | list[float | int],
+    split: str | None = None,
+) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
     from ultralytics.utils.checks import check_requirements
 

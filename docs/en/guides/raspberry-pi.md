@@ -36,15 +36,15 @@ Raspberry Pi is a small, affordable, single-board computer. It has become popula
 | ----------------- | -------------------------------------- | -------------------------------------- | -------------------------------------- |
 | CPU               | Broadcom BCM2837, Cortex-A53 64Bit SoC | Broadcom BCM2711, Cortex-A72 64Bit SoC | Broadcom BCM2712, Cortex-A76 64Bit SoC |
 | CPU Max Frequency | 1.4GHz                                 | 1.8GHz                                 | 2.4GHz                                 |
-| GPU               | Videocore IV                           | Videocore VI                           | VideoCore VII                          |
-| GPU Max Frequency | 400Mhz                                 | 500Mhz                                 | 800Mhz                                 |
-| Memory            | 1GB LPDDR2 SDRAM                       | 1GB, 2GB, 4GB, 8GB LPDDR4-3200 SDRAM   | 4GB, 8GB LPDDR4X-4267 SDRAM            |
+| GPU               | VideoCore IV                           | VideoCore VI                           | VideoCore VII                          |
+| GPU Max Frequency | 400MHz                                 | 500MHz                                 | 800MHz                                 |
+| Memory            | 1GB LPDDR2 SDRAM                       | 1GB, 2GB, 4GB, 8GB LPDDR4-3200 SDRAM   | 2GB, 4GB, 8GB, 16GB LPDDR4X-4267 SDRAM |
 | PCIe              | N/A                                    | N/A                                    | 1xPCIe 2.0 Interface                   |
 | Max Power Draw    | 2.5A@5V                                | 3A@5V                                  | 5A@5V (PD enabled)                     |
 
 ## What is Raspberry Pi OS?
 
-[Raspberry Pi OS](https://www.raspberrypi.com/software/) (formerly known as Raspbian) is a Unix-like operating system based on the Debian GNU/Linux distribution for the Raspberry Pi family of compact single-board computers distributed by the Raspberry Pi Foundation. Raspberry Pi OS is highly optimized for the Raspberry Pi with ARM CPUs and uses a modified LXDE desktop environment with the Openbox stacking window manager. Raspberry Pi OS is under active development, with an emphasis on improving the stability and performance of as many Debian packages as possible on Raspberry Pi.
+[Raspberry Pi OS](https://www.raspberrypi.com/software/) (formerly known as Raspbian) is a Unix-like operating system based on the Debian GNU/Linux distribution for the Raspberry Pi family of compact single-board computers distributed by the Raspberry Pi Foundation. Raspberry Pi OS is highly optimized for the Raspberry Pi with ARM CPUs and uses a lightweight desktop environment that runs on Wayland by default on Raspberry Pi 4 and 5. Raspberry Pi OS is under active development, with an emphasis on improving the stability and performance of as many Debian packages as possible on Raspberry Pi.
 
 ## Flash Raspberry Pi OS to Raspberry Pi
 
@@ -247,11 +247,11 @@ To reproduce the above Ultralytics benchmarks on all [export formats](../modes/e
 
 !!! note "LiteRT export runs off-device"
 
-    `litert-converter` ships no `aarch64` Linux wheel, so `format=litert` export is only supported on Linux x86_64 and macOS, not on the Raspberry Pi itself. Export the `.tflite` model on a Linux x86_64 machine or a Mac, copy it to the Raspberry Pi, and use the Pi for inference.
+    `format=litert` export (via `litert-torch`) is only supported on Linux x86_64 and macOS, not on the Raspberry Pi itself. Export the `.tflite` model on a Linux x86_64 machine or a Mac, copy it to the Raspberry Pi, and use the Pi for inference.
 
 ## Use Raspberry Pi Camera
 
-When using Raspberry Pi for Computer Vision projects, it can be essential to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry PI camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO26 models.
+When using Raspberry Pi for Computer Vision projects, it can be essential to grab real-time video feeds to perform inference. The onboard MIPI CSI connector on the Raspberry Pi allows you to connect official Raspberry Pi camera modules. In this guide, we have used a [Raspberry Pi Camera Module 3](https://www.raspberrypi.com/products/camera-module-3/) to grab the video feeds and perform inference using YOLO26 models.
 
 !!! tip
 
@@ -259,7 +259,7 @@ When using Raspberry Pi for Computer Vision projects, it can be essential to gra
 
 !!! note
 
-    Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (15-pin vs 22-pin), so you will need a [15-pin to 22-pin adapter cable](https://www.raspberrypi.com/products/camera-cable/) to connect to a Raspberry Pi Camera.
+    Raspberry Pi 5 uses smaller CSI connectors than the Raspberry Pi 4 (22-pin vs 15-pin), so you will need a [15-pin to 22-pin adapter cable](https://www.raspberrypi.com/products/camera-cable/) to connect to a Raspberry Pi Camera.
 
 ### Test the Camera
 
@@ -478,7 +478,7 @@ Key differences include:
 
 - **CPU**: Raspberry Pi 4 uses Broadcom BCM2711, Cortex-A72 64-bit SoC, while Raspberry Pi 5 uses Broadcom BCM2712, Cortex-A76 64-bit SoC.
 - **Max CPU Frequency**: Raspberry Pi 4 has a max frequency of 1.8GHz, whereas Raspberry Pi 5 reaches 2.4GHz.
-- **Memory**: Raspberry Pi 4 offers up to 8GB of LPDDR4-3200 SDRAM, while Raspberry Pi 5 features LPDDR4X-4267 SDRAM, available in 4GB and 8GB variants.
+- **Memory**: Raspberry Pi 4 offers up to 8GB of LPDDR4-3200 SDRAM, while Raspberry Pi 5 features LPDDR4X-4267 SDRAM, available in 2GB, 4GB, 8GB, and 16GB variants.
 
 These enhancements contribute to better performance benchmarks for YOLO26 models on Raspberry Pi 5 compared to Raspberry Pi 4. Refer to the [Raspberry Pi Series Comparison](#raspberry-pi-series-comparison) table for more details.
 

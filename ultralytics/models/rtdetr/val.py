@@ -33,22 +33,9 @@ class RTDETRDataset(YOLODataset):
 
     Examples:
         Initialize an RT-DETR dataset
-        >>> dataset = RTDETRDataset(img_path="path/to/images", imgsz=640)
+        >>> dataset = RTDETRDataset(img_path="path/to/images", data={"names": {0: "person"}}, imgsz=640)
         >>> image, hw0, hw = dataset.load_image(0)
     """
-
-    def __init__(self, *args, data=None, **kwargs):
-        """Initialize the RTDETRDataset class by inheriting from the YOLODataset class.
-
-        This constructor sets up a dataset specifically optimized for the RT-DETR (Real-Time DEtection TRansformer)
-        model, building upon the base YOLODataset functionality.
-
-        Args:
-            *args (Any): Variable length argument list passed to the parent YOLODataset class.
-            data (dict | None): Dictionary containing dataset information. If None, default values will be used.
-            **kwargs (Any): Additional keyword arguments passed to the parent YOLODataset class.
-        """
-        super().__init__(*args, data=data, **kwargs)
 
     def load_image(self, i, rect_mode=False):
         """Load one image from dataset index 'i'.
@@ -64,7 +51,7 @@ class RTDETRDataset(YOLODataset):
 
         Examples:
             Load an image from the dataset
-            >>> dataset = RTDETRDataset(img_path="path/to/images")
+            >>> dataset = RTDETRDataset(img_path="path/to/images", data={"names": {0: "person"}})
             >>> image, hw0, hw = dataset.load_image(0)
         """
         return super().load_image(i=i, rect_mode=rect_mode)

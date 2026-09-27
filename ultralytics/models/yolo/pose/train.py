@@ -6,6 +6,8 @@ from copy import copy
 from pathlib import Path
 from typing import Any
 
+import torch
+
 from ultralytics.models import yolo
 from ultralytics.nn.tasks import PoseModel
 from ultralytics.utils import DEFAULT_CFG, RANK
@@ -56,14 +58,14 @@ class PoseTrainer(yolo.detect.DetectionTrainer):
     def get_model(
         self,
         cfg: str | Path | dict[str, Any] | None = None,
-        weights: str | Path | None = None,
+        weights: torch.nn.Module | None = None,
         verbose: bool = True,
     ) -> PoseModel:
         """Get pose estimation model with specified configuration and weights.
 
         Args:
             cfg (str | Path | dict, optional): Model configuration file path or dictionary.
-            weights (str | Path, optional): Path to the model weights file.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information.
 
         Returns:

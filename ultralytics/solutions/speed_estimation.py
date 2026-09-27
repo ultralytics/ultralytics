@@ -87,7 +87,7 @@ class SpeedEstimator(BaseSolution):
         self.extract_tracks(im0)
         annotator = SolutionAnnotator(im0, line_width=self.line_width)
 
-        for box, track_id, _, _ in zip(self.boxes, self.track_ids, self.clss, self.confs):
+        for box, track_id in zip(self.boxes, self.track_ids):
             self.store_tracking_history(track_id, box)
 
             if track_id not in self.trk_hist:  # Initialize history if new track found
@@ -114,7 +114,7 @@ class SpeedEstimator(BaseSolution):
                         self.trk_frame_ids.pop(track_id, None)  # Remove frame start reference
 
             if track_id in self.spd:
-                speed_label = f"{self.spd[track_id]} km/h"
+                speed_label = f"{self.spd[track_id]} km/h" if self.show_labels else None
                 annotator.box_label(box, label=speed_label, color=colors(track_id, True))  # Draw bounding box
 
         plot_im = annotator.result()

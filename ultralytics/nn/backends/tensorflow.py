@@ -20,12 +20,12 @@ class TensorFlowBackend(BaseBackend):
     quantized model dequantization and task-specific output formatting.
     """
 
-    def __init__(self, weight: str | Path, device: torch.device, fp16: bool = False, format: str = "saved_model"):
+    def __init__(self, weight: str | Path, device: torch.device | str, fp16: bool = False, format: str = "saved_model"):
         """Initialize the Google TensorFlow backend.
 
         Args:
             weight (str | Path): Path to the SavedModel directory, .pb file, or Edge TPU .tflite file.
-            device (torch.device): Device to run inference on.
+            device (torch.device | str): Device to run inference on, e.g. 'tpu:0' to select an Edge TPU.
             fp16 (bool): Whether to use FP16 half-precision inference.
             format (str): Model format, one of "saved_model", "pb", or "edgetpu".
         """

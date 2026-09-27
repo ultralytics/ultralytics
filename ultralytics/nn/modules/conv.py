@@ -512,8 +512,6 @@ class RepConv(nn.Module):
             para.detach_()
         self.__delattr__("conv1")
         self.__delattr__("conv2")
-        if hasattr(self, "nm"):
-            self.__delattr__("nm")
         if hasattr(self, "bn"):
             self.__delattr__("bn")
         if hasattr(self, "id_tensor"):

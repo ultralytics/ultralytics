@@ -224,7 +224,7 @@ class TQDM:
             i += 1
         return text
 
-    def _should_update(self, dt: float, dn: int) -> bool:
+    def _should_update(self, dt: float) -> bool:
         """Check if display should update."""
         if self.noninteractive:
             return False
@@ -239,7 +239,7 @@ class TQDM:
         dt = current_time - self.last_print_t
         dn = self.n - self.last_print_n
 
-        if not final and not self._should_update(dt, dn):
+        if not final and not self._should_update(dt):
             return
 
         # Calculate rate (avoid crazy numbers)

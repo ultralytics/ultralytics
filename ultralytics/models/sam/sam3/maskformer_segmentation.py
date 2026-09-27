@@ -121,7 +121,7 @@ class SegmentationHead(nn.Module):
         self,
         backbone_feats: list[torch.Tensor],
         obj_queries: torch.Tensor,
-        encoder_hidden_states: torch.Tensor = None,
+        encoder_hidden_states: torch.Tensor | None = None,
         **kwargs,
     ) -> dict[str, torch.Tensor]:
         """Forward pass of the SegmentationHead."""
@@ -235,9 +235,9 @@ class UniversalSegmentationHead(SegmentationHead):
         self,
         backbone_feats: list[torch.Tensor],
         obj_queries: torch.Tensor,
-        encoder_hidden_states: torch.Tensor = None,
-        prompt: torch.Tensor = None,
-        prompt_mask: torch.Tensor = None,
+        encoder_hidden_states: torch.Tensor | None = None,
+        prompt: torch.Tensor | None = None,
+        prompt_mask: torch.Tensor | None = None,
         **kwargs,
     ) -> dict[str, torch.Tensor]:
         """Forward pass of the UniversalSegmentationHead."""

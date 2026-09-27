@@ -104,7 +104,7 @@ class Sam3DualViTDetNeck(nn.Module):
             self.sam2_convs = deepcopy(self.convs)
 
     def forward(
-        self, tensor_list: list[torch.Tensor]
+        self, tensor_list: torch.Tensor
     ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor] | None, list[torch.Tensor] | None]:
         """Get feature maps and positional encodings from the neck.
 

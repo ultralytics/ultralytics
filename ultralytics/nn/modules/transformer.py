@@ -373,7 +373,7 @@ class MLP(nn.Module):
         act=nn.ReLU,
         sigmoid: bool = False,
         residual: bool = False,
-        out_norm: nn.Module = None,
+        out_norm: nn.Module | None = None,
     ):
         """Initialize the MLP with specified input, hidden, output dimensions and number of layers.
 
@@ -494,10 +494,6 @@ class MSDeformAttn(nn.Module):
         super().__init__()
         if d_model % n_heads != 0:
             raise ValueError(f"d_model must be divisible by n_heads, but got {d_model} and {n_heads}")
-        _d_per_head = d_model // n_heads
-        # Better to set _d_per_head to a power of 2 which is more efficient in a CUDA implementation
-        assert _d_per_head * n_heads == d_model, "`d_model` must be divisible by `n_heads`"
-
         self.im2col_step = 64
 
         self.d_model = d_model
@@ -751,8 +747,8 @@ class DeformableTransformerDecoder(nn.Module):
         refer_bbox: torch.Tensor,  # anchor
         feats: torch.Tensor,  # image features
         shapes: list,  # feature shapes
-        bbox_head: nn.Module,
-        score_head: nn.Module,
+        bbox_head: nn.ModuleList,
+        score_head: nn.ModuleList,
         pos_mlp: nn.Module,
         attn_mask: torch.Tensor | None = None,
         padding_mask: torch.Tensor | None = None,

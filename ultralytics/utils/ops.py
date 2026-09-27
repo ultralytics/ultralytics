@@ -170,11 +170,11 @@ def scale_boxes(
     return boxes if xywh else clip_boxes(boxes, img0_shape)
 
 
-def make_divisible(x: int, divisor):
+def make_divisible(x: float, divisor):
     """Return the smallest number >= x that is divisible by the given divisor.
 
     Args:
-        x (int): The number to make divisible.
+        x (int | float): The number to make divisible.
         divisor (int | torch.Tensor): The divisor.
 
     Returns:
@@ -586,7 +586,7 @@ def process_mask_native(protos, masks_in, bboxes, shape):
 def scale_masks(
     masks: torch.Tensor,
     shape: tuple[int, int],
-    ratio_pad: tuple[tuple[int, int], tuple[int, int]] | None = None,
+    ratio_pad: tuple[tuple[float, float], tuple[float, float]] | None = None,
     padding: bool = True,
     mode: str = "bilinear",
 ) -> torch.Tensor:

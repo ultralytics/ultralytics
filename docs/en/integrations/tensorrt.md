@@ -208,7 +208,7 @@ The arguments provided when using [export](../modes/export.md) for an Ultralytic
 
     - <u><b>Remember</b> calibration for INT8 is specific to each device</u>, borrowing a "high-end" GPU for calibration, might result in poor performance when inference is run on another device.
 
-- `batch` : The maximum batch-size that will be used for inference. During inference smaller batches can be used, but inference will not accept batches any larger than what is specified.
+- `batch` : The maximum batch-size that will be used for inference. With `dynamic=True`, smaller batches can be used during inference, but inference will not accept batches any larger than what is specified.
 
 !!! note
 
@@ -249,7 +249,7 @@ Experimentation by NVIDIA led them to recommend using at least 500 calibration i
 
         ```bash
         # Export a YOLO26n PyTorch model to TensorRT format with INT8 quantization
-        yolo export model=yolo26n.pt format=engine batch=8 workspace=4 quantize=8 data=coco.yaml # creates 'yolo26n.engine'
+        yolo export model=yolo26n.pt format=engine dynamic=True batch=8 workspace=4 quantize=8 data=coco.yaml # creates 'yolo26n.engine'
 
         # Run inference with the exported TensorRT quantized model
         yolo predict model=yolo26n.engine source='https://ultralytics.com/images/bus.jpg'
@@ -611,7 +611,7 @@ These guides will help you integrate YOLO26 models efficiently in various deploy
 
 ### What are the performance improvements observed with YOLO26 models exported to TensorRT?
 
-Performance improvements with TensorRT can vary based on the hardware used. Here are some typical benchmarks:
+Performance improvements with TensorRT can vary based on the model and hardware used. Here are typical benchmarks measured with YOLOv8n, which illustrate the relative gains from each precision:
 
 - **NVIDIA A100**:
     - **FP32** Inference: ~0.52 ms / image

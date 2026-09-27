@@ -454,7 +454,7 @@ class DetectionValidator(BaseValidator):
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
-            max_det (int | None): Maximum number of detections to plot.
+            max_det (int | None): Maximum number of detections to plot per image, defaults to `args.max_det`.
         """
         if not preds:
             return

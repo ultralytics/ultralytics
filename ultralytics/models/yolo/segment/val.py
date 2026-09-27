@@ -165,20 +165,24 @@ class SegmentationValidator(DetectionValidator):
         tp.update({"tp_m": tp_m})  # update tp with mask IoU
         return tp
 
-    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
+    def plot_predictions(
+        self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
+    ) -> None:
         """Plot batch predictions with masks and bounding boxes.
 
         Args:
             batch (dict[str, Any]): Batch containing images and annotations.
             preds (list[dict[str, torch.Tensor]]): List of predictions from the model.
             ni (int): Batch index.
+            max_det (int | None): Maximum number of detections to plot per image, defaults to `args.max_det`.
         """
+        max_det = max_det or self.args.max_det
         for p in preds:
             masks = p["masks"]
-            if masks.shape[0] > self.args.max_det:
-                LOGGER.warning(f"Limiting validation plots to 'max_det={self.args.max_det}' items.")
-            p["masks"] = torch.as_tensor(masks[: self.args.max_det], dtype=torch.uint8).cpu()
-        super().plot_predictions(batch, preds, ni, max_det=self.args.max_det)  # plot bboxes
+            if masks.shape[0] > max_det:
+                LOGGER.warning(f"Limiting validation plots to 'max_det={max_det}' items.")
+            p["masks"] = torch.as_tensor(masks[:max_det], dtype=torch.uint8).cpu()
+        super().plot_predictions(batch, preds, ni, max_det=max_det)  # plot bboxes
 
     def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
         """Save YOLO detections to a txt file in normalized coordinates in a specific format.
@@ -244,7 +248,7 @@ class SegmentationValidator(DetectionValidator):
 
             return "".join(result)
 
-        def multi_encode(pixels: torch.Tensor) -> list[int]:
+        def multi_encode(pixels: torch.Tensor) -> list[list[int]]:
             """Convert multiple binary masks using Run-Length Encoding (RLE).
 
             Args:

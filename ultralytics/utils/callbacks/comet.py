@@ -282,7 +282,7 @@ def _format_prediction_annotations(image_path, metadata, class_label_map=None, c
     return {"name": "prediction", "data": data}
 
 
-def _extract_segmentation_annotation(segmentation_raw: str, decode: Callable) -> list[list[Any]] | None:
+def _extract_segmentation_annotation(segmentation_raw: dict, decode: Callable) -> list[list[Any]] | None:
     """Extract segmentation annotation from compressed segmentations as list of polygons.
 
     Args:
@@ -357,7 +357,7 @@ def _log_images(experiment, image_paths, curr_step: int | None, annotations=None
 
     Args:
         experiment (comet_ml.CometExperiment): The Comet ML experiment to log images to.
-        image_paths (list[Path]): List of paths to images that will be logged.
+        image_paths (Iterable[Path]): Paths to images that will be logged, e.g. a list or a glob generator.
         curr_step (int | None): Current training step/iteration for tracking in the experiment timeline.
         annotations (list[list[dict]], optional): Nested list of annotation dictionaries for each image. Each annotation
             contains visualization data like bounding boxes, labels, and confidence scores.

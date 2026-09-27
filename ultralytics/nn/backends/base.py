@@ -81,11 +81,11 @@ class BaseBackend(ABC):
         metadata (dict): Model metadata dictionary containing export configuration.
     """
 
-    def __init__(self, weight: str | torch.nn.Module, device: torch.device | str, fp16: bool = False):
+    def __init__(self, weight: str | Path | torch.nn.Module, device: torch.device | str, fp16: bool = False):
         """Initialize the base backend with common attributes and load the model.
 
         Args:
-            weight (str | torch.nn.Module): Path to the model weights file or a PyTorch module instance.
+            weight (str | Path | torch.nn.Module): Path to the model weights file or a PyTorch module instance.
             device (torch.device | str): Device to run inference on (e.g., 'cpu', 'cuda:0').
             fp16 (bool): Whether to use FP16 half-precision inference.
         """
@@ -105,11 +105,11 @@ class BaseBackend(ABC):
         self.load_model(weight)
 
     @abstractmethod
-    def load_model(self, weight: str | torch.nn.Module) -> None:
+    def load_model(self, weight: str | Path | torch.nn.Module) -> None:
         """Load the model from a weights file or module instance.
 
         Args:
-            weight (str | torch.nn.Module): Path to model weights or a PyTorch module.
+            weight (str | Path | torch.nn.Module): Path to model weights or a PyTorch module.
         """
         raise NotImplementedError
 

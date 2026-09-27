@@ -159,13 +159,13 @@ class LoadStreams:
             raise
         LOGGER.info("")  # newline
 
-    def update(self, i: int, cap: cv2.VideoCapture, stream: str):
+    def update(self, i: int, cap: cv2.VideoCapture, stream: str | int):
         """Read stream frames in daemon thread and update image buffer.
 
         Args:
             i (int): Index of the stream in the loader.
             cap (cv2.VideoCapture): Video capture object for the stream.
-            stream (str): Stream source, used to re-open the stream if the signal is lost.
+            stream (str | int): Stream source or webcam index, used to re-open the stream if the signal is lost.
         """
         n, f = 0, self.frames[i]  # frame number, total frames
         while self.running and cap.isOpened() and n < (f - 1):
@@ -359,19 +359,19 @@ class LoadImagesAndVideos:
         - Can read from a *.txt or *.csv file containing paths to images and videos.
     """
 
-    def __init__(self, path: str | Path | list, batch: int = 1, vid_stride: int = 1, channels: int = 3):
+    def __init__(self, path: str | Path | list | tuple, batch: int = 1, vid_stride: int = 1, channels: int = 3):
         """Initialize dataloader for images and videos, supporting various input formats.
 
         Args:
-            path (str | Path | list): Path to an image/video file, directory, glob pattern, *.txt or *.csv file of
-                source paths, or list of paths.
+            path (str | Path | list | tuple): Path to an image/video file, directory, glob pattern, *.txt or *.csv file
+                of source paths, or list of paths.
             batch (int): Batch size for processing.
             vid_stride (int): Video frame-rate stride.
             channels (int): Number of image channels (1 for grayscale, 3 for color).
         """
         source_path = path
         parent = None
-        if isinstance(path, str) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
+        if isinstance(path, (str, Path)) and Path(path).suffix in {".txt", ".csv"}:  # txt/csv file with source paths
             parent, content = Path(path).parent, Path(path).read_text()
             if Path(path).suffix == ".txt":
                 path = content.splitlines()

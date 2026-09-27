@@ -143,13 +143,16 @@ class OBBValidator(DetectionValidator):
             "im_file": batch["im_file"][si],
         }
 
-    def plot_predictions(self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int) -> None:
+    def plot_predictions(
+        self, batch: dict[str, Any], preds: list[dict[str, torch.Tensor]], ni: int, max_det: int | None = None
+    ) -> None:
         """Plot predicted bounding boxes on input images and save the result.
 
         Args:
             batch (dict[str, Any]): Batch data containing images, file paths, and other metadata.
             preds (list[dict[str, torch.Tensor]]): List of prediction dictionaries for each image in the batch.
             ni (int): Batch index used for naming the output file.
+            max_det (int | None): Maximum number of detections to plot per image, defaults to `args.max_det`.
 
         Examples:
             >>> validator = OBBValidator()
@@ -162,7 +165,8 @@ class OBBValidator(DetectionValidator):
         for i, pred in enumerate(preds):
             pred["batch_idx"] = torch.ones_like(pred["conf"]) * i
         keys = preds[0].keys()
-        batched_preds = {k: torch.cat([x[k] for x in preds], dim=0) for k in keys}
+        max_det = max_det or self.args.max_det
+        batched_preds = {k: torch.cat([x[k][:max_det] for x in preds], dim=0) for k in keys}
         plot_images(
             images=batch["img"],
             labels=batched_preds,

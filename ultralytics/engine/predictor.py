@@ -522,7 +522,7 @@ class BasePredictor:
 
         return string
 
-    def save_predicted_images(self, save_path: Path, frame: int = 0):
+    def save_predicted_images(self, save_path: Path, frame: int | None = 0):
         """Save video predictions as mp4/avi or images as jpg at specified path.
 
         Args:

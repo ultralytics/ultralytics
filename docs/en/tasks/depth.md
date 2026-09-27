@@ -199,7 +199,7 @@ Additional tips:
 
 ### Calibrating the depth scale
 
-The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form fit of a two-parameter log-affine against a small labeled set, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
+The depth head separates **shape** (relative scene structure) from **scale** (absolute meters). If a model already produces good relative depth on your scenes but the absolute values are off for your camera, you can correct the scale in seconds with `model.calibrate()` — a closed-form, scale-only fit of the head's log-affine transform against a small labeled set, kept only when it improves cross-validated held-out δ1, with **no gradient training and no change to the network weights**, so it cannot degrade the relative structure.
 
 !!! example "Scale calibration"
 

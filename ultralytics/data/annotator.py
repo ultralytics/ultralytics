@@ -30,7 +30,8 @@ def auto_annotate(
         sam_model (str): Path or name of the pre-trained SAM segmentation model.
         device (str): Device to run the models on (e.g., 'cpu', 'cuda', '0'). Empty string for auto-selection.
         conf (float): Confidence threshold for detection model.
-        iou (float): IoU threshold for filtering overlapping boxes in detection results.
+        iou (float): NMS IoU threshold for filtering overlapping boxes in detection results. Defaults to 0.45, lower than
+            the predict default `iou=0.7`.
         imgsz (int): Input image resize dimension.
         max_det (int): Maximum number of detections per image.
         classes (list[int], optional): Filter predictions to specified class IDs, returning only relevant detections.

@@ -758,7 +758,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     return file
 
 
-def check_model_file_from_stem(model: str = "yolo11n") -> str | Path:
+def check_model_file_from_stem(model: str = "yolo26n") -> str | Path:
     """Return a model filename from a valid model stem.
 
     Args:

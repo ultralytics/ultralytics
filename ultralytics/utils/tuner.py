@@ -20,7 +20,7 @@ RAY_SEARCH_ALG_REQUIREMENTS = {
 }
 
 
-def _sanitize_tune_value(value: dict):
+def _sanitize_tune_value(value):
     """Convert NumPy-backed Tune values into native Python types for YAML serialization.
 
     Args:
@@ -463,7 +463,7 @@ def run_ray_tune(
 
     # Get dataset
     data = train_args.get("data", TASK2DATA[task])
-    space["data"] = data
+    space = {**space, "data": data}  # copy so the caller's space dict is not mutated
     if "data" not in train_args:
         LOGGER.warning(f'Data not provided, using default "data={data}".')
 

@@ -101,7 +101,7 @@ class Bboxes:
             else self.bboxes[:, 3] * self.bboxes[:, 2]  # format xywh or ltwh
         )
 
-    def mul(self, scale: int | tuple | list) -> None:
+    def mul(self, scale: float | tuple | list) -> None:
         """Multiply bounding box coordinates by scale factor(s).
 
         Args:
@@ -117,7 +117,7 @@ class Bboxes:
         self.bboxes[:, 2] *= scale[2]
         self.bboxes[:, 3] *= scale[3]
 
-    def add(self, offset: int | tuple | list) -> None:
+    def add(self, offset: float | tuple | list) -> None:
         """Add offset to bounding box coordinates.
 
         Args:
@@ -221,8 +221,8 @@ class Instances:
     def __init__(
         self,
         bboxes: np.ndarray,
-        segments: np.ndarray = None,
-        keypoints: np.ndarray = None,
+        segments: np.ndarray | None = None,
+        keypoints: np.ndarray | None = None,
         bbox_format: str = "xywh",
         normalized: bool = True,
     ) -> None:
@@ -451,7 +451,7 @@ class Instances:
                 self.keypoints = self.keypoints[good]
         return good
 
-    def update(self, bboxes: np.ndarray, segments: np.ndarray = None, keypoints: np.ndarray = None):
+    def update(self, bboxes: np.ndarray, segments: np.ndarray | None = None, keypoints: np.ndarray | None = None):
         """Update instance variables.
 
         Args:
@@ -470,7 +470,7 @@ class Instances:
         return len(self.bboxes)
 
     @classmethod
-    def concatenate(cls, instances_list: list[Instances], axis=0) -> Instances:
+    def concatenate(cls, instances_list: list[Instances], axis: int = 0) -> Instances:
         """Concatenate a list of Instances objects into a single Instances object.
 
         Args:

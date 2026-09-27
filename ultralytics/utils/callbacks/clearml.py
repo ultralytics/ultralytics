@@ -35,7 +35,7 @@ def _log_debug_samples(files, title: str = "Debug Samples") -> None:
                 )
 
 
-def _log_plot(title: str, plot_path: str) -> None:
+def _log_plot(title: str, plot_path) -> None:
     """Log an image as a plot in the plot section of ClearML.
 
     Args:

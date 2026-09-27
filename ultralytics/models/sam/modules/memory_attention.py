@@ -231,9 +231,9 @@ class MemoryAttention(nn.Module):
 
     def forward(
         self,
-        curr: torch.Tensor,  # self-attention inputs
+        curr: torch.Tensor | list[torch.Tensor],  # self-attention inputs
         memory: torch.Tensor,  # cross-attention inputs
-        curr_pos: torch.Tensor,  # pos_enc for self-attention inputs
+        curr_pos: torch.Tensor | list[torch.Tensor],  # pos_enc for self-attention inputs
         memory_pos: torch.Tensor,  # pos_enc for cross-attention inputs
         num_obj_ptr_tokens: int = 0,  # number of object pointer *tokens*
     ) -> torch.Tensor:

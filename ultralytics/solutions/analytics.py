@@ -230,20 +230,21 @@ class Analytics(BaseSolution):
                 for bar, label in zip(bars, labels):
                     bar.set_label(label)  # Assign label to each bar
             elif plot == "pie":
-                total = sum(counts)
-                percentages = [size / total * 100 for size in counts]
                 self.ax.clear()
+                if total := sum(counts):  # matplotlib cannot draw a pie without detections
+                    percentages = [size / total * 100 for size in counts]
+                    start_angle = 90
+                    # Create pie chart and create legend labels with percentages
+                    wedges, _ = self.ax.pie(
+                        counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
+                    )
+                    legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
 
-                start_angle = 90
-                # Create pie chart and create legend labels with percentages
-                wedges, _ = self.ax.pie(
-                    counts, labels=labels, startangle=start_angle, textprops={"color": self.fg_color}, autopct=None
-                )
-                legend_labels = [f"{label} ({percentage:.1f}%)" for label, percentage in zip(labels, percentages)]
-
-                # Assign the legend using the wedges and manually created labels
-                self.ax.legend(wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-                self.fig.subplots_adjust(left=0.1, right=0.75)  # Adjust layout to fit the legend
+                    # Assign the legend using the wedges and manually created labels
+                    self.ax.legend(
+                        wedges, legend_labels, title="Classes", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1)
+                    )
+                    self.fig.subplots_adjust(left=0.1, right=0.75)  # Adjust layout to fit the legend
 
         # Common plot settings
         self.ax.set_facecolor("#f0f0f0")  # Set to light gray or any other color you like

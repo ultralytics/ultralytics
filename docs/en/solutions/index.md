@@ -111,14 +111,14 @@ Except [`Similarity Search`](../guides/similarity-search.md), each Solution call
     print(results.classwise_count)  # display classwise_count
     ```
 
-`SolutionResults` object have the following attributes:
+`SolutionResults` objects have the following attributes:
 
 | Attribute            | Type               | Description                                                                                                   |
 | -------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `plot_im`            | `np.ndarray`       | Image with visual overlays such as counts, blur effects, or solution-specific enhancements.                   |
 | `in_count`           | `int`              | Total number of objects detected entering the defined zone in the video stream.                               |
 | `out_count`          | `int`              | Total number of objects detected exiting the defined zone in the video stream.                                |
-| `classwise_count`    | `Dict[str, int]`   | Dictionary recording class-wise in/out object counts for advanced analytics.                                  |
+| `classwise_count`    | `dict[str, dict]`  | Per-class `{"IN": int, "OUT": int}` object counts for advanced analytics.                                     |
 | `queue_count`        | `int`              | Number of objects currently within a predefined queue or waiting area (suitable for queue management).        |
 | `workout_count`      | `list[int]`        | Per-track workout repetition counts from AI Gym (one entry per currently tracked individual).                 |
 | `workout_angle`      | `list[float]`      | Per-track exercise angles from AI Gym (one entry per currently tracked individual).                           |

@@ -151,7 +151,7 @@ _Params and FLOPs values are for the fused model after `model.fuse()`, which mer
 
 ## Usage Examples
 
-For predicting new images with YOLOv10. Models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com):
+Models can also be trained on cloud GPUs through [Ultralytics Platform](https://platform.ultralytics.com). To predict on new images with YOLOv10:
 
 !!! example
 

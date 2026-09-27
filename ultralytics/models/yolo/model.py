@@ -57,14 +57,15 @@ class YOLO(Model):
         >>> model = YOLO("yolo26n.yaml")
     """
 
-    def __init__(self, model: str | Path = "yolo26n.pt", task: str | None = None, verbose: bool = False):
+    def __init__(self, model: str | Path | Model = "yolo26n.pt", task: str | None = None, verbose: bool = False):
         """Initialize a YOLO model.
 
         This constructor initializes a YOLO model, automatically switching to specialized model types (YOLOWorld or
         YOLOE) based on the model filename.
 
         Args:
-            model (str | Path): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml'.
+            model (str | Path | Model): Model name or path to model file, e.g. 'yolo26n.pt', 'yolo26n.yaml', or an
+                already initialized Model instance.
             task (str, optional): YOLO task specification, e.g. 'detect', 'segment', 'semantic', 'depth', 'classify',
                 'pose', 'obb'. Defaults to auto-detection based on model.
             verbose (bool): Display model info on load.
@@ -169,14 +170,15 @@ class YOLOWorld(Model):
         >>> model.set_classes(["person", "car", "bicycle"])
     """
 
-    def __init__(self, model: str | Path = "yolov8s-world.pt", verbose: bool = False) -> None:
+    def __init__(self, model: str | Path | Model = "yolov8s-world.pt", verbose: bool = False) -> None:
         """Initialize YOLOv8-World model with a pre-trained model file.
 
         Loads a YOLOv8-World model for object detection. If no custom class names are provided, it assigns default COCO
         class names.
 
         Args:
-            model (str | Path): Path to the pre-trained model file. Supports *.pt and *.yaml formats.
+            model (str | Path | Model): Path to the pre-trained model file (*.pt or *.yaml), or an already initialized
+                Model instance.
             verbose (bool): If True, prints additional information during initialization.
         """
         super().__init__(model=model, task="detect", verbose=verbose)
@@ -204,11 +206,7 @@ class YOLOWorld(Model):
             classes (list[str]): A list of categories, e.g. ["person"].
         """
         self.model.set_classes(classes)
-        # Remove background if it's given
-        background = " "
-        if background in classes:
-            classes.remove(background)
-        self.model.names = classes
+        self.model.names = [c for c in classes if c != " "]  # drop the background class without mutating `classes`
 
         self.predictor = None
 
@@ -484,9 +482,9 @@ class YOLOE(Model):
                 paths, URL/YouTube streams, PIL images, numpy arrays, or webcam indices.
             stream (bool): Whether to stream the prediction results. If True, results are yielded as a generator as they
                 are computed.
-            visual_prompts (dict[str, np.ndarray | list[np.ndarray]]): Dictionary containing visual prompts for the
-                model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one array per
-                image for an explicit list, tuple, or 4-D tensor source with no refer_image.
+            visual_prompts (dict[str, np.ndarray | list[np.ndarray]], optional): Dictionary containing visual prompts
+                for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
+                array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
             predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
             **kwargs (Any): Additional keyword arguments passed to the predictor.

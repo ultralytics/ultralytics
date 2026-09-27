@@ -82,7 +82,7 @@ class HailoBackend(BaseBackend):
         if stack := getattr(self, "_stack", None):
             stack.close()
 
-    def forward(self, im: torch.Tensor) -> np.ndarray | list[torch.Tensor]:
+    def forward(self, im: torch.Tensor) -> np.ndarray | torch.Tensor | list[torch.Tensor]:
         """Run Hailo inference and decode the raw outputs on the host into the predictor's expected format.
 
         Args:

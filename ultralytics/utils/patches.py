@@ -62,8 +62,8 @@ def image_open(filename, *args, **kwargs):
     """Open an image with PIL, lazily registering the HEIF plugin on first failure.
 
     This monkey-patches PIL.Image.open to add HEIC/HEIF support via pi-heif (lightweight, decode-only), avoiding the
-    ~800ms startup cost of importing the package unless actually needed. AVIF is supported natively by Pillow 12+ and
-    does not require a plugin.
+    ~800ms startup cost of importing the package unless actually needed. AVIF is decoded natively by Pillow 11.3+ wheels
+    and does not require a plugin.
 
     Args:
         filename (str | Path | IO[bytes]): Path to the image file or a binary file object.
@@ -133,7 +133,7 @@ def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.nd
     return cv2.imdecode(file_bytes, flags)
 
 
-def imwrite(filename: str, img: np.ndarray, params: list[int] | None = None) -> bool:
+def imwrite(filename: str | Path, img: np.ndarray, params: list[int] | None = None) -> bool:
     """Write an image to a file with multilanguage filename support.
 
     Args:

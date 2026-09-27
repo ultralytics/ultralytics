@@ -75,17 +75,18 @@ class NAS(Model):
         self.model.args = {**DEFAULT_CFG_DICT, **self.overrides}  # for export()
         self.model.eval()
 
-    def info(self, detailed: bool = False, verbose: bool = True) -> tuple:
+    def info(self, detailed: bool = False, verbose: bool = True, imgsz: int | list[int] = 640) -> tuple:
         """Log model information.
 
         Args:
             detailed (bool): Show detailed information about model.
             verbose (bool): Controls verbosity.
+            imgsz (int | list[int]): Input image size used for FLOPs calculation.
 
         Returns:
             (tuple): Model information as a tuple of (layers, parameters, gradients, GFLOPs).
         """
-        return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=640)
+        return model_info(self.model, detailed=detailed, verbose=verbose, imgsz=imgsz)
 
     @property
     def task_map(self) -> dict[str, dict[str, Any]]:

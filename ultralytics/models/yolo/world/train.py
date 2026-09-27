@@ -66,12 +66,14 @@ class WorldTrainer(DetectionTrainer):
         super().__init__(cfg, overrides, _callbacks)
         self.text_embeddings = None
 
-    def get_model(self, cfg=None, weights: str | None = None, verbose: bool = True) -> WorldModel:
+    def get_model(
+        self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True
+    ) -> WorldModel:
         """Return WorldModel initialized with specified config and weights.
 
         Args:
             cfg (dict[str, Any] | str, optional): Model configuration.
-            weights (str, optional): Path to pretrained weights.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model info.
 
         Returns:

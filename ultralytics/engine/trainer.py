@@ -616,7 +616,6 @@ class BaseTrainer:
                             batch["img"].shape[-1],  # imgsz, i.e 640
                         )
                     )
-                    self.run_callbacks("on_batch_end")
                     if self.args.plots and ni in self.plot_idx:
                         self.plot_training_samples(batch, ni)
 
@@ -960,9 +959,6 @@ class BaseTrainer:
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance. Override in subclasses."""
 
-    def build_targets(self, preds, targets):
-        """Build target tensors for training YOLO model."""
-
     def progress_string(self):
         """Return a string describing training progress."""
         return ""
@@ -1031,7 +1027,7 @@ class BaseTrainer:
             resume = True
             self.args = get_cfg(ckpt_args)
             self.args.model = self.args.resume = str(last)  # reinstate model
-            for k in (
+            allowed = {  # allow arg updates to reduce memory or update device on resume
                 "imgsz",
                 "batch",
                 "device",
@@ -1048,9 +1044,15 @@ class BaseTrainer:
                 "channels_last",
                 "distill_model",
                 "save_dir",
-            ):  # allow arg updates to reduce memory or update device on resume
-                if k in overrides:
-                    setattr(self.args, k, overrides[k])
+            }
+            ignored = []
+            for k, v in overrides.items():
+                if k in allowed:
+                    setattr(self.args, k, v)
+                elif k not in {"model", "data", "mode", "resume"} and v != getattr(self.args, k, None):
+                    ignored.append(k)
+            if ignored:
+                LOGGER.warning(f"Resume ignores {ignored}, using checkpoint values. Start a new run to change them.")
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):

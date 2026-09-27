@@ -270,9 +270,9 @@ class Results(SimpleClass, DataExportMixin):
             keypoints (torch.Tensor | None): A 3D tensor of keypoints for each detection with shape (N, K, 2) or (N, K,
                 3).
             obb (torch.Tensor | None): A 2D tensor of oriented bounding box coordinates for each detection.
+            speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
             semantic_mask (torch.Tensor | None): A 2D tensor of class IDs for semantic segmentation results.
             depth (torch.Tensor | None): A 2D float tensor of per-pixel depth values (H, W).
-            speed (dict | None): A dictionary containing preprocess, inference, and postprocess speeds (ms/image).
 
         Notes:
             For the default pose model, keypoint indices for human body pose estimation are:

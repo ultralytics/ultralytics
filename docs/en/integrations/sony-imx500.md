@@ -195,7 +195,7 @@ The IMX500 format supports the [Export](../modes/export.md), [Predict](../modes/
 
 !!! warning
 
-    The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
+    IMX export is only supported on Linux with Python 3.9 or later and requires Java 17 or later. The Ultralytics package installs additional export dependencies at runtime. The first time you run the export command, you may need to restart your console to ensure it works correctly.
 
 ## Export Arguments
 

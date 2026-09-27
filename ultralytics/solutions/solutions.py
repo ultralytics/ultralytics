@@ -357,14 +357,14 @@ class SolutionAnnotator(Annotator):
 
     def draw_region(
         self,
-        reg_pts: list[tuple[int, int]] | None = None,
+        reg_pts: list[tuple[int, int]],
         color: tuple[int, int, int] = (0, 255, 0),
         thickness: int = 5,
     ):
         """Draw a region or line on the image.
 
         Args:
-            reg_pts (list[tuple[int, int]], optional): Region points (for line 2 points, for region 4+ points).
+            reg_pts (list[tuple[int, int]]): Region points (for line 2 points, for region 4+ points).
             color (tuple[int, int, int]): BGR color value for the region (OpenCV format).
             thickness (int): Line thickness for drawing the region.
         """
@@ -377,7 +377,7 @@ class SolutionAnnotator(Annotator):
     def queue_counts_display(
         self,
         label: str,
-        points: list[tuple[int, int]] | None = None,
+        points: list[tuple[int, int]],
         region_color: tuple[int, int, int] = (255, 255, 255),
         txt_color: tuple[int, int, int] = (0, 0, 0),
     ):
@@ -385,7 +385,7 @@ class SolutionAnnotator(Annotator):
 
         Args:
             label (str): Queue counts label.
-            points (list[tuple[int, int]], optional): Region points for center point calculation to display text.
+            points (list[tuple[int, int]]): Region points for center point calculation to display text.
             region_color (tuple[int, int, int]): BGR queue region color (OpenCV format).
             txt_color (tuple[int, int, int]): BGR text color (OpenCV format).
         """

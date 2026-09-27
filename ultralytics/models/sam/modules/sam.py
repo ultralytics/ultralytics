@@ -57,8 +57,8 @@ class SAMModel(nn.Module):
         image_encoder: ImageEncoderViT,
         prompt_encoder: PromptEncoder,
         mask_decoder: MaskDecoder,
-        pixel_mean: list[float] = (123.675, 116.28, 103.53),
-        pixel_std: list[float] = (58.395, 57.12, 57.375),
+        pixel_mean: list[float] | tuple[float, ...] = (123.675, 116.28, 103.53),
+        pixel_std: list[float] | tuple[float, ...] = (58.395, 57.12, 57.375),
     ) -> None:
         """Initialize the SAMModel class to predict object masks from an image and input prompts.
 
@@ -66,8 +66,9 @@ class SAMModel(nn.Module):
             image_encoder (ImageEncoderViT): The backbone used to encode the image into image embeddings.
             prompt_encoder (PromptEncoder): Encodes various types of input prompts.
             mask_decoder (MaskDecoder): Predicts masks from the image embeddings and encoded prompts.
-            pixel_mean (list[float]): Mean values for normalizing pixels in the input image.
-            pixel_std (list[float]): Standard deviation values for normalizing pixels in the input image.
+            pixel_mean (list[float] | tuple[float, ...]): Mean values for normalizing pixels in the input image.
+            pixel_std (list[float] | tuple[float, ...]): Standard deviation values for normalizing pixels in the input
+                image.
 
         Notes:
             All forward() operations moved to SAMPredictor.

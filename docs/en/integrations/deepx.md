@@ -371,7 +371,7 @@ Yes. Any model trained using [Ultralytics Train Mode](../modes/train.md) and exp
 
 ### How many calibration images should I use for DEEPX export?
 
-The DEEPX export pipeline uses every image in the calibration dataset with the EMA calibration method. A few hundred images is usually sufficient for good quantization accuracy. Point `data` at a smaller dataset if compilation time becomes a concern on large datasets.
+The DEEPX export pipeline configures the `dx_com` compiler for 100 EMA calibration steps over images from the calibration dataset. A few hundred images is usually sufficient for good quantization accuracy. Point `data` at a smaller dataset if compilation time becomes a concern on large datasets.
 
 ### How do I install the DEEPX runtime for inference?
 

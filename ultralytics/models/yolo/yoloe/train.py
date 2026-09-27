@@ -49,13 +49,13 @@ class YOLOETrainer(DetectionTrainer):
         overrides["overlap_mask"] = False
         super().__init__(cfg, overrides, _callbacks)
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a task-appropriate YOLOE model initialized with the specified configuration and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration. Can be a dictionary containing a 'yaml_file' key, a direct
                 path to a YAML file, or None to use default configuration.
-            weights (str | Path, optional): Path to pretrained weights file to load into the model.
+            weights (torch.nn.Module, optional): Pretrained model whose weights are loaded into the new model.
             verbose (bool): Whether to display model information during initialization.
 
         Returns:
@@ -112,12 +112,12 @@ class YOLOEPETrainer(DetectionTrainer):
         get_validator: Return a task-appropriate validator.
     """
 
-    def get_model(self, cfg=None, weights=None, verbose: bool = True):
+    def get_model(self, cfg: dict | str | None = None, weights: torch.nn.Module | None = None, verbose: bool = True):
         """Return a task-appropriate YOLOE model initialized with specified config and weights.
 
         Args:
             cfg (dict | str, optional): Model configuration.
-            weights (str): Path to pretrained weights, required for linear probing.
+            weights (torch.nn.Module): Pretrained model whose weights are loaded, required for linear probing.
             verbose (bool): Whether to display model information.
 
         Returns:
@@ -229,12 +229,12 @@ class YOLOEPEFreeTrainer(YOLOEPETrainer, YOLOETrainerFromScratch):
         """Preprocess a batch of images for prompt-free YOLOE training without adding text features."""
         return DetectionTrainer.preprocess_batch(self, batch)
 
-    def set_text_embeddings(self, datasets, batch: int):
+    def set_text_embeddings(self, datasets, batch: int | None):
         """No-op override for prompt-free training that does not require text embeddings.
 
         Args:
             datasets (list[Dataset]): List of datasets containing category names to process.
-            batch (int): Batch size for processing text embeddings.
+            batch (int | None): Batch size for processing text embeddings.
         """
 
 

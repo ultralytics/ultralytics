@@ -36,7 +36,7 @@ class TaskAlignedAssigner(nn.Module):
         beta: float = 6.0,
         stride: list | None = None,
         eps: float = 1e-9,
-        topk2=None,
+        topk2: int | None = None,
     ):
         """Initialize a TaskAlignedAssigner object with customizable hyperparameters.
 

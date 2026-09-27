@@ -282,7 +282,7 @@ class ConvLayer(nn.Module):
         depth: int,
         activation,
         drop_path: float | list[float] = 0.0,
-        downsample: nn.Module | None = None,
+        downsample: type[nn.Module] | None = None,
         use_checkpoint: bool = False,
         out_dim: int | None = None,
         conv_expand_ratio: float = 4.0,
@@ -298,7 +298,8 @@ class ConvLayer(nn.Module):
             depth (int): The number of MBConv layers in the block.
             activation (nn.Module): Activation function applied after each convolution.
             drop_path (float | list[float], optional): Drop path rate. Single float or a list of floats for each MBConv.
-            downsample (nn.Module | None, optional): Function for downsampling the output. None to skip downsampling.
+            downsample (type[nn.Module] | None, optional): Downsampling layer class applied to the output. None to skip
+                downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
             out_dim (int | None, optional): Output dimensions. None means it will be the same as `dim`.
             conv_expand_ratio (float, optional): Expansion ratio for the MBConv layers.
@@ -685,7 +686,7 @@ class BasicLayer(nn.Module):
         mlp_ratio: float = 4.0,
         drop: float = 0.0,
         drop_path: float | list[float] = 0.0,
-        downsample: nn.Module | None = None,
+        downsample: type[nn.Module] | None = None,
         use_checkpoint: bool = False,
         local_conv_size: int = 3,
         activation=nn.GELU,
@@ -706,7 +707,7 @@ class BasicLayer(nn.Module):
             drop (float, optional): Dropout rate.
             drop_path (float | list[float], optional): Stochastic depth rate. Can be a float or a list of floats for
                 each block.
-            downsample (nn.Module | None, optional): Downsampling layer at the end of the layer. None to skip
+            downsample (type[nn.Module] | None, optional): Downsampling layer at the end of the layer. None to skip
                 downsampling.
             use_checkpoint (bool, optional): Whether to use gradient checkpointing to save memory.
             local_conv_size (int, optional): Kernel size for the local convolution in each TinyViT block.

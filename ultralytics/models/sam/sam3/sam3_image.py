@@ -286,7 +286,7 @@ class SAM3SemanticModel(torch.nn.Module):
             backbone_out.pop("backbone_fpn", None)
 
     def forward_grounding(
-        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt = None
+        self, backbone_out: dict[str, torch.Tensor], text_ids: torch.Tensor, geometric_prompt: Prompt | None = None
     ):
         """Run grounding (detection + segmentation) on backbone features for the given text prompts.
 

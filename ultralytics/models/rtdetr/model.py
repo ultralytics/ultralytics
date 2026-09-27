@@ -8,6 +8,10 @@ References:
     https://arxiv.org/pdf/2304.08069.pdf
 """
 
+from __future__ import annotations
+
+from pathlib import Path
+
 from ultralytics.engine.model import Model
 from ultralytics.nn.tasks import RTDETRDetectionModel
 from ultralytics.utils.torch_utils import TORCH_1_11
@@ -36,11 +40,12 @@ class RTDETR(Model):
         >>> results = model("image.jpg")
     """
 
-    def __init__(self, model: str = "rtdetr-l.pt") -> None:
+    def __init__(self, model: str | Path | Model = "rtdetr-l.pt") -> None:
         """Initialize the RT-DETR model with the given pre-trained model file.
 
         Args:
-            model (str): Path to the pre-trained model. Supports .pt, .yaml, and .yml formats.
+            model (str | Path | Model): Path to the pre-trained model (.pt, .yaml, or .yml), or an already initialized
+                Model instance.
         """
         assert TORCH_1_11, "RTDETR requires torch>=1.11"
         super().__init__(model=model, task="detect")

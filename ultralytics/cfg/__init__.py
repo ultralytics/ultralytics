@@ -263,6 +263,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "opset",
     }
 )
 CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, divisors, sizes or seeds
@@ -299,6 +300,7 @@ CFG_BOOL_KEYS = frozenset(
         "augment",
         "agnostic_nms",
         "retina_masks",
+        "stream_buffer",
         "show_boxes",
         "optimize",
         "dynamic",
@@ -481,11 +483,13 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                             f"Valid '{k}' types are int (i.e. '{k}=0') or float (i.e. '{k}=0.5')"
                         )
                     cfg[k] = v = float(v)
-                valid = 0.0 <= v <= 1.0 or (k == "fraction" and isinstance(v, int) and v > 1)
-                if not valid or (k == "fraction" and v == 0.0):
-                    raise ValueError(f"'{k}={v}' invalid. Use integer count >1 or ratio (0, 1] for fraction.")
-                if k == "fraction" and v == 1:
-                    cfg[k] = 1.0
+                if k == "fraction":
+                    if not (0.0 < v <= 1.0 or (isinstance(v, int) and v > 1)):
+                        raise ValueError(f"'{k}={v}' invalid. Use integer count >1 or ratio (0, 1] for fraction.")
+                    if v == 1:
+                        cfg[k] = 1.0
+                elif not (0.0 <= v <= 1.0):
+                    raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS:
                 if not isinstance(v, int):
                     if hard:
@@ -580,7 +584,7 @@ def _handle_deprecation(custom: dict) -> dict:
         TypeError: If the deprecated 'end2end' key is set to a non-bool value.
 
     Examples:
-        >>> custom_config = {"boxes": True, "hide_labels": "False", "line_thickness": 2}
+        >>> custom_config = {"boxes": True, "hide_labels": True, "line_thickness": 2}
         >>> _handle_deprecation(custom_config)
         {'show_boxes': True, 'show_labels': False, 'line_width': 2}
 
@@ -886,7 +890,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
                 str(ROOT / "solutions/streamlit_inference.py"),
                 "--server.headless",
                 "true",
-                overrides.pop("model", "yolo26n.pt"),
+                *(f"{k}={v}" for k, v in overrides.items()),  # Inference args: model, imgsz, conf, iou
             ],
             check=False,
         )
@@ -1137,10 +1141,14 @@ def entrypoint(debug: str = "") -> None:
         from ultralytics import FastSAM
 
         model = FastSAM(model)
-    elif "sam_" in stem or "sam2_" in stem or "sam2.1_" in stem:
+    elif any(k in stem for k in ("sam_", "sam2_", "sam2.1_", "sam3", "mobile_sam")):
         from ultralytics import SAM
 
         model = SAM(model)
+    elif "yolo_nas" in stem:
+        from ultralytics import NAS
+
+        model = NAS(model)
     else:
         from ultralytics import YOLO
 

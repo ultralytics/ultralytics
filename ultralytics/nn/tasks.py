@@ -294,7 +294,7 @@ class BaseModel(torch.nn.Module):
         Args:
             detailed (bool): If True, prints out detailed information about the model.
             verbose (bool): If True, prints out the model information.
-            imgsz (int): The size of the image used for computing model information.
+            imgsz (int | list): The size of the image used for computing model information.
 
         Returns:
             (tuple | None): Number of layers, parameters, gradients, and GFLOPs, or None if `verbose` is False.
@@ -1022,7 +1022,7 @@ class RTDETRDetectionModel(DetectionModel):
             loss (torch.Tensor): Total loss value.
             loss_items (dict): Main three detached losses in a dict.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
 
         img = batch["img"]
@@ -1214,7 +1214,7 @@ class WorldModel(DetectionModel):
             loss (torch.Tensor): Loss tensor for backpropagation.
             loss_items (dict[str, torch.Tensor]): Detached loss components, as returned by the criterion.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:
             self.criterion = self.init_criterion()
 
         if preds is None:
@@ -1471,7 +1471,7 @@ class YOLOEModel(DetectionModel):
             loss (torch.Tensor): Loss tensor for backpropagation.
             loss_items (dict[str, torch.Tensor]): Detached loss components, as returned by the criterion.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:
             from ultralytics.utils.loss import TVPDetectLoss
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO
@@ -1531,7 +1531,7 @@ class YOLOESegModel(YOLOEModel, SegmentationModel):
             loss (torch.Tensor): Loss tensor for backpropagation.
             loss_items (dict[str, torch.Tensor]): Detached loss components, as returned by the criterion.
         """
-        if not hasattr(self, "criterion"):
+        if getattr(self, "criterion", None) is None:
             from ultralytics.utils.loss import TVPSegmentLoss
 
             visual_prompt = batch.get("visuals", None) is not None  # TODO

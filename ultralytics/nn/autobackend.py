@@ -182,8 +182,8 @@ class AutoBackend(nn.Module):
     @smart_inference_mode(False)
     def __init__(
         self,
-        model: str | torch.nn.Module = "yolo26n.pt",
-        device: torch.device | None = None,
+        model: str | Path | torch.nn.Module = "yolo26n.pt",
+        device: torch.device | str | None = None,
         dnn: bool = False,
         data: str | Path | None = None,
         fp16: bool = False,
@@ -195,8 +195,9 @@ class AutoBackend(nn.Module):
         """Initialize the AutoBackend for inference.
 
         Args:
-            model (str | torch.nn.Module): Path to the model weights file or a module instance.
-            device (torch.device, optional): Device to run the model on. Defaults to CPU when None.
+            model (str | Path | torch.nn.Module): Path to the model weights file or a module instance.
+            device (torch.device | str, optional): Device to run the model on, or a 'tpu', 'intel' or 'vulkan' device
+                string from `select_device`. Defaults to CPU when None.
             dnn (bool): Use OpenCV DNN module for ONNX inference.
             data (str | Path, optional): Path to the additional data.yaml file containing class names.
             fp16 (bool): Enable half-precision inference. Supported only on specific backends.
@@ -308,8 +309,8 @@ class AutoBackend(nn.Module):
         Args:
             im (torch.Tensor): The image tensor to perform inference on.
             augment (bool): Whether to apply test-time augmentation (native PyTorch models only).
-            embed (list, optional): A list of layer indices to return embeddings from.
-            **kwargs (Any): Additional keyword arguments for model configuration.
+            embed (list, optional): A list of layer indices to return embeddings from (native PyTorch models only).
+            **kwargs (Any): Additional keyword arguments passed to native PyTorch models; ignored by other formats.
 
         Returns:
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
@@ -373,11 +374,11 @@ class AutoBackend(nn.Module):
                 non_max_suppression(warmup_boxes)  # warmup NMS
 
     @staticmethod
-    def _model_type(p: str = "path/to/model.pt", dnn: bool = False) -> str:
+    def _model_type(p: str | Path = "path/to/model.pt", dnn: bool = False) -> str:
         """Take a path to a model file and return the model format string.
 
         Args:
-            p (str): Path to the model file.
+            p (str | Path): Path to the model file or Triton URL.
             dnn (bool): Whether to use OpenCV DNN module for ONNX inference.
 
         Returns:

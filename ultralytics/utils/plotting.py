@@ -648,7 +648,7 @@ class Annotator:
             xy (list[int]): Top-left coordinates for text placement.
             text (str): Text to be drawn.
             txt_color (tuple, optional): Text color.
-            anchor (str, optional): Text anchor position ('top' or 'bottom').
+            anchor (str, optional): Text anchor position ('top' or 'bottom'), used by PIL drawing only.
             box_color (tuple, optional): Box background color with optional alpha.
         """
         self._to_numpy()
@@ -728,13 +728,14 @@ class Annotator:
 
 @TryExcept()
 @plt_settings()
-def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
+def plot_labels(boxes, cls, names: dict[int, str] | None = None, save_dir=Path(""), on_plot=None):
     """Plot training labels including class histograms and box statistics.
 
     Args:
         boxes (np.ndarray): Normalized bounding boxes with shape (N, 4) in format [x_center, y_center, width, height].
         cls (np.ndarray): Class indices.
-        names (dict, optional): Dictionary mapping class indices to class names.
+        names (dict[int, str], optional): Dictionary mapping class indices to class names, used for x-axis tick labels
+            when there are fewer than 30 classes.
         save_dir (Path, optional): Directory to save the plot.
         on_plot (Callable, optional): Function to call after plot is saved.
     """
@@ -755,7 +756,7 @@ def plot_labels(boxes, cls, names=(), save_dir=Path(""), on_plot=None):
     for i in range(nc):
         y[2].patches[i].set_color([x / 255 for x in colors(i)])
     ax[0].set_ylabel("instances")
-    if 0 < len(names) < 30:
+    if names and len(names) < 30:
         ax[0].set_xticks(range(len(names)))
         ax[0].set_xticklabels(list(names.values()), rotation=90, fontsize=10)
         ax[0].bar_label(y[2])
@@ -846,7 +847,7 @@ def plot_images(
     labels: dict[str, Any],
     images: torch.Tensor | np.ndarray | None = None,
     paths: list[str] | None = None,
-    fname: str = "images.jpg",
+    fname: str | Path = "images.jpg",
     names: dict[int, str] | None = None,
     on_plot: Callable | None = None,
     max_size: int = 1920,
@@ -864,7 +865,7 @@ def plot_images(
         images (torch.Tensor | np.ndarray | None): Batch of images to plot. Shape: (batch_size, channels, height,
             width).
         paths (list[str] | None): List of file paths for each image in the batch.
-        fname (str): Output filename for the plotted image grid.
+        fname (str | Path): Output filename for the plotted image grid.
         names (dict[int, str] | None): Dictionary mapping class indices to class names.
         on_plot (Callable | None): Callback function to be called after saving the plot.
         max_size (int): Maximum size of the output image grid.
@@ -1062,7 +1063,7 @@ def plot_images(
 
 
 @plt_settings()
-def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Callable | None = None):
+def plot_results(file: str | Path = "", dir: str | Path = "", on_plot: Callable | None = None):
     """Plot training results from a results CSV file.
 
     The function supports various types of data including detection, instance segmentation, semantic segmentation, depth
@@ -1070,8 +1071,8 @@ def plot_results(file: str = "path/to/results.csv", dir: str = "", on_plot: Call
     saved as 'results.png' in that directory.
 
     Args:
-        file (str, optional): Path to the CSV file containing the training results.
-        dir (str, optional): Directory where the CSV file is located if 'file' is not provided.
+        file (str | Path, optional): Path to the CSV file containing the training results.
+        dir (str | Path, optional): Directory where the CSV file is located if 'file' is not provided.
         on_plot (Callable, optional): Callback function to be executed after plotting. Takes filename as an argument.
 
     Examples:

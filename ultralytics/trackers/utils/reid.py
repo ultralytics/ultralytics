@@ -34,7 +34,8 @@ class ReID:
             imgsz (int): Square input size used for crop preprocessing on the AutoBackend path. Overridden by the
                 model's own static input size when one is detected.
             device (str | torch.device | None): Inference device; defaults to CUDA if available.
-            fp16 (bool): Use half precision when the backend supports it.
+            fp16 (bool): Request half precision on the AutoBackend path when the backend supports it. Ignored for
+                `.pt` models; models exported with FP16 inputs run in half precision regardless.
         """
         self.imgsz = imgsz
         self.batch_size = None

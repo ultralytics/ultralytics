@@ -28,7 +28,7 @@ class SolutionConfig:
         show_in (bool): Whether to display count number for objects entering the region.
         show_out (bool): Whether to display count number for objects leaving the region.
         up_angle (float): Upper angle threshold used in pose-based workouts monitoring.
-        down_angle (int): Lower angle threshold used in pose-based workouts monitoring.
+        down_angle (float): Lower angle threshold used in pose-based workouts monitoring.
         kpts (list[int]): Keypoint indices to monitor, e.g., for pose analytics.
         analytics_type (str): Type of analytics chart to generate ("line", "bar", "pie", or "area").
         figsize (tuple[float, float], optional): Size of the matplotlib figure used for analytical plots (width,
@@ -52,7 +52,7 @@ class SolutionConfig:
             it; elsewhere the artifact and runtime decide, though 16 rounds OpenVINO inputs. Replaces the deprecated
             half flag.
         imgsz (int): Input image size for inference.
-        tracker (str): Path to tracking configuration YAML file (e.g., 'botsort.yaml').
+        tracker (str): Path to tracking configuration YAML file (e.g., 'tracktrack.yaml').
         verbose (bool): Enable verbose logging output for debugging or diagnostics.
         data (str): Path to image directory used for similarity search.
 
@@ -77,7 +77,7 @@ class SolutionConfig:
     show_in: bool = True
     show_out: bool = True
     up_angle: float = 145.0
-    down_angle: int = 90
+    down_angle: float = 90.0
     kpts: list[int] = field(default_factory=lambda: [6, 8, 10])
     analytics_type: str = "line"
     figsize: tuple[float, float] | None = (12.8, 7.2)
@@ -98,7 +98,7 @@ class SolutionConfig:
     max_det: int = 300
     quantize: int | str | None = None
     imgsz: int = 640
-    tracker: str = "botsort.yaml"
+    tracker: str = "tracktrack.yaml"
     verbose: bool = True
     data: str = "images"
 

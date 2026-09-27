@@ -458,7 +458,7 @@ def concat_rel_pos(
     rel_pos_h: torch.Tensor,
     rel_pos_w: torch.Tensor,
     rescale: bool = False,
-    relative_coords: torch.Tensor = None,
+    relative_coords: torch.Tensor | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Concatenate rel pos coeffs to the q & k tensors, so that qk^T is now effectively including rel pos biases.
 

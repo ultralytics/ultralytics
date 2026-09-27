@@ -231,7 +231,7 @@ Export your model to 21 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
-3. Configure export arguments (image size, half precision, dynamic, etc.)
+3. Configure export arguments (image size, precision, dynamic, etc.)
 4. For GPU-required formats (TensorRT), select a GPU type
 5. Click **Start Export**
 6. Download when complete
@@ -251,7 +251,7 @@ The Platform supports export to [21 deployment formats](../../modes/export.md#ex
 | **NVIDIA GPUs**    | TensorRT            | Select the same GPU family as the deployment device            |
 | **NVIDIA Jetson**  | TensorRT            | Select the intended target and check its validation status     |
 | **Intel Hardware** | OpenVINO            | CPUs, GPUs, and VPUs                                           |
-| **Apple Devices**  | CoreML or LiteRT    | iOS, macOS, Apple Silicon                                      |
+| **Apple Devices**  | CoreML or Core AI   | iOS, macOS, Apple Silicon                                      |
 | **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
 | **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
@@ -326,8 +326,8 @@ Some export formats have architecture or task restrictions:
 
 | Format       | Restriction                                                                                                                                                                            |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n`; INT8 only                                                                                                                                  |
-| **Axelera**  | Detect models only; INT8 only                                                                                                                                                          |
+| **IMX500**   | Available only for `YOLOv8n` and `YOLO11n` detect, segment, classify, and pose models; INT8 only                                                                                       |
+| **Axelera**  | YOLO26 segmentation models are not supported; INT8 only                                                                                                                                |
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
@@ -335,7 +335,8 @@ Some export formats have architecture or task restrictions:
 
 !!! note "Additional Export Rules"
 
-    - Classification, semantic segmentation, and depth exports do not include NMS, and MNN embeds NMS only for detect and pose.
+    - Classification, semantic segmentation, and depth exports do not include NMS. CoreML embeds NMS only for detect, segment, and pose, and MNN only for detect and pose.
+    - RKNN INT8 export requires a detection model.
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.

@@ -140,7 +140,7 @@ class HungarianMatcher(nn.Module):
 
 
 def get_cdn_group(
-    batch: dict[str, Any],
+    batch: dict[str, Any] | None,
     num_classes: int,
     num_queries: int,
     class_embed: torch.Tensor,
@@ -155,9 +155,9 @@ def get_cdn_group(
     boxes and class labels. It generates both positive and negative samples to improve model robustness.
 
     Args:
-        batch (dict[str, Any]): Batch dictionary containing 'cls' (torch.Tensor with shape (num_gts,)), 'bboxes'
+        batch (dict[str, Any] | None): Batch dictionary containing 'cls' (torch.Tensor with shape (num_gts,)), 'bboxes'
             (torch.Tensor with shape (num_gts, 4)), 'batch_idx' (torch.Tensor), and 'gt_groups' (list[int]) indicating
-            number of ground truths per image.
+            number of ground truths per image. None disables denoising.
         num_classes (int): Total number of object classes.
         num_queries (int): Number of object queries.
         class_embed (torch.Tensor): Class embedding weights to map labels to embedding space.

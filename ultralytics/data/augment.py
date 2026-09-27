@@ -199,7 +199,7 @@ class Compose:
         """
         self.transforms.insert(index, transform)
 
-    def __getitem__(self, index: list | int) -> Compose:
+    def __getitem__(self, index: list | int) -> Any:
         """Retrieve a specific transform or a set of transforms using indexing.
 
         Args:
@@ -220,7 +220,7 @@ class Compose:
         assert isinstance(index, (int, list)), f"The indices should be either list or int type but got {type(index)}"
         return Compose([self.transforms[i] for i in index]) if isinstance(index, list) else self.transforms[index]
 
-    def __setitem__(self, index: list | int, value: list | int) -> None:
+    def __setitem__(self, index: list | int, value: Any) -> None:
         """Set one or more transforms in the composition using indexing.
 
         Args:
@@ -1679,7 +1679,7 @@ class LetterBox(BaseTransform):
     labels and bounding boxes.
 
     Attributes:
-        new_shape (tuple): Target shape (height, width) for resizing.
+        new_shape (int | tuple[int, int]): Target shape (height, width) for resizing, or an int for a square target.
         auto (bool): Whether to use minimum rectangle.
         scale_fill (bool): Whether to stretch the image to new_shape.
         scaleup (bool): Whether to allow scaling up. If False, only scale down.
@@ -1700,7 +1700,7 @@ class LetterBox(BaseTransform):
 
     def __init__(
         self,
-        new_shape: tuple[int, int] = (640, 640),
+        new_shape: int | tuple[int, int] = (640, 640),
         auto: bool = False,
         scale_fill: bool = False,
         scaleup: bool = True,
@@ -1715,7 +1715,8 @@ class LetterBox(BaseTransform):
         tasks. It supports various resizing modes including auto-sizing, scale-fill, and letterboxing.
 
         Args:
-            new_shape (tuple[int, int]): Target size (height, width) for the resized image.
+            new_shape (int | tuple[int, int]): Target size (height, width) for the resized image, or an int for a
+                square target.
             auto (bool): If True, use minimum rectangle to resize. If False, use new_shape directly.
             scale_fill (bool): If True, stretch the image to new_shape without padding.
             scaleup (bool): If True, allow scaling up. If False, only scale down.
@@ -1733,7 +1734,9 @@ class LetterBox(BaseTransform):
         self.padding_value = padding_value
         self.interpolation = interpolation
 
-    def __call__(self, labels: dict[str, Any] | None = None, image: np.ndarray = None) -> dict[str, Any] | np.ndarray:
+    def __call__(
+        self, labels: dict[str, Any] | None = None, image: np.ndarray | None = None
+    ) -> dict[str, Any] | np.ndarray:
         """Resize and pad an image for object detection, instance segmentation, or pose estimation tasks.
 
         This method applies letterboxing to the input image, which involves resizing the image while maintaining its
@@ -2659,8 +2662,8 @@ class LoadVisualPrompt(BaseTransform):
         self,
         category: int | np.ndarray | torch.Tensor,
         shape: tuple[int, int],
-        bboxes: np.ndarray | torch.Tensor = None,
-        masks: np.ndarray | torch.Tensor = None,
+        bboxes: np.ndarray | torch.Tensor | None = None,
+        masks: np.ndarray | torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Generate visual masks based on bounding boxes or masks.
 
@@ -2824,7 +2827,7 @@ class RandomLoadText(BaseTransform):
         return labels
 
 
-def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace):
+def v8_transforms(dataset, imgsz: int, hyp: IterableSimpleNamespace) -> Compose:
     """Apply a series of image transformations for training.
 
     This function creates a composition of image augmentation techniques to prepare images for YOLO training. It
@@ -2978,7 +2981,9 @@ def classify_augmentations(
     """Create a composition of image augmentation transforms for classification tasks.
 
     This function generates a set of image transformations suitable for training classification models. It includes
-    options for resizing, flipping, color jittering, auto augmentation, and random erasing.
+    options for resizing, flipping, color jittering, auto augmentation, and random erasing. The defaults here are
+    standalone values that differ from the training cfg defaults (e.g. `hsv_s`, `erasing`, `auto_augment`);
+    `ClassificationDataset` always passes the cfg values explicitly.
 
     Args:
         size (int): Target size for the image after transformations.

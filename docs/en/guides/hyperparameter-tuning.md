@@ -171,13 +171,14 @@ After you've successfully completed the hyperparameter tuning process, you will 
 
 ### File Structure
 
-Here's what the directory structure of the results will look like. Training directories like `train/` and `train-2/` contain individual tuning iterations, i.e., one model trained with one set of hyperparameters. The `tune/` directory contains tuning results from all the individual model trainings:
+Here's what the directory structure of the results will look like. Sweep directories like `multitrain/` and `multitrain-2/` hold individual tuning iterations, i.e., one model trained per dataset with one set of hyperparameters, in a subdirectory named after each dataset. To save storage, the tuner deletes the per-dataset run directories of iterations that are not the current best. The `tune/` directory contains tuning results from all the individual model trainings:
 
 ```plaintext
 runs/
 └── detect/
-    ├── train/
-    ├── train-2/
+    ├── multitrain/
+    │   └── coco8/
+    ├── multitrain-2/
     ├── ...
     └── tune/
         ├── best_hyperparameters.yaml
@@ -290,8 +291,8 @@ A pretty-printed example follows for readability; in the actual `.ndjson` file, 
         }
     },
     "save_dirs": {
-        "coco8": "runs/detect/coco8",
-        "coco8-grayscale": "runs/detect/coco8-grayscale"
+        "coco8": "runs/detect/multitrain/coco8",
+        "coco8-grayscale": "runs/detect/multitrain/coco8-grayscale"
     }
 }
 ```

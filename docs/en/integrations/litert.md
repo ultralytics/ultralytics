@@ -37,7 +37,7 @@ The LiteRT export format optimizes your models for tasks like [object detection]
 
 !!! tip "Run YOLO on Web with LiteRT.js today via the official @ultralytics/yolo npm package"
 
-    The official [Ultralytics YOLO NPM package](https://www.npmjs.com/package/@ultralytics/yolo) runs LiteRT `.tflite` exports directly in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) no server or Python required — with real-time webcam inference, single-image prediction, and WebGPU acceleration (automatic CPU/WASM fallback) across all six YOLO26 tasks (detect, segment, pose, OBB, classify, semantic). On WebGPU it's often ~2× faster than ONNX Runtime Web.
+    The official [Ultralytics YOLO NPM package](https://www.npmjs.com/package/@ultralytics/yolo) runs LiteRT `.tflite` exports directly in the browser via [LiteRT.js](https://developers.google.com/edge/litert/web) no server or Python required — with real-time webcam inference, single-image prediction, and WebGPU acceleration (automatic CPU/WASM fallback) across six YOLO26 tasks (detect, segment, semantic, classify, pose, OBB). On WebGPU it's often ~2× faster than ONNX Runtime Web.
 
     ```bash
     npm i @ultralytics/yolo @litertjs/core
@@ -194,7 +194,7 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Export the model to LiteRT format
-        model.export(format="litert", imgsz=640)  # use imgsz=224 for classification
+        model.export(format="litert", imgsz=640)  # creates 'yolo26n.tflite'; use imgsz=224 for classification
         ```
 
     === "CLI"
@@ -214,13 +214,13 @@ All [Ultralytics YOLO models](../models/index.md) support export out of the box.
         model = YOLO("yolo26n.pt")
 
         # Dynamic INT8: int8 weights, FP32 activations - no calibration data needed
-        model.export(format="litert", quantize="w8a32", imgsz=640)  # use imgsz=224 for classification
+        model.export(format="litert", quantize="w8a32", imgsz=640)  # creates 'yolo26n_w8a32.tflite'
 
         # Static INT8: int8 weights + int8 activations - needs calibration data
-        model.export(format="litert", quantize=8, data="coco8.yaml", imgsz=640)  # use 224 for classification
+        model.export(format="litert", quantize=8, data="coco8.yaml", imgsz=640)  # creates 'yolo26n_int8.tflite'
 
         # Static w8a16: int8 weights + int16 activations (higher accuracy) - needs calibration data
-        model.export(format="litert", quantize="w8a16", data="coco8.yaml", imgsz=640)  # use 224 for classification
+        model.export(format="litert", quantize="w8a16", data="coco8.yaml", imgsz=640)  # creates 'yolo26n_w8a16.tflite'
         ```
 
     === "CLI"

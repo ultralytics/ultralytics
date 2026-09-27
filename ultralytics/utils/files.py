@@ -166,8 +166,8 @@ def file_date(path: str | Path = __file__) -> str:
     return f"{t.year}-{t.month}-{t.day}"
 
 
-def file_size(path: str | Path) -> float:
-    """Return the size of a file or directory in mebibytes (MiB)."""
+def file_size(path: str | Path | None) -> float:
+    """Return the size of a file or directory in mebibytes (MiB), or 0.0 if the path is None or missing."""
     if isinstance(path, (str, Path)):
         mb = 1 << 20  # bytes to MiB (1024 ** 2)
         path = Path(path)

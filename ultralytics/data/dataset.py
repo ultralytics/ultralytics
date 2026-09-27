@@ -88,11 +88,11 @@ class YOLODataset(BaseDataset):
 
     format_class = Format
 
-    def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
+    def __init__(self, *args, data: dict, task: str = "detect", **kwargs):
         """Initialize the YOLODataset.
 
         Args:
-            data (dict, optional): Dataset configuration dictionary.
+            data (dict): Dataset configuration dictionary.
             task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
             *args (Any): Additional positional arguments for the parent class.
             **kwargs (Any): Additional keyword arguments for the parent class.
@@ -522,11 +522,11 @@ class DepthDataset(YOLODataset):
     def verify_labels(self, labels: list[dict], cache_path: Path) -> None:
         """Skip box and segment checks; depth datasets carry no box or segment annotations."""
 
-    def _load_depth(self, index):
+    def _load_depth(self, index: int) -> np.ndarray:
         """Return the native-resolution depth map for an image."""
         return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
 
-    def get_image_and_label(self, index):
+    def get_image_and_label(self, index: int) -> dict[str, Any]:
         """Load image, label, and depth map for the given index."""
         label = super().get_image_and_label(index)
         h, w = label["resized_shape"]
@@ -569,17 +569,6 @@ class YOLOMultiModalDataset(YOLODataset):
         >>> sample = dataset[0]
         >>> print(sample.keys())  # Should include 'texts'
     """
-
-    def __init__(self, *args, data: dict | None = None, task: str = "detect", **kwargs):
-        """Initialize a YOLOMultiModalDataset.
-
-        Args:
-            data (dict, optional): Dataset configuration dictionary.
-            task (str): Task type, one of 'detect', 'segment', 'pose', or 'obb'.
-            *args (Any): Additional positional arguments for the parent class.
-            **kwargs (Any): Additional keyword arguments for the parent class.
-        """
-        super().__init__(*args, data=data, task=task, **kwargs)
 
     def update_labels_info(self, label: dict) -> dict:
         """Add text information for multi-modal model training.
@@ -651,7 +640,7 @@ class GroundingDataset(YOLODataset):
         >>> len(dataset)  # Number of valid images with annotations
     """
 
-    def __init__(self, *args, task: str = "detect", json_file: str = "", max_samples: int = 80, **kwargs):
+    def __init__(self, *args, json_file: str, task: str = "detect", max_samples: int = 80, **kwargs):
         """Initialize a GroundingDataset for object detection.
 
         Args:
@@ -912,7 +901,7 @@ class SemanticDataset(YOLODataset):
 
     format_class = SemanticFormat
 
-    def __init__(self, *args, data: dict | None = None, **kwargs):
+    def __init__(self, *args, data: dict, **kwargs):
         """Initialize SemanticDataset.
 
         Args:
@@ -920,7 +909,7 @@ class SemanticDataset(YOLODataset):
             data (dict): Dataset configuration dictionary.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        self.data = data or {}
+        self.data = data
         self.label_mapping = self._parse_label_mapping(self.data.get("label_mapping"))
         self.label_lut, self.inverse_lut = self._build_label_luts()
         self.mask_files = []
@@ -1040,7 +1029,7 @@ class SemanticDataset(YOLODataset):
         self.mask_files = [lb["mask_file"] for lb in labels]
         return labels
 
-    def load_image(self, i, rect_mode=True):
+    def load_image(self, i: int, rect_mode: bool = True) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """Load an image for semantic segmentation, scaling the short side to imgsz when augmenting with rect_mode."""
         return super().load_image(i, rect_mode=rect_mode, resize_short=self.augment)
 
@@ -1068,12 +1057,12 @@ class SemanticDataset(YOLODataset):
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
 
-    def convert_label(self, label, inverse=False):
+    def convert_label(self, label: np.ndarray, inverse: bool = False) -> np.ndarray:
         """Convert label values using the dataset's label mapping.
 
         Args:
             label (np.ndarray): Segmentation label array with integer ids in 0-255.
-            inverse (bool): If True, apply inverse mapping (mapped -> original). Defaults to False.
+            inverse (bool): If True, apply inverse mapping (mapped -> original).
 
         Returns:
             (np.ndarray): New uint8 array with converted values.
@@ -1081,7 +1070,7 @@ class SemanticDataset(YOLODataset):
         lut = self.inverse_lut if inverse else self.label_lut
         return cv2.LUT(label, lut) if label.dtype == np.uint8 else lut[label]  # cv2.LUT needs a uint8 input
 
-    def get_image_and_label(self, index):
+    def get_image_and_label(self, index: int) -> dict[str, Any]:
         """Get image, label and semantic mask for the given index.
 
         Overrides parent to include the semantic mask, served from RAM for the images Mosaic draws from the buffer.
@@ -1118,7 +1107,7 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
     BCEWithLogitsLoss.
     """
 
-    def __init__(self, *args, data: dict | None = None, **kwargs):
+    def __init__(self, *args, data: dict, **kwargs):
         """Initialize PolygonSemanticDataset.
 
         Args:
@@ -1126,7 +1115,7 @@ class PolygonSemanticDataset(SemanticDataset, YOLODataset):
             data (dict): Dataset configuration dictionary.
             **kwargs (Any): Additional keyword arguments for the parent class.
         """
-        nc = (data or {}).get("nc") or len((data or {}).get("names", {}))
+        nc = data.get("nc") or len(data.get("names", {}))
         self.bg_class_idx = data.get("bg_class_idx", max(int(nc) - 1, 0))
         super().__init__(*args, data=data, **kwargs)
 
@@ -1190,13 +1179,21 @@ class ClassificationDataset:
         cache_images: Decode images into one contiguous RAM cache.
     """
 
-    def __init__(self, root: str, args, augment: bool = False, prefix: str = "", names: dict[int, str] | None = None):
+    def __init__(
+        self,
+        root: str | Path,
+        args: IterableSimpleNamespace,
+        augment: bool = False,
+        prefix: str = "",
+        names: dict[int, str] | None = None,
+    ):
         """Initialize YOLO classification dataset with root directory, arguments, augmentations, and cache settings.
 
         Args:
-            root (str): Path to the dataset directory where images are stored in a class-specific folder structure.
-            args (Namespace): Configuration containing dataset-related settings such as image size, augmentation
-                parameters, and cache settings.
+            root (str | Path): Path to the dataset directory where images are stored in a class-specific folder
+                structure.
+            args (IterableSimpleNamespace): Configuration containing dataset-related settings such as image size,
+                augmentation parameters, and cache settings.
             augment (bool, optional): Whether to apply augmentations to the dataset.
             prefix (str, optional): Split name used as the logging prefix and to select the split's 'fraction'. If
                 empty, 'train' is used when augment is True, otherwise 'val'.

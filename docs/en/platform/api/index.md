@@ -89,7 +89,7 @@ requests and simply return more when a key is supplied.
 ### Get an API Key
 
 1. Go to `Settings` > `API Keys`
-2. Click `Create Key`
+2. Click `Add Key`, keep `Ultralytics` as the provider, enter a name, and click `Create Key`
 3. Copy the generated key
 
 See [API Keys](../account/api-keys.md) for detailed instructions.
@@ -200,7 +200,7 @@ X-RateLimit-Reset: 2026-02-21T12:34:56.000Z
 
 ```json
 {
-    "error": "Rate limit exceeded",
+    "error": "Rate limit exceeded, wait 12s",
     "retryAfter": 12,
     "resetAt": "2026-02-21T12:34:56.000Z"
 }
@@ -714,7 +714,8 @@ GET /api/datasets/{owner}/{dataset}/images/clustering
 **Python SDK:** `client.datasets.clustering(owner, dataset)`
 
 Returns the UMAP 2D layout from a completed analysis, paginated with `offset` and `limit` (default and max 50,000).
-Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`, and `missing`.
+Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`, `labeled`, and
+`missing`.
 
 ### List Models Trained on a Dataset
 
@@ -980,7 +981,7 @@ graph LR
     signed.raise_for_status()
     upload = signed.json()
 
-    headers_put = {"Content-Type": "application/zip", **upload["headers"]}
+    headers_put = {"Content-Type": "application/zip", **upload.get("headers", {})}
     requests.put(upload["uploadUrl"], headers=headers_put, data=data).raise_for_status()
     requests.post(
         f"{api}/upload/complete",
@@ -1177,7 +1178,7 @@ Returns temporary signed URLs for up to 100 image IDs from one dataset.
 }
 ```
 
-**Response:** `urls` and `thumbnails`, both keyed by image ID.
+**Response:** `urls`, `thumbnails`, and `depths` (depth target previews for paired depth images), all keyed by image ID.
 
 ---
 
@@ -1493,8 +1494,8 @@ quantization. Requests that exceed the service's input limits return `413`.
 
 Each entry in `images` carries `shape`, `speed`, `results`, and, for dense-prediction tasks, a `semantic_mask` or
 `depth` PNG payload (depth values are `pixel × max / divisor`, with divisor 255 for the default 8-bit map and 65535 when
-`bits` is 12 or 16). The `metadata` object reports image count, function timings, task, and service versions. Internal
-model paths are never returned.
+`bits` is 12 or 16). The `metadata` object reports image count, model class names, function timings, task, and service
+versions. Internal model paths are never returned.
 
 ```json
 {
@@ -1514,6 +1515,7 @@ model paths are never returned.
     ],
     "metadata": {
         "imageCount": 1,
+        "classNames": ["person", "forklift"],
         "functionTimeAlive": 184.2,
         "functionTimeCall": 0.31,
         "task": "detect",
@@ -1708,6 +1710,10 @@ POST /api/models/{owner}/{project}/{model}/exports
     status = client.exports.retrieve("acme-vision", "inspection", "v3", export["id"])
     print(status["export"]["status"])
     ```
+
+Each format honors only the options in its **Arguments** column of the export table below: a non-default `batch`,
+`dynamic`, `opset`, `simplify`, `workspace`, or `optimize` value for a format that does not support it returns `400`.
+`imx` exports are INT8 only and available for detect, segment, classify, and pose models.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
 An equivalent export that is already in flight returns `409`.
@@ -1990,14 +1996,16 @@ GET /api/trash
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                                       |
-| --------- | ------ | ------------------------------------------------- |
-| `type`    | string | `all` (default), `project`, `dataset`, or `model` |
-| `page`    | int    | Page number (default: 1)                          |
-| `limit`   | int    | Items per page (default: 50, max: 200)            |
+| Parameter | Type   | Description                                                                    |
+| --------- | ------ | ------------------------------------------------------------------------------ |
+| `type`    | string | `all` (default), `project`, `dataset`, or `model`                              |
+| `page`    | int    | Page number (default: 1)                                                       |
+| `limit`   | int    | Items per page (default: 50, max: 200)                                         |
+| `id`      | string | With `type` `project` or `model`, preview what a permanent delete would remove |
 
 The response includes `items` (each with `daysRemaining`), `total`, `page`, `limit`, `totalPages`, and a `summary`
-with totals by type.
+with totals by type. With `id`, it instead returns `resources`: the affected models and the deployments that would be
+permanently deleted.
 
 ### Restore Item
 
@@ -2075,13 +2083,13 @@ POST /api/upload/signed-url
 }
 ```
 
-| Field         | Type   | Required | Description                                 |
-| ------------- | ------ | -------- | ------------------------------------------- |
-| `assetType`   | string | Yes      | `datasets`, `models`, `images`, or `videos` |
-| `assetId`     | string | Yes      | ID of the target dataset or model           |
-| `filename`    | string | Yes      | Original filename (max 256 chars)           |
-| `contentType` | string | Yes      | MIME type                                   |
-| `totalBytes`  | number | Yes      | File size in bytes                          |
+| Field         | Type   | Required | Description                       |
+| ------------- | ------ | -------- | --------------------------------- |
+| `assetType`   | string | Yes      | `datasets` or `models`            |
+| `assetId`     | string | Yes      | ID of the target dataset or model |
+| `filename`    | string | Yes      | Original filename (max 256 chars) |
+| `contentType` | string | Yes      | MIME type                         |
+| `totalBytes`  | number | Yes      | File size in bytes                |
 
 !!! note "Dataset Archive Filenames"
 
@@ -2351,8 +2359,9 @@ GET /api/storage
 {
     "tier": "pro",
     "usage": {
-        "storage": { "current": 1073741824, "limit": 107374182400, "percent": 1.0 },
-        "datasets": { "current": 536870912, "limit": 107374182400, "percent": 0.5 }
+        "storage": { "current": 1073741824, "limit": 536870912000, "percent": 0 },
+        "datasets": { "current": 2, "limit": -1, "percent": 0 },
+        "models": { "current": 4, "limit": 500, "percent": 1 }
     },
     "breakdown": {
         "byCategory": {
@@ -2375,6 +2384,9 @@ GET /api/storage
     "updatedAt": "2026-01-15T10:00:00Z"
 }
 ```
+
+`usage` reports counts for `projects`, `datasets`, `models`, `images`, `annotations`, and `deployments`, and bytes for
+`storage`. A `limit` of `-1` means unlimited, and `percent` is a whole-number percentage of the limit.
 
 ### Get a Public User Profile
 
@@ -2574,7 +2586,6 @@ model.train(
 | Pattern                            | Description    |
 | ---------------------------------- | -------------- |
 | `ul://username/datasets/slug`      | Dataset        |
-| `ul://username/project-name`       | Project        |
 | `ul://username/project/model-name` | Specific model |
 | `ul://ultralytics/yolo26/yolo26n`  | Official model |
 

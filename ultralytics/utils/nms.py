@@ -38,7 +38,8 @@ def non_max_suppression(
             or angle), or end-to-end predictions with shape (batch_size, num_boxes, 6 + num_extra). For a list or tuple,
             the first element is used.
         conf_thres (float): Confidence threshold for filtering detections. Valid values are between 0.0 and 1.0.
-        iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0.
+        iou_thres (float): IoU threshold for NMS filtering. Valid values are between 0.0 and 1.0. The 0.45 default is
+            not the cfg `iou` default (0.7), which predictors and validators always pass explicitly.
         classes (list[int], optional): List of class indices to consider. If None, all classes are considered.
         agnostic (bool): Whether to perform class-agnostic NMS.
         multi_label (bool): Whether each box can have multiple labels.

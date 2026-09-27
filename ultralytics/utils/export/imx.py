@@ -214,7 +214,7 @@ class NMSWrapper(torch.nn.Module):
 def torch2imx(
     model: torch.nn.Module,
     output_dir: Path | str,
-    conf: float,
+    conf: float | None,
     iou: float,
     max_det: int,
     metadata: dict | None = None,

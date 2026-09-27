@@ -105,14 +105,14 @@ class Detect(nn.Module):
         """Select index (batch, k) rows of x (batch, n, channels) along dim 1."""
         return x.gather(1, index if x.ndim == 2 else index[..., None].expand(-1, -1, x.shape[-1]))
 
-    def __init__(self, nc: int = 80, reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(self, nc: int = 80, reg_max: int = 16, end2end: bool = False, ch: list[int] | tuple[int, ...] = ()):
         """Initialize the YOLO detection layer with specified number of classes and channels.
 
         Args:
             nc (int): Number of classes.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__()
         self.nc = nc  # number of classes
@@ -167,7 +167,7 @@ class Detect(nn.Module):
         self._end2end = value
 
     def forward_head(
-        self, x: list[torch.Tensor], box_head: torch.nn.Module = None, cls_head: torch.nn.Module = None
+        self, x: list[torch.Tensor], box_head: nn.Module | None = None, cls_head: nn.Module | None = None
     ) -> dict[str, torch.Tensor]:
         """Concatenate and return predicted bounding boxes and class probabilities."""
         if box_head is None or cls_head is None:  # for fused inference
@@ -316,7 +316,15 @@ class Segment(Detect):
         >>> outputs = segment(x)
     """
 
-    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(
+        self,
+        nc: int = 80,
+        nm: int = 32,
+        npr: int = 256,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
+    ):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
 
         Args:
@@ -325,7 +333,7 @@ class Segment(Detect):
             npr (int): Number of protos.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
         self.nm = nm  # number of masks
@@ -403,7 +411,15 @@ class Segment26(Segment):
         >>> outputs = segment(x)
     """
 
-    def __init__(self, nc: int = 80, nm: int = 32, npr: int = 256, reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(
+        self,
+        nc: int = 80,
+        nm: int = 32,
+        npr: int = 256,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
+    ):
         """Initialize the YOLO model attributes such as the number of masks, prototypes, and the convolution layers.
 
         Args:
@@ -412,7 +428,7 @@ class Segment26(Segment):
             npr (int): Number of protos.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, nm, npr, reg_max, end2end, ch)
         self.proto = Proto26(ch, self.npr, self.nm, nc)  # protos
@@ -465,7 +481,9 @@ class OBB(Detect):
         >>> outputs = obb(x)
     """
 
-    def __init__(self, nc: int = 80, ne: int = 1, reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(
+        self, nc: int = 80, ne: int = 1, reg_max: int = 16, end2end: bool = False, ch: list[int] | tuple[int, ...] = ()
+    ):
         """Initialize OBB with number of classes `nc` and layer channels `ch`.
 
         Args:
@@ -473,7 +491,7 @@ class OBB(Detect):
             ne (int): Number of extra parameters.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
         self.ne = ne  # number of extra parameters
@@ -572,7 +590,14 @@ class Pose(Detect):
         >>> outputs = pose(x)
     """
 
-    def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(
+        self,
+        nc: int = 80,
+        kpt_shape: tuple = (17, 3),
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
+    ):
         """Initialize YOLO network with default parameters and Convolutional Layers.
 
         Args:
@@ -580,7 +605,7 @@ class Pose(Detect):
             kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
         self.kpt_shape = kpt_shape  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)
@@ -656,7 +681,14 @@ class Pose26(Pose):
         >>> outputs = pose(x)
     """
 
-    def __init__(self, nc: int = 80, kpt_shape: tuple = (17, 3), reg_max=16, end2end=False, ch: tuple = ()):
+    def __init__(
+        self,
+        nc: int = 80,
+        kpt_shape: tuple = (17, 3),
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
+    ):
         """Initialize YOLO network with default parameters and Convolutional Layers.
 
         Args:
@@ -664,7 +696,7 @@ class Pose26(Pose):
             kpt_shape (tuple): Number of keypoints, number of dims (2 for x,y or 3 for x,y,visible).
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, kpt_shape, reg_max, end2end, ch)
         self.flow_model = RealNVP()
@@ -773,12 +805,12 @@ class Depth(nn.Module):
 
     export = False  # export mode
 
-    def __init__(self, c_mid: int = 256, ch: tuple = ()):
+    def __init__(self, c_mid: int = 256, ch: list[int] | tuple[int, ...] = ()):
         """Initialize Depth head.
 
         Args:
             c_mid (int): Number of intermediate channels for the fusion decoder.
-            ch (tuple): Input channel sizes from backbone feature maps (P3, P4, P5).
+            ch (list[int] | tuple[int, ...]): Input channel sizes from backbone feature maps (P3, P4, P5).
         """
         super().__init__()
         self.nl = len(ch)  # number of detection layers (pyramid levels)
@@ -928,7 +960,7 @@ class WorldDetect(Detect):
         with_bn: bool = False,
         reg_max: int = 16,
         end2end: bool = False,
-        ch: tuple = (),
+        ch: list[int] | tuple[int, ...] = (),
     ):
         """Initialize YOLO detection layer with nc classes and layer channels ch.
 
@@ -938,7 +970,7 @@ class WorldDetect(Detect):
             with_bn (bool): Whether to use batch normalization in contrastive head.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max=reg_max, end2end=end2end, ch=ch)
         c3 = max(ch[0], min(self.nc, 100))
@@ -970,13 +1002,9 @@ class WorldDetect(Detect):
         return y if self.export else (y, preds)
 
     def bias_init(self):
-        """Initialize Detect() biases, WARNING: requires stride availability."""
-        m = self  # self.model[-1]  # Detect() module
-        # cf = torch.bincount(torch.tensor(np.concatenate(dataset.labels, 0)[:, 0]).long(), minlength=nc) + 1
-        # ncf = math.log(0.6 / (m.nc - 0.999999)) if cf is None else torch.log(cf / cf.sum())  # nominal class frequency
-        for a, b, s in zip(m.cv2, m.cv3, m.stride):  # from
+        """Initialize box biases; class scores come from text-embedding similarity, so cv3 keeps its defaults."""
+        for a in self.cv2:
             a[-1].bias.data[:] = 1.0  # box
-            # b[-1].bias.data[:] = math.log(5 / m.nc / (640 / s) ** 2)  # cls (.01 objects, 80 classes, 640 img)
 
 
 class LRPCHead(nn.Module):
@@ -1047,7 +1075,7 @@ class LRPCHead(nn.Module):
             pf_score = self.pf(cls_feat)[0, 0].flatten(0)
             mask = pf_score.sigmoid() > conf
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
-            cls_feat = self.vocab(cls_feat[:, mask] if conf else cls_feat * mask.unsqueeze(-1).int())
+            cls_feat = self.vocab(cls_feat[:, mask])
             return self.loc(loc_feat), cls_feat.transpose(-1, -2), mask
         else:
             cls_feat = self.vocab(cls_feat)
@@ -1092,7 +1120,13 @@ class YOLOEDetect(Detect):
     is_fused = False
 
     def __init__(
-        self, nc: int = 80, embed: int = 512, with_bn: bool = False, reg_max=16, end2end=False, ch: tuple = ()
+        self,
+        nc: int = 80,
+        embed: int = 512,
+        with_bn: bool = True,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
     ):
         """Initialize YOLO detection layer with nc classes and layer channels ch.
 
@@ -1102,7 +1136,7 @@ class YOLOEDetect(Detect):
             with_bn (bool): Whether to use batch normalization in contrastive head. Must be True.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, reg_max, end2end, ch)
         c3 = max(ch[0], min(self.nc, 100))
@@ -1120,7 +1154,7 @@ class YOLOEDetect(Detect):
                 for x in ch
             )
         )
-        self.cv4 = nn.ModuleList(BNContrastiveHead(embed) if with_bn else ContrastiveHead() for _ in ch)
+        self.cv4 = nn.ModuleList(BNContrastiveHead(embed) for _ in ch)
         if end2end:
             self.one2one_cv3 = copy.deepcopy(self.cv3)  # overwrite with new cv3
             self.one2one_cv4 = copy.deepcopy(self.cv4)
@@ -1130,7 +1164,7 @@ class YOLOEDetect(Detect):
         self.embed = embed
 
     @smart_inference_mode(False)  # fused layers stay in the model, so they must not be inference tensors
-    def fuse(self, txt_feats: torch.Tensor = None):
+    def fuse(self, txt_feats: torch.Tensor | None = None):
         """Fuse text features with model weights for efficient inference.
 
         Args:
@@ -1327,10 +1361,10 @@ class YOLOESegment(YOLOEDetect):
         nm: int = 32,
         npr: int = 256,
         embed: int = 512,
-        with_bn: bool = False,
-        reg_max=16,
-        end2end=False,
-        ch: tuple = (),
+        with_bn: bool = True,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
     ):
         """Initialize YOLOESegment with class count, mask parameters, and embedding dimensions.
 
@@ -1339,10 +1373,10 @@ class YOLOESegment(YOLOEDetect):
             nm (int): Number of masks.
             npr (int): Number of protos.
             embed (int): Embedding dimension.
-            with_bn (bool): Whether to use batch normalization in contrastive head.
+            with_bn (bool): Whether to use batch normalization in contrastive head. Must be True.
             reg_max (int): Maximum number of DFL channels.
             end2end (bool): Whether to use end-to-end NMS-free detection.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, embed, with_bn, reg_max, end2end, ch)
         self.nm = nm
@@ -1414,13 +1448,11 @@ class YOLOESegment(YOLOEDetect):
             preds["mask_coefficient"] = torch.cat([mask_head[i](x[i]).view(bs, self.nm, -1) for i in range(self.nl)], 2)
         return preds
 
-    def fuse(self, txt_feats: torch.Tensor = None):
+    def fuse(self, txt_feats: torch.Tensor | None = None):
         """Fuse text features with model weights for efficient inference."""
         super().fuse(txt_feats)
-        if txt_feats is None:  # remove training-only prototype layers
-            if hasattr(self.proto, "fuse"):
-                self.proto.fuse()
-            return
+        if txt_feats is None and hasattr(self.proto, "fuse"):  # remove training-only prototype layers
+            self.proto.fuse()
 
 
 class YOLOESegment26(YOLOESegment):
@@ -1437,7 +1469,7 @@ class YOLOESegment26(YOLOESegment):
         with_bn (bool): Whether to use Batch Normalization. Must be True.
         reg_max (int): Maximum number of DFL channels. Defaults to 16.
         end2end (bool): Whether to use end-to-end detection mode. Defaults to False.
-        ch (tuple[int, ...]): Input channels for each scale.
+        ch (list[int] | tuple[int, ...]): Input channels for each scale.
 
     Attributes:
         nm (int): Number of segmentation masks.
@@ -1453,10 +1485,10 @@ class YOLOESegment26(YOLOESegment):
         nm: int = 32,
         npr: int = 256,
         embed: int = 512,
-        with_bn: bool = False,
-        reg_max=16,
-        end2end=False,
-        ch: tuple = (),
+        with_bn: bool = True,
+        reg_max: int = 16,
+        end2end: bool = False,
+        ch: list[int] | tuple[int, ...] = (),
     ):
         """Initialize YOLOESegment26 with class count, mask parameters, and embedding dimensions."""
         YOLOEDetect.__init__(self, nc, embed, with_bn, reg_max, end2end, ch)
@@ -1541,7 +1573,7 @@ class RTDETRDecoder(nn.Module):
     def __init__(
         self,
         nc: int = 80,
-        ch: tuple = (512, 1024, 2048),
+        ch: list[int] | tuple[int, ...] = (512, 1024, 2048),
         hd: int = 256,  # hidden dim
         nq: int = 300,  # num queries
         ndp: int = 4,  # num decoder points
@@ -1561,7 +1593,7 @@ class RTDETRDecoder(nn.Module):
 
         Args:
             nc (int): Number of classes.
-            ch (tuple): Channels in the backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channels in the backbone feature maps.
             hd (int): Dimension of hidden layers.
             nq (int): Number of query points.
             ndp (int): Number of sampling points per attention head per feature level in the decoder.
@@ -1867,12 +1899,12 @@ class v10Detect(Detect):
         >>> outputs = v10_detect(x)
     """
 
-    def __init__(self, nc: int = 80, ch: tuple = ()):
+    def __init__(self, nc: int = 80, ch: list[int] | tuple[int, ...] = ()):
         """Initialize the v10Detect object with the specified number of classes and input channels.
 
         Args:
             nc (int): Number of classes.
-            ch (tuple): Tuple of channel sizes from backbone feature maps.
+            ch (list[int] | tuple[int, ...]): Channel sizes from backbone feature maps.
         """
         super().__init__(nc, end2end=True, ch=ch)
         c3 = max(ch[0], min(self.nc, 100))  # channels
@@ -1909,12 +1941,12 @@ class SemanticSegment(nn.Module):
     format = None  # export format
     bake_argmax = False  # export: emit [B, H, W] class map (TensorRT>=10 and multi-class Hailo-10/15)
 
-    def __init__(self, nc=19, ch=()):
+    def __init__(self, nc: int = 19, ch: list[int] | tuple[int, ...] = ()):
         """Initialize the semantic segmentation head.
 
         Args:
             nc (int): Number of semantic classes.
-            ch (tuple): Tuple of channel sizes from neck feature maps (P3, P4).
+            ch (list[int] | tuple[int, ...]): Channel sizes from neck feature maps (P3, P4).
         """
         super().__init__()
         self.nc = nc

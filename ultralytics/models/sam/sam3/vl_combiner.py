@@ -53,7 +53,7 @@ class SAM3VLBackbone(nn.Module):
         self,
         samples: torch.Tensor,
         captions: list[str],
-        input_boxes: torch.Tensor = None,
+        input_boxes: torch.Tensor | None = None,
         additional_text: list[str] | None = None,
     ):
         """Forward pass of the backbone combiner.

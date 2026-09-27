@@ -32,7 +32,7 @@ Ultralytics Explorer is a tool for exploring CV datasets using semantic search, 
 Explorer depends on external libraries for some of its functionality. These are automatically installed when you use Explorer. To manually install these dependencies, use the following command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 !!! tip
@@ -75,7 +75,7 @@ Learn more about the [Explorer API](api.md).
 To manually install the optional dependencies needed for Ultralytics Explorer, you can use the following `pip` command:
 
 ```bash
-pip install ultralytics[explorer]
+pip install "ultralytics[explorer]==8.3.11"
 ```
 
 These dependencies are essential for the full functionality of semantic search and SQL querying. By including libraries powered by [LanceDB](https://www.lancedb.com/), the installation ensures that the database operations remain efficient and scalable, even for large datasets like [COCO](../detect/coco.md).

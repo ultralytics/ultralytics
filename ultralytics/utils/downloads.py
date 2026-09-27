@@ -319,7 +319,7 @@ def safe_download(
     min_bytes: float = 1e0,
     exist_ok: bool = False,
     progress: bool = True,
-) -> Path | str:
+) -> Path:
     """Download a file from a URL with options for retrying, unzipping, and deleting the downloaded file.
 
     Partial downloads are detected using Content-Length validation and resumed with HTTP Range requests on retry. If
@@ -627,7 +627,7 @@ def attempt_download_asset(
 
 def download(
     url: str | list[str] | Path,
-    dir: Path | None = None,
+    dir: str | Path | None = None,
     unzip: bool = True,
     delete: bool = False,
     curl: bool = False,

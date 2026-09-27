@@ -460,9 +460,7 @@ class GhostBottleneck(nn.Module):
 class Bottleneck(nn.Module):
     """Standard bottleneck."""
 
-    def __init__(
-        self, c1: int, c2: int, shortcut: bool = True, g: int = 1, k: tuple[int, int] = (3, 3), e: float = 0.5
-    ):
+    def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, k: tuple = (3, 3), e: float = 0.5):
         """Initialize a standard bottleneck module.
 
         Args:
@@ -470,7 +468,7 @@ class Bottleneck(nn.Module):
             c2 (int): Output channels.
             shortcut (bool): Whether to use shortcut connection.
             g (int): Groups for convolutions.
-            k (tuple): Kernel sizes for convolutions.
+            k (tuple): Kernel sizes of cv1 and cv2, each an int or an (h, w) tuple.
             e (float): Expansion ratio.
         """
         super().__init__()
@@ -831,9 +829,7 @@ class BNContrastiveHead(nn.Module):
 class RepBottleneck(Bottleneck):
     """Rep bottleneck."""
 
-    def __init__(
-        self, c1: int, c2: int, shortcut: bool = True, g: int = 1, k: tuple[int, int] = (3, 3), e: float = 0.5
-    ):
+    def __init__(self, c1: int, c2: int, shortcut: bool = True, g: int = 1, k: tuple = (3, 3), e: float = 0.5):
         """Initialize RepBottleneck.
 
         Args:
@@ -841,7 +837,7 @@ class RepBottleneck(Bottleneck):
             c2 (int): Output channels.
             shortcut (bool): Whether to use shortcut connection.
             g (int): Groups for convolutions.
-            k (tuple): Kernel sizes for convolutions.
+            k (tuple): Kernel sizes of cv1 and cv2, each an int or an (h, w) tuple.
             e (float): Expansion ratio.
         """
         super().__init__(c1, c2, shortcut, g, k, e)
@@ -1027,11 +1023,12 @@ class CBFuse(nn.Module):
         super().__init__()
         self.idx = idx
 
-    def forward(self, xs: list[torch.Tensor]) -> torch.Tensor:
+    def forward(self, xs: list[tuple[torch.Tensor, ...] | torch.Tensor]) -> torch.Tensor:
         """Forward pass through CBFuse layer.
 
         Args:
-            xs (list[torch.Tensor]): List of input tensors.
+            xs (list[tuple[torch.Tensor, ...] | torch.Tensor]): CBLinear output tuples, each indexed by `idx`, followed
+                by the target feature map whose spatial size they are resized to.
 
         Returns:
             (torch.Tensor): Fused output tensor.

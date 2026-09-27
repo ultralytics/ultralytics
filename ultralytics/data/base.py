@@ -110,7 +110,7 @@ class BaseDataset(Dataset):
         self,
         img_path: str | list[str],
         imgsz: int = 640,
-        cache: bool | str = False,
+        cache: bool | str | None = False,
         augment: bool = True,
         hyp: IterableSimpleNamespace = DEFAULT_CFG,
         prefix: str = "",
@@ -128,7 +128,7 @@ class BaseDataset(Dataset):
         Args:
             img_path (str | list[str]): Path to the folder containing images or list of image paths.
             imgsz (int): Image size for resizing.
-            cache (bool | str): Cache images to RAM (True or 'ram') or disk ('disk') during training.
+            cache (bool | str | None): Cache images to RAM (True or 'ram') or disk ('disk'); False or None disables.
             augment (bool): If True, data augmentation is applied.
             hyp (IterableSimpleNamespace): Hyperparameters to apply data augmentation.
             prefix (str): Prefix to print in log messages.

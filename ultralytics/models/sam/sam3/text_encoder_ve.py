@@ -51,7 +51,11 @@ class ResidualAttentionBlock(nn.Module):
         )
 
     def attention(
-        self, q_x: torch.Tensor, k_x: torch.Tensor = None, v_x: torch.Tensor = None, attn_mask: torch.Tensor = None
+        self,
+        q_x: torch.Tensor,
+        k_x: torch.Tensor | None = None,
+        v_x: torch.Tensor | None = None,
+        attn_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Compute multi-head attention with optional cross-attention support and masking."""
         k_x = k_x if k_x is not None else q_x
@@ -62,7 +66,11 @@ class ResidualAttentionBlock(nn.Module):
         return self.attn(q_x, k_x, v_x, need_weights=False, attn_mask=attn_mask)[0]
 
     def forward(
-        self, q_x: torch.Tensor, k_x: torch.Tensor = None, v_x: torch.Tensor = None, attn_mask: torch.Tensor = None
+        self,
+        q_x: torch.Tensor,
+        k_x: torch.Tensor | None = None,
+        v_x: torch.Tensor | None = None,
+        attn_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Apply residual attention with layer normalization and MLP, supporting optional cross-attention."""
         k_x = self.ln_1_kv(k_x) if hasattr(self, "ln_1_kv") and k_x is not None else None
@@ -111,7 +119,7 @@ class Transformer(nn.Module):
             if self.grad_checkpointing:
                 torch._dynamo.config.optimize_ddp = False
 
-    def forward(self, x: torch.Tensor, attn_mask: torch.Tensor = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attn_mask: torch.Tensor | None = None) -> torch.Tensor:
         """Process input through all transformer blocks with optional gradient checkpointing during training."""
         for _, r in enumerate(self.resblocks):
             if self.grad_checkpointing and not torch.jit.is_scripting() and self.training:
@@ -122,7 +130,7 @@ class Transformer(nn.Module):
 
 
 def text_global_pool(
-    x: torch.Tensor, text: torch.Tensor = None, pool_type: str = "argmax"
+    x: torch.Tensor, text: torch.Tensor | None = None, pool_type: str = "argmax"
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """Extract pooled representation and tokens from text embeddings using a first/last/argmax/none pooling strategy."""
     if pool_type == "first":

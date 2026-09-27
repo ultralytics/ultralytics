@@ -82,7 +82,7 @@ def benchmark(
     Args:
         model (str | Path | YOLO): Path to the model file or directory, or a loaded YOLO model instance.
         data (str | None): Dataset to evaluate on, inherited from TASK2DATA if not passed.
-        imgsz (int): Image size for the benchmark.
+        imgsz (int | list[int]): Square image size for the benchmark.
         quantize (int | str | None): Requested precision: 16 (FP16), 8 (INT8), or None/32 (FP32). Exported rows apply it
             at export, where a format may reject an explicit 32 or fall back to the precision it requires; the native
             PyTorch row is not exported and only 16 affects it, selecting FP16 inference. Each format then runs

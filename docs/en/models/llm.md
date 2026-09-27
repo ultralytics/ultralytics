@@ -155,7 +155,7 @@ if any(result.names[int(cls)] == "person" for cls in result.boxes.cls):
 | `prompt`   | `None`         | Instruction prepended to plain text and image requests                                 |
 | `**kwargs` |                | Default SDK request arguments; per-call arguments override matching constructor values |
 
-`source` accepts text, a native message list, or an image object. `image` accepts an image URL, data URI, path, NumPy array, or PIL image. Calling `model()` with a configured `prompt` sends the prompt by itself.
+`source` accepts text, a native message list, or an image object. `image` accepts an image URL, data URI, path, NumPy array, or PIL image. Calling `llm()` with no input and a configured `prompt` sends the prompt by itself.
 
 `LLM` is inference-only and is not exposed through the `yolo` CLI. It does not implement `train`, `val`, `export`, `track`, or `benchmark`.
 

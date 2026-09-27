@@ -87,7 +87,10 @@ def save_depth_png(path: str | Path, depth: np.ndarray, scale: float = DEPTH_PNG
     if valid.any():
         scaled = np.rint(depth[valid] * scale)
         if scaled.max() > np.iinfo(np.uint16).max:
-            raise ValueError(f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit")
+            raise ValueError(
+                f"Depth map exceeds the {np.iinfo(np.uint16).max / scale:g} meter PNG limit at scale={scale:g}. "
+                "Pass a lower scale, e.g. 256, and set the same 'depth_scale' in the dataset YAML."
+            )
         encoded[valid] = np.maximum(scaled, 1).astype(np.uint16)
     if not cv2.imwrite(str(path), encoded):
         raise OSError(f"Failed to save depth map to {path}")
@@ -140,7 +143,7 @@ def img2label_paths(img_paths: list[str | Path], label_dir: str = "labels", suff
 
 
 def check_file_speeds(
-    files: list[str], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
+    files: list[str | Path], threshold_ms: float = 10, threshold_mb: float = 50, max_files: int = 5, prefix: str = ""
 ):
     """Check dataset file access speed and provide performance feedback.
 
@@ -148,7 +151,7 @@ def check_file_speeds(
     up to `max_files` files from the provided list and warns if access times exceed the threshold.
 
     Args:
-        files (list[str]): List of file paths to check for access speed.
+        files (list[str | Path]): List of file paths to check for access speed.
         threshold_ms (float, optional): Threshold in milliseconds for ping time warnings.
         threshold_mb (float, optional): Threshold in megabytes per second for read speed warnings.
         max_files (int, optional): The maximum number of files to check.
@@ -386,7 +389,7 @@ def verify_image_mask(args: tuple) -> tuple:
     return None, None, None, None, nm, nf, nc, msg
 
 
-def verify_image_label(args: tuple) -> list:
+def verify_image_label(args: tuple) -> tuple | list:
     """Verify one image-label pair.
 
     Args:
@@ -462,16 +465,17 @@ def verify_image_label(args: tuple) -> list:
 
 
 def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[int, str]):
-    """Visualize YOLO annotations (bounding boxes and class labels) on an image.
+    """Visualize YOLO detection annotations (bounding boxes and class labels) on an image.
 
-    This function reads an image and its corresponding annotation file in YOLO format, then draws bounding boxes around
+    This function reads an image and its corresponding YOLO detection label file, then draws bounding boxes around
     detected objects and labels them with their respective class names. The bounding box colors are assigned based on
     the class ID, and the text color is dynamically adjusted for readability, depending on the background color's
     luminance.
 
     Args:
         image_path (str): Path to the image file to annotate. The file must be readable by PIL.
-        txt_path (str): Path to the annotation file in YOLO format, which should contain one line per object.
+        txt_path (str): Path to a YOLO detection label file with one `class x_center y_center width height` line per
+            object. Segmentation polygon and pose label rows are not supported.
         label_map (dict[int, str]): A dictionary that maps class IDs (integers) to class labels (strings).
 
     Examples:
@@ -612,8 +616,9 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all).
 
     Args:
-        fraction (float | list[float | int]): Dataset fraction (ratio or image count), or a per-split list ordered as
-            [train, val, test]. A scalar only applies to the train split; missing list entries default to 1.0.
+        fraction (float | int | list[float | int]): Dataset fraction (ratio or image count), or a per-split list
+            ordered as [train, val, test]. A scalar only applies to the train split; missing list entries default to
+            1.0.
         split (str): Dataset split name, e.g. 'train', 'val', or 'test'.
 
     Returns:
@@ -633,12 +638,14 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     return fraction
 
 
-def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=None) -> str | Path:
+def convert_ndjson_to_yolo_if_needed(
+    data: str | Path, fraction: float | list[float | int] = 1.0, *, split: str | None = None
+) -> str | Path:
     """Convert an NDJSON dataset or Platform dataset URI to YOLO format.
 
     Args:
         data (str | Path): Dataset path, NDJSON file path or URL, or Ultralytics Platform dataset URI or web URL.
-        fraction (float | list, optional): Dataset fraction passed to the NDJSON converter.
+        fraction (float | int | list[float | int], optional): Dataset fraction passed to the NDJSON converter.
         split (str, optional): Dataset split passed to the NDJSON converter.
 
     Returns:
@@ -656,7 +663,7 @@ def convert_ndjson_to_yolo_if_needed(data: str | Path, fraction=1.0, *, split=No
     return data
 
 
-def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") -> dict[str, Any]:
+def check_det_dataset(dataset: str | Path, autodownload: bool = True, split: str = "") -> dict[str, Any]:
     """Download, verify, and/or unzip a dataset if not found locally.
 
     This function checks the availability of a specified dataset, and if not found, it has the option to download and
@@ -664,7 +671,7 @@ def check_det_dataset(dataset: str, autodownload: bool = True, split: str = "") 
     resolves paths related to the dataset.
 
     Args:
-        dataset (str): Path to the dataset or dataset descriptor (like a YAML file).
+        dataset (str | Path): Path to the dataset or dataset descriptor (like a YAML file).
         autodownload (bool, optional): Whether to automatically download the dataset if not found.
         split (str, optional): Dataset split required by the caller.
 
@@ -881,15 +888,16 @@ def check_cls_dataset(dataset: str | Path, split: str = "") -> dict[str, Any]:
     return {"train": train_set, "val": val_set, "test": test_set, "nc": nc, "names": names, "channels": 3}
 
 
-def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, quality: int = 50):
+def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: int = 1920, quality: int = 50):
     """Compress a single image file to reduced size while preserving its aspect ratio.
 
     The image is saved as JPEG using the Python Imaging Library (PIL), falling back to OpenCV if PIL fails. If the input
     image is smaller than the maximum dimension, it will not be resized.
 
     Args:
-        f (str): The path to the input image file.
-        f_new (str, optional): The path to the output image file. If not specified, the input file will be overwritten.
+        f (str | Path): The path to the input image file.
+        f_new (str | Path, optional): The path to the output image file. If not specified, the input file will be
+            overwritten.
         max_dim (int, optional): The maximum dimension (width or height) of the output image.
         quality (int, optional): The image compression quality as a percentage.
 
@@ -910,7 +918,7 @@ def compress_one_image(f: str, f_new: str | None = None, max_dim: int = 1920, qu
         im.save(f_new or f, "JPEG", quality=quality, optimize=True)  # save
     except Exception as e:  # use OpenCV
         LOGGER.warning(f"Image compression PIL failure {f}: {e}")
-        im = cv2.imread(f)
+        im = cv2.imread(str(f))
         im_height, im_width = im.shape[:2]
         r = max_dim / max(im_height, im_width)  # ratio
         if r < 1.0:  # image too large

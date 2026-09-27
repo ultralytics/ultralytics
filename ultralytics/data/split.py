@@ -97,14 +97,14 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
 
 
 def autosplit(
-    path: Path = DATASETS_DIR / "coco8/images",
+    path: str | Path = DATASETS_DIR / "coco8/images",
     weights: tuple[float, float, float] = (0.9, 0.1, 0.0),
     annotated_only: bool = False,
 ) -> None:
     """Automatically split a dataset into train/val/test splits saved as autosplit_*.txt files.
 
     Args:
-        path (Path): Path to images directory.
+        path (str | Path): Path to images directory.
         weights (tuple[float, float, float]): Train, validation, and test split fractions.
         annotated_only (bool): If True, only images with an associated txt file are used.
 

@@ -317,4 +317,4 @@ When exporting with `quantize=16` (FP16) or `quantize=8` (INT8), most tensors ar
 
 The `output0` tensor contains class indices, which are internally represented as floating-point values. FP16 cannot reliably represent integer values above 2048 due to its limited mantissa precision. To avoid potential precision loss or incorrect class IDs, `output0` is intentionally kept in FP32.
 
-If full FP16 outputs are required, export with `nms=None` and perform post-processing externally.
+If full FP16 outputs are required, export with `nms=None` on a GPU and perform post-processing externally. FP16 ONNX exports on CPU keep FP32 inputs and outputs regardless, converting only the internal graph.

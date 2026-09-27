@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -45,12 +44,12 @@ class VisualAISearch:
         >>> results = searcher.search("a cat sitting on a chair", k=10)
     """
 
-    def __init__(self, **kwargs: Any) -> None:
+    def __init__(self, data: str = "images", device: str = "cpu") -> None:
         """Initialize the VisualAISearch class with the embedding index and CLIP model.
 
         Args:
-            **kwargs (Any): Keyword arguments including `data` (str), the image directory (default "images", downloaded
-                from Ultralytics assets if missing), and `device` (str), the inference device (default "cpu").
+            data (str): Image directory to index and search, downloaded from Ultralytics assets if missing.
+            device (str): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0').
 
         Raises:
             AssertionError: If the installed torch version is older than 2.4.
@@ -60,8 +59,8 @@ class VisualAISearch:
 
         self.index_path = "embeddings.npy"
         self.data_path_npy = "paths.npy"
-        self.data_dir = Path(kwargs.get("data", "images"))
-        self.device = select_device(kwargs.get("device", "cpu"))
+        self.data_dir = Path(data)
+        self.device = select_device(device)
 
         if not self.data_dir.exists():
             from ultralytics.utils import ASSETS_URL
@@ -198,12 +197,12 @@ class SearchApp:
         >>> app.run(debug=True)
     """
 
-    def __init__(self, data: str = "images", device: str | None = None) -> None:
+    def __init__(self, data: str = "images", device: str = "cpu") -> None:
         """Initialize the SearchApp with VisualAISearch backend.
 
         Args:
-            data (str, optional): Path to directory containing images to index and search.
-            device (str, optional): Device to run inference on (e.g. 'cpu', 'cuda').
+            data (str): Path to directory containing images to index and search.
+            device (str): Device used for CLIP inference (e.g. 'cpu', 'cuda', '0').
         """
         check_requirements("flask>=3.0.1")
         from flask import Flask, render_template, request

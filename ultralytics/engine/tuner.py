@@ -185,7 +185,7 @@ class Tuner:
                 )
                 time.sleep(wait_time)
 
-    def _init_mongodb(self, mongodb_uri="", mongodb_db="", mongodb_collection=""):
+    def _init_mongodb(self, mongodb_uri: str, mongodb_db: str, mongodb_collection: str):
         """Initialize MongoDB connection for distributed tuning.
 
         Connects to MongoDB Atlas for distributed hyperparameter optimization across multiple machines. Each worker
@@ -193,8 +193,8 @@ class Tuner:
 
         Args:
             mongodb_uri (str): MongoDB connection string.
-            mongodb_db (str, optional): Database name.
-            mongodb_collection (str, optional): Collection name.
+            mongodb_db (str): Database name.
+            mongodb_collection (str): Collection name.
 
         Notes:
             - Creates a fitness index when workers start a new collection

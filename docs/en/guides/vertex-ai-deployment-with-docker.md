@@ -7,7 +7,7 @@ keywords: YOLO26, Vertex AI, Docker, FastAPI, deployment, container, GCP, Artifa
 
 # Deploy a pretrained YOLO model with Ultralytics on Vertex AI for inference
 
-This guide will show you how to containerize a pretrained YOLO26 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO26, but the same principles will apply for using [other YOLO modes](../modes/index.md).
+This guide will show you how to containerize a pretrained YOLO26 model with Ultralytics, build a FastAPI inference server for it, and deploy the model with inference server on Google Cloud Vertex AI. The example implementation will cover the object detection use case for YOLO26, but the same principles will apply for using [other YOLO tasks](../tasks/index.md).
 
 Before we start, you will need to create a Google Cloud Platform (GCP) project. You get $300 in GCP credits to use for free as a new user, and this amount is enough to test a running setup that you can later extend for any other YOLO26 use case, including training, or batch and streaming inference.
 
@@ -83,10 +83,11 @@ version = "0.0.1"
 description = "YOUR_PROJECT_DESCRIPTION"
 requires-python = ">=3.10,<3.13"
 dependencies = [
-   "ultralytics>=8.3.0",
+   "ultralytics>=8.4.0",
    "fastapi[all]>=0.89.1",
    "uvicorn[standard]>=0.20.0",
    "pillow>=9.0.0",
+   "loguru",
 ]
 
 [build-system]
@@ -95,6 +96,7 @@ build-backend = "setuptools.build_meta"
 ```
 
 - `uvicorn` will be used to run the FastAPI server.
+- `loguru` will be used for logging in the FastAPI server.
 - `pillow` will be used for image processing, but you are not limited to PIL images only — Ultralytics supports [many other formats](../modes/predict.md#inference-sources).
 
 ### Create inference logic with Ultralytics YOLO26
@@ -103,6 +105,11 @@ Now that you have the project structure and dependencies set up, you can impleme
 
 ```python
 # src/app.py
+
+import io
+from typing import Any, Dict
+
+from PIL import Image
 
 from ultralytics import YOLO
 
@@ -223,12 +230,22 @@ def get_annotated_image(results: list) -> Image.Image:
 
 Now that you have the core YOLO26 inference logic, you can create a FastAPI application to serve it. This will include the health check and prediction endpoints required by Vertex AI.
 
-First, add the imports and configure logging for Vertex AI. Because Vertex AI treats stderr as error output, it makes sense to pipe the logs to stdout.
+First, create `src/main.py`, add the imports, create the FastAPI app, and configure logging for Vertex AI. Because Vertex AI treats stderr as error output, it makes sense to pipe the logs to stdout.
 
 ```python
-import sys
+# src/main.py
 
+import base64
+import os
+import sys
+from typing import Any, Dict, Optional
+
+from app import get_annotated_image, get_bytes_from_image, get_image_from_bytes, is_model_ready, run_inference
+from fastapi import FastAPI, HTTPException, status
 from loguru import logger
+from pydantic import BaseModel
+
+app = FastAPI()
 
 # Configure logger
 logger.remove()
@@ -331,8 +348,6 @@ async def predict(request: PredictionRequest):
                 and result["results"][0].boxes is not None
                 and len(result["results"][0].boxes) > 0
             ):
-                import base64
-
                 annotated_image = get_annotated_image(result["results"])
                 img_bytes = get_bytes_from_image(annotated_image)
                 prediction["annotated_image"] = base64.b64encode(img_bytes).decode("utf-8")
@@ -389,7 +404,7 @@ You should receive a JSON response with the detected objects. On your first requ
 
 ## 2. Extend the Ultralytics Docker image with your application
 
-Ultralytics provides several Docker images that you can use as a base for your application image. Docker will install Ultralytics and the necessary GPU drivers.
+Ultralytics provides several Docker images that you can use as a base for your application image. They include Ultralytics and the necessary CUDA libraries, so you only need to add your application on top.
 
 To use the full capabilities of Ultralytics YOLO models, you should select the CUDA-optimized image for GPU inference. However, if CPU inference is enough for your task, you can save computing resources by selecting the CPU-only image as well:
 
@@ -408,14 +423,14 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 # Install FastAPI and dependencies
-RUN uv pip install fastapi[all] uvicorn[standard] loguru
+RUN uv pip install --system fastapi[all] uvicorn[standard] loguru
 
 WORKDIR /app
 COPY src/ ./src/
 COPY pyproject.toml ./
 
 # Install the application package
-RUN uv pip install -e .
+RUN uv pip install --system -e .
 
 RUN mkdir -p /app/logs
 ENV PYTHONPATH=/app/src

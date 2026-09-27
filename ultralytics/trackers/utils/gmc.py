@@ -42,12 +42,12 @@ class GMC:
         (2, 3)
     """
 
-    def __init__(self, method: str = "sparseOptFlow", downscale: int = 2) -> None:
+    def __init__(self, method: str | None = "sparseOptFlow", downscale: int = 2) -> None:
         """Initialize a Generalized Motion Compensation (GMC) object with tracking method and downscale factor.
 
         Args:
-            method (str): The motion estimation method to use. Options include 'orb', 'sift', 'ecc', 'sparseOptFlow',
-                'none'.
+            method (str | None): The motion estimation method to use. Options include 'orb', 'sift', 'ecc',
+                'sparseOptFlow', or 'none'/None for an identity warp.
             downscale (int): Downscale factor for processing frames, clamped to a minimum of 1.
 
         Raises:
@@ -94,12 +94,12 @@ class GMC:
         self.prevDescriptors = None
         self.initializedFirstFrame = False
 
-    def apply(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
+    def apply(self, raw_frame: np.ndarray, detections: np.ndarray | list | None = None) -> np.ndarray:
         """Estimate a 2x3 motion compensation warp for a frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
+            detections (np.ndarray | list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
                 keypoint detection. Only used by the 'orb' and 'sift' methods.
 
         Returns:
@@ -162,12 +162,12 @@ class GMC:
         self.prevFrame = frame.copy()
         return H
 
-    def apply_features(self, raw_frame: np.ndarray, detections: list | None = None) -> np.ndarray:
+    def apply_features(self, raw_frame: np.ndarray, detections: np.ndarray | list | None = None) -> np.ndarray:
         """Apply feature-based methods like ORB or SIFT to a raw frame.
 
         Args:
             raw_frame (np.ndarray): The raw frame to be processed, with shape (H, W, C).
-            detections (list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
+            detections (np.ndarray | list, optional): Detection boxes in [x1, y1, x2, y2, ...] format whose regions are excluded from
                 keypoint detection.
 
         Returns:

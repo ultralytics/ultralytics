@@ -549,7 +549,7 @@ def model_info(model, detailed=False, verbose=True, imgsz=640):
         model (nn.Module): Model to analyze.
         detailed (bool, optional): Whether to print detailed layer information.
         verbose (bool, optional): Whether to print model information.
-        imgsz (int | list, optional): Input image size.
+        imgsz (int | list | tuple, optional): Input image size, an int or an (h, w) pair.
 
     Returns:
         (tuple | None): Tuple containing the following, or None if `verbose` is False:
@@ -653,7 +653,7 @@ def get_flops(model, imgsz=640):
 
     Args:
         model (nn.Module): The model to calculate FLOPs for.
-        imgsz (int | list, optional): Input image size.
+        imgsz (int | list | tuple, optional): Input image size, an int or an (h, w) pair.
 
     Returns:
         (float): The model's GFLOPs (billions of floating point operations).
@@ -672,7 +672,7 @@ def get_flops(model, imgsz=640):
 
         model = unwrap_model(model)
         p = next(model.parameters())
-        if not isinstance(imgsz, list):
+        if not isinstance(imgsz, (list, tuple)):
             imgsz = [imgsz, imgsz]  # expand if int/float
         attn = tuple(m for m in model.modules() if isinstance(m, (Attention, AAttn)))
         rtdetr = any(isinstance(m, RTDETRDecoder) for m in model.modules())
@@ -1132,7 +1132,7 @@ class EarlyStopping:
 
         Args:
             patience (int, optional): Number of epochs to wait after fitness stops improving before stopping. 0 or None
-                disables early stopping.
+                disables early stopping. The trainer always passes the cfg `patience` value (100 by default).
         """
         self.best_fitness = 0.0  # i.e. mAP
         self.best_epoch = 0

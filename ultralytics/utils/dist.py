@@ -51,8 +51,8 @@ def find_free_network_port() -> int:
 def generate_ddp_file(trainer: BaseTrainer) -> str:
     """Generate a DDP (Distributed Data Parallel) file for multi-GPU training.
 
-    This function creates a temporary Python file that enables distributed training across multiple GPUs. The file
-    contains the necessary configuration to initialize the trainer in a distributed environment.
+    This function creates a temporary Python file that enables distributed training across multiple GPUs, plus a
+    companion `.pt` file holding the pickled trainer state that each DDP worker loads to rebuild the trainer.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing training configuration and arguments.
@@ -62,10 +62,9 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         (str): Path to the generated temporary DDP file.
 
     Notes:
-        The generated file is saved in the USER_CONFIG_DIR/DDP directory and includes:
-        - Trainer class and callback reconstruction
-        - Configuration overrides from the trainer arguments
-        - Training initialization code
+        Both files are saved in the USER_CONFIG_DIR/DDP directory:
+        - The `.pt` state file stores the trainer class, trainer arguments, model, and callbacks (via cloudpickle)
+        - The `.py` script loads that state, rebuilds the trainer with the saved arguments as overrides, and trains
     """
     import cloudpickle
 
@@ -114,6 +113,9 @@ if __name__ == "__main__":
 def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
     """Generate command for distributed training.
 
+    Removes the trainer's save directory unless resuming, writes the temporary DDP file, and selects a free port for the
+    `torch.distributed` launcher.
+
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer containing configuration for distributed training.
 
@@ -140,19 +142,21 @@ def generate_ddp_command(trainer: BaseTrainer) -> tuple[list[str], str]:
 
 
 def ddp_cleanup(trainer: BaseTrainer, file: str) -> None:
-    """Delete temporary file if created during distributed data parallel (DDP) training.
+    """Delete temporary files if created during distributed data parallel (DDP) training.
 
     This function checks if the provided file contains the trainer's ID in its name, indicating it was created as a
-    temporary file for DDP training, and deletes it if so.
+    temporary file for DDP training, and deletes it along with its companion `.pt` state file if so.
 
     Args:
         trainer (ultralytics.engine.trainer.BaseTrainer): The trainer used for distributed training.
         file (str): Path to the file that might need to be deleted.
 
     Examples:
-        >>> trainer = YOLOTrainer()
-        >>> file = "/tmp/ddp_temp_123456789.py"
-        >>> ddp_cleanup(trainer, file)
+        >>> from types import SimpleNamespace
+        >>> from ultralytics.utils.dist import ddp_cleanup, generate_ddp_file
+        >>> trainer = SimpleNamespace(args=SimpleNamespace(), model=None, callbacks={})  # minimal trainer stand-in
+        >>> file = generate_ddp_file(trainer)
+        >>> ddp_cleanup(trainer, file)  # deletes the temporary .py script and its .pt state file
     """
     if f"{id(trainer)}.py" in file:  # if temp_file suffix in file
         os.remove(file)

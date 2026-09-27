@@ -156,9 +156,9 @@ When you export a model to OpenVINO format, it results in a directory containing
 
 1. **XML file**: Describes the network topology.
 2. **BIN file**: Contains the weights and biases binary data.
-3. **Mapping file**: Holds mapping of original model output tensors to OpenVINO tensor names.
+3. **Metadata file**: `metadata.yaml` holds model metadata such as class names, image size, and task, which Ultralytics reads when loading the model.
 
-You can use these files to run inference with the OpenVINO Inference Engine.
+You can use these files to run inference with the OpenVINO Runtime.
 
 ## Using OpenVINO Export in Deployment
 
@@ -609,7 +609,7 @@ Yes, you can benchmark YOLO26 models in various formats including PyTorch, Torch
         # Load a YOLO26n PyTorch model
         model = YOLO("yolo26n.pt")
 
-        # Benchmark YOLO26n speed and [accuracy](https://www.ultralytics.com/glossary/accuracy) on the COCO8 dataset for all export formats
+        # Benchmark YOLO26n speed and accuracy on the COCO8 dataset for all export formats
         results = model.benchmark(data="coco8.yaml")
         ```
 

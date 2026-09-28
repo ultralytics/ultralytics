@@ -2420,3 +2420,21 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
+
+
+def test_segment_val_scale_preds_thresholds_upscaled_masks(tmp_path):
+    """Binary val masks scaled up to the original image must be thresholded, not truncated to zero, by scale_preds."""
+    from ultralytics.models.yolo.segment import SegmentationValidator
+    from ultralytics.utils import ops
+
+    validator = SegmentationValidator(save_dir=tmp_path)
+    ratio_pad = ((1 / 3, 1 / 3), (0, 140))  # a 1080x1920 image letterboxed to 640x640: 140 padded rows top and bottom
+    pbatch = {"imgsz": (640, 640), "ori_shape": (1080, 1920), "ratio_pad": ratio_pad}
+    masks = torch.zeros(2, 640, 640)
+    masks[0, 300:304, 300:304] = 1  # 4x4 network pixels cover 12x12 original pixels
+    masks[1, 200:210, 200:210] = 1  # 10x10 network pixels cover 30x30 original pixels
+    predn = {"bboxes": torch.tensor([[300.0, 300.0, 304.0, 304.0], [200.0, 200.0, 210.0, 210.0]]), "masks": masks}
+    scaled = validator.scale_preds(predn, pbatch)["masks"]
+    assert scaled.dtype == torch.uint8 and scaled.shape == (2, 1080, 1920)
+    assert torch.equal(scaled.bool(), ops.scale_masks(masks[None], (1080, 1920), ratio_pad=ratio_pad)[0] > 0.5)
+    assert scaled.sum((1, 2)).tolist() == [140, 896]  # the 12x12 and 30x30 squares minus their four 4/9 corners

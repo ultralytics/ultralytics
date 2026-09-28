@@ -7,9 +7,10 @@ that produced the dump is therefore a bug here, never a second opinion.
 
     PYTHONPATH=. python tools/analyze_ood_dump.py preds.jsonl --data <MVTec-Ultra root>
 
-Every metric is reported BOTH ways. The bare column is micro -- one ranked list over that row's
-images, scored once; the ``macro_`` column gives each of the row's groups one vote. They answer
-different questions and disagree several-fold, so neither is chosen for the reader.
+Every slice is reported BOTH ways, as two rows sharing one set of columns. ``agg=pooled`` is one
+ranked list over that row's images, scored once -- the project's own word for it, and what one
+deployed threshold faces. ``agg=macro`` gives each of the row's groups one vote instead. They
+answer different questions and disagree several-fold, so neither is chosen for the reader.
 
 `scope` says which axis a row PINS, never how it was computed: `all` pins none, `group` pins one
 group.
@@ -171,11 +172,12 @@ def per_group(v: YOLOAnomalyValidator, meta: GroupMeta, blks: list, idx) -> dict
 
 
 def macro(v: YOLOAnomalyValidator, per: dict[str, list[int]]) -> dict[str, float]:
-    """Unweighted mean of the per-group metrics -- the OTHER aggregation, next to the micro one.
+    """Unweighted mean of the per-group metrics -- the OTHER aggregation, next to the pooled one.
 
-    Micro pools every image into one ranked list, so a big group dominates and a single threshold
-    faces exactly that number. Macro gives every group one vote, so a product with 5 images counts
-    as much as one with 90. They answer different questions and on this data differ several-fold,
+    Pooled (the same thing the wider codebase calls `pool_*`, and what the literature calls micro)
+    puts every image in one ranked list, so a big group dominates and a single threshold faces
+    exactly that number. Macro gives every group one vote, so a product with 5 images counts as
+    much as one with 90. They answer different questions and on this data differ several-fold,
     which is why both are reported rather than one being chosen.
 
     Composition differs too, unavoidably: the groups hold only anomalous images, while the micro
@@ -194,7 +196,7 @@ def macro(v: YOLOAnomalyValidator, per: dict[str, list[int]]) -> dict[str, float
 
 
 def main() -> None:
-    """Replay a dump and report every scope, micro and macro, for one group query."""
+    """Replay a dump and report every scope, pooled and macro, for one group query."""
     ap = argparse.ArgumentParser(description="Recompute OOD metrics from a prediction dump, sliced four ways.")
     ap.add_argument("dump", help="jsonl written by val_yoloa_mvtec_ultra.py --dump")
     ap.add_argument("--data", required=True, help="the MVTec-Ultra root whose meta.yaml is the taxonomy")
@@ -215,45 +217,52 @@ def main() -> None:
         if scope != "group" and sel in seen:
             continue
         seen.add(sel)
-        counts = dict(zip(COUNTS, OODEvaluator._counts(v, idx)))
         tags = {k: tags.get(k, "-") for k in TAGS}
-        # 4 decimals, uniformly: the house rule for every reported metric, and it also keeps the
-        # csv narrow enough to read aligned -- full float repr padded every metric column to 23.
-        fmt = lambda d: {k: f"{val:.4f}" for k, val in d.items()}  # noqa: E731
         per = per_group(v, meta, blks, idx)
-        rows.append({"scope": scope, **tags, **counts, "n_groups": len(per) or "-",
-                     **fmt(v._ood_map_metrics(images=idx)),
-                     **{f"macro_{k}": val for k, val in fmt(macro(v, per)).items()}})
+
+        def row(agg, images, n_groups, mets):
+            # 4 decimals, uniformly: the house rule for every reported metric, and it also keeps
+            # the csv readable -- full float repr padded every metric column to 23 characters.
+            return {"scope": scope, "agg": agg, **tags,
+                    **dict(zip(COUNTS, OODEvaluator._counts(v, images))),
+                    "n_groups": n_groups, **{k: f"{val:.4f}" for k, val in mets.items()}}
+
+        rows.append(row("pooled", idx, len(per) or "-", v._ood_map_metrics(images=idx)))
+        # The macro row is a SEPARATE row, not a second set of columns: same metrics, different
+        # aggregation, so it belongs under the same headers. Its counts are its own -- macro sees
+        # only the anomalous images, never the normals a pooled row carries, and printing the two
+        # side by side is what makes that difference visible instead of a footnote.
+        if scope != "group" and len(per) > 1:  # over one group, macro IS pooled
+            rows.append(row("macro", sorted(i for g in per.values() for i in g), len(per), macro(v, per)))
 
     print(f"{len(v._ood_files)} images in dump · {len(blks)} products · "
           f"{len(v._ood_stats['conf'])} predictions · groups={a.groups!r}")
-    # Each cell is micro / macro -- the two aggregations side by side, since choosing one of
-    # them for the reader is exactly what hides a several-fold disagreement.
-    head = (f"\n{'scope':<15}{'group':<26}{'nature':<12}{'n':>5}{'def':>6}{'grp':>5}  "
-            + "  ".join(f"{k + ' mi/ma':>17}" for k in DECISIVE))
+    head = (f"\n{'scope':<15}{'agg':<8}{'group':<26}{'nature':<12}{'n':>5}{'def':>6}{'grp':>5} "
+            + " ".join(f"{k:>11}" for k in DECISIVE))
     print(head + "\n" + "-" * len(head.strip()))
     for r in rows:
         if r["scope"] == "group":  # 131 of these; they go to the csv, not the terminal
             continue
-        print(f"{r['scope']:<15}{r['group']:<26}{r['nature']:<12}"
-              f"{r['n']:>5}{r['n_defect']:>6}{r['n_groups']:>5}  "
-              + "  ".join(f"{r[k] + ' / ' + r['macro_' + k]:>17}" for k in DECISIVE))
+        print(f"{r['scope']:<15}{r['agg']:<8}{r['group']:<26}{r['nature']:<12}"
+              f"{r['n']:>5}{r['n_defect']:>6}{r['n_groups']:>5} "
+              + " ".join(f"{r[k]:>11}" for k in DECISIVE))
 
     n_group = sum(r["scope"] == "group" for r in rows)
     if a.md:
         # Absolutes only, no Δ column: one dump is one run, and §6.1 forbids inventing a reference
         # to fill a delta line. Comparing two runs is a different artifact and a different tool.
         top = [r for r in rows if r["scope"] != "group"]
-        cols = ["scope", "group", "nature", *COUNTS, "n_groups", *DECISIVE, *(f"macro_{k}" for k in DECISIVE)]
+        cols = ["scope", "agg", "group", "nature", *COUNTS, "n_groups", *DECISIVE]
         Path(a.md).write_text(
             "Single-pass dump (the records carry no pass tag -- name it from the run that wrote them).\n"
             "`scope` says which axis a row PINS, not how it was computed; `group` is the taxonomy path it\n"
             "pins, and a shorter path is a broader row. `n` includes the normal images of contributing\n"
             "products; `n_defect` is the images carrying a GT box; `n_groups` is what macro averages.\n"
-            "Two aggregations per metric. The bare column is MICRO: every image in one ranked list, so a\n"
-            "big group dominates and this is what one deployed threshold faces. `macro_` gives every\n"
-            "group one vote instead, over anomalous images only -- so its precision counts no false\n"
-            "alarm on good product. They disagree several-fold here; neither is the right one.\n"
+            "`agg` is the aggregation, and each slice appears once per aggregation. `pooled` puts every\n"
+            "image in one ranked list, so a big group dominates and this is what one deployed threshold\n"
+            "faces. `macro` gives every group one vote instead, over anomalous images only -- so its\n"
+            "precision counts no false alarm on good product, and its `n` is smaller for that reason.\n"
+            "They disagree several-fold here; neither is the right one.\n"
             "Absolutes only -- a single run has no reference, so there is no delta column.\n"
             "A scope with no rows under it selected the same images as a row already above it\n"
             "(e.g. a nature carried by one dataset), not nothing.\n\n"
@@ -267,7 +276,7 @@ def main() -> None:
             w = csv.DictWriter(f, fieldnames=list(rows[0]))
             w.writeheader()
             w.writerows(rows)
-        n_met = len(rows[0]) - len(TAGS) - len(COUNTS) - 1
+        n_met = len(rows[0]) - len(TAGS) - len(COUNTS) - 3  # scope, agg, n_groups
         print(f"\n-> {a.csv}  ({len(rows)} rows incl. {n_group} groups × {n_met} metrics)")
     else:
         print(f"\n{n_group} group rows computed but not shown; pass --csv to keep them")

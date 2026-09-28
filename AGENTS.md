@@ -16,7 +16,7 @@ Ultralytics (`ultralytics` on PyPI, AGPL-3.0) is the official Python package for
 
 **Review gate:** for every addition, the reviewer decides whether deleting or changing existing code would have fixed the problem instead — if it would, that is a blocking finding. A missing or thin PR description is never itself a finding.
 
-NEVER push to `main`. NEVER force push. Always start work in a new git worktree (`git worktree add`) on a feature branch and open a PR — never edit the primary checkout directly, it may hold in-flight work.
+NEVER push to `main`. NEVER force push. Always start work in a new git worktree on a feature branch (`git fetch origin main && git worktree add <path> -b <branch> origin/main`) and open a PR — never edit the primary checkout directly, it may hold in-flight work.
 
 ## PR Review
 
@@ -40,7 +40,7 @@ After opening a PR:
 2. Review the full diff in-session against the Core Principles, performance, and the review gate above, then batch the fixes into one commit and push. After each round of bot or human commits, pull and resume the same reviewer on `<last-reviewed-sha>..HEAD` plus anything that delta could have invalidated. Repeat until the local head matches the live head.
 3. Hand off or merge only on a clean final pass: one cold full-diff review returning LGTM with no findings, on a head that is still live at merge time.
 4. Never fight other commits: Ultralytics Actions pushes auto-format and header commits, and multiple users may work on the same PR. `git pull --rebase` before pushing; never reset or revert commits you did not author.
-5. After the PR merges, clean up: remove local worktrees and branches for it, then `git checkout main && git pull`.
+5. After the PR merges, remove its local worktree and branch.
 
 ## Commands
 
@@ -65,20 +65,18 @@ ruff format . && ruff check --fix .
 
 # Fastest end-to-end smoke test (auto-downloads yolo26n.pt, runs on 2 local asset images)
 yolo predict model=yolo26n.pt
-
-# Docs: see docs/AGENTS.md (python docs/build_reference.py, python docs/build_docs.py)
 ```
 
 - Tests hit the live network: weights (e.g. `yolo26n.pt`) and assets auto-download from GitHub releases into `WEIGHTS_DIR`, with `MODEL` deliberately under a "path with spaces" directory. Even a focused pytest run executes session cleanup (`tests/conftest.py` `pytest_sessionfinish`) that deletes `*.onnx`/`*.torchscript` files and `*.mlpackage`/`*_openvino_model` directories under `WEIGHTS_DIR`, and unconditionally deletes `bus.jpg`, `yolo26n.onnx`, and `yolo26n.torchscript` from the current working directory, so run tests from a scratch cwd with a dedicated weights directory. Export tests should use the `isolated_model` fixture (or call `isolated_model_path(tmp_path, model)`, a plain helper, for other weights) to avoid xdist filename races.
 - `pyproject.toml` pytest `addopts` includes `--doctest-modules`, so pointing pytest at `ultralytics/` runs docstring doctests — CI only runs `tests/`, so package doctests are NOT exercised in CI.
-- `tests/test_exports.py` is partitioned by `--export-env` (env ids from `EXPORT_ENVS` in `engine/exporter.py`); omitting the flag removes that filter only — slow, platform, and dependency skips still apply, and the flag never installs anything. `.github/scripts/create-export-env.py --list` shows the isolated environments and `--env <id>` builds one and runs its smoke exports. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
-- Workflows in `.github/workflows/`: `ci.yml` (Tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm, plus a Python 3.8 / torch 1.8.0 floor job; Benchmarks; GPU), `format.yml` (Ultralytics Actions: ruff, docformatter, prettier, codespell, license headers, automated PR review — expect bot commits on PR branches), `docs.yml` (runs `ruff check --extend-select F,I,D,UP,RUF,FA` for docstring rules and pushes "Auto-update Ultralytics Docs Reference" commits to the branch), `publish.yml` (Publish to PyPI), `docker.yml`, `conda-check-prs.yml`, `cla.yml`, `links.yml`, `fuzz.yml`, `merge-main-into-prs.yml`, `stale.yml`, `mirror.yml`.
+- `tests/test_exports.py` is partitioned by `--export-env` (env ids from `EXPORT_ENVS` in `engine/exporter.py`); omitting the flag removes that filter only — slow, platform, and dependency skips still apply, and the flag never installs anything. `.github/scripts/create-export-env.py --list` shows the isolated environments and `--env <id>` builds one under `$ULTRALYTICS_ISOLATED_VENVS` (default `/opt/venvs`) and runs its smoke exports; ci.yml's IsolatedExports job runs each env's export tests this way. GPU tests live in `tests/test_cuda.py` and skip without CUDA.
+- Key workflows in `.github/workflows/`: `ci.yml` (Tests on Python 3.13 across ubuntu-latest, macos-26, windows-latest, ubuntu-24.04-arm plus a Python 3.8 / torch 1.8.0 floor entry; IsolatedExports; Benchmarks; GPU), `format.yml` (Ultralytics Actions: ruff, docstring formatting, prettier, codespell, license headers, automated PR review — expect bot commits on PR branches), `docs.yml` (docstring lint and "Auto-update Ultralytics Docs Reference" commits), `merge-main-into-prs.yml` (manual dispatch; merges main into open PR branches), `publish.yml` (Publish to PyPI).
 
 ## Conventions
 
 - Ultralytics-owned PyPI packages use `MAJOR.MINOR.PATCH` versions only; no suffixes.
 - Every Python file starts with `# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license` — Ultralytics Actions adds headers automatically; don't add or revert them manually.
-- Google-style docstrings with types in parentheses (`arg1 (int): ...`); `[tool.ruff.lint.pydocstyle] convention = "google"` configures the docstring rules and `docs.yml` enables them with `--extend-select D`, so a bare `ruff check` does not reproduce that pass. Ruff formats docstring code blocks; the Actions bot also runs docformatter, prettier (YAML/JSON/Markdown), and codespell. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (the documentation dialect requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
+- Google-style docstrings with types in parentheses (`arg1 (int): ...`); `[tool.ruff.lint.pydocstyle] convention = "google"` configures the docstring rules, but only the Actions bot and `docs.yml` enable them (`--extend-select F,I,D,UP,RUF,FA`), so a bare `ruff check` misses them; reproduce with the `Ruff checks` step command in `docs.yml`. Ruff formats docstring code blocks; the Actions bot also runs its own docstring formatter, prettier (YAML/JSON/Markdown), and codespell. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (the documentation dialect requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
 - Releases: bump `__version__` in `ultralytics/__init__.py`; on push to main, `publish.yml` detects the increment, then tags, creates the GitHub release, and publishes to PyPI (gated to the ultralytics repo and glenn-jocher).
 - Tasks and modes are listed in one canonical order everywhere — tables, navs, prose, code, and the Ultralytics Platform: `detect, segment, semantic, depth, classify, pose, obb` and `train, val, predict, export, track, benchmark`. `TASKS` and `MODES` in `ultralytics/cfg/__init__.py` are ordered tuples that define it; never introduce a different ordering.
 - Public precision is the single `quantize` arg (`_handle_deprecation` maps legacy `half`/`int8` onto it); `nms` is tri-state (`None` external NMS, `True` embed NMS on export, `False` NMS-free head where supported; legacy `end2end` maps here). Older examples that use `half=`, `int8=`, or `end2end=` are obsolete — don't copy them into new code or docs.

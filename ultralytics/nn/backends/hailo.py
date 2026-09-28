@@ -216,7 +216,7 @@ class HailoBackend(BaseBackend):
 
         The HEF is cut at the head's final logit conv, so the clamp/exp and learned log-affine calibration that
         follow it in the head run here. The map stays at head resolution (H/4, W/4); ``DepthPredictor.postprocess``
-        resizes it to the image with ``scale_masks``, the same path the PyTorch model takes at inference.
+        resizes it to the image the same way it resizes the PyTorch model's output at inference.
         """
         logit = torch.from_numpy(output).permute(0, 3, 1, 2)  # (B, H/4, W/4, 1) -> (B, 1, H/4, W/4)
         depth = logit.clamp(-4.0, 5.0).exp()

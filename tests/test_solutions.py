@@ -268,6 +268,15 @@ def test_left_click_selection():
     assert 1 in dc.selected_boxes, f"Expected track_id 1 in selected_boxes, got {dc.selected_boxes}"
 
 
+def test_left_click_selection_overlap():
+    """Test each left click selects one object, so overlapping boxes and missed clicks still yield a pair."""
+    dc = solutions.DistanceCalculation()
+    dc.boxes, dc.track_ids = [[100, 100, 200, 300], [150, 100, 250, 300], [300, 100, 400, 300]], [1, 2, 3]
+    for x in (5, 175, 350):  # miss, overlap of tracks 1 and 2, track 3
+        dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, x, 200, None, None)
+    assert list(dc.selected_boxes) == [1, 3], f"Expected track_ids [1, 3] selected, got {list(dc.selected_boxes)}"
+
+
 def test_left_click_selection_obb():
     """Test distance calculation left click selection with (4, 2) OBB corner boxes."""
     dc = solutions.DistanceCalculation()

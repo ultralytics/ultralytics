@@ -60,11 +60,12 @@ class DistanceCalculation(BaseSolution):
         """
         if event == cv2.EVENT_LBUTTONDOWN:
             self.left_mouse_count += 1
-            if self.left_mouse_count <= 2:
+            if len(self.selected_boxes) < 2:
                 for box, track_id in zip(self.boxes, self.track_ids):
                     x0, y0, x1, y1 = self.get_enclosing_box(box)
                     if x0 < x < x1 and y0 < y < y1 and track_id not in self.selected_boxes:
                         self.selected_boxes[track_id] = box
+                        break  # one object per click, even where boxes overlap
 
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.selected_boxes = {}

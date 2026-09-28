@@ -47,7 +47,6 @@ MVTEC_CATEGORIES = [
 _MVTEC_ROOT_CANDIDATES = (
     "/data/shared-datasets/louis_data/MVTec-YOLO",
     "/Users/louis/workspace/ultra_louis_work/buffer/AnomalyData/MVTEC/MVTec-YOLO",
-    "/home/laughing/codes/datasets/MVTec-YOLO",
 )
 
 class GroupMeta:
@@ -208,6 +207,22 @@ def _normal_dir_from_yaml(yaml_path: str | Path) -> Path:
         train = root / train
     good = train / "good"
     return good if good.is_dir() else train
+
+@contextmanager
+def _bank_off(model):
+    """Run a block with the memory bank disabled, then restore it.
+
+    ``building=True`` is what makes the bank's forward return zeros, so a prior-OFF pass reads the
+    bare detector. Restoring matters: the o2m and o2o prior-ON passes share the model.
+    """
+    mb = model.memory_bank
+    saved = mb.building
+    mb.building = True
+    try:
+        yield
+    finally:
+        mb.building = saved
+
 
 @contextmanager
 def _frozen_rng():
@@ -382,11 +397,12 @@ class OODEvaluator:
         pooled number -- such a product contributes no images, normals included -- but the skipped
         products lose their diagnostic rows, so it is opt-in.
         """
-        if meta_path := self.cfg.get("meta_yaml"):
+        if self.cfg.get("meta_yaml"):  # the same key __init__ builds self.meta from
             root = Path(self.cfg.get("test_root") or ".")
-            meta = self.meta or GroupMeta(meta_path)
+            meta = self.meta
             # An empty query selects nothing, so skip_unselected would drop every product.
-            selected = self.meta.select(self.query) if self.cfg.get("test_skip_unselected") and (self.query or "").strip() else None
+            skip = self.cfg.get("test_skip_unselected") and (self.query or "").strip()
+            selected = meta.select(self.query) if skip else None
             out = []
             for ds, product, slug in meta.products():
                 if selected is not None:
@@ -407,9 +423,6 @@ class OODEvaluator:
                     LOGGER.warning(f"no data yaml for {ds}/{product} under {d}")
             return out
 
-        if explicit := self.cfg.get("test_data_yamls"):
-            return [("mvtec", Path(p).parent.name, Path(p)) for p in explicit]
-
         root = self.cfg.get("test_root")
         if not root:
             for candidate in _MVTEC_ROOT_CANDIDATES:
@@ -417,7 +430,7 @@ class OODEvaluator:
                     root = candidate
                     break
         if not root:
-            LOGGER.warning("AnomalyRNDTrainer: no test_data_yamls or test_root configured; skipping OOD eval.")
+            LOGGER.warning("AnomalyRNDTrainer: no test_root configured; skipping OOD eval.")
             return []
 
         cats = self.cfg.get("test_categories") or MVTEC_CATEGORIES
@@ -494,16 +507,11 @@ class OODEvaluator:
 
                 # Pass 2: prior OFF (bank disabled via `building`) — the bare-detector baseline.
                 if "none_" in want:
-                    mb = model.memory_bank
-                    saved_building = mb.building
-                    mb.building = True
-                    try:
+                    with _bank_off(model):
                         validator_none = YOLOAnomalyValidator(args=overrides)
                         validator_none(trainer=None, model=model)
                         row.update({f"none_{k}": v for k, v in validator_none._ood_map_metrics().items()})
                         keep("none_", []).append((dataset, product, validator_none.snapshot()))
-                    finally:
-                        mb.building = saved_building
 
                 # Passes 3-4: the same two on the o2o branch — the NMS-free path a deployment ships.
                 if e2e and (("e2e_" in want) or ("e2e_none_" in want)):
@@ -516,16 +524,11 @@ class OODEvaluator:
                             keep("e2e_", []).append((dataset, product, v_e2e.snapshot()))
 
                         if "e2e_none_" in want:
-                            mb = model.memory_bank
-                            saved_building = mb.building
-                            mb.building = True
-                            try:
+                            with _bank_off(model):
                                 v_e2e_none = YOLOAnomalyValidator(args=e2e_overrides)
                                 v_e2e_none(trainer=None, model=model)
                                 row.update({f"e2e_none_{k}": v for k, v in v_e2e_none._ood_map_metrics().items()})
                                 keep("e2e_none_", []).append((dataset, product, v_e2e_none.snapshot()))
-                            finally:
-                                mb.building = saved_building
 
                 rows.append(row)
             except Exception as e:
@@ -537,22 +540,18 @@ class OODEvaluator:
         return rows, passes
 
     @staticmethod
-    def _group_index(meta: GroupMeta, validator, dataset: str, product: str) -> tuple[dict, list]:
-        """Split one finished pass's images into ``{group_id: [index]}`` and the normal ones.
+    def _group_index(meta: GroupMeta, validator, dataset: str, product: str) -> dict[str, list[int]]:
+        """Split one finished pass's images into ``{group_id: [index]}``; normal images belong to none.
 
-        Normal images carry no anomaly group by construction. They are held separately because the
-        two reads need them differently: a per-group row must NOT contain them (it would then
-        measure two things), while the pooled read must, or precision never counts a false alarm on
-        good product -- which is most of what a deployed detector gets wrong.
+        A per-group row must NOT contain the normal images (it would then measure two things). The
+        pooled read needs them and gets them from :meth:`select_images`, or precision would never
+        count a false alarm on good product -- which is most of what a deployed detector gets wrong.
         """
         groups: dict[str, list[int]] = {}
-        good: list[int] = []
         for i, f in enumerate(validator._ood_files):
             if g := meta.group_of(dataset, product, f):
                 groups.setdefault(g, []).append(i)
-            else:
-                good.append(i)
-        return groups, good
+        return groups
 
     @staticmethod
     def select_images(meta: GroupMeta, query: str, blocks) -> list[tuple[int, list[int]]]:
@@ -598,7 +597,7 @@ class OODEvaluator:
         rows: dict[str, dict] = {}
         for pre, entries in passes.items():
             for dataset, product, v in entries:
-                for g, idx in self._group_index(self.meta, v, dataset, product)[0].items():
+                for g, idx in self._group_index(self.meta, v, dataset, product).items():
                     if (r := rows.get(g)) is None:  # counts are pass-invariant -- build the row once
                         # The group's nature is its images' default; a group whose images disagree
                         # is reported as `<default>+<other>` rather than silently as the majority.

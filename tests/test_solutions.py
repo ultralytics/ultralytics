@@ -261,14 +261,6 @@ def test_object_counter_polygon_reentry_after_inside_spawn():
 
 
 def test_left_click_selection():
-    """Test distance calculation left click selection functionality."""
-    dc = solutions.DistanceCalculation()
-    dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
-    dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
-    assert 1 in dc.selected_boxes, f"Expected track_id 1 in selected_boxes, got {dc.selected_boxes}"
-
-
-def test_left_click_selection_overlap():
     """Test each left click selects one object, so overlapping boxes and missed clicks still yield a pair."""
     dc = solutions.DistanceCalculation()
     dc.boxes, dc.track_ids = [[100, 100, 200, 300], [150, 100, 250, 300], [300, 100, 400, 300]], [1, 2, 3]
@@ -331,10 +323,9 @@ def test_object_blurrer_obb_outside_frame():
 def test_right_click_reset():
     """Test distance calculation right click reset functionality."""
     dc = solutions.DistanceCalculation()
-    dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
+    dc.selected_boxes = {1: [10, 10, 50, 50]}
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
     assert not dc.selected_boxes, f"Expected empty selected_boxes after reset, got {dc.selected_boxes}"
-    assert dc.left_mouse_count == 0, f"Expected left_mouse_count=0 after reset, got {dc.left_mouse_count}"
 
 
 def test_parking_json_none():

@@ -32,7 +32,7 @@ on:
         type: boolean
       amd-gpu:
         description: "Run AMD GPU"
-        default: false
+        default: true
         type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"

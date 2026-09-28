@@ -750,13 +750,17 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     if path.is_dir():
         # Process directory
         im_files = [f for ext in (IMG_FORMATS - {"tif", "tiff"}) for f in path.rglob(f"*.{ext}")]
+        outputs = set()
         for im_path in im_files:
             try:
+                if (output := im_path.with_suffix(".tiff")) in outputs:
+                    raise FileExistsError(f"{output} was already converted from another image with the same stem")
+                outputs.add(output)
                 convert_to_multispectral(im_path, n_channels)
                 if replace:
                     im_path.unlink()
             except Exception as e:
-                LOGGER.info(f"Error converting {im_path}: {e}")
+                LOGGER.warning(f"Error converting {im_path}: {e}")
 
         if zip:
             zip_directory(path)
@@ -774,7 +778,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
         img = img[..., order]
         multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
-        cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
+        if not cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)):
+            raise OSError(f"Failed to write {output_path}")
         LOGGER.info(f"Converted {output_path}")
 
 

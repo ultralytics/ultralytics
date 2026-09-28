@@ -351,9 +351,20 @@ def test_analytics_graph_not_supported():
 def test_area_chart_padding():
     """Test area chart graph update with dynamic class padding logic."""
     analytics = solutions.Analytics(analytics_type="area")
-    analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
-    plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
+    analytics.update_graph(frame_number=1, count_dict={"car": 2, "person": 4}, plot="area")
+    analytics.update_graph(frame_number=2, count_dict={"person": 1, "car": 3, "truck": 5}, plot="area")
+    plot_im = analytics.update_graph(frame_number=3, count_dict={"car": 6}, plot="area")
     assert plot_im is not None, "Area chart plot returned None"
+    history = {line.get_label(): line.get_ydata().tolist() for line in analytics.ax.lines}
+    assert history == {
+        "car Data Points": [2, 3, 6],
+        "person Data Points": [4, 1, 0],
+        "truck Data Points": [0, 5, 0],
+    }
+    analytics.max_points = 3  # an empty frame records 0 for every class and the oldest point is trimmed
+    analytics.update_graph(frame_number=4, count_dict={}, plot="area")
+    history = {line.get_label(): line.get_ydata().tolist() for line in analytics.ax.lines}
+    assert history == {"car Data Points": [3, 6, 0], "person Data Points": [1, 0, 0], "truck Data Points": [5, 0, 0]}
 
 
 def test_config_update_method_with_invalid_argument():

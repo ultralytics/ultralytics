@@ -181,20 +181,19 @@ class Analytics(BaseSolution):
                 color_cycle = cycle(["#DD00BA", "#042AFF", "#FF4447", "#7D24FF", "#BD00FF"])
                 # Multiple lines or area update
                 x_data = self.ax.lines[0].get_xdata() if self.ax.lines else np.array([])
-                y_data_dict = {key: np.array([]) for key in count_dict}
-                if self.ax.lines:
-                    for line, key in zip(self.ax.lines, count_dict.keys()):
-                        y_data_dict[key] = line.get_ydata()
+                # Match histories to classes by line label, since count_dict order follows detection order
+                y_data_dict = {
+                    line.get_label().rsplit(" Data Points", 1)[0]: line.get_ydata() for line in self.ax.lines
+                }
 
                 x_data = np.append(x_data, float(frame_number))
                 max_length = len(x_data)
-                for key in count_dict:
-                    y_data_dict[key] = np.append(y_data_dict[key], float(count_dict[key]))
-                    if len(y_data_dict[key]) < max_length:
-                        y_data_dict[key] = np.pad(y_data_dict[key], (0, max_length - len(y_data_dict[key])))
+                for key in dict.fromkeys([*y_data_dict, *count_dict]):  # absent classes count 0 in this frame
+                    y_data = np.append(y_data_dict.get(key, []), float(count_dict.get(key, 0)))
+                    y_data_dict[key] = np.pad(y_data, (max_length - len(y_data), 0))  # new classes start at 0
                 if len(x_data) > self.max_points:
                     x_data = x_data[1:]
-                    for key in count_dict:
+                    for key in y_data_dict:
                         y_data_dict[key] = y_data_dict[key][1:]
 
                 self.ax.clear()

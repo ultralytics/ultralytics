@@ -802,7 +802,7 @@ Classes are matched by name, ignoring case, and a destination without classes ta
 
 Blur the faces in a dataset's images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
 
-- **One image:** right-click the image and choose **Blur faces**, or use the **Blur faces** button in the fullscreen viewer.
+- **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Blur faces**.
 - **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.

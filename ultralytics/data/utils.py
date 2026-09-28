@@ -916,7 +916,7 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
     """
     try:  # use PIL
         Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
-        im = Image.open(f)
+        im = ImageOps.exif_transpose(Image.open(f))  # JPEG save drops EXIF, so bake the orientation into the pixels
         if im.mode in {"RGBA", "LA"}:  # Convert to RGB if needed (for JPEG)
             im = im.convert("RGB")
         r = max_dim / max(im.height, im.width)  # ratio

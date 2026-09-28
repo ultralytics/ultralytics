@@ -415,7 +415,7 @@ Click any image to open the fullscreen viewer with:
 - **Delete**: Delete the image from the dataset
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
-- **Pan**: Hold `Space` and drag to pan the canvas when zoomed
+- **Pan**: Hold `Space` and drag, or drag with the middle mouse button, to pan the canvas at any zoom level
 - **Pixel view**: Toggle pixelated rendering for close inspection
 - **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 

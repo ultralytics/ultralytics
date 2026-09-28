@@ -2335,3 +2335,30 @@ def test_semantic_mask_invalid_class_ids_scan(tmp_path):
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={"names": {0: "bg", 1: "fg"}, "nc": 2})
     assert len(dataset.im_files) == 1 and Path(dataset.im_files[0]).name == "b.jpg"  # bad-id mask dropped
     assert dataset.load_mask(0)[8, 8] == 1  # good mask intact
+
+    # label_mapping: raw id 7 maps to class 1 and must be accepted; unmapped id 3 is still rejected
+    images, masks = tmp_path / "mapped" / "images" / "train", tmp_path / "mapped" / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    for name, fg in (("a", 7), ("b", 3)):
+        mask = np.zeros((32, 32), dtype=np.uint8)
+        mask[8:24, 8:24] = fg
+        cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+        cv2.imwrite(str(masks / f"{name}.png"), mask)
+    data = {"names": {0: "bg", 1: "fg"}, "nc": 2, "label_mapping": {7: 1}}
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data=data)
+    assert len(dataset.im_files) == 1 and Path(dataset.im_files[0]).name == "a.jpg"  # mapped id kept
+    assert dataset.load_mask(0)[8, 8] == 1  # raw 7 loads as its mapped class 1
+
+    # binary nc=1: ids {0, 1} are both valid, id 2 is not
+    images, masks = tmp_path / "binary" / "images" / "train", tmp_path / "binary" / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    for name, fg in (("a", 1), ("b", 2)):
+        mask = np.zeros((32, 32), dtype=np.uint8)
+        mask[8:24, 8:24] = fg
+        cv2.imwrite(str(images / f"{name}.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+        cv2.imwrite(str(masks / f"{name}.png"), mask)
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={"names": {0: "fg"}, "nc": 1})
+    assert len(dataset.im_files) == 1 and Path(dataset.im_files[0]).name == "a.jpg"  # {0, 1} mask kept
+    assert dataset.load_mask(0)[8, 8] == 1  # 8-bit foreground id 1 loads as-is

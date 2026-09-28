@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from functools import partial
 from pathlib import Path
 
@@ -34,6 +35,9 @@ class OpenVINOBackend(BaseBackend):
         core = ov.Core()
         if WINDOWS:  # Avoid reduced-precision CPU kernel failures without restricting native FP32 instructions
             core.set_property("CPU", {"INFERENCE_PRECISION_HINT": ov.Type.f32})
+            # Windows VMs that report AMX as enabled can still fault on AMX INT8 kernels (0xc000001d), see
+            # https://github.com/openvinotoolkit/openvino/issues/37076, so cap oneDNN just below AMX
+            os.environ.setdefault("ONEDNN_MAX_CPU_ISA", "AVX512_CORE_FP16")
         fallback_device = "CPU" if core.available_devices == ["CPU"] else "AUTO"
         device_name = fallback_device
 
@@ -63,7 +67,9 @@ class OpenVINOBackend(BaseBackend):
             if device_name in {"CPU", "AUTO"}
             and ov_model.input().get_partial_shape().is_dynamic
             and any(op.get_type_name() == "FakeQuantize" for op in ov_model.get_ops())
-            and (WINDOWS or (LINUX and cpuinfo.exists() and "amx_int8" in cpuinfo.read_text()))
+            and LINUX
+            and cpuinfo.exists()
+            and "amx_int8" in cpuinfo.read_text()
             else None
         )
         if self.read_model is not None:

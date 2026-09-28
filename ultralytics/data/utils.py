@@ -348,7 +348,8 @@ def verify_image_depth(args: tuple) -> tuple:
 
 
 def verify_image_mask(args: tuple) -> tuple:
-    """Verify that an image and its semantic mask exist, are readable, have matching shapes, and contain only valid class ids.
+    """Verify that an image and its semantic mask exist, are readable, have matching shapes, and contain only valid
+    class ids.
 
     Args:
         args (tuple): Tuple of (im_file, mask_file, prefix, allowed_ids). If mask_file is missing, masks with the same

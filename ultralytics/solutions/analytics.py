@@ -186,15 +186,10 @@ class Analytics(BaseSolution):
                     line.get_label().rsplit(" Data Points", 1)[0]: line.get_ydata() for line in self.ax.lines
                 }
 
-                x_data = np.append(x_data, float(frame_number))
-                max_length = len(x_data)
-                for key in dict.fromkeys([*y_data_dict, *count_dict]):  # absent classes count 0 in this frame
-                    y_data = np.append(y_data_dict.get(key, []), float(count_dict.get(key, 0)))
-                    y_data_dict[key] = np.pad(y_data, (max_length - len(y_data), 0))  # new classes start at 0
-                if len(x_data) > self.max_points:
-                    x_data = x_data[1:]
-                    for key in y_data_dict:
-                        y_data_dict[key] = y_data_dict[key][1:]
+                for key in dict.fromkeys([*y_data_dict, *count_dict]):  # absent and new classes count 0
+                    y_data = y_data_dict.get(key, np.zeros(len(x_data)))
+                    y_data_dict[key] = np.append(y_data, float(count_dict.get(key, 0)))[-self.max_points :]
+                x_data = np.append(x_data, float(frame_number))[-self.max_points :]
 
                 self.ax.clear()
                 for key, y_data in y_data_dict.items():

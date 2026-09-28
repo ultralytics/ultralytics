@@ -100,16 +100,27 @@ def rollups(v: YOLOAnomalyValidator, meta: GroupMeta, query: str, blks: list):
     ``tags`` carries the taxonomy columns that only mean something per group; the rows above span
     several of each and leave them blank. See the module docstring for what each scope selects.
     """
+    datasets = sorted({b[0] for b in blks})
+    of = lambda ds: [b for b in blks if b[0] == ds]  # noqa: E731 -- the blocks of one dataset
+
     yield "pooled", query, pooled_idx(meta, query, blks), {}
 
-    for ds in sorted({b[0] for b in blks}):
-        if idx := pooled_idx(meta, query, [b for b in blks if b[0] == ds]):
-            yield "dataset", ds, idx, {}
+    # Keys carry the query they were read under: a row labelled `mvtec` alone reads as the whole
+    # dataset when it is in fact the dataset INTERSECTED with --groups.
+    for ds in datasets:
+        if idx := pooled_idx(meta, query, of(ds)):
+            yield "dataset", f"{ds} @ {query}", idx, {}
 
     natures = {meta.nature_of(ds, p, f) for ds, p, files, _ in blks for f in files}
     for nat in sorted(n for n in natures if n):
-        if idx := pooled_idx(meta, f"nature={nat}", blks):
-            yield "nature", nat, idx, {"nature": nat}
+        q = f"nature={nat}"
+        if idx := pooled_idx(meta, q, blks):
+            yield "nature", q, idx, {"nature": nat}
+        # The cross, because the two axes above each hide the other: `nature=logical` pools four
+        # datasets into one number, and the dataset rows are all at the --groups nature only.
+        for ds in datasets:
+            if idx := pooled_idx(meta, q, of(ds)):
+                yield "dataset_nature", f"{ds} @ {q}", idx, {"nature": nat}
 
     groups: dict[str, tuple[list[int], dict, set]] = {}
     for ds, product, files, where in blks:
@@ -148,8 +159,15 @@ def main() -> None:
     v = load(a.dump)
     meta = GroupMeta(f"{a.data}/meta.yaml")
     blks = blocks(v, meta)
-    rows = []
+    rows, seen = [], set()
     for scope, key, idx, tags in rollups(v, meta, a.groups, blks):
+        # Two scopes can land on the identical image set -- `pooled` under a nature query IS the
+        # `nature` row for it, and a dataset row IS its cross cell. Keep the first, which is the
+        # more general scope, and drop the restatement: a duplicate row is not a second reading.
+        sel = tuple(idx)
+        if scope != "group" and sel in seen:
+            continue
+        seen.add(sel)
         counts = dict(zip(COUNTS, OODEvaluator._counts(v, idx)))
         tags = {k: tags.get(k, "-") for k in TAGS}
         # 4 decimals, uniformly: the house rule for every reported metric, and it also keeps the
@@ -159,12 +177,12 @@ def main() -> None:
 
     print(f"{len(v._ood_files)} images in dump · {len(blks)} products · "
           f"{len(v._ood_stats['conf'])} predictions · groups={a.groups!r}")
-    head = f"\n{'scope':<8} {'key':<34} {'n':>5} {'def':>5} {'inst':>5} " + " ".join(f"{k:>11}" for k in DECISIVE)
+    head = f"\n{'scope':<15} {'key':<38} {'n':>5} {'def':>5} {'inst':>5} " + " ".join(f"{k:>11}" for k in DECISIVE)
     print(head + "\n" + "-" * len(head.strip()))
     for r in rows:
         if r["scope"] == "group":  # 131 of these; they go to the csv, not the terminal
             continue
-        print(f"{r['scope']:<8} {r['key']:<34} {r['n']:>5} {r['n_defect']:>5} {r['instances']:>5} "
+        print(f"{r['scope']:<15} {r['key']:<38} {r['n']:>5} {r['n_defect']:>5} {r['instances']:>5} "
               + " ".join(f"{r[k]:>11}" for k in DECISIVE))
 
     n_group = sum(r["scope"] == "group" for r in rows)
@@ -177,7 +195,9 @@ def main() -> None:
             "Single-pass dump (the records carry no pass tag -- name it from the run that wrote them).\n"
             "Every row is micro: one ranked list per row, never a mean of rows. `n` includes the\n"
             "normal images of contributing products; `n_defect` is the images carrying a GT box.\n"
-            "Absolutes only -- a single run has no reference, so there is no delta column.\n\n"
+            "Absolutes only -- a single run has no reference, so there is no delta column.\n"
+            "A scope with no rows under it selected the same images as a row already above it\n"
+            "(e.g. a nature carried by one dataset), not nothing.\n\n"
             + "| " + " | ".join(cols) + " |\n| " + " | ".join("---" for _ in cols) + " |\n"
             + "".join("| " + " | ".join(str(r[c]) for c in cols) + " |\n" for r in top),
             encoding="utf-8",

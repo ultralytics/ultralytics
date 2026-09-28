@@ -92,7 +92,7 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
     for im_file, lb_file in zip(im_files, lb_files):
         w, h = exif_size(Image.open(im_file))
         with open(lb_file, encoding="utf-8") as f:
-            lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+            lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
             lb = np.array(lb, dtype=np.float32)
         annos.append({"ori_size": (h, w), "label": lb, "filepath": im_file})
     return annos

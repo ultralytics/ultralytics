@@ -2315,3 +2315,21 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
+
+
+def test_verify_image_label_whitespace_lines(tmp_path):
+    """Test whitespace-only lines in label files no longer mark an image corrupt."""
+    from ultralytics.data.utils import verify_image_label
+
+    im = tmp_path / "a.jpg"
+    cv2.imwrite(str(im), np.zeros((32, 48, 3), dtype=np.uint8))
+
+    lb = tmp_path / "a.txt"  # detection rows with a whitespace-only line between them
+    lb.write_text("0 0.5 0.5 0.1 0.1\n \t\n1 0.25 0.25 0.2 0.2\n", encoding="utf-8")
+    args = (str(im), str(lb), "", False, 2, 0, 2, False)
+    _, out, _, _, _, _, nf, _, nc, _ = verify_image_label(args)
+    assert (nf, nc) == (1, 0) and out.shape == (2, 5)  # both rows parsed, image kept
+
+    lb.write_text("0 0.1 0.1 0.3 0.1 0.3 0.3\n\t\n0 0.4 0.4 0.6 0.4 0.6 0.6\n", encoding="utf-8")  # segment rows
+    _, out, _, segments, _, _, nf, _, nc, _ = verify_image_label(args)
+    assert (nf, nc) == (1, 0) and out.shape == (2, 5) and len(segments) == 2  # both polygons parsed

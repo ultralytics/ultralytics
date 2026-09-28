@@ -441,7 +441,7 @@ def verify_image_label(args: tuple) -> tuple | list:
                     f"Possible class labels are 0-{num_cls - 1}"
                 )
                 _, i = np.unique(lb, axis=0, return_index=True)
-                if len(i) < nl and segments:  # same class and box, compare the polygons, different ones can share a box
+                if len(i) < nl and segments:  # distinct polygons can share a class and box
                     rows = np.array([c.tobytes() + s.tobytes() for c, s in zip(lb[:, 0], segments)], dtype=object)
                     _, i = np.unique(rows, return_index=True)
                 if len(i) < nl:  # duplicate row check

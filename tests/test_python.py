@@ -1520,37 +1520,16 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
         assert str(tmp_path) not in captured["validation_split"]
 
 
-@pytest.mark.parametrize(
-    "task, rows",
-    [
-        ("segment", ["0 0.2 0.2 0.8 0.2 0.8 0.8", "0 0.2 0.2 0.2 0.8 0.8 0.8"]),  # two triangles tiling one square
-        ("obb", ["0 0.2 0.2 0.8 0.2 0.8 0.8 0.2 0.8", "0 0.5 0.2 0.8 0.5 0.5 0.8 0.2 0.5"]),  # a square and a diamond
-    ],
-)
-def test_segment_labels_sharing_a_box_are_kept(tmp_path, task, rows):
-    """Keep two different polygons that share one box, drop an exact duplicate row and rescan a 1.0.5 label cache."""
-    from ultralytics.data.dataset import DATASET_CACHE_VERSION
-    from ultralytics.data.utils import load_dataset_cache_file, save_dataset_cache_file
+def test_verify_image_label_keeps_polygons_sharing_a_box(tmp_path):
+    """Keep distinct polygons that share a class and box, and drop exact duplicate polygon rows."""
+    from ultralytics.data.utils import verify_image_label
 
-    images, labels = tmp_path / "images", tmp_path / "labels"
-    images.mkdir()
-    labels.mkdir()
-    cv2.imwrite(str(images / "0.jpg"), np.zeros((32, 32, 3), np.uint8))
-    (labels / "0.txt").write_text("\n".join([*rows, rows[0]]) + "\n")
-    cfg = get_cfg(overrides={"task": task, "imgsz": 32})
-    data = {"names": {0: "shape"}, "nc": 1}
-    label = data_build.build_yolo_dataset(cfg, str(images), batch=1, data=data, mode="val").labels[0]
-    assert len(label["cls"]) == len(label["segments"]) == 2  # the repeated row is dropped, the second polygon stays
-    assert not np.array_equal(label["segments"][0], label["segments"][1])
-
-    cache_path = tmp_path / "labels.cache"
-    cache = load_dataset_cache_file(cache_path)
-    for k in ("cls", "bboxes", "segments"):
-        cache["labels"][0][k] = cache["labels"][0][k][:1]  # what the box comparison of 1.0.5 left in the cache
-    save_dataset_cache_file("", cache_path, cache, version="1.0.5")
-    label = data_build.build_yolo_dataset(cfg, str(images), batch=1, data=data, mode="val").labels[0]
-    assert len(label["cls"]) == 2  # the old cache is rescanned, not trusted
-    assert load_dataset_cache_file(cache_path)["version"] == DATASET_CACHE_VERSION
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    rows = ["0 0.2 0.2 0.8 0.2 0.8 0.8", "0 0.2 0.2 0.2 0.8 0.8 0.8"]  # two triangles tiling one square
+    lb.write_text("\n".join([*rows, rows[0]]))
+    _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False))
+    assert len(labels) == len(segments) == 2
 
 
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):

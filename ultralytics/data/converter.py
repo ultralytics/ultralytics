@@ -766,7 +766,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
             zip_directory(path)
     else:
         # Process a single image
-        output_path = path.with_suffix(".tiff")
+        output_path = increment_path(path.with_suffix(".tiff"))
         img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
         # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
@@ -778,7 +778,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
         img = img[..., order]
         multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
-        cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
+        if not cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)):
+            raise OSError(f"Failed to write multispectral image to {output_path}")
         LOGGER.info(f"Converted {output_path}")
 
 

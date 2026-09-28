@@ -2242,6 +2242,23 @@ def test_yolov10():
     model(SOURCE)
 
 
+def test_multispectral_conversion_preserves_same_stem_images(tmp_path):
+    """Keep both conversions when source images have the same stem and replace is enabled."""
+    from ultralytics.data.converter import convert_to_multispectral
+
+    for suffix, color in (("jpg", (255, 0, 0)), ("png", (0, 0, 255))):
+        image = np.full((8, 8, 3), color, dtype=np.uint8)
+        assert cv2.imwrite(str(tmp_path / f"image.{suffix}"), image)
+
+    convert_to_multispectral(tmp_path, n_channels=4, replace=True)
+
+    outputs = list(tmp_path.glob("*.tiff"))
+    assert len(outputs) == 2
+    assert outputs[0].read_bytes() != outputs[1].read_bytes()
+    assert all(cv2.imreadmulti(str(path))[0] for path in outputs)
+    assert not list(tmp_path.glob("*.jpg")) and not list(tmp_path.glob("*.png"))
+
+
 @pytest.mark.parametrize("grayscale_tiff", (False, True))
 def test_multichannel(tmp_path, grayscale_tiff):
     """Test training, validation, prediction, and export with multispectral and grayscale TIFF datasets."""

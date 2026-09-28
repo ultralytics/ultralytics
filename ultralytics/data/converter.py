@@ -270,12 +270,6 @@ def convert_coco(
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
         lname = "" if lvis else json_file.stem.replace("instances_", "")
         fn = Path(save_dir) / "labels" / lname  # folder name
-        fn.mkdir(parents=True, exist_ok=True)
-        if lvis:
-            # NOTE: create folders for both train and val in advance,
-            # since LVIS val set contains images from COCO 2017 train in addition to the COCO 2017 val split.
-            (fn / "train2017").mkdir(parents=True, exist_ok=True)
-            (fn / "val2017").mkdir(parents=True, exist_ok=True)
         with open(json_file, encoding="utf-8") as f:
             data = json.load(f)
 
@@ -349,7 +343,9 @@ def convert_coco(
                             segments.append([cls, *s])
 
             # Write
-            with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:
+            label_file = (fn / f).with_suffix(".txt")
+            label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
+            with open(label_file, "a", encoding="utf-8") as file:
                 for i in range(len(bboxes)):
                     if use_keypoints:
                         line = (*(keypoints[i]),)  # cls, box, keypoints

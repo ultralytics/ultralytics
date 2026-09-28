@@ -1278,6 +1278,17 @@ def test_data_utils(tmp_path):
     with pytest.raises(FileNotFoundError, match="images not found"):
         check_det_dataset(data_yaml, split="test")
 
+
+def test_cls_dataset_autosplit_rerun(tmp_path):
+    """Test re-running the classification auto-split keeps train and val images disjoint."""
+    (tmp_path / "data/a").mkdir(parents=True)
+    for i in range(20):
+        Image.new("RGB", (8, 8)).save(tmp_path / f"data/a/{i}.jpg")
+    for _ in range(2):
+        data = check_cls_dataset(tmp_path / "data")
+    train, val = ({f.name for f in data[k].rglob("*.jpg")} for k in ("train", "val"))
+    assert len(train) == 16 and len(val) == 4 and not train & val
+
     # polygons2masks_overlap must not overflow uint8 on the transient `masks + mask` sum (reaches 2 * i + 1):
     # with more than 128 overlapping instances every instance must keep a distinct index in the overlap mask
     from ultralytics.data.utils import polygons2masks_overlap

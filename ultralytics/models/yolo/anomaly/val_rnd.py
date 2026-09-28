@@ -279,6 +279,7 @@ class OODEvaluator:
         workers: int = 8,
         save_dir: str | Path | None = None,
         verbose: bool = False,
+        dump: str | Path | None = None,
     ):
         """Initialize from a MVTec-Ultra version root, or from a model yaml's ``anomaly`` config.
 
@@ -317,6 +318,10 @@ class OODEvaluator:
         self.device = select_device(device) if device is None else device
         self.workers, self.epoch = workers, -1
         self.save_dir = Path(save_dir) if save_dir else None
+        # One pass only: the records carry no pass tag, so dumping a multi-pass run interleaves them.
+        self.dump = Path(dump) if dump else None
+        if self.dump and len(self._want) > 1:
+            raise ValueError(f"dump needs a single pass; got {sorted(self._want)} -- pass e.g. passes='e2e_none_'")
         self.meta = GroupMeta(self.cfg["meta_yaml"]) if self.cfg.get("meta_yaml") else None
 
     def _decisive(self) -> str:
@@ -348,7 +353,8 @@ class OODEvaluator:
         if not yamls:
             raise ValueError(f"no product yamls under {self.cfg.get('test_root')}")
 
-        products, passes = self.run(model, yamls)
+        with YOLOAnomalyValidator.dumping(self.dump):
+            products, passes = self.run(model, yamls)
         if len(products) != len(yamls):
             raise RuntimeError(f"OOD eval incomplete: {len(products)}/{len(yamls)} products succeeded")
 
@@ -548,6 +554,39 @@ class OODEvaluator:
                 good.append(i)
         return groups, good
 
+    @staticmethod
+    def select_images(meta: GroupMeta, query: str, blocks) -> list[tuple[int, list[int]]]:
+        """Which images a query pools over: ``(block index, local image indices)`` per kept block.
+
+        A *block* is one product's finished pass, given as ``(dataset, product, files)``. The rule:
+        the anomalous images ``query`` selects, PLUS every normal image of the products that
+        contributed at least one -- a product contributing nothing stays out entirely, normals
+        included, or its good images add false-alarm opportunities for an anomaly never asked about.
+
+        Indices are LOCAL to each block so callers map them into whatever frame they concatenate in:
+        :meth:`pooled` numbers only the kept blocks, an offline read numbers every dumped image.
+        One copy of the rule, because a second copy is a second ruler.
+        """
+        out = []
+        for b, (dataset, product, files) in enumerate(blocks):
+            # Image by image, not group by group: nature belongs to the image, so a group can
+            # contribute some of its images and not others.
+            hit = [i for i, f in enumerate(files) if meta.selects(query, dataset, product, f)]
+            if hit:
+                good = [i for i, f in enumerate(files) if not meta.group_of(dataset, product, f)]
+                out.append((b, hit + good))
+        return out
+
+    @staticmethod
+    def _counts(v, idx) -> tuple[int, int, int]:
+        """Images, images carrying at least one GT box, and GT instances, over image indices ``idx``.
+
+        A group's images are anomalous by construction, so ``n`` and ``n_defect`` normally agree; a
+        gap between them means images the taxonomy assigned an anomaly but the labels left empty.
+        """
+        gt = v._image_mask(idx)[1]
+        return len(idx), len(set(np.asarray(v._ood_img["gt"])[gt].tolist())), int(gt.sum())
+
     def group_rows(self, passes: dict) -> list[dict]:
         """One diagnostic row per group per epoch, all four passes merged into the row.
 
@@ -560,20 +599,19 @@ class OODEvaluator:
         for pre, entries in passes.items():
             for dataset, product, v in entries:
                 for g, idx in self._group_index(self.meta, v, dataset, product)[0].items():
-                    # The group's nature is its images' default; a group whose images disagree is
-                    # reported as `<default>+<other>` rather than silently as the majority.
-                    nats = {self.meta.nature_of(dataset, product, v._ood_files[i]) for i in idx}
-                    base = self.meta.nature(g) or "unknown"
-                    r = rows.setdefault(
-                        g,
-                        {
+                    if (r := rows.get(g)) is None:  # counts are pass-invariant -- build the row once
+                        # The group's nature is its images' default; a group whose images disagree
+                        # is reported as `<default>+<other>` rather than silently as the majority.
+                        nats = {self.meta.nature_of(dataset, product, v._ood_files[i]) for i in idx}
+                        base = self.meta.nature(g) or "unknown"
+                        counts = dict(zip(("n", "n_defect", "instances"), self._counts(v, idx)))
+                        r = rows[g] = {
                             "group": g,
                             "nature": base if nats <= {base} else "+".join(sorted(n or "?" for n in nats)),
                             "surface": self.meta.surface(dataset, product) or "unknown",
                             "status": "deferred" if self.meta.deferred(dataset) else "active",
-                            "n": len(idx),
-                        },
-                    )
+                            **counts,
+                        }
                     r.update({f"{pre}{k}": val for k, val in v._ood_map_metrics(images=idx).items()})
         return [rows[g] for g in sorted(rows)]
 
@@ -590,20 +628,18 @@ class OODEvaluator:
         """
         out: dict[str, float] = {}
         for pre, entries in passes.items():
+            blocks = [(dataset, product, v._ood_files) for dataset, product, v in entries]
             vs, sel, off = [], [], 0
-            for dataset, product, v in entries:
-                good = self._group_index(self.meta, v, dataset, product)[1]
-                # Image by image, not group by group: nature belongs to the image, so a group can
-                # contribute some of its images and not others.
-                hit = [i for i, f in enumerate(v._ood_files) if self.meta.selects(self.query, dataset, product, f)]
-                if not hit:
-                    continue
-                vs.append(v)
-                sel += [off + i for i in hit + good]
-                off += len(v._ood_files)
+            for b, idx in self.select_images(self.meta, self.query, blocks):
+                vs.append(entries[b][2])
+                sel += [off + i for i in idx]
+                off += len(blocks[b][2])
             if vs:
                 pool = YOLOAnomalyValidator.pooled(vs)
                 out.update({f"pool_{pre}{k}": val for k, val in pool._ood_map_metrics(images=sel).items()})
+                if "n_images" not in out:  # the selection is pass-invariant, so record its size once
+                    n_img, n_anom, instances = self._counts(pool, sel)
+                    out |= {"n_images": n_img, "n_anom_images": n_anom, "n_instances": instances}
         return out
 
     def save_rows(self, rows: list[dict], fname: str, key: str) -> None:

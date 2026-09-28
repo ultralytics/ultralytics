@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import csv
 import json
+from contextlib import contextmanager
 from pathlib import Path
 
 import cv2
@@ -236,6 +237,7 @@ class YOLOAnomalyValidator(DetectionValidator):
             fname = self.save_dir / f"val_batch{ni}_pred_{Path(batch['im_file'][i]).stem}.jpg"
             cv2.imwrite(str(fname), grid)
 
+    _dump_fh = None  # open file while `dumping` is active; see _process_batch
     _OOD_OPS = (0.01, 0.10, 0.25)  # conf floors; see _pr_at_floor for what is read at each
     _OOD_FITNESS_CONF = 0.25  # fitness is defined here; changing it breaks comparison with past runs
 
@@ -305,6 +307,47 @@ class YOLOAnomalyValidator(DetectionValidator):
         over 38 products exhausts the limit part-way through.
         """
         return type(self).pooled([self])
+
+    @classmethod
+    @contextmanager
+    def dumping(cls, path: str | Path | None):
+        """Record every (pred, gt) pair the matcher sees to ``path``, for the duration of the block.
+
+        The sink is class-wide because the four passes each build their own validator; scoping it to
+        a ``with`` keeps that state's lifetime here, in the class that owns the attribute, instead of
+        in whatever code remembers to unset it. ``path=None`` is a no-op, so callers need no branch.
+        """
+        cls._dump_fh = open(path, "w", encoding="utf-8") if path else None
+        try:
+            yield
+        finally:
+            if cls._dump_fh:
+                cls._dump_fh.close()
+            cls._dump_fh = None
+
+    def _process_batch(self, preds: dict, batch: dict) -> dict:
+        """Record the matcher's own inputs, then match as usual.
+
+        Dumping *here* rather than from ``update_metrics`` is the whole point: these two dicts ARE
+        what ``match_predictions`` consumes, so an offline read that replays them through the same
+        function cannot drift from the in-loop numbers. Anything recorded earlier (raw head output)
+        or later (``tp``) would give a second ruler or a frozen one.
+        """
+        if (fh := type(self)._dump_fh) is not None:
+            fh.write(
+                json.dumps(
+                    {
+                        "file": batch["im_file"],
+                        "gt_bboxes": batch["bboxes"].cpu().numpy().tolist(),
+                        "gt_cls": batch["cls"].cpu().numpy().ravel().astype(int).tolist(),
+                        "bboxes": preds["bboxes"].cpu().numpy().tolist(),
+                        "conf": preds["conf"].cpu().numpy().tolist(),
+                        "cls": preds["cls"].cpu().numpy().astype(int).tolist(),
+                    }
+                )
+                + "\n"
+            )
+        return super()._process_batch(preds, batch)
 
     def _image_mask(self, images) -> tuple[np.ndarray, np.ndarray] | None:
         """Prediction- and GT-space boolean masks selecting ``images`` (indices into ``_ood_files``).

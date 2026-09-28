@@ -7,12 +7,24 @@ that produced the dump is therefore a bug here, never a second opinion.
 
     PYTHONPATH=. python tools/analyze_ood_dump.py preds.jsonl --data <MVTec-Ultra root>
 
-Once the reproduction is trusted, the slicing is free: any ``--groups`` query re-scores the same
-dump in seconds instead of a GPU pass.
+Every row is MICRO: one ranked list over that row's images, scored once -- never a mean of smaller
+rows. Four scopes, differing only in which images they select:
+
+    pooled    the --groups query                      normals of contributing products included
+    dataset   the --groups query, one dataset at a time                                  included
+    nature    nature=<value>, its own query (see below)                                  included
+    group     one anomaly group's own images                                    EXCLUDED, see below
+
+``nature`` rows ignore ``--groups`` on purpose: under the default ``nature=structural`` an intersect
+would leave exactly one nature row, which is not a breakdown. ``group`` rows exclude normal images
+because a group holds only its own anomaly's images -- their ``P`` is "false detections inside this
+anomaly's images", not a deployment precision, exactly as in ``OODEvaluator.group_rows``.
 """
 
 import argparse
+import csv
 import json
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -21,6 +33,8 @@ from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidator
 from ultralytics.models.yolo.anomaly.val_rnd import GroupMeta, OODEvaluator
 
 DECISIVE = ("mAP50", "mAP50@0.25", "R50@0.25", "P50@0.25")
+TAGS = ("nature", "surface", "status")
+COUNTS = ("n", "n_defect", "instances")
 
 
 def load(path: str) -> YOLOAnomalyValidator:
@@ -51,12 +65,11 @@ def load(path: str) -> YOLOAnomalyValidator:
     return v
 
 
-def select(v: YOLOAnomalyValidator, meta: GroupMeta, query: str) -> list[int]:
-    """Image indices, in dump order, that the query pools over.
+def blocks(v: YOLOAnomalyValidator, meta: GroupMeta) -> list[tuple[str, str, list[str], list[int]]]:
+    """Split the flat dump back into per-product blocks: ``(dataset, product, files, dump indices)``.
 
-    All this does is split the flat dump back into per-product blocks; the rule for which images a
-    query keeps is ``OODEvaluator.select_images`` and is not restated here -- a second copy of it
-    would be the second ruler this whole file exists to avoid.
+    The dump is one flat file in evaluation order; every selection rule below is per-product, so
+    this is the one place that has to recover which product an image came from.
     """
     slugs = {slug: (ds, product) for ds, product, slug in meta.products()}
     per: dict[str, tuple[list[str], list[int]]] = {}
@@ -67,26 +80,117 @@ def select(v: YOLOAnomalyValidator, meta: GroupMeta, query: str) -> list[int]:
         files, where = per.setdefault(slug, ([], []))
         files.append(f)
         where.append(i)
-    keys = list(per)
-    blocks = [(*slugs[k], per[k][0]) for k in keys]
-    kept = OODEvaluator.select_images(meta, query, blocks)
-    return sorted(per[keys[b]][1][i] for b, idx in kept for i in idx)
+    return [(*slugs[k], *per[k]) for k in per]
+
+
+def pooled_idx(meta: GroupMeta, query: str, blks: list) -> list[int]:
+    """Dump indices ``query`` pools over, across ``blks``.
+
+    The rule for which images a query keeps is ``OODEvaluator.select_images`` and is not restated
+    here -- a second copy of it would be the second ruler this whole file exists to avoid. All this
+    adds is mapping that method's block-local indices back into dump order.
+    """
+    kept = OODEvaluator.select_images(meta, query, [(ds, p, files) for ds, p, files, _ in blks])
+    return sorted(blks[b][3][i] for b, idx in kept for i in idx)
+
+
+def rollups(v: YOLOAnomalyValidator, meta: GroupMeta, query: str, blks: list):
+    """Yield ``(scope, key, dump indices, tags)`` for every row, in report order.
+
+    ``tags`` carries the taxonomy columns that only mean something per group; the rows above span
+    several of each and leave them blank. See the module docstring for what each scope selects.
+    """
+    yield "pooled", query, pooled_idx(meta, query, blks), {}
+
+    for ds in sorted({b[0] for b in blks}):
+        if idx := pooled_idx(meta, query, [b for b in blks if b[0] == ds]):
+            yield "dataset", ds, idx, {}
+
+    natures = {meta.nature_of(ds, p, f) for ds, p, files, _ in blks for f in files}
+    for nat in sorted(n for n in natures if n):
+        if idx := pooled_idx(meta, f"nature={nat}", blks):
+            yield "nature", nat, idx, {"nature": nat}
+
+    groups: dict[str, tuple[list[int], dict, set]] = {}
+    for ds, product, files, where in blks:
+        for f, i in zip(files, where):
+            if g := meta.group_of(ds, product, f):  # None = a normal image, which no group owns
+                # `status` is load-bearing, not decoration: a deferred dataset still gets group rows
+                # (as in OODEvaluator.group_rows) but contributes nothing to any row above, so
+                # without this column its groups read as if they were part of the pooled number.
+                idx, tags, nats = groups.setdefault(g, ([], {
+                    "nature": meta.nature(g) or "unknown",
+                    "surface": meta.surface(ds, product) or "unknown",
+                    "status": "deferred" if meta.deferred(ds) else "active",
+                }, set()))
+                idx.append(i)
+                nats.add(meta.nature_of(ds, product, f))
+    for g in sorted(groups):
+        idx, tags, nats = groups[g]
+        # Nature belongs to the image, so a group's images can disagree with its default. Reported
+        # as `a+b` rather than silently as the majority -- the rule OODEvaluator.group_rows uses,
+        # and these rows have to match that file's to the digit.
+        if not nats <= {tags["nature"]}:
+            tags["nature"] = "+".join(sorted(n or "?" for n in nats))
+        yield "group", g, idx, tags
 
 
 def main() -> None:
-    """Replay a dump and print the pooled decisive metrics for one group query."""
-    ap = argparse.ArgumentParser(description="Recompute pooled OOD metrics from a prediction dump.")
+    """Replay a dump and report every scope, micro, for one group query."""
+    ap = argparse.ArgumentParser(description="Recompute OOD metrics from a prediction dump, sliced four ways.")
     ap.add_argument("dump", help="jsonl written by val_yoloa_mvtec_ultra.py --dump")
     ap.add_argument("--data", required=True, help="the MVTec-Ultra root whose meta.yaml is the taxonomy")
     ap.add_argument("--groups", default="nature=structural", help="tag query, or a list of group ids")
+    ap.add_argument("--csv", help="write every scope and all 16 metrics here (long format)")
+    ap.add_argument("--md", help="write the non-group scopes here as a markdown table, to paste into run.md")
     a = ap.parse_args()
 
     v = load(a.dump)
-    sel = select(v, GroupMeta(f"{a.data}/meta.yaml"), a.groups)
-    m = v._ood_map_metrics(images=sel)
-    print(f"{len(v._ood_files)} images in dump · pooled over {len(sel)} · {len(v._ood_stats['conf'])} predictions")
-    for k in DECISIVE:
-        print(f"  pool_{k:<12} {m[k]:.4f}")
+    meta = GroupMeta(f"{a.data}/meta.yaml")
+    blks = blocks(v, meta)
+    rows = []
+    for scope, key, idx, tags in rollups(v, meta, a.groups, blks):
+        counts = dict(zip(COUNTS, OODEvaluator._counts(v, idx)))
+        tags = {k: tags.get(k, "-") for k in TAGS}
+        # 4 decimals, uniformly: the house rule for every reported metric, and it also keeps the
+        # csv narrow enough to read aligned -- full float repr padded every metric column to 23.
+        mets = {k: f"{val:.4f}" for k, val in v._ood_map_metrics(images=idx).items()}
+        rows.append({"scope": scope, "key": key, **tags, **counts, **mets})
+
+    print(f"{len(v._ood_files)} images in dump · {len(blks)} products · "
+          f"{len(v._ood_stats['conf'])} predictions · groups={a.groups!r}")
+    head = f"\n{'scope':<8} {'key':<34} {'n':>5} {'def':>5} {'inst':>5} " + " ".join(f"{k:>11}" for k in DECISIVE)
+    print(head + "\n" + "-" * len(head.strip()))
+    for r in rows:
+        if r["scope"] == "group":  # 131 of these; they go to the csv, not the terminal
+            continue
+        print(f"{r['scope']:<8} {r['key']:<34} {r['n']:>5} {r['n_defect']:>5} {r['instances']:>5} "
+              + " ".join(f"{r[k]:>11}" for k in DECISIVE))
+
+    n_group = sum(r["scope"] == "group" for r in rows)
+    if a.md:
+        # Absolutes only, no Δ column: one dump is one run, and §6.1 forbids inventing a reference
+        # to fill a delta line. Comparing two runs is a different artifact and a different tool.
+        top = [r for r in rows if r["scope"] != "group"]
+        cols = ["scope", "key", *COUNTS, *DECISIVE]
+        Path(a.md).write_text(
+            "Single-pass dump (the records carry no pass tag -- name it from the run that wrote them).\n"
+            "Every row is micro: one ranked list per row, never a mean of rows. `n` includes the\n"
+            "normal images of contributing products; `n_defect` is the images carrying a GT box.\n"
+            "Absolutes only -- a single run has no reference, so there is no delta column.\n\n"
+            + "| " + " | ".join(cols) + " |\n| " + " | ".join("---" for _ in cols) + " |\n"
+            + "".join("| " + " | ".join(str(r[c]) for c in cols) + " |\n" for r in top),
+            encoding="utf-8",
+        )
+        print(f"\n-> {a.md}  ({len(top)} rows, group rows excluded)")
+    if a.csv:
+        with open(a.csv, "w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=list(rows[0]))
+            w.writeheader()
+            w.writerows(rows)
+        print(f"\n-> {a.csv}  ({len(rows)} rows incl. {n_group} groups × {len(rows[0]) - 8} metrics)")
+    else:
+        print(f"\n{n_group} group rows computed but not shown; pass --csv to keep them")
 
 
 if __name__ == "__main__":

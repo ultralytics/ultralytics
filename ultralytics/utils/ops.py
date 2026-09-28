@@ -613,15 +613,11 @@ def scale_masks(
 
     if ratio_pad is None:  # calculate from im0_shape
         gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - round(im0_w * gain_w)), (im1_h - round(im0_h * gain_h))  # wh padding
-        if padding:
-            pad_w /= 2
-            pad_h /= 2
+        pad_w, pad_h = (im1_w - round(im0_w * gain_w)) / 2, (im1_h - round(im0_h * gain_h)) / 2  # wh padding
     else:
         (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    # The bottom and right pads can be one pixel larger than the top and left ones, so end the crop at the content
-    bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)
+    bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)  # content end, odd pads extra at end
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 

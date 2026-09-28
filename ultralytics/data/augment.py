@@ -2276,7 +2276,7 @@ class Albumentations(BaseTransform):
                 lost = np.ones(len(points), bool)
                 lost[np.array(new["pidx"], dtype=int)] = False
                 moved = points.copy()
-                moved[~lost] = np.array(new["keypoints"], dtype=np.float32)
+                moved[~lost] = np.array(new["keypoints"], dtype=np.float32).reshape(-1, 2)
                 if n:
                     segment_lost = lost[:n].reshape(segments.shape[:2])
                     segment_points = moved[:n].reshape(segments.shape)

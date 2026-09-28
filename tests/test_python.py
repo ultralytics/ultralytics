@@ -1613,6 +1613,16 @@ def test_utils_init():
     is_github_action_running()
 
 
+def test_tqdm_format_time_rounding():
+    """Test TQDM elapsed and remaining times roll rounded seconds over instead of printing ':60'."""
+    from ultralytics.utils.tqdm import TQDM
+
+    assert TQDM._format_time(59.97) == "1:00"
+    assert TQDM._format_time(119.6) == "2:00"  # was '1:60'
+    assert TQDM._format_time(3599.7) == "1:00:00"  # was '59:60'
+    assert TQDM._format_time(3725) == "1:02:05"
+
+
 def test_utils_checks(monkeypatch):
     """Test various utility checks for filenames, requirements, image sizes, display capabilities, and versions."""
 

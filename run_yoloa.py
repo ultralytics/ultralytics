@@ -26,7 +26,7 @@ import torch
 
 from ultralytics.models.yolo.anomaly.predict import AnomalyPredictorHM
 from ultralytics.models.yolo.anomaly.val import YOLOAnomalyCocoValidator, YOLOAnomalyValidatorHM
-from ultralytics.models.yolo.anomaly.train_rnd import MVTEC_CATEGORIES
+from ultralytics.models.yolo.anomaly.val_rnd import MVTEC_CATEGORIES
 from ultralytics.utils import LOGGER
 from ultralytics import YOLOA
 from yoloa_utils import (

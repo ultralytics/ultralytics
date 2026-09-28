@@ -1924,15 +1924,17 @@ def _depth_head_feats():
 
 
 def test_nn_depth_head_export_upsamples_to_input():
-    """Depth export upsamples x4 to input resolution; inference returns native head resolution."""
+    """Depth export upsamples x4 on the depth loss align_corners=True grid; inference returns native head resolution."""
+    import torch.nn.functional as F
+
     from ultralytics.nn.modules.head import Depth
 
-    head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
+    head, x = Depth(c_mid=32, ch=(32, 64, 128)).eval(), _depth_head_feats()
+    native = head(x)
+    assert native.shape[-2:] == (64, 64)  # inference returns native head resolution
     for fmt in ("onnx", "coreml"):
         head.export, head.format = True, fmt
-        assert head(_depth_head_feats()).shape[-2:] == (256, 256)
-    head.export = False
-    assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
+        assert torch.equal(head(x), F.interpolate(native, scale_factor=4.0, mode="bilinear", align_corners=True))
 
 
 def test_nn_depth_head_no_dead_parameters():

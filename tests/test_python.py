@@ -1102,6 +1102,19 @@ def test_results_plot_without_boxes():
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
 
 
+def test_results_plot_instance_keypoints_track_color():
+    """Test that color_mode='instance' colors tracked keypoints by track ID, like boxes and masks."""
+    from ultralytics.engine.results import Results
+    from ultralytics.utils.plotting import colors
+
+    boxes = torch.tensor([[10, 10, 50, 50, 5, 0.9, 0]], dtype=torch.float32)  # track id 5
+    keypoints = torch.tensor([[[30, 30, 1.0]] * 17])
+    r = Results(
+        np.zeros((64, 64, 3), dtype=np.uint8), path="im.jpg", names={0: "person"}, boxes=boxes, keypoints=keypoints
+    )
+    assert r.plot(color_mode="instance", boxes=False)[30, 30].tolist() == list(colors(5, True))
+
+
 def test_results_depth_field():
     """A depth array becomes a DepthMap that survives the .cpu().numpy() chain."""
     from ultralytics.engine.results import DepthMap, Results

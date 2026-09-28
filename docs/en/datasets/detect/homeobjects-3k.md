@@ -19,13 +19,13 @@ The Ultralytics HomeObjects-3K dataset is an indoor [object detection](../../tas
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/v3iqOYoRBFQ"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/D3W9SuEWDOk"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to Train Ultralytics YOLO on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
+  <strong>Watch:</strong> How to Train Ultralytics YOLO26 on HomeObjects-3K Dataset | Detection, Validation & ONNX Export 🚀
 </p>
 
 ## Dataset Structure

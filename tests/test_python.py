@@ -1358,6 +1358,27 @@ def test_safe_download_skips_unsafe_tar_members(tmp_path):
     assert extracted == tmp_path / "datasets" / "safe.txt" and extracted.is_file()
 
 
+def test_convert_coco_lvis_image_list(tmp_path):
+    """Test convert_coco(lvis=True) writes image lists that resolve relative to the list file."""
+    import json
+
+    from ultralytics.data.converter import convert_coco
+    from ultralytics.data.dataset import YOLODataset
+
+    data = {
+        "images": [{"id": 1, "coco_url": "http://images.cocodataset.org/train2017/1.jpg", "height": 32, "width": 32}],
+        "annotations": [{"id": 1, "image_id": 1, "category_id": 1, "bbox": [8, 8, 16, 16]}],
+    }
+    (tmp_path / "annotations").mkdir()
+    (tmp_path / "annotations" / "lvis_v1_train.json").write_text(json.dumps(data), encoding="utf-8")
+    save_dir = tmp_path / "lvis"
+    convert_coco(labels_dir=tmp_path / "annotations", save_dir=save_dir, cls91to80=False, lvis=True)
+    (save_dir / "images" / "train2017").mkdir(parents=True)
+    cv2.imwrite(str(save_dir / "images" / "train2017" / "1.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    dataset = YOLODataset(img_path=str(save_dir / "train.txt"), data={"names": {0: "a"}, "channels": 3}, imgsz=32)
+    assert dataset.im_files == [str(save_dir / "images" / "train2017" / "1.jpg")]
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 def test_data_converter(tmp_path):
     """Test dataset conversion functions from COCO to YOLO format and class mappings."""

@@ -1789,6 +1789,25 @@ def test_scale_coords_nonuniform_letterbox():
     assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
 
 
+def test_scale_masks_odd_letterbox_pad():
+    """Mask scaling with the dataloader's ratio_pad must end the crop where the letterbox content ends."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    # A 1000x1920 or 1920x1000 image, resized to 333x640 or 640x333, gets 19 rows or columns of padding: 9 and 10
+    for shape, im0_shape, pad in (((352, 640), (1000, 1920), (0, 9)), ((640, 352), (1920, 1000), (9, 0))):
+        h, w = im0_shape[0] // 3, im0_shape[1] // 3
+        labels = {"img": np.zeros((h, w, 3), dtype=np.uint8), "ratio_pad": (h / im0_shape[0], w / im0_shape[1])}
+        ratio_pad = LetterBox(shape, scaleup=False)(labels)["ratio_pad"]  # ((gain_h, gain_w), (left, top))
+        assert ratio_pad[1] == pad
+        left, top = pad
+        masks = torch.zeros(1, 1, *shape)
+        masks[..., top : top + h, left : left + w] = 1 + torch.rand(h, w)  # positive content, zero padding
+        scaled = ops.scale_masks(masks, im0_shape, ratio_pad=ratio_pad)
+        assert (scaled > 0.5).all()  # every original pixel is content: no padded row or column survived the crop
+        assert torch.equal(scaled, ops.scale_masks(masks, im0_shape))  # the ratio_pad=None crop is unchanged
+
+
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression

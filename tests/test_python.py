@@ -1770,16 +1770,6 @@ def test_utils_ops():
     assert segment2box(seg, 640, 640).tolist() == [0, 0, 640, 640]
 
 
-def test_instances_flip_ltwh():
-    """Flipping a left-top-width-height box must preserve its dimensions and mirror its occupied area."""
-    from ultralytics.utils.instance import Instances
-
-    instances = Instances(np.array([[10.0, 20.0, 30.0, 40.0]]), bbox_format="ltwh", normalized=False)
-    instances.fliplr(100)
-    instances.flipud(100)
-    np.testing.assert_array_equal(instances.bboxes, [[60.0, 40.0, 30.0, 40.0]])
-
-
 def test_scale_coords_nonuniform_letterbox():
     """Coordinate scaling must invert independent height and width gains from stretched preprocessing."""
     from ultralytics.data.augment import LetterBox

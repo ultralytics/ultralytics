@@ -33,7 +33,7 @@ from ultralytics.models.yolo.anomaly.val import YOLOAnomalyValidator
 from ultralytics.models.yolo.anomaly.val_rnd import GroupMeta, OODEvaluator
 
 DECISIVE = ("mAP50", "mAP50@0.25", "R50@0.25", "P50@0.25")
-TAGS = ("nature", "surface", "status")
+TAGS = ("dataset", "nature", "group", "surface", "status")
 COUNTS = ("n", "n_defect", "instances")
 
 
@@ -95,32 +95,35 @@ def pooled_idx(meta: GroupMeta, query: str, blks: list) -> list[int]:
 
 
 def rollups(v: YOLOAnomalyValidator, meta: GroupMeta, query: str, blks: list):
-    """Yield ``(scope, key, dump indices, tags)`` for every row, in report order.
+    """Yield ``(scope, dump indices, tags)`` for every row, in report order.
 
-    ``tags`` carries the taxonomy columns that only mean something per group; the rows above span
-    several of each and leave them blank. See the module docstring for what each scope selects.
+    The axes a row is sliced on are ``tags`` -- real columns, so the grid can filter and sort on
+    them. What a row covers is therefore read off ``dataset`` / ``nature`` / ``group``, never
+    parsed back out of a label; a tag left unset spans every value of that axis.
+    See the module docstring for what each scope selects.
     """
     datasets = sorted({b[0] for b in blks})
     of = lambda ds: [b for b in blks if b[0] == ds]  # noqa: E731 -- the blocks of one dataset
+    # A tag query pins an axis; a bare list of group ids pins none, and only `query` records it.
+    tag, _, want = (t.strip() for t in (query or "").partition("="))
+    pinned = {tag: want} if want and tag in TAGS else {}
 
-    yield "pooled", query, pooled_idx(meta, query, blks), {}
+    yield "pooled", pooled_idx(meta, query, blks), pinned
 
-    # Keys carry the query they were read under: a row labelled `mvtec` alone reads as the whole
-    # dataset when it is in fact the dataset INTERSECTED with --groups.
     for ds in datasets:
         if idx := pooled_idx(meta, query, of(ds)):
-            yield "dataset", f"{ds} @ {query}", idx, {}
+            yield "dataset", idx, {"dataset": ds, **pinned}
 
     natures = {meta.nature_of(ds, p, f) for ds, p, files, _ in blks for f in files}
     for nat in sorted(n for n in natures if n):
         q = f"nature={nat}"
         if idx := pooled_idx(meta, q, blks):
-            yield "nature", q, idx, {"nature": nat}
+            yield "nature", idx, {"nature": nat}
         # The cross, because the two axes above each hide the other: `nature=logical` pools four
         # datasets into one number, and the dataset rows are all at the --groups nature only.
         for ds in datasets:
             if idx := pooled_idx(meta, q, of(ds)):
-                yield "dataset_nature", f"{ds} @ {q}", idx, {"nature": nat}
+                yield "dataset_nature", idx, {"dataset": ds, "nature": nat}
 
     groups: dict[str, tuple[list[int], dict, set]] = {}
     for ds, product, files, where in blks:
@@ -138,12 +141,13 @@ def rollups(v: YOLOAnomalyValidator, meta: GroupMeta, query: str, blks: list):
                 nats.add(meta.nature_of(ds, product, f))
     for g in sorted(groups):
         idx, tags, nats = groups[g]
+        tags["group"], tags["dataset"] = g, g.split("/")[0]
         # Nature belongs to the image, so a group's images can disagree with its default. Reported
         # as `a+b` rather than silently as the majority -- the rule OODEvaluator.group_rows uses,
         # and these rows have to match that file's to the digit.
         if not nats <= {tags["nature"]}:
             tags["nature"] = "+".join(sorted(n or "?" for n in nats))
-        yield "group", g, idx, tags
+        yield "group", idx, tags
 
 
 def main() -> None:
@@ -160,7 +164,7 @@ def main() -> None:
     meta = GroupMeta(f"{a.data}/meta.yaml")
     blks = blocks(v, meta)
     rows, seen = [], set()
-    for scope, key, idx, tags in rollups(v, meta, a.groups, blks):
+    for scope, idx, tags in rollups(v, meta, a.groups, blks):
         # Two scopes can land on the identical image set -- `pooled` under a nature query IS the
         # `nature` row for it, and a dataset row IS its cross cell. Keep the first, which is the
         # more general scope, and drop the restatement: a duplicate row is not a second reading.
@@ -173,16 +177,18 @@ def main() -> None:
         # 4 decimals, uniformly: the house rule for every reported metric, and it also keeps the
         # csv narrow enough to read aligned -- full float repr padded every metric column to 23.
         mets = {k: f"{val:.4f}" for k, val in v._ood_map_metrics(images=idx).items()}
-        rows.append({"scope": scope, "key": key, **tags, **counts, **mets})
+        rows.append({"scope": scope, **tags, **counts, **mets})
 
     print(f"{len(v._ood_files)} images in dump · {len(blks)} products · "
           f"{len(v._ood_stats['conf'])} predictions · groups={a.groups!r}")
-    head = f"\n{'scope':<15} {'key':<38} {'n':>5} {'def':>5} {'inst':>5} " + " ".join(f"{k:>11}" for k in DECISIVE)
+    head = (f"\n{'scope':<15}{'dataset':<11}{'nature':<12}{'n':>5}{'def':>6}{'inst':>6} "
+            + " ".join(f"{k:>11}" for k in DECISIVE))
     print(head + "\n" + "-" * len(head.strip()))
     for r in rows:
         if r["scope"] == "group":  # 131 of these; they go to the csv, not the terminal
             continue
-        print(f"{r['scope']:<15} {r['key']:<38} {r['n']:>5} {r['n_defect']:>5} {r['instances']:>5} "
+        print(f"{r['scope']:<15}{r['dataset']:<11}{r['nature']:<12}"
+              f"{r['n']:>5}{r['n_defect']:>6}{r['instances']:>6} "
               + " ".join(f"{r[k]:>11}" for k in DECISIVE))
 
     n_group = sum(r["scope"] == "group" for r in rows)
@@ -190,7 +196,7 @@ def main() -> None:
         # Absolutes only, no Δ column: one dump is one run, and §6.1 forbids inventing a reference
         # to fill a delta line. Comparing two runs is a different artifact and a different tool.
         top = [r for r in rows if r["scope"] != "group"]
-        cols = ["scope", "key", *COUNTS, *DECISIVE]
+        cols = ["scope", "dataset", "nature", *COUNTS, *DECISIVE]
         Path(a.md).write_text(
             "Single-pass dump (the records carry no pass tag -- name it from the run that wrote them).\n"
             "Every row is micro: one ranked list per row, never a mean of rows. `n` includes the\n"
@@ -208,7 +214,8 @@ def main() -> None:
             w = csv.DictWriter(f, fieldnames=list(rows[0]))
             w.writeheader()
             w.writerows(rows)
-        print(f"\n-> {a.csv}  ({len(rows)} rows incl. {n_group} groups × {len(rows[0]) - 8} metrics)")
+        n_met = len(rows[0]) - len(TAGS) - len(COUNTS) - 1
+        print(f"\n-> {a.csv}  ({len(rows)} rows incl. {n_group} groups × {n_met} metrics)")
     else:
         print(f"\n{n_group} group rows computed but not shown; pass --csv to keep them")
 

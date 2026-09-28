@@ -2315,3 +2315,18 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
+
+
+def test_depth_export_align_corners():
+    """Test the exported depth head upsamples with the depth loss's align_corners=True grid."""
+    import torch.nn.functional as F
+
+    from ultralytics.nn.modules import Depth
+
+    head = Depth(ch=(32, 64, 128)).eval()
+    x = [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
+    with torch.no_grad():
+        eval_out = head(x)  # (1, 1, 64, 64) calibrated depth at P2 resolution
+        head.export = True
+        export_out = head(x)  # (1, 1, 256, 256) 4x upsampled export output
+    assert torch.equal(export_out, F.interpolate(eval_out, scale_factor=4.0, mode="bilinear", align_corners=True))

@@ -5,7 +5,6 @@
 
 # Start FROM ROCm PyTorch image https://hub.docker.com/r/rocm/pytorch
 # See https://hub.docker.com/r/rocm/pytorch/tags for available tags
-# ROCm 10 base aligns with the ROCm 10 / MIGraphX 2.17 / onnxruntime 1.29 plugin wheels installed below.
 FROM rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0
 
 # Set environment variables
@@ -40,9 +39,7 @@ RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (PyTorch + ROCm already present in base image)
-# Use pip directly for Ubuntu 24.04 externally-managed Python compatibility.
-# The MIGraphX EP ships as the onnxruntime-ep-migraphx plugin (pulls stock onnxruntime 1.29); migraphx-libs provides
-# its C library and libamdhip64.so.7 comes from the base image's ROCm runtime.
+# migraphx-libs provides the MIGraphX EP plugin's C library; libamdhip64.so.7 comes from the base image
 RUN pip install -e "." albumentations faster-coco-eval uv && \
     pip install "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" \
       --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \

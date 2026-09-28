@@ -40,7 +40,6 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
     import ctypes
     import glob
 
-    # Preload libs the plugin links but cannot locate itself (see docstring).
     search = [str(Path(onnxruntime.__file__).parent / "capi" / "libonnxruntime.so.1*")]
     try:
         import migraphx_libs
@@ -68,8 +67,7 @@ def _register_migraphx_ep(onnxruntime) -> str | None:
 def _migraphx_cache_root() -> Path:
     """Resolve the MIGraphX compiled-program cache root once per process.
 
-    Cached so per-model ORT_MIGRAPHX_CACHE_DIR overwrites don't nest each cache under the last, keeping the dirs
-    siblings.
+    Cached so per-model ORT_MIGRAPHX_CACHE_DIR overwrites don't nest each cache under the last.
 
     Returns:
         (Path): Cache root from ORT_MIGRAPHX_CACHE_DIR if set, else under USER_CONFIG_DIR.
@@ -106,8 +104,6 @@ def _create_session(onnxruntime, weight: str | Path, session_options, providers=
         (onnxruntime.InferenceSession): The loaded inference session.
     """
     try:
-        if providers is None:
-            return onnxruntime.InferenceSession(weight, session_options)
         return onnxruntime.InferenceSession(weight, session_options, providers=providers)
     except onnxruntime.capi.onnxruntime_pybind11_state.InvalidProtobuf as e:
         # ONNX Runtime reports an unparsable graph as a raw protobuf error naming neither the problem nor a remedy.
@@ -121,9 +117,6 @@ def _create_session(onnxruntime, weight: str | Path, session_options, providers=
 
 def _load_migraphx_session(onnxruntime, session_options, weight: str | Path, index: int):
     """Build an InferenceSession on the MIGraphX plugin EP, or return None if MIGraphX is unavailable.
-
-    Registers the plugin, selects the requested GPU, disables Winograd to speed cold compiles, enables the per-model
-    compiled-program cache, and creates the session. The EP is added via `add_provider_for_devices`, not `providers=`.
 
     Args:
         onnxruntime (module): The imported onnxruntime module.
@@ -242,7 +235,6 @@ class ONNXBackend(BaseBackend):
 
             session_options = self.session_options or onnxruntime.SessionOptions()
 
-            # On ROCm, try the MIGraphX plugin EP first; it returns a configured session, or None if unavailable.
             self.session = None
             if rocm:
                 try:

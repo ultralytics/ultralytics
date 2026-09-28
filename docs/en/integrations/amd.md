@@ -13,28 +13,19 @@ By exporting your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytic
 
 ## MIGraphX and the ONNX Runtime Execution Provider
 
-[ONNX Runtime](https://onnxruntime.ai/) is a cross-platform inference engine that runs a single ONNX model on many hardware backends through pluggable [execution providers](https://onnxruntime.ai/docs/execution-providers/) (EPs). Each EP maps the ONNX graph onto a specific accelerator: CUDA for NVIDIA GPUs, CoreML for Apple silicon, and **MIGraphX** for AMD GPUs on ROCm.
-
-The MIGraphX EP ships as a loadable plugin package (`onnxruntime-ep-migraphx`) that adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module. When Ultralytics runs an ONNX model on a ROCm system, it registers this plugin and hands the graph to MIGraphX, which compiles it into a tuned program for your GPU and executes inference on device.
+[ONNX Runtime](https://onnxruntime.ai/) is a cross-platform inference engine that runs a single ONNX model on many hardware backends through pluggable [execution providers](https://onnxruntime.ai/docs/execution-providers/) (EPs). Each EP maps the ONNX graph onto a specific accelerator: CUDA for NVIDIA GPUs, CoreML for Apple silicon, and **MIGraphX** for AMD GPUs on ROCm, which ships as the `onnxruntime-ep-migraphx` plugin and compiles the graph into a tuned program for your GPU.
 
 !!! note "Why AMD GPUs report as CUDA in Ultralytics"
 
     The ROCm build of PyTorch uses HIP internally but deliberately reuses the `torch.cuda` interfaces, so `torch.cuda.is_available()` returns `True` and AMD GPUs are addressed with standard CUDA-style IDs. Use `device=0` or `device=cuda:0` for AMD GPUs; `rocm` is not a PyTorch device type. See the [PyTorch HIP semantics](https://docs.pytorch.org/docs/stable/notes/hip.html) for details.
 
-## Why Run YOLO Inference on AMD GPUs with MIGraphX
-
-- **Out-of-the-box GPU acceleration**: On a ROCm host the ONNX backend selects the MIGraphX EP automatically. Without it, ONNX inference on an AMD GPU silently falls back to the CPU, leaving GPU performance unused.
-- **No code changes**: Export once to ONNX, then use the standard `predict` and `val` APIs with `device=0`.
-- **Portable artifact**: A single `.onnx` file runs on CPUs, NVIDIA GPUs, and AMD GPUs, letting you target multiple platforms from one export.
-- **Compiled-program cache**: MIGraphX compiles the graph on the first run and Ultralytics caches the result, so later sessions load fast.
-- **Full task coverage**: All YOLO26 tasks run on the MIGraphX EP.
-
 ## Key Features of MIGraphX Inference
 
+- **Automatic provider selection**: On a ROCm host the ONNX backend registers the plugin and selects `MIGraphXExecutionProvider` with no code changes. Without it, ONNX inference on an AMD GPU silently falls back to the CPU.
 - **Graph optimization**: MIGraphX applies operator fusion, memory planning, and kernel selection tuned for AMD GPU architectures.
-- **Automatic provider selection**: The ONNX backend registers the plugin and picks `MIGraphXExecutionProvider` when ROCm is detected, with a clean CPU fallback otherwise.
 - **Zero-copy IO binding**: Inputs and outputs are bound directly to GPU tensors through the DLPack protocol, avoiding host round-trips during inference.
 - **Precision options**: Run FP32 or export an FP16 ONNX model for reduced-precision inference.
+- **Portable artifact**: A single `.onnx` file runs on CPUs, NVIDIA GPUs, and AMD GPUs, letting you target multiple platforms from one export.
 - **Reproducible deployment**: The full stack (ROCm PyTorch, the MIGraphX plugin, and its libraries) installs through `pip` from AMD's ROCm wheel indexes.
 
 ## Supported Tasks
@@ -181,10 +172,6 @@ The wheels target ROCm 10 (MIGraphX 2.17, ONNX Runtime 1.29), so keep the plugin
 
     Ultralytics disables MIGraphX Winograd convolution kernels by default (`MIGRAPHX_DISABLE_WINOGRAD=1`) to cut cold-compile time on YOLO graphs with no measurable inference change ([ROCm/AMDMIGraphX#5234](https://github.com/ROCm/AMDMIGraphX/issues/5234)); set `MIGRAPHX_DISABLE_WINOGRAD=0` to re-enable them.
 
-!!! note "Selecting a GPU on multi-GPU hosts"
-
-    Set `HIP_VISIBLE_DEVICES` (for example `HIP_VISIBLE_DEVICES=2`) to expose the chosen GPU as `device=0`. This is the standard ROCm selection mechanism for MIGraphX EP inference.
-
 For a ready-to-run environment, `docker/Dockerfile-amd` provides a ROCm image with the MIGraphX EP preinstalled, and AMD GPU hardware CI validates the integration on a scheduled job.
 
 ## Train on AMD GPUs with PyTorch ROCm
@@ -210,8 +197,6 @@ Native training, validation, and prediction on `.pt` models run on AMD GPUs thro
         # Train on one AMD GPU (use device=0,1 for multiple GPUs)
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=0
         ```
-
-Ultralytics enables [Automatic Mixed Precision (AMP)](https://www.ultralytics.com/glossary/mixed-precision) by default and runs a compatibility check before training; ROCm AMP behavior depends on the PyTorch and ROCm versions, so use `amp=False` when troubleshooting a stack-specific failure.
 
 ## Support at a Glance
 

@@ -726,7 +726,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
 | **Find Similar Images**     | Search public, own, and team datasets for look-alike images to add (see [Find Similar Images](#find-similar-images)) |
-| **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
+| **Generate Similar Images** | Create AI-generated variations, then add the ones you keep (see [Generate Similar Images](#generate-similar-images)) |
 | **Blur Faces**              | Blur the faces detected in the image (see [Blur Faces](#blur-faces))                                                 |
 | **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
 | **Paste**                   | Paste copied or cut images into this dataset; shown when the clipboard holds images from another dataset             |
@@ -797,6 +797,19 @@ Copy or move images from one dataset you can edit into another, including a data
 Pasted images keep their labels and splits, and images the destination already holds in the same split are skipped. **Cut** removes the pasted images from the source dataset; **Copy** leaves it unchanged. The source and destination must have the same task and compatible image channels, pose keypoint settings, and depth scale, even when the copied images have no labels. An empty destination can inherit unset image-channel and pose settings. Images cannot be pasted into a [connected dataset](#what-is-not-available-for-connected-datasets).
 
 Classes are matched by name, ignoring case, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
+
+### Generate Similar Images
+
+Create new training images from one you already have. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Generate similar images**. Platform describes new scenes inspired by the image and generates one image for each, so the results share the source's subjects and style without copying it.
+
+| Setting              | Description                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| **Model**            | **Ultralytics Image 4B** (default) is the fastest; **Ultralytics Image 6B** has a different style and takes longer |
+| **Number of images** | Variations to create, from `1` to `16` (default `4`)                                                               |
+| **Image size**       | Longest edge from `320` to `1280` px (default `1024`), keeping the source's proportions                            |
+| **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
+
+Click **Generate**. Images appear as they finish, all selected. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, added to the `train` split without labels, counted against your storage, and ready for [annotation](annotation.md). **Cancel** discards them. The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
 
 ### Blur Faces
 
@@ -1065,6 +1078,7 @@ Datasets that read from [cloud storage](../integrations/index.md) or [On Premise
 | [NDJSON export](#export-dataset)                             | Available       | Unavailable |
 | [Semantic PNG mask import](#preparing-your-dataset)          | Unavailable     | Available   |
 | [Blur faces](#blur-faces)                                    | Unavailable     | Unavailable |
+| [Generate similar images](#generate-similar-images)          | Unavailable     | Unavailable |
 | [Pasting images](#copy-and-move-images) into the dataset     | Unavailable     | Unavailable |
 
 Browsing, manual annotation, class management, splits, statistics, and training all work normally.

@@ -30,6 +30,8 @@ The Data section of Ultralytics Platform helps you:
 - **Keep pixels on premise** with Enterprise [On Premise](../integrations/on-premise.md) CPU/GPU workers
 - **Annotate** with manual drawing tools and Smart annotation with SAM ([SAM 2.1](../../models/sam-2.md), [SAM 3](../../models/sam-3.md), or the default [SAM 3.1](../../models/sam-3.md#sam-31)), YOLO models, or class-prompted models — hosted open-source or paid provider models — on detection datasets with 1–100 classes
 - **Manage classes** by renaming, recoloring, merging, and deleting them across the whole dataset
+- **Expand** datasets with [Find Similar Images](datasets.md#find-similar-images) or [Generate Similar Images](datasets.md#generate-similar-images), then annotate the images you keep
+- **Blur faces** in [existing images or future uploads](datasets.md#blur-faces)
 - **Analyze** your data with statistics, visualizations, and embedding-based clustering
 - **Export** in [NDJSON format](../../datasets/detect/index.md#ultralytics-ndjson-format) for local training
 

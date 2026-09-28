@@ -50,7 +50,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.5"  # pose labels scanned for box tasks now keep the box and drop the keypoints
+DATASET_CACHE_VERSION = "1.0.6"  # semantic mask class ids are now validated at scan
 
 
 class YOLODataset(BaseDataset):

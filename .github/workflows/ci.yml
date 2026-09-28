@@ -342,6 +342,11 @@ jobs:
           # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
           run: |
             pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
+            if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+              # Windows Xeon 8573C runners that expose AMX crash in OpenVINO INT8 inference (0xc000001d), see
+              # https://github.com/openvinotoolkit/openvino/issues/37076
+              export ONEDNN_MAX_CPU_ISA=AVX512_CORE_VNNI
+            fi
             if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"
             else

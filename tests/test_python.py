@@ -2315,3 +2315,23 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
+
+
+def test_semantic_mask_invalid_class_ids_scan(tmp_path):
+    """Test masks with unmapped class ids are rejected at scan instead of crashing the training loss."""
+    from ultralytics.data.dataset import SemanticDataset
+
+    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    bad, good = np.zeros((32, 32), dtype=np.uint8), np.zeros((32, 32), dtype=np.uint8)
+    bad[8:24, 8:24] = 3  # class id 3 is not a class of a 2-class dataset
+    good[8:24, 8:24] = 1
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    cv2.imwrite(str(images / "b.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
+    cv2.imwrite(str(masks / "a.png"), bad)
+    cv2.imwrite(str(masks / "b.png"), good)
+
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={"names": {0: "bg", 1: "fg"}, "nc": 2})
+    assert len(dataset.im_files) == 1 and Path(dataset.im_files[0]).name == "b.jpg"  # bad-id mask dropped
+    assert dataset.load_mask(0)[8, 8] == 1  # good mask intact

@@ -348,18 +348,19 @@ def verify_image_depth(args: tuple) -> tuple:
 
 
 def verify_image_mask(args: tuple) -> tuple:
-    """Verify that an image and its semantic mask exist, are readable, and have matching shapes.
+    """Verify that an image and its semantic mask exist, are readable, have matching shapes, and contain only valid class ids.
 
     Args:
-        args (tuple): Tuple of (im_file, mask_file, prefix). If mask_file is missing, masks with the same stem and
-            another image extension are tried.
+        args (tuple): Tuple of (im_file, mask_file, prefix, allowed_ids). If mask_file is missing, masks with the same
+            stem and another image extension are tried. allowed_ids is the array of raw mask pixel ids the dataset
+            accepts after label mapping, plus 255 for ignore.
 
     Returns:
         (tuple): Tuple of (im_file, mask_file, shape, is_1bit, nm, nf, nc, msg), where the first four are None for
             rejected samples, is_1bit is whether the mask is a 1-bit PIL image, nm, nf, and nc are missing, found, and
             corrupt counts, and msg is a log message.
     """
-    im_file, mask_file, prefix = args
+    im_file, mask_file, prefix, allowed_ids = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -375,6 +376,11 @@ def verify_image_mask(args: tuple) -> tuple:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            ids = np.flatnonzero(np.bincount(mask.ravel(), minlength=256))  # ids present in the mask
+            assert np.isin(ids, allowed_ids).all(), (
+                f"mask class ids {ids[~np.isin(ids, allowed_ids)].tolist()} are not dataset class ids "
+                f"{np.asarray(allowed_ids).tolist()}, use 255 for ignore"
+            )
             with Image.open(mask_file) as im:
                 is_1bit = im.mode == "1"  # recorded for every mask so a yaml 'nc' edit never needs a rescan
             nf = 1

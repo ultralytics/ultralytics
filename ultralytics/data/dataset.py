@@ -993,8 +993,10 @@ class SemanticDataset(YOLODataset):
         return f"{nf} images, {nm} missing masks, {nc} corrupt"
 
     def verify_args(self) -> tuple:
-        """Return the mask verification function and its argument iterable."""
-        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix))
+        """Return the mask verification function and its argument iterable used by `cache_labels`."""
+        nc = len(self.data["names"])
+        allowed_ids = np.flatnonzero((self.label_lut <= max(nc - 1, 1)) | (self.label_lut == 255))
+        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix), repeat(allowed_ids))
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""

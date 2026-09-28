@@ -7,10 +7,13 @@ that produced the dump is therefore a bug here, never a second opinion.
 
     PYTHONPATH=. python tools/analyze_ood_dump.py preds.jsonl --data <MVTec-Ultra root>
 
-Every row is MICRO: one ranked list over that row's images, scored once -- never a mean of smaller
-rows. Four scopes, differing only in which images they select:
+EVERY row is micro -- one ranked list over that row's images, scored once, never a mean of smaller
+rows. That includes the group rows. `scope` says which axis a row PINS, not how it was computed:
+`all` pins none, `group` pins one group. Nothing here is ever a macro average.
 
-    pooled    the --groups query                      normals of contributing products included
+Five scopes, differing only in which images they select:
+
+    all       the --groups query                      normals of contributing products included
     dataset   the --groups query, one dataset at a time                                  included
     nature    nature=<value>, its own query (see below)                                  included
     group     one anomaly group's own images                                    EXCLUDED, see below
@@ -108,7 +111,7 @@ def rollups(v: YOLOAnomalyValidator, meta: GroupMeta, query: str, blks: list):
     tag, _, want = (t.strip() for t in (query or "").partition("="))
     pinned = {tag: want} if want and tag in TAGS else {}
 
-    yield "pooled", pooled_idx(meta, query, blks), pinned
+    yield "all", pooled_idx(meta, query, blks), pinned  # pins no axis; NOT "the pooled one"
 
     for ds in datasets:
         if idx := pooled_idx(meta, query, of(ds)):
@@ -165,7 +168,7 @@ def main() -> None:
     blks = blocks(v, meta)
     rows, seen = [], set()
     for scope, idx, tags in rollups(v, meta, a.groups, blks):
-        # Two scopes can land on the identical image set -- `pooled` under a nature query IS the
+        # Two scopes can land on the identical image set -- `all` under a nature query IS the
         # `nature` row for it, and a dataset row IS its cross cell. Keep the first, which is the
         # more general scope, and drop the restatement: a duplicate row is not a second reading.
         sel = tuple(idx)
@@ -199,7 +202,8 @@ def main() -> None:
         cols = ["scope", "dataset", "nature", *COUNTS, *DECISIVE]
         Path(a.md).write_text(
             "Single-pass dump (the records carry no pass tag -- name it from the run that wrote them).\n"
-            "Every row is micro: one ranked list per row, never a mean of rows. `n` includes the\n"
+            "EVERY row is micro -- one ranked list per row, never a mean of rows; `scope` says which\n"
+            "axis the row pins, not how it was computed. `n` includes the\n"
             "normal images of contributing products; `n_defect` is the images carrying a GT box.\n"
             "Absolutes only -- a single run has no reference, so there is no delta column.\n"
             "A scope with no rows under it selected the same images as a row already above it\n"

@@ -379,7 +379,7 @@ class LoadImagesAndVideos:
                 rows = list(csv.reader(content.splitlines()))
                 rows = rows[1:] if rows[:1] == [["source"]] else rows  # optional header row
                 path = [p for row in rows for p in row]
-            path = [p.strip() for p in path]
+            path = [p.strip() for p in path if p.strip()]
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912

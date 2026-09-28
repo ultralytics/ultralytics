@@ -270,12 +270,6 @@ def convert_coco(
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
         lname = "" if lvis else json_file.stem.replace("instances_", "")
         fn = Path(save_dir) / "labels" / lname  # folder name
-        fn.mkdir(parents=True, exist_ok=True)
-        if lvis:
-            # NOTE: create folders for both train and val in advance,
-            # since LVIS val set contains images from COCO 2017 train in addition to the COCO 2017 val split.
-            (fn / "train2017").mkdir(parents=True, exist_ok=True)
-            (fn / "val2017").mkdir(parents=True, exist_ok=True)
         with open(json_file, encoding="utf-8") as f:
             data = json.load(f)
 
@@ -294,7 +288,7 @@ def convert_coco(
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
             if lvis:
-                image_txt.append(str(Path("./images") / f))
+                image_txt.append(f"./images/{Path(f).as_posix()}")  # "./" resolves relative to the list file
 
             bboxes = []
             segments = []
@@ -349,7 +343,9 @@ def convert_coco(
                             segments.append([cls, *s])
 
             # Write
-            with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:
+            label_file = (fn / f).with_suffix(".txt")
+            label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
+            with open(label_file, "a", encoding="utf-8") as file:
                 for i in range(len(bboxes)):
                     if use_keypoints:
                         line = (*(keypoints[i]),)  # cls, box, keypoints
@@ -754,13 +750,17 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     if path.is_dir():
         # Process directory
         im_files = [f for ext in (IMG_FORMATS - {"tif", "tiff"}) for f in path.rglob(f"*.{ext}")]
+        outputs = set()
         for im_path in im_files:
             try:
+                if (output := im_path.with_suffix(".tiff")) in outputs:
+                    raise FileExistsError(f"{output} was already converted from another image with the same stem")
+                outputs.add(output)
                 convert_to_multispectral(im_path, n_channels)
                 if replace:
                     im_path.unlink()
             except Exception as e:
-                LOGGER.info(f"Error converting {im_path}: {e}")
+                LOGGER.warning(f"Error converting {im_path}: {e}")
 
         if zip:
             zip_directory(path)
@@ -778,7 +778,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
         img = img[..., order]
         multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
-        cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
+        if not cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)):
+            raise OSError(f"Failed to write {output_path}")
         LOGGER.info(f"Converted {output_path}")
 
 

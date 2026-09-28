@@ -417,7 +417,7 @@ def verify_image_label(args: tuple) -> tuple | list:
         if os.path.isfile(lb_file):
             nf = 1  # label found
             with open(lb_file, encoding="utf-8") as f:
-                lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+                lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
                 if nkpt and not keypoint:  # pose labels for a box task: keep the box, drop the keypoints
                     lb = [x[:5] if len(x) == 5 + nkpt * ndim else x for x in lb]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
@@ -445,6 +445,9 @@ def verify_image_label(args: tuple) -> tuple | list:
                     f"Possible class labels are 0-{num_cls - 1}"
                 )
                 _, i = np.unique(lb, axis=0, return_index=True)
+                if len(i) < nl and segments:  # distinct polygons can share a class and box
+                    rows = np.array([c.tobytes() + s.tobytes() for c, s in zip(lb[:, 0], segments)], dtype=object)
+                    _, i = np.unique(rows, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
                     if segments:

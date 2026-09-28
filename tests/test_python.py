@@ -1107,12 +1107,14 @@ def test_results_plot_instance_keypoints_track_color():
     from ultralytics.engine.results import Results
     from ultralytics.utils.plotting import colors
 
-    boxes = torch.tensor([[10, 10, 50, 50, 5, 0.9, 0]], dtype=torch.float32)  # track id 5
-    keypoints = torch.tensor([[[30, 30, 1.0]] * 17])
+    boxes = torch.tensor([[0, 0, 30, 30, 5, 0.9, 0], [34, 34, 64, 64, 9, 0.9, 0]], dtype=torch.float32)  # ids 5, 9
+    keypoints = torch.tensor([[[15, 15, 1.0]] * 17, [[49, 49, 1.0]] * 17])
     r = Results(
         np.zeros((64, 64, 3), dtype=np.uint8), path="im.jpg", names={0: "person"}, boxes=boxes, keypoints=keypoints
     )
-    assert r.plot(color_mode="instance", boxes=False)[30, 30].tolist() == list(colors(5, True))
+    im = r.plot(color_mode="instance", boxes=False)
+    assert im[15, 15].tolist() == list(colors(5, True))
+    assert im[49, 49].tolist() == list(colors(9, True))
 
 
 def test_results_depth_field():

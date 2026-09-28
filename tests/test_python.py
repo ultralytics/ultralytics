@@ -1380,14 +1380,21 @@ def test_convert_coco_file_name_subfolder(tmp_path):
     from ultralytics.data.converter import convert_coco
 
     data = {
-        "images": [{"id": 1, "file_name": "images/a.jpg", "height": 100, "width": 200}],
-        "annotations": [{"id": 1, "image_id": 1, "category_id": 1, "bbox": [10, 20, 40, 30], "iscrowd": 0}],
+        "images": [
+            {"id": 1, "file_name": "images/a.jpg", "height": 100, "width": 200},
+            {"id": 2, "file_name": "../../../outside/b.jpg", "height": 100, "width": 200},
+        ],
+        "annotations": [
+            {"id": 1, "image_id": 1, "category_id": 1, "bbox": [10, 20, 40, 30], "iscrowd": 0},
+            {"id": 2, "image_id": 2, "category_id": 1, "bbox": [10, 20, 40, 30], "iscrowd": 0},
+        ],
         "categories": [{"id": 1, "name": "object"}],
     }
     (tmp_path / "annotations").mkdir()
     (tmp_path / "annotations" / "instances_train.json").write_text(json.dumps(data), encoding="utf-8")
     convert_coco(labels_dir=tmp_path / "annotations", save_dir=tmp_path / "yolo", cls91to80=False)
     assert (tmp_path / "yolo" / "labels" / "train" / "images" / "a.txt").read_text() == "0 0.15 0.35 0.2 0.3\n"
+    assert not (tmp_path / "outside").exists()  # file_name escaping save_dir is skipped
 
 
 def test_data_annotator(tmp_path):

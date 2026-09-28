@@ -350,6 +350,9 @@ def convert_coco(
 
             # Write
             label_file = (fn / f).with_suffix(".txt")
+            if fn.resolve() not in label_file.resolve().parents:
+                LOGGER.warning(f"Skipping image '{f}', its label path is outside {fn}.")
+                continue
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a", encoding="utf-8") as file:
                 for i in range(len(bboxes)):

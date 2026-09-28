@@ -288,7 +288,7 @@ def convert_coco(
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
             if lvis:
-                image_txt.append(str(Path("./images") / f))
+                image_txt.append(f"./images/{Path(f).as_posix()}")  # "./" resolves relative to the list file
 
             bboxes = []
             segments = []

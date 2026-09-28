@@ -1722,7 +1722,7 @@ class Exporter:
                 # Hailo Model Zoo recipe: level 4 without compression and AdaRound over the full calibration set
                 f"model_optimization_config(calibration, batch_size=1, calibset_size={calibration_size})",
                 "model_optimization_flavor(optimization_level=4, compression_level=0)",
-                "post_quantization_optimization(adaround, policy=enabled, batch_size=1)",
+                f"post_quantization_optimization(adaround, policy=enabled, batch_size=1, dataset_size={calibration_size})",
             ]
             if raw_detect or task == "depth":
                 # a16 on the output(s): the DFL-free detect logits and the single dense depth logit both need the

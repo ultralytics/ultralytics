@@ -494,7 +494,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
 
     from ultralytics.utils.plotting import colors
 
-    img = np.array(Image.open(image_path))
+    img = np.array(ImageOps.exif_transpose(Image.open(image_path)))  # upright, as dataloaders read it for training
     img_height, img_width = img.shape[:2]
     annotations = []
     with open(txt_path, encoding="utf-8") as file:

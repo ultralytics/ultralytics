@@ -1329,6 +1329,24 @@ def test_data_utils(tmp_path):
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
+def test_visualize_image_annotations_exif_orientation(tmp_path, monkeypatch):
+    """Test visualize_image_annotations shows EXIF-rotated images upright, as dataloaders read them for training."""
+    import matplotlib.pyplot as plt
+
+    from ultralytics.data.utils import visualize_image_annotations
+
+    exif = Image.Exif()
+    exif[0x0112] = 6  # Orientation: rotate 90° clockwise, as on portrait phone photos
+    Image.new("RGB", (80, 40)).save(tmp_path / "a.jpg", exif=exif.tobytes())  # stored landscape, displayed portrait
+    (tmp_path / "a.txt").write_text("0 0.5 0.5 0.5 0.5\n", encoding="utf-8")
+    monkeypatch.setattr(plt, "show", lambda: None)  # no GUI window
+    visualize_image_annotations(str(tmp_path / "a.jpg"), str(tmp_path / "a.txt"), {0: "item"})
+    ax = plt.gca()
+    assert ax.images[0].get_array().shape[:2] == (80, 40)  # portrait (h, w), like cv2.imread in the dataloader
+    assert (ax.patches[0].get_width(), ax.patches[0].get_height()) == (20, 40)  # box scaled by the upright size
+    plt.close("all")
+
+
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"

@@ -611,12 +611,13 @@ class Results(SimpleClass, DataExportMixin):
 
         # Plot Pose results
         if self.keypoints is not None:
+            ids = pred_boxes.id.tolist()[::-1] if pred_boxes and pred_boxes.is_track else None
             for i, k in enumerate(reversed(self.keypoints.cpu().numpy().data)):  # one host transfer, no per-kpt syncs
                 annotator.kpts(
                     k,
                     radius=kpt_radius,
                     kpt_line=kpt_line,
-                    kpt_color=colors(i, True) if color_mode == "instance" else None,
+                    kpt_color=colors(ids[i] if ids else i, True) if color_mode == "instance" else None,
                 )
 
         # Show results

@@ -415,7 +415,7 @@ Click any image to open the fullscreen viewer with:
 - **Delete**: Delete the image from the dataset
 - **Zoom**: `Cmd/Ctrl+Scroll`, `Cmd/Ctrl++`, or `Cmd/Ctrl+=` to zoom in, and `Cmd/Ctrl+-` to zoom out
 - **Reset view**: `Cmd/Ctrl + 0` or the reset button to fit the image to the viewer
-- **Pan**: Hold `Space` and drag to pan the canvas when zoomed
+- **Pan**: Hold `Space` and drag, or drag with the middle mouse button, to pan the canvas at any zoom level
 - **Pixel view**: Toggle pixelated rendering for close inspection
 - **Depth curtain**: On depth datasets, a draggable divider wipes between the RGB image and its colorized depth map
 
@@ -503,7 +503,7 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ### Find Similar Images
 
-The same embeddings power similarity search across public datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest public images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest images with their source dataset, license, and similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Select the ones you want and click **Add to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
 An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
 
@@ -725,7 +725,7 @@ Right-click any image in **Grid** or **Compact** view to access quick actions:
 | Action                      | Description                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | **Move to Split**           | Reassign the image to Train, Val, or Test split                                                                      |
-| **Find Similar Images**     | Search public datasets for look-alike images and add them (see [Find Similar Images](#find-similar-images))          |
+| **Find Similar Images**     | Search public, own, and team datasets for look-alike images to add (see [Find Similar Images](#find-similar-images)) |
 | **Generate Similar Images** | Create up to 16 AI-generated variations of the image (four by default) and add the ones you keep as unlabeled images |
 | **Blur Faces**              | Blur the faces detected in the image (see [Blur Faces](#blur-faces))                                                 |
 | **Copy** / **Cut**          | Copy or cut the image to paste it into another dataset (see [Copy and Move Images](#copy-and-move-images))           |
@@ -802,7 +802,7 @@ Classes are matched by name, ignoring case, and a destination without classes ta
 
 Blur the faces in a dataset's images, for example to protect the privacy of people in your data. Blur Faces is not available for [connected datasets](#what-is-not-available-for-connected-datasets) or for datasets with more than three image channels.
 
-- **One image:** right-click the image and choose **Blur faces**, or use the **Blur faces** button in the fullscreen viewer.
+- **One image:** right-click the image in **Grid** or **Compact** view (or a single selected row in **Table** view), or right-click an annotation in the fullscreen viewer, and choose **Blur faces**.
 - **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.

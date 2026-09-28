@@ -1094,7 +1094,8 @@ class Exporter:
         from ultralytics.utils.export.engine import best_onnx_opset, torch2onnx
 
         opset = self.args.opset or best_onnx_opset(onnx)
-        assert not isinstance(self.model.model[-1], RTDETRDecoder) or opset >= 16, "RTDETR export requires opset>=16"
+        min_opset = 16 if isinstance(self.model.model[-1], RTDETRDecoder) else 11 if self.args.nms else 9
+        assert opset >= min_opset, f"ONNX export requires opset>={min_opset} for this model, but got opset={opset}"
         LOGGER.info(f"\n{prefix} starting export with onnx {onnx.__version__} opset {opset}...")
         if self.args.nms:
             assert TORCH_1_13, f"'nms=True' ONNX export requires torch>=1.13 (found torch=={TORCH_VERSION})"

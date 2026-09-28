@@ -680,7 +680,7 @@ def classify(trial, rc, stderr):
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
-        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
+        or (exc == "AssertionError" and "ONNX export requires opset>=" in stderr)
         # The trainer wraps missing requested splits in RuntimeError; classify the original validation error.
         or (
             exc == "RuntimeError"

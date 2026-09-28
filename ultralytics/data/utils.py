@@ -348,18 +348,19 @@ def verify_image_depth(args: tuple) -> tuple:
 
 
 def verify_image_mask(args: tuple) -> tuple:
-    """Verify that an image and its semantic mask exist, are readable, and have matching shapes.
+    """Verify that an image and its semantic mask exist, are readable, match in shape, and hold valid class ids.
 
     Args:
-        args (tuple): Tuple of (im_file, mask_file, prefix). If mask_file is missing, masks with the same stem and
-            another image extension are tried.
+        args (tuple): Tuple of (im_file, mask_file, prefix, invalid). If mask_file is missing, masks with the same stem
+            and another image extension are tried. invalid is a 256-entry uint8 lookup table that is nonzero for raw
+            mask ids that map to neither a dataset class nor the 255 ignore label.
 
     Returns:
         (tuple): Tuple of (im_file, mask_file, shape, is_1bit, nm, nf, nc, msg), where the first four are None for
             rejected samples, is_1bit is whether the mask is a 1-bit PIL image, nm, nf, and nc are missing, found, and
             corrupt counts, and msg is a log message.
     """
-    im_file, mask_file, prefix = args
+    im_file, mask_file, prefix, invalid = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -375,6 +376,9 @@ def verify_image_mask(args: tuple) -> tuple:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            assert not cv2.LUT(mask, invalid).any(), (
+                f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"
+            )
             with Image.open(mask_file) as im:
                 is_1bit = im.mode == "1"  # recorded for every mask so a yaml 'nc' edit never needs a rescan
             nf = 1

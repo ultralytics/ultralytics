@@ -340,7 +340,10 @@ jobs:
           shell: bash # for Windows compatibility
           # -n 2 limits parallelism for resource-heavy base export tests on shared runners. The ARM runner is
           # single-process to avoid xdist worker overhead and runner disconnects during long slow-test runs.
+          # Windows runners on AMX CPUs (Xeon 8573C) crash in OpenVINO INT8 inference with an illegal instruction,
+          # see https://github.com/openvinotoolkit/openvino/issues/37076, so cap oneDNN below AMX there.
           run: |
+            if [[ "${{ matrix.os }}" == "windows-latest" ]]; then export ONEDNN_MAX_CPU_ISA=AVX512_CORE_VNNI; fi
             pytest_args=(-vv -s --slow --durations=50 --durations-min=1 tests/ --export-env base)
             if [[ "${{ matrix.os }}" == "ubuntu-24.04-arm" ]]; then
               PYTHONFAULTHANDLER=1 PYTHONUNBUFFERED=1 pytest "${pytest_args[@]}"

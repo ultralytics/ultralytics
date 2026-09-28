@@ -145,9 +145,7 @@ class SemanticSegmentationValidator(DetectionValidator):
         if not im_files:
             return
         for pred, im_file, ori_shape in zip(preds, im_files, batch["ori_shape"]):
-            # Drop the letterbox padding and resize the class map to the original image, as the predictor does
-            pred = ops.scale_masks(pred[None, None].float(), ori_shape, mode="nearest")[0, 0].to(torch.uint8)
-            pred = pred.cpu().numpy()
+            pred = ops.scale_masks(pred[None, None].float(), ori_shape, mode="nearest")[0, 0].byte().cpu().numpy()
             if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
                 pred = self.dataset.convert_label(pred, inverse=True)
             save_path = self.results_dir / Path(im_file).with_suffix(".png").name

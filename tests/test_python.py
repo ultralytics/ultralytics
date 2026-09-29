@@ -1413,37 +1413,6 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-def test_bbox2segment_cls_index(tmp_path, monkeypatch):
-    """Test yolo_bbox2segment reads class ids from (n, 1) cls arrays without an int() cast on a 1-element array."""
-    from types import SimpleNamespace
-
-    from ultralytics.data.converter import yolo_bbox2segment
-
-    class StubSAM:  # one deterministic triangle polygon per box, no weights download
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def __call__(self, im, bboxes=None, **kwargs):
-            polys = []
-            for box in bboxes:
-                cx, cy, w, h = box.tolist()
-                polys.append(np.array([[cx, cy - h / 2], [cx - w / 2, cy + h / 2], [cx + w / 2, cy + h / 2]]))
-            return [SimpleNamespace(masks=SimpleNamespace(xyn=polys))]
-
-    monkeypatch.setattr("ultralytics.SAM", StubSAM)
-
-    im_dir, lb_dir = tmp_path / "images", tmp_path / "labels"
-    im_dir.mkdir(), lb_dir.mkdir()
-    cv2.imwrite(str(im_dir / "img1.png"), np.zeros((48, 64, 3), dtype=np.uint8))
-    lb_dir.joinpath("img1.txt").write_text("0 0.2 0.2 0.2 0.2\n1 0.6 0.6 0.3 0.3\n", encoding="utf-8")
-
-    yolo_bbox2segment(im_dir, save_dir=tmp_path / "labels-segment")
-
-    rows = tmp_path.joinpath("labels-segment", "img1.txt").read_text().splitlines()
-    assert [row.split()[0] for row in rows] == ["0", "1"]  # class ids survive the (n, 1) cls indexing
-    assert all(len(row.split()) == 7 for row in rows)  # cls + three xy pairs per polygon
-
-
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

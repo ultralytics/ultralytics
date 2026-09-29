@@ -157,7 +157,7 @@ Workspace members with content editing permission can save examples to a dataset
 3. Choose an existing dataset with the same task as the deployed model. Connected-source datasets are excluded; create a compatible dataset first if none is available.
 4. Click the **Save** button, which shows the selected image count, then open the dataset to follow processing.
 
-Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training. Each saved image records the deployment's ID and name and its region ID and name in its [custom metadata](../data/datasets.md#fullscreen-viewer), which dataset search matches; names are recorded as they were at save time.
+Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training. Each saved image records `deploymentId`, `deploymentName`, `deploymentRegion`, and `deploymentRegionName` in its [custom metadata](../data/datasets.md#fullscreen-viewer), which dataset search matches; names are recorded as they were at save time, and an image skipped as a duplicate keeps its existing metadata.
 
 ![Ultralytics Platform Deployment Monitoring Save Examples To Dataset](https://cdn.ul.run/i/18c1c9cd8decb4e3c115d6e02fdf49fe.avif)<!-- screenshot -->
 

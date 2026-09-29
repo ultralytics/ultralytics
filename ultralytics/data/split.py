@@ -66,6 +66,8 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     train_path, val_path = split_path / "train", split_path / "val"
 
     # Create directory structure
+    if split_path.exists():  # a re-split after files change must not keep stale copies that mix old val into new train
+        shutil.rmtree(split_path)
     split_path.mkdir(exist_ok=True)
     train_path.mkdir(exist_ok=True)
     val_path.mkdir(exist_ok=True)

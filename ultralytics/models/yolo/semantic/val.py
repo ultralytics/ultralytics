@@ -144,8 +144,9 @@ class SemanticSegmentationValidator(DetectionValidator):
         im_files = batch.get("im_file", [])
         if not im_files:
             return
-        for pred, im_file, ori_shape in zip(preds, im_files, batch["ori_shape"]):
-            pred = ops.scale_masks(pred[None, None].float(), ori_shape, mode="nearest")[0, 0].byte().cpu().numpy()
+        for pred, im_file, ori_shape, ratio_pad in zip(preds, im_files, batch["ori_shape"], batch["ratio_pad"]):
+            pred = ops.scale_masks(pred[None, None].float(), ori_shape, ratio_pad=ratio_pad, mode="nearest")
+            pred = pred[0, 0].byte().cpu().numpy()
             if isinstance(self.dataset, SemanticDataset) and self.dataset.label_mapping:
                 pred = self.dataset.convert_label(pred, inverse=True)
             save_path = self.results_dir / Path(im_file).with_suffix(".png").name

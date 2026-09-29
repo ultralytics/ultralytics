@@ -2589,7 +2589,7 @@ class SemanticFormat(Format):
 
         Returns:
             (dict[str, Any]): Updated labels with unused keys removed, keeping 'ori_shape' and 'ratio_pad' for saving
-            val predictions at the original resolution.
+                val predictions at the original resolution.
         """
         for k in ("cls", "instances", "resized_shape"):
             labels.pop(k, None)

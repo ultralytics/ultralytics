@@ -182,7 +182,7 @@ graph LR
 ```
 
 Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to
-`0.25`, `0.7`, and `640`:
+`0.25`, `0.7`, and the model's training image size (640 if unavailable):
 
 === "Python"
 

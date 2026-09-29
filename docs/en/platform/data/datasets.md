@@ -504,7 +504,7 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 ### Find Similar Images
 
-The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest images, excluding images your dataset already holds and copies of the selected image in other datasets. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
+The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog shows the source image beside up to 24 of the nearest images, each labeled with its similarity score, excluding images your dataset already holds and copies of the selected image in other datasets. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
 ![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/431910d476aafb2e790821a329cfd404.avif)<!-- screenshot -->
 

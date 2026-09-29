@@ -2389,6 +2389,27 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
 
 
+def test_semantic_palette_mask_keeps_class_indices(tmp_path):
+    """Indexed PNG masks must retain their pixel IDs instead of being converted through palette colors."""
+    from ultralytics.data.dataset import SemanticDataset
+
+    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.png"), np.zeros((32, 32, 3), dtype=np.uint8))
+    indices = np.zeros((32, 32), dtype=np.uint8)
+    indices[8:24, 8:24] = 1
+    mask = Image.fromarray(indices).convert("P")
+    mask.putpalette([0, 0, 0, 255, 0, 0] + [0, 0, 0] * 254)
+    mask.save(masks / "a.png")
+
+    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={"names": {0: "bg", 1: "fg"}, "nc": 2})
+    assert np.array_equal(dataset.load_mask(0), indices)
+    (masks / "a.png").write_bytes(b"invalid PNG")
+    with pytest.raises(FileNotFoundError, match="not found or unreadable"):
+        dataset.load_mask(0)
+
+
 def test_verify_image_label_whitespace_lines(tmp_path):
     """Test whitespace-only lines in label files no longer mark an image corrupt."""
     from ultralytics.data.utils import verify_image_label

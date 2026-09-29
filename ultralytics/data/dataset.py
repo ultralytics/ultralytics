@@ -986,7 +986,7 @@ class SemanticDataset(YOLODataset):
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", "palette_ids:v1"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -1000,13 +1000,14 @@ class SemanticDataset(YOLODataset):
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
-        im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg = result
+        im_file, mask_file, shape, is_1bit, is_palette, nm_f, nf_f, nc_f, msg = result
         label = (
             {
                 "im_file": im_file,
                 "mask_file": mask_file,
                 "shape": shape,
                 "is_1bit": is_1bit,
+                "is_palette": is_palette,
                 "cls": np.array([], dtype=np.float32),
                 "bboxes": np.zeros((0, 4), dtype=np.float32),
                 "segments": [],
@@ -1050,7 +1051,14 @@ class SemanticDataset(YOLODataset):
             FileNotFoundError: If the mask file is missing or unreadable.
         """
         mask_file = self.labels[index]["mask_file"]
-        mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+        if self.labels[index]["is_palette"]:
+            try:
+                with Image.open(mask_file) as im:
+                    mask = np.asarray(im).copy()
+            except OSError as e:
+                raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}") from e
+        else:
+            mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
         if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:

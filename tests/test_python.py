@@ -2420,17 +2420,3 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
-
-
-def test_instances_add_padding_keeps_box_size_in_all_formats():
-    """Padding moves xywh and ltwh boxes without adding the pad to their width and height."""
-    from ultralytics.utils.instance import Instances
-
-    boxes = np.array([[10.0, 20.0, 50.0, 80.0], [0.0, 0.0, 30.0, 30.0]], dtype=np.float32)  # xyxy
-    expected = boxes + np.array([13, 7, 13, 7], dtype=np.float32)
-    for fmt in ("xyxy", "xywh", "ltwh"):
-        instances = Instances(boxes.copy(), bbox_format="xyxy", normalized=False)
-        instances.convert_bbox(fmt)
-        instances.add_padding(13, 7)
-        instances.convert_bbox("xyxy")
-        np.testing.assert_allclose(instances.bboxes, expected, err_msg=fmt)

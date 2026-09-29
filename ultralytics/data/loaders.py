@@ -383,14 +383,14 @@ class LoadImagesAndVideos:
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
+            if parent and not (glob.glob(a, recursive=True) if "*" in a else os.path.exists(a)):
+                a = str((parent / p).absolute())  # resolve unmatched manifest entries relative to the manifest
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
             elif os.path.isdir(a):
                 files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
-            elif parent and (parent / p).is_file():
-                files.append(str((parent / p).absolute()))  # files (relative to *.txt file parent)
             else:
                 raise FileNotFoundError(f"{p} does not exist")
 

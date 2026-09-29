@@ -508,7 +508,7 @@ class LoadImagesAndVideos:
         """Create a new video capture object for the given path and initialize video-related attributes."""
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
-        self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)  # keep the float, int() turns 29.97 into 29 and stretches the video
         if not self.cap.isOpened():
             raise FileNotFoundError(f"Failed to open video {path}")
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)

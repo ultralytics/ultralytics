@@ -906,9 +906,8 @@ def handle_yolo_solutions(args: list[str]) -> None:
         cap = cv2.VideoCapture(solution.CFG["source"])  # read the video file
         if solution_name != "crop":
             # extract width, height and fps of the video file, create save directory and initialize video writer
-            w, h, fps = (
-                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
-            )
+            w, h = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = round(cap.get(cv2.CAP_PROP_FPS))  # nearest integer, int() turns 29.97 into 29 and stretches the video
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
                 w, h = 1280, 720
             save_dir = get_save_dir(SimpleNamespace(task="solutions", name="exp", exist_ok=False, project=None))

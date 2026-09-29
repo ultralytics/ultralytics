@@ -311,6 +311,8 @@ Grouping by user or API key makes it easy to see which team member or automation
 The `Referrals` tab holds your personal referral link under the heading **Give $10, get $10**. Click **Copy link** and
 share it anywhere — the code is applied automatically at signup.
 
+![Ultralytics Platform Settings Referrals Tab](https://cdn.ul.run/i/de42d722e31147b67f9f48004059b535.avif)<!-- screenshot -->
+
 - A friend who signs up with your link gets $10 in credits on top of the usual [signup credit](billing.md#free-plan)
 - You get $10 once they top up $10 in credits on their personal account; Pro subscriptions and team payments do not
   count

@@ -506,6 +506,8 @@ Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
 The same embeddings power similarity search across public datasets and your own and team datasets. In a dataset you can edit, right-click an image in **Grid** or **Compact** view (or a single selected row in **Table** view) and choose **Find similar images**. The dialog lists up to 24 of the nearest images, excluding images your dataset already holds and copies of the selected image in other datasets. Click an image to preview it full size and see its source dataset, license, and similarity score. Select images with their checkboxes (or select all), then click **Add N to dataset**: they are added to the `train` split as unlabeled images, counted against your storage, and ready for [annotation](annotation.md).
 
+![Ultralytics Platform Datasets Find Similar Images Dialog](https://cdn.ul.run/i/431910d476aafb2e790821a329cfd404.avif)<!-- screenshot -->
+
 An image without an embedding — in a dataset not yet analyzed, or added since the last analysis — is embedded when you open the dialog, so you do not need to run a [Clustering](#clustering) analysis first. The dialog is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets). A model's [per-image validation diagnostics](../train/models.md#per-image-diagnostics) run the same search from its worst-performing images.
 
 ## Dataset Tabs
@@ -734,7 +736,7 @@ Right-click an image in **Grid** or **Compact** view, or a single selected row i
 | **Download**                | Download the original image file                                                                                     |
 | **Delete**                  | Delete the image from the dataset                                                                                    |
 
-![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/a5dd2918d992405d4f2fe7e6b51a76cc.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Image Card Context Menu](https://cdn.ul.run/i/cfd31e07fad45487f91d1ba876f5fca3.avif)<!-- screenshot -->
 
 !!! tip "Single vs Bulk"
 
@@ -810,6 +812,8 @@ Create new training images from one you already have. In a dataset you can edit,
 | **Image size**       | Target longest edge from `320` to `1280` px (default `1024`)                                                       |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
+![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/a9c58833ede9aef30e408c5b40038133.avif)<!-- screenshot -->
+
 Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
 Click **Generate**. Images appear as they finish, all selected. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
@@ -822,6 +826,8 @@ In a dataset you can edit, blur the faces in its images, for example to protect 
 - **Whole dataset:** open **More actions** (`⋯`) on the dataset page and choose **Blur faces**.
 
 The dialog first previews the detected faces on up to six images (or on the one image) without changing them. Adjust **Confidence** (default `0.25`) and **Box scale** (`0.5`–`1.5`, default `1`, which scales each face box around its center) to re-run the preview, then click **Apply** to replace the original pixels of every image in which faces are found. Images without detected faces are left unchanged, labels and splits are kept, and some faces may be missed, so review the result. Blurring does not automatically create a [version snapshot](#versions-tab). Blurring a whole dataset costs $1.00 per 1,000 processed images, with a minimum of $0.01 per run (billed as **Auto-Annotation**), and the dialog shows the estimate before you apply; previews and single-image blurring are free.
+
+![Ultralytics Platform Datasets Blur Faces Dialog Preview](https://cdn.ul.run/i/3914e7f19b0b22d936e2963852fd3e8c.avif)<!-- screenshot -->
 
 To blur faces in images as they are uploaded, turn on **Blur faces** when you create a dataset from **Upload** or **URL**, or **Blur future uploads** in the whole-dataset **Blur faces** dialog. The **Blur future uploads** switch saves immediately, even if you close the dialog without clicking **Apply**. Images uploaded to the dataset afterward are blurred during processing, at no charge; changing this setting does not blur images already in the dataset.
 

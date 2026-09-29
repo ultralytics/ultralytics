@@ -349,6 +349,8 @@ Move models you can edit into another project of the same workspace without copy
 2. Right-click and choose **Cut** (`Cmd/Ctrl+X`)
 3. Open the destination project, right-click the model list, and choose **Paste** (`Cmd/Ctrl+V`), or drag the selected models onto the destination project in the sidebar
 
+![Ultralytics Platform Project Models Cut Context Menu](https://cdn.ul.run/i/271ee20993520c38d6a79ffaae6f0e02.avif)<!-- screenshot -->
+
 Moved models keep their weights, metrics, exports, and deployments and take the destination project's URL. A model whose URL name is already used in the destination is renamed on arrival, models that are still training cannot be moved, and `Esc` cancels a pending cut. To copy a model you do not own into one of your projects, use **Clone Model**.
 
 ## Clone Model

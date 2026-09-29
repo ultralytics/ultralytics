@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints on a current runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
 
-![Ultralytics Platform Deployments Tab Overview Cards And World Map](https://cdn.ul.run/i/f13ad8c9a1b981b5b3863a9ba602b345.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/a2b4289abc2df5bc00a704a7b9575515.avif)<!-- screenshot -->
 
 ## Deployments Tab
 

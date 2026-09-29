@@ -175,6 +175,7 @@ nav:
       - Classify: tasks/classify.md
       - Pose: tasks/pose.md
       - OBB: tasks/obb.md
+      - ReID: tasks/reid.md
   - Models:
       - models/index.md
       - YOLO27 (Coming Soon): models/yolo27.md
@@ -450,6 +451,16 @@ nav:
           - DOTA8: datasets/obb/dota8.md
           - DOTA128: datasets/obb/dota128.md
           - DOTAv2: datasets/obb/dota-v2.md
+      - Re-Identification (ReID):
+          - datasets/reid/index.md
+          - Market-1501: datasets/reid/market1501.md
+          - DukeMTMC-reID: datasets/reid/dukemtmc.md
+          - MSMT17: datasets/reid/msmt17.md
+          - VeRi-776: datasets/reid/veri776.md
+          - ATRW: datasets/reid/atrw.md
+          - rOxford5k: datasets/reid/roxford5k.md
+          - RP2K: datasets/reid/rp2k.md
+          - LUPerson-NL: datasets/reid/luperson-nl.md
       - Multi-Object Tracking:
           - datasets/track/index.md
       - Explorer:
@@ -495,6 +506,8 @@ nav:
       - Train & fine-tune:
           - Tips for Model Training: guides/model-training-tips.md
           - Fine-Tuning YOLO on Custom Data: guides/finetuning-guide.md
+          - ReID Fine-Tuning on Custom Data: guides/reid-finetuning.md
+          - ReID Beyond Persons (Custom Domains): guides/reid-custom-dataset.md
           - YOLO26 Training Recipe: guides/yolo26-training-recipe.md
           - Hyperparameter Tuning: guides/hyperparameter-tuning.md
           - Knowledge Distillation 🚀: guides/knowledge-distillation.md
@@ -738,6 +751,11 @@ nav:
                   - predict: reference/models/yolo/pose/predict.md
                   - train: reference/models/yolo/pose/train.md
                   - val: reference/models/yolo/pose/val.md
+              - reid:
+                  - predict: reference/models/yolo/reid/predict.md
+                  - retrieval: reference/models/yolo/reid/retrieval.md
+                  - train: reference/models/yolo/reid/train.md
+                  - val: reference/models/yolo/reid/val.md
               - segment:
                   - predict: reference/models/yolo/segment/predict.md
                   - train: reference/models/yolo/segment/train.md
@@ -786,6 +804,7 @@ nav:
               - head: reference/nn/modules/head.md
               - transformer: reference/nn/modules/transformer.md
               - utils: reference/nn/modules/utils.md
+              - vit_blocks: reference/nn/modules/vit_blocks.md
           - tasks: reference/nn/tasks.md
           - text_model: reference/nn/text_model.md
       - optim:
@@ -803,6 +822,7 @@ nav:
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md
+          - reid_visualizer: reference/solutions/reid_visualizer.md
           - security_alarm: reference/solutions/security_alarm.md
           - similarity_search: reference/solutions/similarity_search.md
           - solutions: reference/solutions/solutions.md

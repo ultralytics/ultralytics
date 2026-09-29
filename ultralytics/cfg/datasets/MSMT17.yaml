@@ -1,0 +1,31 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# MSMT17 person re-identification dataset (largest public ReID benchmark)
+# Paper: https://arxiv.org/abs/1711.08565
+# Documentation: https://docs.ultralytics.com/datasets/reid/msmt17/
+# Example usage: yolo reid train data=MSMT17.yaml model=yolo26n-reid.yaml
+
+# Dataset root directory
+path: MSMT17_V2
+train: mask_train_v2 # 30248 images, 1041 identities
+val: mask_query_v2 # 11659 query images
+gallery: mask_gallery_v2 # 82161 gallery images
+
+# Classes (training identities)
+nc: 1041
+
+# Filename: 0001_015_01_0201130904.jpg -> pid=1, camid=15 (0-indexed)
+filename_re: msmt17
+cam_0indexed: true
+
+# Download script
+download: |
+  from pathlib import Path
+
+  from ultralytics.utils.downloads import download
+
+  # Hugging Face mirror of MSMT17_V2 (the original distribution requires manual registration).
+  # NOTE: this mirror is GATED — accept its terms on the HF dataset page and authenticate first
+  # (`huggingface-cli login` or export HF_TOKEN); an anonymous download returns HTTP 401.
+  url = "https://huggingface.co/datasets/aveocr/MSMT17_V2/resolve/main/MSMT17_V2.zip"
+  download([url], dir=Path(yaml["path"]).parent, unzip=True)

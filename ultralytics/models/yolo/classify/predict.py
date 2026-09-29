@@ -60,7 +60,9 @@ class ClassificationPredictor(BasePredictor):
         transforms = getattr(self.model.model, "transforms", None)  # missing on YAML-built and legacy checkpoints
         size = getattr(transforms.transforms[0], "size", max(self.imgsz)) if transforms is not None else None
         self.transforms = (
-            transforms if size == max(self.imgsz) and self.model.format == "pt" else classify_transforms(self.imgsz)
+            transforms
+            if size == max(self.imgsz) and self.model.format == "pt"
+            else classify_transforms(self.imgsz, letterbox=getattr(self.args, "reid_letterbox", False))
         )
         tfl = getattr(self.transforms, "transforms", ())
         split = (

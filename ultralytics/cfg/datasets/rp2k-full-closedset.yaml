@@ -1,0 +1,84 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# RP2K product ReID — FULL dataset, CLOSED-SET protocol (query/gallery are held-out images of train ids).
+# Source: full RP2K (~384K imgs / 2388 SKUs), OpenXLab mirror. all/train+all/test merged per SKU,
+# filtered (>=4 imgs, short side >=32px, dedup, cap 250); every SKU appears in train + query + gallery.
+# Folder-per-identity (CJK SKU names -> sha1 pid); no filename_re needed.
+# Example usage: yolo reid train data=rp2k-full-closedset.yaml model=yolo26l-reid.pt imgsz=256
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── rp2k_full_closedset  ← built here (raw download cached in datasets/RP2K_raw)
+path: rp2k_full_closedset # dataset root dir
+train: train # training SKUs (whole catalog)
+val: query # query images (1 per seen SKU)
+gallery: gallery # gallery images (1 per seen SKU)
+nc: 2351 # training identities = number of train SKU folders
+
+# Download + reconstruct script (closed-set split) ---------------------------------------------------------------------
+download: |
+  import hashlib
+  import random
+  import shutil
+  from collections import defaultdict
+  from pathlib import Path
+
+  from PIL import Image
+
+  from ultralytics.utils import TQDM
+  from ultralytics.utils.downloads import download
+
+  SEED, MIN_IMGS, MAX_IMGS, MIN_SIDE = 42, 4, 250, 32
+  root = Path(yaml["path"])  # datasets/rp2k_full_closedset
+  parent = root.parent
+  raw = parent / "RP2K_raw"  # shared raw extraction (reused by the open-set yaml)
+
+  # 1) Download + extract the full RP2K once (~5.9 GB). Skip if already present.
+  if not (raw / "all").exists():
+      url = "https://openxlab.org.cn/datasets/resolve/2658/main/raw/rp2k_dataset.zip"
+      download([url], dir=raw, unzip=True, curl=True, retry=3)  # -> raw/all/{train,test}/<sku>/*.jpg
+
+  # 2) Merge train+test per SKU into one identity pool.
+  pool = defaultdict(list)
+  for split in ("train", "test"):
+      sp = raw / "all" / split
+      if sp.exists():
+          for sku in sp.iterdir():
+              if sku.is_dir():
+                  pool[sku.name] += [p for p in sku.iterdir() if p.is_file()]
+
+  # 3) Filter deterministically: drop tiny/corrupt, dedup by content, cap, require >=MIN_IMGS.
+  rng = random.Random(SEED)
+  survivors = {}
+  for sku, imgs in TQDM(pool.items(), desc="Filtering RP2K SKUs"):
+      seen, kept = set(), []
+      for img in sorted(imgs):
+          try:
+              with Image.open(img) as im:
+                  im.load()
+                  if min(im.size) < MIN_SIDE:
+                      continue
+              h = hashlib.md5(img.read_bytes()).hexdigest()
+          except Exception:
+              continue
+          if h in seen:
+              continue
+          seen.add(h)
+          kept.append(img)
+      if len(kept) >= MIN_IMGS:
+          if len(kept) > MAX_IMGS:
+              kept = sorted(rng.sample(kept, MAX_IMGS))
+          survivors[sku] = kept
+
+  # 4) Closed-set split: every SKU in train; hold out 1 query + 1 gallery image of the same id.
+  def put(paths, d):
+      d.mkdir(parents=True, exist_ok=True)
+      for i, s in enumerate(paths):
+          shutil.copy2(s, d / f"{i:04d}_{s.name}")
+
+  for sku in sorted(survivors):
+      imgs = list(survivors[sku])
+      rng.shuffle(imgs)
+      put(imgs[:1], root / "query" / sku)
+      put(imgs[1:2], root / "gallery" / sku)
+      put(imgs[2:], root / "train" / sku)

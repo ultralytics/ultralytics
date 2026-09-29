@@ -1,0 +1,21 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# DukeMTMC-reID person re-identification dataset
+# Paper: https://arxiv.org/abs/1701.07717
+# Documentation: https://docs.ultralytics.com/datasets/reid/dukemtmc/
+# Example usage: yolo reid train data=DukeMTMC-reID.yaml model=yolo26n-reid.yaml
+
+# Dataset root directory
+path: DukeMTMC-reID
+train: bounding_box_train # 16522 images, 702 identities
+val: query # 2228 query images
+gallery: bounding_box_test # 17661 gallery images
+
+# Classes (training identities)
+nc: 702
+
+# Filename: 0001_c1_f0046182.jpg -> pid=1, camid=1 (1-indexed)
+filename_re: dukemtmc
+# No download script: Duke University withdrew DukeMTMC-reID from public distribution in 2019
+# (https://exposing.ai/duke_mtmc/). Source from a research-only mirror you trust and place the
+# extracted DukeMTMC-reID/ directory in your datasets root.

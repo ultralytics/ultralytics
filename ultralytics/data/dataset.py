@@ -1055,7 +1055,7 @@ class SemanticDataset(YOLODataset):
             try:
                 with Image.open(mask_file) as im:
                     mask = np.asarray(im).copy()
-            except OSError as e:
+            except (OSError, ModuleNotFoundError) as e:
                 raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}") from e
         else:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)

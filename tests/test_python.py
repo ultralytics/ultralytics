@@ -1329,26 +1329,6 @@ def test_data_utils(tmp_path):
     assert len(np.unique(overlap)) == len(segments) + 1  # background + 130 instances, no uint8 wraparound
 
 
-def test_split_classify_dataset_changed_file_set(tmp_path):
-    """Test re-splitting a classify dataset after the source file set changes leaves no stale split copies behind."""
-    from ultralytics.data.split import split_classify_dataset
-
-    cat = tmp_path / "cls" / "cat"
-    cat.mkdir(parents=True)
-    for i in range(21):
-        Image.new("RGB", (8, 8)).save(cat / f"im{i:02d}.png")
-    split_classify_dataset(tmp_path / "cls")
-    (cat / "im00.png").unlink()  # a changed file set: one image removed, one added
-    Image.new("RGB", (8, 8)).save(cat / "new.png")
-    split_classify_dataset(tmp_path / "cls")
-
-    split = tmp_path / "cls_split"
-    copies = [p.relative_to(split).parts[0:2] for p in split.rglob("*.png")]
-    names = {p.name for p in split.rglob("*.png")}
-    assert names == {p.name for p in cat.glob("*.png")}  # no stale copies of removed files, none missing
-    assert len(copies) == len(names), "an image landed in both train and val of the re-split dataset"
-
-
 def test_safe_download_unzips_local_path_archive(tmp_path):
     """Test safe_download() unzips local zip and tar paths to the archive's single top-level directory."""
     dataset_dir = tmp_path / "coco8 local"

@@ -300,10 +300,11 @@ class BaseTrainer:
             self.data["train"], batch_size=batch_size, rank=LOCAL_RANK, mode="train"
         )
         final_batch_size = len(self.train_loader.sampler) % self.train_loader.batch_size or self.train_loader.batch_size
-        if self.args.imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
+        min_imgsz = max(self.stride, int(self.args.imgsz * (1 - self.args.multi_scale))) // self.stride * self.stride
+        if min_imgsz < 2 * self.stride and not self.train_loader.drop_last and final_batch_size == 1:
             raise ValueError(
-                f"final batch=1 training at imgsz={self.args.imgsz} gives BatchNorm a single value per channel; "
-                f"change batch or use imgsz >= {2 * self.stride}"
+                f"final batch=1 training at imgsz={min_imgsz} gives BatchNorm a single value per channel; "
+                f"change batch, or use imgsz and multi_scale that keep every size >= {2 * self.stride}"
             )
         # Note: When training DOTA dataset, double batch size could get OOM on images with >2000 objects.
         self.test_loader = self.get_dataloader(

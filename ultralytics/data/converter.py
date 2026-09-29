@@ -662,7 +662,7 @@ def yolo_bbox2segment(
         for i, s in enumerate(label["segments"]):
             if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                 continue
-            line = (int(cls[i]), *s.reshape(-1))
+            line = (int(cls[i, 0]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
         with open(txt_file, "a", encoding="utf-8") as f:
             f.writelines(text + "\n" for text in texts)

@@ -257,8 +257,6 @@ The Platform supports export to [21 deployment formats](../../modes/export.md#ex
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
-![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/e66458bb5b6753a9f54927a87e8cdae2.avif)<!-- screenshot -->
-
 ### NVIDIA Jetson TensorRT Targets
 
 Ultralytics Platform offers the following Jetson target selections for TensorRT `.engine` exports. The July 2026 validation measurements below used JetPack 7.2 / L4T r39.2, Python 3.12.3, NVIDIA PyTorch 2.12.0a0 (26.04 build), CUDA 13.2, and TensorRT 10.16.1.11. They describe that tested environment; verify the current worker and deployment-device runtimes before reusing an exported engine.

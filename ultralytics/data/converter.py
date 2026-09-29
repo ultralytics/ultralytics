@@ -280,15 +280,20 @@ def convert_coco(
         for ann in data["annotations"]:
             annotations[ann["image_id"]].append(ann)
 
-        image_txt = []
+        image_txt = (
+            [
+                f"./images/{Path(x['coco_url']).relative_to('http://images.cocodataset.org').as_posix()}"
+                for x in data["images"]
+            ]
+            if lvis
+            else []
+        )
         dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
-            if lvis:
-                image_txt.append(f"./images/{Path(f).as_posix()}")  # "./" resolves relative to the list file
 
             bboxes = []
             segments = []

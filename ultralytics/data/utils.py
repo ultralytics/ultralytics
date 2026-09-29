@@ -356,9 +356,9 @@ def verify_image_mask(args: tuple) -> tuple:
             mask ids that map to neither a dataset class nor the 255 ignore label.
 
     Returns:
-        (tuple): Tuple of (im_file, mask_file, shape, mode, nm, nf, nc, msg), where the first four are None for
-            rejected samples, mode is the mask's PIL image mode, nm, nf, and nc are missing, found, and corrupt counts,
-            and msg is a log message.
+        (tuple): Tuple of (im_file, mask_file, shape, mode, nm, nf, nc, msg), where the first four are None for rejected
+            samples, mode is the mask's PIL image mode, nm, nf, and nc are missing, found, and corrupt counts, and msg
+            is a log message.
     """
     im_file, mask_file, prefix, invalid = args
     # Number (found, missing, corrupt), message

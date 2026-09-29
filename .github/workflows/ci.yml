@@ -475,6 +475,9 @@ jobs:
       id-token: write
     timeout-minutes: 120
     runs-on: amd-gpu-latest
+    concurrency: # a newer run-all on the same PR supersedes its queued/running hardware jobs
+      group: amd-gpu-${{ github.event_name }}-${{ github.ref_name }}
+      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
     env:
       YOLO_AUTOINSTALL: "false"
     steps:

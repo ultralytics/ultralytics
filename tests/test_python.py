@@ -2029,6 +2029,27 @@ def test_classification_split_class_alignment(tmp_path):
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
+@pytest.mark.parametrize("cache", (False, "ram"))
+def test_non_disk_cache_reads_edited_source_image(tmp_path, cache):
+    """Non-disk cache modes read source images even when an earlier run left a disk cache."""
+    from ultralytics.data.dataset import YOLODataset
+
+    image_dir = tmp_path / "images" / "train"
+    label_dir = tmp_path / "labels" / "train"
+    image_dir.mkdir(parents=True)
+    label_dir.mkdir(parents=True)
+    image = image_dir / "frame.jpg"
+    (label_dir / "frame.txt").write_text("0 0.5 0.5 0.5 0.5\n", encoding="utf-8")
+    cv2.imwrite(str(image), np.zeros((32, 32, 3), dtype=np.uint8))
+    options = {"img_path": str(image_dir), "data": {"names": {0: "object"}}, "augment": False, "imgsz": 32}
+    YOLODataset(**options, cache="disk")
+    assert image.with_suffix(".npy").is_file()
+
+    cv2.imwrite(str(image), np.full((32, 32, 3), 255, dtype=np.uint8))
+    dataset = YOLODataset(**options, cache=cache)
+    assert np.array_equal(dataset.load_image(0)[0], cv2.imread(str(image)))
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

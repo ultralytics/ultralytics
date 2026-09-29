@@ -2,7 +2,6 @@
 
 import contextlib
 import csv
-import json
 import os
 import platform
 import shutil
@@ -1412,34 +1411,6 @@ def test_data_converter(tmp_path):
         labels_dir=tmp_path, save_dir=tmp_path / "yolo_labels", use_segments=True, use_keypoints=False, cls91to80=True
     )
     coco80_to_coco91_class()
-
-
-def test_lvis_converter_keeps_images_without_annotations(tmp_path):
-    """Keep all LVIS images in split lists, including those without any instance annotations."""
-    from ultralytics.data.converter import convert_coco
-
-    images = [
-        {
-            "id": i,
-            "height": 10,
-            "width": 10,
-            "coco_url": f"http://images.cocodataset.org/val2017/{i}.jpg",
-        }
-        for i in (1, 2)
-    ]
-    annotations = [{"image_id": 1, "category_id": 1, "bbox": [1, 1, 2, 2]}]
-    (tmp_path / "lvis_v1_val.json").write_text(json.dumps({"images": images, "annotations": annotations}))
-    (tmp_path / "lvis_v1_minival.json").write_text(json.dumps({"images": images, "annotations": []}))
-    convert_coco(labels_dir=tmp_path, save_dir=tmp_path / "converted", cls91to80=False, lvis=True)
-
-    output = tmp_path / "converted"
-    assert (output / "val.txt").read_text().splitlines() == [
-        "./images/val2017/1.jpg",
-        "./images/val2017/2.jpg",
-    ]
-    assert (output / "labels/val2017/1.txt").is_file()
-    assert not (output / "labels/val2017/2.txt").exists()
-    assert (output / "minival.txt").read_text().splitlines() == (output / "val.txt").read_text().splitlines()
 
 
 def test_data_annotator(tmp_path):

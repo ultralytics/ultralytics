@@ -22,7 +22,7 @@ You do not need a Slack API key, webhook, or technical setup. Before you start, 
 4. After returning to Platform, choose the alerts you want and click **Save alerts**. **Training complete**,
    **Training failed**, **Annotation complete**, and **Annotation failed** are selected initially.
 
-![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/9a47efa8a0df9db1d13e941e7572ca49.avif)<!-- screenshot -->
+![Ultralytics Platform Slack Integration Setup](https://cdn.ul.run/i/ce5e5eeb0108e7ed538b2503cd256505.avif)<!-- screenshot -->
 
 Platform posts a confirmation in the selected channel as soon as the connection succeeds, and the integration then shows which Slack workspace and channel it is connected to. Workspace admins manage the connection and alert choices for the whole workspace from the [Integrations tab](../account/settings.md#integrations-tab).
 

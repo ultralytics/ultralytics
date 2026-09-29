@@ -785,7 +785,7 @@ GET /api/datasets/{owner}/{dataset}/images
             "id": "65f1c0a2b3d4e5f601234567",
             "hash": "9f2c1d4b6a8e0f3c5d7b9a1e2f4c6d8b",
             "ext": "jpg",
-            "name": "aisle-04.jpg",
+            "name": "aisle-04",
             "thumbnailUrl": "https://storage.googleapis.com/...&signature=...",
             "width": 1920,
             "height": 1080,
@@ -1959,8 +1959,9 @@ GET /api/deployments/{owner}/{deployment}/metrics
 | `view`      | string  | `overview` returns only request, error, and P95 latency metrics                |
 
 The full response contains `summary` (request totals, error rate, average and p50/p95/p99 latency) and `timeSeries`
-(requests, errors, latency, CPU, memory, instance count). The sparkline response returns `requests24h`,
-`totalRequests`, `errorRate`, and `avgLatencyMs`. With `view=overview`, `summary` holds `totalRequests`, `errorRate`,
+(requests, errors, latency, CPU, memory, instance count). The sparkline response returns `requests24h`
+(hourly request counts; hours without requests are omitted), `totalRequests`, `errorRate`, and `avgLatencyMs` (the
+average of the hourly P95 latencies). With `view=overview`, `summary` holds `totalRequests`, `errorRate`,
 and `p95LatencyMs`, and `timeSeries` holds `requests`, `errors`, and `latencyP95`.
 
 ### Get Logs

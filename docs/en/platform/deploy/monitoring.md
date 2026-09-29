@@ -335,10 +335,10 @@ utilization, and instance count.
 | `sparkline` | bool   | Return the compact dashboard summary instead of the full payload |
 | `view`      | string | `overview` returns only request, error, and P95 latency metrics  |
 
-With `sparkline=true`, the response is a compact summary — 24 hourly request counts plus total requests, error rate, and
-average latency. With `view=overview`, `summary` holds `totalRequests`, `errorRate`, and `p95LatencyMs`, and
-`timeSeries` holds `requests`, `errors`, and `latencyP95`; the stat cards on the deployment page use this view and
-refresh automatically.
+With `sparkline=true`, the response is a compact summary — hourly request counts for the last 24 hours (hours without
+requests are omitted) plus total requests, error rate, and `avgLatencyMs`, the average of the hourly P95 latencies. With
+`view=overview`, `summary` holds `totalRequests`, `errorRate`, and `p95LatencyMs`, and `timeSeries` holds `requests`,
+`errors`, and `latencyP95`; the stat cards on the deployment page use this view and refresh automatically.
 
 ### Deployment Logs
 

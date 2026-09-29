@@ -333,7 +333,7 @@ class LoadImagesAndVideos:
         cap (cv2.VideoCapture): Video capture object for OpenCV.
         frame (int): Frame counter for video.
         frames (int): Number of frames in the current video after applying vid_stride.
-        fps (int): Frames per second of the current video.
+        fps (float): Frames per second of the current video as reported by OpenCV.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
         cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).

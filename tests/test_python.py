@@ -828,6 +828,42 @@ def test_val_save_json_semantic(tmp_path):
         assert abs(correct / total - metrics.results_dict["metrics/pixel_acc"]) < 0.05, f"rect={rect}: masks misaligned"
 
 
+def test_semantic_save_pred_masks_letterbox_roundtrip(tmp_path):
+    """Test save_pred_masks crops the dataloader's letterbox window instead of a round()-reconstructed one."""
+    from ultralytics.data.dataset import SemanticDataset
+    from ultralytics.models.yolo.semantic.val import SemanticSegmentationValidator
+
+    # 721x1280 at imgsz=640 letterboxes to a 361-row content window (math.ceil in load_image, pad top 139), while
+    # scale_masks without the dataloader's ratio_pad reconstructs a round()-based 360-row window one row off that
+    # drops the first content row. A sentinel value on that row makes the dropped row observable in the saved mask.
+    h, w, top, content_h = 721, 1280, 139, 361
+    ratio_pad = ((content_h / h, 640 / w), (0, top))
+    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.png"), np.zeros((h, w, 3), dtype=np.uint8))
+    Image.fromarray(np.zeros((h, w), dtype=np.uint8)).save(masks / "a.png")
+
+    labels = SemanticDataset(
+        img_path=str(images), imgsz=640, data={"names": {0: "bg", 1: "fg"}, "nc": 2}, augment=False
+    )[0]
+    pred = torch.full((640, 640), 255, dtype=torch.int32)  # letterbox-space prediction with 255 padding
+    pred[top : top + content_h] = 8
+    pred[top] = 7  # sentinel on the first content row
+
+    validator = object.__new__(SemanticSegmentationValidator)  # only save_pred_masks is exercised
+    validator.results_dir, validator.dataset = tmp_path, None
+    validator.save_pred_masks(
+        [pred], {"im_file": [labels["im_file"]], "ori_shape": [labels["ori_shape"]], "ratio_pad": [ratio_pad]}
+    )
+
+    saved = np.asarray(Image.open(tmp_path / "a.png"))
+    assert saved.shape == (h, w)
+    assert (saved != 255).all(), "letterbox padding leaked into the saved mask"
+    assert (saved[:2] == 7).all() and (saved[2:] == 8).all(), "letterbox content window cropped one row off"
+    assert labels["ratio_pad"] == ratio_pad  # the dataloader records exactly this ceil-sized window
+
+
 def test_pose_metrics_curves():
     """Test that pose curve labels contain four unique box and pose series."""
     from ultralytics.utils.metrics import PoseMetrics

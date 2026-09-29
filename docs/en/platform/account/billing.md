@@ -301,7 +301,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 View all transactions in `Settings > Billing`. The table covers the selected date range (last 30 days by default),
 supports free-text search across every field, and exports to CSV or JSON from the menu in the card header.
 
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/f45c7ce61c718d4a2517cbffcaece256.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/706d984e623d641af877e83e1d08997c.avif)<!-- screenshot -->
 
 | Column          | Description                                                                           |
 | --------------- | ------------------------------------------------------------------------------------- |

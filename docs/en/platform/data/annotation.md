@@ -356,7 +356,7 @@ Batch Annotation runs one model — a YOLO model, or on detection datasets with 
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
 
-![Ultralytics Platform Datasets Batch Annotation Dialog Test Run](https://cdn.ul.run/i/d4b15c7ec0db3dee1175e581fd9a4bc9.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Batch Annotation Dialog Sample Previews](https://cdn.ul.run/i/0d60fe240ab6e865901166baf7c6d956.avif)<!-- screenshot -->
 
 By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. For a YOLO model, if the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
 

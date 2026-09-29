@@ -1,15 +1,15 @@
 ---
 title: YOLO26 Computer Vision Tasks Overview
 comments: true
-description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, and OBB with high accuracy and speed. Learn how to apply each task.
-keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, computer vision, AI framework
+description: Explore Ultralytics YOLO26 for detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, OBB, and stereo 3D detection with high accuracy and speed. Learn how to apply each task.
+keywords: Ultralytics YOLO26, detection, segmentation, semantic segmentation, depth estimation, classification, pose estimation, oriented object detection, stereo 3D detection, computer vision, AI framework
 ---
 
 # Computer Vision Tasks Supported by Ultralytics YOLO26
 
 <img width="1024" src="https://cdn.ul.run/i/c99d914c3958d0755b5a3d7204b6f24a.avif" alt="Ultralytics YOLO supported computer vision tasks">
 
-Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, and [OBB](obb.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
+Ultralytics YOLO26 is a versatile AI framework that supports multiple [computer vision](https://www.ultralytics.com/blog/everything-you-need-to-know-about-computer-vision-in-2025) **tasks**. The framework can be used to perform [detection](detect.md), [segmentation](segment.md), [semantic segmentation](semantic.md), [depth estimation](depth.md), [classification](classify.md), [pose](pose.md) estimation, [OBB](obb.md), and [stereo 3D detection](s3d.md). Each of these tasks has a different objective and use case, allowing you to address various computer vision challenges with a single framework.
 
 For planned YOLO27 support, see the [YOLO27 preview](../models/yolo27.md#supported-tasks-and-modes). YOLO27 is coming soon and is not yet available; this guide uses released YOLO26 models.
 
@@ -66,6 +66,12 @@ Oriented Bounding Box (OBB) detection enhances traditional object detection by a
 
 [OBB Examples](obb.md){ .md-button }
 
+## [Stereo 3D Detection](s3d.md)
+
+Stereo 3D detection estimates full 3D bounding boxes — including depth, dimensions, and orientation — from calibrated stereo image pairs. By leveraging the disparity between left and right camera views, YOLO26 recovers the spatial geometry of objects in the scene without requiring LiDAR. This task is essential for autonomous driving and robotics applications where precise 3D spatial understanding is needed. Models are available in n/s/m/l/x sizes and are evaluated using the KITTI R40 protocol.
+
+[Stereo 3D Detection Examples](s3d.md){ .md-button }
+
 ## What's Next
 
 Picked a task? Format your data for it with the [Datasets guide](../datasets/index.md), then [train on your own images](../modes/train.md).
@@ -83,6 +89,7 @@ Ultralytics YOLO26 is a versatile AI framework capable of performing various com
 - **[Classification](classify.md):** Categorizing entire images based on their content.
 - **[Pose Estimation](pose.md):** Detecting specific keypoints in an image or video frame to track movements or poses.
 - **[Oriented Object Detection (OBB)](obb.md):** Detecting rotated objects with an added orientation angle for enhanced accuracy.
+- **[Stereo 3D Detection](s3d.md):** Estimating full 3D bounding boxes (depth, dimensions, orientation) from calibrated stereo image pairs.
 
 ### How do I use Ultralytics YOLO26 for object detection?
 

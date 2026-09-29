@@ -58,7 +58,7 @@ SOLUTION_MAP = {
 
 # Define valid tasks and modes, ordered as they appear across the docs and Ultralytics Platform
 MODES = ("train", "val", "predict", "export", "track", "benchmark")
-TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb")
+TASKS = ("detect", "segment", "semantic", "depth", "classify", "pose", "obb", "s3d")
 TASK2DATA = {
     "detect": "coco8.yaml",
     "segment": "coco8-seg.yaml",
@@ -67,6 +67,7 @@ TASK2DATA = {
     "classify": "imagenet10",
     "pose": "coco8-pose.yaml",
     "obb": "dota8.yaml",
+    "s3d": "kitti-stereo8.yaml",
 }
 TASK2CALIBRATIONDATA = {
     "detect": "coco128.yaml",
@@ -76,6 +77,7 @@ TASK2CALIBRATIONDATA = {
     "classify": "imagenet100",
     "pose": "coco8-pose.yaml",
     "obb": "dota128.yaml",
+    "s3d": "kitti-stereo8.yaml",
 }
 TASK2MODEL = {
     "detect": "yolo26n.pt",
@@ -85,6 +87,7 @@ TASK2MODEL = {
     "classify": "yolo26n-cls.pt",
     "pose": "yolo26n-pose.pt",
     "obb": "yolo26n-obb.pt",
+    "s3d": "yolo26n-s3d.pt",
 }
 TASK2METRIC = {
     "detect": "metrics/mAP50-95(B)",
@@ -94,6 +97,7 @@ TASK2METRIC = {
     "classify": "metrics/accuracy_top1",
     "pose": "metrics/mAP50-95(P)",
     "obb": "metrics/mAP50-95(B)",
+    "s3d": "metrics/ap3d_50",
 }
 
 ARGV = sys.argv or ["", ""]  # sometimes sys.argv = []
@@ -263,6 +267,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "val_period",
         "opset",
     }
 )

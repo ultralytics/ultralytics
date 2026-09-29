@@ -1002,6 +1002,8 @@ def smart_value(v: str) -> Any:
         return True
     elif v_lower == "false":
         return False
+    elif "_" in v and v.replace("_", "").isdigit():
+        return v  # '2024_03_15' is a run name, not Python's 20240315 digit-grouping syntax
     else:
         try:
             return ast.literal_eval(v)

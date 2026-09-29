@@ -312,7 +312,10 @@ class Instances:
             padh (int): Vertical padding added to y coordinates.
         """
         assert not self.normalized, "you should add padding with absolute coordinates."
-        self._bboxes.add(offset=(padw, padh, padw, padh))
+        if self._bboxes.format == "xyxy":
+            self._bboxes.add(offset=(padw, padh, padw, padh))
+        else:  # xywh and ltwh boxes only move, their width and height stay the same
+            self._bboxes.add(offset=(padw, padh, 0, 0))
         self.segments[..., 0] += padw
         self.segments[..., 1] += padh
         if self.keypoints is not None:

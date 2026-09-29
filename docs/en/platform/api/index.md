@@ -10,7 +10,7 @@ integrations_path: ../../integrations
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides a REST API for programmatic access to datasets, images, projects, models, training, exports, and deployments.
 
-![Ultralytics Platform Interactive API Documentation](https://cdn.ul.run/i/902c8979434234a150d1d2df438ec1fb.avif)<!-- screenshot -->
+![Ultralytics Platform Interactive API Documentation](https://cdn.ul.run/i/f5f9cca7b03f36c62e176eb8795d7551.avif)<!-- screenshot -->
 
 !!! tip "Quick Start"
 

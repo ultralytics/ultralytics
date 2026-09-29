@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 
 [Ultralytics Platform](https://platform.ultralytics.com) Explore page showcases public content from the community. Discover [datasets](data/datasets.md) and [projects](train/projects.md) for inspiration and learning. The Explore page is accessible to everyone — even without signing in.
 
-![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/a0871fbc2ffb9a7c0b975871b05a6efd.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/11d4848264006e44b186cf661be3a8fe.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -56,7 +56,7 @@ The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Ea
 Each tab has its own search bar. Results update as you type and the query is kept in the URL as `?q=`, so a search is
 easy to bookmark or share.
 
-![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/f68f4cc6f7de1b2f8c99d9bfceaeeb53.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Datasets Tab With Search](https://cdn.ul.run/i/b266166107bf17a96f8fffccb23739db.avif)<!-- screenshot -->
 
 | Tab          | Matched Fields                                           |
 | ------------ | -------------------------------------------------------- |
@@ -103,7 +103,7 @@ column headers and its own pagination controls.
 
 Each item displays:
 
-![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/6d245bbadc0f8f3870cfd3659d6591a0.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Dataset And Project Cards](https://cdn.ul.run/i/a906448f7286289231d8c4293ee70818.avif)<!-- screenshot -->
 
 === "Project Cards"
 
@@ -172,7 +172,7 @@ Use a public dataset for your training:
 3. Review the destination workspace, name, visibility, and license
 4. Click `Clone Dataset` to confirm
 
-![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/f8691631e0bf7b37d6402ee377c040f7.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Dataset](https://cdn.ul.run/i/bb2f4453c198890520300dba49160fbc.avif)<!-- screenshot -->
 
 !!! note "Cloned Dataset Properties"
 
@@ -214,7 +214,7 @@ Clone a public model to one of your projects:
 4. Optionally, rename the model
 5. Review the source, destination, and storage summary, then click `Clone Model` to confirm
 
-![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/258ade9b3b4aea11dab181c17995f802.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/ea87fef6ef1ff9f2d6a00e3fbb46459d.avif)<!-- screenshot -->
 
 !!! note "Clone vs Download"
 
@@ -228,7 +228,7 @@ Copy a public project to your workspace:
 2. Click `Clone Project`
 3. Review the destination, name, visibility, and license, then click `Clone Project`
 
-![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/1096f79e000e9297860173aa46258035.avif)<!-- screenshot -->
+![Ultralytics Platform Explore Clone Project](https://cdn.ul.run/i/8622d3c0f37ee586198ab9dd447699b7.avif)<!-- screenshot -->
 
 The cloned project includes completed models that have model files. Deployments and exports are not copied. Its default visibility follows the same workspace rules as dataset cloning.
 
@@ -253,7 +253,7 @@ Official datasets include benchmark datasets like [coco8](../datasets/detect/coc
 
 Click on a creator's username to view their public profile at `platform.ultralytics.com/{username}`. Public profiles show:
 
-![Ultralytics Platform User Profile Public Content](https://cdn.ul.run/i/48da46c491e24235796056e924da4439.avif)<!-- screenshot -->
+![Ultralytics Platform User Profile Public Content](https://cdn.ul.run/i/d8ac8f301be5a10bcb1098cd155b3d9d.avif)<!-- screenshot -->
 
 | Section       | Content                                           |
 | ------------- | ------------------------------------------------- |

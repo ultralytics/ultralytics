@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 
 [Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–200 classes, class-prompted models: hosted open-source models or paid provider models.
 
-![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/fd13a4b1f4b8fad9ed5e736030a070cf.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/5ba36616a9363a036217c9b058daf35c.avif)<!-- screenshot -->
 
 ```mermaid
 graph TB
@@ -110,7 +110,7 @@ To annotate images:
 
 For datasets you can edit, annotation controls are active as soon as the fullscreen viewer opens on desktop. There is no separate edit mode or `Edit` button. On mobile, and when you do not have edit access, the fullscreen viewer is read-only.
 
-![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/96b05b3e135932d5a49ba8c0ad05d0b8.avif)<!-- screenshot -->
+![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/3c42ebce6b9e551108eab728c3b93c13.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -148,7 +148,7 @@ Draw rectangular boxes around objects:
 2. In the default `Draw` mode, click and drag to draw a rectangle
 3. Release to complete the box
 
-![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/03f7437fabd12653415375312874950c.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/29e929eaa1d44285f9ff299f4cd245b4.avif)<!-- screenshot -->
 
 !!! tip "Resize and Move"
 
@@ -164,7 +164,7 @@ Draw precise polygon masks:
 2. In the default `Draw` mode, click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
 3. Double-click, click the first vertex, or press `Enter` or `Escape` to close the polygon
 
-![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/be5cf764c0b8a32158064b352934cdff.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/c10d6f45961deb17816dceb3945b6877.avif)<!-- screenshot -->
 
 !!! tip "Edit Vertices"
 
@@ -229,7 +229,7 @@ Draw rotated boxes for angled objects:
 3. Use the rotation handle to adjust angle
 4. Drag corner handles to resize
 
-![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/f7bd3dc0bc310162c5841659eed55b72.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/bfdc7cf3feb3e9000529b3ed40a9889a.avif)<!-- screenshot -->
 
 ### Classification (Classify)
 
@@ -238,7 +238,7 @@ Assign image-level class labels:
 1. Click an image to open the fullscreen editor
 2. Select a class in the class sidebar, or press a number key from `1-9`
 
-![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/aee8d1a82873672bf6d179df35e5d939.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/d408f0440a059a9e2139d8aa41f85e45.avif)<!-- screenshot -->
 
 ## Smart Annotation
 
@@ -434,7 +434,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 3. Click `Add` or press `Enter`
 4. A color is assigned automatically from the Ultralytics palette
 
-![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.ul.run/i/103c2683f43dbbbc4997faf6959c8315.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.ul.run/i/d0d213595ef0871c12dd35514ea2893f.avif)<!-- screenshot -->
 
 ### Add New Class During Annotation
 
@@ -520,7 +520,7 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+]` | Bring to front |
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/6bb507eae033a53c4181106227895112.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/be6c5f8c3abe5ac3d316da3feeb1926e.avif)<!-- screenshot -->
 
 ??? tip "View All Shortcuts"
 

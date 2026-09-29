@@ -44,7 +44,7 @@ graph LR
 
 [Ultralytics Platform](https://platform.ultralytics.com) offers a variety of easy signup options. You can register and log in using your Google or GitHub accounts, or with your email address.
 
-![Ultralytics Platform Signup](https://cdn.ul.run/i/a48988bee52c8453f37dc0e750abf717.avif)<!-- screenshot -->
+![Ultralytics Platform Signup](https://cdn.ul.run/i/d1aa583f9f69a3bf49d503774779cb98.avif)<!-- screenshot -->
 
 ### Region Selection
 
@@ -52,7 +52,7 @@ During onboarding, you'll be asked to select your data region. The Platform auto
 region and recommends the closest one. This choice determines where your datasets, models, and managed training data are
 stored. Dedicated endpoint regions are selected separately when you deploy a model.
 
-![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/6e7f398d48e5d13a6af94dcd5c7ec5f9.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Region Map With Latency](https://cdn.ul.run/i/d6b29d932b4dde9df4aab770f18fe1ae.avif)<!-- screenshot -->
 
 {% include "macros/platform-data-regions.md" %}
 
@@ -81,7 +81,7 @@ The onboarding flow guides you through three steps:
 2. **Data Region** - Select US, EU, or AP with a visual world map showing latency
 3. **Complete** - Review your selections, optionally apply a promo code, and finish signup to claim your welcome credits
 
-![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/cf184953e574770a539c58e11b374a70.avif)<!-- screenshot -->
+![Ultralytics Platform Onboarding Profile With Use Case](https://cdn.ul.run/i/1bd588a6adfb2c7c1b335dd3b21c684d.avif)<!-- screenshot -->
 
 ??? tip "Update Later"
 
@@ -91,7 +91,7 @@ The onboarding flow guides you through three steps:
 
 After signing in, you will be directed to the Home page of [Ultralytics Platform](https://platform.ultralytics.com), which provides a welcome card with workspace stats, an overview video, quick access to datasets, projects, and storage, and a recent activity feed.
 
-![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/6b781473a19d1def451215f201c7f707.avif)<!-- screenshot -->
+![Ultralytics Platform Home Dashboard Welcome Card](https://cdn.ul.run/i/493d7d7962fba5fc226e802bf7d9469d.avif)<!-- screenshot -->
 
 ### Sidebar Navigation
 
@@ -178,7 +178,7 @@ To replay any tour:
 
 Open `Annotate` in the sidebar and click the `+` to create a new dataset. You can also drag and drop files directly onto the Datasets card on the Home dashboard.
 
-![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/ae0cb43abddd1e486f3cbaca7523e48b.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Upload Dialog](https://cdn.ul.run/i/0a41e4a1487a50f74266b9164c7fd64f.avif)<!-- screenshot -->
 
 The **New Dataset** dialog offers four sources. This quickstart uses **Upload**; the others are covered in
 [Datasets](data/datasets.md) and [Integrations](integrations/index.md):
@@ -248,7 +248,7 @@ Read more about [datasets](data/datasets.md) and supported formats for [detect](
 
 Projects help you organize related models and experiments. Open `Train` in the sidebar and click the `+` to create a project. You can also drop `.pt` weights onto the Projects card on the Home dashboard to create a project and import them in one step.
 
-![Ultralytics Platform Projects Create](https://cdn.ul.run/i/ed4357df1791892bae5488ef2f170181.avif)<!-- screenshot -->
+![Ultralytics Platform Projects Create](https://cdn.ul.run/i/9ae33c3a5c61bf59dc6b6b993abdec12.avif)<!-- screenshot -->
 
 Enter a name and optional description. Projects organize model runs and imported or cloned model weights, with charts for comparing completed training results.
 
@@ -258,7 +258,7 @@ Read more about [projects](train/projects.md).
 
 From your project, click `New Model` to open the **Train New Model** dialog. You can also start from a dataset page, in which case the dataset is locked in and you pick the destination project instead.
 
-![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/d258f93a8b00f2938ee1b2b868b2b80b.avif)<!-- screenshot -->
+![Ultralytics Platform Quickstart Training Dialog Cloud Tab](https://cdn.ul.run/i/c93aa9499bf9401557562ffc3cd96be2.avif)<!-- screenshot -->
 
 ### Training Configuration
 
@@ -287,7 +287,7 @@ Once training starts, open the model's `Train` tab to monitor progress in real t
 | **Console** | Live training log output                                |
 | **System**  | GPU utilization, memory usage, hardware metrics         |
 
-![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/6da2556476cf397f3ad98565de550a7c.avif)<!-- screenshot -->
+![Ultralytics Platform Training Charts Loss And Metrics](https://cdn.ul.run/i/533d461f043d83d7dad2b7483a56a3f5.avif)<!-- screenshot -->
 
 Metrics are streamed in real-time via SSE (Server-Sent Events). Once validation artifacts exist, the Charts subtab splits into **Training** and **Validation** views, with the confusion matrix, PR curves, and F1 curves under Validation.
 
@@ -305,7 +305,7 @@ After training completes, test your model directly in the browser:
 2. Upload an image, drag and drop, capture one from your webcam, or click an example image (auto-inference on drop)
 3. View task-appropriate prediction overlays, per-stage timings (preprocess, inference, postprocess, network), and the raw JSON response
 
-![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/f91ddda982943417224caabce9151d5a.avif)<!-- screenshot -->
+![Ultralytics Platform Predict Tab With Bounding Boxes](https://cdn.ul.run/i/0cdeafceca5ccaea1e11bfbebe0e4a21.avif)<!-- screenshot -->
 
 Adjust inference parameters:
 
@@ -363,7 +363,7 @@ Deploy your model to a dedicated endpoint for production use:
 3. In the **Region Latency** table below the map — sorted by latency from your location — find the region you want. Use `Rescan` to re-measure at any time.
 4. Click `Deploy` on that row to create your endpoint
 
-![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.ul.run/i/dd8705123618b4994d035b50663a14cf.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.ul.run/i/10b367836b087d68241e529da20a1257.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR

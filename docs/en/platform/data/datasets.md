@@ -266,7 +266,7 @@ To create a dataset:
 5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private)
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
-![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/9a60591229e11552b91f805de387893e.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/16dcaac210f7f70540f6061c6b98fba9.avif)<!-- screenshot -->
 
 To add files to an existing dataset, open its dataset page and either drag the files onto the gallery or click the upload icon in the page header. The upload icon opens your browser's native file picker directly because the dataset task is already defined.
 
@@ -358,7 +358,7 @@ Open the [Clustering](#clustering) panel from the gallery toolbar to explore you
 | **Compact** | Smaller thumbnails for quick scanning                                             |
 | **Table**   | List with thumbnail, filename, dimensions, size, split, classes, and label counts |
 
-![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/1d9140731cab4a43d3d5cc74925aab67.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Gallery Grid View With Annotations](https://cdn.ul.run/i/8d1bce8510945878ac52bdfc577a7301.avif)<!-- screenshot -->
 
 ### Sorting and Filtering
 
@@ -436,7 +436,7 @@ Filter images by their dataset split:
 
 The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
 
-![Ultralytics Platform Datasets Clustering Empty State](https://cdn.ul.run/i/6b607c81c3713c24e2dddb52fb9131a7.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Clustering Empty State](https://cdn.ul.run/i/9fa778552a0c0c3e6b4b7047841f658e.avif)<!-- screenshot -->
 
 ### Running Analysis
 
@@ -456,7 +456,7 @@ Analysis runs in the background in two stages, `Computing embeddings` and `Clust
 
 Once analysis completes, the panel shows a 2D scatter of all analyzed images with a legend and a point counter. Gallery filters (split, class, labeled/unlabeled) dim out-of-filter points so you can focus on the subset you care about — the counter then reads `visible / total points`.
 
-![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/ccc3e7d7437108d8ab9abbfe2bcaa800.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Clustering Scatter Plot](https://cdn.ul.run/i/8126ac6ef5087cfa9fd43114c037db7e.avif)<!-- screenshot -->
 
 #### Color By
 
@@ -471,7 +471,7 @@ Change how data points are shaded with the `Color by` dropdown in the panel tool
 | **Size**        | File size                            |
 | **Annotations** | Number of annotations per image      |
 
-![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.ul.run/i/e2fb69fd844afa3724433aa37dd7c36b.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.ul.run/i/2b569b2849ebbcabf3aa9cb27c890cbd.avif)<!-- screenshot -->
 
 #### Lasso Selection
 
@@ -532,7 +532,7 @@ Manage annotation classes for your dataset:
 - **Merge classes**: Select two or more rows and click `Merge into one`
 - **Delete classes**: Select one or more rows and click `Delete`
 
-![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.ul.run/i/4436768ff6dd3de4184b44ddec5fb042.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Classes Tab Histogram And Table](https://cdn.ul.run/i/963fc97f20389834cb0890b50476b906.avif)<!-- screenshot -->
 
 !!! note "Log Scale for Imbalanced Datasets"
 
@@ -586,7 +586,7 @@ Charts appear in this order, and each one is omitted when the dataset has no dat
 | **Objects per Image**       | Histogram of annotation count per image                                          |
 | **Points per Instance**     | Polygon vertex or keypoint count per annotation (segment/pose)                   |
 
-![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.ul.run/i/7f75c56ff648ab3dfa612ba732283a6f.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Charts Tab Statistics Grid](https://cdn.ul.run/i/064f4d079024c8a60b57bbfee8d3fcb0.avif)<!-- screenshot -->
 
 !!! tip "Statistics Caching"
 
@@ -612,7 +612,7 @@ View all models trained on this dataset in a searchable table:
 | mAP50    | mAP at IoU 0.50                                     |
 | Created  | Creation date                                       |
 
-![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.ul.run/i/5e87bcfacfc0d7f1d25cc1415a70a40c.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.ul.run/i/c68f167c5eff1f7fff6a2c8b1772ad7a.avif)<!-- screenshot -->
 
 ### Errors Tab
 
@@ -624,7 +624,7 @@ Images that failed processing are listed here with:
 - **Error table**: Filename, user-friendly error description, fix hints, and preview thumbnail
 - Common errors include corrupted files, unsupported formats, images too small (min 28px), and unsupported color modes
 
-![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/bdf0b8ce26f807b8633305f27d3fbccd.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Errors Tab Processing Failures](https://cdn.ul.run/i/7d3959d9f884e2d14d53ee75e884a74e.avif)<!-- screenshot -->
 
 ??? info "Common Processing Errors"
 
@@ -691,7 +691,7 @@ To export:
 2. Download the current NDJSON snapshot directly
 3. Use the **Versions** tab when you want an immutable numbered snapshot you can re-download later
 
-![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.ul.run/i/46ba78e4a1e8489108dd1d999d59e7a7.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Export Ndjson Download](https://cdn.ul.run/i/38ad903553d254b5d6a3444e009c796a.avif)<!-- screenshot -->
 
 The NDJSON format stores one JSON object per line. The first line contains dataset metadata, followed by one line per image:
 
@@ -766,7 +766,7 @@ Redistribute all images across train, validation, and test splits using custom r
 3. Review the live image count preview to confirm the distribution
 4. Click **Apply** to randomly reassign all images according to your percentages
 
-![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/cddfa652da98b5c8bcbd89894e33c2c9.avif)<!-- screenshot -->
+![Ultralytics Platform Datasets Split Redistribution Dialog](https://cdn.ul.run/i/64f91c76882fa316d71be1cd0f286bd5.avif)<!-- screenshot -->
 
 The dialog provides three ways to set your target split ratios:
 

@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, monitoring, metrics, logs, deployment, performan
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides [monitoring for deployed endpoints](../../guides/model-monitoring-and-maintenance.md). Track endpoint requests, latency, errors, and logs. Ready dedicated endpoints on a current runtime also provide live prediction statistics and temporary examples that you can inspect and save to datasets.
 
-![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/a2b4289abc2df5bc00a704a7b9575515.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
 ## Deployments Tab
 
@@ -44,7 +44,7 @@ graph TB
 
 Four summary cards at the top of the page show:
 
-![Ultralytics Platform Deployments Tab Four Overview Cards](https://cdn.ul.run/i/b315ed2fb56e0d934b78014fb46030e1.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab Four Overview Cards](https://cdn.ul.run/i/f999401a804be9a8051aaf324a0ccdac.avif)<!-- screenshot -->
 
 | Metric                     | Description                                                                           |
 | -------------------------- | ------------------------------------------------------------------------------------- |
@@ -71,7 +71,7 @@ The interactive world map shows:
 
 Click any region to open the `New Deployment` dialog. The map is hidden on small screens.
 
-![Ultralytics Platform Deployments Tab World Map With Deployed Regions](https://cdn.ul.run/i/a52b2daa4483953d8aa9877af53ee6a8.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Deployed Regions](https://cdn.ul.run/i/0e9a45316feeddf2f7a6097cdcd3bd1d.avif)<!-- screenshot -->
 
 ### Deployments List
 
@@ -117,7 +117,7 @@ Health checks auto-retry while unhealthy and stop once the endpoint responds. Op
 health check, and the re-ping button triggers another one, which doubles as a way to warm a scaled-to-zero endpoint before
 sending traffic.
 
-![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/20d4da9bf7a27469cdf9d93a85530034.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Health Check Healthy With Latency](https://cdn.ul.run/i/38a6788a1948765e4e3120de79812717.avif)<!-- screenshot -->
 
 !!! info "Cold Start Tolerance"
 
@@ -131,7 +131,7 @@ Open the deployment page of a **Ready** dedicated endpoint and select the **Moni
 
     Monitoring is available on every **Ready** dedicated endpoint, including default-size endpoints on the Free plan. Existing endpoints are not automatically updated with every runtime release, so an older endpoint may show **Monitoring unavailable** until its runtime is updated.
 
-![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/a3d9495d8a8fdc14eacafe2dc631b3ba.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Temporary Examples And Statistics](https://cdn.ul.run/i/a8466113958764047eb0b1ad9fc6989a.avif)<!-- screenshot -->
 
 !!! warning "Temporary Data"
 
@@ -146,7 +146,7 @@ The gallery contains recent processed images with prediction overlays. Open an i
 - **Replacement:** Older examples are replaced when either limit is reached. An example may become unavailable while you are viewing it.
 - **Storage:** Temporary examples remain in endpoint memory. Saving them to a dataset uses normal workspace storage and processing limits.
 
-![Ultralytics Platform Deployment Monitoring Prediction Viewer](https://cdn.ul.run/i/b701a3d589f966da4f00b3693c6ea030.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Viewer](https://cdn.ul.run/i/0792c980f50b10ef67a09a4fd7e3bbc3.avif)<!-- screenshot -->
 
 ### Save Examples to a Dataset
 
@@ -159,7 +159,7 @@ Workspace members with content editing permission can save examples to a dataset
 
 Selected images and predictions are copied through the standard dataset upload and ingestion workflow. Normal quota, class mapping, and duplicate handling apply. Saving leaves the temporary examples in the gallery; successfully ingested dataset images survive endpoint restarts and deletion. Review predicted labels before using them for training. Each saved image records `deploymentId`, `deploymentName`, `deploymentRegion`, and `deploymentRegionName` in its [custom metadata](../data/datasets.md#fullscreen-viewer), which dataset search matches; names are recorded as they were at save time, and an image skipped as a duplicate keeps its existing metadata.
 
-![Ultralytics Platform Deployment Monitoring Save Examples To Dataset](https://cdn.ul.run/i/18c1c9cd8decb4e3c115d6e02fdf49fe.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Save Examples To Dataset](https://cdn.ul.run/i/6206b03431d60b029528150ddbdaba58.avif)<!-- screenshot -->
 
 To remove temporary examples, use an image's hover trash control or select examples and click the bulk trash button, then confirm **Delete**. Deleting examples leaves aggregate prediction statistics and images already saved to datasets unchanged.
 
@@ -184,9 +184,9 @@ Available charts depend on the task and collected predictions:
 | **Prediction Dimensions** | Prediction width and height relative to the input image, when box dimensions are available                      |
 | **Prediction Locations**  | Spatial heatmap of predictions, when location data is available                                                 |
 
-![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/cb3decac9b9a31e4f7d3d1cb6377e7f3.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Prediction Statistics](https://cdn.ul.run/i/dd749ddde22b94239967d3dce40ad1c1.avif)<!-- screenshot -->
 
-![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/f9cb24a8692f568f96617c6026c90b8e.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Monitoring Confidence And Spatial Statistics](https://cdn.ul.run/i/a0c947af96b544fd7bc478323c12422b.avif)<!-- screenshot -->
 
 !!! tip "Interpreting Statistics"
 
@@ -198,7 +198,7 @@ Monitoring refreshes automatically while its panel is open and visible, and paus
 
 Each deployment page includes a `Logs` tab for viewing recent log entries:
 
-![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/87447dfe15d51c112e12956a72f5fd06.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Logs Tab With Severity Filter](https://cdn.ul.run/i/ad6dfa8794a177c51b61e489df5dc1db.avif)<!-- screenshot -->
 
 ### Log Entries
 

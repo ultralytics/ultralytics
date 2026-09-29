@@ -25,7 +25,7 @@ management options.
 
 Update your profile information:
 
-![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/679e7eb184fe9db51391b1d3548c9aa2.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/55147df3a6dd2d51b090844848e0c4d5.avif)<!-- screenshot -->
 
 | Field                      | Description                                              |
 | -------------------------- | -------------------------------------------------------- |
@@ -96,7 +96,7 @@ Social links appear on your public profile page.
 Manage email addresses linked to your account in the `Profile` tab. The Emails card appears on personal accounts only —
 team workspaces have no separate email list.
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/f09baef9e8e5b2ceec2fa688b597eeeb.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/3e2708ac6f049cf9e30d3f807f6166b2.avif)<!-- screenshot -->
 
 | Action             | Description                                                                |
 | ------------------ | -------------------------------------------------------------------------- |
@@ -249,7 +249,7 @@ as the owner. See [API Keys](api-keys.md) for full documentation.
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -269,7 +269,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
 metered cloud training.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
 From this tab you can:
 
@@ -330,7 +330,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Membe
 [Pro and Enterprise plans](billing.md#plans) — on the Free plan the tab shows the roles reference and an
 **Upgrade to Pro** button instead of an invite control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/5f238fe52109870671d17728d8f3ca94.avif)<!-- screenshot -->
 
 The member card header shows the workspace name, plan badge, your own role, and a seat summary such as
 `3 of 5 seats used · 2 available (includes 1 pending invite)`.
@@ -406,7 +406,7 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/63c5caae0d664afcbcfd9713453f37e5.avif)<!-- screenshot -->
 
 From this tab you can:
 

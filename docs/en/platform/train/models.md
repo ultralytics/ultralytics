@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
-![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/3012fee5f840c678a07bd8920b0d34b5.avif)<!-- screenshot -->
+![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/54e0474716ba6a34834ae9168f4c6297.avif)<!-- screenshot -->
 
 ## Upload Model
 
@@ -22,7 +22,7 @@ Upload existing model weights to the platform:
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
-![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/bc0d8b8d2325e5fa4d4a5d084cd5338b.avif)<!-- screenshot -->
+![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/abdfc6f752765b2bc24b19f055ab39a9.avif)<!-- screenshot -->
 
 Supported model formats:
 
@@ -103,7 +103,7 @@ While a run is active the card shows live progress — epoch counter, progress b
 
 Below it, **Training Configuration** lists every hyperparameter used and **Performance Metrics** lists the final evaluation results. Both tables are searchable and have an **Export data** menu (Copy JSON, Download CSV, Download JSON).
 
-![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/5e7fa4c46cadf75c87934a8734838f2c.avif)<!-- screenshot -->
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/b985d31f788ea397bf3e1fabead00c37.avif)<!-- screenshot -->
 
 ### Train Tab
 
@@ -121,7 +121,7 @@ Interactive metric charts over epochs, split into **Training** and **Validation*
 
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/640ad65e65f173c9088f9637dd98da54.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/c2fa4095937cf79df4aac265fe3260af.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -132,7 +132,7 @@ Live console output from the training process:
 - Fatal-error detection that ends the run and surfaces the message in a banner
 - ANSI color support, an optional timestamp column, and one-click copy as plain text
 
-![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/45125323b2fa8bb95dfc4e067f5c01f2.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/5ac5e8dccc91202cdfde11f106f2ee19.avif)<!-- screenshot -->
 
 #### System Subtab
 
@@ -148,7 +148,7 @@ A host card summarizing the training instance (hostname, CPU, GPU, RAM and disk 
 
 GPU, network, and disk charts appear only when the run reported those counters.
 
-![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/6e614bf9749f5eba38c384858c05ca0a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/431560840cca48aead94bb0fccca9f98.avif)<!-- screenshot -->
 
 ### Predict Tab
 
@@ -179,13 +179,13 @@ After training completes, the **Validation** view inside the Charts subtab shows
 
 Interactive heatmap showing prediction accuracy per class:
 
-![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/64c239ca6baa01d0b65cd7a4d42ece2c.avif)<!-- screenshot -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/780955dffa9f05b51aff04e167dc4627.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
 When the training run provides them, the **Validation** view also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
-![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/78226b971bd48bed8f043a377a37c6e9.avif)<!-- screenshot -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/b312aab61b8bdfc868ebbe7400c888a8.avif)<!-- screenshot -->
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -238,7 +238,7 @@ Export your model to 21 deployment formats:
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
-![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/9e5b54290f479b20ed96d5a0f091659f.avif)<!-- screenshot -->
+![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/d5716199766bea7ab5ee097b0cc343e6.avif)<!-- screenshot -->
 
 ### Supported Formats
 

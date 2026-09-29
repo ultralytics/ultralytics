@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, teams, collaboration, enterprise, roles, permiss
 
 [Ultralytics Platform](https://platform.ultralytics.com) team features enable collaborative computer vision workflows. Create a team workspace to share datasets, projects, models, and deployments with your colleagues using role-based access control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/5f238fe52109870671d17728d8f3ca94.avif)<!-- screenshot -->
 
 ## Overview
 
@@ -61,13 +61,13 @@ hyphens, and it must not already be taken.
 
     You can own up to 5 teams. To create another, you must first delete or transfer ownership of an existing team.
 
-![Ultralytics Platform Teams Create Team Landing](https://cdn.ul.run/i/f70ce48d7c555aaff12423337446d3ae.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Create Team Landing](https://cdn.ul.run/i/51a4acbc89c4c4d652ebcdd6e78f7b7b.avif)<!-- screenshot -->
 
 ## Switching Workspaces
 
 Switch between your personal account and team workspaces using the workspace switcher in the sidebar. All teams you belong to appear in the list.
 
-![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.ul.run/i/b5d3298767cc96743a74133b7c92fe6b.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Workspace Switcher Dropdown](https://cdn.ul.run/i/d30dae62950d5f88c39c3f8b59d154b2.avif)<!-- screenshot -->
 
 When you switch to a team workspace, all resources you see and create belong to that team. Your personal workspace resources remain separate.
 
@@ -137,7 +137,7 @@ Admins and Owners can invite new members to the team:
 5. Click **Continue**, review the seat cost, then click **Confirm & invite** (workspaces without seat billing, such as
    Enterprise, show **Send Invitation** instead)
 
-![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/4f3fbc7dc21172bf12cd404a5ca0b863.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Invite Member Dialog](https://cdn.ul.run/i/95a332021091e791023d0f789d806a0b.avif)<!-- screenshot -->
 
 What happens next depends on whether the invitee already uses the Platform:
 

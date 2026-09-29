@@ -357,8 +357,8 @@ def verify_image_mask(args: tuple) -> tuple:
 
     Returns:
         (tuple): Tuple of (im_file, mask_file, shape, is_1bit, is_palette, nm, nf, nc, msg), where the first five are
-            None for rejected samples, is_1bit and is_palette record PIL mask modes, nm, nf, and nc are missing,
-            found, and corrupt counts, and msg is a log message.
+            None for rejected samples, is_1bit and is_palette record PIL mask modes, nm, nf, and nc are missing, found,
+            and corrupt counts, and msg is a log message.
     """
     im_file, mask_file, prefix, invalid = args
     # Number (found, missing, corrupt), message

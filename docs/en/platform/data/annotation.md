@@ -1,13 +1,13 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–100 classes.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–200 classes.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–100 classes, class-prompted models: hosted open-source models or paid provider models.
+[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–200 classes, class-prompted models: hosted open-source models or paid provider models.
 
 ![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/fd13a4b1f4b8fad9ed5e736030a070cf.avif)<!-- screenshot -->
 
@@ -132,7 +132,7 @@ graph LR
 | Mode      | Description                                                                                                                                                                                                                                         | Shortcut |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | **Draw**  | Default manual mode with task-specific drawing tools                                                                                                                                                                                                | `V`      |
-| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, with YOLO models on those and pose datasets, or with class-prompted models (hosted open-source or paid provider models) on detection datasets with 1–100 classes | `S`      |
+| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, with YOLO models on those and pose datasets, or with class-prompted models (hosted open-source or paid provider models) on detection datasets with 1–200 classes | `S`      |
 
 Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
@@ -242,7 +242,7 @@ Assign image-level class labels:
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–100 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models, hosted text-prompted SAM 3 and SAM 3.1, and paid vision models from eight providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models, hosted text-prompted SAM 3 and SAM 3.1, and paid vision models from eight providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -343,16 +343,16 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 
 ### Class-Prompted Smart Annotation
 
-On a detection dataset with 1–100 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base**. The **Meta** project adds the hosted text-prompted **SAM 3 Text** and **SAM 3.1 Text**, which detect the dataset's classes across the whole image, and Meta's paid **muse-spark-1.3**. The **OpenAI**, **Anthropic**, **Google**, **DeepSeek**, **Z.ai**, **Kimi**, and **Xiaomi MiMo** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
+On a detection dataset with 1–200 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base**. The **Meta** project adds the hosted text-prompted **SAM 3 Text** and **SAM 3.1 Text**, which detect the dataset's classes across the whole image, and Meta's paid **muse-spark-1.3**. The **OpenAI**, **Anthropic**, **Google**, **DeepSeek**, **Z.ai**, **Kimi**, and **Xiaomi MiMo** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
 
 A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction.
 
 ### Batch Annotation
 
-Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–100 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Inference All** action on the toast after a YOLO prediction in the editor. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
+Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Inference All** action on the toast after a YOLO prediction in the editor. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
-1. Select a model from the picker (`Official`, including the **Open-source models** and provider projects on detection datasets with 1–100 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
-2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the **Test run** strip shows what the model finds on a few sample images as you move them. A class-prompted model detects the dataset classes (1–100) with model-specific thresholds instead of these settings and returns no scores
+1. Select a model from the picker (`Official`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
+2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the **Test run** strip shows what the model finds on a few sample images as you move them. A class-prompted model detects the dataset classes (1–200) with model-specific thresholds instead of these settings and returns no scores
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
 

@@ -2389,6 +2389,35 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
 
 
+def test_semantic_cutmix_png_masks(tmp_path):
+    """CutMix pastes image and mask patches when semantic labels contain no instances."""
+    import random
+
+    from ultralytics.data.augment import CutMix
+    from ultralytics.data.dataset import SemanticDataset
+
+    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
+    images.mkdir(parents=True)
+    masks.mkdir(parents=True)
+    for name, value in (("a", 0), ("b", 1)):
+        cv2.imwrite(str(images / f"{name}.png"), np.full((32, 32, 3), value * 255, dtype=np.uint8))
+        cv2.imwrite(str(masks / f"{name}.png"), np.full((32, 32), value, dtype=np.uint8))
+
+    dataset = SemanticDataset(
+        img_path=str(images), imgsz=32, data={"names": {0: "bg", 1: "fg"}, "nc": 2}, augment=False
+    )
+    random_state, numpy_state = random.getstate(), np.random.get_state()
+    try:
+        random.seed(0)  # select the second image
+        np.random.seed(7)  # choose a nonempty cut area
+        mixed = CutMix(dataset, p=1.0)(dataset.get_image_and_label(0))
+    finally:
+        random.setstate(random_state)
+        np.random.set_state(numpy_state)
+    assert mixed["semantic_mask"].any()
+    assert np.array_equal(mixed["img"][..., 0] == 255, mixed["semantic_mask"] == 1)
+
+
 def test_verify_image_label_whitespace_lines(tmp_path):
     """Test whitespace-only lines in label files no longer mark an image corrupt."""
     from ultralytics.data.utils import verify_image_label

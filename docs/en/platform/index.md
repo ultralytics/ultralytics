@@ -9,7 +9,7 @@ keywords: Ultralytics Platform, YOLO, computer vision, model training, cloud dep
 
 [Ultralytics Platform](https://platform.ultralytics.com) is a comprehensive end-to-end computer vision platform that streamlines the entire ML workflow from data preparation to model deployment. Built for teams and individuals who need production-ready [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) solutions without the infrastructure complexity.
 
-![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2990f4be3ba5e24b885f6a1ea278a793.avif)<!-- screenshot -->
+![Ultralytics Platform Dataset Screenshot](https://cdn.ul.run/i/2141b069efb0284ebee4bc23847f999c.avif)<!-- screenshot -->
 
 ## What is Ultralytics Platform?
 
@@ -44,7 +44,7 @@ graph LR
 | Stage        | Features                                                                                                                                                                                                                                                                                                                                                                                   |
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Upload**   | Images (50MB), videos (1GB), and dataset files (ZIP, TAR including `.tar.gz`/`.tgz`, NDJSON) from your machine, a URL, cloud storage, or an on-premise host                                                                                                                                                                                                                                |
-| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–100 classes (see [supported task types](data/annotation.md#supported-task-types)) |
+| **Annotate** | Manual annotation tools for 6 task types, plus [Smart Annotation](data/annotation.md#smart-annotation) with SAM models for detect, segment, semantic, and OBB, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–200 classes (see [supported task types](data/annotation.md#supported-task-types)) |
 | **Train**    | Cloud GPUs (24 on all plans + 2 Pro/Enterprise-only: B200, B300), real-time metrics, project organization                                                                                                                                                                                                                                                                                  |
 | **Export**   | [21 deployment formats](../modes/export.md) (ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, etc.; see [supported formats](train/models.md#supported-formats))                                                                                                                                                                                                                              |
 | **Deploy**   | 42 global regions with dedicated endpoints, scale-to-zero by default (single active instance), and monitoring                                                                                                                                                                                                                                                                              |
@@ -81,7 +81,7 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 - **Dataset Management**: Create datasets from local files, a URL, connected [cloud storage](integrations/index.md), or an [on-premise host](integrations/on-premise.md), with automatic processing
 - **[Annotation Editor](https://www.ultralytics.com/annotate)**: Manual annotation tools for 6 YOLO task types (detect, segment, semantic, classify, pose, OBB; see [supported task types](data/annotation.md#supported-task-types))
 - **Skeleton Templates**: Built-in (Person, Hand, Dog, Face, Box) and custom skeleton templates for one-click pose annotation
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose, or class-prompted models on detection datasets with 1–100 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md) (Tiny, Small, Base, Large), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) from the annotation toolbar for detect, segment, semantic, and OBB tasks, pretrained Ultralytics YOLO models and your own fine-tuned YOLO models for those tasks and pose, or class-prompted models on detection datasets with 1–200 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
 - **Dataset Versioning**: Create numbered NDJSON snapshots with descriptions, then download or restore any version for reproducible training
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
@@ -115,7 +115,7 @@ graph LR
 - **Project Organization**: Group related models, compare experiments, track activity
 - **21 Export Formats**: ONNX, TensorRT, CoreML, LiteRT, Hailo, Ascend, and more (see [supported formats](train/models.md#supported-formats))
 
-![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/fd80b9795191f02b24d9b8d8d1c8380b.avif)<!-- screenshot -->
+![Ultralytics Platform Project Screenshot](https://cdn.ul.run/i/78d6e38a07e3885956acdce96a7fc061.avif)<!-- screenshot -->
 
 You can train models either through the web UI (cloud training) or from your own machine (remote training):
 
@@ -182,7 +182,7 @@ graph LR
 ```
 
 Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to
-`0.25`, `0.7`, and `640`:
+`0.25`, `0.7`, and the model's training image size (640 if unavailable):
 
 === "Python"
 
@@ -368,7 +368,7 @@ For a detailed guide, see the [Quickstart](quickstart.md) page.
 - **Real-Time Metrics**: Stream training progress and monitor deployments
 - **42 Deploy Regions**: Deploy models close to your users worldwide
 - **7 Task Types**: Support for detection, instance segmentation, semantic segmentation, depth estimation, classification, pose, and OBB (see [task docs](../tasks/index.md))
-- **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM, YOLO, and class-prompted models (detection datasets with 1–100 classes) to speed up data preparation
+- **AI-Assisted Annotation**: [Smart annotation](data/annotation.md#smart-annotation) with SAM, YOLO, and class-prompted models (detection datasets with 1–200 classes) to speed up data preparation
 
 ### What GPU options are available for cloud training?
 
@@ -435,23 +435,23 @@ The Platform includes a full-featured annotation editor supporting:
 
 - **Manual Tools**: Bounding boxes, polygons, keypoints with skeleton templates, oriented boxes, classification
 - **Skeleton Templates**: Place all keypoints at once using built-in (Person, Hand, Dog, Face, Box) or custom templates
-- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation on detect, segment, semantic, and OBB datasets, run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for those tasks and pose, or run class-prompted models on detection datasets with 1–100 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
+- **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation on detect, segment, semantic, and OBB datasets, run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for those tasks and pose, or run class-prompted models on detection datasets with 1–200 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, SpaceXAI, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
-| Shortcut               | Action                                          |
-| ---------------------- | ----------------------------------------------- |
-| `V`                    | Manual (draw) mode                              |
-| `S`                    | Smart mode (SAM, YOLO, or class-prompted model) |
-| `P`                    | Predict (in Smart mode)                         |
-| `A`                    | Toggle auto-apply (SAM Smart mode)              |
-| `1` - `9`              | Select class by number                          |
-| `H`                    | Toggle annotation visibility                    |
-| `Space` + drag         | Pan the canvas                                  |
-| `Delete` / `Backspace` | Delete selected annotation                      |
-| `Ctrl+S`               | Save annotations                                |
-| `Ctrl+Z`               | Undo                                            |
-| `Ctrl+Y`               | Redo                                            |
-| `Escape`               | Save / deselect / exit                          |
+| Shortcut                            | Action                                          |
+| ----------------------------------- | ----------------------------------------------- |
+| `V`                                 | Manual (draw) mode                              |
+| `S`                                 | Smart mode (SAM, YOLO, or class-prompted model) |
+| `P`                                 | Predict (in Smart mode)                         |
+| `A`                                 | Toggle auto-apply (SAM Smart mode)              |
+| `1` - `9`                           | Select class by number                          |
+| `H`                                 | Toggle annotation visibility                    |
+| `Space` + drag or middle-click drag | Pan the canvas                                  |
+| `Delete` / `Backspace`              | Delete selected annotation                      |
+| `Ctrl+S`                            | Save annotations                                |
+| `Ctrl+Z`                            | Undo                                            |
+| `Ctrl+Y`                            | Redo                                            |
+| `Escape`                            | Save / deselect / exit                          |
 
 See [Annotation](data/annotation.md) for the complete guide.
 

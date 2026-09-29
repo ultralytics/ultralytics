@@ -66,6 +66,8 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     train_path, val_path = split_path / "train", split_path / "val"
 
     # Create directory structure
+    if split_path.exists():  # a re-split after files change must not keep stale copies that mix old val into new train
+        shutil.rmtree(split_path)
     split_path.mkdir(exist_ok=True)
     train_path.mkdir(exist_ok=True)
     val_path.mkdir(exist_ok=True)
@@ -82,8 +84,8 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         (val_path / class_dir.name).mkdir(exist_ok=True)
 
         # Split and copy files
-        image_files = [f for f in class_dir.glob("*.*") if f.suffix[1:].lower() in IMG_FORMATS]
-        random.shuffle(image_files)
+        image_files = sorted(f for f in class_dir.glob("*.*") if f.suffix[1:].lower() in IMG_FORMATS)
+        random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
         for img in image_files[:split_idx]:

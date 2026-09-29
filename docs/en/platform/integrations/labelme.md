@@ -114,7 +114,7 @@ Open the ZIP before uploading and confirm that `classes.txt`, `images/`, and `la
 5. [Edit the annotations](../data/annotation.md), [train a model](../train/index.md), and
    [deploy it](../deploy/index.md) from the same workspace.
 
-![Ultralytics Platform LabelMe Dataset Import](https://cdn.ul.run/i/afd46cd76c8cf8eb900ebc15ca89fa97.avif)<!-- screenshot -->
+![Ultralytics Platform LabelMe Dataset Import](https://cdn.ul.run/i/b605ec7fd34c2eb5d1f74bb55039d921.avif)<!-- screenshot -->
 
 LabelMe and the YOLO export remain entirely offline. Only the ZIP file you select in the upload dialog is sent to
 Platform.

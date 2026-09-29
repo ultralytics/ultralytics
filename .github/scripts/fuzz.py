@@ -680,7 +680,8 @@ def classify(trial, rc, stderr):
         (exc == "NotImplementedError" and re.search(r"not supported|(?:doesn't|does not) support", stderr))
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
-        or (exc == "AssertionError" and "RTDETR export requires opset>=16" in stderr)
+        or (exc == "AssertionError" and "ONNX export requires opset>=" in stderr)
+        or (exc == "RuntimeError" and "opset" in trial["mutated"] and "Unsupported onnx_opset_version" in stderr)
         # The trainer wraps missing requested splits in RuntimeError; classify the original validation error.
         or (
             exc == "RuntimeError"
@@ -908,7 +909,8 @@ def cmd_repro(args):
     argv = [portable(a) for a in argv]
     mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
-    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro"]}  # replayed commands were fuzz-mutated
+    # replayed commands were fuzz-mutated, so every supplied key counts as mutated for key-gated expected rules
+    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro", *(a.partition("=")[0] for a in argv)]}
     outcomes = []
     for i in range(args.runs):
         rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)

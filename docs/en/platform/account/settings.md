@@ -25,7 +25,7 @@ management options.
 
 Update your profile information:
 
-![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/679e7eb184fe9db51391b1d3548c9aa2.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Display Name Bio Company Fields](https://cdn.ul.run/i/55147df3a6dd2d51b090844848e0c4d5.avif)<!-- screenshot -->
 
 | Field                      | Description                                              |
 | -------------------------- | -------------------------------------------------------- |
@@ -71,13 +71,13 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 ### Early Access
 
-Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. [Agents](../agents.md) does not depend on it.
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
 
 ### Social Links
 
 Connect your professional profiles:
 
-![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/6632010d3fc5d6ffd4045df2e1db0e89.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/b5c6ee3fb5f4ece6ef9cf782da20709c.avif)<!-- screenshot -->
 
 | Platform           | Format         |
 | ------------------ | -------------- |
@@ -96,7 +96,7 @@ Social links appear on your public profile page.
 Manage email addresses linked to your account in the `Profile` tab. The Emails card appears on personal accounts only —
 team workspaces have no separate email list.
 
-![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/f09baef9e8e5b2ceec2fa688b597eeeb.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Emails Section](https://cdn.ul.run/i/3e2708ac6f049cf9e30d3f807f6166b2.avif)<!-- screenshot -->
 
 | Action             | Description                                                                |
 | ------------------ | -------------------------------------------------------------------------- |
@@ -138,7 +138,7 @@ sign-in. Click **Connect Google** or **Connect GitHub** to link another provider
 
 Monitor your storage consumption on the [`Usage` tab](#usage-tab) and the **Home** page:
 
-![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/d4907e21c741a134223d33d80be6f9ed.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/8acbf23174b52dd5b6ff18ca4f700ce6.avif)<!-- screenshot -->
 
 The storage card shows:
 
@@ -249,7 +249,7 @@ as the owner. See [API Keys](api-keys.md) for full documentation.
 
 The `Plans` tab lets you compare available plans and upgrade or downgrade your subscription.
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -269,7 +269,7 @@ See [Billing](billing.md) for detailed plan information, pricing, and upgrade in
 The `Billing` tab is where you manage credits, payment methods, and review transaction history. Credits pay for
 metered cloud training.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
 From this tab you can:
 
@@ -311,6 +311,8 @@ Grouping by user or API key makes it easy to see which team member or automation
 The `Referrals` tab holds your personal referral link under the heading **Give $10, get $10**. Click **Copy link** and
 share it anywhere — the code is applied automatically at signup.
 
+![Ultralytics Platform Settings Referrals Tab](https://cdn.ul.run/i/de42d722e31147b67f9f48004059b535.avif)<!-- screenshot -->
+
 - A friend who signs up with your link gets $10 in credits on top of the usual [signup credit](billing.md#free-plan)
 - You get $10 once they top up $10 in credits on their personal account; Pro subscriptions and team payments do not
   count
@@ -328,7 +330,7 @@ The `Teams` tab lets you manage workspace members, roles, and invitations. Membe
 [Pro and Enterprise plans](billing.md#plans) — on the Free plan the tab shows the roles reference and an
 **Upgrade to Pro** button instead of an invite control.
 
-![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/b680a4b6f2db15b3a34bc19adab8515e.avif)<!-- screenshot -->
+![Ultralytics Platform Teams Member List With Roles](https://cdn.ul.run/i/5f238fe52109870671d17728d8f3ca94.avif)<!-- screenshot -->
 
 The member card header shows the workspace name, plan badge, your own role, and a seat summary such as
 `3 of 5 seats used · 2 available (includes 1 pending invite)`.
@@ -404,7 +406,7 @@ See [Integrations](../integrations/index.md) for the full list of supported serv
 
 The `Trash` tab shows all deleted items and lets you restore or permanently remove them. Deleted items follow a 30-day soft delete policy before automatic permanent deletion.
 
-![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/1fda3fe06d0527f579017b71afa6a2ff.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Trash Tab With Items And Storage Treemap](https://cdn.ul.run/i/63c5caae0d664afcbcfd9713453f37e5.avif)<!-- screenshot -->
 
 From this tab you can:
 

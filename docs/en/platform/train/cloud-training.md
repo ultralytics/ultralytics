@@ -29,7 +29,7 @@ graph LR
 
 Start training from the platform UI by clicking **New Model** on any project or dataset page. The training dialog has two tabs: **Cloud Training** and **Local Training**. When the selected dataset lives on an [On Premise](../integrations/on-premise.md) host, the first tab becomes **On Premise** and the Local Training tab is hidden — that dataset can only be trained on its own host, which requires an Enterprise plan and a connected, online worker.
 
-![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/16e56d74f0d7ed2cdc07ff5d8767b0df.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/4b85826e6a1b6b534839a34d86067b7e.avif)<!-- screenshot -->
 
 The dialog remembers the base model and any non-default parameters it held when you last closed it, per dataset task and workspace in the current browser, and restores them the next time you open it for that task. The GPU selection is not remembered, and **Retry** on a failed run restores that run's own arguments instead.
 
@@ -132,7 +132,7 @@ This preserves the data used for the run even if you later add or remove images,
 
 Choose your GPU from Ultralytics Cloud:
 
-![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/7c588c7e6369f13267f9301dafd4647e.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Gpu Selector And Cost](https://cdn.ul.run/i/9a53e7f94acd24b99713e6c70d0e6f2f.avif)<!-- screenshot -->
 
 {% include "macros/platform-gpu-table.md" %}
 
@@ -193,7 +193,7 @@ To receive the completed and failed results without keeping this page open, conn
 
     New accounts receive signup credits — $5 for personal emails and $25 for company emails. [Check your balance](../account/billing.md) in Settings > Billing.
 
-![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/0bb05d90a4924966d1cf3c918c8a6008.avif)<!-- screenshot -->
+![Ultralytics Platform Training Progress With Charts](https://cdn.ul.run/i/848ddc1fe38abc8bb4affb9261148b6b.avif)<!-- screenshot -->
 
 ## Monitor Training
 
@@ -201,7 +201,7 @@ View real-time training progress on the model page's **Train** tab:
 
 ### Charts Subtab
 
-![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/6f5275f2049fe7054f012744ac676df1.avif)<!-- screenshot -->
+![Ultralytics Platform Model Training Live Charts](https://cdn.ul.run/i/b0ee2230c2e011ca4910789562abba8a.avif)<!-- screenshot -->
 
 Charts are grouped by metric family, and the groups that appear depend on what the run reports:
 
@@ -411,7 +411,7 @@ Cloud training is paid from your Platform credit balance.
 
 Before starting a cloud job, the training dialog shows your current credit balance and estimates the job duration and cost from the selected model, dataset, epochs, image size, and GPU. The estimate is informational; actual usage is charged for the GPU time consumed. Afterward, review the resulting credit transaction in **Settings > Billing**.
 
-![Ultralytics Platform Training Billing Details](https://cdn.ul.run/i/416432e95da3c64eae823bee07a044d8.avif)<!-- screenshot -->
+![Ultralytics Platform Training Billing Details](https://cdn.ul.run/i/ccbaa7f54ba287179c50235bcbcf656f.avif)<!-- screenshot -->
 
 ## Training Tips
 
@@ -616,7 +616,7 @@ The YAML editor also supports **importing configurations from previous training 
 - **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
-![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/d03490834657b55f99a40363f102f47d.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/6910a3d511ca59b4bd99e84fbcccd705.avif)<!-- screenshot -->
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 

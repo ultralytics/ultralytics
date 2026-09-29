@@ -348,18 +348,19 @@ def verify_image_depth(args: tuple) -> tuple:
 
 
 def verify_image_mask(args: tuple) -> tuple:
-    """Verify that an image and its semantic mask exist, are readable, and have matching shapes.
+    """Verify that an image and its semantic mask exist, are readable, match in shape, and hold valid class ids.
 
     Args:
-        args (tuple): Tuple of (im_file, mask_file, prefix). If mask_file is missing, masks with the same stem and
-            another image extension are tried.
+        args (tuple): Tuple of (im_file, mask_file, prefix, invalid). If mask_file is missing, masks with the same stem
+            and another image extension are tried. invalid is a 256-entry uint8 lookup table that is nonzero for raw
+            mask ids that map to neither a dataset class nor the 255 ignore label.
 
     Returns:
         (tuple): Tuple of (im_file, mask_file, shape, is_1bit, nm, nf, nc, msg), where the first four are None for
             rejected samples, is_1bit is whether the mask is a 1-bit PIL image, nm, nf, and nc are missing, found, and
             corrupt counts, and msg is a log message.
     """
-    im_file, mask_file, prefix = args
+    im_file, mask_file, prefix, invalid = args
     # Number (found, missing, corrupt), message
     nf, nm, nc, msg = 0, 0, 0, ""
     try:
@@ -375,6 +376,9 @@ def verify_image_mask(args: tuple) -> tuple:
             mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            assert not cv2.LUT(mask, invalid).any(), (
+                f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"
+            )
             with Image.open(mask_file) as im:
                 is_1bit = im.mode == "1"  # recorded for every mask so a yaml 'nc' edit never needs a rescan
             nf = 1
@@ -413,7 +417,7 @@ def verify_image_label(args: tuple) -> tuple | list:
         if os.path.isfile(lb_file):
             nf = 1  # label found
             with open(lb_file, encoding="utf-8") as f:
-                lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
+                lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
                 if nkpt and not keypoint:  # pose labels for a box task: keep the box, drop the keypoints
                     lb = [x[:5] if len(x) == 5 + nkpt * ndim else x for x in lb]
                 if any(len(x) > 6 for x in lb) and (not keypoint):  # is segment
@@ -441,6 +445,9 @@ def verify_image_label(args: tuple) -> tuple | list:
                     f"Possible class labels are 0-{num_cls - 1}"
                 )
                 _, i = np.unique(lb, axis=0, return_index=True)
+                if len(i) < nl and segments:  # distinct polygons can share a class and box
+                    rows = np.array([c.tobytes() + s.tobytes() for c, s in zip(lb[:, 0], segments)], dtype=object)
+                    _, i = np.unique(rows, return_index=True)
                 if len(i) < nl:  # duplicate row check
                     lb = lb[i]  # remove duplicates
                     if segments:
@@ -487,7 +494,7 @@ def visualize_image_annotations(image_path: str, txt_path: str, label_map: dict[
 
     from ultralytics.utils.plotting import colors
 
-    img = np.array(Image.open(image_path))
+    img = np.array(ImageOps.exif_transpose(Image.open(image_path)))  # upright, as dataloaders read it for training
     img_height, img_width = img.shape[:2]
     annotations = []
     with open(txt_path, encoding="utf-8") as file:
@@ -972,7 +979,7 @@ def compress_one_image(f: str | Path, f_new: str | Path | None = None, max_dim: 
     """
     try:  # use PIL
         Image.MAX_IMAGE_PIXELS = None  # Fix DecompressionBombError, allow optimization of image > ~178.9 million pixels
-        im = Image.open(f)
+        im = ImageOps.exif_transpose(Image.open(f))  # JPEG save drops EXIF, so bake the orientation into the pixels
         if im.mode in {"RGBA", "LA"}:  # Convert to RGB if needed (for JPEG)
             im = im.convert("RGB")
         r = max_dim / max(im.height, im.width)  # ratio

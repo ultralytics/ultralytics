@@ -1,15 +1,15 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–100 classes.
+description: Learn to annotate images in Ultralytics Platform with manual tools, skeleton templates for pose estimation, and Smart annotation with SAM models for detect, segment, semantic, and OBB tasks, YOLO models for those tasks and pose, or class-prompted models (hosted open-source or paid provider models) for detection datasets with 1–200 classes.
 keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, bounding box, polygon, keypoints, skeleton templates, pose estimation, segmentation, YOLO
 ---
 
 # Annotation Editor
 
-[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–100 classes, class-prompted models: hosted open-source models or paid provider models.
+[Ultralytics Platform](https://platform.ultralytics.com) includes an annotation editor for labeling images with bounding boxes, polygons, keypoints, oriented boxes, and classifications. The editor supports manual drawing, [SAM-powered smart annotation](https://www.ultralytics.com/annotate), and predictions from compatible YOLO models or, on detection datasets with 1–200 classes, class-prompted models: hosted open-source models or paid provider models.
 
-![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/fd13a4b1f4b8fad9ed5e736030a070cf.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/5ba36616a9363a036217c9b058daf35c.avif)<!-- screenshot -->
 
 ```mermaid
 graph TB
@@ -110,7 +110,7 @@ To annotate images:
 
 For datasets you can edit, annotation controls are active as soon as the fullscreen viewer opens on desktop. There is no separate edit mode or `Edit` button. On mobile, and when you do not have edit access, the fullscreen viewer is read-only.
 
-![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/96b05b3e135932d5a49ba8c0ad05d0b8.avif)<!-- screenshot -->
+![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/3c42ebce6b9e551108eab728c3b93c13.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -132,7 +132,7 @@ graph LR
 | Mode      | Description                                                                                                                                                                                                                                         | Shortcut |
 | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | **Draw**  | Default manual mode with task-specific drawing tools                                                                                                                                                                                                | `V`      |
-| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, with YOLO models on those and pose datasets, or with class-prompted models (hosted open-source or paid provider models) on detection datasets with 1–100 classes | `S`      |
+| **Smart** | Model-assisted annotation with SAM on detect, segment, semantic, and OBB datasets, with YOLO models on those and pose datasets, or with class-prompted models (hosted open-source or paid provider models) on detection datasets with 1–200 classes | `S`      |
 
 Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
@@ -148,7 +148,7 @@ Draw rectangular boxes around objects:
 2. In the default `Draw` mode, click and drag to draw a rectangle
 3. Release to complete the box
 
-![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/03f7437fabd12653415375312874950c.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Detect Bounding Box Drawing](https://cdn.ul.run/i/29e929eaa1d44285f9ff299f4cd245b4.avif)<!-- screenshot -->
 
 !!! tip "Resize and Move"
 
@@ -164,7 +164,7 @@ Draw precise polygon masks:
 2. In the default `Draw` mode, click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
 3. Double-click, click the first vertex, or press `Enter` or `Escape` to close the polygon
 
-![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/be5cf764c0b8a32158064b352934cdff.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/c10d6f45961deb17816dceb3945b6877.avif)<!-- screenshot -->
 
 !!! tip "Edit Vertices"
 
@@ -181,7 +181,7 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
 
-![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/baef28c5d70d64d970d35496f4326f5e.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/740678f4732fd3b862179e209a5ea8c5.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 
@@ -195,7 +195,7 @@ The editor includes 5 built-in templates:
 | **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
-![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/d23341102121bd297eda4762674133e4.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/e4a90c1619058fa74f045e6ba7d00b27.avif)<!-- screenshot -->
 
 #### Custom Skeleton Templates
 
@@ -208,7 +208,7 @@ Create custom templates for any pose structure:
 5. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
 6. Save the template for reuse across your dataset
 
-![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/17471f496ec024a8b1db75ac99d1bc09.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/4bced0f094f4707c361de3ca93108835.avif)<!-- screenshot -->
 
 Custom templates are saved to your account and available in all pose datasets.
 
@@ -229,7 +229,7 @@ Draw rotated boxes for angled objects:
 3. Use the rotation handle to adjust angle
 4. Drag corner handles to resize
 
-![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/f7bd3dc0bc310162c5841659eed55b72.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Obb Rotated Box](https://cdn.ul.run/i/bfdc7cf3feb3e9000529b3ed40a9889a.avif)<!-- screenshot -->
 
 ### Classification (Classify)
 
@@ -238,11 +238,11 @@ Assign image-level class labels:
 1. Click an image to open the fullscreen editor
 2. Select a class in the class sidebar, or press a number key from `1-9`
 
-![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/aee8d1a82873672bf6d179df35e5d939.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classify Side Panel](https://cdn.ul.run/i/d408f0440a059a9e2139d8aa41f85e45.avif)<!-- screenshot -->
 
 ## Smart Annotation
 
-Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–100 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models, hosted text-prompted SAM 3 and SAM 3.1, and paid vision models from eight providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
+Smart annotation adds model-assisted annotation to the editor. In Smart mode, you can use [Segment Anything Model (SAM)](../../models/sam.md) for click-based annotation or use pretrained Ultralytics YOLO models and your own fine-tuned YOLO models to add predictions as annotations. On detection datasets with 1–200 classes, the picker also offers [class-prompted models](#class-prompted-smart-annotation) that detect the dataset's classes: six hosted open-source models, hosted text-prompted SAM 3 and SAM 3.1, and paid vision models from nine providers. SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks; YOLO smart annotation also covers **pose**.
 
 ### SAM Smart Annotation
 
@@ -253,7 +253,7 @@ With a SAM model selected:
 3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
 4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
-![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/b91475227406a0f3a596d3b5e200f39c.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/f7687031600b3e8369f249e53568a4dd.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -302,7 +302,7 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 | **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
 | **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
-![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/f58a86dfc093bd70d95901a53d7b0851.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/4d794c1ede1012d4d2399fc1dae1a495.avif)<!-- screenshot -->
 
 !!! tip "When to Use Auto-Apply"
 
@@ -321,7 +321,7 @@ When Smart mode is active, a model picker appears in the toolbar. Six SAM models
 | **SAM 3**         | 3.45 GB | Slowest  |                            |
 | **SAM 3.1**       | 3.50 GB | Slowest  | Default, latest generation |
 
-![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/88703961af233af7fe5ddf35ff8a5f96.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/28f68e5f2be0ed1599ed87ba08518191.avif)<!-- screenshot -->
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
@@ -334,7 +334,7 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 3. Click `Predict`
 4. Review the added annotations and make any needed corrections
 
-![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/5340dc36ed1da9a4804c4fc8ec5c4552.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/9f69f3b2bafe56ae76e131b328692cab.avif)<!-- screenshot -->
 
 !!! tip "YOLO Model Notes"
 
@@ -343,18 +343,20 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 
 ### Class-Prompted Smart Annotation
 
-On a detection dataset with 1–100 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base**. The **Meta** project adds the hosted text-prompted **SAM 3 Text** and **SAM 3.1 Text**, which detect the dataset's classes across the whole image, and Meta's paid **muse-spark-1.3**. The **OpenAI**, **Anthropic**, **Google**, **DeepSeek**, **Z.ai**, **Kimi**, and **Xiaomi MiMo** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
+On a detection dataset with 1–200 classes, the model picker's **Open-source models** project lists six hosted models — **Moondream 3.1** (the default when you open Smart mode on a detection dataset), **Qwen3.8 27B**, **YOLOE-26x**, **Florence-2 Large**, **OWLv2 Large**, and **Grounding DINO Base**. The **Meta** project adds the hosted text-prompted **SAM 3 Text** and **SAM 3.1 Text**, which detect the dataset's classes across the whole image, and Meta's paid **muse-spark-1.3**. The **OpenAI**, **Anthropic**, **Google**, **SpaceXAI**, **DeepSeek**, **Z.ai**, **Kimi**, and **Xiaomi MiMo** projects list each provider's paid vision models. Select one and click `Predict` (or press `P`): the model detects the dataset's classes with model-specific thresholds and adds editable boxes that you review and save like YOLO predictions. These models return no confidence scores, so the prediction settings (confidence and IoU) are hidden while one is selected.
 
-A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction.
+A paid provider model runs with the provider key saved in the dataset workspace's [**Settings > API Keys**](../account/api-keys.md#provider-keys-for-agents-and-annotation); without one, the prediction fails with an **Add API key** action. The provider bills your key for each prediction. After each prediction, the toast shows the number of objects detected, the elapsed time, and the cost: **Free** for a hosted model; for a paid model, the estimated provider cost when one is returned, otherwise **Billed by** and the provider name.
 
 ### Batch Annotation
 
-Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–100 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Inference All** action on the toast after a YOLO prediction in the editor. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
+Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Annotate all** action on the toast after an editor prediction that finds objects. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
-1. Select a model from the picker (`Official`, including the **Open-source models** and provider projects on detection datasets with 1–100 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
-2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the **Test run** strip shows what the model finds on a few sample images as you move them. A class-prompted model detects the dataset classes (1–100) with model-specific thresholds instead of these settings and returns no scores
+1. Select a model from the picker (`Official`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
+2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the sample images beside the settings show what the model finds as you move them. A class-prompted model detects the dataset classes (1–200) with model-specific thresholds instead of these settings and returns no scores
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
+
+![Ultralytics Platform Datasets Batch Annotation Dialog Sample Previews](https://cdn.ul.run/i/0d60fe240ab6e865901166baf7c6d956.avif)<!-- screenshot -->
 
 By default only unlabeled images are annotated, and existing labels are never changed. A run needs dataset classes. For a YOLO model, if the model's classes differ from the dataset's, a **Map classes** step maps each model class to a dataset class or skips it, and on a dataset without classes it creates them — the run starts only after the classes exist. Starting a run saves a [dataset version](datasets.md#versions-tab) first, so you can restore the dataset if you don't like the result.
 
@@ -432,7 +434,7 @@ Define annotation classes for your dataset in the `Classes` tab:
 3. Click `Add` or press `Enter`
 4. A color is assigned automatically from the Ultralytics palette
 
-![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.ul.run/i/103c2683f43dbbbc4997faf6959c8315.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Classes Tab Add New Class](https://cdn.ul.run/i/d0d213595ef0871c12dd35514ea2893f.avif)<!-- screenshot -->
 
 ### Add New Class During Annotation
 
@@ -466,26 +468,26 @@ Efficient annotation with keyboard shortcuts:
 
 === "General"
 
-    | Shortcut                     | Action                     |
-    | ---------------------------- | -------------------------- |
-    | `Cmd/Ctrl+S`                 | Save annotations           |
-    | `Cmd/Ctrl+Z`                 | Undo                       |
-    | `Cmd/Ctrl+Y`                 | Redo                       |
-    | `Escape`                     | Save / Deselect / Exit     |
-    | `Delete` / `Backspace`       | Delete selected annotation |
-    | `Cmd/Ctrl+Delete`            | Delete image               |
-    | `H`                          | Toggle all annotations     |
-    | `1-9`                        | Select class 1-9           |
-    | `Cmd/Ctrl+Scroll`            | Zoom in/out                |
-    | `Cmd/Ctrl++` or `Cmd/Ctrl+=` | Zoom in                    |
-    | `Cmd/Ctrl+-`                 | Zoom out                   |
-    | `Cmd/Ctrl+0`                 | Reset to fit               |
-    | `Space+Drag`                 | Pan canvas when zoomed     |
-    | `Shift+Click`                | Multi-select annotations   |
-    | `Cmd/Ctrl+A`                 | Select all annotations     |
-    | `Cmd/Ctrl+C`                 | Copy selected annotations  |
-    | `Cmd/Ctrl+X`                 | Cut selected annotations   |
-    | `Cmd/Ctrl+V`                 | Paste annotations          |
+    | Shortcut                          | Action                     |
+    | --------------------------------- | -------------------------- |
+    | `Cmd/Ctrl+S`                      | Save annotations           |
+    | `Cmd/Ctrl+Z`                      | Undo                       |
+    | `Cmd/Ctrl+Y`                      | Redo                       |
+    | `Escape`                          | Save / Deselect / Exit     |
+    | `Delete` / `Backspace`            | Delete selected annotation |
+    | `Cmd/Ctrl+Delete`                 | Delete image               |
+    | `H`                               | Toggle all annotations     |
+    | `1-9`                             | Select class 1-9           |
+    | `Cmd/Ctrl+Scroll`                 | Zoom in/out                |
+    | `Cmd/Ctrl++` or `Cmd/Ctrl+=`      | Zoom in                    |
+    | `Cmd/Ctrl+-`                      | Zoom out                   |
+    | `Cmd/Ctrl+0`                      | Reset to fit               |
+    | `Space+Drag` or middle-click drag | Pan canvas                 |
+    | `Shift+Click`                     | Multi-select annotations   |
+    | `Cmd/Ctrl+A`                      | Select all annotations     |
+    | `Cmd/Ctrl+C`                      | Copy selected annotations  |
+    | `Cmd/Ctrl+X`                      | Cut selected annotations   |
+    | `Cmd/Ctrl+V`                      | Paste annotations          |
 
 === "Modes"
 
@@ -518,7 +520,7 @@ Efficient annotation with keyboard shortcuts:
     | `Cmd/Ctrl+Shift+]` | Bring to front |
     | `Cmd/Ctrl+Shift+[` | Send to back   |
 
-![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/6bb507eae033a53c4181106227895112.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Keyboard Shortcuts Dialog](https://cdn.ul.run/i/be6c5f8c3abe5ac3d316da3feeb1926e.avif)<!-- screenshot -->
 
 ??? tip "View All Shortcuts"
 

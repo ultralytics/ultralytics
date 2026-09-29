@@ -246,6 +246,8 @@ For instance, if your application only requires detecting 'person' and 'bus' obj
     model.set_classes(["person", "bus", ""])
     ```
 
+    The empty string stays in `model.names` as a class of its own, including in any model you save, so its detections come back with an empty label. Pass `classes=[0, 1]` at prediction time to keep only your real classes.
+
 You can also save a model after setting custom classes. By doing this you create a version of the YOLO-World model that is specialized for your specific use case. This process embeds your custom class definitions directly into the model file, making the model ready to use with your specified classes without further adjustments. Follow these steps to save and load your custom YOLO-World model:
 
 !!! example

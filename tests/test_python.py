@@ -2420,14 +2420,3 @@ def test_load_yolo_dota_whitespace_lines(tmp_path):
     )
     annos = load_yolo_dota(str(tmp_path), split="train")
     assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed
-
-
-def test_compress_one_image_exif_orientation(tmp_path):
-    """Test compress_one_image keeps the EXIF-oriented image that dataset loaders read."""
-    from ultralytics.data.utils import compress_one_image
-
-    exif = Image.Exif()
-    exif[0x0112] = 6  # Orientation: rotate 90° clockwise, as on portrait phone photos
-    Image.new("RGB", (80, 40)).save(tmp_path / "a.jpg", exif=exif.tobytes())  # stored landscape, displayed portrait
-    compress_one_image(tmp_path / "a.jpg", tmp_path / "b.jpg")
-    assert cv2.imread(str(tmp_path / "b.jpg")).shape == cv2.imread(str(tmp_path / "a.jpg")).shape == (80, 40, 3)

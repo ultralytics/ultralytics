@@ -681,6 +681,7 @@ def classify(trial, rc, stderr):
         or (exc == "NotImplementedError" and "not found in list of available optimizers" in stderr)
         or (exc == "ValueError" and "Expected `mode` to be `flip` or `mixup`" in stderr)
         or (exc == "AssertionError" and "ONNX export requires opset>=" in stderr)
+        or (exc == "RuntimeError" and "opset" in trial["mutated"] and "Unsupported onnx_opset_version" in stderr)
         # The trainer wraps missing requested splits in RuntimeError; classify the original validation error.
         or (
             exc == "RuntimeError"

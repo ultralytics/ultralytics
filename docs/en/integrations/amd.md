@@ -7,6 +7,10 @@ keywords: AMD, ROCm, MIGraphX, MIGraphXExecutionProvider, onnxruntime-ep-migraph
 
 # AMD GPU Training and Inference with Ultralytics YOLO, ROCm and MIGraphX
 
+!!! warning "Linux x86_64 only"
+
+    This guide targets **Linux x86_64** hosts with the AMD GPU kernel driver (`amdgpu`) installed, and all commands below are for a Linux shell. The MIGraphX execution provider is published only as Linux x86_64 wheels for Python 3.11 or newer, so native Windows is not supported, and Windows Subsystem for Linux (WSL2) has not been validated yet.
+
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on AMD GPUs benefits from a runtime that turns a portable model file into an optimized, hardware-specific program. On AMD hardware that runtime is [MIGraphX](https://github.com/ROCm/AMDMIGraphX), AMD's graph-optimization and inference engine for [ROCm](https://rocm.docs.amd.com/).
 
 By exporting your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model to [ONNX](onnx.md) and running it through the ONNX Runtime MIGraphX [execution provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html), you get GPU-accelerated inference on AMD Instinct and supported Radeon GPUs with no code changes. The [ONNX backend](onnx.md) detects ROCm, registers the MIGraphX plugin, and selects `MIGraphXExecutionProvider` automatically, so the same `predict` call that runs on NVIDIA GPUs runs on AMD GPUs. A `.pt` model also runs natively on an AMD GPU with `device=0` through PyTorch ROCm, exactly as in [Predict mode](../modes/predict.md); exporting to ONNX adds MIGraphX's graph optimization and a portable, deployment-ready artifact.
@@ -38,11 +42,11 @@ MIGraphX inference supports all seven Ultralytics tasks. Semantic segmentation a
 
 ## Export to ONNX for AMD GPU Inference
 
-MIGraphX inference uses the standard [ONNX export](onnx.md). A dedicated `format="migraphx"` export is not yet available; export to ONNX and let the MIGraphX EP compile and run the graph on your AMD GPU.
+MIGraphX inference uses the standard [ONNX export](onnx.md). Export the model to ONNX (`format="onnx"`) and Ultralytics inference will automatically use the `MIGraphXExecutionProvider` backend to run the ONNX model on your AMD GPU.
 
 ### Installation
 
-The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexes, so no `apt` packages or root access are needed for PyTorch, the plugin, or the ROCm runtime libraries, provided the host already has the AMD GPU kernel driver (`amdgpu` / `/dev/kfd`) in place.
+The Python stack installs entirely through `pip` from AMD's ROCm wheel indexes, so no `apt` packages or root access are needed for PyTorch, the plugin, or the ROCm runtime libraries, provided the host already has the AMD GPU kernel driver (`amdgpu` / `/dev/kfd`) in place.
 
 !!! tip "Installation"
 
@@ -73,13 +77,17 @@ The Python stack installs entirely through `pip` from AMD's ROCm 10 wheel indexe
         pip install ultralytics
         ```
 
-Ultralytics installs `onnx` automatically on the first ONNX export and the plugin on the first ONNX inference on a ROCm system. For detailed instructions and best practices, check our [YOLO26 Installation guide](../quickstart.md); if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md).
+Ultralytics installs `onnx` automatically on the first ONNX export. On the first ONNX inference on a ROCm system, it also installs the MIGraphX execution provider plugin ([`onnxruntime-ep-migraphx`](https://stable.repo.amd.com/rocm/onnxruntime/whl-next/onnxruntime-ep-migraphx/)) and the MIGraphX runtime libraries it loads ([`migraphx-libs`](https://stable.repo.amd.com/rocm/migraphx/whl-next/migraphx-libs/)), pinned to versions tested together. For detailed instructions and best practices, check our [YOLO26 Installation guide](../quickstart.md); if you encounter any difficulties, consult our [Common Issues guide](../guides/yolo-common-issues.md).
 
 ### Usage
 
 Before diving into the usage instructions, be sure to check out the range of [YOLO26 models offered by Ultralytics](../models/index.md). This will help you choose the most appropriate model for your project requirements.
 
 The ONNX format supports the [Export](../modes/export.md), [Predict](../modes/predict.md), and [Validate](../modes/val.md) modes. Inference and validation on an AMD GPU require a ROCm system with the MIGraphX plugin installed. Export your model, then load the exported model to run inference or validate its accuracy on `device=0`.
+
+!!! warning "Conflict with onnxruntime-gpu"
+
+    `onnxruntime-gpu` and the standard `onnxruntime` package install into the same `onnxruntime` Python module, so whichever is installed last overwrites the other. Uninstalling only one of them leaves the module broken, and older `onnxruntime-gpu` releases can crash MIGraphX inference. If an earlier setup installed `onnxruntime-gpu`, run `pip uninstall -y onnxruntime-gpu onnxruntime`, and Ultralytics reinstalls the standard `onnxruntime` on the next ONNX inference.
 
 !!! example "Export"
 
@@ -164,8 +172,6 @@ For the full list of export arguments, see the [ONNX integration](onnx.md#export
 
 ## Deploying on AMD GPUs with MIGraphX
 
-The wheels target ROCm 10 (MIGraphX 2.17, ONNX Runtime 1.29), so keep the plugin, `migraphx-libs`, and the ROCm runtime on the same ROCm release. The MIGraphX EP is a loadable plugin that adds `MIGraphXExecutionProvider` on top of the stock `onnxruntime` module. `onnxruntime-gpu` provides the same module, so the two cannot share an environment: if an earlier setup installed `onnxruntime-gpu`, run `pip uninstall -y onnxruntime-gpu onnxruntime` and Ultralytics reinstalls stock `onnxruntime` on the next ONNX inference.
-
 !!! note "Compiled-program cache"
 
     The MIGraphX EP compiles the graph on the first session, which dominates initial load time. Ultralytics caches the compiled program per model under the [Ultralytics config directory](../quickstart.md#ultralytics-settings) so later loads of the same model skip recompilation. Set `ORT_MIGRAPHX_CACHE_DIR` to override the location. Cache keys lead with the MIGraphX version, so a runtime upgrade recompiles rather than reusing a stale program.
@@ -174,7 +180,7 @@ The wheels target ROCm 10 (MIGraphX 2.17, ONNX Runtime 1.29), so keep the plugin
 
     Ultralytics disables MIGraphX Winograd convolution kernels by default (`MIGRAPHX_DISABLE_WINOGRAD=1`) to cut cold-compile time on YOLO graphs with no measurable inference change ([ROCm/AMDMIGraphX#5234](https://github.com/ROCm/AMDMIGraphX/issues/5234)); set `MIGRAPHX_DISABLE_WINOGRAD=0` to re-enable them.
 
-For a ready-to-run environment, `docker/Dockerfile-amd` provides a ROCm image with the MIGraphX EP preinstalled, and AMD GPU hardware CI validates the integration on a scheduled job.
+For a ready-to-run environment, [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd) builds the [`ultralytics/ultralytics:latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd) image with ROCm PyTorch and the MIGraphX EP preinstalled. See [Using GPUs](../guides/docker-quickstart.md#using-gpus) in the Docker Quickstart for the `docker run` flags that expose AMD GPUs to the container. AMD GPU hardware CI validates the integration on a scheduled job.
 
 ## Train on AMD GPUs with PyTorch ROCm
 
@@ -218,8 +224,8 @@ Support for one AMD product or runtime does not imply support for every AMD acce
 | MIGraphX inference                               | ✅      | Run exported ONNX models on AMD GPUs through the MIGraphX EP. All YOLO26 tasks are supported.                        |
 | Multi-GPU ROCm                                   | ✅      | Use `device=0,1` or `device=[0, 1]`; distributed execution follows the installed PyTorch ROCm stack.                 |
 | ROCm Automatic Mixed Precision (AMP)             | ⚠️      | Available when the installed PyTorch and ROCm versions pass Ultralytics AMP checks; use `amp=False` if incompatible. |
-| AMD Docker image and hardware CI                 | ✅      | `docker/Dockerfile-amd` ships the MIGraphX EP; AMD GPU CI runs on a scheduled job.                                   |
-| Native `format="migraphx"` export                | ❌ yet  | Not available; use ONNX export plus the MIGraphX EP for AMD GPU inference today.                                     |
+| AMD Docker image and hardware CI                 | ✅      | [`latest-amd`](../guides/docker-quickstart.md#using-gpus) ships the MIGraphX EP; AMD GPU CI runs on a scheduled job. |
+| Native MIGraphX export                           | ❌      | Export to ONNX with `format="onnx"` and run it on the MIGraphX EP for AMD GPU inference.                             |
 | Windows DirectML                                 | ❌      | No DirectML training or prediction backend in the Python package.                                                    |
 | Ryzen AI NPU                                     | ❌      | No native NPU integration; external ONNX/Vitis AI workflows are community-managed.                                   |
 | AMD CPUs                                         | ✅ CPU  | Use `device=cpu`; standard CPU execution, not an AMD-specific acceleration backend.                                  |

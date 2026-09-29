@@ -35,7 +35,7 @@ Create a deployment from the **Deployments** tab on your profile or from the sid
 4. Choose CPU and memory, review the pricing, and edit the suggested deployment name if needed
 5. Click **Create Deployment**
 
-![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/822cadbbd00c655ec7ca476fcdedaddd.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog With Model Selector And Region Map](https://cdn.ul.run/i/2d1fc20911da8996760b623166b1e431.avif)<!-- screenshot -->
 
 ### Deployment Lifecycle
 
@@ -175,11 +175,11 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 | **CPU and Memory**  | Select the resource size and review its displayed pricing         |
 | **Deployment Name** | Auto-generated once model and region are set, and editable        |
 
-![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/6afe9718ada356b06cb87d2b4898c88e.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/5eea1e0b458268cdab03a1ba95a40f2f.avif)<!-- screenshot -->
 
 Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
 
-![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/cb49ea5bbc304cf9f37a31b163781fc0.avif)<!-- screenshot -->
+![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/1707f1a302d6cdfa9c9c55af00ef954c.avif)<!-- screenshot -->
 
 !!! note "Auto-Generated Names"
 
@@ -201,7 +201,7 @@ The deployments list supports three view modes:
 | **Compact** | Grid of smaller cards with key metrics                        |
 | **Table**   | DataTable with sortable columns                               |
 
-![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.ul.run/i/df8afcdd198830c0324344e0a0769526.avif)<!-- screenshot -->
+![Ultralytics Platform Deploy Tab Active Deployments Cards View](https://cdn.ul.run/i/5b23370f41305cd58052cb00f1841c40.avif)<!-- screenshot -->
 
 !!! note "Compact and Table Views"
 
@@ -232,7 +232,7 @@ edit custom metadata.
 3. Choose **CPU** and **Memory**, and review the displayed hourly cost.
 4. Click **Update Configuration**. The current configuration keeps serving until the new one is ready.
 
-![Ultralytics Platform Deployment Update CPU Memory Configuration](https://cdn.ul.run/i/7143e64cbefe46f24cd5f61c8100f1e1.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Update CPU Memory Configuration](https://cdn.ul.run/i/ae535e3dae4adb3d69c5750272926a40.avif)<!-- screenshot -->
 
 Custom resources use uptime billing and keep an instance warm. Returning to default resources restores scale-to-zero behavior.
 
@@ -284,7 +284,7 @@ Each endpoint has a unique URL, for example:
 https://predict-<deployment-id>-<hash>-<region>.a.run.app
 ```
 
-![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/7d4ededac16d1c112f1a594fac5db495.avif)<!-- screenshot -->
+![Ultralytics Platform Deployment Card Endpoint Url With Copy Button](https://cdn.ul.run/i/92ab89459102781c312f7e391b27ed44.avif)<!-- screenshot -->
 
 Click the copy button to copy the URL. Click **API documentation** to open the endpoint's own API reference. The endpoint
 serves these paths:
@@ -441,6 +441,10 @@ capacity ceiling:
 ### Request Parameters
 
 {% include "macros/platform-inference-parameters.md" %}
+
+An endpoint keeps the inference runtime from its last rollout, so a newer default such as the training-size `imgsz` above
+reaches it when a new revision rolls out, for example after you [replace its model](#replace-a-model) or
+[change its CPU or memory](#update-cpu-and-memory). Pass `imgsz` explicitly for a fixed input size.
 
 See [Depth responses](inference.md#task-specific-responses) for how `bits` changes the returned depth map and how to
 decode it.

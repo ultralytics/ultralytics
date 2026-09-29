@@ -1,15 +1,17 @@
 ---
-title: AMD GPU Inference with Ultralytics YOLO, ROCm and MIGraphX
+title: AMD GPU Training and Inference with Ultralytics YOLO, ROCm and MIGraphX
 comments: true
-description: Deploy Ultralytics YOLO on AMD GPUs. Export to ONNX and run accelerated inference through the ONNX Runtime MIGraphX execution provider on ROCm, with support for all YOLO26 tasks.
-keywords: AMD, ROCm, MIGraphX, MIGraphXExecutionProvider, onnxruntime-ep-migraphx, AMD GPU inference, Radeon, Instinct, ONNX Runtime, Ultralytics, YOLO, YOLO26, model deployment
+description: Deploy Ultralytics YOLO on AMD GPUs. Export to ONNX and run accelerated inference through the ONNX Runtime MIGraphX execution provider on ROCm, with support for all YOLO26 tasks, and train natively with PyTorch ROCm.
+keywords: AMD, ROCm, MIGraphX, MIGraphXExecutionProvider, onnxruntime-ep-migraphx, AMD GPU inference, AMD GPU training, Radeon, Instinct, ONNX Runtime, Ultralytics, YOLO, YOLO26, model deployment
 ---
 
-# AMD GPU Inference with Ultralytics YOLO, ROCm and MIGraphX
+# AMD GPU Training and Inference with Ultralytics YOLO, ROCm and MIGraphX
 
 Deploying [computer vision](https://www.ultralytics.com/glossary/computer-vision-cv) models on AMD GPUs benefits from a runtime that turns a portable model file into an optimized, hardware-specific program. On AMD hardware that runtime is [MIGraphX](https://github.com/ROCm/AMDMIGraphX), AMD's graph-optimization and inference engine for [ROCm](https://rocm.docs.amd.com/).
 
 By exporting your [Ultralytics YOLO26](https://github.com/ultralytics/ultralytics) model to [ONNX](onnx.md) and running it through the ONNX Runtime MIGraphX [execution provider](https://onnxruntime.ai/docs/execution-providers/MIGraphX-ExecutionProvider.html), you get GPU-accelerated inference on AMD Instinct and supported Radeon GPUs with no code changes. The [ONNX backend](onnx.md) detects ROCm, registers the MIGraphX plugin, and selects `MIGraphXExecutionProvider` automatically, so the same `predict` call that runs on NVIDIA GPUs runs on AMD GPUs. A `.pt` model also runs natively on an AMD GPU with `device=0` through PyTorch ROCm, exactly as in [Predict mode](../modes/predict.md); exporting to ONNX adds MIGraphX's graph optimization and a portable, deployment-ready artifact.
+
+Training works the same way: with a ROCm build of PyTorch, `.pt` models [train natively on AMD GPUs](#train-on-amd-gpus-with-pytorch-rocm) using the standard `device=0` argument, with no export step.
 
 ## MIGraphX and the ONNX Runtime Execution Provider
 
@@ -176,7 +178,7 @@ For a ready-to-run environment, `docker/Dockerfile-amd` provides a ROCm image wi
 
 ## Train on AMD GPUs with PyTorch ROCm
 
-Native training, validation, and prediction on `.pt` models run on AMD GPUs through [PyTorch ROCm](https://pytorch.org/get-started/locally/), independent of the MIGraphX inference path above. Install a ROCm build of PyTorch and use the same device arguments as any other [Ultralytics Train](../modes/train.md) run:
+Native training, validation, and prediction on `.pt` models run on AMD GPUs through [PyTorch ROCm](https://pytorch.org/get-started/locally/), independent of the MIGraphX inference path above. Install a ROCm build of PyTorch as shown in [Installation](#installation) and use the same device arguments as any other [Ultralytics Train](../modes/train.md) run:
 
 !!! example "ROCm Training"
 
@@ -197,6 +199,14 @@ Native training, validation, and prediction on `.pt` models run on AMD GPUs thro
         # Train on one AMD GPU (use device=0,1 for multiple GPUs)
         yolo detect train data=coco8.yaml model=yolo26n.pt epochs=100 imgsz=640 device=0
         ```
+
+!!! tip "Mixed precision on ROCm"
+
+    Ultralytics enables AMP by default and disables it automatically if a pre-training check finds that mixed-precision results diverge from full precision. ROCm AMP behavior can change with the PyTorch and ROCm versions, so if a run still produces NaN losses or zero mAP, train with `amp=False`:
+
+    ```bash
+    yolo detect train data=coco8.yaml model=yolo26n.pt device=0 amp=False
+    ```
 
 ## Support at a Glance
 
@@ -252,6 +262,10 @@ Export your model to ONNX, then run it on a ROCm system with the MIGraphX plugin
         yolo export model=yolo26n.pt format=onnx
         yolo predict model=yolo26n.onnx source='https://ultralytics.com/images/bus.jpg' device=0
         ```
+
+### Can I train YOLO26 on an AMD GPU?
+
+Yes. Install a ROCm build of PyTorch as shown in [Installation](#installation), then train `.pt` models with `device=0`, or `device=0,1` for multiple GPUs. Training runs through PyTorch ROCm and does not use MIGraphX or the ONNX plugin. See [Train on AMD GPUs with PyTorch ROCm](#train-on-amd-gpus-with-pytorch-rocm) for examples.
 
 ### Do I need to change my code to use the MIGraphX execution provider?
 

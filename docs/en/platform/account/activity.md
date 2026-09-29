@@ -34,7 +34,7 @@ Navigate to the Activity Feed in any of the following ways:
 
 The dropdown in the top bar shows the most recent events with the same archive and undo actions as the full page.
 
-![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/25e9aec0b788985d37cc314093ebb1d8.avif)<!-- screenshot -->
+![Ultralytics Platform Activity Page Inbox With Search And Date Filter](https://cdn.ul.run/i/a134f64884708d614161832aab866305.avif)<!-- screenshot -->
 
 ## Activity Types
 

@@ -77,7 +77,7 @@ Switch to your personal workspace using the sidebar workspace selector, then ope
 
 Connect your professional profiles:
 
-![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/6632010d3fc5d6ffd4045df2e1db0e89.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Social Links Grid](https://cdn.ul.run/i/b5c6ee3fb5f4ece6ef9cf782da20709c.avif)<!-- screenshot -->
 
 | Platform           | Format         |
 | ------------------ | -------------- |
@@ -138,7 +138,7 @@ sign-in. Click **Connect Google** or **Connect GitHub** to link another provider
 
 Monitor your storage consumption on the [`Usage` tab](#usage-tab) and the **Home** page:
 
-![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/d4907e21c741a134223d33d80be6f9ed.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Profile Tab Storage Usage Card](https://cdn.ul.run/i/8acbf23174b52dd5b6ff18ca4f700ce6.avif)<!-- screenshot -->
 
 The storage card shows:
 

@@ -616,7 +616,7 @@ The YAML editor also supports **importing configurations from previous training 
 - **Paste YAML or JSON**: Paste any valid YAML or JSON training configuration into the editor. Parameters are validated automatically, with out-of-range values clamped and warnings displayed.
 - **Drag and drop files**: Drag a `.yaml` or `.json` file directly into the editor to import its parameters.
 
-![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/d03490834657b55f99a40363f102f47d.avif)<!-- screenshot -->
+![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/6910a3d511ca59b4bd99e84fbcccd705.avif)<!-- screenshot -->
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
 

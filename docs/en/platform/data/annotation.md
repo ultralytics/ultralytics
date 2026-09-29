@@ -181,7 +181,7 @@ Annotate poses using skeleton templates. Select a template from the toolbar, cli
 3. Click on the image to place all keypoints at once
 4. Drag individual keypoints to adjust their positions
 
-![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/baef28c5d70d64d970d35496f4326f5e.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Template Dropdown](https://cdn.ul.run/i/740678f4732fd3b862179e209a5ea8c5.avif)<!-- screenshot -->
 
 #### Built-in Skeleton Templates
 
@@ -195,7 +195,7 @@ The editor includes 5 built-in templates:
 | **Face**   | 68        | iBUG 300W facial landmarks — jaw, eyebrows, nose, eyes, mouth                                                          |
 | **Box**    | 4         | Corner keypoints — top-left, top-right, bottom-right, bottom-left                                                      |
 
-![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/d23341102121bd297eda4762674133e4.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Keypoints Skeleton](https://cdn.ul.run/i/e4a90c1619058fa74f045e6ba7d00b27.avif)<!-- screenshot -->
 
 #### Custom Skeleton Templates
 
@@ -208,7 +208,7 @@ Create custom templates for any pose structure:
 5. Connect keypoints by selecting two points (connections are drawn automatically as you place sequential keypoints)
 6. Save the template for reuse across your dataset
 
-![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/17471f496ec024a8b1db75ac99d1bc09.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/4bced0f094f4707c361de3ca93108835.avif)<!-- screenshot -->
 
 Custom templates are saved to your account and available in all pose datasets.
 
@@ -253,7 +253,7 @@ With a SAM model selected:
 3. Refine the mask with additional clicks: click **outside** the current mask to add coverage, or click **inside** the current mask to subtract regions
 4. Press `Enter` or `Escape` to save the annotation, or enable **auto-apply** for one-click workflows
 
-![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/b91475227406a0f3a596d3b5e200f39c.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/f7687031600b3e8369f249e53568a4dd.avif)<!-- screenshot -->
 
 ```mermaid
 graph LR
@@ -302,7 +302,7 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 | **Auto-apply ON + `Shift`**  | Place multiple points first, mask applies on release |
 | **Auto-apply OFF** (default) | Place points freely, press `Enter` to apply          |
 
-![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/f58a86dfc093bd70d95901a53d7b0851.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Auto Apply Toggle](https://cdn.ul.run/i/4d794c1ede1012d4d2399fc1dae1a495.avif)<!-- screenshot -->
 
 !!! tip "When to Use Auto-Apply"
 
@@ -321,7 +321,7 @@ When Smart mode is active, a model picker appears in the toolbar. Six SAM models
 | **SAM 3**         | 3.45 GB | Slowest  |                            |
 | **SAM 3.1**       | 3.50 GB | Slowest  | Default, latest generation |
 
-![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/88703961af233af7fe5ddf35ff8a5f96.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/28f68e5f2be0ed1599ed87ba08518191.avif)<!-- screenshot -->
 
 Switching models while Smart mode is active re-initializes the predictor for the current image automatically.
 
@@ -334,7 +334,7 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 3. Click `Predict`
 4. Review the added annotations and make any needed corrections
 
-![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/5340dc36ed1da9a4804c4fc8ec5c4552.avif)<!-- screenshot -->
+![Ultralytics Platform Annotate Smart Annotation Yolo Model](https://cdn.ul.run/i/9f69f3b2bafe56ae76e131b328692cab.avif)<!-- screenshot -->
 
 !!! tip "YOLO Model Notes"
 

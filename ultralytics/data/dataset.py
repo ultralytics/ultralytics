@@ -50,7 +50,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.7"  # semantic mask class ids are now validated at scan
+DATASET_CACHE_VERSION = "1.0.8"  # semantic palette (P) masks are now read as class indices
 
 
 class YOLODataset(BaseDataset):
@@ -986,7 +986,7 @@ class SemanticDataset(YOLODataset):
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", "palette_ids:v1"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -1000,14 +1000,13 @@ class SemanticDataset(YOLODataset):
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
-        im_file, mask_file, shape, is_1bit, is_palette, nm_f, nf_f, nc_f, msg = result
+        im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg = result
         label = (
             {
                 "im_file": im_file,
                 "mask_file": mask_file,
                 "shape": shape,
                 "is_1bit": is_1bit,
-                "is_palette": is_palette,
                 "cls": np.array([], dtype=np.float32),
                 "bboxes": np.zeros((0, 4), dtype=np.float32),
                 "segments": [],
@@ -1051,14 +1050,8 @@ class SemanticDataset(YOLODataset):
             FileNotFoundError: If the mask file is missing or unreadable.
         """
         mask_file = self.labels[index]["mask_file"]
-        if self.labels[index]["is_palette"]:
-            try:
-                with Image.open(mask_file) as im:
-                    mask = np.asarray(im).copy()
-            except (OSError, ModuleNotFoundError) as e:
-                raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}") from e
-        else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+        with Image.open(mask_file) as im:  # palette (P) PNGs store class ids as indices, not grayscale colors
+            mask = np.array(im) if im.mode == "P" else cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
         if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:

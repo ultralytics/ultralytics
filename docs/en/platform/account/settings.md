@@ -71,7 +71,7 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 
 ### Early Access
 
-Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. [Agents](../agents.md) does not depend on it.
+Switch to your personal workspace using the sidebar workspace selector, then open **Settings > Profile** and enable **Early access** to opt in to experimental updates. The preference belongs to your account and follows you into team workspaces. It unlocks **Ultralytics Image 9B** in [Generate Similar Images](../data/datasets.md#generate-similar-images). [Agents](../agents.md) does not depend on it.
 
 ### Social Links
 

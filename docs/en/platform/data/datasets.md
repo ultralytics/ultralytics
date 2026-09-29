@@ -814,7 +814,7 @@ Create new training images from one you already have. In a dataset you can edit,
 
 ![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/a9c58833ede9aef30e408c5b40038133.avif)<!-- screenshot -->
 
-Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
+**Ultralytics Image 9B** is also listed, but you can select it only after you turn on [Early access](../account/settings.md#early-access). Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
 Click **Generate**. Images appear as they finish, all selected. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
 

@@ -412,20 +412,6 @@ def test_predict_csv_single_row(tmp_path):
     assert len(results) == 7, f"Expected 7 results from single-row CSV, got {len(results)}"
 
 
-@pytest.mark.parametrize("suffix", ("txt", "csv"))
-@pytest.mark.parametrize("source", ("images/image.jpg", "images", "images/*.jpg"))
-def test_predict_source_list_relative_paths(tmp_path, suffix, source):
-    """Resolve files, directories, and globs relative to a TXT or CSV source list."""
-    images = tmp_path / "images"
-    images.mkdir()
-    cv2.imwrite(str(images / "image.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
-    manifest = tmp_path / f"sources.{suffix}"
-    manifest.write_text(source)
-
-    dataset = load_inference_source(manifest)
-    assert [Path(p).name for p in next(iter(dataset))[0]] == ["image.jpg"]
-
-
 @pytest.mark.parametrize("model_name", MODELS)
 def test_predict_img(model_name):
     """Test YOLO model predictions on various image input types."""

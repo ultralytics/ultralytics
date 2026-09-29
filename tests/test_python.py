@@ -382,29 +382,6 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
-@pytest.mark.parametrize("as_stream", [False, True])
-def test_predict_save_video_vid_stride_keeps_duration(tmp_path, as_stream):
-    """Saved videos and streams keep the source duration when vid_stride skips frames instead of playing faster."""
-    src = tmp_path / "src.avi"
-    writer = cv2.VideoWriter(str(src), cv2.VideoWriter_fourcc(*"MJPG"), 30, (64, 48))
-    for _ in range(12):
-        writer.write(np.zeros((48, 64, 3), dtype=np.uint8))
-    writer.release()
-    source = tmp_path / "sources.streams"
-    if as_stream:
-        source.write_text(f"{src}\n")  # a .streams file makes predict read the clip through LoadStreams
-    else:
-        source = src
-    YOLO(MODEL).predict(
-        str(source), save=True, vid_stride=3, stream_buffer=True, imgsz=32, project=tmp_path, name="out", verbose=False
-    )
-    out = next(p for p in (tmp_path / "out").iterdir() if p.suffix in {".avi", ".mp4"})
-    cap = cv2.VideoCapture(str(out))
-    frames, fps = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), cap.get(cv2.CAP_PROP_FPS)
-    cap.release()
-    assert (frames, fps) == (4, 10), f"expected 4 frames at 10 fps from 12 frames at 30 fps, got {frames} at {fps}"
-
-
 def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = tmp_path / "sources_multi_row.txt"

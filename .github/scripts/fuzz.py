@@ -909,7 +909,8 @@ def cmd_repro(args):
     argv = [portable(a) for a in argv]
     mode = next((a for a in argv if a in MODES), "predict")
     task = next((a for a in argv if a in uni["tasks"]), "detect")
-    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro"]}  # replayed commands were fuzz-mutated
+    # replayed commands were fuzz-mutated, so every supplied key counts as mutated for key-gated expected rules
+    trial = {"mode": mode, "task": task, "argv": argv, "mutated": ["repro", *(a.partition("=")[0] for a in argv)]}
     outcomes = []
     for i in range(args.runs):
         rc, stderr, duration = run_trial(trial, timeout=args.debug_timeout)

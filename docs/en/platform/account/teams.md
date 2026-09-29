@@ -177,7 +177,8 @@ Enterprise plans include additional capabilities for organizations with advanced
 
     If an Enterprise license expires, team members lose access to the workspace. The owner can still open the workspace
     to manage renewal and sees an **Enterprise license expired** banner on the Billing and Teams tabs with a renewal
-    contact. See [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
+    contact. No one, including the owner, can invite members until the license is renewed. See
+    [Ultralytics Licensing](https://www.ultralytics.com/license) for details.
 
 ### Getting Started with Enterprise
 

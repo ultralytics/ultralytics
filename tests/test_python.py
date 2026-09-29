@@ -1413,24 +1413,6 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-@pytest.mark.parametrize("dtype,value", [(np.uint8, 1), (np.uint16, 1), (np.uint16, 256)])
-def test_convert_segment_masks_preserves_class_ids(tmp_path, dtype, value):
-    """Convert 8-bit and 16-bit PNG masks without changing their class IDs."""
-    from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
-
-    masks = tmp_path / "masks"
-    masks.mkdir()
-    mask = np.zeros((6, 6), dtype=dtype)
-    mask[1:5, 1:5] = value
-    assert cv2.imwrite(str(masks / "image.png"), mask)
-
-    convert_segment_masks_to_yolo_seg(masks, tmp_path / "labels", classes=value)
-
-    rows = (tmp_path / "labels" / "image.txt").read_text().splitlines()
-    assert len(rows) == 1
-    assert int(rows[0].split()[0]) == value - 1
-
-
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

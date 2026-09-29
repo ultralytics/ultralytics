@@ -356,9 +356,9 @@ def verify_image_mask(args: tuple) -> tuple:
             mask ids that map to neither a dataset class nor the 255 ignore label.
 
     Returns:
-        (tuple): Tuple of (im_file, mask_file, shape, is_1bit, nm, nf, nc, msg), where the first four are None for
-            rejected samples, is_1bit is whether the mask is a 1-bit PIL image, nm, nf, and nc are missing, found, and
-            corrupt counts, and msg is a log message.
+        (tuple): Tuple of (im_file, mask_file, shape, mode, nm, nf, nc, msg), where the first four are None for rejected
+            samples, mode is the mask's PIL image mode, nm, nf, and nc are missing, found, and corrupt counts, and msg
+            is a log message.
     """
     im_file, mask_file, prefix, invalid = args
     # Number (found, missing, corrupt), message
@@ -373,20 +373,20 @@ def verify_image_mask(args: tuple) -> tuple:
                     mask_file = alt_mask_file
                     break
         if os.path.isfile(mask_file):
-            mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+            with Image.open(mask_file) as im:
+                mode = im.mode  # recorded so load_mask reads each mask once and a yaml 'nc' edit never needs a rescan
+                mask = np.asarray(im) if mode == "P" else cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
             assert not cv2.LUT(mask, invalid).any(), (
                 f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"
             )
-            with Image.open(mask_file) as im:
-                is_1bit = im.mode == "1"  # recorded for every mask so a yaml 'nc' edit never needs a rescan
             nf = 1
         else:
             nm = 1
             msg = f"{prefix}{im_file}: ignoring image with missing mask {mask_file}"
             return None, None, None, None, nm, nf, nc, msg
-        return im_file, mask_file, shape, is_1bit, nm, nf, nc, msg
+        return im_file, mask_file, shape, mode, nm, nf, nc, msg
     except Exception as e:
         nc = 1
         msg = f"{prefix}{im_file}: ignoring corrupt image/mask: {e}"

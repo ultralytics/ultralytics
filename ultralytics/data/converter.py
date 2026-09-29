@@ -280,15 +280,12 @@ def convert_coco(
         for ann in data["annotations"]:
             annotations[ann["image_id"]].append(ann)
 
-        image_txt = []
         dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
-            if lvis:
-                image_txt.append(f"./images/{Path(f).as_posix()}")  # "./" resolves relative to the list file
 
             bboxes = []
             segments = []
@@ -362,7 +359,10 @@ def convert_coco(
         if lvis:
             filename = Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")
             with open(filename, "a", encoding="utf-8") as f:
-                f.writelines(f"{line}\n" for line in image_txt)
+                f.writelines(  # every image, including unannotated ones; "./" resolves relative to the list file
+                    f"./images/{Path(x['coco_url']).relative_to('http://images.cocodataset.org').as_posix()}\n"
+                    for x in data["images"]
+                )
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
@@ -407,7 +407,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix in {".png", ".jpg"}:
-            mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
+            mask = cv2.imread(str(mask_path), cv2.IMREAD_ANYDEPTH | cv2.IMREAD_GRAYSCALE)
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 

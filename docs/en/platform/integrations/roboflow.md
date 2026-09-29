@@ -21,7 +21,7 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
     - Storage required, checked against your remaining storage
 4. Click **Import** to start.
 
-![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/7eaadb8f6bb5bbcd57a6d46f89c524f1.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Integrations Roboflow Import Dialog](https://cdn.ul.run/i/820fce23e76ce128342fc6863f2188f0.avif)<!-- screenshot -->
 
 Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 

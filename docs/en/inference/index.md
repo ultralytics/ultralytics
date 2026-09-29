@@ -16,7 +16,7 @@ keywords: Ultralytics Inference, Rust, YOLO, ONNX Runtime, object detection, seg
 
 [Ultralytics Inference](https://github.com/ultralytics/inference) is a high-performance [YOLO](https://www.ultralytics.com/yolo) inference library and command-line tool written in [Rust](https://rust-lang.org/). It runs exported [ONNX](../integrations/onnx.md) models through [ONNX Runtime](https://onnxruntime.ai/) to deliver fast, memory-safe predictions on images, videos, webcams, and streams, with no Python runtime required at inference time.
 
-The project ships as a single crate, `ultralytics-inference`, that you can use two ways: as a **CLI** for quick predictions and batch jobs, or as a **library** embedded directly in your Rust application. It supports every Ultralytics [task](../tasks/index.md) and a broad set of hardware backends through a uniform device interface.
+The project ships as a single crate, `ultralytics-inference`, that you can use two ways: as a **CLI** for quick predictions and batch jobs, or as a **library** embedded directly in your Rust application. It supports every Ultralytics [task](../tasks/index.md) and a broad set of hardware backends through a uniform device interface. For browser inference, the same repository publishes the `@ultralytics/yolo` npm package; see its [setup guide](https://github.com/ultralytics/inference/tree/main/web).
 
 ## Why Rust inference?
 
@@ -24,7 +24,7 @@ The project ships as a single crate, `ultralytics-inference`, that you can use t
 - **Memory safety.** Rust's ownership model removes whole classes of runtime errors without a garbage collector.
 - **All YOLO tasks.** Detect, segment, semantic segmentation, depth estimation, classify, pose, and OBB from one API.
 - **Broad hardware support.** CPU plus CUDA, TensorRT, CoreML, OpenVINO, DirectML, ROCm, and XNNPACK execution providers selected at build time.
-- **GPU-side preprocessing.** An optional fused CUDA kernel keeps letterbox, normalize, and layout conversion on the device for a zero-copy input path.
+- **GPU-side preprocessing.** An optional fused CUDA kernel runs letterbox, normalize, and layout conversion on the GPU and hands the result to the model without leaving the device.
 - **Auto-download.** Known YOLO model names and sample assets download automatically on first use.
 
 !!! tip "Looking for the Python package?"
@@ -33,7 +33,7 @@ The project ships as a single crate, `ultralytics-inference`, that you can use t
 
 ## Installation
 
-Rust 1.89 or newer is required. The [video](#cargo-features) feature additionally needs FFmpeg 7+ installed on the system.
+Rust 1.89 or newer is required. The [video](#cargo-features) feature additionally needs FFmpeg 6 to 9 installed on the system.
 
 === "CLI"
 
@@ -57,7 +57,7 @@ Rust 1.89 or newer is required. The [video](#cargo-features) feature additionall
     ```toml
     # Or add it manually to Cargo.toml
     [dependencies]
-    ultralytics-inference = "0.0.48"
+    ultralytics-inference = "0.0.50"
     ```
 
 ## CLI quickstart
@@ -97,7 +97,7 @@ Common flags:
 | `--conf`         | `0.25`         | Confidence threshold.                                                           |
 | `--iou`          | `0.7`          | IoU threshold for non-maximum suppression.                                      |
 | `--imgsz`        | model metadata | Inference image size.                                                           |
-| `--device`       | `cpu`          | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.                 |
+| `--device`       | auto           | Execution device, for example `cuda:0`, `coreml`, `tensorrt:0`.                 |
 | `--max-det`      | `300`          | Maximum number of detections per image.                                         |
 | `--rect`         | `true`         | Rectangular inference with minimal padding.                                     |
 | `--batch`        | `1`            | Batch size for inference.                                                       |
@@ -360,7 +360,7 @@ Any Ultralytics model exported to ONNX can be loaded from a local file. Auto-dow
 | YOLO11       | `yolo11{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                   |
 | YOLOv8       | `yolov8{n,s,m,l,x}.onnx`, `-seg`, `-pose`, `-obb`, and `-cls`                   |
 
-Semantic segmentation (`-sem`) and depth estimation (`-depth`) are YOLO26-only.
+Semantic segmentation (`-sem`) and depth estimation (`-depth`) are YOLO26-only. [RT-DETR](../models/rtdetr.md) detection models also run, but are not auto-downloaded: export one to ONNX first.
 
 ## Input sources
 
@@ -378,7 +378,7 @@ The `--source` argument (and the `Source` type in the library) accepts many inpu
 
 ## Devices and execution providers
 
-Inference runs on CPU by default. GPU and accelerator backends are compiled in as [Cargo features](#cargo-features) and selected at runtime with `--device` (CLI) or `Device` (library).
+GPU and accelerator backends are compiled in as [Cargo features](#cargo-features) and selected at runtime with `--device` (CLI) or `Device` (library). Without a device, the providers compiled into the build are registered in a fixed preference order (TensorRT first, then CUDA, and so on), so a build with only the default features runs on CPU.
 
 | Device string | `Device` variant      | Build feature | Hardware              |
 | ------------- | --------------------- | ------------- | --------------------- |
@@ -402,14 +402,14 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 On NVIDIA hardware, the `cuda` feature enables the CUDA execution provider, and `tensorrt` adds the TensorRT provider for further optimization. For the lowest possible latency, the `cuda-preprocess` feature moves preprocessing onto the GPU.
 
-`cuda-preprocess` runs letterbox resizing, normalization, and the HWC-to-CHW layout conversion as a single fused CUDA kernel, then feeds the result to the model as a zero-copy device tensor. This removes the per-image CPU preprocessing cost and the host-to-device copy, which matters most for high-throughput batches and real-time streams.
+`cuda-preprocess` runs letterbox resizing, normalization, and the HWC-to-CHW layout conversion as a single fused CUDA kernel, then feeds the result to the model as a zero-copy device tensor. The raw 8-bit frame is still uploaded to the GPU, through a pinned staging buffer on discrete GPUs; what the kernel removes is CPU resizing, normalization, and layout conversion, and the separate upload of the preprocessed tensor, which matters most for high-throughput batches and real-time streams.
 
 ```bash
 # Build with fused GPU preprocessing (implies cuda + tensorrt)
 cargo build --release --features cuda-preprocess
 ```
 
-The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, pose, OBB, semantic segmentation, or depth estimation, and the model uses FP32 input. It is enabled by default and can be turned off per model:
+The fast path is used automatically, with no API change, when all of the following hold: the feature is compiled in, the device is CUDA or TensorRT, the task is detect, segment, pose, OBB, semantic segmentation (single images only), or depth estimation, and the model uses FP32 input. It is enabled by default and can be turned off per model:
 
 ```rust
 use ultralytics_inference::{Device, InferenceConfig};
@@ -427,18 +427,18 @@ let config = InferenceConfig::new()
 
 Features are enabled at build time. The defaults cover annotation and live display.
 
-| Feature           | Default | Purpose                                                                |
-| ----------------- | ------- | ---------------------------------------------------------------------- |
-| `annotate`        | yes     | Draw boxes, masks, keypoints, and labels; required for `--save`.       |
-| `visualize`       | yes     | Real-time window display for `--show`.                                 |
-| `video`           | no      | Read and write video files (requires FFmpeg 7+).                       |
-| `cuda`            | no      | NVIDIA CUDA execution provider.                                        |
-| `tensorrt`        | no      | NVIDIA TensorRT execution provider.                                    |
-| `cuda-preprocess` | no      | Fused GPU preprocessing with zero-copy input (implies cuda, tensorrt). |
-| `coreml`          | no      | Apple CoreML execution provider.                                       |
-| `openvino`        | no      | Intel OpenVINO execution provider.                                     |
-| `rocm`            | no      | AMD ROCm execution provider.                                           |
-| `directml`        | no      | Windows DirectML execution provider.                                   |
+| Feature           | Default | Purpose                                                          |
+| ----------------- | ------- | ---------------------------------------------------------------- |
+| `annotate`        | yes     | Draw boxes, masks, keypoints, and labels; required for `--save`. |
+| `visualize`       | yes     | Real-time window display for `--show`.                           |
+| `video`           | no      | Read and write video files (requires FFmpeg 6 to 9).             |
+| `cuda`            | no      | NVIDIA CUDA execution provider.                                  |
+| `tensorrt`        | no      | NVIDIA TensorRT execution provider.                              |
+| `cuda-preprocess` | no      | Fused GPU preprocessing (implies cuda, tensorrt).                |
+| `coreml`          | no      | Apple CoreML execution provider.                                 |
+| `openvino`        | no      | Intel OpenVINO execution provider.                               |
+| `rocm`            | no      | AMD ROCm execution provider.                                     |
+| `directml`        | no      | Windows DirectML execution provider.                             |
 
 Convenience groups bundle related providers: `nvidia` (cuda, tensorrt), `amd` (rocm, migraphx), `intel` (openvino, onednn), `mobile` (nnapi, coreml, qnn), and `all` (annotate, visualize, video). Additional providers such as `nnapi`, `qnn`, `xnnpack`, `webgpu`, and others are also available.
 
@@ -451,7 +451,7 @@ cargo install ultralytics-inference --features cuda,tensorrt
 
 ```toml
 [dependencies]
-ultralytics-inference = { version = "0.0.48", features = ["video"] }
+ultralytics-inference = { version = "0.0.50", features = ["video"] }
 ```
 
 ## Output and saving
@@ -483,7 +483,7 @@ Export from the Python package, for example with the [ONNX integration](../integ
 
 ### Is video supported?
 
-Yes, with the `video` feature enabled and FFmpeg 7+ installed on the system. This covers video files, webcams, and RTSP/RTMP/HTTP streams.
+Yes, with the `video` feature enabled and FFmpeg 6 to 9 installed on the system. This covers video files, webcams, and RTSP/RTMP/HTTP streams.
 
 ### What do the `annotate` and `visualize` features do?
 

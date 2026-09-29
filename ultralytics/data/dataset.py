@@ -53,7 +53,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.5"  # pose labels scanned for box tasks now keep the box and drop the keypoints
+DATASET_CACHE_VERSION = "1.0.7"  # semantic mask class ids are now validated at scan
 
 
 class YOLODataset(BaseDataset):
@@ -997,7 +997,9 @@ class SemanticDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the mask verification function and its argument iterable."""
-        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix))
+        nc = len(self.data["names"])
+        invalid = ((self.label_lut > max(nc - 1, 1)) & (self.label_lut != 255)).astype(np.uint8)  # nc=1 keeps {0, 1}
+        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix), repeat(invalid))
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""

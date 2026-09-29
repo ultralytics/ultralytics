@@ -438,20 +438,20 @@ The Platform includes a full-featured annotation editor supporting:
 - **Smart Annotation**: Use [SAM 2.1](../models/sam-2.md), [SAM 3](../models/sam-3.md), or [SAM 3.1](../models/sam-3.md#sam-31) (default) for click-based annotation on detect, segment, semantic, and OBB datasets, run pretrained Ultralytics YOLO models and your own fine-tuned YOLO models from the toolbar for those tasks and pose, or run class-prompted models on detection datasets with 1–100 classes: six hosted open-source models (Moondream 3.1 by default), hosted text-prompted SAM 3 and SAM 3.1, or paid vision models from OpenAI, Anthropic, Google, Meta, DeepSeek, Z.ai, Kimi, and Xiaomi MiMo with a provider key from **Settings > API Keys**
 - **Keyboard Shortcuts**: Efficient workflows with hotkeys, listed in the editor's shortcuts popover
 
-| Shortcut               | Action                                          |
-| ---------------------- | ----------------------------------------------- |
-| `V`                    | Manual (draw) mode                              |
-| `S`                    | Smart mode (SAM, YOLO, or class-prompted model) |
-| `P`                    | Predict (in Smart mode)                         |
-| `A`                    | Toggle auto-apply (SAM Smart mode)              |
-| `1` - `9`              | Select class by number                          |
-| `H`                    | Toggle annotation visibility                    |
-| `Space` + drag         | Pan the canvas                                  |
-| `Delete` / `Backspace` | Delete selected annotation                      |
-| `Ctrl+S`               | Save annotations                                |
-| `Ctrl+Z`               | Undo                                            |
-| `Ctrl+Y`               | Redo                                            |
-| `Escape`               | Save / deselect / exit                          |
+| Shortcut                            | Action                                          |
+| ----------------------------------- | ----------------------------------------------- |
+| `V`                                 | Manual (draw) mode                              |
+| `S`                                 | Smart mode (SAM, YOLO, or class-prompted model) |
+| `P`                                 | Predict (in Smart mode)                         |
+| `A`                                 | Toggle auto-apply (SAM Smart mode)              |
+| `1` - `9`                           | Select class by number                          |
+| `H`                                 | Toggle annotation visibility                    |
+| `Space` + drag or middle-click drag | Pan the canvas                                  |
+| `Delete` / `Backspace`              | Delete selected annotation                      |
+| `Ctrl+S`                            | Save annotations                                |
+| `Ctrl+Z`                            | Undo                                            |
+| `Ctrl+Y`                            | Redo                                            |
+| `Escape`                            | Save / deselect / exit                          |
 
 See [Annotation](data/annotation.md) for the complete guide.
 

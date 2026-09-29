@@ -466,26 +466,26 @@ Efficient annotation with keyboard shortcuts:
 
 === "General"
 
-    | Shortcut                     | Action                     |
-    | ---------------------------- | -------------------------- |
-    | `Cmd/Ctrl+S`                 | Save annotations           |
-    | `Cmd/Ctrl+Z`                 | Undo                       |
-    | `Cmd/Ctrl+Y`                 | Redo                       |
-    | `Escape`                     | Save / Deselect / Exit     |
-    | `Delete` / `Backspace`       | Delete selected annotation |
-    | `Cmd/Ctrl+Delete`            | Delete image               |
-    | `H`                          | Toggle all annotations     |
-    | `1-9`                        | Select class 1-9           |
-    | `Cmd/Ctrl+Scroll`            | Zoom in/out                |
-    | `Cmd/Ctrl++` or `Cmd/Ctrl+=` | Zoom in                    |
-    | `Cmd/Ctrl+-`                 | Zoom out                   |
-    | `Cmd/Ctrl+0`                 | Reset to fit               |
-    | `Space+Drag`                 | Pan canvas when zoomed     |
-    | `Shift+Click`                | Multi-select annotations   |
-    | `Cmd/Ctrl+A`                 | Select all annotations     |
-    | `Cmd/Ctrl+C`                 | Copy selected annotations  |
-    | `Cmd/Ctrl+X`                 | Cut selected annotations   |
-    | `Cmd/Ctrl+V`                 | Paste annotations          |
+    | Shortcut                          | Action                     |
+    | --------------------------------- | -------------------------- |
+    | `Cmd/Ctrl+S`                      | Save annotations           |
+    | `Cmd/Ctrl+Z`                      | Undo                       |
+    | `Cmd/Ctrl+Y`                      | Redo                       |
+    | `Escape`                          | Save / Deselect / Exit     |
+    | `Delete` / `Backspace`            | Delete selected annotation |
+    | `Cmd/Ctrl+Delete`                 | Delete image               |
+    | `H`                               | Toggle all annotations     |
+    | `1-9`                             | Select class 1-9           |
+    | `Cmd/Ctrl+Scroll`                 | Zoom in/out                |
+    | `Cmd/Ctrl++` or `Cmd/Ctrl+=`      | Zoom in                    |
+    | `Cmd/Ctrl+-`                      | Zoom out                   |
+    | `Cmd/Ctrl+0`                      | Reset to fit               |
+    | `Space+Drag` or middle-click drag | Pan canvas                 |
+    | `Shift+Click`                     | Multi-select annotations   |
+    | `Cmd/Ctrl+A`                      | Select all annotations     |
+    | `Cmd/Ctrl+C`                      | Copy selected annotations  |
+    | `Cmd/Ctrl+X`                      | Cut selected annotations   |
+    | `Cmd/Ctrl+V`                      | Paste annotations          |
 
 === "Modes"
 

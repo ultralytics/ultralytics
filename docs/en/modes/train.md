@@ -292,7 +292,7 @@ It is **recommended for longer YOLO26 training runs and larger datasets**, where
 
 Only 2D linear weights and 4D convolutional filters (reshaped to 2D) receive the Muon style update together with SGD, while all other parameters, such as batch normalization weights and bias terms, remain on standard SGD.
 
-When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**. In `auto` mode, the trainer also selects the learning rate and momentum, so user-provided `lr0` and `momentum` values are ignored. To control these settings manually, select an optimizer explicitly, for example `optimizer=AdamW lr0=0.001`.
+When `optimizer=auto` is used, Ultralytics automatically selects **MuSGD** for longer training runs (typically when iterations > 10000). For shorter runs, the trainer falls back to **AdamW**. In `auto` mode, the trainer also selects the learning rate, so a user-provided `lr0` is ignored. AdamW also ignores `momentum`, while MuSGD warms its momentum up to the `momentum` value during warmup. To control these settings manually, select an optimizer explicitly, for example `optimizer=AdamW lr0=0.001`.
 
 Example usage:
 

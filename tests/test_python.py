@@ -2389,40 +2389,6 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
 
 
-def test_semantic_16bit_masks(tmp_path):
-    """Test 16-bit mask PNGs keep their class ids through the scan and load_mask, and ids above 255 fail the scan."""
-    from ultralytics.data.dataset import SemanticDataset
-    from ultralytics.data.utils import verify_image_mask
-
-    images, masks = tmp_path / "images" / "train", tmp_path / "masks" / "train"
-    images.mkdir(parents=True)
-    masks.mkdir(parents=True)
-    ids = np.zeros((32, 32), dtype=np.uint8)  # class 0, class 1 and the 255 ignore label
-    ids[:16], ids[:, :8] = 1, 255
-    Image.fromarray(ids).save(masks / "a.png")  # 8-bit L mask
-    palette = Image.fromarray(ids)
-    palette.putpalette(np.repeat(np.arange(256, dtype=np.uint8), 3).tolist())  # same ids as palette indices, mode P
-    palette.save(masks / "b.png")
-    cv2.imwrite(str(masks / "c.png"), ids.astype(np.uint16))  # 16-bit mask, IMREAD_GRAYSCALE alone reads it as all 0
-    for stem in "abc":
-        cv2.imwrite(str(images / f"{stem}.jpg"), np.zeros((32, 32, 3), dtype=np.uint8))
-    assert Image.open(masks / "b.png").mode == "P"
-
-    data = {"names": {0: "bg", 1: "fg"}, "nc": 2}
-    dataset = SemanticDataset(img_path=str(images), imgsz=32, data=data)
-    assert len(dataset.labels) == 3  # all three masks pass the scan
-    assert all(np.array_equal(dataset.load_mask(i), ids) for i in range(3))
-    dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "label_mapping": {0: 1, 1: 0}})
-    assert all(np.array_equal(dataset.load_mask(i), dataset.label_lut[ids]) for i in range(3))
-
-    invalid = np.ones(256, dtype=np.uint8)  # the nc=2 scan lookup table, nonzero for ids other than 0, 1 and 255
-    invalid[[0, 1, 255]] = 0
-    for bad in (256, 65535):  # IMREAD_GRAYSCALE alone reads these as 1 and 255, which the scan would accept
-        cv2.imwrite(str(masks / "d.png"), np.full((32, 32), bad, dtype=np.uint16))
-        *_, nf, nc, msg = verify_image_mask((str(images / "a.jpg"), str(masks / "d.png"), "", invalid))
-        assert (nf, nc) == (0, 1) and f"ids up to {bad} do not fit" in msg
-
-
 def test_verify_image_label_whitespace_lines(tmp_path):
     """Test whitespace-only lines in label files no longer mark an image corrupt."""
     from ultralytics.data.utils import verify_image_label

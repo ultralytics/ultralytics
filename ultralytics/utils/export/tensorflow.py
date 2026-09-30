@@ -275,9 +275,15 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         for f in bundle.iterdir():
             f.chmod(0o755)  # tar extraction does not restore mode bits
     # The bundled loader runs directly: Google's launcher script breaks on paths with spaces
-    compiler = [system] if system else [str(bundle / "ld-linux-x86-64.so.2"), "--library-path", str(bundle), str(bundle / "edgetpu_compiler")]
+    compiler = (
+        [system]
+        if system
+        else [str(bundle / "ld-linux-x86-64.so.2"), "--library-path", str(bundle), str(bundle / "edgetpu_compiler")]
+    )
 
-    ver = subprocess.run([*compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    ver = (
+        subprocess.run([*compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    )
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
     cmd = [

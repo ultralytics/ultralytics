@@ -174,6 +174,11 @@ class BasePredictor:
         self.callbacks = _callbacks or callbacks.get_default_callbacks()
         self.txt_path = None
         self._lock = threading.Lock()  # for automatic thread-safe inference
+        self._active_gen = (
+            None  # generator of the run currently holding the lock, reclaimed by the next same-thread run
+        )
+        self._gen_thread = None  # thread that started it; cross-thread runs serialize on the lock instead
+        self._superseded = None  # run closed by a newer same-thread call, reported if its consumer resumes it
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
@@ -312,8 +317,39 @@ class BasePredictor:
                 LOGGER.warning(STREAM_WARNING)
         self.vid_writer = {}
 
-    @smart_inference_mode()
     def stream_inference(self, source=None, model=None, *args, **kwargs):
+        """Stream inference on input source and save results to file.
+
+        A `stream=True` consumer that stops iterating but keeps the generator reference leaves it suspended at a yield
+        while it still holds this predictor's lock. Close that run before starting a new one (same thread only; runs
+        from other threads serialize on the lock as before) so its lock, video writers and sources are released instead
+        of blocking every later predict/track call on this predictor forever. See `_stream_inference` for arguments.
+
+        Raises:
+            RuntimeError: When a newer predict/track call on this predictor closed this stream mid-run.
+        """
+        if self._active_gen is not None and self._gen_thread == threading.get_ident():
+            old, self._active_gen = self._active_gen, None
+            self._superseded = old  # let a consumer that resumes this closed run see why it ended
+            old.close()  # no-op when the previous run already finished or failed
+        self._gen_thread = threading.get_ident()
+        self._active_gen = gen = self._stream_inference(source, model, *args, **kwargs)
+        try:
+            while True:
+                try:
+                    result = next(gen)
+                except StopIteration:
+                    if self._superseded is gen:
+                        raise RuntimeError("this stream was closed by a newer predict() call") from None
+                    return
+                yield result
+        finally:
+            gen.close()  # release the lock, writers and sources when this run is closed or garbage-collected
+            if self._active_gen is gen:
+                self._active_gen = None
+
+    @smart_inference_mode()
+    def _stream_inference(self, source=None, model=None, *args, **kwargs):
         """Stream inference on input source and save results to file.
 
         Args:

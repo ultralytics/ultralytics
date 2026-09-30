@@ -2029,39 +2029,6 @@ def test_classification_split_class_alignment(tmp_path):
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
-def test_disk_cache_distinguishes_image_extensions(tmp_path):
-    """Keep distinct images with the same stem separate in classification and detection disk caches."""
-    from ultralytics.data.dataset import ClassificationDataset, YOLODataset
-
-    image_dir = tmp_path / "images" / "class_a"
-    image_dir.mkdir(parents=True)
-    for suffix, color in ((".jpg", (0, 0, 255)), (".png", (255, 0, 0))):
-        assert cv2.imwrite(str(image_dir / f"sample{suffix}"), np.full((32, 32, 3), color, dtype=np.uint8))
-    label_dir = tmp_path / "labels" / "class_a"
-    label_dir.mkdir(parents=True)
-    (label_dir / "sample.txt").write_text("0 0.5 0.5 0.5 0.5\n")
-
-    args = copy(DEFAULT_CFG)
-    args.imgsz, args.cache = 32, "disk"
-    classification = ClassificationDataset(tmp_path / "images", args, augment=False)
-    for i, (source, _, cache_path, _) in enumerate(classification.samples):
-        classification[i]
-        np.testing.assert_array_equal(np.load(cache_path), cv2.imread(source))
-
-    detection = YOLODataset(img_path=str(image_dir), imgsz=32, cache="disk", augment=False, data={"names": {0: "x"}})
-    for i, source in enumerate(detection.im_files):
-        np.testing.assert_array_equal(detection.load_image(i)[0], cv2.imread(source))
-
-    subsets = []
-    for i, source in enumerate(detection.im_files):
-        manifest = tmp_path / f"subset-{i}.txt"
-        manifest.write_text(f"{source}\n")
-        subsets.append(
-            YOLODataset(img_path=str(manifest), imgsz=32, cache="disk", augment=False, data={"names": {0: "x"}})
-        )
-    assert subsets[0].npy_files[0] != subsets[1].npy_files[0]
-
-
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

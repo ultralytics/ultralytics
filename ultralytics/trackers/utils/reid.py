@@ -48,14 +48,8 @@ class ReID:
             from ultralytics import YOLO
 
             self.model = YOLO(model)
-            # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(
-                np.zeros((32, 32, 3), dtype=np.uint8),
-                embed=[len(self.model.model.model) - 2],
-                device=self.device,
-                verbose=False,
-                save=False,
-            )
+            # Set up the embedding predictor that __call__ reuses for crops.
+            self.model.embed(np.zeros((32, 32, 3), dtype=np.uint8), device=self.device, verbose=False, save=False)
             self.fp16 = False
         else:
             from pathlib import Path

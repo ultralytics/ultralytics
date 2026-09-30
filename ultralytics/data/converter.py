@@ -1128,16 +1128,21 @@ async def _convert_ndjson_to_yolo(
                     data = await response.read()
                 # Publish complete files only: a failed or concurrent write never leaves partial bytes at `path`
                 tmp = path.with_name(f".{path.name}.{uuid4().hex}")
-                tmp.write_bytes(data)
-                os.replace(tmp, path)
+                try:
+                    tmp.write_bytes(data)
+                    os.replace(tmp, path)
+                finally:
+                    tmp.unlink(missing_ok=True)
                 if pooled:  # a failed link just skips pooling
+                    link = pooled.with_name(f".{pooled.name}.{uuid4().hex}")
                     try:
                         pool.mkdir(parents=True, exist_ok=True)
-                        tmp = pooled.with_name(f".{pooled.name}.{uuid4().hex}")
-                        os.link(path, tmp)
-                        os.replace(tmp, pooled)
+                        os.link(path, link)
+                        os.replace(link, pooled)
                     except OSError:
                         pass
+                    finally:
+                        link.unlink(missing_ok=True)
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e

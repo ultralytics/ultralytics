@@ -757,6 +757,63 @@ def test_track_stream(model, tmp_path, solution_assets):
         model.track(video_url, imgsz=160, tracker=custom_yaml)
 
 
+def test_fractional_video_fps(monkeypatch, tmp_path):
+    """Keep the fractional source fps in the loader and round it for the prediction and solutions video writers."""
+    from ultralytics.cfg import handle_yolo_solutions
+    from ultralytics.data.loaders import LoadImagesAndVideos
+    from ultralytics.engine.predictor import BasePredictor
+
+    props = {cv2.CAP_PROP_FPS: 29.97, cv2.CAP_PROP_FRAME_COUNT: 60}  # NTSC clip, int(29.97) used to give 29
+    props.update({cv2.CAP_PROP_FRAME_WIDTH: 64, cv2.CAP_PROP_FRAME_HEIGHT: 48})
+    writer_fps = []  # fps every fake writer was created with
+
+    class FakeCapture:
+        """cv2.VideoCapture stand-in that reports the properties above and no frames, so no codec is needed."""
+
+        def __init__(self, *args):
+            pass
+
+        def get(self, prop):
+            return props[prop]
+
+        def isOpened(self):
+            return True
+
+        def read(self):
+            return False, None
+
+        def release(self):
+            pass
+
+    class FakeWriter:
+        """cv2.VideoWriter stand-in that records the fps it was created with, keyword or third positional argument."""
+
+        def __init__(self, *args, **kwargs):
+            writer_fps.append(kwargs["fps"] if "fps" in kwargs else args[2])
+
+        def write(self, im):
+            pass
+
+        def release(self):
+            pass
+
+    monkeypatch.setattr(cv2, "VideoCapture", FakeCapture)
+    monkeypatch.setattr(cv2, "VideoWriter", FakeWriter)
+    clip = tmp_path / "clip.mp4"
+    clip.touch()
+
+    for vid_stride, expected in ((1, 30), (2, 15)):  # truncation gave 29 and 14
+        loader = LoadImagesAndVideos(clip, vid_stride=vid_stride)
+        assert loader.fps == 29.97
+        predictor = BasePredictor(overrides={"vid_stride": vid_stride, "project": str(tmp_path), "name": "predict"})
+        predictor.dataset, predictor.plotted_img = loader, np.zeros((48, 64, 3), dtype=np.uint8)
+        predictor.save_predicted_images(tmp_path / clip.name)
+        assert writer_fps.pop() == expected
+
+    handle_yolo_solutions(["count", f"source={clip}", f"model={MODEL}"])
+    assert writer_fps == [30]
+
+
 @pytest.mark.parametrize("task,weight,data", TASK_MODEL_DATA)
 def test_val(task: str, weight: str, data: str) -> None:
     """Test the validation mode of the YOLO model."""

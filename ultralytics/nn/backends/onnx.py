@@ -11,7 +11,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LOGGER, USER_CONFIG_DIR
+from ultralytics.utils import ARM64, LOGGER, USER_CONFIG_DIR, ThreadingLocked
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, check_requirements, rocm_is_available
 
 from .base import BaseBackend
@@ -90,6 +90,7 @@ def _migraphx_cache_dir(weight: str | Path) -> Path:
     return cache_dir
 
 
+@ThreadingLocked()  # ORT_MIGRAPHX_CACHE_DIR is process-global until the session is built
 def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
     """Create an InferenceSession on the MIGraphX plugin EP for GPU `index`.
 
@@ -126,7 +127,8 @@ def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
     LOGGER.info(f"Using ONNX Runtime {onnxruntime.__version__} with {ep}")
     session_options = onnxruntime.SessionOptions()
     session_options.add_provider_for_devices(devices[index : index + 1], options)
-    return onnxruntime.InferenceSession(weight, session_options)
+    # Disable ORT's silent CPU retry so a MIGraphX failure raises to ONNXBackend's own CPU fallback
+    return onnxruntime.InferenceSession(weight, session_options, enable_fallback=0)
 
 
 # ONNX Runtime output type string -> (torch dtype, numpy dtype) for IO binding.

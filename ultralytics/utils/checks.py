@@ -1172,7 +1172,7 @@ def rocm_is_available() -> bool:
     Returns:
         (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
     """
-    return sys.platform == "linux" and bool(getattr(torch.version, "hip", None)) and torch.cuda.is_available()
+    return sys.platform == "linux" and bool(torch.version.hip) and torch.cuda.is_available()
 
 
 def is_rockchip():

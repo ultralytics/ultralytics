@@ -27,7 +27,7 @@ Training works the same way: with a ROCm build of PyTorch, `.pt` models [train n
 
 ## Key Features of MIGraphX Inference
 
-- **Automatic provider selection**: On a ROCm host the ONNX backend registers the plugin and selects `MIGraphXExecutionProvider` with no code changes. Without it, ONNX inference on an AMD GPU silently falls back to the CPU.
+- **Automatic provider selection**: On a ROCm host the ONNX backend registers the plugin and selects `MIGraphXExecutionProvider` with no code changes. If the plugin is missing or fails to load, inference falls back to the CPU with a warning.
 - **Graph optimization**: MIGraphX applies operator fusion, memory planning, and kernel selection tuned for AMD GPU architectures.
 - **Zero-copy IO binding**: Inputs and outputs are bound directly to GPU tensors through the DLPack protocol, avoiding host round-trips during inference.
 - **Precision options**: Run FP32 or export an FP16 ONNX model for reduced-precision inference.
@@ -174,13 +174,13 @@ For the full list of export arguments, see the [ONNX integration](onnx.md#export
 
 !!! note "Compiled-program cache"
 
-    The MIGraphX EP compiles the graph on the first session, which dominates initial load time. Ultralytics caches the compiled program per model under the [Ultralytics config directory](../quickstart.md#ultralytics-settings) so later loads of the same model skip recompilation. Set `ORT_MIGRAPHX_CACHE_DIR` to override the location. Cache keys lead with the MIGraphX version, so a runtime upgrade recompiles rather than reusing a stale program.
+    The MIGraphX EP compiles the graph on the first session, which dominates initial load time. Ultralytics caches the compiled program per model under the [Ultralytics config directory](../quickstart.md#ultralytics-settings) so later loads of the same model skip recompilation. The cache keeps the 8 most recently used models and evicts older ones, so it cannot grow without bound. Set `ORT_MIGRAPHX_CACHE_DIR` to override the location. Cache keys lead with the MIGraphX version, so a runtime upgrade recompiles rather than reusing a stale program.
 
 !!! note "Compile time"
 
     Ultralytics disables MIGraphX Winograd convolution kernels by default (`MIGRAPHX_DISABLE_WINOGRAD=1`) to cut cold-compile time on YOLO graphs with no measurable inference change ([ROCm/AMDMIGraphX#5234](https://github.com/ROCm/AMDMIGraphX/issues/5234)); set `MIGRAPHX_DISABLE_WINOGRAD=0` to re-enable them.
 
-For a ready-to-run environment, [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd) builds the [`ultralytics/ultralytics:latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd) image with ROCm PyTorch and the MIGraphX EP preinstalled. See [Using GPUs](../guides/docker-quickstart.md#using-gpus) in the Docker Quickstart for the `docker run` flags that expose AMD GPUs to the container. AMD GPU hardware CI validates the integration on a scheduled job.
+For a ready-to-run environment, [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd) builds the [`ultralytics/ultralytics:latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd) image with ROCm PyTorch and the MIGraphX EP preinstalled. See [Using GPUs](../guides/docker-quickstart.md#using-gpus) in the Docker Quickstart for the `docker run` flags that expose AMD GPUs to the container. AMD GPU hardware CI validates the integration daily and on demand.
 
 ## Train on AMD GPUs with PyTorch ROCm
 
@@ -224,7 +224,7 @@ Support for one AMD product or runtime does not imply support for every AMD acce
 | MIGraphX inference                               | ✅      | Run exported ONNX models on AMD GPUs through the MIGraphX EP. All YOLO26 tasks are supported.                        |
 | Multi-GPU ROCm                                   | ✅      | Use `device=0,1` or `device=[0, 1]`; distributed execution follows the installed PyTorch ROCm stack.                 |
 | ROCm Automatic Mixed Precision (AMP)             | ⚠️      | Available when the installed PyTorch and ROCm versions pass Ultralytics AMP checks; use `amp=False` if incompatible. |
-| AMD Docker image and hardware CI                 | ✅      | [`latest-amd`](../guides/docker-quickstart.md#using-gpus) ships the MIGraphX EP; AMD GPU CI runs on a scheduled job. |
+| AMD Docker image and hardware CI                 | ✅      | [`latest-amd`](../guides/docker-quickstart.md#using-gpus) ships the MIGraphX EP; AMD GPU CI runs daily.              |
 | Native MIGraphX export                           | ❌      | Export to ONNX with `format="onnx"` and run it on the MIGraphX EP for AMD GPU inference.                             |
 | Windows DirectML                                 | ❌      | No DirectML training or prediction backend in the Python package.                                                    |
 | Ryzen AI NPU                                     | ❌      | No native NPU integration; external ONNX/Vitis AI workflows are community-managed.                                   |
@@ -279,7 +279,7 @@ No. On a ROCm system with `onnxruntime-ep-migraphx` installed, the Ultralytics O
 
 ### Why is the first inference slow on AMD GPUs?
 
-MIGraphX compiles the ONNX graph into an optimized program on the first session, which dominates initial load time. Ultralytics caches the compiled program per model under the [Ultralytics config directory](../quickstart.md#ultralytics-settings), so subsequent loads of the same model skip recompilation. Set `ORT_MIGRAPHX_CACHE_DIR` to change where the cache is stored.
+MIGraphX compiles the ONNX graph into an optimized program on the first session, which dominates initial load time. Ultralytics caches the compiled program, so later loads of the same model skip recompilation. See the [compiled-program cache](#deploying-on-amd-gpus-with-migraphx) note for its location and size limit.
 
 ### Why does `torch.cuda.is_available()` return `True` on my AMD system?
 

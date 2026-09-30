@@ -4,16 +4,27 @@ from __future__ import annotations
 
 import hashlib
 import os
+import shutil
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from ultralytics.utils import ARM64, LOGGER, ROCM_EP_PACKAGES, ROCM_EXTRA_INDEX, USER_CONFIG_DIR
+from ultralytics.utils import ARM64, LOGGER, USER_CONFIG_DIR
 from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_11, check_requirements, rocm_is_available
 
 from .base import BaseBackend
+
+# AMD wheel indexes for the MIGraphX EP plugin and its C library (ROCm 10 / MIGraphX 2.17 / onnxruntime 1.29)
+ROCM_EXTRA_INDEX = (
+    "--extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ "
+    "--extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/"
+)
+# migraphx-libs is not a declared plugin dependency (ROCm/AMDMIGraphX#5235). Exact local-version pins keep the rolling
+# whl-next indexes on the validated stack and can only resolve from AMD's index (PyPI rejects local versions).
+ROCM_EP_PACKAGES = ["onnxruntime-ep-migraphx==1.0.0+rocm10.0.0", "migraphx-libs==2.17.0+rocm10.0.0"]
+MIGRAPHX_CACHE_MODELS = 8  # compiled programs kept in the MIGraphX cache, least recently used evicted first
 
 
 def _register_migraphx_ep(onnxruntime) -> str | None:
@@ -76,9 +87,10 @@ def _migraphx_cache_root() -> Path:
 
 
 def _migraphx_cache_dir(weight: str | Path) -> Path:
-    """Return a per-model cache subdirectory for the MIGraphX compiled program.
+    """Return a per-model cache subdirectory for the MIGraphX compiled program, evicting least recently used models.
 
-    The EP keys its cache by graph and input shapes (not weights), so hashing the model bytes isolates each model.
+    The EP keys its cache by graph and input shapes (not weights), so hashing the model bytes isolates each model. Only
+    the MIGRAPHX_CACHE_MODELS most recently used models are kept, bounding the cache on disk.
 
     Args:
         weight (str | Path): Path to the .onnx model file, hashed to key the cache.
@@ -86,7 +98,13 @@ def _migraphx_cache_dir(weight: str | Path) -> Path:
     Returns:
         (Path): Per-model cache subdirectory under the resolved cache root.
     """
-    return _migraphx_cache_root() / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
+    cache_dir = _migraphx_cache_root() / hashlib.sha256(Path(weight).read_bytes()).hexdigest()[:16]
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    os.utime(cache_dir)  # mark as most recently used
+    dirs = sorted(cache_dir.parent.glob("[0-9a-f]" * 16), key=lambda d: d.stat().st_mtime, reverse=True)  # ours only
+    for d in dirs[MIGRAPHX_CACHE_MODELS:]:
+        shutil.rmtree(d, ignore_errors=True)
+    return cache_dir
 
 
 def _create_session(onnxruntime, weight: str | Path, session_options, providers=None):
@@ -143,8 +161,7 @@ def _load_migraphx_session(onnxruntime, session_options, weight: str | Path, ind
     compiling = True  # unless a populated cache is found below
     try:
         cache_dir = _migraphx_cache_dir(weight)
-        compiling = not (cache_dir.is_dir() and any(cache_dir.iterdir()))
-        cache_dir.mkdir(parents=True, exist_ok=True)
+        compiling = not any(cache_dir.iterdir())
         # The EP reads ORT_MIGRAPHX_CACHE_DIR ahead of the cache_dir option, so set both.
         os.environ["ORT_MIGRAPHX_CACHE_DIR"] = str(cache_dir)
         options["cache_dir"] = str(cache_dir)

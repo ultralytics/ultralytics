@@ -464,12 +464,7 @@ jobs:
           use_oidc: true
 
   AMD_GPU:
-    if: >-
-      github.repository == 'ultralytics/ultralytics' &&
-      (
-        github.event_name == 'schedule' ||
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.amd-gpu == 'true')
-      )
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.amd-gpu == 'true')
     permissions:
       contents: read
       id-token: write
@@ -500,10 +495,9 @@ jobs:
       - name: Pytest ROCm tests
         run: |
           pytest --slow --cov=ultralytics/ --cov-report xml tests/test_rocm.py -sv
-          rm -rf "${ORT_MIGRAPHX_CACHE_DIR:?}"
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
-          ORT_MIGRAPHX_CACHE_DIR: ${{ github.workspace }}/.migraphx_cache
+          ORT_MIGRAPHX_CACHE_DIR: ${{ runner.temp }}/migraphx_cache # emptied by the runner after every job
       - name: Upload Coverage Reports to CodeCov
         continue-on-error: true
         uses: codecov/codecov-action@v7

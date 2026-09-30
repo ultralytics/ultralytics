@@ -333,7 +333,7 @@ class LoadImagesAndVideos:
         cap (cv2.VideoCapture): Video capture object for OpenCV.
         frame (int): Frame counter for video.
         frames (int): Number of frames in the current video after applying vid_stride.
-        fps (int): Frames per second of the current video.
+        fps (float): Frames per second of the current video as reported by OpenCV.
         count (int): Counter for iteration, initialized at 0 during __iter__().
         ni (int): Number of images.
         cv2_flag (int): OpenCV flag for image reading (grayscale or color/BGR).
@@ -383,14 +383,14 @@ class LoadImagesAndVideos:
         files = []
         for p in sorted(path) if isinstance(path, (list, tuple)) else [path]:
             a = str(Path(p).absolute())  # do not use .resolve() https://github.com/ultralytics/ultralytics/issues/2912
+            if parent and not (glob.glob(a, recursive=True) if "*" in a else os.path.exists(a)):
+                a = str((parent / p).absolute())  # resolve unmatched manifest entries relative to the manifest
             if "*" in a:
                 files.extend(sorted(glob.glob(a, recursive=True)))  # glob
             elif os.path.isdir(a):
                 files.extend(sorted(glob.glob(os.path.join(glob.escape(a), "*.*"))))  # dir
             elif os.path.isfile(a):
                 files.append(a)  # files (absolute or relative to CWD)
-            elif parent and (parent / p).is_file():
-                files.append(str((parent / p).absolute()))  # files (relative to *.txt file parent)
             else:
                 raise FileNotFoundError(f"{p} does not exist")
 
@@ -508,7 +508,7 @@ class LoadImagesAndVideos:
         """Create a new video capture object for the given path and initialize video-related attributes."""
         self.frame = 0
         self.cap = cv2.VideoCapture(path)
-        self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+        self.fps = self.cap.get(cv2.CAP_PROP_FPS)  # keep the float, int() turns 29.97 into 29 and stretches the video
         if not self.cap.isOpened():
             raise FileNotFoundError(f"Failed to open video {path}")
         self.frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT) / self.vid_stride)

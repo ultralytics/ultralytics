@@ -11,13 +11,13 @@ Ultralytics framework supports callbacks, which serve as entry points at strateg
 
 <p align="center">
   <br>
-  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/ENQXiK7HF5o"
+  <iframe loading="lazy" width="720" height="405" src="https://www.youtube.com/embed/GW5z7HX4Jds"
     title="YouTube video player" frameborder="0"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
     allowfullscreen>
   </iframe>
   <br>
-  <strong>Watch:</strong> How to use Ultralytics Callbacks | Predict, Train, Validate and Export Callbacks | Ultralytics YOLO🚀
+  <strong>Watch:</strong> How to use Ultralytics Callbacks | Predict, Train, Validate and Export Callbacks | Ultralytics YOLO26 🚀
 </p>
 
 ## Examples

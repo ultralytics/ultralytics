@@ -10,16 +10,9 @@ import numpy as np
 import torch
 
 from ultralytics.nn.modules import Detect, Pose, Pose26
-from ultralytics.utils import AUTOINSTALL, LINUX, LOGGER, MACOS
-from ultralytics.utils.checks import (
-    IS_PYTHON_MINIMUM_3_13,
-    check_apt_requirements,
-    check_requirements,
-    check_version,
-    is_sudo_available,
-    rocm_is_available,
-)
-from ultralytics.utils.downloads import attempt_download_asset
+from ultralytics.utils import ARM64, AUTOINSTALL, LINUX, LOGGER, MACOS, USER_CONFIG_DIR
+from ultralytics.utils.checks import IS_PYTHON_MINIMUM_3_13, check_requirements, check_version
+from ultralytics.utils.downloads import attempt_download_asset, safe_download
 from ultralytics.utils.tal import make_anchors
 
 
@@ -113,7 +106,6 @@ def onnx2saved_model(
         f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",  # pin to avoid h5py build issues on aarch64
         cmds="--no-deps",
     )
-    ort = "onnxruntime-gpu" if cuda and not rocm_is_available() else "onnxruntime"
     check_requirements(
         (
             f"tf_keras{'>2.19.0' if IS_PYTHON_MINIMUM_3_13 else '<=2.19.0'}",  # required by 'onnx2tf' package
@@ -124,7 +116,7 @@ def onnx2saved_model(
             f"onnx2tf{'>=2.3.0,<2.3.16' if IS_PYTHON_MINIMUM_3_13 else '>=1.26.3,<1.29.0'}",
             "onnxslim>=0.1.82",
             # Interchangeable candidates so an installed variant (e.g. onnxruntime-gpu) is never dual-installed over
-            (ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
+            ("onnxruntime-gpu" if cuda else "onnxruntime", "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn"),
             "protobuf>=6.31.1,<7.0.0"
             if IS_PYTHON_MINIMUM_3_13
             else "protobuf>=5",  # TF>2.19 (Python 3.13) needs protobuf>=6.31.1; cap <7 to match TF gencode and avoid PaddlePaddle segfault
@@ -260,37 +252,42 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         for optimal performance on Google's Edge TPU hardware accelerator.
     """
     import shlex
+    import shutil
     import subprocess
 
-    # Install Edge TPU compiler if not found
-    check_cmd = "edgetpu_compiler --version"
     help_url = "https://coral.ai/docs/edgetpu/compiler/"
-    assert LINUX, f"export only supported on Linux. See {help_url}"
-    if (
-        subprocess.run(
-            check_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, shell=True, check=False
-        ).returncode
-        != 0
-    ):
+    assert LINUX and not ARM64, f"export only supported on Linux x86_64. See {help_url}"
+    # Google's Coral apt repo is gone, so a missing compiler installs from the unmodified edgetpu-compiler 16.0
+    # package files, needing no apt or sudo
+    bundle = USER_CONFIG_DIR / "edgetpu-compiler" / "usr" / "bin" / "edgetpu_compiler_bin"
+    system = shutil.which("edgetpu_compiler")
+    if not system and not (bundle / "edgetpu_compiler").is_file():
         if not AUTOINSTALL:
             raise FileNotFoundError(
                 f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
             )
-        LOGGER.info(f"\n{prefix} export requires Edge TPU compiler. Attempting install from {help_url}")
-        sudo = "sudo " if is_sudo_available() else ""
-        for c in (
-            f"{sudo}mkdir -p /etc/apt/keyrings",
-            f"curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | {sudo}gpg --no-tty --dearmor -o /etc/apt/keyrings/google.gpg",
-            f'echo "deb [signed-by=/etc/apt/keyrings/google.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main" | {sudo}tee /etc/apt/sources.list.d/coral-edgetpu.list',
-        ):
-            subprocess.run(c, shell=True, check=True)
-        check_apt_requirements(["edgetpu-compiler"])
+        LOGGER.info(f"\n{prefix} export requires Edge TPU compiler, downloading...")
+        safe_download(
+            "https://github.com/ultralytics/assets/releases/download/v0.0.0/edgetpu-compiler_16.0_amd64.tar.gz",
+            dir=bundle.parents[2],
+            delete=True,
+        )
+        for f in bundle.iterdir():
+            f.chmod(0o755)  # tar extraction does not restore mode bits
+    # The bundled loader runs directly: Google's launcher script breaks on paths with spaces
+    compiler = (
+        [system]
+        if system
+        else [str(bundle / "ld-linux-x86-64.so.2"), "--library-path", str(bundle), str(bundle / "edgetpu_compiler")]
+    )
 
-    ver = subprocess.run(check_cmd, shell=True, capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    ver = (
+        subprocess.run([*compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    )
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
     cmd = [
-        "edgetpu_compiler",
+        *compiler,
         "--out_dir",
         str(output_dir),
         "--show_operations",

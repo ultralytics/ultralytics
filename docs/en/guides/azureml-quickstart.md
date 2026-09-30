@@ -72,10 +72,10 @@ pip install ultralytics onnx
 yolo predict model=yolo26n.pt source='https://ultralytics.com/images/bus.jpg'
 ```
 
-[Train](../modes/train.md) a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial learning_rate of 0.01:
+[Train](../modes/train.md) a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch):
 
 ```bash
-yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
 You can find more [instructions to use the Ultralytics CLI here](../quickstart.md#use-ultralytics-with-cli).
@@ -169,7 +169,7 @@ To run YOLO26 on AzureML for training, create a compute instance, set up a Conda
 
 3. **Run YOLO26 Tasks**: Use the Ultralytics CLI to train your model:
     ```bash
-    yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+    yolo train data=coco8.yaml model=yolo26n.pt epochs=10
     ```
 
 For more details, you can refer to the [instructions to use the Ultralytics CLI](../quickstart.md#use-ultralytics-with-cli).

@@ -1456,7 +1456,7 @@ class Exporter:
             # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
             images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
             disable_group_convolution=self.args.format == "edgetpu",
-            cuda=self.device.type == "cuda",
+            cuda=self.device.type == "cuda" and not rocm_is_available(),  # TensorFlow and onnxruntime-gpu are CUDA-only
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

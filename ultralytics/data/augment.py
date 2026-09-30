@@ -976,7 +976,7 @@ class CutMix(BaseMixTransform):
         area = cut_areas[np.random.choice(idx)]  # randomly select one
         ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
         indexes2 = np.nonzero(ioa2 >= (0.01 if len(labels["instances"].segments) else 0.1))[0]
-        if len(indexes2) == 0:
+        if len(indexes2) == 0 and labels.get("semantic_mask") is None:  # semantic masks need no source instance
             params["skip"] = True
             return params
 
@@ -2588,9 +2588,10 @@ class SemanticFormat(Format):
             params (dict[str, Any] | None): Unused parameters for API compatibility.
 
         Returns:
-            (dict[str, Any]): Updated labels with unused keys removed, keeping 'ori_shape' for saving val predictions.
+            (dict[str, Any]): Updated labels with unused keys removed, keeping 'ori_shape' and 'ratio_pad' for saving
+                val predictions at the original resolution.
         """
-        for k in ("cls", "instances", "resized_shape", "ratio_pad"):
+        for k in ("cls", "instances", "resized_shape"):
             labels.pop(k, None)
         return labels
 

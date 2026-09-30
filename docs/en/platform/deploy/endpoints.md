@@ -442,10 +442,10 @@ capacity ceiling:
 
 {% include "macros/platform-inference-parameters.md" %}
 
-An endpoint keeps the inference runtime from its last rollout, so newer behavior such as the training-size `imgsz` default
-or `vid_stride` above reaches it when a new revision rolls out, for example after you
-[replace its model](#replace-a-model) or [change its CPU or memory](#update-cpu-and-memory). Pass `imgsz` explicitly for a
-fixed input size.
+An endpoint keeps the inference runtime from its last rollout, so newer behavior such as the training-size `imgsz`
+default or `vid_stride` above reaches it when a new revision rolls out, for example after you
+[replace its model](#replace-a-model) or [change its CPU or memory](#update-cpu-and-memory). Pass `imgsz` explicitly
+for a fixed input size.
 
 See [Depth responses](inference.md#task-specific-responses) for how `bits` changes the returned depth map and how to
 decode it.

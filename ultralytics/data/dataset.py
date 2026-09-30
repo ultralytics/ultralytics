@@ -1275,7 +1275,7 @@ class ClassificationDataset:
         Returns:
             (dict): Dictionary containing the image and its class index.
         """
-        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        f, j, fn, im = self.samples[i]  # filename, class index, npy cache path, image
         if self.cache_ram:
             im = self.img_cache[i]
         elif self.cache_disk:

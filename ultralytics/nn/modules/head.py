@@ -276,7 +276,8 @@ class Detect(nn.Module):
             index (torch.Tensor): Anchor indices of the top-k detections with shape (batch_size, k).
         """
         anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
-        k = max_det if self.export else min(max_det, anchors)  # exporter clamps max_det to the traced anchors
+        # traced anchors are tensors; export traces bake max_det, which the exporter already clamps to the anchors
+        k = max_det if self.export and torch.jit.is_tracing() else min(max_det, anchors)
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1)
             scores, index = self._grouped_topk(scores, k, 1)

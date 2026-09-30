@@ -274,7 +274,10 @@ def check_image(im_file: str) -> tuple[str, tuple[int, int]]:
         with open(im_file, "rb") as f:
             f.seek(-2, 2)
             if f.read() != b"\xff\xd9":  # corrupt JPEG
-                ImageOps.exif_transpose(Image.open(im_file)).save(im_file, "JPEG", subsampling=0, quality=100)
+                # Write a new file and swap it in: the image may be a hard link shared with other dataset versions
+                tmp = f"{im_file}.{os.getpid()}.tmp"
+                ImageOps.exif_transpose(Image.open(im_file)).save(tmp, "JPEG", subsampling=0, quality=100)
+                os.replace(tmp, im_file)
                 msg = f"{im_file}: corrupt JPEG restored and saved"
     return msg, shape
 

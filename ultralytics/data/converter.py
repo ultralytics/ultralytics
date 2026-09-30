@@ -6,12 +6,14 @@ import asyncio
 import hashlib
 import json
 import math
+import os
 import random
 import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 import cv2
 import numpy as np
@@ -1081,8 +1083,22 @@ async def _convert_ndjson_to_yolo(
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
+    # Hash-named objects (e.g. Ultralytics Platform content-addressed assets) never change behind their URL, so
+    # dataset versions under the same output_path hard-link one pooled copy instead of downloading it again.
+    pool = output_path / ".ndjson-assets"
+    for pooled in pool.glob("*") if pool.is_dir() else ():
+        if pooled.stat().st_nlink == 1:  # no dataset directory links it any more
+            pooled.unlink(missing_ok=True)
+
+    def pooled_path(url):
+        """Return the pool entry for an immutable hash-named URL, or None for any other source."""
+        source = Path(clean_url(url))
+        if len(source.stem) != 32 or any(c not in "0123456789abcdef" for c in source.stem.lower()):
+            return None
+        return pool / f"{hashlib.sha256(str(source).encode()).hexdigest()}{source.suffix}"
+
     async def ensure_file(session, path, url):
-        """Return True when the file exists locally, otherwise download one URL with the retry policy."""
+        """Return True when the file exists locally, otherwise link it from the pool or download it with retries."""
         if path.exists():
             return True
         if not url:
@@ -1093,12 +1109,27 @@ async def _convert_ndjson_to_yolo(
                 return False
             await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, url, path)
             return True
+        pooled = pooled_path(url)
+        if pooled:
+            try:
+                os.link(pooled, path)
+                return True
+            except OSError:
+                pass  # not pooled yet, or links unsupported here: download it
         for attempt in range(3):
             error = None
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(sock_connect=30, sock_read=30)) as response:
                     response.raise_for_status()
                     path.write_bytes(await response.read())
+                if pooled:  # publish only complete files, atomically; a failed link just skips pooling
+                    try:
+                        pool.mkdir(parents=True, exist_ok=True)
+                        tmp = pooled.with_name(f".{pooled.name}.{uuid4().hex}")
+                        os.link(path, tmp)
+                        os.replace(tmp, pooled)
+                    except OSError:
+                        pass
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e

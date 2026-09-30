@@ -47,11 +47,18 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         if len(frames) > 1 or frames[0].ndim == 3:
             return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
     im = None
-    if filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
+    if flags in (cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE) and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
         # OpenCV decodes AVIF without applying its EXIF orientation, so these formats read through the transposing PIL
+        # decode for the flags PIL serves faithfully; other flag semantics (e.g. IMREAD_UNCHANGED) stay with OpenCV
         im = _imread_pil(filename, flags)
     if im is None:
         im = cv2.imdecode(file_bytes, flags)
+    if (
+        im is None
+        and flags not in (cv2.IMREAD_COLOR, cv2.IMREAD_GRAYSCALE)
+        and filename.lower().endswith(PIL_FALLBACK_SUFFIXES)
+    ):
+        im = _imread_pil(filename, flags)  # OpenCV cannot decode this format at all (e.g. HEIC)
     return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 

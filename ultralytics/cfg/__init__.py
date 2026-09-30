@@ -956,10 +956,13 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
         - The function splits the input string on the first '=' character.
         - Leading and trailing whitespace is removed from both key and value.
         - An assertion error is raised if the value is empty after stripping.
+        - 'name' and 'project' values made of digits and underscores, e.g. 'name=2024_03_15', stay strings.
     """
     k, v = pair.split("=", 1)  # split on first '=' sign
     k, v = k.strip(), v.strip()  # remove spaces
     assert v, f"missing '{k}' value"
+    if k in {"name", "project"} and "_" in v and v.replace("_", "").isdigit():
+        return k, v  # a run name, not Python's 20240315 digit-grouping syntax; epochs=1_000 still parses as 1000
     return k, smart_value(v)
 
 
@@ -1002,8 +1005,6 @@ def smart_value(v: str) -> Any:
         return True
     elif v_lower == "false":
         return False
-    elif "_" in v and v.replace("_", "").isdigit():
-        return v  # '2024_03_15' is a run name, not Python's 20240315 digit-grouping syntax
     else:
         try:
             return ast.literal_eval(v)

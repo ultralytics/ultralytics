@@ -1489,6 +1489,16 @@ def test_cfg_init():
     assert smart_value("zipfile.Path") == "zipfile.Path"
 
 
+def test_parse_key_value_pair_digit_separators():
+    """Test digit-and-underscore name and project values stay strings while numeric arguments keep digit grouping."""
+    from ultralytics.cfg import parse_key_value_pair
+
+    for k in ("name", "project"):  # run directories, previously parsed as the ints 20240315 and 202403152
+        assert parse_key_value_pair(f"{k}=2024_03_15") == (k, "2024_03_15")
+        assert parse_key_value_pair(f"{k}=20240315_2") == (k, "20240315_2")
+    assert parse_key_value_pair("epochs=1_000") == ("epochs", 1000)  # other arguments keep Python's digit grouping
+
+
 def test_depth_calibration_checkpoint_provenance(tmp_path):
     """Depth calibration persists the selected transform and sample count with the checkpoint."""
     from copy import deepcopy

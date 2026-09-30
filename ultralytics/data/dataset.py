@@ -49,7 +49,8 @@ from .utils import (
     verify_image_mask,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
+# rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
 DATASET_CACHE_VERSION = "1.0.9"  # 16-bit semantic masks are now read at full depth and validated
 
 
@@ -174,7 +175,9 @@ class YOLODataset(BaseDataset):
         Returns:
             (str): Dataset cache hash.
         """
-        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        # add_polygon_background() class is not a label class, so segment and semantic share one cache
+        nc = self.data.get("bg_class_idx") or len(self.data["names"])
+        scan_args = (self.use_keypoints, nc, self.data.get("kpt_shape"), self.single_cls)
         return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
@@ -203,7 +206,7 @@ class YOLODataset(BaseDataset):
             self.label_files,
             repeat(self.prefix),
             repeat(self.use_keypoints),
-            repeat(len(self.data["names"])),
+            repeat(self.data.get("bg_class_idx") or len(self.data["names"])),  # label classes, no semantic background
             repeat(nkpt),
             repeat(ndim),
             repeat(self.single_cls),
@@ -1053,7 +1056,8 @@ class SemanticDataset(YOLODataset):
         mode = self.labels[index]["mode"]
         if mode == "P":  # palette PNGs store class ids as indices, not grayscale colors
             with Image.open(mask_file) as im:
-                mask = np.array(im)
+                p = np.array(im.getpalette()).reshape(-1, 3)  # gray palettes (e.g. pngquant) hold gray-level class ids
+                mask = np.array(im.convert("L") if (p == p[:, :1]).all() else im)
         else:
             mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
         if mask is None:

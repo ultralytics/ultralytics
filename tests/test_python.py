@@ -557,8 +557,11 @@ def test_imread_avif_exif(tmp_path):
     bgr = cv2.cvtColor(np.asarray(gt.convert("RGB")), cv2.COLOR_RGB2BGR)
     assert np.array_equal(imread(color_path, cv2.IMREAD_COLOR), bgr)
     raw = cv2.imdecode(np.fromfile(color_path, np.uint8), cv2.IMREAD_UNCHANGED)  # what imread defers to
-    unchanged = None if raw is None else (raw[..., None] if raw.ndim == 2 else raw)
-    assert np.array_equal(imread(color_path, cv2.IMREAD_UNCHANGED), unchanged)
+    unchanged = imread(color_path, cv2.IMREAD_UNCHANGED)
+    if raw is None:  # OpenCV builds without AVIF decode serve this flag from the oriented PIL fallback too
+        assert np.array_equal(unchanged, bgr)
+    else:
+        assert np.array_equal(unchanged, raw[..., None] if raw.ndim == 2 else raw)  # singleton-channel expansion
 
 
 def test_imread_heif_exif(tmp_path):

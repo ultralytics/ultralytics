@@ -15,7 +15,7 @@ import cv2
 import numpy as np
 import pytest
 import torch
-from PIL import Image
+from PIL import Image, ImageOps, features
 
 import ultralytics.data.build as data_build
 from tests import CFG, MODEL, MODELS, SOURCE, SOURCES_LIST, TASK_MODEL_DATA
@@ -43,6 +43,7 @@ from ultralytics.utils import (
     is_github_action_running,
 )
 from ultralytics.utils.downloads import download, safe_download
+from ultralytics.utils.patches import imread
 from ultralytics.utils.torch_utils import TORCH_1_10, TORCH_1_11, TORCH_1_13, TORCH_2_0
 
 
@@ -532,6 +533,61 @@ def test_single_check_channel_order_and_contiguity():
     for im, expected in ((check(rgb, 3), (30, 20, 10)), (check(bgra, 3), (10, 20, 30)), (check(gray, 3), (42, 42, 42))):
         assert tuple(im[0, 0].tolist()) == expected
         assert im.flags["C_CONTIGUOUS"]
+
+
+def test_imread_avif_exif(tmp_path):
+    """Test imread applies the EXIF orientation to AVIF reads in color and grayscale, keeping IMREAD_UNCHANGED raw."""
+    if not features.check("avif"):  # Pillow < 11.3 has no native AVIF codec
+        pytest.skip("Pillow without native AVIF support")
+    rng = np.random.default_rng(0)
+    color_path, gray_path = tmp_path / "color.avif", tmp_path / "gray.avif"
+    for path, mode in ((color_path, "RGB"), (gray_path, "L")):  # asymmetric 40x24 so a transpose is detectable
+        exif = Image.Exif()
+        exif[274] = 6  # Orientation tag, rotate 90 degrees clockwise
+        shape = (24, 40) if mode == "L" else (24, 40, 3)
+        Image.fromarray(rng.integers(0, 256, shape, dtype=np.uint8), mode).save(path, exif=exif)
+    for path in (color_path, gray_path):
+        with Image.open(path) as image:  # Pillow decodes AVIF without applying the orientation
+            gt = ImageOps.exif_transpose(image)
+        assert gt.size == (24, 40)  # the stored orientation tag survives the AVIF round-trip
+        gray = np.asarray(gt.convert("L"))[..., None]  # imread expands grayscale to (H, W, 1)
+        assert np.array_equal(imread(path, cv2.IMREAD_GRAYSCALE), gray)
+    with Image.open(color_path) as image:
+        gt = ImageOps.exif_transpose(image)
+    bgr = cv2.cvtColor(np.asarray(gt.convert("RGB")), cv2.COLOR_RGB2BGR)
+    assert np.array_equal(imread(color_path, cv2.IMREAD_COLOR), bgr)
+    raw = cv2.imdecode(np.fromfile(color_path, np.uint8), cv2.IMREAD_UNCHANGED)  # what imread defers to
+    unchanged = None if raw is None else (raw[..., None] if raw.ndim == 2 else raw)
+    assert np.array_equal(imread(color_path, cv2.IMREAD_UNCHANGED), unchanged)
+
+
+def test_imread_heif_exif(tmp_path):
+    """Test imread reads an EXIF-oriented HEIF file through the PIL fallback for a format OpenCV cannot decode."""
+    pillow_heif = pytest.importorskip("pillow_heif")  # full HEIF encoder, absent from some CI environments
+    pillow_heif.register_heif_opener()
+    path = tmp_path / "color.heic"
+    exif = Image.Exif()
+    exif[274] = 6  # Orientation tag, rotate 90 degrees clockwise
+    rng = np.random.default_rng(0)
+    Image.fromarray(rng.integers(0, 256, (24, 40, 3), dtype=np.uint8)).save(path, format="HEIF", exif=exif.tobytes())
+    assert cv2.imdecode(np.fromfile(path, np.uint8), cv2.IMREAD_COLOR) is None  # OpenCV cannot decode HEIF at all
+    with Image.open(path) as image:
+        gt = ImageOps.exif_transpose(image)
+    assert gt.size == (24, 40)  # the stored orientation survives the HEIF encode
+    bgr = cv2.cvtColor(np.asarray(gt.convert("RGB")), cv2.COLOR_RGB2BGR)
+    assert np.array_equal(imread(path, cv2.IMREAD_COLOR), bgr)
+
+
+def test_imread_unreadable_returns_none(tmp_path):
+    """Test imread returns None when both the OpenCV and PIL decoders fail, or the file is empty."""
+    for name in ("garbage.avif", "garbage.heic"):
+        path = tmp_path / name
+        path.write_bytes(b"not an image")
+        for flags in (cv2.IMREAD_COLOR, cv2.IMREAD_UNCHANGED):
+            assert imread(path, flags) is None
+    empty = tmp_path / "empty.avif"
+    empty.write_bytes(b"")
+    assert imread(empty, cv2.IMREAD_COLOR) is None
 
 
 @pytest.mark.slow

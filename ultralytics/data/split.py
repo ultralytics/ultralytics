@@ -65,9 +65,8 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
     split_path = Path(f"{source_path}_split")
     train_path, val_path = split_path / "train", split_path / "val"
 
-    # Create directory structure
-    if split_path.exists():  # a re-split after files change must not keep stale copies that mix old val into new train
-        shutil.rmtree(split_path)
+    # Create directory structure. Never delete an existing split: check_cls_dataset re-runs this for every train, val,
+    # export and DDP rank, so a rmtree would wipe cache=disk *.npy and *.cache files and race concurrent readers
     split_path.mkdir(exist_ok=True)
     train_path.mkdir(exist_ok=True)
     val_path.mkdir(exist_ok=True)

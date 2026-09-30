@@ -68,6 +68,7 @@ class RKNNBackend(BaseBackend):
             self.metadata.get("args", {}).get("quantize") == 8
             and self.task in {"detect", "segment", "pose", "obb"}
             and not self.end2end
+            and getattr(self, "head", None) != "RTDETRDecoder"
         ):
             kpt_start = 4 + len(self.names)  # pose keypoints follow the box (4) and class-score (nc) channels
             for x in y:
@@ -75,6 +76,7 @@ class RKNNBackend(BaseBackend):
                     x[:, [0, 2]] *= w
                     x[:, [1, 3]] *= h
                     if self.task == "pose":
-                        x[:, kpt_start::3] *= w
-                        x[:, kpt_start + 1 :: 3] *= h
+                        nd = self.kpt_shape[1]  # 2 (x, y) or 3 (x, y, visibility) values per keypoint
+                        x[:, kpt_start::nd] *= w
+                        x[:, kpt_start + 1 :: nd] *= h
         return y

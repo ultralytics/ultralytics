@@ -913,7 +913,7 @@ def handle_yolo_solutions(args: list[str]) -> None:
         if solution_name != "crop":
             # extract width, height and fps of the video file, create save directory and initialize video writer
             w, h, fps = (
-                int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
+                round(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS)
             )
             if solution_name == "analytics":  # analytical graphs follow fixed shape for output i.e w=1280, h=720
                 w, h = 1280, 720
@@ -944,7 +944,7 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
 
     Returns:
         key (str): The parsed key.
-        value (Any): The parsed value, converted to its Python type with `smart_value`.
+        value (Any): The parsed value, converted with `smart_value` except run name and project paths, kept verbatim.
 
     Raises:
         AssertionError: If the value is missing or empty.
@@ -966,7 +966,7 @@ def parse_key_value_pair(pair: str = "key=value") -> tuple:
     k, v = pair.split("=", 1)  # split on first '=' sign
     k, v = k.strip(), v.strip()  # remove spaces
     assert v, f"missing '{k}' value"
-    return k, smart_value(v)
+    return k, v if k in {"name", "project"} and v.lower() != "none" else smart_value(v)
 
 
 def smart_value(v: str) -> Any:

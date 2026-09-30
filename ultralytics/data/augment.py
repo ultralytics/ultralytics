@@ -976,7 +976,7 @@ class CutMix(BaseMixTransform):
         area = cut_areas[np.random.choice(idx)]  # randomly select one
         ioa2 = bbox_ioa(area[None], labels2["instances"].bboxes).squeeze(0)
         indexes2 = np.nonzero(ioa2 >= (0.01 if len(labels["instances"].segments) else 0.1))[0]
-        if len(indexes2) == 0:
+        if len(indexes2) == 0 and labels.get("semantic_mask") is None:  # semantic masks need no source instance
             params["skip"] = True
             return params
 

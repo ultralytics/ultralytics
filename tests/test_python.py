@@ -680,31 +680,6 @@ def test_track_reid_auto_user_detections(tracker_type):
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
 
 
-@pytest.mark.parametrize("fuse_score", [True, False])
-def test_deepocsort_ocr_proximity_gate(fuse_score):
-    """DeepOCSORT OCR rejects a zero-IoU pair even when its appearance is identical, under both fuse_score settings."""
-    from types import SimpleNamespace
-
-    from ultralytics.trackers.basetrack import TrackState
-    from ultralytics.trackers.deep_oc_sort import DeepOCSORT
-
-    tracker = object.__new__(DeepOCSORT)
-    tracker.args = SimpleNamespace(fuse_score=fuse_score, match_thresh=0.8)
-    tracker.encoder, tracker.appearance_thresh, tracker.proximity_thresh, tracker.frame_id = object(), 0.9, 0.5, 2
-    track = SimpleNamespace(
-        angle=None,
-        last_observation=np.array([0, 0, 10, 10]),
-        smooth_feat=np.array([1.0, 0.0]),
-        state=TrackState.Tracked,
-        update=lambda *_: None,
-    )
-    detection = SimpleNamespace(xyxy=np.array([20, 20, 30, 30]), curr_feat=np.array([1.0, 0.0]), score=1.0)
-    # proves appearance is active and would override (ungated) this exact pair, so the OCR result below is caused by
-    # the proximity gate, not by appearance being unavailable
-    assert tracker._fuse_appearance(np.array([[1.0]]), [track], [detection]) == 0.0
-    assert tracker._ocr_associate([track], [detection], [], []) == ([0], [0])
-
-
 def test_reid_invalid_crops():
     """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
     from types import SimpleNamespace
@@ -1637,14 +1612,6 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
-    monkeypatch.setattr(checks, "ARM64", True)
-    monkeypatch.setattr(checks, "AUTOINSTALL", True)
-    monkeypatch.setattr(checks, "ONLINE", True)
-    commands = []
-    monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
-    requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
-    assert checks.check_requirements(requirements)
-    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)

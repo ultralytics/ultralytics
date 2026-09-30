@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import subprocess
@@ -516,6 +517,7 @@ def safe_download(
                         target.parent.mkdir(parents=True, exist_ok=True)
                         with source, open(target, "wb") as out:  # 'f' is the archive path, deleted below
                             shutil.copyfileobj(source, out)
+                        os.utime(target, (m.mtime, m.mtime))  # keep archive mtimes so re-extraction keeps caches valid
             if len(top_level_dirs) == 1:
                 unzip_dir /= next(iter(top_level_dirs))  # return the single extracted file or directory
         else:

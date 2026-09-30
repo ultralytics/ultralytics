@@ -148,6 +148,11 @@ class BaseTrainer:
         if getattr(self.args, "augmentations", None) and not isinstance(self.args.augmentations[0], dict):
             import albumentations as A
 
+            if any(isinstance(t, A.Lambda) for t in self.args.augmentations):  # to_dict() can't store user functions
+                raise TypeError(
+                    "A.Lambda augmentations can't be saved in checkpoints. Subclass A.ImageOnlyTransform or "
+                    "A.DualTransform in an importable module instead."
+                )
             self.args.augmentations = [A.to_dict(t) for t in self.args.augmentations]  # YAML/pickle-safe, DDP-safe
         self.args.device = parse_device(self.args.device)  # canonical string, resolves '-1' auto-selection once
         self.device = select_device(self.args.device)
@@ -1172,8 +1177,7 @@ class BaseTrainer:
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
-                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
-                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+                f"ignoring 'lr0={self.args.lr0}' and determining best 'optimizer' and 'lr0' automatically... "
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places

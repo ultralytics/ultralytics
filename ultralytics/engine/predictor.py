@@ -350,7 +350,7 @@ class BasePredictor:
             if self.args.save or self.args.save_txt:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
-            self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -495,7 +495,12 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        base, k = p.stem, 1
+        while self.dataset.mode == "image" and base in self._bases:  # same-stem images (bus.jpg, bus.png) get -2, -3...
+            k += 1
+            base = f"{p.stem}-{k}"
+        self._bases.add(base)
+        self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -518,7 +523,7 @@ class BasePredictor:
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(self.save_dir / p.name, frame)
+            self.save_predicted_images(self.save_dir / (base + p.suffix), frame)
 
         return string
 

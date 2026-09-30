@@ -335,7 +335,7 @@ class BaseDataset(Dataset):
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
-        if not f.exists():
+        if not f.exists() or f.stat().st_mtime < Path(self.im_files[i]).stat().st_mtime:  # missing or stale
             try:
                 np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
             except Exception as e:

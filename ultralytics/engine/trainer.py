@@ -1164,8 +1164,7 @@ class BaseTrainer:
         if name == "auto":
             LOGGER.info(
                 f"{colorstr('optimizer:')} 'optimizer=auto' found, "
-                f"ignoring 'lr0={self.args.lr0}' and 'momentum={self.args.momentum}' and "
-                f"determining best 'optimizer', 'lr0' and 'momentum' automatically... "
+                f"ignoring 'lr0={self.args.lr0}' and determining best 'optimizer' and 'lr0' automatically... "
             )
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places

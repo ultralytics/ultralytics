@@ -1901,7 +1901,8 @@ Send one of these bodies:
     { "action": "resize", "cpu": 2, "memoryGi": 4 }
     ```
 
-Renaming changes only the display name; the `deployment` value in the URL stays the same. An empty `metadata` object
+Renaming sets the `deployment` value in the URL to a slug of the new name, returned as `deployment`; the old path
+returns `404` and the `serviceUrl` stays the same. An empty `metadata` object
 clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
 URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
 that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still

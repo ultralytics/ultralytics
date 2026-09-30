@@ -211,7 +211,7 @@ The deployments list supports three view modes:
 
 Each deployment has its own page at `/{username}/deploy/{deployment}`, which shows:
 
-- **Header**: Region flag, display name (click it to rename; the URL does not change), status badge, location, and CPU and memory size
+- **Header**: Region flag, display name (click it to rename; the page URL and API path change to a slug of the new name, the endpoint URL does not), status badge, location, and CPU and memory size
 - **Actions**: **Update configuration**, **Replace model**, and **Stop deployment** when **Ready**, **Start deployment** when **Stopped**, and a **More actions** (…) menu with **Information**, **Refresh**, and **Delete Deployment**
 - **Metrics**: HTTP Requests, HTTP Error Rate, and HTTP P95 Latency over 24 hours with sparklines, plus a card linking to the deployed model
 - **Tabs**: `Overview`, `Monitoring`, `Predict`, and `Logs`

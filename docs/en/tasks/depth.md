@@ -161,7 +161,7 @@ For example, an image at `images/train/scene_001.jpg` is paired with a depth map
 
 ### Fine-tuning on your own data
 
-When adapting a pretrained depth model to a custom dataset, **lower the learning rate and use the AdamW optimizer**. The default optimizer settings are tuned for training from scratch (SGD with `lr0=0.01`); applied to an already-converged depth model they can overwrite the pretrained knowledge and degrade results — especially when fine-tuning on a single domain.
+When adapting a pretrained depth model to a custom dataset, **lower the learning rate and use the AdamW optimizer**. The default optimizer settings are tuned for training from scratch; applied to an already-converged depth model they can overwrite the pretrained knowledge and degrade results — especially when fine-tuning on a single domain.
 
 !!! example "Recommended fine-tuning recipe"
 
@@ -195,7 +195,7 @@ Additional tips:
 - **`mosaic`, `mixup`, `cutmix`, and `copy_paste` are not implemented for depth.** The depth dataset loader automatically sets these probabilities to 0, so passing them has no effect. These augmentations are not supported because they combine multiple images, which would produce invalid paired depth maps.
 - **Any depth range works out of the box.** The `log`-head models predict unbounded depth, so they adapt to short-range (macro) or long-range (outdoor/driving) data without changes. Setting `max_depth:` in your dataset YAML (in meters) bounds which GT pixels count toward validation metrics.
 - **Retain general performance.** If you need the model to stay accurate on scenes beyond your training set, mix a small fraction (~5–10%) of diverse general-purpose images into your training data; this substantially reduces forgetting during fine-tuning.
-- **Train from scratch** (`model=yolo26s-depth.yaml`) only if your domain is very different and you have a large dataset — there the default SGD `lr0=0.01` is appropriate, since there are no pretrained weights to preserve.
+- **Train from scratch** (`model=yolo26s-depth.yaml`) only if your domain is very different and you have a large dataset — there the default `optimizer=auto` is appropriate, since there are no pretrained weights to preserve.
 
 ### Calibrating the depth scale
 

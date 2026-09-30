@@ -204,7 +204,7 @@ yolo TASK MODE ARGS
 For example, to train a detection model:
 
 ```bash
-yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
 Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).

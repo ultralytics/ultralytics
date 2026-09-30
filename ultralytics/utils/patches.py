@@ -12,7 +12,7 @@ from typing import Any
 import cv2
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageOps
 
 # OpenCV Multilanguage-friendly functions ------------------------------------------------------------------------------
 _imshow = cv2.imshow  # copy to avoid recursion errors
@@ -46,10 +46,12 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
             return None
         if len(frames) > 1 or frames[0].ndim == 3:
             return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
-    im = cv2.imdecode(file_bytes, flags)
-    # Fallback for formats OpenCV imdecode may not support (AVIF, HEIC, HEIF)
-    if im is None and filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
+    im = None
+    if filename.lower().endswith(PIL_FALLBACK_SUFFIXES):
+        # OpenCV decodes AVIF without applying its EXIF orientation, so these formats read through the transposing PIL
         im = _imread_pil(filename, flags)
+    if im is None:
+        im = cv2.imdecode(file_bytes, flags)
     return im[..., None] if im is not None and im.ndim == 2 else im  # Always ensure 3 dimensions
 
 
@@ -104,6 +106,7 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
     """
     try:
         with Image.open(filename) as img:
+            img = ImageOps.exif_transpose(img)  # keep the camera orientation like the cv2 JPEG/WEBP decoders do
             if flags == cv2.IMREAD_GRAYSCALE:
                 return np.asarray(img.convert("L"))
             return cv2.cvtColor(np.asarray(img.convert("RGB")), cv2.COLOR_RGB2BGR)

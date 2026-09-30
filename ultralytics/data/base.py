@@ -169,7 +169,9 @@ class BaseDataset(Dataset):
 
         # Cache images (options are cache = True, False, None, "ram", "disk")
         self.ims, self.im_hw0, self.im_hw = [None] * self.ni, [None] * self.ni, [None] * self.ni
-        self.npy_files = [Path(f"{f}.npy") for f in self.im_files]
+        # image.npy caches persist across runs and versions: renaming, moving, or invalidating them orphans every
+        # existing user cache and forces a full recache, so keep this exact naming
+        self.npy_files = [Path(f).with_suffix(".npy") for f in self.im_files]
         self.cache = cache.lower() if isinstance(cache, str) else "ram" if cache is True else None
         if self.cache == "ram" and self.check_cache_ram():
             if hyp.deterministic:
@@ -265,7 +267,7 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if self.cache == "disk" and fn.exists():  # load npy
+            if fn.exists():  # always load an existing npy regardless of cache mode, it is the fastest image read
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1

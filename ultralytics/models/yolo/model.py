@@ -362,7 +362,7 @@ class YOLOE(Model):
         assert " " not in classes
         assert isinstance(self.model, YOLOEModel)
         names = list(self.model.names.values()) if isinstance(self.model.names, dict) else list(self.model.names)
-        if embeddings is not None or names != classes:
+        if embeddings is not None or names != list(classes):
             if embeddings is None:
                 embeddings = self.get_text_pe(classes)  # generate text embeddings if not provided
             self.model.set_classes(classes, embeddings)

@@ -450,10 +450,9 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
+    # Check system fonts in matplotlib's cached list only: findSystemFonts() rescans the OS (8s on macOS), and a miss
+    # is routine (e.g. Arial.Unicode.ttf on macOS) until the download below lands in USER_CONFIG_DIR
     matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
-    if not matches:  # font installed after matplotlib's cached list was built, rescan the OS
-        matches = [f for f in font_manager.findSystemFonts() if font in f]
     if any(matches):
         return matches[0]
 

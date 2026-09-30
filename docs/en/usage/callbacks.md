@@ -83,11 +83,13 @@ model.train(data="coco8.yaml", epochs=1)
 `unwrap_model()` handles both single-device and DistributedDataParallel training. Do not attach a locally defined hook
 to `trainer.ema.ema`, because training checkpoints serialize the EMA model and another process may not be able to import
 the callback when loading the checkpoint. If the same preprocessing must run during training validation, implement it
-as an importable model component instead of a runtime hook.
+as an importable model component instead of a runtime hook. NaN recovery rebuilds the EMA from the training model, so a
+hook registered this way is copied into the EMA and saved checkpoints after a recovery; define the hook function in an
+importable module if checkpoints must load in another process.
 
-Standalone `model.val()` copies the loaded model for each call. Prediction creates and caches a copy on its first call, so register
-hooks on `model.model` before the first `model.predict()` or `model.track()` call; hooks added afterward do not reach
-the cached predictor. Register runtime hooks again after loading a checkpoint in a new process.
+Standalone `model.val()` copies the loaded model for each call. Prediction creates and caches a copy on its first call,
+so register hooks on `model.model` before the first `model.predict()` or `model.track()` call; hooks added afterward do
+not reach the cached predictor. Register runtime hooks again after loading a checkpoint in a new process.
 
 ### Access Model metrics using the `on_model_save` callback
 

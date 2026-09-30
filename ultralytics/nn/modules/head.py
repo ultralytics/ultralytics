@@ -219,7 +219,7 @@ class Detect(nn.Module):
     def _get_decode_boxes(self, x: dict[str, torch.Tensor]) -> torch.Tensor:
         """Get decoded boxes based on anchors and strides."""
         shape = x["feats"][0].shape  # BCHW
-        if self.dynamic or self.shape != shape:
+        if self.dynamic or (self.shape is None if self.export else self.shape != shape):  # static export shape is fixed
             self.anchors, self.strides = (a.transpose(0, 1) for a in make_anchors(x["feats"], self.stride, 0.5))
             self.shape = shape
 
@@ -259,9 +259,9 @@ class Detect(nn.Module):
                 dimension format [x1, y1, x2, y2, score, class_index, extra].
         """
         # Segment, Pose and OBB carry task channels after the class scores, Detect has none
-        boxes, scores, *extra = preds.split([s for s in (4, self.nc, preds.shape[-1] - 4 - self.nc) if s], dim=-1)
-        scores, conf, idx = self.get_topk_index(scores, self.max_det)
-        return torch.cat([self._gather(boxes, idx), scores, conf, *(self._gather(e, idx) for e in extra)], dim=-1)
+        scores, conf, idx = self.get_topk_index(preds[..., 4 : 4 + self.nc], self.max_det)
+        preds = self._gather(preds, idx)
+        return torch.cat([preds[..., :4], scores, conf, preds[..., 4 + self.nc :]], dim=-1)
 
     def get_topk_index(self, scores: torch.Tensor, max_det: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Get top-k indices from scores.
@@ -276,7 +276,7 @@ class Detect(nn.Module):
             index (torch.Tensor): Anchor indices of the top-k detections with shape (batch_size, k).
         """
         anchors, nc = scores.shape[1:]  # i.e. shape(16,8400,80)
-        k = min(max_det, anchors)
+        k = max_det if self.export else min(max_det, anchors)  # exporter clamps max_det to the traced anchors
         if self.agnostic_nms:
             scores, labels = scores.max(dim=-1)
             scores, index = self._grouped_topk(scores, k, 1)

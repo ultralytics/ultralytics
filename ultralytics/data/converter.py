@@ -372,7 +372,8 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
 
     This function takes the directory containing grayscale mask images, where each pixel value is the class index + 1
     and 0 is background, and converts them into YOLO segmentation format. The converted labels are saved in the
-    specified output directory with the same file stems as the masks.
+    specified output directory with the same file stems as the masks. Palette-indexed (P-mode) PNG masks are read by
+    their palette index, not their painted color.
 
     Args:
         masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.

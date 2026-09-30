@@ -1413,6 +1413,34 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
+def test_convert_segment_masks_palette(tmp_path):
+    """Test palette PNG masks convert by palette index, not painted color, matching grayscale and 16-bit controls."""
+    from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+    geometry = np.zeros((32, 32), dtype=np.uint8)  # stored values: 1 -> class 0, 3 -> class 2, 0 -> background
+    geometry[4:14, 4:14] = 1
+    geometry[18:30, 18:30] = 3
+
+    def convert(name, image):
+        masks = tmp_path / f"{name}_masks"
+        masks.mkdir()
+        image.save(masks / "mask.png")
+        output = tmp_path / f"{name}_labels"
+        convert_segment_masks_to_yolo_seg(masks, output, classes=4)
+        return [line.split() for line in (output / "mask.txt").read_text(encoding="utf-8").splitlines()]
+
+    palette = Image.fromarray(geometry)  # cv2.imread paints these indices red and blue instead of returning them
+    palette.putpalette([0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 255])  # index 1 -> red, index 3 -> blue
+    rows = {
+        "palette": convert("palette", palette),
+        "grayscale": convert("grayscale", Image.fromarray(geometry)),
+        "uint16": convert("uint16", Image.fromarray(geometry.astype(np.uint16))),
+    }
+    for variant in rows.values():
+        assert {int(row[0]) for row in variant} == {0, 2}  # painted values and background 0 add no rows
+    assert len({len(variant) for variant in rows.values()}) == 1  # same geometry -> same polygon row count
+
+
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

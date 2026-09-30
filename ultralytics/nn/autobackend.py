@@ -313,12 +313,17 @@ class AutoBackend(nn.Module):
             **kwargs (Any): Additional keyword arguments passed to native PyTorch models; ignored by other formats.
 
         Returns:
-            (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
+            (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`. Short batches on a
+                static-batch export (batch=N baked, dynamic=False) are padded to N and trimmed back on return.
         """
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
+        n = im.shape[0]  # rows to return; a static-batch graph below still needs its full baked batch fed
+        padded = not self.dynamic and 0 < n < self.batch
+        if padded:  # a single image or a val tail runs on a batch=N graph by repeating rows up to N
+            im = im.tile(((self.batch + n - 1) // n, *(1,) * (im.ndim - 1)))[: self.batch]
 
         # Build forward kwargs based on backend type
         forward_kwargs = {}
@@ -326,6 +331,8 @@ class AutoBackend(nn.Module):
             forward_kwargs = {"augment": augment, "embed": embed, **kwargs}
 
         y = self.backend.forward(im, **forward_kwargs)
+        if padded:  # drop the rows that only exist to satisfy the baked batch dimension
+            y = [x[:n] for x in y] if isinstance(y, (list, tuple)) else y[:n]
 
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined

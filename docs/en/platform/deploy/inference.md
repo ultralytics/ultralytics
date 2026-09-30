@@ -467,7 +467,7 @@ Common error responses:
 
 Both inference methods accept video files:
 
-- **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Each frame is processed individually and results are returned per frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
+- **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Every frame is processed, or every Nth frame with `vid_stride`, and results are returned per processed frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
 - **Shared inference** (`POST /api/models/{owner}/{project}/{model}/predict`) uses the same predict service and accepts
   the same video formats. The browser **Predict** tab only selects images, so use the API or a
   [dedicated endpoint](endpoints.md) for video.

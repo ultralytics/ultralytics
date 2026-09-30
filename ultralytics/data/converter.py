@@ -305,41 +305,40 @@ def convert_coco(
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
-                if use_segments or use_keypoints or box not in bboxes:
-                    if use_keypoints:
-                        if ann.get("keypoints") is None:
-                            continue
-                        keypoints.append(
-                            box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
-                        )
-                    bboxes.append(box)
-                    if use_segments:
-                        seg = ann.get("segmentation")
-                        polygons = (
-                            [
-                                p
-                                for p in seg or []
-                                if isinstance(p, list)
-                                and len(p) >= 6
-                                and not len(p) % 2
-                                and all(isinstance(c, (int, float)) for c in p)
-                            ]
-                            if isinstance(seg, list)
-                            else []
-                        )
-                        if not polygons:
-                            dropped = True
-                            cx, cy, bw, bh = box[1:]
-                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
-                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
-                        elif len(polygons) > 1:
-                            s = merge_multi_segment(polygons)
-                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                            segments.append([cls, *s])
-                        else:
-                            s = [j for i in polygons for j in i]  # all segments concatenated
-                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                            segments.append([cls, *s])
+                if use_keypoints:
+                    if ann.get("keypoints") is None:
+                        continue
+                    keypoints.append(
+                        box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
+                    )
+                bboxes.append(box)
+                if use_segments:
+                    seg = ann.get("segmentation")
+                    polygons = (
+                        [
+                            p
+                            for p in seg or []
+                            if isinstance(p, list)
+                            and len(p) >= 6
+                            and not len(p) % 2
+                            and all(isinstance(c, (int, float)) for c in p)
+                        ]
+                        if isinstance(seg, list)
+                        else []
+                    )
+                    if not polygons:
+                        dropped = True
+                        cx, cy, bw, bh = box[1:]
+                        x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                        segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
+                    elif len(polygons) > 1:
+                        s = merge_multi_segment(polygons)
+                        s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                        segments.append([cls, *s])
+                    else:
+                        s = [j for i in polygons for j in i]  # all segments concatenated
+                        s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                        segments.append([cls, *s])
 
             # Write
             label_file = (fn / f).with_suffix(".txt")

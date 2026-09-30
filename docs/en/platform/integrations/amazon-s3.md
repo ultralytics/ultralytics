@@ -53,7 +53,7 @@ Platform only ever reads from your storage — it never writes, modifies, or del
    a known bucket name manually.
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything.
 
-![Ultralytics Platform Amazon S3 Integration Settings](https://cdn.ul.run/i/8c83dd23d861622b412430667d61c08f.avif)<!-- screenshot -->
+![Ultralytics Platform Amazon S3 Integration Settings](https://cdn.ul.run/i/66145cad9a04e1287e673bbd96b9e831.avif)<!-- screenshot -->
 
 You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. One
 connection carries up to 50 buckets, and discovery lists up to 300 of the buckets the key can see.

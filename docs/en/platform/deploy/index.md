@@ -30,7 +30,7 @@ The Deployment section helps you:
 - **Monitor** request metrics, logs, health checks, and temporary predictions on every dedicated endpoint
 - **Choose resources**: default endpoints scale to zero; custom sizes keep a warm instance with uptime billing
 
-![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/a2b4289abc2df5bc00a704a7b9575515.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab World Map With Overview Cards](https://cdn.ul.run/i/61603cb9902cf112660c2a5d2fb5bc44.avif)<!-- screenshot -->
 
 ## Deployment Options
 
@@ -115,7 +115,7 @@ page, with a `+` button to create one and a link to the full tab. The tab shows:
   its own page with `Overview`, `Monitoring`, `Predict`, and `Logs` tabs
 - **New Deployment** button to create endpoints from any completed model
 
-![Ultralytics Platform Deployments Tab Overview Cards And Deployments List](https://cdn.ul.run/i/3367ece0827e0f9d43b9acf8d233a49a.avif)<!-- screenshot -->
+![Ultralytics Platform Deployments Tab Overview Cards And Deployments List](https://cdn.ul.run/i/b46672351aac3f3b75e8359a819e941e.avif)<!-- screenshot -->
 
 !!! info "Automatic Polling"
 

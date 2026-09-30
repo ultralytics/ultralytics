@@ -76,7 +76,7 @@ By customizing these parameters, you can fine-tune the hyperparameter optimizati
 
 ## Default Search Space Description
 
-The following table lists the default search space parameters for hyperparameter tuning in YOLO26 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`, except `close_mosaic`, which uses `tune.randint()`.
+The following table lists the default search space parameters for hyperparameter tuning in YOLO26 with Ray Tune. Each parameter has a specific value range defined by `tune.uniform()`, except `close_mosaic`, which uses `tune.randint()`. The sampled `lr0` takes effect only when `optimizer` is set explicitly, for example `optimizer="AdamW"`; the default `optimizer=auto` selects its own learning rate.
 
 | Parameter         | Range                      | Description                                                                                                                       |
 | ----------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
@@ -125,6 +125,7 @@ In this example, we demonstrate how to use a custom search space for hyperparame
     result_grid = model.tune(
         data="coco8.yaml",
         space={"lr0": tune.uniform(1e-5, 1e-2)},
+        optimizer="AdamW",
         epochs=50,
         use_ray=True,
     )
@@ -288,7 +289,7 @@ This utilizes Ray Tune's advanced search strategies and parallelism to efficient
 
 ### What are the default hyperparameters for YOLO26 tuning with Ray Tune?
 
-Ultralytics YOLO26 uses the following default hyperparameters for tuning with Ray Tune:
+Ultralytics YOLO26 uses the following default hyperparameters for tuning with Ray Tune. The sampled `lr0` takes effect only when you also pass an explicit `optimizer`, such as `optimizer="AdamW"`:
 
 | Parameter       | Value Range                | Description                    |
 | --------------- | -------------------------- | ------------------------------ |
@@ -353,7 +354,7 @@ from ultralytics import YOLO
 
 model = YOLO("yolo26n.pt")
 search_space = {"lr0": tune.uniform(1e-5, 1e-2), "momentum": tune.uniform(0.7, 0.98)}
-result_grid = model.tune(data="coco8.yaml", space=search_space, use_ray=True)
+result_grid = model.tune(data="coco8.yaml", space=search_space, optimizer="AdamW", use_ray=True)
 ```
 
 This customizes the range of hyperparameters like initial learning rate and momentum to be explored during the tuning process. For advanced configurations, refer to the [Custom Search Space Example](#custom-search-space-example) section.

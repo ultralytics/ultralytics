@@ -471,16 +471,16 @@ Before starting a cloud job, the training dialog shows your current credit balan
 
 === "Learning Rate"
 
-    | Parameter         | Type  | Default | Range       | Description           |
-    | ----------------- | ----- | ------- | ----------- | --------------------- |
-    | `lr0`             | float | 0.01    | 0.00001-0.1 | Initial learning rate |
-    | `lrf`             | float | 0.01    | 0.01-1.0    | Final LR factor       |
-    | `momentum`        | float | 0.937   | 0.6-0.98    | SGD momentum          |
-    | `weight_decay`    | float | 0.0005  | 0.0-0.001   | L2 regularization     |
-    | `warmup_epochs`   | float | 3.0     | 0-5         | Warmup epochs         |
-    | `warmup_momentum` | float | 0.8     | 0.0-0.95    | Warmup momentum       |
-    | `warmup_bias_lr`  | float | 0.1     | 0.0-0.2     | Warmup bias LR        |
-    | `cos_lr`          | bool  | False   | -           | Cosine LR scheduler   |
+    | Parameter         | Type  | Default | Range       | Description                                          |
+    | ----------------- | ----- | ------- | ----------- | ---------------------------------------------------- |
+    | `lr0`             | float | 0.01    | 0.00001-0.1 | Initial learning rate; ignored with optimizer `auto` |
+    | `lrf`             | float | 0.01    | 0.01-1.0    | Final LR factor                                      |
+    | `momentum`        | float | 0.937   | 0.6-0.98    | SGD momentum / Adam beta1                            |
+    | `weight_decay`    | float | 0.0005  | 0.0-0.001   | L2 regularization                                    |
+    | `warmup_epochs`   | float | 3.0     | 0-5         | Warmup epochs                                        |
+    | `warmup_momentum` | float | 0.8     | 0.0-0.95    | Warmup momentum                                      |
+    | `warmup_bias_lr`  | float | 0.1     | 0.0-0.2     | Warmup bias LR                                       |
+    | `cos_lr`          | bool  | False   | -           | Cosine LR scheduler                                  |
 
 === "Augmentation"
 

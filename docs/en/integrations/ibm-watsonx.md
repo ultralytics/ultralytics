@@ -242,7 +242,7 @@ Run the following command-line code to fine tune a pretrained default YOLO26 mod
     === "CLI"
 
         ```bash
-        !yolo detect train data={work_dir}/trash_ICRA19/config.yaml model=yolo26n.pt epochs=2 batch=32 lr0=.04 plots=True
+        !yolo detect train data={work_dir}/trash_ICRA19/config.yaml model=yolo26n.pt epochs=2 batch=32 optimizer=SGD lr0=.04 plots=True
         ```
 
 Here's a closer look at the parameters in the model training command:
@@ -251,6 +251,7 @@ Here's a closer look at the parameters in the model training command:
 - **train**: The mode, which denotes the purpose for which you are loading the specified model and data. Later, when we test our model's performance, we will use `predict`.
 - **epochs**: This delimits the number of times YOLO26 will pass through our entire data set.
 - **batch**: The numerical value stipulates the training [batch sizes](https://www.ultralytics.com/glossary/batch-size). Batches are the number of images a model processes before it updates its parameters.
+- **optimizer**: Selects SGD explicitly, so the `lr0` value below is used. The default `auto` chooses its own learning rate.
 - **lr0**: Specifies the model's initial [learning rate](https://www.ultralytics.com/glossary/learning-rate).
 - **plots**: Directs YOLO to generate and save plots of our model's training and evaluation metrics.
 

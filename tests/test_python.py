@@ -2389,6 +2389,76 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
 
 
+def test_npy_cache_staleness(tmp_path):
+    """Test stale *.npy image caches are refreshed or removed, while fresh, missing-source, and future-dated ones stay."""
+    import time
+
+    from ultralytics.data.dataset import YOLODataset
+
+    def write_im(path, hw, color):
+        """Write a lossless constant-color PNG stamped with the current mtime."""
+        cv2.imwrite(str(path), np.full((*hw, 3), color, dtype=np.uint8))
+        now = time.time()
+        os.utime(path, (now, now))
+
+    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
+    images.mkdir(parents=True)
+    labels.mkdir(parents=True)
+    for name, (hw, color) in {
+        "a": ((24, 40), (10, 20, 30)),
+        "b": ((32, 32), (40, 60, 80)),
+        "c": ((16, 48), (90, 30, 150)),
+    }.items():
+        write_im(images / f"{name}.png", hw, color)
+        (labels / f"{name}.txt").write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")
+
+    def dataset():
+        """Build a detect dataset that caches images to disk as *.npy files next to their sources."""
+        return YOLODataset(
+            img_path=str(images), data={"names": {0: "object"}}, imgsz=80, cache="disk", augment=False, prefix="test: "
+        )
+
+    ds = dataset()  # construction caches a.npy, b.npy, and c.npy
+    assert np.load(ds.npy_files[0]).shape == (24, 40, 3)  # old pixels and dimensions cached
+
+    write_im(images / "a.png", (40, 80), (200, 150, 100))  # stale refresh: newer source with new pixels and dimensions
+    ds.cache_images_to_disk(0)
+    cached = np.load(ds.npy_files[0])
+    assert cached.shape == (40, 80, 3)  # rewritten, not the stale (24, 40) cache
+    assert np.array_equal(cached, np.full((40, 80, 3), (200, 150, 100), dtype=np.uint8))
+
+    ds = dataset()  # fresh instance, nothing cached in RAM, so load_image() must consult disk
+    write_im(images / "b.png", (40, 80), (60, 120, 240))  # stale removal: newer source with new pixels and dimensions
+    im, hw0, _ = ds.load_image(1)
+    assert not ds.npy_files[1].exists()  # stale cache removed instead of served
+    assert hw0 == (40, 80) and im.shape == (40, 80, 3)
+    assert np.array_equal(im, np.full((40, 80, 3), (60, 120, 240), dtype=np.uint8))
+
+    sentinel = np.array([7, 8, 9], dtype=np.int64)  # fresh preserved: *.npy newer than its source is never rewritten
+    np.save(ds.npy_files[2], sentinel)
+    os.utime(images / "c.png", (time.time() - 100,) * 2)  # source older than the *.npy
+    assert not ds._npy_is_stale(2)
+    before = ds.npy_files[2].read_bytes()
+    ds.cache_images_to_disk(2)
+    assert ds.npy_files[2].read_bytes() == before and np.array_equal(np.load(ds.npy_files[2]), sentinel)
+
+    (images / "a.png").unlink()  # missing source: the *.npy is the only copy left, so it is kept and still served
+    assert not ds._npy_is_stale(0)
+    before = ds.npy_files[0].read_bytes()
+    ds.cache_images_to_disk(0)
+    assert ds.npy_files[0].read_bytes() == before  # untouched
+    im, hw0, _ = ds.load_image(0)
+    assert hw0 == (40, 80) and np.array_equal(im, np.full((40, 80, 3), (200, 150, 100), dtype=np.uint8))
+
+    ds.cache_images_to_disk(1)  # recreate the b.npy removed above, then future-date its source
+    now = time.time()
+    os.utime(images / "b.png", (now + 3600,) * 2)
+    assert not ds._npy_is_stale(1)
+    before = ds.npy_files[1].read_bytes()
+    ds.cache_images_to_disk(1)
+    assert ds.npy_files[1].read_bytes() == before  # not rewritten
+
+
 def test_verify_image_label_whitespace_lines(tmp_path):
     """Test whitespace-only lines in label files no longer mark an image corrupt."""
     from ultralytics.data.utils import verify_image_label

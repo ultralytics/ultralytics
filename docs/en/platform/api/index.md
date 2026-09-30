@@ -1249,10 +1249,6 @@ POST /api/projects
 === "Python"
 
     ```python
-    from ultralytics_platform import Platform
-
-    client = Platform()  # reads ULTRALYTICS_API_KEY
-
     created = client.projects.create(
         project="inspection",
         name="Inspection",
@@ -1489,10 +1485,6 @@ quantization. Requests that exceed the service's input limits return `413`.
 === "Python"
 
     ```python
-    from ultralytics_platform import Platform
-
-    client = Platform()  # reads ULTRALYTICS_API_KEY
-
     with open("image.jpg", "rb") as f:
         resp = client.models.predict("acme-vision", "inspection", "v3", body={"file": f, "conf": 0.5})
     results = resp["images"][0]["results"]
@@ -1626,10 +1618,6 @@ POST /api/training/start
 === "Python"
 
     ```python
-    from ultralytics_platform import Platform
-
-    client = Platform()  # reads ULTRALYTICS_API_KEY
-
     resp = client.training.start(
         model_id="65f1c0a2b3d4e5f601234599",
         gpu_type="rtx-4090",
@@ -1718,10 +1706,6 @@ POST /api/models/{owner}/{project}/{model}/exports
 === "Python"
 
     ```python
-    from ultralytics_platform import Platform
-
-    client = Platform()  # reads ULTRALYTICS_API_KEY
-
     export = client.exports.create("acme-vision", "inspection", "v3", format="onnx", args={"imgsz": 640, "quantize": 16})
     status = client.exports.retrieve("acme-vision", "inspection", "v3", export["id"])
     print(status["export"]["status"])
@@ -1917,12 +1901,12 @@ Send one of these bodies:
     { "action": "resize", "cpu": 2, "memoryGi": 4 }
     ```
 
-Renaming updates the display name and sets the `deployment` value in the URL to a slug of the new name and returns it as
-`deployment`; the old path returns `404`, so update saved API paths and active workflows that use it. The `serviceUrl`
-stays the same. An empty `metadata` object clears custom metadata. Replacing rolls out a new revision while preserving
-the deployment ID, region, and endpoint URL; the existing revision stays live if the rollout fails. The replacement
-model must be a completed model with weights that your key can access. Completed operations return `200` with `status`
-`ready` or `stopped`; operations still rolling out return `202` with `deploying` or `stopping`.
+Renaming sets the `deployment` value in the URL to a slug of the new name, returned as `deployment`; the old path
+returns `404` and the `serviceUrl` stays the same. An empty `metadata` object
+clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
+URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
+that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still
+rolling out return `202` with `deploying` or `stopping`.
 
 ### Delete Deployment
 

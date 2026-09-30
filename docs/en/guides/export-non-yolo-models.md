@@ -312,7 +312,7 @@ print(f"Max difference: {diff:.6f}")  # ~1e-6 for an FP32 ONNX export
 
 !!! tip "Expected difference"
 
-    The tolerance is per format, not global. On a ResNet-18 the FP32 exports land near `1e-6` for ONNX, TF SavedModel and LiteRT, and at exactly `0` for TorchScript. NCNN is the outlier at roughly `1e-2`: its CPU runtime enables FP16 packing and arithmetic by default, so an FP32 export still runs in half precision. A difference far above the format's own baseline points to unsupported ops, a wrong input shape, or a model not in eval mode. FP16 and INT8 exports have looser tolerances. Validate on real data instead of random tensors.
+    On a ResNet-18 most FP32 exports land within about `1e-5` of PyTorch, and TorchScript matches exactly. Three runtimes can still compute an FP32 export in reduced precision and land near `1e-2` to `1e-1`: NCNN enables FP16 arithmetic on CPU by default, `MNNBackend` loads models with `precision="low"`, and the OpenVINO CPU plugin selects FP16 on some hardware, such as Apple silicon. A difference far above that points to unsupported ops, a wrong input shape, or a model not in eval mode. FP16 and INT8 exports have looser tolerances. Validate on real data instead of random tensors.
 
 For other runtimes, the input tensor name may differ. OpenVINO, for example, uses the model's forward-argument name (typically `x` for generic models), while `torch2onnx` defaults to `"images"`.
 
@@ -393,4 +393,4 @@ Yes, for several formats. Pass `quantize=16` for FP16 or `quantize=8` for INT8 w
 
 ### How do I verify an exported model matches the original?
 
-Run the original PyTorch model and the exported model on the same input, then compare outputs. Load the exported file with the matching backend (for example, [`ONNXBackend`](../reference/nn/backends/onnx.md) for ONNX) and check the maximum absolute difference. Judge the gap against the format's own baseline. For the ResNet-18 example above, FP32 ONNX, TF SavedModel and LiteRT sit near `1e-6`, TorchScript at `0`, and NCNN near `1e-2` because its CPU runtime defaults to FP16. A much larger gap points to unsupported ops, a wrong input shape, or a model not in eval mode. See [Verify Your Exported Model](#verify-your-exported-model) for a runnable example.
+Run the original PyTorch model and the exported model on the same input, then compare outputs. Load the exported file with the matching backend (for example, [`ONNXBackend`](../reference/nn/backends/onnx.md) for ONNX) and check the maximum absolute difference. NCNN, `MNNBackend` and OpenVINO on some CPUs run FP32 exports in reduced precision, so expect a larger gap there than for other formats. A gap far above that points to unsupported ops, a wrong input shape, or a model not in eval mode. See [Verify Your Exported Model](#verify-your-exported-model) for a runnable example.

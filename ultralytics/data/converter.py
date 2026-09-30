@@ -21,7 +21,7 @@ from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
 from ultralytics.data.utils import get_split_fraction
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, PLATFORM_URL, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -1083,17 +1083,21 @@ async def _convert_ndjson_to_yolo(
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
-    # Hash-named objects (e.g. Ultralytics Platform content-addressed assets) never change behind their URL, so
-    # dataset versions under the same output_path hard-link one pooled copy instead of downloading it again.
+    # Ultralytics Platform manifests name every asset by its content hash, so its objects never change behind their
+    # URL: dataset versions under the same output_path hard-link one pooled copy instead of downloading it again.
+    platform = str(dataset_record.get("url", "")).startswith(f"{PLATFORM_URL}/")
     pool = output_path / ".ndjson-assets"
-    for pooled in pool.glob("*") if pool.is_dir() else ():
-        if pooled.stat().st_nlink == 1:  # no dataset directory links it any more
-            pooled.unlink(missing_ok=True)
+    for pooled in pool.glob("*") if platform and pool.is_dir() else ():
+        try:
+            if pooled.stat().st_nlink == 1:  # no dataset directory links it any more
+                pooled.unlink()
+        except OSError:
+            pass  # removed or relinked by a concurrent conversion; the dataset files keep their own links
 
     def pooled_path(url):
-        """Return the pool entry for an immutable hash-named URL, or None for any other source."""
+        """Return the pool entry for a Platform content-addressed asset URL, or None for any other source."""
         source = Path(clean_url(url))
-        if len(source.stem) != 32 or any(c not in "0123456789abcdef" for c in source.stem.lower()):
+        if not platform or len(source.stem) != 32 or any(c not in "0123456789abcdef" for c in source.stem.lower()):
             return None
         return pool / f"{hashlib.sha256(str(source).encode()).hexdigest()}{source.suffix}"
 
@@ -1121,8 +1125,12 @@ async def _convert_ndjson_to_yolo(
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(sock_connect=30, sock_read=30)) as response:
                     response.raise_for_status()
-                    path.write_bytes(await response.read())
-                if pooled:  # publish only complete files, atomically; a failed link just skips pooling
+                    data = await response.read()
+                # Publish complete files only: a failed or concurrent write never leaves partial bytes at `path`
+                tmp = path.with_name(f".{path.name}.{uuid4().hex}")
+                tmp.write_bytes(data)
+                os.replace(tmp, path)
+                if pooled:  # a failed link just skips pooling
                     try:
                         pool.mkdir(parents=True, exist_ok=True)
                         tmp = pooled.with_name(f".{pooled.name}.{uuid4().hex}")

@@ -1249,6 +1249,10 @@ POST /api/projects
 === "Python"
 
     ```python
+    from ultralytics_platform import Platform
+
+    client = Platform()  # reads ULTRALYTICS_API_KEY
+
     created = client.projects.create(
         project="inspection",
         name="Inspection",
@@ -1485,6 +1489,10 @@ quantization. Requests that exceed the service's input limits return `413`.
 === "Python"
 
     ```python
+    from ultralytics_platform import Platform
+
+    client = Platform()  # reads ULTRALYTICS_API_KEY
+
     with open("image.jpg", "rb") as f:
         resp = client.models.predict("acme-vision", "inspection", "v3", body={"file": f, "conf": 0.5})
     results = resp["images"][0]["results"]
@@ -1618,6 +1626,10 @@ POST /api/training/start
 === "Python"
 
     ```python
+    from ultralytics_platform import Platform
+
+    client = Platform()  # reads ULTRALYTICS_API_KEY
+
     resp = client.training.start(
         model_id="65f1c0a2b3d4e5f601234599",
         gpu_type="rtx-4090",
@@ -1706,6 +1718,10 @@ POST /api/models/{owner}/{project}/{model}/exports
 === "Python"
 
     ```python
+    from ultralytics_platform import Platform
+
+    client = Platform()  # reads ULTRALYTICS_API_KEY
+
     export = client.exports.create("acme-vision", "inspection", "v3", format="onnx", args={"imgsz": 640, "quantize": 16})
     status = client.exports.retrieve("acme-vision", "inspection", "v3", export["id"])
     print(status["export"]["status"])

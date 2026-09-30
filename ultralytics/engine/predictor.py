@@ -352,6 +352,10 @@ class BasePredictor:
 
             self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
             self._claimed_bases = set()  # output base names claimed this run, to spread same-stem inputs across files
+            # natural stems of every source image (files for path loaders, paths for PIL/tensor ones), so a numbered
+            # sibling cannot steal a later input's own base
+            srcs = getattr(self.dataset, "files", None) or getattr(self.dataset, "paths", ())
+            self._reserved_bases = {Path(f).stem for f in srcs} if self.dataset.mode == "image" else ()
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -499,10 +503,11 @@ class BasePredictor:
         base = p.stem + ("" if self.dataset.mode == "image" else f"_{frame}")
         if self.dataset.mode == "image" and (self.args.save_txt or self.args.save):
             # The same photo in two formats (bus.jpg + bus.png) shares one stem: number the later sibling's outputs so
-            # its rows do not append to labels/<stem>.txt and its plot does not overwrite the first <stem>.jpg.
+            # its rows do not append to labels/<stem>.txt and its plot does not overwrite the first <stem>.jpg. The
+            # numbered name skips stems of inputs still to come, keeping their own base free.
             if base in self._claimed_bases:
                 k = 2
-                while f"{p.stem}-{k}" in self._claimed_bases:
+                while f"{p.stem}-{k}" in self._claimed_bases or f"{p.stem}-{k}" in self._reserved_bases:
                     k += 1
                 base = f"{p.stem}-{k}"
             self._claimed_bases.add(base)

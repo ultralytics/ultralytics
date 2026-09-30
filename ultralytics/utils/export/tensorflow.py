@@ -259,9 +259,9 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
     assert LINUX and not ARM64, f"export only supported on Linux x86_64. See {help_url}"
     # Google's Coral apt repo is gone, so a missing compiler installs from the unmodified edgetpu-compiler 16.0
     # package files, needing no apt or sudo
-    local = USER_CONFIG_DIR / "edgetpu-compiler" / "usr" / "bin" / "edgetpu_compiler"
-    compiler = shutil.which("edgetpu_compiler") or str(local)
-    if not Path(compiler).is_file():
+    bundle = USER_CONFIG_DIR / "edgetpu-compiler" / "usr" / "bin" / "edgetpu_compiler_bin"
+    system = shutil.which("edgetpu_compiler")
+    if not system and not (bundle / "edgetpu_compiler").is_file():
         if not AUTOINSTALL:
             raise FileNotFoundError(
                 f"Edge TPU compiler not found and YOLO_AUTOINSTALL=False. Install it from {help_url}"
@@ -269,19 +269,19 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         LOGGER.info(f"\n{prefix} export requires Edge TPU compiler, downloading...")
         safe_download(
             "https://github.com/ultralytics/assets/releases/download/v0.0.0/edgetpu-compiler_16.0_amd64.tar.gz",
-            dir=local.parents[2],
+            dir=bundle.parents[2],
             delete=True,
         )
-        for f in (local, *local.with_name("edgetpu_compiler_bin").iterdir()):
+        for f in bundle.iterdir():
             f.chmod(0o755)  # tar extraction does not restore mode bits
+    # The bundled loader runs directly: Google's launcher script breaks on paths with spaces
+    compiler = [system] if system else [str(bundle / "ld-linux-x86-64.so.2"), "--library-path", str(bundle), str(bundle / "edgetpu_compiler")]
 
-    ver = (
-        subprocess.run([compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
-    )
+    ver = subprocess.run([*compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
     cmd = [
-        compiler,
+        *compiler,
         "--out_dir",
         str(output_dir),
         "--show_operations",

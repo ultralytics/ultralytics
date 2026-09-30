@@ -147,7 +147,7 @@ split beneath it.
   `CPU_AND_NE`; Core AI rows specialize with `SpecializationOptions.cpu_only()` or
   `SpecializationOptions.from_preferred_compute_unit_kind(ComputeUnitKind.neural_engine())`, with final operation
   placement controlled by each framework.
-- Detect, segment, pose, OBB and classify returned the same predictions in both formats on every compute unit. The
+- Detect, segment, classify, pose and OBB returned the same predictions in both formats on every compute unit. The
   Core ML FP16 semantic model runs slower with the Neural Engine preferred than on CPU only on this Mac, and Core AI
   semantic postprocessing takes 6.4 to 7.4 ms against 0.4 ms for Core ML.
 - Compare the on-device iPhone 17 Pro results in the [CoreML integration](coreml.md#measured-performance).

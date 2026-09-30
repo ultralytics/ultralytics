@@ -265,7 +265,7 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if self.cache == "disk" and fn.exists():  # load npy
+            if fn.exists():  # load npy
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1
@@ -360,11 +360,13 @@ class BaseDataset(Dataset):
                 continue
             b += im.nbytes
             if not os.access(Path(im_file).parent, os.W_OK):
+                self.cache = None
                 LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
                 return False
         disk_required = b * self.ni / n * (1 + safety_margin)  # bytes required to cache dataset to disk
         total, _used, free = shutil.disk_usage(Path(self.im_files[0]).parent)
         if disk_required > free:
+            self.cache = None
             LOGGER.warning(
                 f"{self.prefix}{disk_required / gb:.1f}GB disk space required, "
                 f"with {int(safety_margin * 100)}% safety margin but only "

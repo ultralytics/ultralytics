@@ -122,6 +122,36 @@ let outputs = try await function.run(inputs: ["images": imageTensor])
 
 Unlike the current [Core ML and Vision workflow](coreml.md#deploying-exported-yolo26-coreml-models), the Core AI path in the [Ultralytics iOS SDK](https://github.com/ultralytics/yolo-ios-app) does its own letterbox preprocessing and `NDArray` construction, reads the same Ultralytics metadata from the asset's `metadata.json`, and reuses the Core ML output decoders. It loads when an app passes an `.aimodel` path or an `.aimodel.zip` URL. Apple provides current API details in the [Core AI framework documentation](https://developer.apple.com/documentation/coreai) and working model examples in the [Core AI models repository](https://github.com/apple/coreai-models).
 
+## Measured Performance
+
+End-to-end single-image inference for YOLO26n FP16 (`quantize=16`) Core ML and Core AI exports with the default raw
+head (`nms=None`) on a Mac mini with an [Apple M4](https://support.apple.com/en-us/121555) (4 Performance and 6
+Efficiency CPU cores, 10-core GPU, 16-core Neural Engine), 16 GB memory and macOS 27.0, using `ultralytics` 8.4.168,
+`coremltools` 9.0 for Core ML inference, and `coreai-torch` 0.4.3 with `coreai-core` 1.0.0b3 for Core AI inference
+on Python 3.13. Each cell shows the **total time** (preprocessing + inference + postprocessing) with the per-stage
+split beneath it.
+
+| Model         | Task     | size<br><sup>(pixels)</sup> | Core ML CPU<br><sup>`CPU_ONLY`<br>(ms)</sup> | Core ML CPU + ANE preferred<br><sup>`CPU_AND_NE`<br>(ms)</sup> | Core AI CPU<br><sup>`cpu_only()`<br>(ms)</sup> | Core AI CPU + ANE preferred<br><sup>`neural_engine()`<br>(ms)</sup> |
+| ------------- | -------- | --------------------------- | -------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------- |
+| YOLO26n       | Detect   | 640                         | 14.4<br><sup>0.6 / 13.4 / 0.4</sup>          | 7.6<br><sup>0.6 / 6.7 / 0.4</sup>                              | 16.8<br><sup>0.6 / 15.9 / 0.3</sup>            | **2.8**<br><sup>0.6 / 2.0 / 0.2</sup>                               |
+| YOLO26n-seg   | Segment  | 640                         | 18.7<br><sup>0.6 / 16.5 / 1.5</sup>          | 9.2<br><sup>0.6 / 7.1 / 1.5</sup>                              | 25.3<br><sup>0.6 / 23.2 / 1.5</sup>            | **5.1**<br><sup>0.6 / 3.1 / 1.4</sup>                               |
+| YOLO26n-sem   | Semantic | 640                         | 33.9<br><sup>1.3 / 32.2 / 0.4</sup>          | 73.7<br><sup>1.4 / 71.9 / 0.4</sup>                            | 47.1<br><sup>1.2 / 38.5 / 7.4</sup>            | **18.7**<br><sup>1.2 / 11.1 / 6.4</sup>                             |
+| YOLO26n-depth | Depth    | 640                         | 36.8<br><sup>0.8 / 35.5 / 0.5</sup>          | 12.1<br><sup>0.9 / 10.7 / 0.5</sup>                            | 40.2<br><sup>0.8 / 39.0 / 0.5</sup>            | **7.5**<br><sup>0.7 / 6.3 / 0.5</sup>                               |
+| YOLO26n-cls   | Classify | 224                         | 3.8<br><sup>1.9 / 1.8 / 0.0</sup>            | 3.3<br><sup>1.9 / 1.4 / 0.0</sup>                              | 3.0<br><sup>1.9 / 1.0 / 0.0</sup>              | **2.4**<br><sup>1.9 / 0.6 / 0.0</sup>                               |
+| YOLO26n-pose  | Pose     | 640                         | 15.5<br><sup>0.6 / 14.6 / 0.3</sup>          | 7.0<br><sup>0.6 / 6.2 / 0.3</sup>                              | 17.8<br><sup>0.5 / 17.0 / 0.3</sup>            | **2.7**<br><sup>0.5 / 2.0 / 0.2</sup>                               |
+| YOLO26n-obb   | OBB      | 640                         | 32.7<br><sup>1.3 / 31.1 / 0.2</sup>          | 16.9<br><sup>1.5 / 15.2 / 0.2</sup>                            | 37.2<br><sup>1.1 / 35.9 / 0.2</sup>            | **5.7**<br><sup>1.3 / 4.3 / 0.1</sup>                               |
+
+- **Speed** values are **single-image burst latencies**: the mean of 15 `predict` calls after 3 warmup calls on
+  `bus.jpg` through the Ultralytics Python API, with each model and compute unit in a fresh process. CPU/accelerator
+  order alternated between tasks in one sequential sweep. Core ML rows load with `coremltools.ComputeUnit.CPU_ONLY` or
+  `CPU_AND_NE`; Core AI rows specialize with `SpecializationOptions.cpu_only()` or
+  `SpecializationOptions.from_preferred_compute_unit_kind(ComputeUnitKind.neural_engine())`, with final operation
+  placement controlled by each framework.
+- Detect, segment, pose, OBB and classify returned the same predictions in both formats on every compute unit. The
+  Core ML FP16 semantic model runs slower with the Neural Engine preferred than on CPU only on this Mac, and Core AI
+  semantic postprocessing takes 6.4 to 7.4 ms against 0.4 ms for Core ML.
+- Compare the on-device iPhone 17 Pro results in the [CoreML integration](coreml.md#measured-performance).
+
 ## Advantages of Core AI
 
 Core AI offers several promising advantages for future Ultralytics deployment:

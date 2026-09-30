@@ -1,0 +1,58 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
+# Re-run failed jobs of a scheduled CI run once when every failure is a runner or network error, else notify Slack
+
+name: CI Rerun
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  actions: write
+  checks: read
+
+jobs:
+  Rerun:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'push') && github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-run failed jobs with transient errors
+        id: rerun
+        if: github.event.workflow_run.event == 'schedule' && github.event.workflow_run.run_attempt == 1
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          transient='lost communication with the server|The operation was canceled|received a shutdown signal|Retry limit reached|Github API request failed|Connect Timeout Error'
+          setup_steps='^((Install|Pre-cache)[^,]*(,|$))+$'
+          gh api "repos/$GH_REPO/actions/runs/$RUN_ID/attempts/1/jobs" --paginate \
+            --jq '.jobs[] | select(.conclusion == "failure" or .conclusion == "cancelled") | [.id, .name, ([.steps[] | select(.conclusion == "failure") | .name] | join(","))] | @tsv' > failed.tsv
+          while IFS=$'\t' read -r id name steps; do
+            text="$(gh api "repos/$GH_REPO/check-runs/$id/annotations" --paginate --jq '.[].message')"
+            text+=$'\n'"$(gh api "repos/$GH_REPO/actions/jobs/$id/logs" | grep -m 1 -B 5 '##\[error\]' || true)"
+            if grep -q "exceeded the maximum execution time" <<< "$text"; then
+              reason=""
+            elif [[ -n "$steps" && "$steps" =~ $setup_steps ]]; then
+              reason="$steps step"
+            else
+              reason="$(grep -oE "$transient" <<< "$text" | head -n 1 || true)"
+            fi
+            if [ -z "$reason" ]; then
+              echo "Not re-running: '$name' failed with a non-transient error"
+              exit 0
+            fi
+            echo "'$name': $reason"
+          done < failed.tsv
+          gh run rerun "$RUN_ID" --failed
+          echo "rerun=true" >> "$GITHUB_OUTPUT"
+      - name: Notify Slack
+        if: ${{ !cancelled() && steps.rerun.outputs.rerun != 'true' && (github.event.workflow_run.run_attempt == 1 || github.event.workflow_run.triggering_actor.login == 'github-actions[bot]') }}
+        uses: slackapi/slack-github-action@v4.0.0
+        with:
+          webhook-type: incoming-webhook
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
+          payload: |
+            text: "<!subteam^S082BPCRAJ3> *${{ github.event.workflow_run.name }}* ❌ `${{ github.repository }}`  <${{ github.event.workflow_run.html_url }}|*Run*>"

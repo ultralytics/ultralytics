@@ -676,6 +676,10 @@ def test_export_qnn(isolated_model):
     Path(file).unlink(missing_ok=True)  # cleanup
 
 
+# TODO: add test_export_ti once edgeai-tidl-runtime is published somewhere pip can install from (see the
+# 'isolated-ti' EXPORT_ENVS entry) and the TIDLExecutionProvider host-emulation compute-invoke issue is resolved.
+
+
 @pytest.mark.parametrize("env", [k for k, v in EXPORT_ENVS.items() if k != "base" or v["smoke"]])
 def test_export_env_has_smoke(env):
     """Ensure every non-base export environment declares a build-time smoke export."""

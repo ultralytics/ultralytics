@@ -597,6 +597,7 @@ nav:
       - TF.js (deprecated): integrations/tfjs.md
       - TFLite (deprecated): integrations/tflite.md
       - TFLite Edge TPU: integrations/edge-tpu.md
+      - TI Edge AI: integrations/ti-edge-ai.md
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
@@ -777,6 +778,7 @@ nav:
               - rknn: reference/nn/backends/rknn.md
               - tensorflow: reference/nn/backends/tensorflow.md
               - tensorrt: reference/nn/backends/tensorrt.md
+              - ti: reference/nn/backends/ti.md
               - triton: reference/nn/backends/triton.md
           - distill_model: reference/nn/distill_model.md
           - modules:
@@ -863,6 +865,7 @@ nav:
               - qnn: reference/utils/export/qnn.md
               - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
+              - ti: reference/utils/export/ti.md
               - torchscript: reference/utils/export/torchscript.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md

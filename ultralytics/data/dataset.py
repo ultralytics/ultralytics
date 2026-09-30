@@ -50,7 +50,7 @@ from .utils import (
 )
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.8"  # semantic palette (P) masks are now read as class indices
+DATASET_CACHE_VERSION = "1.0.9"  # 16-bit semantic masks are now read at full depth and validated
 
 
 class YOLODataset(BaseDataset):
@@ -1055,7 +1055,7 @@ class SemanticDataset(YOLODataset):
             with Image.open(mask_file) as im:
                 mask = np.array(im)
         else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+            mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
         if int(self.data.get("nc", 0)) == 1 and mode == "1":

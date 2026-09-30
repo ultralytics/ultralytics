@@ -394,10 +394,10 @@ def verify_image_mask(args: tuple) -> tuple:
         if os.path.isfile(mask_file):
             with Image.open(mask_file) as im:
                 mode = im.mode  # recorded so load_mask reads each mask once and a yaml 'nc' edit never needs a rescan
-                mask = np.asarray(im) if mode == "P" else cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+                mask = np.asarray(im) if mode == "P" else cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
-            assert not cv2.LUT(mask, invalid).any(), (
+            assert not invalid[mask].any(), (  # ids above 255 raise IndexError
                 f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"
             )
             nf = 1

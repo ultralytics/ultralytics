@@ -1085,14 +1085,9 @@ async def _convert_ndjson_to_yolo(
 
     # Ultralytics Platform manifests name every asset by its content hash, so its objects never change behind their
     # URL: dataset versions under the same output_path hard-link one pooled copy instead of downloading it again.
+    # The pool is a plain cache — deleting `.ndjson-assets` never affects converted datasets, which keep their links.
     platform = str(dataset_record.get("url", "")).startswith(f"{PLATFORM_URL}/")
     pool = output_path / ".ndjson-assets"
-    for pooled in pool.glob("*") if platform and pool.is_dir() else ():
-        try:
-            if pooled.stat().st_nlink == 1:  # no dataset directory links it any more
-                pooled.unlink()
-        except OSError:
-            pass  # removed or relinked by a concurrent conversion; the dataset files keep their own links
 
     def pooled_path(url):
         """Return the pool entry for a Platform content-addressed asset URL, or None for any other source."""
@@ -1133,16 +1128,12 @@ async def _convert_ndjson_to_yolo(
                     os.replace(tmp, path)
                 finally:
                     tmp.unlink(missing_ok=True)
-                if pooled:  # a failed link just skips pooling
-                    link = pooled.with_name(f".{pooled.name}.{uuid4().hex}")
+                if pooled:  # an existing entry wins, and a failed link just skips pooling
                     try:
                         pool.mkdir(parents=True, exist_ok=True)
-                        os.link(path, link)
-                        os.replace(link, pooled)
+                        os.link(path, pooled)
                     except OSError:
                         pass
-                    finally:
-                        link.unlink(missing_ok=True)
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e

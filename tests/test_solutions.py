@@ -396,9 +396,10 @@ def test_similarity_search(tmp_path, solution_assets):
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-def test_similarity_search_app_init():
+def test_similarity_search_app_init(tmp_path, solution_assets):
     """Test SearchApp initializes with required attributes."""
-    app = solutions.SearchApp(device="cpu")
+    safe_download(solution_assets("similarity_images"), dir=tmp_path)
+    app = solutions.SearchApp(data=str(tmp_path / "4-imgs-similaritysearch"), device="cpu")
     assert hasattr(app, "searcher")
     assert hasattr(app, "run")
 

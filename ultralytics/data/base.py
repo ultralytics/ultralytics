@@ -265,6 +265,10 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
+            if self.cache == "disk" and fn.exists() and fn.stat().st_mtime < Path(f).stat().st_mtime:
+                # source image changed after the .npy was written; the label .cache invalidates the same way
+                LOGGER.warning(f"{self.prefix}Removing stale *.npy image file {fn} older than the source image")
+                Path(fn).unlink(missing_ok=True)
             if self.cache == "disk" and fn.exists():  # load npy
                 try:
                     im = np.load(fn)

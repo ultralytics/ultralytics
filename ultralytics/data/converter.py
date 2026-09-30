@@ -305,7 +305,7 @@ def convert_coco(
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
-                if box not in bboxes:
+                if use_segments or use_keypoints or box not in bboxes:
                     if use_keypoints:
                         if ann.get("keypoints") is None:
                             continue
@@ -345,11 +345,8 @@ def convert_coco(
             label_file = (fn / f).with_suffix(".txt")
             label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
             with open(label_file, "a", encoding="utf-8") as file:
-                for i in range(len(bboxes)):
-                    if use_keypoints:
-                        line = (*(keypoints[i]),)  # cls, box, keypoints
-                    else:
-                        line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
+                rows = keypoints if use_keypoints else segments if use_segments else bboxes
+                for line in dict.fromkeys(map(tuple, rows)):
                     file.write(("%g " * len(line)).rstrip() % line + "\n")
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output

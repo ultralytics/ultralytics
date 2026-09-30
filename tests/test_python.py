@@ -1413,6 +1413,39 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
+@pytest.mark.parametrize("use_segments,use_keypoints", ((False, False), (True, False), (False, True), (True, True)))
+def test_convert_coco_shared_boxes(tmp_path, use_segments, use_keypoints):
+    """Keep distinct polygons and keypoints sharing a box, while removing duplicate output rows."""
+    import json
+
+    from ultralytics.data.converter import convert_coco
+
+    annotations = [
+        {
+            "image_id": 1,
+            "category_id": 1,
+            "bbox": [1, 1, 8, 8],
+            "segmentation": [[1, 1, 9, 1, x, 9]],
+            "keypoints": [x, 1, 2],
+        }
+        for x in (1, 9, 1)
+    ]
+    data = {"images": [{"id": 1, "file_name": "a.jpg", "width": 10, "height": 10}], "annotations": annotations}
+    (tmp_path / "instances_train.json").write_text(json.dumps(data))
+    output = tmp_path / "converted"
+    convert_coco(tmp_path, output, use_segments=use_segments, use_keypoints=use_keypoints, cls91to80=False)
+
+    box = [0, 0.5, 0.5, 0.8, 0.8]
+    expected = (
+        [[*box, x, 0.1, 2] for x in (0.1, 0.9)]
+        if use_keypoints
+        else [[0, 0.1, 0.1, 0.9, 0.1, x, 0.9] for x in (0.1, 0.9)]
+        if use_segments
+        else [box]
+    )
+    np.testing.assert_allclose(np.loadtxt(output / "labels/train/a.txt", ndmin=2), expected)
+
+
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

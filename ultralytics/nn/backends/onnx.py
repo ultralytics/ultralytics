@@ -94,7 +94,8 @@ def _migraphx_cache_dir(weight: str | Path) -> Path:
 def _load_migraphx_session(onnxruntime, weight: str | Path, index: int):
     """Create an InferenceSession on the MIGraphX plugin EP for GPU `index`.
 
-    Raises if the plugin is missing, the GPU is not enumerated, or compilation fails, so the caller can fall back to CPU.
+    Raises if the plugin is missing, the GPU is not enumerated, or compilation fails, so the caller can fall back to
+    CPU.
 
     Args:
         onnxruntime (module): The imported onnxruntime module.

@@ -211,7 +211,8 @@ def check_file_speeds(
         avg_speed = float("inf")
         speed_msg = ""
 
-    if avg_ping < threshold_ms and avg_speed > threshold_mb:
+    # MB/s is open() latency-bound for tiny files (0.2 KB mnist160 PNGs read ~15 MB/s on local NVMe), so skip it there
+    if avg_ping < threshold_ms and (avg_speed > threshold_mb or np.mean(file_sizes) < 1 << 14):
         LOGGER.info(f"{prefix}Fast image access ✅ ({ping_msg}{speed_msg}{size_msg})")
     else:
         LOGGER.warning(
@@ -394,7 +395,11 @@ def verify_image_mask(args: tuple) -> tuple:
         if os.path.isfile(mask_file):
             with Image.open(mask_file) as im:
                 mode = im.mode  # recorded so load_mask reads each mask once and a yaml 'nc' edit never needs a rescan
-                mask = np.asarray(im) if mode == "P" else cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
+                if mode == "P":  # colored (VOC-style) palettes hold class ids as indices, gray palettes as gray levels
+                    p = np.array(im.getpalette()).reshape(-1, 3)
+                    mask = np.asarray(im.convert("L") if (p == p[:, :1]).all() else im)
+                else:
+                    mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
             assert not invalid[mask].any(), (  # ids above 255 raise IndexError
@@ -630,8 +635,7 @@ def find_dataset_yaml(path: Path) -> Path:
     Returns:
         (Path): The path of the found YAML file.
     """
-    # try root level first and then recursive
-    files = [*path.glob("*.yaml"), *path.glob("*.yml")] or [*path.rglob("*.yaml"), *path.rglob("*.yml")]
+    files = list(path.glob("*.yaml")) or list(path.rglob("*.yaml"))  # try root level first and then recursive
     assert files, f"No YAML file found in '{path.resolve()}'"
     if len(files) > 1:
         files = [f for f in files if f.stem == path.stem]  # prefer YAML files that match

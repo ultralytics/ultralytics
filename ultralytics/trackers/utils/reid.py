@@ -49,7 +49,13 @@ class ReID:
 
             self.model = YOLO(model)
             # Initialize predictor with embed=[idx] so subsequent calls return embeddings.
-            self.model(embed=[len(self.model.model.model) - 2], device=self.device, verbose=False, save=False)
+            self.model(
+                np.zeros((32, 32, 3), dtype=np.uint8),
+                embed=[len(self.model.model.model) - 2],
+                device=self.device,
+                verbose=False,
+                save=False,
+            )
             self.fp16 = False
         else:
             from pathlib import Path

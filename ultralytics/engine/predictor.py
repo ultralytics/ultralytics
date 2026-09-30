@@ -178,7 +178,7 @@ class BasePredictor:
             None  # generator of the run currently holding the lock, reclaimed by the next same-thread run
         )
         self._gen_thread = None  # thread that started it; cross-thread runs serialize on the lock instead
-        self._superseded = None  # run closed by a newer same-thread call, reported if its consumer resumes it
+        self._superseded = set()  # runs closed by a newer same-thread call, reported if their consumers resume them
         callbacks.add_integration_callbacks(self)
 
     def preprocess(self, im: torch.Tensor | list[np.ndarray]) -> torch.Tensor:
@@ -330,7 +330,7 @@ class BasePredictor:
         """
         if self._active_gen is not None and self._gen_thread == threading.get_ident():
             old, self._active_gen = self._active_gen, None
-            self._superseded = old  # let a consumer that resumes this closed run see why it ended
+            self._superseded.add(old)  # let a consumer that resumes this closed run see why it ended
             old.close()  # no-op when the previous run already finished or failed
         self._gen_thread = threading.get_ident()
         self._active_gen = gen = self._stream_inference(source, model, *args, **kwargs)
@@ -339,7 +339,8 @@ class BasePredictor:
                 try:
                     result = next(gen)
                 except StopIteration:
-                    if self._superseded is gen:
+                    if gen in self._superseded:
+                        self._superseded.discard(gen)  # reported once; do not pin the closed run
                         raise RuntimeError("this stream was closed by a newer predict() call") from None
                     return
                 yield result

@@ -77,6 +77,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [ExecuTorch](executorch.md): Developed by [Meta](https://about.meta.com/), ExecuTorch is PyTorch's unified solution for deploying Ultralytics YOLO models on edge devices.
 
+- [ExportedProgram](exported-program.md): Export Ultralytics YOLO models to the PyTorch-native `torch.export` ExportedProgram `.pt2` format for graph inspection, custom lowering pipelines, and research workflows.
+
 - [Gradio](gradio.md): Deploy Ultralytics models with Gradio for real-time, interactive object detection demos.
 
 - [Hailo](hailo.md): Export Ultralytics YOLO detection, segmentation, semantic segmentation, depth estimation, classification, pose, and OBB models directly to Hailo HEF; see the integration guide for validated models and targets.

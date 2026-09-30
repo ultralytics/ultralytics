@@ -26,6 +26,7 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+ExportedProgram         | `exported_program`        | yolo26n.pt2
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -277,6 +278,7 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
             "base",
         ],
+        ["ExportedProgram", "exported_program", ".pt2", False, False, ["batch"], "base"],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -551,6 +553,7 @@ class Exporter:
         export_qnn: Export model to Qualcomm QNN format.
         export_hailo: Export model to Hailo HEF format.
         export_ascend: Export model to Huawei Ascend format.
+        export_exported_program: Export model to ExportedProgram (PT2) format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -1488,6 +1491,20 @@ class Exporter:
             calibration_dataset=self.get_int8_calibration_dataloader(prefix),
             transform_fn=self._transform_fn,
             model_name=self.file.stem,
+            metadata=self.metadata,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_exported_program(self, prefix=colorstr("ExportedProgram:")):  # noqa: B008
+        """Export YOLO model to torch.export ExportedProgram *.pt2 format."""
+        assert TORCH_2_9, f"ExportedProgram requires torch>=2.9.0 but torch=={TORCH_VERSION} is installed"
+        from ultralytics.utils.export.exported_program import torch2exported_program
+
+        return torch2exported_program(
+            model=self.model,
+            im=self.im,
+            output_file=self.file.with_suffix(".pt2"),
             metadata=self.metadata,
             prefix=prefix,
         )

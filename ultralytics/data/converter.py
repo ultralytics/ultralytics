@@ -6,12 +6,14 @@ import asyncio
 import hashlib
 import json
 import math
+import os
 import random
 import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 import cv2
 import numpy as np
@@ -19,7 +21,7 @@ from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
 from ultralytics.data.utils import get_split_fraction
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
+from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, PLATFORM_URL, TQDM, YAML, clean_url
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -1087,8 +1089,21 @@ async def _convert_ndjson_to_yolo(
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
+    # Ultralytics Platform manifests name every asset by its content hash, so its objects never change behind their
+    # URL: dataset versions under the same output_path hard-link one pooled copy instead of downloading it again.
+    # The pool is a plain cache — deleting `.ndjson-assets` never affects converted datasets, which keep their links.
+    platform = str(dataset_record.get("url", "")).startswith(f"{PLATFORM_URL}/")
+    pool = output_path / ".ndjson-assets"
+
+    def pooled_path(url):
+        """Return the pool entry for a Platform content-addressed asset URL, or None for any other source."""
+        source = Path(clean_url(url))
+        if not platform or len(source.stem) != 32 or any(c not in "0123456789abcdef" for c in source.stem.lower()):
+            return None
+        return pool / f"{hashlib.sha256(str(source).encode()).hexdigest()}{source.suffix}"
+
     async def ensure_file(session, path, url):
-        """Return True when the file exists locally, otherwise download one URL with the retry policy."""
+        """Return True when the file exists locally, otherwise link it from the pool or download it with retries."""
         if path.exists():
             return True
         if not url:
@@ -1099,12 +1114,32 @@ async def _convert_ndjson_to_yolo(
                 return False
             await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, url, path)
             return True
+        pooled = pooled_path(url)
+        if pooled:
+            try:
+                os.link(pooled, path)
+                return True
+            except OSError:
+                pass  # not pooled yet, or links unsupported here: download it
         for attempt in range(3):
             error = None
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(sock_connect=30, sock_read=30)) as response:
                     response.raise_for_status()
-                    path.write_bytes(await response.read())
+                    data = await response.read()
+                # Publish complete files only: a failed or concurrent write never leaves partial bytes at `path`
+                tmp = path.with_name(f".{path.name}.{uuid4().hex}")
+                try:
+                    tmp.write_bytes(data)
+                    os.replace(tmp, path)
+                finally:
+                    tmp.unlink(missing_ok=True)
+                if pooled:  # an existing entry wins, and a failed link just skips pooling
+                    try:
+                        pool.mkdir(parents=True, exist_ok=True)
+                        os.link(path, pooled)
+                    except OSError:
+                        pass
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e

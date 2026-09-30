@@ -7,6 +7,7 @@ import math
 import os
 import random
 import shutil
+import time
 from copy import copy, deepcopy
 from multiprocessing.pool import ThreadPool
 from pathlib import Path
@@ -244,6 +245,13 @@ class BaseDataset(Dataset):
             if self.single_cls:
                 self.labels[i]["cls"][:] = 0
 
+    def _npy_is_stale(self, i: int) -> bool:
+        """Return True when a cached *.npy is older than its source image."""
+        try:
+            return self.npy_files[i].stat().st_mtime < Path(self.im_files[i]).stat().st_mtime <= time.time()
+        except OSError:  # source image gone; the *.npy is the only copy left, keep it
+            return False
+
     def load_image(
         self, i: int, rect_mode: bool = True, resize_short: bool = False
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
@@ -265,7 +273,7 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if self.cache == "disk" and fn.exists() and fn.stat().st_mtime < Path(f).stat().st_mtime:
+            if self.cache == "disk" and fn.exists() and self._npy_is_stale(i):
                 # source image changed after the .npy was written; the label .cache invalidates the same way
                 LOGGER.warning(f"{self.prefix}Removing stale *.npy image file {fn} older than the source image")
                 Path(fn).unlink(missing_ok=True)
@@ -339,7 +347,7 @@ class BaseDataset(Dataset):
     def cache_images_to_disk(self, i: int) -> None:
         """Save an image as an *.npy file for faster loading."""
         f = self.npy_files[i]
-        if not f.exists():
+        if not f.exists() or self._npy_is_stale(i):  # missing or stale
             try:
                 np.save(f.as_posix(), imread(self.im_files[i], flags=self.cv2_flag), allow_pickle=False)
             except Exception as e:

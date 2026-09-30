@@ -14,9 +14,8 @@ Deploying PyTorch models to production usually means juggling a different export
 ## Why Use Ultralytics for Non-YOLO Export?
 
 - **One API across 11 formats:** learn a single calling convention instead of a dozen.
-- **Shared utility surface:** the export helpers live under `ultralytics.utils.export`, so once the backend packages are installed you can keep the same calling pattern across formats.
 - **Same code path as YOLO exports:** the same helpers power every Ultralytics YOLO export.
-- **FP16 and INT8 quantization** built in for formats that support it (OpenVINO, CoreML, and MNN; FP16 only for Core AI and NCNN).
+- **FP16 and INT8 quantization** through one `quantize` argument for formats that support it.
 - **Works on CPU:** no GPU required for the export step itself, so you can run it locally on a laptop; CoreML export is not supported on Windows, and Core AI export needs macOS 26 or later on Apple silicon, or x86_64 Linux with glibc 2.34 or newer, with Python 3.11 to 3.14.
 
 ## Quick Start
@@ -50,10 +49,6 @@ The `torch2*` functions take a standard `torch.nn.Module` and an example input t
 | MNN             | [`onnx2mnn()`](../reference/utils/export/mnn.md)                  | `pip install MNN`                                                                                | `.mnn` file                    |
 | NCNN            | [`torch2ncnn()`](../reference/utils/export/ncnn.md)               | `pip install ncnn pnnx`                                                                          | `_ncnn_model/` directory       |
 | ExecuTorch      | [`torch2executorch()`](../reference/utils/export/executorch.md)   | `pip install executorch`                                                                         | `_executorch_model/` directory |
-
-!!! note "ONNX as an intermediate format"
-
-    [MNN](../integrations/mnn.md), [TF SavedModel](../integrations/tf-savedmodel.md), and TF Frozen Graph exports go through ONNX as an intermediate step. Export to ONNX first, then convert.
 
 !!! tip "Embedding metadata"
 
@@ -186,8 +181,7 @@ Pass `quantize=8` to add an INT8 `.tflite` alongside them.
 
 TensorFlow export does not run on macOS with Python 3.13 or newer; use Python 3.12 or earlier on macOS, or Linux.
 
-Requirements on Python 3.12 or earlier (on Python 3.13 or newer the export requires `tensorflow>2.19.0`, `tf_keras>2.19.0`,
-`onnx2tf>=2.3.0,<2.3.16`, and `protobuf>=6.31.1,<7.0.0` instead):
+Requirements on Python 3.12 or earlier (on Python 3.13 or newer the export requires `tensorflow>2.19.0`, `tf_keras>2.19.0`, `onnx2tf>=2.3.0,<2.3.16`, and `protobuf>=6.31.1,<7.0.0` instead):
 
 - `tensorflow>=2.0.0,<=2.19.0`
 - `onnx2tf>=1.26.3,<1.29.0`
@@ -227,8 +221,6 @@ resnet18_ncnn_model/
 ├── model.ncnn.bin
 └── model_ncnn.py
 ```
-
-`torch2ncnn()` checks for `ncnn` and `pnnx` on first use.
 
 ### Export to MNN
 
@@ -359,9 +351,7 @@ Three things the `YOLO()` route handles for you and a direct call does not:
 
 ## Known Limitations
 
-- **Multi-input support is uneven**: `torch2onnx` and `torch2openvino` accept a tuple or list of example tensors for models with multiple inputs. `torch2torchscript`, `torch2coreml`, `torch2coreai`, `torch2ncnn`, `torch2paddle`, and `torch2executorch` assume a single input tensor.
-- **ExecuTorch needs `flatc`**: The ExecuTorch runtime requires the FlatBuffers compiler. Install with `brew install flatbuffers` on macOS or `apt install flatbuffers-compiler` on Ubuntu.
-- **No embedded metadata**: the exports above carry no Ultralytics task or input-size metadata, so `YOLO()` cannot infer either and needs both passed explicitly. See [Run Your Exported Model](#run-your-exported-model).
+- **Multi-input support is uneven**: `torch2onnx`, `torch2openvino`, and `torch2torchscript` accept a tuple of example tensors for models with multiple inputs. `torch2coreml`, `torch2coreai`, `torch2ncnn`, `torch2paddle`, and `torch2executorch` assume a single input tensor.
 - **YOLO-only formats**: [Axelera](../integrations/axelera.md) and [Sony IMX500](../integrations/sony-imx500.md) exports require YOLO-specific model attributes and are not available for generic models.
 - **Platform-specific formats**: [TensorRT](../integrations/tensorrt.md) requires an NVIDIA GPU. [RKNN](../integrations/rockchip-rknn.md) requires the `rknn-toolkit2` SDK (Linux only). [Edge TPU](../integrations/edge-tpu.md) requires the `edgetpu_compiler` binary (Linux only).
 
@@ -373,7 +363,7 @@ These utilities take any PyTorch model from a plain `torch.nn.Module` to a deplo
 
 ### What models can I export with Ultralytics?
 
-Any `torch.nn.Module`. This includes models from timm, torchvision, or any custom PyTorch model. The model must be in evaluation mode (`model.eval()`) before export. ONNX and OpenVINO additionally accept a tuple of example tensors for multi-input models.
+Any `torch.nn.Module`. This includes models from timm, torchvision, or any custom PyTorch model. The model must be in evaluation mode (`model.eval()`) before export. ONNX, OpenVINO, and TorchScript additionally accept a tuple of example tensors for multi-input models.
 
 ### Which export formats work without a GPU?
 
@@ -381,7 +371,7 @@ All supported formats (TorchScript, ONNX, OpenVINO, CoreML, Core AI, TF SavedMod
 
 ### What Ultralytics version do I need?
 
-Use Ultralytics `>=8.4.38`, which includes the `ultralytics.utils.export` module and the standardized `output_file`/`output_dir` arguments.
+Use the latest release. The `quantize` argument needs Ultralytics `>=8.4.81`, and Core AI export needs `>=8.4.131` (`>=8.4.163` on Linux or with `coreai-torch>=0.4.3`).
 
 ### Can I export a torchvision model to CoreML for iOS deployment?
 
@@ -389,7 +379,7 @@ Yes. torchvision classifiers, detectors, and segmentation models export to `.mlp
 
 ### Can I quantize my exported model to INT8 or FP16?
 
-Yes, for several formats. Pass `quantize=16` for FP16 or `quantize=8` for INT8 when exporting to OpenVINO, CoreML, or MNN; NCNN and Core AI export FP32 by default, take `quantize=16` for FP16, and have no INT8 path. INT8 in OpenVINO additionally requires a `calibration_dataset` argument for [post-training quantization](https://www.ultralytics.com/glossary/model-quantization). See each format's integration page for quantization trade-offs.
+Yes, for several formats. Pass `quantize=16` for FP16 or `quantize=8` for INT8 when exporting to OpenVINO, CoreML, or MNN; `onnx2saved_model` takes `quantize=8` for an INT8 LiteRT file, and NCNN and Core AI export FP32 by default, take `quantize=16` for FP16, and have no INT8 path. INT8 in OpenVINO additionally requires a `calibration_dataset` argument for [post-training quantization](https://www.ultralytics.com/glossary/model-quantization). See each format's integration page for quantization trade-offs.
 
 ### How do I verify an exported model matches the original?
 

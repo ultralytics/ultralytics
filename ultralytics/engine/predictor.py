@@ -351,6 +351,7 @@ class BasePredictor:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
             self.seen, self.speed, self.pixels, self.windows, self.batch = 0, None, None, [], None
+            self._claimed_bases = set()  # output base names claimed this run, to spread same-stem inputs across files
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -495,7 +496,17 @@ class BasePredictor:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        self.txt_path = self.save_dir / "labels" / (p.stem + ("" if self.dataset.mode == "image" else f"_{frame}"))
+        base = p.stem + ("" if self.dataset.mode == "image" else f"_{frame}")
+        if self.dataset.mode == "image" and (self.args.save_txt or self.args.save):
+            # The same photo in two formats (bus.jpg + bus.png) shares one stem: number the later sibling's outputs so
+            # its rows do not append to labels/<stem>.txt and its plot does not overwrite the first <stem>.jpg.
+            if base in self._claimed_bases:
+                k = 2
+                while f"{p.stem}-{k}" in self._claimed_bases:
+                    k += 1
+                base = f"{p.stem}-{k}"
+            self._claimed_bases.add(base)
+        self.txt_path = self.save_dir / "labels" / base
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
         result.save_dir = self.save_dir.__str__()  # used in other locations
@@ -518,7 +529,8 @@ class BasePredictor:
         if self.args.show:
             self.show(str(p))
         if self.args.save:
-            self.save_predicted_images(self.save_dir / p.name, frame)
+            save_path = self.save_dir / (f"{base}.jpg" if self.dataset.mode == "image" else p.name)
+            self.save_predicted_images(save_path, frame)
 
         return string
 
@@ -554,7 +566,7 @@ class BasePredictor:
 
         # Save images
         else:
-            cv2.imwrite(str(save_path.with_suffix(".jpg")), im)  # save to JPG for best support
+            cv2.imwrite(str(save_path), im)  # save to JPG for best support
 
     def show(self, p: str = ""):
         """Display an image in a window."""

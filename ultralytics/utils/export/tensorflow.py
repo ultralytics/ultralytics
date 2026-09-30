@@ -275,7 +275,9 @@ def tflite2edgetpu(tflite_file: str | Path, output_dir: str | Path, prefix: str 
         for f in (local, *local.with_name("edgetpu_compiler_bin").iterdir()):
             f.chmod(0o755)  # tar extraction does not restore mode bits
 
-    ver = subprocess.run([compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    ver = (
+        subprocess.run([compiler, "--version"], capture_output=True, check=True).stdout.decode().rsplit(maxsplit=1)[-1]
+    )
     LOGGER.info(f"\n{prefix} starting export with Edge TPU compiler {ver}...")
 
     cmd = [

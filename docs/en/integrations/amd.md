@@ -210,6 +210,108 @@ For the full list of export arguments, see the [ONNX integration](onnx.md#export
 
 For a ready-to-run environment, [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd) builds the [`ultralytics/ultralytics:latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd) image with ROCm PyTorch and the MIGraphX EP preinstalled. See [Using GPUs](../guides/docker-quickstart.md#using-gpus) in the Docker Quickstart for the `docker run` flags that expose AMD GPUs to the container.
 
+## Benchmarks
+
+YOLO26 benchmarks below were run by the Ultralytics team on an AMD Radeon 8060S GPU (Ryzen AI Max+ PRO 395), comparing speed and accuracy between PyTorch and ONNX on the MIGraphX execution provider. Both formats run at FP32 precision on the GPU, PyTorch through ROCm and ONNX through MIGraphX.
+
+!!! tip "Performance"
+
+    === "Detection (COCO)"
+
+        | Model   | Format          | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | --------------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n | PyTorch         | ✅     | 5.3       | 0.4089              | 4.1                    |
+        | YOLO26n | ONNX (MIGraphX) | ✅     | 9.5       | 0.4089              | 2.1                    |
+        | YOLO26s | PyTorch         | ✅     | 19.5      | 0.4850              | 7.2                    |
+        | YOLO26s | ONNX (MIGraphX) | ✅     | 36.5      | 0.4850              | 4.7                    |
+        | YOLO26m | PyTorch         | ✅     | 42.2      | 0.5323              | 14.6                   |
+        | YOLO26m | ONNX (MIGraphX) | ✅     | 78.2      | 0.5323              | 10.9                   |
+        | YOLO26l | PyTorch         | ✅     | 50.7      | 0.5489              | 18.5                   |
+        | YOLO26l | ONNX (MIGraphX) | ✅     | 95.0      | 0.5489              | 15.0                   |
+        | YOLO26x | PyTorch         | ✅     | 113.2     | 0.5748              | 37.4                   |
+        | YOLO26x | ONNX (MIGraphX) | ✅     | 212.9     | 0.5748              | 27.1                   |
+
+    === "Segmentation (COCO)"
+
+        | Model       | Format          | Status | Size (MB) | metrics/mAP50-95(B) | metrics/mAP50-95(M) | Inference time (ms/im) |
+        | ----------- | --------------- | ------ | --------- | ------------------- | ------------------- | ---------------------- |
+        | YOLO26n-seg | PyTorch         | ✅     | 6.4       | 0.4057              | 0.3444              | 4.9                    |
+        | YOLO26n-seg | ONNX (MIGraphX) | ✅     | 10.7      | 0.4057              | 0.3444              | 3.0                    |
+        | YOLO26s-seg | PyTorch         | ✅     | 22.4      | 0.4807              | 0.4040              | 8.6                    |
+        | YOLO26s-seg | ONNX (MIGraphX) | ✅     | 40.0      | 0.4807              | 0.4040              | 6.4                    |
+        | YOLO26m-seg | PyTorch         | ✅     | 52.2      | 0.5315              | 0.4445              | 18.7                   |
+        | YOLO26m-seg | ONNX (MIGraphX) | ✅     | 90.2      | 0.5316              | 0.4445              | 16.2                   |
+        | YOLO26l-seg | PyTorch         | ✅     | 60.7      | 0.5497              | 0.4587              | 21.8                   |
+        | YOLO26l-seg | ONNX (MIGraphX) | ✅     | 107.1     | 0.5497              | 0.4587              | 20.3                   |
+        | YOLO26x-seg | PyTorch         | ✅     | 135.5     | 0.5711              | 0.4747              | 44.5                   |
+        | YOLO26x-seg | ONNX (MIGraphX) | ✅     | 240.0     | 0.5711              | 0.4747              | 38.0                   |
+
+    === "Semantic Segmentation (Cityscapes)"
+
+        | Model       | Format          | Status | Size (MB) | metrics/mIoU | Inference time (ms/im) |
+        | ----------- | --------------- | ------ | --------- | ------------ | ---------------------- |
+        | YOLO26n-sem | PyTorch         | ✅     | 3.3       | 0.7819       | 21.3                   |
+        | YOLO26n-sem | ONNX (MIGraphX) | ✅     | 6.0       | 0.7819       | 18.6                   |
+        | YOLO26s-sem | PyTorch         | ✅     | 12.6      | 0.8076       | 55.3                   |
+        | YOLO26s-sem | ONNX (MIGraphX) | ✅     | 23.7      | 0.8076       | 37.7                   |
+        | YOLO26m-sem | PyTorch         | ✅     | 27.6      | 0.8194       | 153.1                  |
+        | YOLO26m-sem | ONNX (MIGraphX) | ✅     | 50.1      | 0.8194       | 86.3                   |
+        | YOLO26l-sem | PyTorch         | ✅     | 34.5      | 0.8284       | 191.1                  |
+        | YOLO26l-sem | ONNX (MIGraphX) | ✅     | 63.7      | 0.8284       | 119.6                  |
+        | YOLO26x-sem | PyTorch         | ✅     | 77.0      | 0.8364       | 419.0                  |
+        | YOLO26x-sem | ONNX (MIGraphX) | ✅     | 143.1     | 0.8364       | 228.4                  |
+
+    === "Classification (ImageNet)"
+
+        | Model       | Format          | Status | Size (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
+        | ----------- | --------------- | ------ | --------- | ---------- | ---------- | ---------------------- |
+        | YOLO26n-cls | PyTorch         | ✅     | 5.5       | 0.7139     | 0.9010     | 1.8                    |
+        | YOLO26n-cls | ONNX (MIGraphX) | ✅     | 10.8      | 0.7139     | 0.9010     | 0.6                    |
+        | YOLO26s-cls | PyTorch         | ✅     | 13.0      | 0.7598     | 0.9290     | 2.0                    |
+        | YOLO26s-cls | ONNX (MIGraphX) | ✅     | 25.7      | 0.7598     | 0.9290     | 1.0                    |
+        | YOLO26m-cls | PyTorch         | ✅     | 22.4      | 0.7808     | 0.9416     | 3.1                    |
+        | YOLO26m-cls | ONNX (MIGraphX) | ✅     | 44.4      | 0.7808     | 0.9416     | 2.0                    |
+        | YOLO26l-cls | PyTorch         | ✅     | 27.2      | 0.7903     | 0.9458     | 4.3                    |
+        | YOLO26l-cls | ONNX (MIGraphX) | ✅     | 53.9      | 0.7903     | 0.9458     | 2.8                    |
+        | YOLO26x-cls | PyTorch         | ✅     | 56.8      | 0.7990     | 0.9504     | 6.7                    |
+        | YOLO26x-cls | ONNX (MIGraphX) | ✅     | 113.1     | 0.7990     | 0.9504     | 4.2                    |
+
+    === "Pose (COCO)"
+
+        | Model        | Format          | Status | Size (MB) | metrics/mAP50-95(P) | Inference time (ms/im) |
+        | ------------ | --------------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n-pose | PyTorch         | ✅     | 7.5       | 0.5669              | 4.6                    |
+        | YOLO26n-pose | ONNX (MIGraphX) | ✅     | 11.6      | 0.5669              | 2.5                    |
+        | YOLO26s-pose | PyTorch         | ✅     | 23.0      | 0.6286              | 7.6                    |
+        | YOLO26s-pose | ONNX (MIGraphX) | ✅     | 39.9      | 0.6286              | 5.4                    |
+        | YOLO26m-pose | PyTorch         | ✅     | 46.8      | 0.6872              | 14.9                   |
+        | YOLO26m-pose | ONNX (MIGraphX) | ✅     | 82.6      | 0.6872              | 11.9                   |
+        | YOLO26l-pose | PyTorch         | ✅     | 55.3      | 0.7004              | 18.7                   |
+        | YOLO26l-pose | ONNX (MIGraphX) | ✅     | 99.4      | 0.7004              | 15.6                   |
+        | YOLO26x-pose | PyTorch         | ✅     | 120.4     | 0.7146              | 37.5                   |
+        | YOLO26x-pose | ONNX (MIGraphX) | ✅     | 220.0     | 0.7146              | 27.1                   |
+
+    === "OBB (DOTAv1)"
+
+        | Model       | Format          | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ----------- | --------------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n-obb | PyTorch         | ✅     | 5.6       | 0.4641              | 6.9                    |
+        | YOLO26n-obb | ONNX (MIGraphX) | ✅     | 9.7       | 0.4641              | 4.1                    |
+        | YOLO26s-obb | PyTorch         | ✅     | 20.7      | 0.5051              | 15.2                   |
+        | YOLO26s-obb | ONNX (MIGraphX) | ✅     | 37.5      | 0.5051              | 10.4                   |
+        | YOLO26m-obb | PyTorch         | ✅     | 46.1      | 0.5348              | 39.7                   |
+        | YOLO26m-obb | ONNX (MIGraphX) | ✅     | 81.2      | 0.5348              | 25.9                   |
+        | YOLO26l-obb | PyTorch         | ✅     | 54.6      | 0.5418              | 48.6                   |
+        | YOLO26l-obb | ONNX (MIGraphX) | ✅     | 98.0      | 0.5418              | 33.4                   |
+        | YOLO26x-obb | PyTorch         | ✅     | 121.1     | 0.5562              | 105.3                  |
+        | YOLO26x-obb | ONNX (MIGraphX) | ✅     | 219.9     | 0.5562              | 65.9                   |
+
+    Benchmarked with Ultralytics 8.4.165
+
+    !!! note
+
+        Validation for the above benchmarks was done at batch size 1 on the full validation sets, at 640 for detection, segmentation and pose estimation, 2048 for semantic segmentation, 224 for classification and 1024 for OBB. Inference time does not include pre/post-processing or the one-time MIGraphX compile.
+
 ## Support at a Glance
 
 Support for one AMD product or runtime does not imply support for every AMD accelerator. This table summarizes the current status in the Ultralytics Python package.

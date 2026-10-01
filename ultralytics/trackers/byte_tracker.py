@@ -450,9 +450,8 @@ class BYTETracker:
 
         for it in u_track:
             track = r_tracked_stracks[it]
-            if track.state != TrackState.Lost:
-                track.mark_lost()
-                lost.append(track)
+            track.mark_lost()
+            lost.append(track)
 
     def _unconfirmed_association(
         self,

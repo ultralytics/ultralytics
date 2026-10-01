@@ -943,7 +943,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
-The destination slug is auto-renamed if it is already taken, and cloning requires enough remaining storage quota to hold the copy.
+The clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace, and cloning requires enough remaining storage quota to hold the copy.
 
 !!! note "Connected Datasets"
 

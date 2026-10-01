@@ -300,7 +300,7 @@ onnx_model = ONNXBackend("resnet18.onnx", device=torch.device("cpu"))
 onnx_output = onnx_model(im)[0]
 
 diff = np.abs(pytorch_output - onnx_output).max()
-print(f"Max difference: {diff:.6f}")  # ~1e-6 for an FP32 ONNX export
+print(f"Max difference: {diff:.6f}")  # ~1e-5 for an FP32 ONNX export
 ```
 
 !!! tip "Expected difference"

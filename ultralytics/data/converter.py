@@ -17,7 +17,6 @@ from uuid import uuid4
 
 import cv2
 import numpy as np
-from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
 from ultralytics.data.utils import get_split_fraction
@@ -894,14 +893,23 @@ async def convert_ndjson_to_yolo(
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
-    try:
-        async with AsyncFileLock(cache_path.with_suffix(".lock"), timeout=0):
-            return await convert()
-    except Timeout:
-        pass
+    with open(cache_path.with_suffix(".lock"), "a") as lock:  # OS releases the lock on close or process exit
+        waited = False
+        while True:
+            try:
+                if os.name == "nt":
+                    import msvcrt
 
-    async with AsyncFileLock(cache_path.with_suffix(".lock")):
-        if cache_path.is_file():
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except (BlockingIOError, PermissionError):  # held by another conversion (POSIX, Windows)
+                waited = True
+                await asyncio.sleep(0.1)
+        if waited and cache_path.is_file():  # reuse the result the lock holder just produced
             result = output_path / cache_path.read_text()
             marker = result / ".ndjson.yaml" if result.is_dir() else result
             if marker.is_file():

@@ -72,8 +72,6 @@ def _log_tensorboard_graph(trainer) -> None:
     except Exception as e1:
         # Fallback to TorchScript export steps (RTDETR)
         try:
-            from ultralytics.nn.modules import Detect
-
             model = deepcopy(torch_utils.unwrap_model(trainer.model))
             model.eval()
             model = model.fuse(verbose=False)
@@ -81,9 +79,6 @@ def _log_tensorboard_graph(trainer) -> None:
                 if hasattr(m, "export"):  # Detect, RTDETRDecoder (Segment and Pose use Detect base class)
                     m.export = True
                     m.format = "torchscript"
-                    if isinstance(m, Detect):  # export traces bake max_det, so clamp it to the anchors like Exporter
-                        anchors = sum(int(imgsz[0] / s) * int(imgsz[1] / s) for s in model.stride.tolist())
-                        m.max_det = min(m.max_det, anchors)
             model(im)  # dry run
             WRITER.add_graph(torch.jit.trace(model, im, strict=False), [])
             LOGGER.info(f"{PREFIX}model graph visualization added ✅")

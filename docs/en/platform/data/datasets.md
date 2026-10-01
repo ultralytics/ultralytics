@@ -651,7 +651,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 | Annotations | Annotation count at time of snapshot |
 | Size        | Storage this version added           |
 | Created     | When the version was created         |
-| Actions     | Download or restore                  |
+| Actions     | Compare, download, or restore        |
 
 To create a version:
 
@@ -661,6 +661,14 @@ To create a version:
 4. The new version appears in the table. If the dataset matches an existing version, for example right after restoring it, that version is reused and takes the new description
 
 Each version is numbered sequentially (v1, v2, v3...) and is immutable — versions cannot be edited or removed, only their descriptions can be changed. Use the row actions to download or restore any version at any time.
+
+#### Compare Versions
+
+Click the compare icon on any version after v1 to see what changed since an earlier version. **Compare versions** starts
+from the previous version; pick another one in the **From** menu. Chips count the images added, removed, modified, and
+moved to another split, and the labels added and removed, and each changed image is listed with its badge. Select an
+image to see it **Before** and **After**, each side with the labels that version stored. When the images and labels are
+identical, the dialog reports that, including when only dataset settings such as class names differ.
 
 !!! warning "Restoring a Version"
 

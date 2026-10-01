@@ -118,7 +118,7 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Classes**  | View, rename, recolor, merge, and delete classes with per-class label counts |
 | **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
-| **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
+| **Versions** | Create, compare, download, and restore immutable NDJSON snapshots            |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
 `Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.

@@ -524,7 +524,8 @@ POST /api/datasets/{owner}/{dataset}/export
 **Python SDK:** `client.datasets.create_export(owner, dataset)`
 
 Creates an immutable numbered version of the dataset. Requires editor access. Set `download` to `false` to save the
-version without preparing an NDJSON download; `downloadUrl` is then omitted.
+version without preparing an NDJSON download; `downloadUrl` is then omitted. The SDK accepts `download` from
+`ultralytics-platform>=0.1.73`.
 
 **Body (optional):**
 
@@ -586,6 +587,58 @@ Rebuilds images, annotations, and classes from a saved version without copying i
 ```
 
 **Response:** `{"version": 2, "imageCount": 1000}`
+
+### Compare Dataset Versions
+
+```http
+GET /api/datasets/{owner}/{dataset}/versions/compare?base={from}&head={to}
+```
+
+**Python SDK:** `client.datasets.compare(owner, dataset, base=1, head=2)` (`ultralytics-platform>=0.1.73`)
+
+| Parameter | Type   | Description                                                                    |
+| --------- | ------ | ------------------------------------------------------------------------------ |
+| `base`    | int    | Version compared from                                                          |
+| `head`    | int    | Version compared to                                                            |
+| `cursor`  | string | `nextCursor` from the previous page                                            |
+| `hash`    | string | An item's `hash`: return that image as each version stores it, not the changes |
+
+**Response:**
+
+```json
+{
+    "summary": {
+        "added": 0,
+        "removed": 1,
+        "modified": 1,
+        "moved": 1,
+        "labelsAdded": 1,
+        "labelsRemoved": 2,
+        "header": { "classesAdded": [], "classesRemoved": [], "classesRenamed": [], "changed": [] }
+    },
+    "items": [
+        {
+            "hash": "b5c605c133f84c3024af7e652b135501",
+            "name": "000000000042",
+            "ext": "jpg",
+            "change": "moved",
+            "fields": [],
+            "labelsAdded": 0,
+            "labelsRemoved": 0,
+            "base": { "split": "val", "labelCount": 1 },
+            "head": { "split": "test", "labelCount": 1 }
+        }
+    ]
+}
+```
+
+`summary` holds exact totals and appears on the first page only; `header` lists classes added, removed, or renamed and
+other dataset fields that differ. Each item's `change` is `added`, `removed`, `modified` (with the changed `fields`), or
+`moved` (split changed), and `labelsRemoved` includes the labels of removed images. Pass `nextCursor`, when present, as
+`cursor` for the next page. With `hash`, the response is `versions`: the image as each version stores it, with its
+labels and a signed `imageUrl`. Either order works; swapping `base` and `head` reports a removed image as added.
+Comparisons use the default rate limit, and requests without `hash` are also limited to 10 per minute per user
+and dataset, whichever API key sends them.
 
 ### Get Dataset Statistics
 

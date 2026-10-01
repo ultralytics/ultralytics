@@ -30,6 +30,10 @@ on:
         description: "Run GPU"
         default: true
         type: boolean
+      amd-gpu:
+        description: "Run AMD GPU"
+        default: true
+        type: boolean
       raspberrypi:
         description: "Run Raspberry Pi"
         default: true
@@ -435,7 +439,7 @@ jobs:
       - name: Install requirements
         run: |
           # Use the CUDA 13 ONNX Runtime wheel; ModelOpt still pins its CUDA 12 predecessor.
-          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap --torch-backend cu132 --excludes <(echo onnxruntime) --overrides <(echo "onnxruntime-gpu>=1.30.0")
+          uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap cloudpickle --torch-backend cu132 --excludes <(echo onnxruntime) --overrides <(echo "onnxruntime-gpu>=1.30.0")
         env:
           PIP_BREAK_SYSTEM_PACKAGES: 1
       - name: Check environment
@@ -459,6 +463,49 @@ jobs:
           fail_ci_if_error: false
           use_oidc: true
 
+  AMD_GPU:
+    if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.amd-gpu == 'true')
+    permissions:
+      contents: read
+      id-token: write
+    timeout-minutes: 120
+    runs-on: amd-gpu-latest
+    concurrency: # a newer run-all on the same PR supersedes its queued/running hardware jobs
+      group: amd-gpu-${{ github.event_name }}-${{ github.ref_name }}
+      cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
+    env:
+      YOLO_AUTOINSTALL: "false"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main
+        with:
+          python-version: "3.12"
+          activate-environment: true
+      - name: Install requirements
+        run: |
+          uv pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/ --index-strategy unsafe-best-match
+          uv pip install -e . pytest-cov "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82"
+          uv pip install "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ --index-strategy unsafe-best-match
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+      - name: Check environment
+        run: |
+          yolo checks
+          uv pip list
+      - name: Pytest ROCm tests
+        run: |
+          pytest --slow --cov=ultralytics/ --cov-report xml tests/test_rocm.py -sv
+        env:
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+          ORT_MIGRAPHX_CACHE_DIR: ${{ runner.temp }}/migraphx_cache # emptied by the runner after every job
+      - name: Upload Coverage Reports to CodeCov
+        continue-on-error: true
+        uses: codecov/codecov-action@v7
+        with:
+          flags: AMD_GPU
+          fail_ci_if_error: false
+          use_oidc: true
+
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
@@ -469,7 +516,7 @@ jobs:
       cancel-in-progress: ${{ github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.40
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.41
       - uses: actions/checkout@v7
       - name: Activate Virtual Environment for Tests
         run: |
@@ -538,7 +585,7 @@ jobs:
           cat benchmarks.log
           echo "$(cat benchmarks.log)" >> $GITHUB_STEP_SUMMARY
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.40
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.41
       # The below is fixed in: https://github.com/ultralytics/ultralytics/pull/15987
       # - name: Reboot # run a reboot command in the background to free resources for next run and not crash main thread
       #   run: sudo bash -c "sleep 10; reboot" &
@@ -571,7 +618,7 @@ jobs:
             onnxruntime_whl: "https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.16.3-cp38-cp38-linux_aarch64.whl"
     steps:
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.40
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.41
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
       - name: Activate virtual environment
@@ -598,7 +645,7 @@ jobs:
       - name: Pytest tests
         run: pytest --slow tests/test_cuda.py
       - name: Clean up runner
-        uses: eviden-actions/clean-self-hosted-runner@v1.4.40
+        uses: eviden-actions/clean-self-hosted-runner@v1.4.41
 
   Conda:
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.conda == 'true')
@@ -667,11 +714,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, AMD_GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

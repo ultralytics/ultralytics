@@ -128,6 +128,7 @@ from ultralytics.utils.checks import (
     check_requirements,
     check_version,
     is_intel,
+    rocm_is_available,
 )
 from ultralytics.utils.export.axelera import AXELERA_SDK
 from ultralytics.utils.files import file_size
@@ -1084,7 +1085,8 @@ class Exporter:
         if self.args.simplify or (self.args.format == "onnx" and self.args.quantize == 8 and not self.qat):
             # Pass onnxruntime variants as interchangeable candidates so AutoUpdate keeps an installed build
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
-            ort = "onnxruntime-gpu" if "cuda" in self.device.type else "onnxruntime"
+            # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
+            ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
             requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
@@ -1128,6 +1130,7 @@ class Exporter:
             and self.args.quantize == 8
             and self.model.task in {"detect", "segment", "pose", "obb"}
             and not self.metadata["end2end"]
+            and self.metadata["head"] != "RTDETRDecoder"
         ):
             from ultralytics.utils.export.engine import _NormalizeCoords
 
@@ -1454,7 +1457,7 @@ class Exporter:
             # built inline as a temporary so onnx2saved_model's `del images` frees it before the conversion phase
             images=self._int8_calibration_images(prefix) if self.args.quantize == 8 and self.args.data else None,
             disable_group_convolution=self.args.format == "edgetpu",
-            cuda=self.device.type == "cuda",
+            cuda=self.device.type == "cuda" and not rocm_is_available(),  # TensorFlow and onnxruntime-gpu are CUDA-only
             prefix=prefix,
         )
         YAML.save(f / "metadata.yaml", self.metadata)  # add metadata.yaml

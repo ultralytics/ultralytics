@@ -76,7 +76,7 @@ Install the `ultralytics` package with pip, conda, or Docker, or from source, th
 
 !!! tip
 
-    [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA version. To use a specific build, install PyTorch first by following the [PyTorch installation instructions](https://pytorch.org/get-started/locally/), then install `ultralytics`.
+    [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA version. To use a specific build, install PyTorch first by following the [PyTorch installation instructions](https://pytorch.org/get-started/locally/), then install `ultralytics`. For AMD GPUs on Linux, install a ROCm build of PyTorch as described in the [AMD integration guide](integrations/amd.md#installation).
 
 ## Use Ultralytics with CLI
 
@@ -204,7 +204,7 @@ yolo TASK MODE ARGS
 For example, to train a detection model:
 
 ```bash
-yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
 Explore more commands and usage examples in the full [CLI Guide](usage/cli.md).

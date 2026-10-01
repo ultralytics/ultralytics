@@ -450,10 +450,9 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
+    # Check system fonts in matplotlib's cached list only: findSystemFonts() rescans the OS (8s on macOS), and a miss
+    # is routine (e.g. Arial.Unicode.ttf on macOS) until the download below lands in USER_CONFIG_DIR
     matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
-    if not matches:  # font installed after matplotlib's cached list was built, rescan the OS
-        matches = [f for f in font_manager.findSystemFonts() if font in f]
     if any(matches):
         return matches[0]
 
@@ -1166,6 +1165,15 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and bool(torch.version.hip) and torch.cuda.is_available()
+
+
 def is_rockchip():
     """Check if the current environment is running on a Rockchip SoC.
 
@@ -1231,5 +1239,6 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
+IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)

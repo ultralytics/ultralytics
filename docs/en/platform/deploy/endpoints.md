@@ -211,7 +211,7 @@ The deployments list supports three view modes:
 
 Each deployment has its own page at `/{username}/deploy/{deployment}`, which shows:
 
-- **Header**: Region flag, display name (click it to rename; the URL does not change), status badge, location, and CPU and memory size
+- **Header**: Region flag, display name (click it to rename; the page URL and API path change to a slug of the new name, the endpoint URL does not), status badge, location, and CPU and memory size
 - **Actions**: **Update configuration**, **Replace model**, and **Stop deployment** when **Ready**, **Start deployment** when **Stopped**, and a **More actions** (…) menu with **Information**, **Refresh**, and **Delete Deployment**
 - **Metrics**: HTTP Requests, HTTP Error Rate, and HTTP P95 Latency over 24 hours with sparklines, plus a card linking to the deployed model
 - **Tabs**: `Overview`, `Monitoring`, `Predict`, and `Logs`
@@ -442,9 +442,10 @@ capacity ceiling:
 
 {% include "macros/platform-inference-parameters.md" %}
 
-An endpoint keeps the inference runtime from its last rollout, so a newer default such as the training-size `imgsz` above
-reaches it when a new revision rolls out, for example after you [replace its model](#replace-a-model) or
-[change its CPU or memory](#update-cpu-and-memory). Pass `imgsz` explicitly for a fixed input size.
+An endpoint keeps the inference runtime from its last rollout, so newer behavior such as the training-size `imgsz`
+default or `vid_stride` above reaches it when a new revision rolls out, for example after you
+[replace its model](#replace-a-model) or [change its CPU or memory](#update-cpu-and-memory). Pass `imgsz` explicitly
+for a fixed input size.
 
 See [Depth responses](inference.md#task-specific-responses) for how `bits` changes the returned depth map and how to
 decode it.
@@ -456,7 +457,7 @@ decode it.
     - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
     - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
-    Each video frame is processed individually and results are returned per frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
+    Results are returned per processed video frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
 
 ### Response Format
 

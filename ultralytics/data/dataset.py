@@ -49,8 +49,9 @@ from .utils import (
     verify_image_mask,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.8"  # semantic palette (P) masks are now read as class indices
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
+# rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
+DATASET_CACHE_VERSION = "1.0.9"  # 16-bit semantic masks are now read at full depth and validated
 
 
 class YOLODataset(BaseDataset):
@@ -174,7 +175,9 @@ class YOLODataset(BaseDataset):
         Returns:
             (str): Dataset cache hash.
         """
-        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        # add_polygon_background() class is not a label class, so segment and semantic share one cache
+        nc = self.data.get("bg_class_idx") or len(self.data["names"])
+        scan_args = (self.use_keypoints, nc, self.data.get("kpt_shape"), self.single_cls)
         return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
@@ -203,7 +206,7 @@ class YOLODataset(BaseDataset):
             self.label_files,
             repeat(self.prefix),
             repeat(self.use_keypoints),
-            repeat(len(self.data["names"])),
+            repeat(self.data.get("bg_class_idx") or len(self.data["names"])),  # label classes, no semantic background
             repeat(nkpt),
             repeat(ndim),
             repeat(self.single_cls),
@@ -1053,9 +1056,10 @@ class SemanticDataset(YOLODataset):
         mode = self.labels[index]["mode"]
         if mode == "P":  # palette PNGs store class ids as indices, not grayscale colors
             with Image.open(mask_file) as im:
-                mask = np.array(im)
+                p = np.array(im.getpalette()).reshape(-1, 3)  # gray palettes (e.g. pngquant) hold gray-level class ids
+                mask = np.array(im.convert("L") if (p == p[:, :1]).all() else im)
         else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
+            mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
         if int(self.data.get("nc", 0)) == 1 and mode == "1":
@@ -1246,6 +1250,7 @@ class ClassificationDataset:
             LOGGER.warning(
                 f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {sorted(extra)}"
             )
+        # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
         if self.cache_ram:
             self.cache_images()
@@ -1275,7 +1280,7 @@ class ClassificationDataset:
         Returns:
             (dict): Dictionary containing the image and its class index.
         """
-        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        f, j, fn, im = self.samples[i]  # filename, class index, npy cache path, image
         if self.cache_ram:
             im = self.img_cache[i]
         elif self.cache_disk:

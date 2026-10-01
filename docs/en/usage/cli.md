@@ -37,10 +37,10 @@ The Ultralytics command line interface (CLI) provides a straightforward way to u
 
     === "Train"
 
-        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch) with an initial [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01:
+        Train a detection model for 10 [epochs](https://www.ultralytics.com/glossary/epoch):
 
         ```bash
-        yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+        yolo train data=coco8.yaml model=yolo26n.pt epochs=10
         ```
 
     === "Predict"
@@ -201,7 +201,7 @@ Override default arguments by passing them in the CLI as `arg=value` pairs.
         Train a detection model for 10 epochs with a learning rate of 0.01:
 
         ```bash
-        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+        yolo detect train data=coco8.yaml model=yolo26n.pt epochs=10 optimizer=SGD lr0=0.01
         ```
 
     === "Predict"
@@ -409,10 +409,10 @@ For more information on Ultralytics solutions, visit the [Solutions](../solution
 
 ### How do I use the Ultralytics YOLO command line interface (CLI) for model training?
 
-To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs with a [learning rate](https://www.ultralytics.com/glossary/learning-rate) of 0.01, run:
+To train a model using the CLI, execute a single-line command in the terminal. For example, to train a detection model for 10 epochs, run:
 
 ```bash
-yolo train data=coco8.yaml model=yolo26n.pt epochs=10 lr0=0.01
+yolo train data=coco8.yaml model=yolo26n.pt epochs=10
 ```
 
 This command uses the `train` mode with specific arguments. For a full list of available arguments, refer to the [Configuration Guide](cfg.md).

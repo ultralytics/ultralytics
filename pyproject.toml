@@ -211,6 +211,9 @@ addopts = "--doctest-modules --durations=30 --color=yes"
 markers = [
     "slow: skip slow tests unless --slow is set",
 ]
+filterwarnings = [
+    "ignore::torch.jit.TracerWarning", # pytest discards the import-time filter in ultralytics/utils/__init__.py
+]
 norecursedirs = [".git", "dist", "build"]
 
 [tool.coverage.run]

@@ -243,7 +243,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. Without a COCO file, per-image [LabelMe](../integrations/labelme.md) JSON files (containing `shapes` and `imagePath`) are read as LabelMe annotations. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
     When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
 

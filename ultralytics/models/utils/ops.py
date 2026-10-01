@@ -217,8 +217,9 @@ def get_cdn_group(
     dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
 
     # Positive and negative mask
-    # (bs*num*num_group, ), the second total_num*num_group part as negative samples
-    neg_idx = torch.arange(total_num * num_group, dtype=torch.long, device=gt_bbox.device) + num_group * total_num
+    # The second block in each group contains its negative samples.
+    neg_idx = torch.arange(total_num * 2 * num_group, dtype=torch.long, device=gt_bbox.device)
+    neg_idx = neg_idx.view(num_group, 2, total_num)[:, 1].reshape(-1)
 
     if cls_noise_ratio > 0:
         # Apply class label noise to half of the samples
@@ -248,7 +249,7 @@ def get_cdn_group(
     padding_bbox = torch.zeros(bs, num_dn, 4, device=gt_bbox.device)
 
     map_indices = torch.cat([torch.tensor(range(num), dtype=torch.long) for num in gt_groups])
-    pos_idx = torch.stack([map_indices + max_nums * i for i in range(num_group)], dim=0)
+    pos_idx = torch.stack([map_indices + max_nums * 2 * i for i in range(num_group)], dim=0)
 
     map_indices = torch.cat([map_indices + max_nums * i for i in range(2 * num_group)])
     padding_cls[(dn_b_idx, map_indices)] = dn_cls_embed

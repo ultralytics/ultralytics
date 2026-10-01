@@ -1646,6 +1646,39 @@ def test_utils_torchutils():
     time_sync()
 
 
+@pytest.mark.parametrize("num_dn", [2, 4, 6])
+def test_rtdetr_denoising_groups(num_dn):
+    """Test each isolated denoising attention group contains small-noise positives and large-noise negatives."""
+    from ultralytics.models.utils.loss import RTDETRDetectionLoss
+    from ultralytics.models.utils.ops import get_cdn_group
+    from ultralytics.utils.ops import xywh2xyxy
+
+    torch.manual_seed(0)
+    batch = {
+        "cls": torch.tensor([0, 1, 2]),
+        "bboxes": torch.tensor([[0.5, 0.5, 0.2, 0.2]]).repeat(3, 1),
+        "batch_idx": torch.tensor([0, 0, 1]),
+        "gt_groups": [2, 1, 0],
+    }
+    _, boxes, mask, meta = get_cdn_group(
+        batch, 3, 10, torch.eye(3), num_dn=num_dn, cls_noise_ratio=0, box_noise_scale=0.5, training=True
+    )
+    matches = RTDETRDetectionLoss.get_dn_match_indices(meta["dn_pos_idx"], meta["dn_num_group"], meta["dn_gt_idx"])
+    noise = (xywh2xyxy(boxes.sigmoid()) - xywh2xyxy(batch["bboxes"][:1])).abs()
+    for image, n in enumerate(batch["gt_groups"]):
+        for group in range(meta["dn_num_group"]):
+            start = 4 * group
+            positive = torch.arange(start, start + n)
+            negative = positive + 2
+            assert torch.equal(matches[image][0][group * n : (group + 1) * n], positive)
+            assert torch.equal(matches[image][1][group * n : (group + 1) * n], meta["dn_gt_idx"][image])
+            assert (noise[image, positive] <= 0.05 + 1e-6).all()
+            assert (noise[image, negative] > 0.05).all()
+            assert not mask[start : start + 4, start : start + 4].any()
+            assert mask[start : start + 4, :start].all() and mask[start : start + 4, start + 4 : num_dn * 2].all()
+    assert mask[num_dn * 2 :, : num_dn * 2].all()
+
+
 def test_rtdetr_remap_cls_by_names():
     """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
     from types import SimpleNamespace

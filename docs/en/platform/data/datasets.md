@@ -323,7 +323,7 @@ graph LR
 1. **Validation**: Format and size checks
 2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded
 3. **Thumbnails**: 256px WebP previews generated
-4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted; in a detect dataset, an image with a normalized box center, width, or height below `-0.01` or above `1.01` is skipped with its labels and counted as `labels outside image` in the import summary; fix the out-of-range box and re-upload the image
+4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
 !!! info "Stored Image Encoding"

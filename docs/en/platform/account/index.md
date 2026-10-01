@@ -56,7 +56,7 @@ Account management is organized into nine tabs within `Settings` (in order):
 | `Profile`      | Display name, bio, company, use case, emails, social links, data region, connected accounts |
 | `API Keys`     | Create and manage API keys for remote training and programmatic access                      |
 | `Plans`        | Compare Free, Pro, and Enterprise plans                                                     |
-| `Billing`      | Credit balance, top-up, auto top-up, payment methods, billing address, transactions         |
+| `Billing`      | Credit balance, top-ups, promo codes, payment methods, billing address, transactions        |
 | `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace               |
 | `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10         |
 | `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                     |

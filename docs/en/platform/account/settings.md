@@ -276,6 +276,8 @@ From this tab you can:
 - **View your current plan** and cancel, resume, or upgrade it from the plan card
 - **View credit balance** and monitor remaining credits
 - **Add credits** via manual top-up (presets from $10–$500 or custom amounts of $5–$1,000)
+- **Redeem a promo code** you did not apply at signup (personal workspaces only; see
+  [Redeem a Promo Code](billing.md#redeem-a-promo-code))
 - **Enable auto top-up** to automatically add credits when your balance falls below a threshold, reducing the chance of
   training interruption
 - **Manage payment methods** and set the default card used for top-ups and renewals

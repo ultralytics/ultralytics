@@ -70,7 +70,8 @@ def cache_datasets() -> None:
             check_cls_dataset(ds)
         else:
             check_det_dataset(ds, autodownload=True)
-    safe_download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "annotations")
+    for name in "instances_val2017.json", "person_keypoints_val2017.json":
+        safe_download(f"{ASSETS_URL}/{name}", dir=DATASETS_DIR / "annotations")
     LOGGER.info("[cache] Datasets done.")
 
 

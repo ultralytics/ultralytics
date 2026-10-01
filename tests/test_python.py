@@ -382,6 +382,34 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
+def test_parse_model_restores_default_act(tmp_path):
+    """Test that custom-activation builds restore the process-wide Conv.default_act on success and on failure."""
+    from ultralytics.nn.modules.conv import Conv
+
+    default_act = Conv.default_act
+    yaml_ok = tmp_path / "ok_act.yaml"
+    yaml_ok.write_text(
+        "nc: 80\n"
+        "activation: torch.nn.ReLU()\n"
+        "backbone:\n"
+        "  - [-1, 1, Conv, [64, 3, 2]]\n"
+        "  - [-1, 1, Conv, [128, 3, 2]]\n"
+        "  - [-1, 1, Conv, [256, 3, 2]]\n"
+        "head:\n"
+        "  - [[-1], 1, Detect, [nc]]\n"
+    )
+    yaml_leaky = tmp_path / "leaky_act.yaml"
+    yaml_leaky.write_text(yaml_ok.read_text().replace("Conv, [128", "ConvTypo, [128", 1))
+    with pytest.raises(KeyError):  # the layer-construction error propagates, unmasked by the restore
+        YOLO(yaml_leaky)
+    assert Conv.default_act is default_act  # the exact original object, not a fresh instance
+    assert all(isinstance(m.act, torch.nn.SiLU) for m in YOLO("yolov8n.yaml").model.modules() if isinstance(m, Conv))
+
+    model = YOLO(yaml_ok).model  # a successful custom-activation build keeps the requested activation per layer
+    assert all(isinstance(m.act, torch.nn.ReLU) for m in model.modules() if isinstance(m, Conv))
+    assert Conv.default_act is default_act  # while the global default is restored
+
+
 def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = tmp_path / "sources_multi_row.txt"

@@ -74,6 +74,7 @@ graph LR
 | [Training](../train/cloud-training.md)     | Cloud GPU training jobs         | GPU availability, start, progress, cancel                     |
 | [Exports](../train/models.md#export-model) | Format conversion jobs          | Create, list, status, cancel                                  |
 | [Deployments](../deploy/endpoints.md)      | Dedicated inference endpoints   | Create, update, start/stop, predict, metrics, logs            |
+| [Agents](../agents.md)                     | Saved visual workflows          | List, save, delete                                            |
 | [Trash](../account/trash.md)               | Soft-deleted resources          | List, restore, permanently delete                             |
 | [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
 | [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
@@ -146,30 +147,31 @@ https://platform.ultralytics.com/api
 
 ## Resource Paths
 
-Resources are addressed by the same human-readable names that appear in Platform URLs, not by database IDs:
+Most resources are addressed by the same human-readable names that appear in Platform URLs, not by database IDs:
 
-| Resource   | Path                                    | Example                                 |
-| ---------- | --------------------------------------- | --------------------------------------- |
-| Dataset    | `/api/datasets/{owner}/{dataset}`       | `/api/datasets/acme-vision/warehouse`   |
-| Project    | `/api/projects/{owner}/{project}`       | `/api/projects/acme-vision/inspection`  |
-| Model      | `/api/models/{owner}/{project}/{model}` | `/api/models/acme-vision/inspection/v3` |
-| Deployment | `/api/deployments/{owner}/{deployment}` | `/api/deployments/acme-vision/edge-1`   |
-| Image      | `/api/images/{imageId}`                 | `/api/images/65f1c0a2b3d4e5f601234567`  |
+| Resource   | Path                                    | Example                                      |
+| ---------- | --------------------------------------- | -------------------------------------------- |
+| Dataset    | `/api/datasets/{owner}/{dataset}`       | `/api/datasets/acme-vision/warehouse`        |
+| Project    | `/api/projects/{owner}/{project}`       | `/api/projects/acme-vision/inspection`       |
+| Model      | `/api/models/{owner}/{project}/{model}` | `/api/models/acme-vision/inspection/v3`      |
+| Deployment | `/api/deployments/{owner}/{deployment}` | `/api/deployments/acme-vision/edge-1`        |
+| Image      | `/api/images/{imageId}`                 | `/api/images/65f1c0a2b3d4e5f601234567`       |
+| Agent      | `/api/workflows?id={agentId}`           | `/api/workflows?id=65f1c0a2b3d4e5f601234567` |
 
 - `{owner}` is a personal username or a team workspace handle: 4-32 characters, lowercase alphanumeric with single
   hyphens between segments.
 - `{dataset}`, `{project}`, `{model}`, and `{deployment}` follow the same lowercase-hyphenated pattern, up to 128
   characters.
-- `{imageId}` and `{exportId}` are 24-character hexadecimal IDs returned by the API.
+- `{imageId}`, `{exportId}`, and `{agentId}` are 24-character hexadecimal IDs returned by the API.
 - Renaming a resource through `PATCH` changes the display `name` and the URL name together, and the response returns
   the current URL name so you can keep following it.
 
 !!! note "Workspace Selection"
 
-    There is no `owner` query parameter. Workspace-scoped paths carry the owner in the path, and account-scoped
-    endpoints (`/api/account/summary`, `/api/api-keys`, `/api/storage`, `/api/billing/*`, `/api/trash`,
-    `/api/integrations/buckets`) operate on the workspace that issued the API key. To act on a team workspace, use an
-    API key created in that workspace.
+    Apart from the [Agents API](#agents-api), there is no `owner` query parameter. Workspace-scoped paths carry the
+    owner in the path, and account-scoped endpoints (`/api/account/summary`, `/api/api-keys`, `/api/storage`,
+    `/api/billing/*`, `/api/trash`, `/api/integrations/buckets`) operate on the workspace that issued the API key.
+    To act on a team workspace, use an API key created in that workspace, or pass `owner` to the Agents API.
 
 ## Rate Limits
 
@@ -222,7 +224,7 @@ on the deployed service configuration.
 ### Success Responses
 
 Responses are JSON objects with resource-specific fields. There is no generic envelope: list endpoints return a named
-collection alongside counts, and mutations return the changed identifiers.
+collection, most alongside counts, and mutations return the changed identifiers.
 
 ```json
 {
@@ -232,7 +234,8 @@ collection alongside counts, and mutations return the changed identifiers.
 }
 ```
 
-Data-bearing responses also include `region` (`us`, `eu`, or `ap`), the storage region for that workspace.
+Data-bearing responses other than the Agents API also include `region` (`us`, `eu`, or `ap`), the storage region for
+that workspace.
 
 ### Error Responses
 
@@ -1984,6 +1987,102 @@ GET /api/deployments/{owner}/{deployment}/logs
 | `severity`  | string | Comma-separated: `DEBUG`, `INFO`, `NOTICE`, `WARNING`, `ERROR`, `CRITICAL`, `ALERT`, `EMERGENCY` |
 | `limit`     | int    | Entries to return (default: 50, max: 200)                                                        |
 | `pageToken` | string | Pagination token from a previous response                                                        |
+
+---
+
+## Agents API
+
+Save and manage [Agents](../agents.md) workflows. The API stores agent definitions; runs start from the Agents canvas,
+where `https://platform.ultralytics.com/agents?workflow={id}` opens a saved agent. The Python SDK methods need
+`ultralytics-platform>=0.1.74`.
+
+Every operation accepts an optional `owner` query parameter with the username of a workspace you belong to (default:
+your own). Listing needs viewer access; saving and deleting need editor access.
+
+### List Agents
+
+```http
+GET /api/workflows
+```
+
+**Python SDK:** `client.agents.list()`
+
+| Parameter | Type   | Description                         |
+| --------- | ------ | ----------------------------------- |
+| `owner`   | string | Workspace username (default: yours) |
+| `id`      | string | Return one agent with its `graph`   |
+| `search`  | string | Filter by agent name                |
+
+The response lists up to 100 agents in `workflows`, most recently updated first, each with `id`, `username`, `name`,
+`version`, `createdAt`, and `updatedAt`. Requesting an `id` also returns the agent's `graph`.
+
+### Save an Agent
+
+```http
+PUT /api/workflows
+```
+
+**Python SDK:** `client.agents.save(name=..., graph=..., version=...)`
+
+Send `version: 0` to create an agent. To update one, send its `id` and the `version` returned by your last list or save;
+a stale `version` returns `409`, so list the agent again and retry. A graph whose connections form a cycle or give a
+block more than one input returns `400`.
+
+```python
+from ultralytics_platform import Platform
+
+graph = {
+    "nodes": [
+        {
+            "id": "images",
+            "type": "agent",
+            "position": {"x": 0, "y": 0},
+            "data": {
+                "label": "Dataset",
+                "type": "Dataset",
+                "config": {"dataset": "official:coco8", "split": "val", "maxInputs": 2},
+            },
+        },
+        {
+            "id": "yolo",
+            "type": "agent",
+            "position": {"x": 220, "y": 0},
+            "data": {
+                "label": "YOLO",
+                "type": "YOLO",
+                "config": {"model": "ul://ultralytics/yolo26/yolo26n", "task": "detect"},
+            },
+        },
+        {
+            "id": "output",
+            "type": "agent",
+            "position": {"x": 440, "y": 0},
+            "data": {"label": "Output", "type": "Output", "config": {}},
+        },
+    ],
+    "edges": [{"id": "e1", "source": "images", "target": "yolo"}, {"id": "e2", "source": "yolo", "target": "output"}],
+    "templateId": "",
+}
+
+with Platform() as client:
+    saved = client.agents.save(name="Detect COCO8", graph=graph, version=0)
+    print(saved["id"], saved["version"], saved["errors"])
+```
+
+The response returns the agent `id`, its new `version`, and `errors`: blocks the canvas would flag, such as a
+**Dataset** block with no dataset selected. The agent is saved either way. See
+[`openapi.json`](https://platform.ultralytics.com/openapi.json) for every block type and its configuration.
+
+### Delete an Agent
+
+```http
+DELETE /api/workflows?id={id}
+```
+
+**Python SDK:** `client.agents.delete(id=...)`
+
+Deletes the agent and cancels its active runs. Deleted agents do not appear in [Trash](#trash-api) and cannot be
+restored.
 
 ---
 

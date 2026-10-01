@@ -1973,6 +1973,18 @@ def test_nn_detect_head_export_clamps_max_det():
     assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
 
 
+@pytest.mark.parametrize("h, w", [(14, 28), (20, 20)])
+def test_nn_aifi_pos_embed_row_major(h, w):
+    """AIFI position embedding follows the row-major token order of x.flatten(2), for square and non-square maps."""
+    from ultralytics.nn.modules.transformer import AIFI
+
+    pe = AIFI.build_2d_sincos_position_embedding(w, h, 8, like=torch.zeros(1))[0]
+    rows, cols = torch.meshgrid(torch.arange(h), torch.arange(w), indexing="ij")
+    pos = torch.stack([rows.flatten(), cols.flatten()], 1).float()  # (row, col) of each flattened token
+    assert pe.shape == (h * w, 8)
+    assert torch.allclose(pe[:, [0, 4]], pos.sin())  # first half encodes the row, second half the column
+
+
 def _depth_head_feats():
     """Return a small Depth head constructor kwargs-matched P3/P4/P5 feature pyramid."""
     return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]

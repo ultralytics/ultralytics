@@ -13,7 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
-from ultralytics.nn.tasks import BaseModel, guess_model_task, load_checkpoint, yaml_model_load
+from ultralytics.nn.tasks import BaseModel, DetectionModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
     ASSETS,
@@ -421,7 +421,8 @@ class Model(torch.nn.Module):
 
         The fusion process typically involves folding the BatchNorm2d parameters (mean, variance, weight, and
         bias) into the preceding Conv2d layer's weights and biases. This results in a single Conv2d layer that
-        performs both convolution and normalization in one step.
+        performs both convolution and normalization in one step. For dual-head detection checkpoints the head
+        recorded in the checkpoint's train arguments is selected first, unless one was already selected explicitly.
 
         Args:
             verbose (bool): Whether to print model information after fusion.
@@ -439,6 +440,10 @@ class Model(torch.nn.Module):
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
+        head = self.model.model[-1] if isinstance(self.model, DetectionModel) else None
+        if getattr(head, "one2one_cv2", None) is not None and "_end2end" not in vars(head):
+            # fuse the head this checkpoint trained for, mirroring exporter selection; an explicit preset wins
+            self.model.end2end = (self.ckpt or {}).get("train_args", {}).get("nms") is False
         # DistillationModel fuses to its student, so adopt the return
         self.model = self.model.fuse(verbose=verbose, imgsz=imgsz)
         self.predictor = None

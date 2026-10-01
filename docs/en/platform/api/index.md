@@ -520,13 +520,15 @@ POST /api/datasets/{owner}/{dataset}/export
 
 **Python SDK:** `client.datasets.create_export(owner, dataset)`
 
-Creates an immutable numbered snapshot of the dataset and stores its NDJSON export. Requires editor access.
+Creates an immutable numbered version of the dataset. Requires editor access. Set `download` to `false` to save the
+version without preparing an NDJSON download; `downloadUrl` is then omitted.
 
 **Body (optional):**
 
 ```json
 {
-    "description": "Added 500 training images"
+    "description": "Added 500 training images",
+    "download": true
 }
 ```
 
@@ -540,7 +542,8 @@ Creates an immutable numbered snapshot of the dataset and stores its NDJSON expo
 }
 ```
 
-`reused` is `true` when the dataset is unchanged since the previous version and that snapshot was returned instead.
+`reused` is `true` when the dataset matches an existing version, for example right after restoring it, and that version
+was returned with its description updated instead.
 
 ### Update Version Description
 

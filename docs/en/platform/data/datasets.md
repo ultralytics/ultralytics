@@ -639,7 +639,7 @@ Images that failed processing are listed here with:
 
 ### Versions Tab
 
-Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, annotation counts, and file size at the time of creation.
+Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, annotation counts, and the storage it added at the time of creation.
 
 | Column      | Description                          |
 | ----------- | ------------------------------------ |
@@ -648,7 +648,7 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 | Images      | Image count at time of snapshot      |
 | Classes     | Class count at time of snapshot      |
 | Annotations | Annotation count at time of snapshot |
-| Size        | NDJSON export file size              |
+| Size        | Storage this version added           |
 | Created     | When the version was created         |
 | Actions     | Download or restore                  |
 
@@ -657,7 +657,7 @@ To create a version:
 1. Open the **Versions** tab
 2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
 3. Click **New Version**
-4. The new version appears in the table
+4. The new version appears in the table. If the dataset matches an existing version, for example right after restoring it, that version is reused and takes the new description
 
 Each version is numbered sequentially (v1, v2, v3...) and is immutable — versions cannot be edited or removed, only their descriptions can be changed. Use the row actions to download or restore any version at any time.
 
@@ -677,9 +677,9 @@ Each version is numbered sequentially (v1, v2, v3...) and is immutable — versi
 
     Create a version before and after major changes to your dataset — adding images, fixing annotations, or rebalancing splits. This lets you compare model performance across different dataset states.
 
-!!! note "NDJSON File Size"
+!!! note "Version Size"
 
-    The size shown is the NDJSON export file size, which contains image URLs and annotations — not the images themselves. Actual image data is stored separately and accessed via signed URLs. The snapshot file still counts against your workspace [storage quota](../account/billing.md), so version creation fails if you have no headroom left.
+    The size shown is the storage the version adds: image URLs and annotations, not the images themselves. Data that an earlier version already stored counts toward that version, not this one. Actual image data is stored separately and accessed via signed URLs. That storage still counts against your workspace [storage quota](../account/billing.md), so version creation fails if you have no headroom left.
 
 ## Export Dataset
 

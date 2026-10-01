@@ -717,8 +717,9 @@ GET /api/datasets/{owner}/{dataset}/images/clustering
 **Python SDK:** `client.datasets.clustering(owner, dataset)`
 
 Returns the UMAP 2D layout from a completed analysis, paginated with `offset` and `limit` (default and max 50,000).
-Each entry has `id`, `umapX`, `umapY`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`, `labeled`, and
-`missing`.
+Each entry has `id`, `umapX`, `umapY`, `cluster`, `split`, `classIds`, `width`, `height`, `bytes`, `labelCount`,
+`labeled`, and `missing`. `cluster` is the point's visual island ranked by size (`0` = largest, `-1` = scattered), or
+`null` for layouts analyzed before clustering was added.
 
 ### List Models Trained on a Dataset
 

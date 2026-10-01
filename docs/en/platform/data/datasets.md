@@ -462,28 +462,29 @@ Once analysis completes, the panel shows a 2D scatter of all analyzed images wit
 
 Change how data points are shaded with the `Color by` dropdown in the panel toolbar. Switch view modes at any time — the plot re-colors instantly so you can see how splits, classes, or image properties are distributed across your clusters:
 
-| Option          | Shading                              |
-| --------------- | ------------------------------------ |
-| **Splits**      | Train / Val / Test                   |
-| **Classes**     | First annotation class on each image |
-| **Width**       | Image width                          |
-| **Height**      | Image height                         |
-| **Size**        | File size                            |
-| **Annotations** | Number of annotations per image      |
+| Option          | Shading                                                                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Splits**      | Train / Val / Test                                                                                                                                        |
+| **Classes**     | First annotation class on each image                                                                                                                      |
+| **Clusters**    | Visual island in the layout, largest first; **Scattered** for points outside any island, **Not computed** for layouts analyzed before this option existed |
+| **Width**       | Image width                                                                                                                                               |
+| **Height**      | Image height                                                                                                                                              |
+| **Size**        | File size                                                                                                                                                 |
+| **Annotations** | Number of annotations per image                                                                                                                           |
 
 ![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.ul.run/i/2b569b2849ebbcabf3aa9cb27c890cbd.avif)<!-- screenshot -->
 
-#### Lasso Selection
+#### Lasso and Click Selection
 
-Draw a free-form selection around a region to highlight points on the plot. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
+Draw a free-form selection around a region to highlight points on the plot, or click a point to select every point drawn in the same color (only that point when coloring by width, height, size, or annotations); click an empty area of the plot to clear the selection. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
 
 !!! tip "Clear Selection"
 
-    A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
+    A chip above the chart shows how many points are selected — click the `×` or an empty area of the plot to clear the selection and return to the full gallery view.
 
 !!! note "Selection Size"
 
-    A lasso resolves to at most 1,000 images. If your selection matches more, Platform shows a sampled 1,000 and suggests drawing a smaller region.
+    A lasso or click selection resolves to at most 1,000 images. If your selection matches more, Platform shows a sampled 1,000 and suggests drawing a smaller region.
 
 #### Pan and Zoom
 
@@ -498,7 +499,7 @@ Navigate large scatters directly from your mouse and keyboard, or with the zoom 
 
 ### Re-analyzing
 
-If your dataset changes after analysis — new images arrive, or the analyzed count no longer matches the dataset — a `Re-analyze` button appears at the top of the panel for owners and editors.
+If your dataset changes after analysis — new images arrive, or the analyzed count no longer matches the dataset — or the analysis predates the **Clusters** color option, a `Re-analyze` button appears at the top of the panel for owners and editors.
 
 Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 

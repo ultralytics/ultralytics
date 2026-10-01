@@ -42,7 +42,7 @@ RUN sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml
 ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (uv already installed in base image)
-RUN uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
+RUN uv pip install --system --no-cache -e "." albumentations ultrafast-pycocotools && \
     rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------

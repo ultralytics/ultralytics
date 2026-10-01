@@ -903,7 +903,8 @@ async def convert_ndjson_to_yolo(
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
-    with open(cache_path.with_suffix(".lock"), "a") as lock:  # OS releases the lock on close or process exit
+    loop = asyncio.get_running_loop()
+    with await loop.run_in_executor(None, open, cache_path.with_suffix(".lock"), "a") as lock:  # released on close
         waited = False
         while True:
             try:

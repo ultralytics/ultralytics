@@ -71,7 +71,7 @@ LabelMe runs entirely offline. Only the ZIP file you select in the upload dialog
 | `polygon`                              | Polygon                                                      |
 | `oriented_rectangle`                   | 4-point polygon                                              |
 | `circle`                               | 32-point polygon                                             |
-| `mask`                                 | Polygon traced from the mask                                 |
+| `mask`                                 | Polygon traced from the mask's outer outline, filling holes  |
 | `line`, `linestrip`, `point`, `points` | Skipped, since these shapes have no area to train on         |
 
 - **Task:** a dataset annotated only with rectangles imports as a [detection](../../tasks/detect.md) dataset. Any

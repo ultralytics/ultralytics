@@ -809,7 +809,7 @@ Create new training images from one you already have. In a dataset you can edit,
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Model**            | **Ultralytics Image 4B** (default) is the fastest; **Ultralytics Image 6B** has a different style and takes longer |
 | **Number of images** | Variations to create, from `1` to `16` (default `4`)                                                               |
-| **Image Size**       | Target longest edge from `320` to `1280` px (default `1024`)                                                       |
+| **Image Size**       | Target longest edge from `256` to `2048` px in steps of `64` (default `1024`)                                      |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
 ![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->

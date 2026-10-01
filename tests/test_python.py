@@ -1946,8 +1946,9 @@ def test_nn_aifi_pos_embed_row_major(h, w):
     from ultralytics.nn.modules.transformer import AIFI
 
     pe = AIFI.build_2d_sincos_position_embedding(w, h, 8, like=torch.zeros(1))[0]
-    rows, cols = torch.meshgrid(torch.arange(h), torch.arange(w), indexing="ij")
-    pos = torch.stack([rows.flatten(), cols.flatten()], 1).float()  # (row, col) of each flattened token
+    # (row, col) of each flattened token, without meshgrid(indexing=) which needs torch>=1.10
+    rows, cols = torch.arange(h).repeat_interleave(w), torch.arange(w).repeat(h)
+    pos = torch.stack([rows, cols], 1).float()
     assert pe.shape == (h * w, 8)
     assert torch.allclose(pe[:, [0, 4]], pos.sin())  # first half encodes the row, second half the column
 

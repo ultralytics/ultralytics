@@ -49,6 +49,8 @@ DATASETS = [
     "coco12-formats.yaml",
 ]
 
+COCO_ANNOTATIONS = ("instances_val2017.json", "person_keypoints_val2017.json")
+
 
 def cache_weights(slow: bool = False) -> None:
     """Download all model weights used by tests."""
@@ -70,13 +72,8 @@ def cache_datasets() -> None:
             check_cls_dataset(ds)
         else:
             check_det_dataset(ds, autodownload=True)
-    instances = safe_download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "annotations")
-    for ds in "coco8", "coco8-seg":
-        target = DATASETS_DIR / ds / "annotations" / instances.name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if not target.exists():
-            shutil.copy2(instances, target)
-    safe_download(f"{ASSETS_URL}/person_keypoints_val2017.json", dir=DATASETS_DIR / "coco8-pose/annotations")
+    for name in COCO_ANNOTATIONS:
+        safe_download(f"{ASSETS_URL}/{name}", dir=DATASETS_DIR / "annotations")
     LOGGER.info("[cache] Datasets done.")
 
 

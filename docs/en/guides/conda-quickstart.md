@@ -65,7 +65,7 @@ pip install "torch[device-all]" "torchvision[device-all]" --index-url https://st
 pip install ultralytics
 ```
 
-See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [AMD GPU guide](../integrations/amd.md#installation) for MIGraphX inference setup, which requires **Python 3.11 to 3.14** on **Linux x86_64**.
+See the [PyTorch Get Started](https://pytorch.org/get-started/locally/) page for supported ROCm versions and the [AMD GPU guide](../integrations/amd.md#installation) for MIGraphX inference setup, which requires **Python 3.11 or newer** on **Linux x86_64**.
 
 ## Using Ultralytics
 

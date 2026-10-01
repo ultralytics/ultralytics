@@ -13,6 +13,7 @@ from PIL import Image
 
 from ultralytics.cfg import QUANTIZE_ALIASES, TASK2DATA, _handle_deprecation, get_cfg, get_save_dir
 from ultralytics.engine.results import Results
+from ultralytics.nn.distill_model import DistillationModel
 from ultralytics.nn.tasks import BaseModel, DetectionModel, guess_model_task, load_checkpoint, yaml_model_load
 from ultralytics.utils import (
     ARGV,
@@ -440,10 +441,11 @@ class Model(torch.nn.Module):
             >>> # Model is now fused and ready for optimized inference
         """
         self._check_is_pytorch_model()
-        head = self.model.model[-1] if isinstance(self.model, DetectionModel) else None
+        model = self.model.student_model if isinstance(self.model, DistillationModel) else self.model
+        head = model.model[-1] if isinstance(model, DetectionModel) else None
         if getattr(head, "one2one_cv2", None) is not None and "_end2end" not in vars(head):
             # fuse the head this checkpoint trained for, mirroring exporter selection; an explicit preset wins
-            self.model.end2end = (self.ckpt or {}).get("train_args", {}).get("nms") is False
+            model.end2end = (self.ckpt or {}).get("train_args", {}).get("nms") is False
         # DistillationModel fuses to its student, so adopt the return
         self.model = self.model.fuse(verbose=verbose, imgsz=imgsz)
         self.predictor = None

@@ -652,6 +652,8 @@ class BaseTrainer:
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
+                last_opt_step = -1  # redo the epoch with normal step cadence, like the OOM restart
+                self.optimizer.zero_grad()  # drop the corrupted pass's gradients, including NaNs still in .grad
                 continue
 
             self.nan_recovery_attempts = 0

@@ -190,12 +190,24 @@ compute credits, and Platform never sends the training job to cloud compute.
 
 ## Manage the Connection
 
-Open `Settings > Integrations` to see each connected computer, its hostname and hardware, and whether its CPU and GPU
-are currently online. The host reports in continuously, so a computer that is shut down or loses connectivity shows as
-offline and its datasets become temporarily unavailable rather than falling back to cloud compute.
+Open `Settings > Integrations` to see each computer, its hostname and hardware, whether its CPU and GPU are online, and
+when it last reported. A computer that is shut down or loses connectivity shows as **Offline** with its last-seen
+details, and its datasets become temporarily unavailable rather than falling back to cloud compute. The worker starts
+with Docker and reconnects on its own once the computer is back online; nothing needs to be rerun.
 
-**Reconnect** issues a fresh install command for a host you previously disconnected. It reuses the same host record, so
-its existing datasets resume working without being re-imported.
+**The worker updates itself.** Each time its container starts, and every 10 minutes while it is idle, it downloads any
+newer worker code from Platform and restarts into it. It never restarts during a job. Computers connected before
+self-updating was available start updating after you run a new install command on them once.
+
+**Run the install command again** on a connected computer to change its folders or refresh its Docker image. The
+computer keeps the same host, so its datasets keep working and no duplicate host appears.
+
+**One workspace per computer.** A computer runs one worker. Running an install command from another workspace moves the
+computer there and disconnects its host in the workspace it leaves.
+
+**Reconnect** issues a fresh install command for a disconnected host. Run it on the computer that should serve that
+host, and its existing datasets resume without being re-imported. Disconnected hosts stay listed only while datasets
+still depend on them.
 
 **Disconnect** revokes that host's access immediately. Queued, starting, and running jobs bound to it are cancelled,
 including training in progress, and a dataset that was still being imported fails with `On Premise host disconnected

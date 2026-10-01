@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import pickle
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -280,7 +281,15 @@ class YOLODataset(BaseDataset):
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == cache_hash  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+        except (
+            FileNotFoundError,
+            AssertionError,
+            AttributeError,
+            ModuleNotFoundError,
+            pickle.UnpicklingError,  # unreadable cache, e.g. truncated by an interrupted save
+            EOFError,
+            ValueError,
+        ):
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
         return cache, exists
 
@@ -1339,7 +1348,15 @@ class ClassificationDataset:
             return samples
 
         # NOTE: ModuleNotFoundError to prevent numpy version conflicts when loading cache files created with different numpy versions
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+        except (
+            FileNotFoundError,
+            AssertionError,
+            AttributeError,
+            ModuleNotFoundError,
+            pickle.UnpicklingError,  # unreadable cache, e.g. truncated by an interrupted save
+            EOFError,
+            ValueError,
+        ):
             # Run scan if *.cache retrieval failed
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
             with ThreadPool(NUM_THREADS) as pool:

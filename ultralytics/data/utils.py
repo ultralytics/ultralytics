@@ -968,8 +968,10 @@ def load_dataset_cache_file(path: Path) -> dict:
     import gc
 
     gc.disable()  # reduce pickle load time https://github.com/ultralytics/ultralytics/pull/1585
-    cache = np.load(str(path), allow_pickle=True).item()  # load dict
-    gc.enable()
+    try:
+        cache = np.load(str(path), allow_pickle=True).item()  # load dict
+    finally:
+        gc.enable()  # a truncated cache raises here; leave the process with GC on
     return cache
 
 

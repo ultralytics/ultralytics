@@ -13,6 +13,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     UV_BREAK_SYSTEM_PACKAGES=1
 
+# OpenBLAS 0.3.8 ARMV8/NeoverseN1 SGEMM leaks NaN from uninitialized outputs into bias-free conv results
+ENV OPENBLAS_CORETYPE=CORTEXA57
+
 # Downloads to user config dir
 ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.Unicode.ttf \

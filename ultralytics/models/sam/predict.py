@@ -101,7 +101,8 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update({"task": "segment", "mode": "predict", "batch": 1})
+        overrides.update({"task": "segment", "batch": 1})
+        overrides.setdefault("mode", "predict")  # keep track mode so tracker callbacks run
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None

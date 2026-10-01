@@ -1130,6 +1130,7 @@ class Exporter:
             and self.args.quantize == 8
             and self.model.task in {"detect", "segment", "pose", "obb"}
             and not self.metadata["end2end"]
+            and self.metadata["head"] != "RTDETRDecoder"
         ):
             from ultralytics.utils.export.engine import _NormalizeCoords
 

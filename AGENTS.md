@@ -21,7 +21,7 @@ NEVER push to `main`. NEVER force push. Always start work in a new git worktree 
 ## PR Review
 
 - Require a reproducible production bug or a broadly useful feature; close incorrect, niche, speculative, or AI-generated bloat.
-- Treat new arguments and PRs with more than 50 net added non-documentation code lines, counting tests and offsetting additions with deletions, as high-barrier exceptions. The PR author must strongly justify why the complete change cannot be smaller or use an existing owner, and defend how it avoids duplication and improves maintainability or scalability.
+- Treat new arguments, new dependencies, and PRs with more than 50 net added non-documentation code lines, counting tests and offsetting additions with deletions, as high-barrier exceptions. The PR author must strongly justify why the complete change cannot be smaller or use an existing owner, and defend how it avoids duplication and improves maintainability or scalability.
 - Delete mock tests, including monkeypatched platform or device state. Prefer focused validation of the real code path on real CI targets, adding only minimal regression coverage for a high-risk gap.
 - Review the full live diff independently; approvals, comments, descriptions, and green CI are supporting evidence, not proof.
 - Reject compatibility shims, duplicated helpers, dead code, unrelated cleanup, and complexity that does not pay for itself.
@@ -75,6 +75,7 @@ yolo predict model=yolo26n.pt
 ## Conventions
 
 - Ultralytics-owned PyPI packages use `MAJOR.MINOR.PATCH` versions only; no suffixes.
+- Never add packages to the base `dependencies` in `pyproject.toml`. Use the standard library or an existing dependency first; a feature that truly needs a third-party package installs it lazily at its point of use with `check_requirements` (as NDJSON conversion does for `aiohttp`), never at import time.
 - Every Python file starts with `# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license` — Ultralytics Actions adds headers automatically; don't add or revert them manually.
 - Google-style docstrings with types in parentheses (`arg1 (int): ...`); `[tool.ruff.lint.pydocstyle] convention = "google"` configures the docstring rules, but only the Actions bot and `docs.yml` enable them (`--extend-select F,I,D,UP,RUF,FA`), so a bare `ruff check` misses them; reproduce with the `Ruff checks` step command in `docs.yml`. Ruff formats docstring code blocks; the Actions bot also runs its own docstring formatter, prettier (YAML/JSON/Markdown), and codespell. Format markdown exactly as the bot does, never with unpinned defaults: `npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md` (the documentation dialect requires 4-space list continuation; prettier's default tab width 2 breaks rendering) and the same command without `--tab-width` for markdown outside `docs/`.
 - Releases: bump `__version__` in `ultralytics/__init__.py`; on push to main, `publish.yml` detects the increment, then tags, creates the GitHub release, and publishes to PyPI (gated to the ultralytics repo and glenn-jocher).

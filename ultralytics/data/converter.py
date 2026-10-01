@@ -20,7 +20,17 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.data.utils import get_split_fraction
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, PLATFORM_URL, TQDM, YAML, clean_url
+from ultralytics.utils import (
+    ASSETS_URL,
+    DATASETS_DIR,
+    LOGGER,
+    NUM_THREADS,
+    PLATFORM_URL,
+    TQDM,
+    WINDOWS,
+    YAML,
+    clean_url,
+)
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -897,7 +907,7 @@ async def convert_ndjson_to_yolo(
         waited = False
         while True:
             try:
-                if os.name == "nt":
+                if WINDOWS:
                     import msvcrt
 
                     msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)

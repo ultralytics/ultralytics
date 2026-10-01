@@ -29,7 +29,7 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [Amazon SageMaker](amazon-sagemaker.md): Leverage Amazon SageMaker to efficiently build, train, and deploy Ultralytics models, providing an all-in-one platform for the ML lifecycle.
 
-- [AMD](amd.md): Train, validate, and run Ultralytics models on supported AMD GPUs with PyTorch ROCm, with a clear breakdown of MIGraphX, DirectML, and Ryzen AI NPU availability.
+- [AMD](amd.md): Export Ultralytics YOLO to ONNX and run GPU-accelerated inference on AMD Instinct and Radeon GPUs through the ONNX Runtime MIGraphX execution provider on ROCm, with native PyTorch ROCm training also supported.
 
 - [ClearML](clearml.md): Automate your Ultralytics ML workflows, monitor experiments, and foster team collaboration.
 

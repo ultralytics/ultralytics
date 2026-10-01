@@ -918,7 +918,7 @@ async def convert_ndjson_to_yolo(
                 break
             except (BlockingIOError, PermissionError):  # held by another conversion (POSIX, Windows)
                 waited = True
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.05)
         if waited and cache_path.is_file():  # reuse the result the lock holder just produced
             result = output_path / cache_path.read_text()
             marker = result / ".ndjson.yaml" if result.is_dir() else result

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from . import USER_CONFIG_DIR
+from .checks import check_requirements
 from .patches import torch_save
 from .torch_utils import TORCH_1_9
 
@@ -66,6 +67,7 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         - The `.pt` state file stores the trainer class, trainer arguments, model, and callbacks (via cloudpickle)
         - The `.py` script loads that state, rebuilds the trainer with the saved arguments as overrides, and trains
     """
+    check_requirements("cloudpickle>=3.1.1")
     import cloudpickle
 
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)

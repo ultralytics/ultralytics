@@ -17,12 +17,11 @@ from uuid import uuid4
 
 import cv2
 import numpy as np
-from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
 from ultralytics.data.utils import get_split_fraction
 from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, PLATFORM_URL, TQDM, YAML, clean_url
-from ultralytics.utils.checks import check_file
+from ultralytics.utils.checks import check_file, check_requirements
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
 
@@ -873,6 +872,9 @@ async def convert_ndjson_to_yolo(
         >>> model = YOLO("yolo26n.pt")
         >>> model.train(data="https://github.com/ultralytics/assets/releases/download/v0.0.0/coco8-ndjson.ndjson")
     """
+    check_requirements("filelock>=3.16.1")
+    from filelock import AsyncFileLock, Timeout
+
     source = str(ndjson_path)
     output_path = Path(output_path or DATASETS_DIR)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -917,8 +919,6 @@ async def _convert_ndjson_to_yolo(
     split: str | None = None,
 ) -> Path:
     """Convert a resolved NDJSON source while its conversion lock is held."""
-    from ultralytics.utils.checks import check_requirements
-
     check_requirements("aiohttp")
     import aiohttp
 

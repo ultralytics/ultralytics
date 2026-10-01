@@ -99,13 +99,11 @@ def pipeline_coreml(
     if len(names) != nc:  # Hack fix for MLProgram NMS bug https://github.com/ultralytics/ultralytics/issues/22309
         names = {**names, **{i: str(i) for i in range(len(names), nc)}}
 
-    model = ct.models.MLModel(spec, weights_dir=weights_dir, skip_model_load=True)
-
     # Create NMS protobuf
     nms_spec = ct.proto.Model_pb2.Model()
     nms_spec.specificationVersion = spec.specificationVersion
     for i in range(len(outs)):
-        decoder_output = model._spec.description.output[i].SerializeToString()
+        decoder_output = spec.description.output[i].SerializeToString()
         nms_spec.description.input.add()
         nms_spec.description.input[i].ParseFromString(decoder_output)
         nms_spec.description.output.add()
@@ -147,11 +145,11 @@ def pipeline_coreml(
         ],
         output_features=output_names,
     )
-    pipeline.add_model(model)
+    pipeline.add_model(spec)
     pipeline.add_model(nms_model)
 
     # Correct datatypes
-    pipeline.spec.description.input[0].ParseFromString(model._spec.description.input[0].SerializeToString())
+    pipeline.spec.description.input[0].ParseFromString(spec.description.input[0].SerializeToString())
     pipeline.spec.description.output[0].ParseFromString(nms_model._spec.description.output[0].SerializeToString())
     pipeline.spec.description.output[1].ParseFromString(nms_model._spec.description.output[1].SerializeToString())
 

@@ -382,6 +382,62 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
+def test_fuse_keeps_trained_detection_head():
+    """Test that fuse() keeps the head a dual-head checkpoint trained for and honors explicit selections."""
+    w, src = "yolo26n.pt", str(ASSETS / "bus.jpg")  # dual-head checkpoint, train_args.nms=False
+
+    def confs(model, nms=None):
+        return model.predict(src, imgsz=320, nms=nms, verbose=False)[0].boxes.conf.cpu()
+
+    unfused_o2o = confs(YOLO(w), nms=False)
+    unfused_o2m = confs(YOLO(w))
+
+    m = YOLO(w)
+    m.fuse()
+    head = m.model.model[-1]
+    assert head.cv2 is None and getattr(head, "one2one_cv2", None) is not None  # the trained one2one head remains
+    fused = confs(m, nms=False)
+    assert len(fused) == len(unfused_o2o) and torch.allclose(fused, unfused_o2o, rtol=1e-3, atol=1e-3)
+
+    for preset, expected in ((True, unfused_o2o), (False, unfused_o2m)):  # an explicit selection wins over train_args
+        m = YOLO(w)
+        m.model.end2end = preset
+        m.fuse()
+        head = m.model.model[-1]
+        assert (head.cv2 is None) == preset  # the explicitly selected head remains
+        fused = confs(m, nms=False if preset else None)
+        assert len(fused) == len(expected) and torch.allclose(fused, expected, rtol=1e-3, atol=1e-3)
+
+    m = YOLO(w)
+    m.ckpt.pop("train_args", None)  # checkpoints without train_args keep the default one-to-many head
+    m.fuse()
+    head = m.model.model[-1]
+    assert head.cv2 is not None and getattr(head, "one2one_cv2", None) is None
+    fused = confs(m)
+    assert len(fused) == len(unfused_o2m) and torch.allclose(fused, unfused_o2m, rtol=1e-3, atol=1e-3)
+
+
+def test_fuse_keeps_distillation_student_head(tmp_path):
+    """Test that fuse() selects a distillation wrapper's student head from the checkpoint's train_args."""
+    from ultralytics.nn.distill_model import DistillationModel
+
+    w, src = "yolo26n.pt", str(ASSETS / "bus.jpg")
+    student = YOLO(w).model
+    student.args = get_cfg()
+    if not hasattr(student.args, "dis"):
+        student.args.dis = 0.5
+    ckpt = tmp_path / "distilled.pt"
+    torch.save({"model": DistillationModel(teacher_model=w, student_model=student), "train_args": {"nms": False}}, ckpt)
+
+    m = YOLO(ckpt)
+    m.fuse()
+    head = m.model.model[-1]  # the wrapper's fuse() adopts the student model
+    assert head.cv2 is None and getattr(head, "one2one_cv2", None) is not None  # the student's trained head remains
+    fused = m.predict(src, imgsz=320, nms=False, verbose=False)[0].boxes.conf.cpu()
+    ref = YOLO(w).predict(src, imgsz=320, nms=False, verbose=False)[0].boxes.conf.cpu()
+    assert len(fused) == len(ref) and torch.allclose(fused, ref, rtol=1e-3, atol=1e-3)
+
+
 def test_predict_txt(tmp_path):
     """Test YOLO predictions with file, directory, and pattern sources listed in a text file."""
     file = tmp_path / "sources_multi_row.txt"

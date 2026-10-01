@@ -70,7 +70,9 @@ def cache_datasets() -> None:
             check_cls_dataset(ds)
         else:
             check_det_dataset(ds, autodownload=True)
-    safe_download(f"{ASSETS_URL}/instances_val2017.json", dir=DATASETS_DIR / "annotations")
+    for ds in "", "coco8", "coco8-seg", "coco8-pose":  # COCO annotations read by the converter and coco-eval tests
+        name = "person_keypoints" if ds == "coco8-pose" else "instances"
+        safe_download(f"{ASSETS_URL}/{name}_val2017.json", dir=DATASETS_DIR / ds / "annotations")
     LOGGER.info("[cache] Datasets done.")
 
 

@@ -1940,17 +1940,23 @@ def test_nn_detect_head_export_clamps_max_det():
     assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
 
 
-@pytest.mark.parametrize("h, w", [(14, 28), (20, 20)])
+@pytest.mark.parametrize("h, w", [(14, 28), (28, 14), (20, 20)])
 def test_nn_aifi_pos_embed_row_major(h, w):
-    """AIFI position embedding follows the row-major token order of x.flatten(2), for square and non-square maps."""
+    """AIFI position embedding follows the row-major token order of x.flatten(2); square maps are unchanged."""
     from ultralytics.nn.modules.transformer import AIFI
 
-    pe = AIFI.build_2d_sincos_position_embedding(w, h, 8, like=torch.zeros(1))[0]
+    dim, temperature = 8, 10000.0
+    pe = AIFI.build_2d_sincos_position_embedding(w, h, dim, temperature, like=torch.zeros(1))[0]
+    omega = 1.0 / temperature ** (torch.arange(dim // 4).float() / (dim // 4))
     # (row, col) of each flattened token, without meshgrid(indexing=) which needs torch>=1.10
-    rows, cols = torch.arange(h).repeat_interleave(w), torch.arange(w).repeat(h)
-    pos = torch.stack([rows, cols], 1).float()
-    assert pe.shape == (h * w, 8)
-    assert torch.allclose(pe[:, [0, 4]], pos.sin())  # first half encodes the row, second half the column
+    row = torch.arange(h).repeat_interleave(w).float()[:, None] @ omega[None]
+    col = torch.arange(w).repeat(h).float()[:, None] @ omega[None]
+    assert pe.shape == (h * w, dim)
+    assert torch.allclose(pe, torch.cat([row.sin(), row.cos(), col.sin(), col.cos()], 1))  # row first, then column
+    if h == w:  # the pre-fix grid was meshgrid(arange(w), arange(h)); square checkpoints must see the same embedding
+        old_w = torch.arange(w).repeat_interleave(h).float()[:, None] @ omega[None]
+        old_h = torch.arange(h).repeat(w).float()[:, None] @ omega[None]
+        assert torch.equal(pe, torch.cat([old_w.sin(), old_w.cos(), old_h.sin(), old_h.cos()], 1))
 
 
 def _depth_head_feats():

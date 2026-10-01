@@ -76,7 +76,7 @@ Install the `ultralytics` package with pip, conda, or Docker, or from source, th
 
 !!! tip
 
-    [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA version. To use a specific build, install PyTorch first by following the [PyTorch installation instructions](https://pytorch.org/get-started/locally/), then install `ultralytics`.
+    [PyTorch](https://www.ultralytics.com/glossary/pytorch) requirements vary by operating system and CUDA version. To use a specific build, install PyTorch first by following the [PyTorch installation instructions](https://pytorch.org/get-started/locally/), then install `ultralytics`. For AMD GPUs on Linux, install a ROCm build of PyTorch as described in the [AMD integration guide](integrations/amd.md#installation).
 
 ## Use Ultralytics with CLI
 

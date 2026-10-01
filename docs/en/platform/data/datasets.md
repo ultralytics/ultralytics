@@ -658,7 +658,7 @@ To create a version:
 1. Open the **Versions** tab
 2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
 3. Click **New Version**
-4. The new version appears in the table. If the dataset matches an existing version, for example right after restoring it, that version is reused and takes the new description
+4. The new version appears in the table. If the dataset matches an existing version, for example right after restoring it, that version is reused and takes the new description if you entered one
 
 Each version is numbered sequentially (v1, v2, v3...) and is immutable — versions cannot be edited or removed, only their descriptions can be changed. Use the row actions to download or restore any version at any time.
 
@@ -688,7 +688,7 @@ identical, the dialog reports that, including when only dataset settings such as
 
 !!! note "Version Size"
 
-    The size shown is the storage the version adds: image URLs and annotations, not the images themselves. Data that an earlier version already stored counts toward that version, not this one. Actual image data is stored separately and accessed via signed URLs. That storage still counts against your workspace [storage quota](../account/billing.md), so version creation fails if you have no headroom left.
+    The size shown is the compressed snapshot storage the version adds: image records (URLs, splits, annotations, and metadata) and dataset settings, not the image pixels. Snapshot data unchanged since an earlier version is shared and counts toward the version that first stored it. Actual image data is stored separately and accessed via signed URLs. Snapshot storage counts against your workspace [storage quota](../account/billing.md), so creating a new version fails if you have no headroom left; reusing a matching version does not.
 
 ## Export Dataset
 

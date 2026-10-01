@@ -234,8 +234,8 @@ collection, most alongside counts, and mutations return the changed identifiers.
 }
 ```
 
-Data-bearing responses other than the Agents API also include `region` (`us`, `eu`, or `ap`), the storage region for
-that workspace.
+Data-bearing responses other than the Agents API and version comparisons also include `region` (`us`, `eu`, or `ap`),
+the storage region for that workspace.
 
 ### Error Responses
 
@@ -547,7 +547,7 @@ version without preparing an NDJSON download; `downloadUrl` is then omitted. The
 ```
 
 `reused` is `true` when the dataset matches an existing version, for example right after restoring it, and that version
-was returned with its description updated instead.
+was returned instead, with its description updated when you send one.
 
 ### Update Version Description
 

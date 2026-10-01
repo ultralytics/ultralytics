@@ -2135,122 +2135,142 @@ def parse_model(d, ch, verbose=True):
             A2C2f,
         }
     )
-    for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
-        m = (
-            getattr(torch.nn, m[3:])
-            if m.startswith("nn.")
-            else getattr(__import__("torchvision").ops, m[16:])
-            if m.startswith("torchvision.ops.")
-            else globals()[m]
-        )  # get module
-        if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
-            # Under restricted loading, only known model layers may be named here.
-            raise TypeError(emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading."))
-        for j, a in enumerate(args):
-            if isinstance(a, str):
-                with contextlib.suppress(ValueError):
-                    args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
-        n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
-        if m in base_modules:
-            c1, c2 = ch[f], args[0]
-            if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
-                c2 = make_divisible(min(c2, max_channels) * width, 8)
-            if m is C2fAttn:  # set 1) embed channels and 2) num heads
-                args[2] = int(max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2])
-                hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
-                if hidden_channels % args[2]:
-                    raise ValueError(
-                        f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
-                        "adjust width_multiple, nh, or C2fAttn expansion"
+    try:  # restore the process-wide default activation even when a layer fails to build
+        for i, (f, n, m, args) in enumerate(d["backbone"] + d["head"]):  # from, number, module, args
+            m = (
+                getattr(torch.nn, m[3:])
+                if m.startswith("nn.")
+                else getattr(__import__("torchvision").ops, m[16:])
+                if m.startswith("torchvision.ops.")
+                else globals()[m]
+            )  # get module
+            if restricted and not (isinstance(m, type) and issubclass(m, torch.nn.Module)):
+                # Under restricted loading, only known model layers may be named here.
+                raise TypeError(
+                    emojis(f"ERROR ❌️ module '{m}' is not a permitted model layer under restricted loading.")
+                )
+            for j, a in enumerate(args):
+                if isinstance(a, str):
+                    with contextlib.suppress(ValueError):
+                        args[j] = locals()[a] if a in locals() else ast.literal_eval(a)
+            n = n_ = max(round(n * depth), 1) if n > 1 else n  # depth gain
+            if m in base_modules:
+                c1, c2 = ch[f], args[0]
+                if m is not Classify:  # Classify() output must stay at nc; every other layer scales by width
+                    c2 = make_divisible(min(c2, max_channels) * width, 8)
+                if m is C2fAttn:  # set 1) embed channels and 2) num heads
+                    args[2] = int(
+                        max(round(min(args[2], max_channels // 2 // 32)) * width, 1) if args[2] > 1 else args[2]
                     )
-                args[1] = hidden_channels
+                    hidden_channels = int(c2 * (args[6] if len(args) > 6 else 0.5))
+                    if hidden_channels % args[2]:
+                        raise ValueError(
+                            f"C2fAttn hidden channels {hidden_channels} (from c2={c2}) must be divisible by nh={args[2]}; "
+                            "adjust width_multiple, nh, or C2fAttn expansion"
+                        )
+                    args[1] = hidden_channels
 
-            args = [c1, c2, *args[1:]]
-            if m in repeat_modules:
-                args.insert(2, n)  # number of repeats
-                n = 1
-            if m is C3k2:  # for M/L/X sizes
-                legacy = False
-                if scale in {"m", "l", "x"}:
-                    args[3:4] = [True]  # slice assignment also supplies c3k when the YAML omits it
-            if m is A2C2f:
-                legacy = False
-                if scale in {"l", "x"}:  # for L/X sizes
-                    args.extend((True, 1.2))
-            if m is C2fCIB:
-                legacy = False
-        elif m is AIFI:
-            args = [ch[f], *args]
-        elif m in frozenset({HGStem, HGBlock}):
-            c1, cm, c2 = ch[f], args[0], args[1]
-            args = [c1, cm, c2, *args[2:]]
-            if m is HGBlock:
-                args.insert(4, n)  # number of repeats
-                n = 1
-        elif m is ResNetLayer:
-            c2 = args[1] if args[3] else args[1] * 4
-        elif m is torch.nn.BatchNorm2d:
-            args = [ch[f]]
-        elif m is Concat:
-            c2 = sum(ch[x] for x in f)
-        elif m in frozenset(
-            {
-                Detect,
-                WorldDetect,
-                YOLOEDetect,
-                Segment,
-                Segment26,
-                YOLOESegment,
-                YOLOESegment26,
-                Pose,
-                Pose26,
-                OBB,
-                OBB26,
-            }
-        ):
-            args.extend([reg_max, end2end, [ch[x] for x in f]])
-            if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
-                args[2] = make_divisible(min(args[2], max_channels) * width, 8)
-            if m in {Detect, YOLOEDetect, Segment, Segment26, YOLOESegment, YOLOESegment26, Pose, Pose26, OBB, OBB26}:
-                m.legacy = legacy
-        elif m is Depth:
-            args = [*args[:1], [ch[x] for x in f]]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
-        elif m is SemanticSegment:
-            args.append([ch[x] for x in f])  # nc, ch tuple
-        elif m is v10Detect:
-            args.append([ch[x] for x in f])
-        elif m is ImagePoolingAttn:
-            args.insert(1, [ch[x] for x in f])  # channels as second arg
-        elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
-            args.insert(1, [ch[x] for x in f])
-        elif m is CBLinear:
-            c2 = args[0]
-            c1 = ch[f]
-            args = [c1, c2, *args[1:]]
-        elif m is CBFuse:
-            c2 = ch[f[-1]]
-        elif m in frozenset({TorchVision, Index}):
-            c2 = args[0]
-            c1 = ch[f]
-            args = [*args[1:]]
-        else:
-            c2 = ch[f]
+                args = [c1, c2, *args[1:]]
+                if m in repeat_modules:
+                    args.insert(2, n)  # number of repeats
+                    n = 1
+                if m is C3k2:  # for M/L/X sizes
+                    legacy = False
+                    if scale in {"m", "l", "x"}:
+                        args[3:4] = [True]  # slice assignment also supplies c3k when the YAML omits it
+                if m is A2C2f:
+                    legacy = False
+                    if scale in {"l", "x"}:  # for L/X sizes
+                        args.extend((True, 1.2))
+                if m is C2fCIB:
+                    legacy = False
+            elif m is AIFI:
+                args = [ch[f], *args]
+            elif m in frozenset({HGStem, HGBlock}):
+                c1, cm, c2 = ch[f], args[0], args[1]
+                args = [c1, cm, c2, *args[2:]]
+                if m is HGBlock:
+                    args.insert(4, n)  # number of repeats
+                    n = 1
+            elif m is ResNetLayer:
+                c2 = args[1] if args[3] else args[1] * 4
+            elif m is torch.nn.BatchNorm2d:
+                args = [ch[f]]
+            elif m is Concat:
+                c2 = sum(ch[x] for x in f)
+            elif m in frozenset(
+                {
+                    Detect,
+                    WorldDetect,
+                    YOLOEDetect,
+                    Segment,
+                    Segment26,
+                    YOLOESegment,
+                    YOLOESegment26,
+                    Pose,
+                    Pose26,
+                    OBB,
+                    OBB26,
+                }
+            ):
+                args.extend([reg_max, end2end, [ch[x] for x in f]])
+                if m is Segment or m is YOLOESegment or m is Segment26 or m is YOLOESegment26:
+                    args[2] = make_divisible(min(args[2], max_channels) * width, 8)
+                if m in {
+                    Detect,
+                    YOLOEDetect,
+                    Segment,
+                    Segment26,
+                    YOLOESegment,
+                    YOLOESegment26,
+                    Pose,
+                    Pose26,
+                    OBB,
+                    OBB26,
+                }:
+                    m.legacy = legacy
+            elif m is Depth:
+                args = [
+                    *args[:1],
+                    [ch[x] for x in f],
+                ]  # c_mid, ch tuple; drops the legacy mode arg old checkpoints store
+            elif m is SemanticSegment:
+                args.append([ch[x] for x in f])  # nc, ch tuple
+            elif m is v10Detect:
+                args.append([ch[x] for x in f])
+            elif m is ImagePoolingAttn:
+                args.insert(1, [ch[x] for x in f])  # channels as second arg
+            elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
+                args.insert(1, [ch[x] for x in f])
+            elif m is CBLinear:
+                c2 = args[0]
+                c1 = ch[f]
+                args = [c1, c2, *args[1:]]
+            elif m is CBFuse:
+                c2 = ch[f[-1]]
+            elif m in frozenset({TorchVision, Index}):
+                c2 = args[0]
+                c1 = ch[f]
+                args = [*args[1:]]
+            else:
+                c2 = ch[f]
 
-        m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
-        if m is SPPF and len(args) <= 3:  # Legacy YAML rows predate the unactivated YOLO26 SPPF.
-            for block in m_ if n > 1 else [m_]:
-                block.cv1.act = Conv.default_act
-        t = str(m)[8:-2].replace("__main__.", "")  # module type
-        m_.np = sum(x.numel() for x in m_.parameters())  # number params
-        m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
-        if verbose:
-            LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
-        save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
-        layers.append(m_)
-        if i == 0:
-            ch = []
-        ch.append(c2)
-    Conv.default_act = default_act
+            m_ = torch.nn.Sequential(*(m(*args) for _ in range(n))) if n > 1 else m(*args)  # module
+            if m is SPPF and len(args) <= 3:  # Legacy YAML rows predate the unactivated YOLO26 SPPF.
+                for block in m_ if n > 1 else [m_]:
+                    block.cv1.act = Conv.default_act
+            t = str(m)[8:-2].replace("__main__.", "")  # module type
+            m_.np = sum(x.numel() for x in m_.parameters())  # number params
+            m_.i, m_.f, m_.type = i, f, t  # attach index, 'from' index, type
+            if verbose:
+                LOGGER.info(f"{i:>3}{f!s:>20}{n_:>3}{m_.np:10.0f}  {t:<45}{args!s:<30}")  # print
+            save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
+            layers.append(m_)
+            if i == 0:
+                ch = []
+            ch.append(c2)
+    finally:
+        Conv.default_act = default_act
     return torch.nn.Sequential(*layers), sorted(save)
 
 

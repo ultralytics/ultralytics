@@ -603,28 +603,16 @@ GET /api/datasets/{owner}/{dataset}/versions/compare?base={from}&head={to}
 | `cursor`  | string | `nextCursor` from the previous page                                            |
 | `hash`    | string | An item's `hash`: return that image as each version stores it, not the changes |
 
-**Response:**
+**Response (abridged):**
 
 ```json
 {
-    "summary": {
-        "added": 0,
-        "removed": 1,
-        "modified": 1,
-        "moved": 1,
-        "labelsAdded": 1,
-        "labelsRemoved": 2,
-        "header": { "classesAdded": [], "classesRemoved": [], "classesRenamed": [], "changed": [] }
-    },
+    "summary": { "added": 0, "removed": 1, "modified": 1, "moved": 1, "labelsAdded": 1, "labelsRemoved": 2 },
     "items": [
         {
             "hash": "b5c605c133f84c3024af7e652b135501",
             "name": "000000000042",
-            "ext": "jpg",
             "change": "moved",
-            "fields": [],
-            "labelsAdded": 0,
-            "labelsRemoved": 0,
             "base": { "split": "val", "labelCount": 1 },
             "head": { "split": "test", "labelCount": 1 }
         }
@@ -632,12 +620,12 @@ GET /api/datasets/{owner}/{dataset}/versions/compare?base={from}&head={to}
 }
 ```
 
-`summary` holds exact totals and appears on the first page only; `header` lists classes added, removed, or renamed and
-other dataset fields that differ. Each item's `change` is `added`, `removed`, `modified` (with the changed `fields`), or
-`moved` (split changed), and `labelsRemoved` includes the labels of removed images. Pass `nextCursor`, when present, as
-`cursor` for the next page. With `hash`, the response is `versions`: the image as each version stores it, with its
-labels and a signed `imageUrl`. Either order works; swapping `base` and `head` reports a removed image as added.
-Comparisons use the default rate limit, and requests without `hash` are also limited to 10 per minute per user
+`summary` appears on the first page only and holds exact totals plus a `header` that lists classes added, removed, or
+renamed and other dataset fields that differ. Each item's `change` is `added`, `removed`, `modified` (with the changed
+`fields`), or `moved` (split changed), and `labelsRemoved` includes the labels of removed images. Pass `nextCursor`,
+when present, as `cursor` for the next page. With `hash`, the response is `versions`: the image as each version stores
+it, with its labels and a signed `imageUrl`. Either order works; swapping `base` and `head` reports a removed image as
+added. Comparisons use the default rate limit, and requests without `hash` are also limited to 10 per minute per user
 and dataset, whichever API key sends them.
 
 ### Get Dataset Statistics
@@ -2084,34 +2072,21 @@ block more than one input returns `400`.
 ```python
 from ultralytics_platform import Platform
 
+
+def block(node_id, kind, x, config):
+    return {
+        "id": node_id,
+        "type": "agent",
+        "position": {"x": x, "y": 0},
+        "data": {"label": kind, "type": kind, "config": config},
+    }
+
+
 graph = {
     "nodes": [
-        {
-            "id": "images",
-            "type": "agent",
-            "position": {"x": 0, "y": 0},
-            "data": {
-                "label": "Dataset",
-                "type": "Dataset",
-                "config": {"dataset": "official:coco8", "split": "val", "maxInputs": 2},
-            },
-        },
-        {
-            "id": "yolo",
-            "type": "agent",
-            "position": {"x": 220, "y": 0},
-            "data": {
-                "label": "YOLO",
-                "type": "YOLO",
-                "config": {"model": "ul://ultralytics/yolo26/yolo26n", "task": "detect"},
-            },
-        },
-        {
-            "id": "output",
-            "type": "agent",
-            "position": {"x": 440, "y": 0},
-            "data": {"label": "Output", "type": "Output", "config": {}},
-        },
+        block("images", "Dataset", 0, {"dataset": "official:coco8", "split": "val", "maxInputs": 2}),
+        block("yolo", "YOLO", 220, {"model": "ul://ultralytics/yolo26/yolo26n", "task": "detect"}),
+        block("output", "Output", 440, {}),
     ],
     "edges": [{"id": "e1", "source": "images", "target": "yolo"}, {"id": "e2", "source": "yolo", "target": "output"}],
     "templateId": "",

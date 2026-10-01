@@ -216,10 +216,8 @@ def get_cdn_group(
     dn_bbox = gt_bbox.repeat(2 * num_group, 1)  # 2*num_group*bs*num, 4
     dn_b_idx = b_idx.repeat(2 * num_group).view(-1)  # (2*num_group*bs*num, )
 
-    # Positive and negative mask
-    # The second block in each group contains its negative samples.
-    neg_idx = torch.arange(total_num * 2 * num_group, dtype=torch.long, device=gt_bbox.device)
-    neg_idx = neg_idx.view(num_group, 2, total_num)[:, 1].reshape(-1)
+    # Negative sample indices, the second total_num block of each (positive, negative) group
+    neg_idx = torch.arange(2 * num_group * total_num, device=gt_bbox.device).view(num_group, 2, -1)[:, 1].flatten()
 
     if cls_noise_ratio > 0:
         # Apply class label noise to half of the samples

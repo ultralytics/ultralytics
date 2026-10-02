@@ -3,7 +3,8 @@
 # Builds ultralytics/ultralytics:latest-python image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Lightweight CPU image optimized for YOLO inference
 
-FROM python:3.13-slim-trixie
+ARG PYTHON_VERSION=3.14
+FROM python:${PYTHON_VERSION}-slim-trixie
 
 # Set environment variables (suppress PyTorch NNPACK warnings)
 ENV PYTHONUNBUFFERED=1 \
@@ -21,7 +22,7 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
 # Install linux packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    python3-pip git zip unzip wget curl htop libgl1 libglib2.0-0 && \
+    git zip unzip wget curl htop libgl1 libglib2.0-0 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -39,7 +40,7 @@ RUN pip install uv && \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     --index-strategy unsafe-best-match && \
     rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json \
-    /usr/local/lib/python3.13/site-packages/torch/test /usr/local/lib/python3.13/site-packages/torch/bin/test_*
+    /usr/local/lib/python*/site-packages/torch/test /usr/local/lib/python*/site-packages/torch/bin/test_*
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

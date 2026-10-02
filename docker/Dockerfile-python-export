@@ -3,8 +3,8 @@
 # Builds ultralytics/ultralytics:latest-python-export image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
 # Full-featured image with export capabilities for YOLO model conversion
 
-# Build from lightweight Ultralytics Python image
-FROM ultralytics/ultralytics:latest-python
+# TensorFlow, CoreML and PaddlePaddle exports require Python 3.13.
+FROM ultralytics/ultralytics:latest-python-3.13
 
 # Install export-specific system packages
 # gnupg required for Edge TPU install

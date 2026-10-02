@@ -238,6 +238,19 @@ jobs:
           run: |
             docker builder prune -af
 
+            # Reuse the Python Dockerfile for exports whose dependencies stop at Python 3.13.
+            if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
+              docker build --platform ${{ matrix.platforms }} --build-arg PYTHON_VERSION=3.13 \
+                --label "org.opencontainers.image.source=https://github.com/ultralytics/ultralytics" \
+                --label "org.opencontainers.image.description=Ultralytics image" \
+                --label "org.opencontainers.image.licenses=AGPL-3.0-or-later" \
+                -f docker/Dockerfile-python \
+                -t ultralytics/ultralytics:latest-python-3.13 \
+                -t ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-python-3.13 \
+                -t ghcr.io/ultralytics/ultralytics:latest-python-3.13 \
+                -t ghcr.io/ultralytics/ultralytics:${{ steps.get_version.outputs.version }}-python-3.13 .
+            fi
+
             derivatives='${{ matrix.derivatives }}'
             if [[ -n "$derivatives" ]]; then
               IFS=',' read -ra derivative_array <<< "$derivatives"
@@ -280,15 +293,24 @@ jobs:
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
         run: |
-          test_torch=""
+          test_images=("${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }}")
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
-            test_torch="'torch<2.7'"
+            test_images+=("latest-python")
           fi
           tests="tests"
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-jetson-jetpack4" ]]; then
             tests="tests/test_cli.py" # its GPU-only torch 1.11 wheel runs CPU inference ~50x slower than other images
           fi
-          docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest $tests --export-env base"
+          for image in "${test_images[@]}"; do
+            test_torch=""
+            test_extras="solutions"
+            if [[ "$image" == "latest-python-export" ]]; then
+              test_torch="'torch<2.7'"
+            elif [[ "$image" == "latest-python" ]]; then
+              test_extras="export-base,export-openvino,solutions"
+            fi
+            docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:$image /bin/bash -c "uv pip install --system --break-system-packages -e '.[$test_extras]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest $tests --export-env base"
+          done
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
@@ -304,6 +326,9 @@ jobs:
           run: |
             # Create array of all images to push (base + derivatives)
             images_to_push=("${{ matrix.tags }}")
+            if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
+              images_to_push+=("latest-python-3.13")
+            fi
 
             # Add derivative images to array
             derivatives='${{ matrix.derivatives }}'

@@ -49,7 +49,7 @@ on:
 
 jobs:
   # One cross-OS asset cache for every job: rebuilt only when the manifest changes, so no job downloads from GitHub
-  # Releases at run time. Paths are Ultralytics' default weights and datasets dirs, identical on every runner OS.
+  # Releases at run time. Assets live in workspace-relative weights/ and datasets/ (actions/cache rejects '..').
   Assets:
     runs-on: ubuntu-latest
     outputs:
@@ -63,7 +63,7 @@ jobs:
         with:
           path: &asset-paths |
             weights
-            ../datasets
+            datasets
           key: ${{ steps.key.outputs.key }}
           enableCrossOsArchive: true
           lookup-only: true
@@ -81,6 +81,7 @@ jobs:
           timeout_minutes: 30
           run: |
             uv pip install -e . "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+            yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"
             python tests/cache_test_assets.py
       - if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v6
@@ -139,6 +140,10 @@ jobs:
           key: ${{ needs.Assets.outputs.key }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true
+      - &asset-dirs
+        name: Use cached asset dirs
+        shell: bash # for Windows compatibility
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216
@@ -225,6 +230,7 @@ jobs:
           yolo checks
           uv pip list
       - *restore-assets
+      - *asset-dirs
       - name: Pytest tests
         shell: bash # for Windows compatibility
         # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
@@ -369,6 +375,7 @@ jobs:
           yolo checks
           uv pip list
       - *restore-assets
+      - *asset-dirs
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
@@ -423,6 +430,7 @@ jobs:
       - name: Install base package
         run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - *restore-assets
+      - *asset-dirs
       - name: Build and run export tests in isolated environments
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
@@ -556,8 +564,7 @@ jobs:
           yolo checks
           uv pip list
       - *restore-assets
-      - name: Use default asset dirs # the self-hosted runner keeps settings between runs
-        run: yolo settings reset
+      - *asset-dirs
       - name: Pytest tests
         run: pytest -n auto --dist=loadfile --max-worker-restart=0 --slow tests/ --export-env base
       - name: Activate Virtual Environment for Benchmarks

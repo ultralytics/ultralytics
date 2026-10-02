@@ -67,7 +67,7 @@ category names become your class names — so a COCO archive does not need `clas
 
 !!! warning "Pascal VOC imports without annotations"
 
-    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import as a classification dataset with a single class named `images`, and the boxes do not. Choose YOLO with Images or COCO with Images instead.
+    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the boxes do not, and an export of five or more images also picks up a single class named `images`. Choose YOLO with Images or COCO with Images instead.
 
 ## What Carries Over
 

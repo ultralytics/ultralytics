@@ -249,7 +249,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! warning "Pascal VOC XML Is Not Imported"
 
-    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload as unannotated. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
+    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload without them, and five or more images kept in a folder such as `images/` or `JPEGImages/` also pick up a class named after that folder. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
 If labels reference class IDs but no class names are supplied, Platform remaps the IDs to a dense 0-indexed sequence and names each class after its source ID (`class0`, `class3`, …), which you can rename later in the [Classes tab](#classes-tab).
 

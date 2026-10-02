@@ -16,8 +16,8 @@ Until then there is a short path that works today, because CVAT already exports 
 ## Import from CVAT Today
 
 1. **Export from CVAT.** Open your task and choose **Actions > Export task dataset** (from a job it is **Menu > Export job dataset**).
-2. **Pick the format.** Choose the **[Ultralytics YOLO](https://docs.cvat.ai/docs/dataset_management/formats/format-yolo-ultralytics/)** entry matching your task — CVAT lists `Ultralytics YOLO Detection 1.0`, `Ultralytics YOLO Segmentation 1.0`, `Ultralytics YOLO Oriented Bounding Boxes 1.0`, `Ultralytics YOLO Pose 1.0`, and `Ultralytics YOLO Classification 1.0` separately.
-3. **Turn on Save images**, name the `.zip`, and click **OK**. Without the images the archive holds annotations only, and Platform has nothing to import.
+2. **Pick the format.** Choose the **[Ultralytics YOLO](https://docs.cvat.ai/docs/dataset_management/formats/format-yolo-ultralytics/)** entry matching your task — CVAT lists `Ultralytics YOLO Detection 1.0`, `Ultralytics YOLO Detection Track 1.0`, `Ultralytics YOLO Segmentation 1.0`, `Ultralytics YOLO Oriented Bounding Boxes 1.0`, `Ultralytics YOLO Pose 1.0`, and `Ultralytics YOLO Classification 1.0` separately.
+3. **Turn on Save images**, name the `.zip`, and click **OK**. Save images is a paid feature on CVAT Online; without it the archive holds only labels, so add your images in an `images/` folder that mirrors `labels/` before uploading.
 4. **Download the archive.** The export runs in the background — collect it from CVAT's [Requests](https://docs.cvat.ai/docs/workspace/requests-page/) page when it finishes.
 5. **Upload to Platform.** [Create a new dataset](../data/datasets.md) from the ZIP.
 6. **Train.** [Edit the annotations](../data/annotation.md), [train](../train/index.md), and [deploy](../deploy/index.md) without leaving the workspace.
@@ -33,7 +33,7 @@ pip install cvat-cli
 cvat-cli project export-dataset --format "Ultralytics YOLO Detection 1.0" --with-images yes 104 dataset.zip
 ```
 
-Replace `104` with your project ID and the format string with the variant matching your task. `--with-images yes` is the CLI equivalent of the **Save images** switch; without it the archive holds annotations only.
+Replace `104` with your project ID and the format string with the variant matching your task. `--with-images yes` is the CLI equivalent of the **Save images** switch; without it the archive holds only labels, so add an `images/` folder that mirrors `labels/` before uploading.
 
 CVAT's Ultralytics YOLO export produces the layout Platform expects, so nothing needs converting:
 
@@ -49,6 +49,7 @@ archive.zip/
 Each Ultralytics YOLO format writes only the CVAT shapes its task can hold, so pick the one matching how you labeled:
 
 - **Detection** keeps rectangles, but skips rotated ones — export those with **Oriented Bounding Boxes**
+- **Detection Track** keeps rectangles plus a track ID; Platform imports them as boxes and ignores the track ID
 - **Segmentation** keeps polygons and masks, converting masks to polygons, and drops rectangles
 - **Pose** keeps skeletons only; standalone points are not exported
 - **Classification** keeps tags, and images without a tag land in a `no_label` class
@@ -70,7 +71,7 @@ CVAT offers [many export formats](https://docs.cvat.ai/docs/dataset_management/f
 Every COCO annotation must carry a `bbox` to be read, and crowd regions (`"iscrowd": 1`) are skipped. CVAT writes masks
 to COCO as crowd regions, so export masks with Ultralytics YOLO Segmentation instead. Category names
 become the class names, and category IDs are unified across all the JSON files in the archive, so per-split exports keep
-consistent class IDs.
+consistent class IDs. An object stored as several polygons is joined into one polygon.
 
 !!! warning "CVAT XML and Pascal VOC import without annotations"
 
@@ -87,7 +88,7 @@ Picking the right export format is the step the integration removes. Once it shi
 
 !!! tip "Available now"
 
-    The [Labelbox](labelbox.md) and [Roboflow](roboflow.md) integrations work today, and Platform imports YOLO, COCO, and Ultralytics NDJSON datasets directly.
+    The [Labelbox](labelbox.md) and [Roboflow](roboflow.md) integrations work today, and Platform imports YOLO, COCO, [LabelMe](labelme.md) JSON, and Ultralytics or Labelbox NDJSON datasets directly.
 
 ## FAQ
 
@@ -97,7 +98,7 @@ Choose the **Ultralytics YOLO** entry that matches your task, with **Save images
 
 ### Why did my dataset import without any images?
 
-The **Save images** switch was off, or the CLI export ran without `--with-images yes`. The archive then holds annotations only. Re-export with images included.
+The **Save images** switch was off, or the CLI export ran without `--with-images yes`. The archive then holds only labels. Re-export with images included, or, on a CVAT Online plan without Save images, add an `images/` folder that mirrors `labels/` to the ZIP.
 
 ### Does the import support segmentation and pose?
 

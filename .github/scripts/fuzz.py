@@ -97,8 +97,8 @@ EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly formats instal
 # The last field overrides CLAMPS: RT-DETR's 300-query decoder needs >=160px of anchors (below that is a T2 gap).
 ALTERNATE_CORPUS = (
     ("detect", "rtdetr-l.pt", "coco8.yaml", {"val", "predict", "export"}, "imgsz=160"),
-    ("detect", "yolov8s-worldv2.pt", "coco8.yaml", {"predict", "export"}, ""),
-    ("segment", "yoloe-11s-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-26n-seg.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-26n-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
 )
 
 # Controlled variations for cost-sensitive keys excluded from arbitrary mutation.
@@ -381,7 +381,7 @@ def prepare_sources(uni):
     empty_image.touch()
     corrupt_image.write_bytes(b"not an image")
     empty_dir.mkdir(exist_ok=True)
-    video = source_dir / "decelera_portrait_min.mov"
+    video = WEIGHTS_DIR / "solution_assets" / "decelera_portrait_min.mov"  # restored with the CI asset cache
     safe_download(f"{ASSETS_URL}/{video.name}", file=video)
     uni["sources"] = {
         "predict": [

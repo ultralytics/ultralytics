@@ -70,8 +70,8 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
 image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the
 terminal. Connecting a host requires the workspace editor [role](../account/teams.md#roles-and-permissions) and an
-active Enterprise plan; workspaces on another plan see a **Continue** button that requests a guided On Premise
-walkthrough instead of an install command.
+active Enterprise plan; workspaces on another plan see a **Request a demo** button, which sends an Enterprise demo
+request instead of creating an install command.
 
 Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
@@ -159,7 +159,7 @@ On Premise supports the same ingest formats and computer-vision tasks as uploade
 
 - Images and videos
 - ZIP, TAR, TAR.GZ, and TGZ archives
-- Ultralytics NDJSON and COCO JSON
+- Ultralytics and [Labelbox](labelbox.md) NDJSON, COCO JSON, and [LabelMe](labelme.md) JSON
 - YOLO datasets and classification folders
 - Detect, segment, semantic, classify, pose, and oriented bounding box (OBB) tasks
 
@@ -206,8 +206,8 @@ computer keeps the same host, so its datasets keep working and no duplicate host
 computer there and disconnects its host in the workspace it leaves.
 
 **Reconnect** issues a fresh install command for a disconnected host. Run it on the computer that should serve that
-host, and its existing datasets resume without being re-imported. Disconnected hosts stay listed only while datasets
-still depend on them.
+host, and its existing datasets resume without being re-imported. Disconnected hosts stay listed only while datasets or
+models still depend on them.
 
 **Disconnect** revokes that host's access immediately. Queued, starting, and running jobs bound to it are cancelled,
 including training in progress, and a dataset that was still being imported fails with `On Premise host disconnected
@@ -234,6 +234,8 @@ files are never touched.
 - **Docker asks for permission:** Approve the prompt and wait for Docker to start. Setup continues automatically.
 - **Windows asks for a restart:** Restart the computer, return to `Settings > Integrations`, and create a new install command.
 - **The setup command expired:** Create a new install command. Each command is temporary and works once.
+- **Another machine already reconnected this host:** A different computer ran a Reconnect command for the same host
+  first. Create a new install command for this computer.
 - **The connection stays offline:** Open Docker Desktop, rerun a newly generated command, and keep the terminal open until it reports that On Premise is running.
 - **Previews do not load:** Open Platform in a browser on the connected computer. Dataset previews come directly from
   that computer.

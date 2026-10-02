@@ -59,11 +59,11 @@ To stop all Slack alerts, click **Disconnect**. Disconnecting takes effect immed
 
 ## Troubleshooting
 
-- **The Slack integration says an admin must connect it:** ask a Platform workspace admin or owner to complete the
+- **The Slack integration says a workspace admin can manage it:** ask a Platform workspace admin or owner to complete the
   connection.
 - **Slack shows Request approval instead of Allow:** send the request and ask your Slack workspace admin to approve the app. You do not need to create an API key or webhook.
 - **Your Slack workspace or channel is missing:** confirm that you are signed in to the correct Slack workspace and that you can add apps to the channel.
-- **The integration shows Slack stopped accepting alerts:** Slack rejected the last alert because the app was removed, the channel was archived or deleted, or a Slack admin restricted posting. Click **Change channel** to reconnect Slack and choose an active channel; the warning clears as soon as an alert is delivered.
+- **The integration shows Slack stopped accepting alerts:** Slack rejected the last alert because the app was removed, the channel was archived or deleted, or a Slack admin restricted posting. Click **Change channel** to reconnect Slack and choose an active channel; the warning clears when you reconnect or the next alert is delivered.
 - **A job finished without a Slack message:** check the selected alerts in **Settings > Integrations**, then open the related [model](../train/models.md) or [deployment](../deploy/index.md) in Platform. Slack alerts are informational and never control job processing.
 
 Return to the [Platform integrations overview](index.md) to connect data, storage, or On Premise services.

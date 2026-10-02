@@ -48,8 +48,8 @@ on:
         type: boolean
 
 jobs:
-  # One cross-OS asset cache for every job: rebuilt only when the manifest changes, so no job downloads from GitHub
-  # Releases at run time. Assets live in workspace-relative weights/ and datasets/ (actions/cache rejects '..').
+  # One cross-OS asset cache for every job: rebuilt only when the manifest changes, so jobs restore weights and datasets
+  # instead of downloading them from GitHub Releases. They live in workspace-relative dirs (actions/cache rejects '..').
   Assets:
     runs-on: ubuntu-latest
     outputs:

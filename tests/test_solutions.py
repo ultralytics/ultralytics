@@ -382,6 +382,24 @@ def test_object_crop_with_show_True():
     solutions.ObjectCropper(show=True)
 
 
+def test_object_cropper_obb_crops(tmp_path):
+    """Save one rotation-aligned file per synthetic OBB with the predicted dimensions."""
+    from ultralytics.engine.results import Results
+
+    frame = np.full((100, 100, 3), 255, dtype=np.uint8)
+    boxes = torch.tensor([[50, 50, 40, 20, np.pi / 4, 0.9, 0], [50, 50, 20, 40, np.pi / 4, 0.8, 0]])
+    predictions = Results(frame, path="synthetic.jpg", names={0: "object"}, obb=boxes)
+    with patch("ultralytics.solutions.solutions.YOLO") as mock_yolo:
+        mock_yolo.return_value.names = predictions.names
+        mock_yolo.return_value.predict.return_value = [predictions]
+        cropper = solutions.ObjectCropper(crop_dir=str(tmp_path), model="unused.pt", show=False)
+        result = cropper.process(frame)
+
+    files = sorted(tmp_path.glob("crop_*.jpg"))
+    assert result.total_crop_objects == len(files) == 2
+    assert [cv2.imread(str(file)).shape[:2] for file in files] == [(20, 40), (40, 20)]
+
+
 def test_display_output_method():
     """Test that display_output triggers imshow, waitKey, and destroyAllWindows when enabled."""
     counter = solutions.ObjectCounter(show=True)

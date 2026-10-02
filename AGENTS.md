@@ -50,7 +50,7 @@ After opening a PR:
 uv pip install -e ".[dev,export-base,export-openvino,solutions]" ruff
 
 # Default (non-slow) suite with the base export environment, matching ci.yml's Tests job
-# (CI also runs python tests/cache_test_assets.py first, sets YOLO_AUTOINSTALL=false, caps macOS at 2 workers, and runs ARM single-process)
+# (CI restores the assets tests/cache_test_assets.py downloads, sets YOLO_AUTOINSTALL=false, caps macOS at 2 workers, and runs ARM single-process)
 pytest -n auto --dist=loadfile --cov=ultralytics/ --cov-report=xml tests/ --export-env base
 
 # Single file / single test

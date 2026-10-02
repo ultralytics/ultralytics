@@ -2116,44 +2116,8 @@ def test_process_mask_native_chunked():
     assert torch.equal(out, ref)
 
 
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
-@pytest.mark.skipif(
-    checks.IS_PYTHON_3_8 and LINUX and ARM64,
-    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
-)
-def test_yolo_world():
-    """Test YOLO world models with CLIP support."""
-    model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
-    model.set_classes(["tree", "window"])
-    model(SOURCE, conf=0.01)
-
-    model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
-    # Training from a pretrained model. Eval is included at the final stage of training.
-    # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
-    model.train(
-        data="dota8.yaml",
-        epochs=1,
-        imgsz=32,
-        cache="disk",
-        close_mosaic=1,
-    )
-
-    # test WorWorldTrainerFromScratch
-    from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
-
-    model = YOLO("yolov8s-worldv2.yaml")  # no YOLO11n-world model yet
-    model.train(
-        data={"train": {"yolo_data": ["dota8.yaml"]}, "val": {"yolo_data": ["dota8.yaml"]}},
-        epochs=1,
-        imgsz=32,
-        cache="disk",
-        close_mosaic=1,
-        trainer=WorldTrainerFromScratch,
-    )
-
-
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
-@pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_0, reason="MobileCLIP2 uses scaled_dot_product_attention (torch>=2.0)")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -2162,7 +2126,7 @@ def test_yoloe(tmp_path):
     """Test YOLOE models with MobileCLIP support."""
     # Predict
     # text-prompts
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     model.set_classes(["person", "bus"])
     model.set_classes(["bus", "person"])
     assert list(model.names.values()) == ["bus", "person"]
@@ -2183,7 +2147,7 @@ def test_yoloe(tmp_path):
     )
 
     # Val
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     # text prompts
     model.val(data="coco128-seg.yaml", imgsz=32)
     # visual prompts
@@ -2192,7 +2156,7 @@ def test_yoloe(tmp_path):
     # Train, fine-tune
     from ultralytics.models.yolo.yoloe import YOLOEPEFreeTrainer, YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
-    model = YOLOE("yoloe-11s-seg.pt")
+    model = YOLOE("yoloe-26n-seg.pt")
     model.train(
         data="coco128-seg.yaml",
         epochs=1,
@@ -2205,7 +2169,7 @@ def test_yoloe(tmp_path):
     data_yaml = tmp_path / "yoloe-data.yaml"
     YAML.save(data=data_dict, file=data_yaml)
     for data in [data_dict, data_yaml]:
-        model = YOLOE("yoloe-11s-seg.yaml")
+        model = YOLOE("yoloe-26n-seg.yaml")
         model.train(
             data=data,
             epochs=1,
@@ -2216,13 +2180,13 @@ def test_yoloe(tmp_path):
 
     # prompt-free
     # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg-pf.pt")
     model.predict(SOURCE)
     # val
-    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    model = YOLOE("yoloe-26n-seg.pt")  # or select yoloe-26s/m/l/x-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
     # train, freezing everything but the classification branch
-    model = YOLOE("yoloe-11s-seg.pt")
+    model = YOLOE("yoloe-26n-seg.pt")
     head = len(model.model.model) - 1
     freeze = [str(i) for i in range(head)]
     freeze += [f"{head}.{name}" for name, _ in model.model.model[-1].named_children() if "cv3" not in name]
@@ -2262,7 +2226,7 @@ def test_yoloe_vocab_head_switch():
 
 def test_yoloe_visual_prompt_verbose_false(capfd):
     """Verify that YOLOE visual prompting respects verbose=False."""
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
 
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 

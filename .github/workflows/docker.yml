@@ -190,24 +190,6 @@ jobs:
           echo "Intended version tag: $VERSION_TAG"
           echo "version_tag=$VERSION_TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Check if version tag exists on DockerHub
-        id: check_tag
-        run: |
-          RESPONSE=$(curl -s "https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$VERSION_TAG")
-          MESSAGE=$(echo "$RESPONSE" | jq -r '.message')
-          if [[ "$MESSAGE" == "null" ]]; then
-              echo "Tag $VERSION_TAG already exists on DockerHub."
-              echo "new_release=false" >> "$GITHUB_OUTPUT"
-          elif [[ "$MESSAGE" == *"404"* ]]; then
-              echo "Tag $VERSION_TAG does not exist on DockerHub."
-              echo "new_release=true" >> "$GITHUB_OUTPUT"
-          else
-              echo "Unexpected response from DockerHub. Please check manually."
-              echo "new_release=false" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          VERSION_TAG: ${{ steps.get_version.outputs.version_tag }}
-
       - name: Build Base Image
         if: github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true'
         uses: ultralytics/actions/retry@main
@@ -345,11 +327,17 @@ jobs:
               docker push "ultralytics/ultralytics:$tag"
               docker push "ghcr.io/ultralytics/ultralytics:$tag"
 
-              # Push version tag if new release
-              if [[ "${{ steps.check_tag.outputs.new_release }}" == "true" && "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
+              # Check each image so new derivatives receive version tags without overwriting existing releases.
+              if [[ "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
                 version_tag=$(echo "$tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
-                docker push "ultralytics/ultralytics:$version_tag"
-                docker push "ghcr.io/ultralytics/ultralytics:$version_tag"
+                status=$(curl -s -o /dev/null -w '%{http_code}' "https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$version_tag")
+                if [[ "$status" == "404" ]]; then
+                  docker push "ultralytics/ultralytics:$version_tag"
+                  docker push "ghcr.io/ultralytics/ultralytics:$version_tag"
+                elif [[ "$status" != "200" ]]; then
+                  echo "Unexpected DockerHub response for $version_tag: HTTP $status" >&2
+                  exit 1
+                fi
               fi
             done
 

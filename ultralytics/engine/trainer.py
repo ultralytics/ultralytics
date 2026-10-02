@@ -795,6 +795,7 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
+                "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
@@ -1128,6 +1129,9 @@ class BaseTrainer:
         )
         LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
         self._load_checkpoint_state(ckpt)
+        stopper = ckpt.get("stopper", {})
+        if stopper.get("best_epoch"):  # older checkpoints and never-validated runs keep a fresh stopper
+            self.stopper.best_fitness, self.stopper.best_epoch = stopper["best_fitness"], stopper["best_epoch"]
         model = unwrap_model(self.model)
         if getattr(getattr(model, "student_model", model).model[-1], "one2one_cv2", None) is not None:
             # Resume both head losses independently of the selected inference head.
@@ -1174,6 +1178,7 @@ class BaseTrainer:
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
+            self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"

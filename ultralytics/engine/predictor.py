@@ -351,6 +351,7 @@ class BasePredictor:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
             self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
+            self._sources = {}  # output base of each video path, stream slot, or batch image
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -491,15 +492,21 @@ class BasePredictor:
         if self.source_type.stream or self.source_type.from_img or self.source_type.tensor:  # batch_size >= 1
             string += f"{i}: "
             frame = self.dataset.count
+        elif self.source_type.screenshot:
+            frame = self.dataset.frame
         else:
             match = re.search(r"frame (\d+)/", s[i])
             frame = int(match[1]) if match else None  # None if frame undetermined
 
-        base, k = p.stem, 1
-        while self.dataset.mode == "image" and base in self._bases:  # same-stem images (bus.jpg, bus.png) get -2, -3...
-            k += 1
-            base = f"{p.stem}-{k}"
-        self._bases.add(base)
+        key = p if self.dataset.mode == "video" else i  # a video keeps one base across its frames, a stream per slot
+        if self.dataset.mode == "image" or key not in self._sources:
+            base, k = p.stem, 1
+            while base in self._bases:  # same-stem sources (bus.jpg + bus.png, a/clip.mp4 + b/clip.mp4) get -2, -3...
+                k += 1
+                base = f"{p.stem}-{k}"
+            self._bases.add(base)
+            self._sources[key] = base
+        base = self._sources[key]
         self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))
         string += "{:g}x{:g} ".format(*im.shape[2:])
         result = self.results[i]
@@ -517,6 +524,7 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
+            Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)

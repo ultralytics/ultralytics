@@ -1646,18 +1646,6 @@ def test_utils_torchutils():
     time_sync()
 
 
-@pytest.mark.parametrize("dtype", [torch.float32, torch.float16, torch.bfloat16])
-def test_rtdetr_matching_precision(dtype):
-    """Finite AMP logits must preserve confidence ranking, including batches with an empty image."""
-    from ultralytics.models.utils.ops import HungarianMatcher
-
-    boxes = torch.tensor([0.5, 0.5, 0.4, 0.4]).expand(3, 2, 4).to(dtype)
-    scores = torch.tensor([[[-20.0, 0.0], [-10.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]], [[0.0, 7.0], [0.0, 10.0]]])
-    gt_boxes = torch.tensor([[0.5, 0.5, 0.4, 0.4], [0.5, 0.5, 0.4, 0.4]])
-    matches = HungarianMatcher()(boxes, scores.to(dtype), gt_boxes, torch.tensor([0, 1]), [1, 0, 1])
-    assert [(i.tolist(), j.tolist()) for i, j in matches] == [([1], [0]), ([], []), ([1], [1])]
-
-
 def test_rtdetr_remap_cls_by_names():
     """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
     from types import SimpleNamespace

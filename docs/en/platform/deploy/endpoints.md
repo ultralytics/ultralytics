@@ -45,7 +45,7 @@ stateDiagram-v2
     Creating --> Deploying: Service starting
     Deploying --> Ready: Service URL published
     Ready --> Stopping: Stop
-    Ready --> Deploying: Replace model
+    Ready --> Deploying: Replace model or resize
     Stopping --> Stopped: Stopped
     Stopped --> Deploying: Start
     Deploying --> Stopped: Start failed
@@ -177,7 +177,7 @@ The `New Deployment` dialog lets you select a model, region, resources, and depl
 
 ![Ultralytics Platform New Deployment Dialog Fixed Resource Defaults](https://cdn.ul.run/i/5eea1e0b458268cdab03a1ba95a40f2f.avif)<!-- screenshot -->
 
-Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. The default size can use an available free deployment allowance; custom sizes use metered pricing. The default size scales to zero when idle. Custom sizes keep one warm instance and are charged from readiness until you stop the endpoint, including idle time. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
+Choose the CPU and memory size in the resources controls and review the displayed pricing before creating the deployment. CPU options are 1, 2, 4, 6, or 8 vCPU and memory options are 2 to 32 GiB; larger memory sizes need more vCPU (for example, 16 GiB requires at least 4 vCPU), and the dialog explains any invalid combination. The default size (1 vCPU, 2 GiB) is free and scales to zero when idle. Custom sizes keep one warm instance and are charged at the displayed regional hourly rate from readiness until you stop the endpoint, including idle time. Creating, starting, or resizing to a custom size requires available credits, and custom-size endpoints are stopped automatically when the workspace runs out of credits. [Agents](../agents.md#choose-where-to-run) reuses this dialog when you select **New deployment…**.
 
 ![Ultralytics Platform New Deployment Dialog Custom CPU Memory Pricing](https://cdn.ul.run/i/1707f1a302d6cdfa9c9c55af00ef954c.avif)<!-- screenshot -->
 
@@ -377,6 +377,7 @@ capacity ceiling:
 - A single instance serves each endpoint, processing a limited number of requests at once
 - Requests that cannot be served promptly return `429` with a `Retry-After` header
 - A single request may run for up to 1 hour, which allows video inference to complete
+- Request bodies are limited to 32 MB; larger uploads are rejected with `413`
 - Responses larger than 1 KB are gzip-compressed, and cross-origin browser requests are allowed
 
 ### Request Example
@@ -454,10 +455,10 @@ decode it.
 
     Dedicated endpoints accept both images and videos via the `file` parameter.
 
-    - **Image formats** (up to 100 MB): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
-    - **Video formats** (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
+    - **Image formats** (up to 32 MB per request): AVIF, BMP, DNG, HEIC, HEIF, JP2, JPEG, JPG, MPO, PNG, TIF, TIFF, WEBP
+    - **Video formats** (up to 32 MB per request): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV
 
-    Results are returned per processed video frame. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
+    Results are returned per processed video frame; depth models accept images only. You can also pass a public image URL or a base64-encoded image via the `source` parameter instead of `file`. Oversized uploads are rejected with `413`.
 
 ### Response Format
 
@@ -497,9 +498,9 @@ For global coverage:
 
 ### What's the cold start time?
 
-Cold start time depends on the model and whether the endpoint has scaled to zero; Platform allows an idle endpoint
-extra time to start before reporting it unhealthy. Opening the deployment page or re-running its health check warms an
-idle endpoint, so do either before a burst of traffic arrives.
+Cold start time depends on the model and whether the endpoint has scaled to zero; starting from idle can take up to
+about a minute, and Platform allows an idle endpoint extra time to start before reporting it unhealthy. Opening the
+deployment page or re-running its health check warms an idle endpoint, so do either before a burst of traffic arrives.
 
 ### Can I use a custom domain?
 

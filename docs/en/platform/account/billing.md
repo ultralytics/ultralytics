@@ -157,6 +157,18 @@ default payment method. Top-ups are briefly rate-limited to prevent duplicate ch
     Auto top-up can reduce the chance that a paid cloud training job is stopped for insufficient credits. It requires
     a valid default payment method.
 
+### Redeem a Promo Code
+
+If you did not apply a promo code during signup, redeem one later:
+
+1. Switch to your personal workspace and go to **Settings > Billing**
+2. Enter the code under **Promo Code**
+3. Click **Redeem**
+
+The credits are added to your balance immediately and appear as a **Promo Bonus** transaction. Each account redeems
+one promo code in total, so a code applied during signup counts. Referral codes (`REF-` followed by eight characters)
+work only during signup.
+
 ### Payment Methods
 
 Manage payment methods in `Settings > Billing`:

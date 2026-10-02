@@ -550,10 +550,9 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
             self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
+            self.predictor.model.names = {i: f"object{i}" for i in range(num_cls)}  # predictor-scoped prompt classes
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)
@@ -562,11 +561,11 @@ class YOLOE(Model):
                     refer_image = next(iter(dataset))[1][0]
             if refer_image is not None:
                 vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
+                self.model.set_classes(self.predictor.model.names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
-        self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
+        kwargs.setdefault("agnostic_nms", True)  # use agnostic nms for YOLOE predict default
 
         return super().predict(source, stream, **kwargs)

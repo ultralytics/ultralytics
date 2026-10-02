@@ -58,7 +58,12 @@ on:
 jobs:
   Assets:
     if: github.repository == 'ultralytics/ultralytics'
-    uses: ./.github/workflows/assets.yml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/ci-assets
+        with:
+          build: true
 
   docker:
     if: github.repository == 'ultralytics/ultralytics'
@@ -261,18 +266,12 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
         run: docker builder prune -af
 
-      # Restored only after every image is built, then bind-mounted into throwaway test containers, so the pushed
-      # images never contain test assets (they keep only the fonts and yolo26n.pt their Dockerfiles add)
-      - name: Restore CI assets
-        if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.dockerfile != 'Dockerfile-conda'
-        uses: actions/cache/restore@v6
+      # Restored only after every image is built and mounted at the images' default asset dirs in throwaway containers,
+      # so pushed images never contain test assets (only the fonts and yolo26n.pt their Dockerfiles add)
+      - if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.dockerfile != 'Dockerfile-conda'
+        uses: ./.github/actions/ci-assets
         with:
-          path: |
-            weights
-            datasets
-          key: ${{ needs.Assets.outputs.key }}
-          enableCrossOsArchive: true
-          fail-on-cache-miss: true
+          configure: false
 
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
@@ -281,11 +280,11 @@ jobs:
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
             test_torch="'torch<2.7'"
           fi
-          docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/ultralytics/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && yolo settings weights_dir=/ultralytics/weights datasets_dir=/ultralytics/datasets && YOLO_AUTOINSTALL=false pytest tests --export-env base"
+          docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest tests --export-env base"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/ultralytics/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "yolo settings weights_dir=/ultralytics/weights datasets_dir=/ultralytics/datasets && YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
+        run: docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
 
       - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')

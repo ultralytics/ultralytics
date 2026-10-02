@@ -814,20 +814,22 @@ def test_pose_metrics_curves():
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_nan_recovery_redoes_epoch_with_fresh_optimizer_state(tmp_path):
-    """Test that a single transient NaN batch recovers and the redone epoch trains normally."""
+    """Test that a single transient NaN recovers exactly once and the retried epoch itself trains normally."""
     from ultralytics.models.yolo.detect import DetectionTrainer
 
     class NaNTrainer(DetectionTrainer):
-        """DetectionTrainer with one poisoned batch and step/EMA/gradient instrumentation."""
+        """DetectionTrainer with one poisoned batch and step/EMA/gradient instrumentation scoped to the retry."""
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.poisoned = False
+            self.recoveries = 0
             self.last_epoch = -1
             self.batch_idx = 0
-            self.steps_per_epoch = {}
+            self.retry_steps = 0
+            self.retry_ema = []
+            self.ema_at_recovery = 0
             self.grad_finite = []
-            self.ema_after_recovery = None
 
         def preprocess_batch(self, batch):
             if self.epoch != self.last_epoch:  # the recovery redo restarts the epoch, so reset the counter
@@ -842,13 +844,15 @@ def test_nan_recovery_redoes_epoch_with_fresh_optimizer_state(tmp_path):
             grads = (p.grad for p in self.model.parameters() if p.grad is not None)
             self.grad_finite.append(all(bool(torch.isfinite(g).all()) for g in grads))
             super().optimizer_step()
-            self.steps_per_epoch[self.epoch] = self.steps_per_epoch.get(self.epoch, 0) + 1
-            self.ema_updates = self.ema.updates  # updated on every step, also after a recovery
+            if self.poisoned and self.epoch == 1:  # steps of the retried epoch only, never the failed pass
+                self.retry_steps += 1
+                self.retry_ema.append(self.ema.updates)
 
         def _handle_nan_recovery(self, epoch):
             fired = super()._handle_nan_recovery(epoch)
             if fired:
-                self.ema_after_recovery = self.ema.updates
+                self.recoveries += 1
+                self.ema_at_recovery = self.ema.updates
             return fired
 
     trainer = NaNTrainer(
@@ -858,7 +862,7 @@ def test_nan_recovery_redoes_epoch_with_fresh_optimizer_state(tmp_path):
             "epochs": 3,
             "batch": 1,
             "imgsz": 64,
-            "nbs": 5,
+            "nbs": 6,  # accumulate=6: without the last_opt_step reset the step gate stays shut for the whole retry
             "warmup_epochs": 0,
             "val": False,
             "plots": False,
@@ -873,9 +877,10 @@ def test_nan_recovery_redoes_epoch_with_fresh_optimizer_state(tmp_path):
     )
     trainer.train()
     assert trainer.poisoned  # the transient NaN batch happened
-    assert trainer.steps_per_epoch.get(1, 0) >= 1  # the redone epoch performs optimizer steps
+    assert trainer.recoveries == 1  # a single transient NaN recovers exactly once
+    assert trainer.retry_steps >= 1  # the retried epoch itself performs optimizer steps
+    assert trainer.retry_ema[-1] > trainer.ema_at_recovery  # EMA advances within the retried epoch
     assert all(trainer.grad_finite)  # no stale NaN gradients from the failed pass reach a step
-    assert trainer.ema_updates > trainer.ema_after_recovery  # EMA updates resume after the recovery
     assert all(bool(torch.isfinite(p).all()) for p in trainer.model.parameters())  # weights stay finite
 
 

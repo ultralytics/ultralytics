@@ -483,9 +483,8 @@ def safe_download(
                     # A 4xx other than timeout, range or rate-limit answers will not change on retry, so fail fast
                     if i >= retry or (status and status < 500 and status not in {408, 416, 429}):
                         f.unlink(missing_ok=True)
-                        raise ConnectionError(
-                            emojis(f"❌  Download failure for {uri}. Retry limit reached. {e}")
-                        ) from e
+                        limit = "Retry limit reached. " * (i >= retry)
+                        raise ConnectionError(emojis(f"❌  Download failure for {uri}. {limit}{e}")) from e
                     delay = 5 * 2**i  # 5, 10, 20 s rides out the ~20-40 s HTTP 5xx bursts GitHub Releases returns
                     LOGGER.warning(f"Download failure, retrying {i + 1}/{retry} in {delay}s {uri}... {e}")
                     time.sleep(delay)

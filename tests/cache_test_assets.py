@@ -1,14 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
-"""Pre-download shared test assets to avoid race conditions under pytest-xdist.
+"""Pre-download every asset CI tests and benchmarks use.
 
-Run this script once before `pytest -n auto` to ensure all model weights,
-datasets, and solution assets are already cached locally. Each xdist worker
-can then reuse existing files instead of competing to download the same remote resources.
+CI's Assets job runs this once per manifest change and saves the result as one cross-OS cache that every other job
+restores, so no job downloads from GitHub Releases at run time. Locally, run it once before `pytest -n auto` so xdist
+workers reuse existing files instead of racing to download them.
 """
 
 import shutil
 import sys
-from argparse import ArgumentParser
 from pathlib import Path
 
 import torch
@@ -20,7 +19,7 @@ from ultralytics.data.utils import check_cls_dataset, check_det_dataset
 from ultralytics.utils import ARM64, ASSETS_URL, DATASETS_DIR, IS_RASPBERRYPI, LINUX, LOGGER, WEIGHTS_DIR, checks
 from ultralytics.utils.downloads import attempt_download_asset, safe_download
 
-COMMON_WEIGHTS = [
+WEIGHTS = [
     *TASK2MODEL.values(),
     "yolo11n-grayscale.pt",
     "rtdetr-l.pt",
@@ -33,9 +32,6 @@ COMMON_WEIGHTS = [
     "yolo26s-seg.pt",
     "yolo26s-pose.pt",
     "yolo26s-obb.pt",
-]
-
-SLOW_WEIGHTS = [
     "sam2.1_b.pt",
 ]
 
@@ -48,15 +44,14 @@ DATASETS = [
 ]
 
 
-def cache_weights(slow: bool = False) -> None:
-    """Download all model weights used by tests."""
+def cache_weights() -> None:
+    """Download all model weights, copying task weights to the 'path with spaces' folder tests and benchmarks load."""
     LOGGER.info("[cache] Downloading model weights ...")
-    weights = COMMON_WEIGHTS + (SLOW_WEIGHTS if slow else [])
-    for w in weights:
+    for w in WEIGHTS:
         attempt_download_asset(WEIGHTS_DIR / w)
-    if not MODEL.exists():
-        MODEL.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(WEIGHTS_DIR / "yolo26n.pt", MODEL)
+    MODEL.parent.mkdir(parents=True, exist_ok=True)
+    for w in TASK2MODEL.values():
+        shutil.copy2(WEIGHTS_DIR / w, MODEL.parent / w)
     LOGGER.info("[cache] Weights done.")
 
 
@@ -98,29 +93,12 @@ def cache_clip_model() -> None:
     LOGGER.info("[cache] CLIP text encoder done.")
 
 
-def parse_args():
-    """Parse command-line arguments."""
-    parser = ArgumentParser(description="Pre-download test assets.")
-    parser.add_argument("--slow", action="store_true", help="Include assets used only by slow tests.")
-    parser.add_argument(
-        "--benchmarks", action="store_true", help="Copy task weights for benchmarks and skip solution and CLIP assets."
-    )
-    return parser.parse_args()
-
-
 def main() -> None:
     """Main function to orchestrate caching of all test assets."""
-    args = parse_args()
-    cache_weights(slow=args.slow)
+    cache_weights()
     cache_datasets()
-    if args.benchmarks:  # benchmarks load task weights from a path with spaces and need no solution or CLIP assets
-        target = Path("path with spaces")
-        target.mkdir(exist_ok=True)
-        for w in TASK2MODEL.values():
-            shutil.copy2(WEIGHTS_DIR / w, target / w)
-    else:
-        cache_solution_assets()
-        cache_clip_model()
+    cache_solution_assets()
+    cache_clip_model()
     LOGGER.info("[cache] All test assets are ready.")
 
 

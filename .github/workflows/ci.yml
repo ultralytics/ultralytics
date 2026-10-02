@@ -48,7 +48,49 @@ on:
         type: boolean
 
 jobs:
+  # One cross-OS asset cache for every job: rebuilt only when the manifest changes, so no job downloads from GitHub
+  # Releases at run time. Paths are Ultralytics' default weights and datasets dirs, identical on every runner OS.
+  Assets:
+    runs-on: ubuntu-latest
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: key
+        run: echo "key=ci-assets-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}" >> "$GITHUB_OUTPUT"
+      - id: cache
+        uses: actions/cache/restore@v6
+        with:
+          path: &asset-paths |
+            weights
+            ../datasets
+          key: ${{ steps.key.outputs.key }}
+          enableCrossOsArchive: true
+          lookup-only: true
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: ultralytics/actions/setup-uv@main
+        with:
+          python-version: "3.13"
+          activate-environment: true
+      - name: Download assets
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: ultralytics/actions/retry@main
+        with:
+          retries: 2
+          retry_delay_seconds: 60
+          timeout_minutes: 30
+          run: |
+            uv pip install -e . "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+            python tests/cache_test_assets.py
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: *asset-paths
+          key: ${{ steps.key.outputs.key }}
+          enableCrossOsArchive: true
+
   Benchmarks:
+    needs: Assets
     if: github.event_name != 'workflow_dispatch' || github.event.inputs.benchmarks == 'true'
     permissions:
       contents: read
@@ -89,23 +131,24 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Restore test assets # saved by the Tests job
+      - &restore-assets
+        name: Restore CI assets
         uses: actions/cache/restore@v6
         with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
-          restore-keys: |
-            ultralytics-test-assets-${{ runner.os }}-
-      - name: Pre-cache benchmark assets
-        run: |
-          yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-          python tests/cache_test_assets.py --benchmarks
+          path: *asset-paths
+          key: ${{ needs.Assets.outputs.key }}
+          enableCrossOsArchive: true
+          fail-on-cache-miss: true
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
+      - name: Benchmark YOLOE SegmentationModel
+        shell: bash
+        # Prompt-free classes don't map to COCO, so verbose=True checks exports without a metric floor
+        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model=yoloe-26n-seg-pf.pt imgsz=160 verbose=True
       - name: Benchmark SegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.21
@@ -142,6 +185,7 @@ jobs:
           echo '```' >> $GITHUB_STEP_SUMMARY
 
   Tests:
+    needs: Assets
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     permissions:
       contents: read
@@ -180,19 +224,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        shell: bash # for Windows compatibility
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-      - name: Cache test assets
-        uses: actions/cache@v6
-        with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
-          restore-keys: |
-            ultralytics-test-assets-${{ runner.os }}-
-      - name: Pre-cache test assets
-        shell: bash # for Windows compatibility
-        run: python tests/cache_test_assets.py
+      - *restore-assets
       - name: Pytest tests
         shell: bash # for Windows compatibility
         # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
@@ -219,6 +251,7 @@ jobs:
 
   # Shared runner CI keeps current stacks on the main path; legacy torch shards are isolated only where needed.
   SlowTests:
+    needs: Assets
     if: (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
     runs-on: ${{ matrix.os }}
@@ -335,19 +368,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        shell: bash # for Windows compatibility
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-      - name: Cache test assets
-        uses: actions/cache@v6
-        with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
-          restore-keys: |
-            ultralytics-test-assets-${{ runner.os }}-
-      - name: Pre-cache test assets
-        shell: bash # for Windows compatibility
-        run: python tests/cache_test_assets.py --slow
+      - *restore-assets
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
@@ -371,6 +392,7 @@ jobs:
 
   # Export recipes that need their own environments are validated here so the shared CI jobs stay lean.
   IsolatedExports:
+    needs: Assets
     if: github.event_name == 'pull_request' || github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.tests == 'true') || github.event_name == 'schedule'
     timeout-minutes: 360
     runs-on: ubuntu-latest
@@ -400,19 +422,7 @@ jobs:
             isolated-exports-uv-
       - name: Install base package
         run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
-      - name: Configure Ultralytics cache paths
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-      - name: Cache test assets
-        uses: actions/cache@v6
-        with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
-          restore-keys: |
-            ultralytics-test-assets-${{ runner.os }}-
-      - name: Pre-cache test assets
-        env:
-          YOLO_AUTOINSTALL: "false"
-        run: python tests/cache_test_assets.py --slow
+      - *restore-assets
       - name: Build and run export tests in isolated environments
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
@@ -516,6 +526,7 @@ jobs:
 
   # Raspberry Pi stays separate because it is a long-tail self-hosted runner with its own setup and cleanup flow.
   RaspberryPi:
+    needs: Assets
     if: github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event.inputs.raspberrypi == 'true')
     timeout-minutes: 120
     runs-on: raspberry-pi
@@ -544,17 +555,9 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-      - name: Cache test assets
-        uses: actions/cache@v6
-        with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
-          restore-keys: |
-            ultralytics-test-assets-${{ runner.os }}-
-      - name: Pre-cache test assets
-        run: python tests/cache_test_assets.py --slow
+      - *restore-assets
+      - name: Use default asset dirs # the self-hosted runner keeps settings between runs
+        run: yolo settings reset
       - name: Pytest tests
         run: pytest -n auto --dist=loadfile --max-worker-restart=0 --slow tests/ --export-env base
       - name: Activate Virtual Environment for Benchmarks
@@ -578,6 +581,8 @@ jobs:
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-cls.pt' imgsz=160 verbose=0.249
+      - name: Benchmark YOLOE SegmentationModel
+        run: python -m ultralytics.cfg.__init__ benchmark model=yoloe-26n-seg-pf.pt imgsz=160 verbose=True
       - name: Benchmark SegmentationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel
@@ -720,11 +725,11 @@ jobs:
 
   Summary:
     runs-on: ubuntu-latest
-    needs: [Benchmarks, Tests, SlowTests, IsolatedExports, GPU, AMD_GPU, RaspberryPi, NVIDIA_Jetson, Conda]
+    needs: [Assets, Benchmarks, Tests, SlowTests, IsolatedExports, GPU, AMD_GPU, RaspberryPi, NVIDIA_Jetson, Conda]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: (needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+        if: (needs.Assets.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

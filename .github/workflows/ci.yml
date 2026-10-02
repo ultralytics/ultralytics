@@ -89,6 +89,17 @@ jobs:
         run: |
           yolo checks
           uv pip list
+      - name: Configure Ultralytics cache paths
+        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+      - name: Cache benchmark assets
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/.ultralytics_cache
+          key: ultralytics-benchmark-assets-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          restore-keys: |
+            ultralytics-benchmark-assets-${{ runner.os }}-${{ runner.arch }}-
+      - name: Pre-cache benchmark assets
+        run: python tests/cache_test_assets.py --benchmarks
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216

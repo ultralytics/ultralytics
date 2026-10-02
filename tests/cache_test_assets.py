@@ -41,6 +41,8 @@ SLOW_WEIGHTS = [
     "sam2.1_b.pt",
 ]
 
+BENCHMARK_WEIGHTS = [*TASK2MODEL.values(), "yolov8s-worldv2.pt"]
+
 DATASETS = [
     *TASK2DATA.values(),
     *TASK2CALIBRATIONDATA.values(),
@@ -75,6 +77,16 @@ def cache_datasets() -> None:
     LOGGER.info("[cache] Datasets done.")
 
 
+def cache_benchmark_assets() -> None:
+    """Cache benchmark datasets and weights, copying the weights to the 'path with spaces' folder benchmarks load."""
+    cache_datasets()
+    target = Path("path with spaces")
+    target.mkdir(exist_ok=True)
+    for w in BENCHMARK_WEIGHTS:
+        shutil.copy2(attempt_download_asset(WEIGHTS_DIR / w), target / w)
+    LOGGER.info("[cache] Benchmark assets are ready.")
+
+
 def cache_solution_assets() -> None:
     """Download solution test assets (videos, parking json, etc.)."""
     LOGGER.info("[cache] Downloading solution assets ...")
@@ -100,17 +112,21 @@ def cache_clip_model() -> None:
     LOGGER.info("[cache] CLIP text encoder done.")
 
 
-def parse_args() -> bool:
+def parse_args():
     """Parse command-line arguments."""
     parser = ArgumentParser(description="Pre-download test assets.")
     parser.add_argument("--slow", action="store_true", help="Include assets used only by slow tests.")
-    return parser.parse_args().slow
+    parser.add_argument("--benchmarks", action="store_true", help="Cache only the assets benchmarks use.")
+    return parser.parse_args()
 
 
 def main() -> None:
     """Main function to orchestrate caching of all test assets."""
-    slow = parse_args()
-    cache_weights(slow=slow)
+    args = parse_args()
+    if args.benchmarks:
+        cache_benchmark_assets()
+        return
+    cache_weights(slow=args.slow)
     cache_datasets()
     cache_solution_assets()
     cache_clip_model()

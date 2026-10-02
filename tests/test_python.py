@@ -1388,6 +1388,28 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
+def test_convert_segment_masks_accepts_jpeg_and_case_insensitive_suffixes(tmp_path):
+    """convert_segment_masks_to_yolo_seg must not silently skip .jpeg or uppercase .PNG/.JPG masks."""
+    from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
+
+    masks_dir = tmp_path / "masks"
+    out_dir = tmp_path / "labels"
+    masks_dir.mkdir()
+    mask = np.zeros((32, 48), dtype=np.uint8)
+    mask[8:24, 10:38] = 1  # class index + 1
+
+    for name in ("a.jpeg", "b.JPG", "c.PNG", "d.jpg"):
+        assert cv2.imwrite(str(masks_dir / name), mask)
+
+    convert_segment_masks_to_yolo_seg(str(masks_dir), str(out_dir), classes=80)
+
+    written = sorted(p.name for p in out_dir.iterdir())
+    assert written == ["a.txt", "b.txt", "c.txt", "d.txt"]
+    for path in out_dir.iterdir():
+        rows = path.read_text(encoding="utf-8").strip().splitlines()
+        assert rows and all(row.split()[0] == "0" for row in rows)
+
+
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

@@ -381,7 +381,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     specified output directory with the same file stems as the masks.
 
     Args:
-        masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
+        masks_dir (str): The path to the directory where all mask images (png, jpg, jpeg; any case) are stored.
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
         classes (int): Total number of classes in the dataset, e.g., 80 for COCO.
 
@@ -396,7 +396,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
 
             - masks
                 ├─ mask_image_01.png or mask_image_01.jpg
-                ├─ mask_image_02.png or mask_image_02.jpg
+                ├─ mask_image_02.jpeg or mask_image_02.PNG
                 ├─ mask_image_03.png or mask_image_03.jpg
                 └─ mask_image_04.png or mask_image_04.jpg
 
@@ -412,7 +412,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in sorted(Path(masks_dir).iterdir()):
-        if mask_path.suffix in {".png", ".jpg"}:
+        if mask_path.suffix[1:].lower() in {"png", "jpg", "jpeg"}:
             with Image.open(mask_path) as im:  # palette PNGs store class ids as indices, not colors
                 mask = np.asarray(im) if im.mode == "P" else cv2.imread(str(mask_path), cv2.IMREAD_ANYDEPTH)
             img_height, img_width = mask.shape  # Get image dimensions

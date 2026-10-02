@@ -159,7 +159,7 @@ On Premise supports the same ingest formats and computer-vision tasks as uploade
 
 - Images and videos
 - ZIP, TAR, TAR.GZ, and TGZ archives
-- Ultralytics NDJSON and COCO JSON
+- Ultralytics and [Labelbox](labelbox.md) NDJSON, COCO JSON, and [LabelMe](labelme.md) JSON
 - YOLO datasets and classification folders
 - Detect, segment, semantic, classify, pose, and oriented bounding box (OBB) tasks
 

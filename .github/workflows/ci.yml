@@ -89,26 +89,23 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - name: Configure Ultralytics cache paths
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-      - name: Cache benchmark assets
-        uses: actions/cache@v6
+      - name: Restore test assets # saved by the Tests job
+        uses: actions/cache/restore@v6
         with:
           path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-benchmark-assets-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+          key: ultralytics-test-assets-${{ runner.os }}-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
           restore-keys: |
-            ultralytics-benchmark-assets-${{ runner.os }}-${{ runner.arch }}-
+            ultralytics-test-assets-${{ runner.os }}-
       - name: Pre-cache benchmark assets
-        run: python tests/cache_test_assets.py --benchmarks
+        run: |
+          yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
+          python tests/cache_test_assets.py --benchmarks
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-cls.pt' imgsz=160 verbose=0.249
-      - name: Benchmark YOLOWorld DetectionModel
-        shell: bash
-        run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}-seg.pt' imgsz=160 verbose=0.21
@@ -581,8 +578,6 @@ jobs:
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n.pt' imgsz=160 verbose=0.216
       - name: Benchmark ClassificationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-cls.pt' imgsz=160 verbose=0.249
-      - name: Benchmark YOLOWorld DetectionModel
-        run: python -m ultralytics.cfg.__init__ benchmark model='yolov8s-worldv2.pt' imgsz=160 verbose=0.335
       - name: Benchmark SegmentationModel
         run: python -m ultralytics.cfg.__init__ benchmark model='yolo26n-seg.pt' imgsz=160 verbose=0.21
       - name: Benchmark PoseModel

@@ -48,47 +48,9 @@ on:
         type: boolean
 
 jobs:
-  # One cross-OS asset cache for every job: rebuilt only when the manifest changes, so jobs restore weights and datasets
-  # instead of downloading them from GitHub Releases. They live in workspace-relative dirs (actions/cache rejects '..').
+  # One cross-OS weights and datasets cache, shared with docker.yml, restored by every job below
   Assets:
-    runs-on: ubuntu-latest
-    outputs:
-      key: ${{ steps.key.outputs.key }}
-    steps:
-      - uses: actions/checkout@v7
-      - id: key
-        run: echo "key=ci-assets-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}" >> "$GITHUB_OUTPUT"
-      - id: cache
-        uses: actions/cache/restore@v6
-        with:
-          path: &asset-paths |
-            weights
-            datasets
-          key: ${{ steps.key.outputs.key }}
-          enableCrossOsArchive: true
-          lookup-only: true
-      - if: steps.cache.outputs.cache-hit != 'true'
-        uses: ultralytics/actions/setup-uv@main
-        with:
-          python-version: "3.13"
-          activate-environment: true
-      - name: Download assets
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: ultralytics/actions/retry@main
-        with:
-          retries: 2
-          retry_delay_seconds: 60
-          timeout_minutes: 30
-          run: |
-            uv pip install -e . "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
-            yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"
-            python tests/cache_test_assets.py
-      - if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: *asset-paths
-          key: ${{ steps.key.outputs.key }}
-          enableCrossOsArchive: true
+    uses: ./.github/workflows/assets.yml
 
   Benchmarks:
     needs: Assets
@@ -136,7 +98,9 @@ jobs:
         name: Restore CI assets
         uses: actions/cache/restore@v6
         with:
-          path: *asset-paths
+          path: |
+            weights
+            datasets
           key: ${{ needs.Assets.outputs.key }}
           enableCrossOsArchive: true
           fail-on-cache-miss: true

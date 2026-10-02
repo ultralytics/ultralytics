@@ -48,47 +48,18 @@ on:
         type: boolean
 
 jobs:
-  # One cross-OS asset cache for every job: rebuilt only when the manifest changes, so jobs restore weights and datasets
-  # instead of downloading them from GitHub Releases. They live in workspace-relative dirs (actions/cache rejects '..').
+  # Builds the shared CI asset cache once; every job that needs: Assets restores it
   Assets:
     runs-on: ubuntu-latest
-    outputs:
-      key: ${{ steps.key.outputs.key }}
     steps:
       - uses: actions/checkout@v7
-      - id: key
-        run: echo "key=ci-assets-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}" >> "$GITHUB_OUTPUT"
-      - id: cache
-        uses: actions/cache/restore@v6
-        with:
-          path: &asset-paths |
-            weights
-            datasets
-          key: ${{ steps.key.outputs.key }}
-          enableCrossOsArchive: true
-          lookup-only: true
-      - if: steps.cache.outputs.cache-hit != 'true'
-        uses: ultralytics/actions/setup-uv@main
+      - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
         with:
           python-version: "3.13"
           activate-environment: true
-      - name: Download assets
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: ultralytics/actions/retry@main
+      - uses: ./.github/actions/ci-assets
         with:
-          retries: 2
-          retry_delay_seconds: 60
-          timeout_minutes: 30
-          run: |
-            uv pip install -e . "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
-            yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"
-            python tests/cache_test_assets.py
-      - if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6
-        with:
-          path: *asset-paths
-          key: ${{ steps.key.outputs.key }}
-          enableCrossOsArchive: true
+          build: true
 
   Benchmarks:
     needs: Assets
@@ -132,18 +103,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - &restore-assets
-        name: Restore CI assets
-        uses: actions/cache/restore@v6
-        with:
-          path: *asset-paths
-          key: ${{ needs.Assets.outputs.key }}
-          enableCrossOsArchive: true
-          fail-on-cache-miss: true
-      - &asset-dirs
-        name: Use cached asset dirs
-        shell: bash # for Windows compatibility
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/weights" datasets_dir="${GITHUB_WORKSPACE}/datasets"
+      - uses: ./.github/actions/ci-assets
       - name: Benchmark DetectionModel
         shell: bash
         run: coverage run -a --source=ultralytics -m ultralytics.cfg.__init__ benchmark model='path with spaces/${{ matrix.model }}.pt' imgsz=160 verbose=0.216
@@ -229,8 +189,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - *restore-assets
-      - *asset-dirs
+      - uses: ./.github/actions/ci-assets
       - name: Pytest tests
         shell: bash # for Windows compatibility
         # GitHub-hosted ARM runners have disconnected under xdist auto-parallelism: ubuntu-24.04-arm runs
@@ -374,8 +333,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - *restore-assets
-      - *asset-dirs
+      - uses: ./.github/actions/ci-assets
       - name: Pytest tests
         uses: ultralytics/actions/retry@main
         with:
@@ -429,8 +387,7 @@ jobs:
             isolated-exports-uv-
       - name: Install base package
         run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
-      - *restore-assets
-      - *asset-dirs
+      - uses: ./.github/actions/ci-assets
       - name: Build and run export tests in isolated environments
         env:
           ULTRALYTICS_ISOLATED_VENVS: ${{ runner.temp }}/venvs
@@ -563,8 +520,7 @@ jobs:
         run: |
           yolo checks
           uv pip list
-      - *restore-assets
-      - *asset-dirs
+      - uses: ./.github/actions/ci-assets
       - name: Pytest tests
         run: pytest -n auto --dist=loadfile --max-worker-restart=0 --slow tests/ --export-env base
       - name: Activate Virtual Environment for Benchmarks

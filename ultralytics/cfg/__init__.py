@@ -491,6 +491,8 @@ def check_cfg(cfg: dict, hard: bool = True) -> None:
                 elif not (0.0 <= v <= 1.0):
                     raise ValueError(f"'{k}={v}' is an invalid value. Valid '{k}' values are between 0.0 and 1.0.")
             elif k in CFG_INT_KEYS:
+                if isinstance(v, float) and v.is_integer():
+                    cfg[k] = v = int(v)  # accept integral floats, e.g. 'epochs=1e2' (smart_value -> 100.0)
                 if not isinstance(v, int):
                     if hard:
                         raise TypeError(

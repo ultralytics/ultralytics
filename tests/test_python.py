@@ -1265,6 +1265,22 @@ def test_results_save_obb_crop(tmp_path, as_numpy, width, height):
     assert (tmp_path / "object" / "detect.jpg").exists(), "standard detection crops must still save"
 
 
+def test_save_one_box_obb_grayscale(tmp_path):
+    """Preserve the single image channel when warping and saving an OBB crop."""
+    from ultralytics.utils.plotting import save_one_box
+
+    image = np.full((80, 80, 1), 200, dtype=np.uint8)
+    image[32:38, 22:28] = 50  # asymmetric marker near the top-left corner
+    corners = [[60, 50], [60, 30], [20, 30], [20, 50]]
+    crop = save_one_box(corners, image, file=tmp_path / "gray.jpg")
+    with Image.open(tmp_path / "gray.jpg") as saved:
+        assert saved.mode == "L"
+        assert saved.size == (40, 20)
+    assert crop.shape == (20, 40, 1)
+    assert crop[10, 20, 0] == 200
+    assert crop[5, 5, 0] == 50 and crop[5, -5, 0] == 200
+
+
 def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]

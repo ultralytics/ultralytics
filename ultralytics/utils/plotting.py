@@ -799,8 +799,7 @@ def save_one_box(
     """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
-    bounding box. Four OBB corners produce a rotation-aligned crop at the box's own size, with black fill beyond the
-    image
+    bounding box. Four OBB corners produce a rotation-aligned crop at the box's size, with black fill beyond the image
     boundary. Axis-aligned crops can be squared and adjusted with gain and padding.
 
     Args:

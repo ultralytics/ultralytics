@@ -323,11 +323,11 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: docker
+    needs: [Assets, docker]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
+        if: (needs.Assets.result == 'failure' || needs.docker.result == 'failure') && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

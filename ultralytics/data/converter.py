@@ -650,14 +650,14 @@ def yolo_bbox2segment(
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
     for label in TQDM(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
-        h, w = label["shape"]
         boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
             continue
-        boxes[:, [0, 2]] *= w
-        boxes[:, [1, 3]] *= h
         if (im := imread_color(label["im_file"])) is None:  # SAM would otherwise segment its demo assets
             raise FileNotFoundError(f"Unable to read image {label['im_file']}")
+        h, w = im.shape[:2]  # decoded upright size; label["shape"] ignores EXIF rotation outside JPEG
+        boxes[:, [0, 2]] *= w
+        boxes[:, [1, 3]] *= h
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 

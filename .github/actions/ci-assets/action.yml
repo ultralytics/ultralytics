@@ -2,7 +2,8 @@
 
 # The one owner of CI test assets: restores the cross-OS weights and datasets cache that tests/cache_test_assets.py
 # builds, so jobs never download them from GitHub Releases one by one. Workspace-relative paths because actions/cache
-# rejects '..'; the key changes only with the manifest, so a manifest change rebuilds the cache from scratch.
+# rejects '..'. The key is the manifest's git blob IDs, which unlike hashFiles match across CRLF Windows checkouts, so
+# only a manifest change rebuilds the cache, from scratch.
 
 name: CI assets
 description: Restore the shared CI weights and datasets cache, or build it in the Assets job
@@ -18,13 +19,16 @@ inputs:
 runs:
   using: composite
   steps:
+    - id: key
+      shell: bash
+      run: echo "key=ci-assets-$(git rev-parse HEAD:tests/cache_test_assets.py HEAD:tests/__init__.py | git hash-object --stdin --no-filters)" >> "$GITHUB_OUTPUT"
     - id: cache
       uses: actions/cache/restore@v6
       with:
         path: |
           weights
           datasets
-        key: ci-assets-${{ hashFiles('tests/cache_test_assets.py', 'tests/__init__.py') }}
+        key: ${{ steps.key.outputs.key }}
         enableCrossOsArchive: true
         lookup-only: ${{ inputs.build }}
         fail-on-cache-miss: ${{ inputs.build != 'true' }}

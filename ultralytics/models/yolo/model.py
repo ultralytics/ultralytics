@@ -559,6 +559,7 @@ class YOLOE(Model):
             model.names = names
             self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=model, verbose=self.predictor.args.verbose)
+            del model  # release the private copy before inference; setup_model() made its own deepcopy
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)

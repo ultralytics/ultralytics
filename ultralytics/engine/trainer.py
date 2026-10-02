@@ -1063,7 +1063,7 @@ class BaseTrainer:
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
-        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        """Load optimizer, scaler, EMA, best_fitness, and early stopping state from checkpoint."""
         if ckpt.get("optimizer") is not None:
             for saved, group in zip(ckpt["optimizer"]["param_groups"], self.optimizer.param_groups):
                 saved["fused"] = group.get("fused")  # runtime device, not the checkpoint, picks the kernel
@@ -1077,6 +1077,7 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
+        self.stopper.__dict__.update(ckpt.get("stopper") or {})  # older checkpoints keep a fresh stopper
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint."""
@@ -1129,9 +1130,6 @@ class BaseTrainer:
         )
         LOGGER.info(f"Resuming training {self.args.model} from epoch {start_epoch + 1} to {self.epochs} total epochs")
         self._load_checkpoint_state(ckpt)
-        stopper = ckpt.get("stopper", {})
-        if stopper.get("best_epoch"):  # older checkpoints and never-validated runs keep a fresh stopper
-            self.stopper.best_fitness, self.stopper.best_epoch = stopper["best_fitness"], stopper["best_epoch"]
         model = unwrap_model(self.model)
         if getattr(getattr(model, "student_model", model).model[-1], "one2one_cv2", None) is not None:
             # Resume both head losses independently of the selected inference head.

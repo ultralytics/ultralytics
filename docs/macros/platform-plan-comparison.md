@@ -7,10 +7,12 @@
 | **Storage**                                                | 100 GB     | 500 GB          | Unlimited   |
 | **Dataset Upload (ZIP/TAR incl. `.tar.gz`/`.tgz`/NDJSON)** | 10 GB      | 20 GB           | 50 GB       |
 | **Deployments**                                            | 3          | 10              | Unlimited   |
+| **Cloud Storage Datasets (GCS, S3, Azure Blob Storage)**   | -          | Yes             | Yes         |
 | **Cloud GPU Types**                                        | 24         | 26              | 26          |
 | **Best GPUs (B200, B300)**                                 | -          | Yes             | Yes         |
 | **Teams**                                                  | -          | Up to 5 members | Custom size |
 | **SSO / SAML**                                             | -          | -               | Yes         |
+| **On Premise Data & Compute**                              | -          | -               | Yes         |
 | **Enterprise License**                                     | -          | -               | Yes         |
 | **License**                                                | AGPL-3.0   | AGPL-3.0        | Enterprise  |
 

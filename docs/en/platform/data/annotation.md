@@ -136,7 +136,9 @@ graph LR
 
 Pose annotation uses `Draw` with a skeleton template; its `Smart` mode offers YOLO pose models only, with no SAM picker or auto-apply toggle. Classification uses the class sidebar directly and shows no drawing toolbar or `Smart` button at all.
 
-Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage.
+Smart annotation is not currently available for [connected datasets](../integrations/index.md) backed by cloud or On Premise storage, or for datasets with more than three image channels.
+
+The editor remembers your mode, model, and auto-apply choice for each dataset in your browser.
 
 ## Draw Mode Tools
 
@@ -164,13 +166,16 @@ Draw precise polygon masks:
 2. In the default `Draw` mode, click to add vertices, or hold `Shift` and move the mouse to freehand-draw dense points
 3. Double-click, click the first vertex, or press `Enter` or `Escape` to close the polygon
 
+While drawing, press `Z` to remove the last vertex, or `Delete` to discard the polygon.
+
 ![Ultralytics Platform Annotate Segment Polygon Vertices](https://cdn.ul.run/i/c10d6f45961deb17816dceb3945b6877.avif)<!-- screenshot -->
 
 !!! tip "Edit Vertices"
 
     - Drag individual vertices to adjust
     - Drag the entire polygon to move
-    - Click on a vertex and press `Delete` to remove it
+    - Click or drag an edge of the selected polygon to insert a vertex
+    - Right-click a vertex and choose **Remove Point** (polygons keep at least 3 vertices), or right-click an edge and choose **Add Point**
 
 ### Keypoint (Pose)
 
@@ -201,7 +206,7 @@ The editor includes 5 built-in templates:
 
 Create custom templates for any pose structure:
 
-1. Click the **+** button next to the template picker
+1. Open the template picker in the toolbar and choose **New Template...**
 2. Optionally, click **Start from...** to load keypoints and connections from an existing template as a starting point
 3. Place keypoints on the canvas by clicking
 4. Name each keypoint and customize colors
@@ -210,7 +215,7 @@ Create custom templates for any pose structure:
 
 ![Ultralytics Platform Annotate Pose Custom Template](https://cdn.ul.run/i/4bced0f094f4707c361de3ca93108835.avif)<!-- screenshot -->
 
-Custom templates are saved to your account and available in all pose datasets.
+Custom templates are saved to the dataset's workspace and available in all of its pose datasets. Edit or delete them from the template picker.
 
 !!! tip "Template Workflow"
 
@@ -218,7 +223,7 @@ Custom templates are saved to your account and available in all pose datasets.
 
 !!! info "Keypoint Visibility"
 
-    Each keypoint has a visibility flag: `0` = not labeled, `1` = labeled but occluded, `2` = labeled and visible. Occluded keypoints (behind other objects) should be marked with visibility `1` — the model learns to infer their position.
+    Each keypoint has a visibility flag: `0` = not labeled, `1` = labeled but occluded, `2` = labeled and visible. Keypoints you place are labeled visible (`2`). Right-click a keypoint and choose **Hide Point** to mark it not labeled (`0`), or right-click the pose and choose **Reset Visibility** to show its hidden keypoints again. Imported labels keep their visibility flags.
 
 ### Oriented Bounding Box (OBB)
 
@@ -312,14 +317,14 @@ Auto-apply mode speeds up Smart annotation by automatically saving the SAM mask 
 
 When Smart mode is active, a model picker appears in the toolbar. Six SAM models are available — choose based on the speed vs. accuracy trade-off that suits your dataset:
 
-| Model             | Size    | Speed    | Notes                      |
-| ----------------- | ------- | -------- | -------------------------- |
-| **SAM 2.1 Tiny**  | 75 MB   | Fastest  |                            |
-| **SAM 2.1 Small** | 88 MB   | Fast     |                            |
-| **SAM 2.1 Base**  | 154 MB  | Moderate |                            |
-| **SAM 2.1 Large** | 428 MB  | Slower   | Most accurate of SAM 2.1   |
-| **SAM 3**         | 3.45 GB | Slowest  |                            |
-| **SAM 3.1**       | 3.50 GB | Slowest  | Default, latest generation |
+| Model             | Parameters | Speed    | Notes                      |
+| ----------------- | ---------- | -------- | -------------------------- |
+| **SAM 2.1 Tiny**  | 0.04B      | Fastest  |                            |
+| **SAM 2.1 Small** | 0.05B      | Fast     |                            |
+| **SAM 2.1 Base**  | 0.08B      | Moderate |                            |
+| **SAM 2.1 Large** | 0.22B      | Slower   | Most accurate of SAM 2.1   |
+| **SAM 3**         | 0.86B      | Slowest  |                            |
+| **SAM 3.1**       | 0.87B      | Slowest  | Default, latest generation |
 
 ![Ultralytics Platform Annotate Sam Model Selector](https://cdn.ul.run/i/28f68e5f2be0ed1599ed87ba08518191.avif)<!-- screenshot -->
 
@@ -330,7 +335,7 @@ Switching models while Smart mode is active re-initializes the predictor for the
 With a YOLO model selected, Smart annotation can add predictions from pretrained Ultralytics models or your own fine-tuned models.
 
 1. Select `Smart` or press `S`
-2. Select a YOLO model from the model picker in the toolbar (`Official` or `My Models`)
+2. Select a YOLO model from the model picker in the toolbar (`Models` or `My Models`)
 3. Click `Predict`
 4. Review the added annotations and make any needed corrections
 
@@ -338,7 +343,8 @@ With a YOLO model selected, Smart annotation can add predictions from pretrained
 
 !!! tip "YOLO Model Notes"
 
-    - The model picker only lists models that match the current dataset task, so a pose dataset offers pose models.
+    - The model picker lists models that match the current dataset task, so a pose dataset offers pose models. Detect and segment datasets also show each other's models, disabled.
+    - If the model's classes differ from the dataset's, a **Map classes** dialog maps each model class to a dataset class or skips it, and on a dataset without classes it creates them.
     - Duplicate predictions are skipped when they overlap an existing annotation of the same class at IoU `0.7` or higher.
 
 ### Class-Prompted Smart Annotation
@@ -351,7 +357,7 @@ A paid provider model runs with the provider key saved in the dataset workspace'
 
 Batch Annotation runs one model — a YOLO model, or on detection datasets with 1–200 classes a class-prompted model — over a whole dataset instead of the open image. Open it from the dataset page with **More actions > Batch Annotation**, or from the **Annotate all** action on the toast after an editor prediction that finds objects. It is available to dataset editors on Platform-hosted datasets with up to three image channels, for every task except depth.
 
-1. Select a model from the picker (`Official`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
+1. Select a model from the picker (`Models`, including the **Open-source models** and provider projects on detection datasets with 1–200 classes, or `My Models`); on a detection dataset the dialog opens with Moondream 3.1 selected
 2. For a YOLO model, adjust the confidence (default `0.25`) and IoU (default `0.7`) sliders — the sample images beside the settings show what the model finds as you move them. A class-prompted model detects the dataset classes (1–200) with model-specific thresholds instead of these settings and returns no scores
 3. Turn on **Include annotated images** to also run over images that already have labels; the run adds what the model finds and keeps the labels they have
 4. Review the **Estimated Cost** and click **Start**
@@ -376,23 +382,26 @@ The annotation editor includes a collapsible class sidebar on the right side of 
 - **Color picker**: Click the color swatch next to any class to change its color.
 - **Per-class annotation count**: Each class row shows a superscript count of annotations.
 - **Expand/collapse**: Click the chevron to expand a class and see individual annotations listed below it.
-- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls to the relevant class.
+- **Bidirectional hover highlighting**: Hovering an annotation on the canvas highlights it in the sidebar, and vice versa. The sidebar auto-scrolls to the relevant class. Hovering a class row, or its chip in the class breakdown below the image, highlights every annotation of that class.
 - **Hide/show a whole class**: Click the eye icon on a class row to hide or show every annotation of that class at once.
 - **Hide/show individual annotations**: Click the eye icon on any annotation row to toggle its visibility on the canvas.
 - **Delete annotations**: Click the trash icon on any annotation row to delete it.
-- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes, or `H` to toggle the visibility of every annotation on the image.
+- **Keyboard shortcuts**: Press `1-9` to quickly select the first 9 classes, `H` to toggle the visibility of every annotation on the image, or `]` to show or hide the sidebar.
 
 ## Context Menu
 
-Right-click on selected annotations to open a context menu with:
+Right-click an annotation to open a context menu with:
 
 | Action               | Shortcut               |
 | -------------------- | ---------------------- |
-| Delete Annotation(s) | `Delete` / `Backspace` |
 | Bring to Front       | `Cmd/Ctrl+Shift+]`     |
 | Send to Back         | `Cmd/Ctrl+Shift+[`     |
 | Bring Forward        | `Cmd/Ctrl+]`           |
 | Send Backward        | `Cmd/Ctrl+[`           |
+| Hide Annotation(s)   |                        |
+| Delete Annotation(s) | `Delete` / `Backspace` |
+
+Right-clicking a polygon vertex or edge adds **Remove Point** or **Add Point**, and right-clicking a pose keypoint adds **Hide Point** and **Reset Visibility**. The menu also offers [**Blur faces**](datasets.md#blur-faces) when available.
 
 ## Visibility Controls
 
@@ -418,10 +427,11 @@ In Smart mode, SAM provides a real-time hover preview before you click any point
 
 ## Polygon Vertex Editing
 
-For segment annotations, you can edit polygon vertices after drawing:
+For segment and semantic annotations, you can edit polygon vertices after drawing:
 
 - **Move vertices**: Drag any vertex handle to reposition it
-- **Delete vertices**: Select a vertex and press `Delete` to remove it
+- **Add vertices**: Click or drag an edge of the selected polygon, or right-click an edge and choose **Add Point**
+- **Remove vertices**: Right-click a vertex and choose **Remove Point**; polygons keep at least 3 vertices
 
 ## Class Management
 
@@ -477,6 +487,8 @@ Efficient annotation with keyboard shortcuts:
     | `Delete` / `Backspace`            | Delete selected annotation |
     | `Cmd/Ctrl+Delete`                 | Delete image               |
     | `H`                               | Toggle all annotations     |
+    | `]`                               | Show or hide class sidebar |
+    | `←` / `→`                         | Previous / next image      |
     | `1-9`                             | Select class 1-9           |
     | `Cmd/Ctrl+Scroll`                 | Zoom in/out                |
     | `Cmd/Ctrl++` or `Cmd/Ctrl+=`      | Zoom in                    |
@@ -506,6 +518,7 @@ Efficient annotation with keyboard shortcuts:
     | `Click inside mask`    | Subtract region from SAM mask (negative point)                                  |
     | `Click outside mask`   | Add to SAM mask (positive point)                                                |
     | `Shift (hold) + Click` | Place multiple SAM points before auto-apply commits (Smart mode, auto-apply on) |
+    | `Z`                    | Remove the last polygon vertex while drawing / last SAM point (Smart mode)      |
     | `A`                    | Toggle auto-apply (SAM Smart mode)                                              |
     | `P`                    | Run the selected YOLO or class-prompted model (Smart mode)                      |
     | `Enter`                | Complete polygon / Save SAM annotation                                          |
@@ -572,7 +585,7 @@ For best results, start with a click on the object center, then use outside-mask
 
 ### Can I import existing annotations?
 
-Yes. Upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format), COCO JSON annotation files, or an [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) export. Platform parses them during processing and displays them in the editor. Pascal VOC XML labels are not imported — convert them to YOLO or COCO first. See [Preparing Your Dataset](datasets.md#preparing-your-dataset).
+Yes. Upload your dataset with [YOLO-format label files](../../datasets/detect/index.md#ultralytics-yolo-format), COCO JSON annotation files, [LabelMe](../integrations/labelme.md) JSON files, or an [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON export. Platform parses them during processing and displays them in the editor. Pascal VOC XML labels are not imported — convert them to YOLO or COCO first. See [Preparing Your Dataset](datasets.md#preparing-your-dataset).
 
 ### How do I annotate multiple objects of the same class?
 
@@ -597,11 +610,11 @@ Yes, but for best results:
 
 ### Which tasks support SAM smart annotation?
 
-SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. Smart annotation is also unavailable on connected cloud and On Premise datasets.
+SAM smart annotation is available for **detect**, **segment**, **semantic**, and **OBB** tasks. On pose datasets, `Smart` mode runs [YOLO smart annotation](#yolo-smart-annotation) only, and classification uses manual annotation only. Smart annotation is also unavailable on connected cloud and On Premise datasets and on datasets with more than three image channels.
 
 ### Can I create custom skeleton templates for pose annotation?
 
-Yes. Click the **+** button next to the skeleton template picker to open the template editor. Place keypoints, name them, draw connections, and save. Custom templates are stored in your account and available across all pose datasets.
+Yes. Open the skeleton template picker and choose **New Template...** to open the template editor. Place keypoints, name them, draw connections, and save. Custom templates are stored in the dataset's workspace and available across all of its pose datasets.
 
 ### How do I switch between skeleton templates?
 

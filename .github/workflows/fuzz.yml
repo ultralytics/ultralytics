@@ -31,7 +31,21 @@ env:
   YOLO_AUTOINSTALL: "false"
 
 jobs:
+  Assets:
+    if: github.repository == 'ultralytics/ultralytics' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
+        with:
+          python-version: "3.13"
+          activate-environment: true
+      - uses: ./.github/actions/ci-assets
+        with:
+          build: true
+
   Fuzz:
+    needs: Assets
     if: github.repository == 'ultralytics/ultralytics' || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     timeout-minutes: 345
@@ -68,16 +82,7 @@ jobs:
           run: uv pip install -e ".[${{ matrix.extras }}]" --torch-backend cpu
       - name: Check environment
         run: yolo checks
-      - name: Configure Ultralytics cache paths
-        run: yolo settings weights_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/weights" datasets_dir="${GITHUB_WORKSPACE}/.ultralytics_cache/datasets"
-      - name: Cache fuzz assets
-        uses: actions/cache@v6
-        with:
-          path: ${{ github.workspace }}/.ultralytics_cache
-          key: ultralytics-fuzz-assets-${{ runner.os }}-${{ hashFiles('.github/scripts/fuzz.py') }}
-          restore-keys: |
-            ultralytics-fuzz-assets-${{ runner.os }}-
-            ultralytics-test-assets-${{ runner.os }}-
+      - uses: ./.github/actions/ci-assets
       - name: Cache fuzz exploration history
         # Separate from the asset cache: this entry is rewritten every run while the multi-GB assets are not. Cache
         # entries are immutable, so the key carries run id AND attempt — a re-run reuses the run id and would

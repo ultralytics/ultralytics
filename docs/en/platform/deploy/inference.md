@@ -111,7 +111,7 @@ download button to save an annotated JPEG of the current result.
 
 ## Inference Parameters
 
-Adjust inference behavior with the three sliders below the image:
+Adjust inference behavior with the three sliders below the image (depth models show only **Image Size**):
 
 ![Ultralytics Platform Predict Tab Parameters Sliders](https://cdn.ul.run/i/03d15a005d5010026a35c8011406d520.avif)<!-- screenshot -->
 
@@ -183,7 +183,9 @@ POST https://platform.ultralytics.com/api/models/{owner}/{project}/{model}/predi
 
 Both accept the same `multipart/form-data` body and return the same response shape. With the
 [Python SDK](../api/index.md#python-sdk), use `client.models.predict(owner, project, model, body=...)` for shared
-inference or `client.deployments.predict(owner, deployment, body=...)` for a dedicated deployment:
+inference or `client.deployments.predict(owner, deployment, body=...)` for a dedicated deployment. Both SDK methods call
+the Platform API, so its [rate limits](#rate-limits) and request size limit apply. To avoid them, post directly to a
+dedicated endpoint URL as shown under [Request](#request). Shared inference example:
 
 ```python
 from ultralytics_platform import Platform
@@ -439,7 +441,8 @@ Response format varies by task:
 
 ## Rate Limits
 
-The shared model API is limited to **20 requests/minute** for each API key, signed-in caller, or anonymous IP. When
+The shared model API is limited to **20 requests/minute** for each API key, signed-in caller, or anonymous IP. The
+Platform deployment predict route (`POST /api/deployments/{owner}/{deployment}/predict`) has the same limit. When
 throttled, the API returns `429` with a `Retry-After` header. See the full
 [rate-limit reference](../api/index.md#rate-limits) for all endpoint categories.
 
@@ -467,10 +470,13 @@ Common error responses:
 
 Both inference methods accept video files:
 
-- **Dedicated endpoints** accept video files directly. Supported formats (up to 100 MB): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Results are returned per processed frame. See [dedicated endpoints](endpoints.md#request-parameters) for details.
+- **Dedicated endpoints** accept video files directly. Supported formats (up to 32 MB per request): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Results are returned per processed frame, and a request may run for up to 1 hour. See [dedicated endpoints](endpoints.md#request-parameters) for details.
 - **Shared inference** (`POST /api/models/{owner}/{project}/{model}/predict`) uses the same predict service and accepts
-  the same video formats. The browser **Predict** tab only selects images, so use the API or a
-  [dedicated endpoint](endpoints.md) for video.
+  the same video formats, but requests are limited to about 4.5 MB and time out after about 30 seconds, which suits
+  only short clips. The browser **Predict** tab only selects images, so use a [dedicated endpoint](endpoints.md) for
+  video.
+
+Depth models accept images only.
 
 ### How do I get the annotated image?
 
@@ -493,11 +499,12 @@ See the [Predict mode documentation](../../modes/predict.md) for the full result
 ### What's the maximum image size?
 
 - **Predict tab limit**: 10 MB
-- **API limit**: 100 MB for both shared inference and dedicated endpoints
+- **Shared inference API limit**: about 4.5 MB per request, including through the Python SDK
+- **Dedicated endpoint limit**: 32 MB per request sent directly to the endpoint URL
 - **Auto-resize in the Predict tab**: Images are resized to the selected `Image Size` before upload
 
 Large images are automatically resized in the browser while preserving aspect ratio. Requests you send yourself are not
-resized, so images above the limit are rejected with `413`.
+resized, so requests above the limit are rejected with `413`.
 
 ### Can I run batch inference?
 

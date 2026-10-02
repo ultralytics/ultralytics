@@ -31,7 +31,7 @@ Start training from the platform UI by clicking **New Model** on any project or 
 
 ![Ultralytics Platform Training Dialog Cloud Tab](https://cdn.ul.run/i/4b85826e6a1b6b534839a34d86067b7e.avif)<!-- screenshot -->
 
-The dialog remembers the base model and any non-default parameters it held when you last closed it, per dataset task and workspace in the current browser, and restores them the next time you open it for that task. The GPU selection is not remembered, and **Retry** on a failed run restores that run's own arguments instead.
+The dialog remembers the base model and any non-default parameters it held when you last closed it, per dataset task and workspace in the current browser, and restores them the next time you open it for that task. The GPU selection is not remembered, and **Retry Training** on a failed run restores that run's own arguments instead.
 
 ### Step 1: Select Base Model
 

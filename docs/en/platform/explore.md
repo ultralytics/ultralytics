@@ -277,7 +277,7 @@ Make your work available to the community. Public content is visible to everyone
 ```mermaid
 graph LR
     A[Your Private Dataset or Project]:::start --> B[Click Private Badge]:::proc
-    B --> C[Confirm Make Public]:::proc
+    B --> C[Confirm Make public]:::proc
     C --> D[Appears on Explore Once It Has Content]:::proc
     D --> E[Community Can Clone/Download]:::out
 

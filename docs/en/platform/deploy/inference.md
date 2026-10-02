@@ -184,8 +184,8 @@ POST https://platform.ultralytics.com/api/models/{owner}/{project}/{model}/predi
 Both accept the same `multipart/form-data` body and return the same response shape. With the
 [Python SDK](../api/index.md#python-sdk), use `client.models.predict(owner, project, model, body=...)` for shared
 inference or `client.deployments.predict(owner, deployment, body=...)` for a dedicated deployment. Both SDK methods call
-the Platform API, so its [rate limits](#rate-limits) and request size limit apply; post to the endpoint URL directly to
-avoid them:
+the Platform API, so its [rate limits](#rate-limits) and request size limit apply. To avoid them, post directly to a
+dedicated endpoint URL as shown under [Request](#request). Shared inference example:
 
 ```python
 from ultralytics_platform import Platform

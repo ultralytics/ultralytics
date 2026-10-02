@@ -286,7 +286,7 @@ jobs:
           fi
           tests="tests"
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-jetson-jetpack4" ]]; then
-            tests="tests/test_python.py" # its GPU-only torch 1.11 wheel runs CPU inference ~50x slower than other images
+            tests="tests/test_cli.py" # its GPU-only torch 1.11 wheel runs CPU inference ~50x slower than other images
           fi
           docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest $tests --export-env base"
 

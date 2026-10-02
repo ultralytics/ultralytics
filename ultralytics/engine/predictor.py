@@ -351,7 +351,7 @@ class BasePredictor:
                 (self.save_dir / "labels" if self.args.save_txt else self.save_dir).mkdir(parents=True, exist_ok=True)
 
             self.seen, self.speed, self.pixels, self.windows, self.batch, self._bases = 0, None, None, [], None, set()
-            self._sources = {}
+            self._sources, self._source_bases = {}, set()  # base of each video occurrence or stream slot, all bases
             px = 0  # inference pixels summed per image, so a mixed-shape source averages rather than reports its last
             profilers = (
                 ops.Profile(device=self.device),
@@ -508,11 +508,12 @@ class BasePredictor:
             key = p if self.dataset.mode == "video" else i
             if key not in self._sources or (self.dataset.mode == "video" and frame == 1):
                 base, k = p.stem, 1
-                while base in self._sources.values() or any(
+                while base in self._source_bases or any(
                     re.fullmatch(rf"{re.escape(base)}_\d+", b) for b in self._bases
                 ):
                     k += 1
                     base = f"{p.stem}-{k}"
+                self._source_bases.add(base)
                 self._sources[key] = base
             base = self._sources[key]
         self.txt_path = self.save_dir / "labels" / (base + ("" if self.dataset.mode == "image" else f"_{frame}"))

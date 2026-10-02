@@ -823,9 +823,7 @@ def save_one_box(
         >>> im = cv2.imread("image.jpg")
         >>> cropped_im = save_one_box(xyxy, im, file=Path("cropped.jpg"), square=True)
     """
-    xyxy = torch.as_tensor(xyxy)
-    if not xyxy.is_floating_point():
-        xyxy = xyxy.float()  # integer boxes need fractional centers and gain/pad before the final pixel rounding
+    xyxy = torch.as_tensor(xyxy, dtype=torch.float32)  # float so integer boxes keep fractional centers and gain/pad
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square

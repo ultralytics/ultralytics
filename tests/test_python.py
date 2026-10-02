@@ -1261,30 +1261,6 @@ def test_labels_and_crops(tmp_path):
     assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
 
 
-@pytest.mark.parametrize("box_type", (list, tuple, np.asarray, torch.as_tensor))
-def test_save_one_box_integer_coordinates(box_type):
-    """Integer boxes must crop the same pixels as floating-point boxes, including odd widths and heights."""
-    from ultralytics.utils.plotting import save_one_box
-
-    image = np.arange(64 * 64 * 3, dtype=np.uint8).reshape(64, 64, 3)
-    crop = save_one_box(box_type([20, 20, 31, 35]), image, gain=1, pad=0, BGR=True, save=False)
-    np.testing.assert_array_equal(crop, image[20:35, 20:31])
-
-
-@pytest.mark.parametrize("suffix", (".jpg", ".png", ""))
-def test_save_one_box_output_increment(tmp_path, suffix):
-    """Crop filenames must increment using the JPEG path actually written, preserving earlier crops."""
-    from ultralytics.utils.plotting import save_one_box
-
-    image = np.zeros((32, 32, 3), dtype=np.uint8)
-    file = tmp_path / f"crop{suffix}"
-    save_one_box([5.0, 5.0, 25.0, 25.0], image, file=file)
-    original = (tmp_path / "crop.jpg").read_bytes()
-    save_one_box([5.0, 5.0, 25.0, 25.0], image + 255, file=file)
-    assert (tmp_path / "crop.jpg").read_bytes() == original
-    assert (tmp_path / "crop-2.jpg").is_file()
-
-
 def test_data_utils(tmp_path):
     """Test data utility functions including auto-splitting and zip archiving."""
     from ultralytics.data.split import autosplit

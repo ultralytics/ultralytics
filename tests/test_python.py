@@ -813,6 +813,74 @@ def test_pose_metrics_curves():
 
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
+def test_nan_recovery_redoes_epoch_with_fresh_optimizer_state(tmp_path):
+    """Test that a single transient NaN batch recovers and the redone epoch trains normally."""
+    from ultralytics.models.yolo.detect import DetectionTrainer
+
+    class NaNTrainer(DetectionTrainer):
+        """DetectionTrainer with one poisoned batch and step/EMA/gradient instrumentation."""
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.poisoned = False
+            self.last_epoch = -1
+            self.batch_idx = 0
+            self.steps_per_epoch = {}
+            self.grad_finite = []
+            self.ema_after_recovery = None
+
+        def preprocess_batch(self, batch):
+            if self.epoch != self.last_epoch:  # the recovery redo restarts the epoch, so reset the counter
+                self.last_epoch, self.batch_idx = self.epoch, 0
+            if self.epoch == 1 and self.batch_idx == 3 and not self.poisoned:
+                self.poisoned = True
+                batch["img"] = torch.full_like(batch["img"], float("nan"), dtype=torch.float32)
+            self.batch_idx += 1
+            return super().preprocess_batch(batch)
+
+        def optimizer_step(self):
+            grads = (p.grad for p in self.model.parameters() if p.grad is not None)
+            self.grad_finite.append(all(bool(torch.isfinite(g).all()) for g in grads))
+            super().optimizer_step()
+            self.steps_per_epoch[self.epoch] = self.steps_per_epoch.get(self.epoch, 0) + 1
+            self.ema_updates = self.ema.updates  # updated on every step, also after a recovery
+
+        def _handle_nan_recovery(self, epoch):
+            fired = super()._handle_nan_recovery(epoch)
+            if fired:
+                self.ema_after_recovery = self.ema.updates
+            return fired
+
+    trainer = NaNTrainer(
+        overrides={
+            "model": "yolo26n.pt",
+            "data": "coco8.yaml",
+            "epochs": 3,
+            "batch": 1,
+            "imgsz": 64,
+            "nbs": 5,
+            "warmup_epochs": 0,
+            "val": False,
+            "plots": False,
+            "device": "cpu",
+            "workers": 0,
+            "seed": 0,
+            "verbose": False,
+            "project": str(tmp_path),
+            "name": "nan_recovery",
+            "exist_ok": True,
+        }
+    )
+    trainer.train()
+    assert trainer.poisoned  # the transient NaN batch happened
+    assert trainer.steps_per_epoch.get(1, 0) >= 1  # the redone epoch performs optimizer steps
+    assert all(trainer.grad_finite)  # no stale NaN gradients from the failed pass reach a step
+    assert trainer.ema_updates > trainer.ema_after_recovery  # EMA updates resume after the recovery
+    assert all(bool(torch.isfinite(p).all()) for p in trainer.model.parameters())  # weights stay finite
+
+
+@pytest.mark.skipif(not ONLINE, reason="environment is offline")
+@pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():
     """Test fine-tuning a base model across a dataset collection, which triggers MultiTrainer for list/tuple data."""
     model = YOLO(MODEL)

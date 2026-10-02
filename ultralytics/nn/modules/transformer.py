@@ -232,7 +232,8 @@ class AIFI(TransformerEncoderLayer):
         like = like.new_zeros(1, dtype=torch.float32)
         grid_w = torch.arange(w).type_as(like)
         grid_h = torch.arange(h).type_as(like)
-        grid_w, grid_h = torch.meshgrid(grid_w, grid_h, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_w, grid_h)
+        # Tokens are flattened row-major from [B, C, H, W], so the grid must be (h, w)
+        grid_h, grid_w = torch.meshgrid(grid_h, grid_w, indexing="ij") if TORCH_1_11 else torch.meshgrid(grid_h, grid_w)
         pos_dim = embed_dim // 4
         omega = torch.arange(pos_dim).type_as(like) / pos_dim
         omega = 1.0 / (temperature**omega)
@@ -241,7 +242,8 @@ class AIFI(TransformerEncoderLayer):
         out_w = grid_w.flatten()[..., None].float() @ omega[None]
         out_h = grid_h.flatten()[..., None].float() @ omega[None]
 
-        return torch.cat([torch.sin(out_w), torch.cos(out_w), torch.sin(out_h), torch.cos(out_h)], 1)[None]
+        # Row encoding first keeps square inputs identical to the original layout
+        return torch.cat([torch.sin(out_h), torch.cos(out_h), torch.sin(out_w), torch.cos(out_w)], 1)[None]
 
 
 class TransformerLayer(nn.Module):

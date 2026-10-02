@@ -382,39 +382,44 @@ def test_model_profile():
     _ = model.predict(im, profile=True)
 
 
+def _assert_same_detections(actual, expected):
+    """Assert two detection sets are row-aligned: boxes and confidences within tolerance, class ids exact."""
+    assert len(actual) == len(expected)
+    assert torch.allclose(actual[:, :4], expected[:, :4], rtol=1e-3, atol=1e-3)  # bounding-box coordinates
+    assert torch.allclose(actual[:, 4], expected[:, 4], rtol=1e-3, atol=1e-3)  # confidences
+    assert torch.equal(actual[:, 5].long(), expected[:, 5].long())  # class ids
+
+
 def test_fuse_keeps_trained_detection_head():
     """Test that fuse() keeps the head a dual-head checkpoint trained for and honors explicit selections."""
     w, src = "yolo26n.pt", str(ASSETS / "bus.jpg")  # dual-head checkpoint, train_args.nms=False
 
-    def confs(model, nms=None):
-        return model.predict(src, imgsz=320, nms=nms, verbose=False)[0].boxes.conf.cpu()
+    def detections(model, nms=None):
+        return model.predict(src, imgsz=320, nms=nms, verbose=False)[0].boxes.data.cpu()
 
-    unfused_o2o = confs(YOLO(w), nms=False)
-    unfused_o2m = confs(YOLO(w))
+    unfused_o2o = detections(YOLO(w), nms=False)
+    unfused_o2m = detections(YOLO(w))
 
     m = YOLO(w)
     m.fuse()
     head = m.model.model[-1]
     assert head.cv2 is None and getattr(head, "one2one_cv2", None) is not None  # the trained one2one head remains
-    fused = confs(m, nms=False)
-    assert len(fused) == len(unfused_o2o) and torch.allclose(fused, unfused_o2o, rtol=1e-3, atol=1e-3)
+    _assert_same_detections(detections(m, nms=False), unfused_o2o)
 
-    for preset, expected in ((True, unfused_o2o), (False, unfused_o2m)):  # an explicit selection wins over train_args
+    for preset, expected, nms in ((True, unfused_o2o, False), (False, unfused_o2m, None)):  # explicit selection wins
         m = YOLO(w)
         m.model.end2end = preset
         m.fuse()
         head = m.model.model[-1]
         assert (head.cv2 is None) == preset  # the explicitly selected head remains
-        fused = confs(m, nms=False if preset else None)
-        assert len(fused) == len(expected) and torch.allclose(fused, expected, rtol=1e-3, atol=1e-3)
+        _assert_same_detections(detections(m, nms=nms), expected)
 
     m = YOLO(w)
     m.ckpt.pop("train_args", None)  # checkpoints without train_args keep the default one-to-many head
     m.fuse()
     head = m.model.model[-1]
     assert head.cv2 is not None and getattr(head, "one2one_cv2", None) is None
-    fused = confs(m)
-    assert len(fused) == len(unfused_o2m) and torch.allclose(fused, unfused_o2m, rtol=1e-3, atol=1e-3)
+    _assert_same_detections(detections(m), unfused_o2m)
 
 
 def test_fuse_keeps_distillation_student_head(tmp_path):
@@ -433,9 +438,9 @@ def test_fuse_keeps_distillation_student_head(tmp_path):
     m.fuse()
     head = m.model.model[-1]  # the wrapper's fuse() adopts the student model
     assert head.cv2 is None and getattr(head, "one2one_cv2", None) is not None  # the student's trained head remains
-    fused = m.predict(src, imgsz=320, nms=False, verbose=False)[0].boxes.conf.cpu()
-    ref = YOLO(w).predict(src, imgsz=320, nms=False, verbose=False)[0].boxes.conf.cpu()
-    assert len(fused) == len(ref) and torch.allclose(fused, ref, rtol=1e-3, atol=1e-3)
+    fused = m.predict(src, imgsz=320, nms=False, verbose=False)[0].boxes.data.cpu()
+    ref = YOLO(w).predict(src, imgsz=320, nms=False, verbose=False)[0].boxes.data.cpu()
+    _assert_same_detections(fused, ref)
 
 
 def test_predict_txt(tmp_path):

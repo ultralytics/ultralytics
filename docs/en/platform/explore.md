@@ -35,7 +35,7 @@ The Explore page features two tabs:
 - **Public Datasets**: Community training data with image previews
 - **Public Projects**: Complete experiments containing trained models
 
-Official Ultralytics content (e.g., `@ultralytics` projects and datasets) is pinned to the top of results.
+Official `@ultralytics` projects are pinned to the top of the Projects tab.
 
 Only datasets that contain at least one image and projects that contain at least one model appear on Explore, so empty
 placeholders never surface in results.
@@ -210,9 +210,9 @@ Clone a public model to one of your projects:
 
 1. Click on the model within a project
 2. Click `Clone Model`
-3. Select a **Target Project** or create a new one
+3. Select a **Project**, or choose **New Project** to create one
 4. Optionally, rename the model
-5. Review the source, destination, and storage summary, then click `Clone Model` to confirm
+5. Review the source model summary, then click `Clone Model` to confirm
 
 ![Ultralytics Platform Explore Clone Model Dialog](https://cdn.ul.run/i/ea87fef6ef1ff9f2d6a00e3fbb46459d.avif)<!-- screenshot -->
 
@@ -236,18 +236,17 @@ See [Projects](train/projects.md) for organizing models in your project.
 
 ## Official Ultralytics Content
 
-Official `@ultralytics` content is pinned to the top of Explore results. The pinned projects are [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md). Open a project to see its current models and supported tasks.
+Official `@ultralytics` projects are pinned to the top of the Explore Projects tab: [YOLO26](../models/yolo26.md), [YOLO11](../models/yolo11.md), [YOLOv8](../models/yolov8.md), and [YOLOv5](../models/yolov5.md). Open a project to see its current models and supported tasks.
 
 Official datasets include benchmark datasets like [coco8](../datasets/detect/coco8.md) (8-image COCO subset), [VOC](../datasets/detect/voc.md), [african-wildlife](../datasets/detect/african-wildlife.md), [dota8](../datasets/obb/dota8.md), and other commonly used computer vision datasets.
 
 !!! tip "Quick Start with Official Models"
 
-    The fastest way to get started is to clone an official Ultralytics project and use a pretrained model to train on your own dataset:
+    The fastest way to get started is to fine-tune an official pretrained model on your own dataset — no cloning required:
 
-    1. Go to `Explore` > `Projects` tab
-    2. Find the **YOLO26** project from `@ultralytics`
-    3. Clone it to your account
-    4. Upload your dataset in [supported formats](data/datasets.md#preparing-your-dataset) and start training with a pretrained checkpoint
+    1. Upload your dataset in [supported formats](data/datasets.md#preparing-your-dataset)
+    2. Click **New Model** on the dataset page
+    3. Choose a YOLO26 model from the **Official** tab of the base model selector and start training
 
 ## User Profiles
 
@@ -278,7 +277,7 @@ Make your work available to the community. Public content is visible to everyone
 ```mermaid
 graph LR
     A[Your Private Dataset or Project]:::start --> B[Click Private Badge]:::proc
-    B --> C[Confirm Make Public]:::proc
+    B --> C[Confirm Make public]:::proc
     C --> D[Appears on Explore Once It Has Content]:::proc
     D --> E[Community Can Clone/Download]:::out
 
@@ -291,13 +290,13 @@ graph LR
 
 1. Go to your dataset
 2. Click the **Private** visibility badge in the top navigation bar
-3. Review the warning and click **Make Public**
+3. Review the warning and click **Make public**
 
 ### Make Project Public
 
 1. Go to your project
 2. Click the **Private** visibility badge in the top navigation bar
-3. Review the warning and click **Make Public**
+3. Review the warning and click **Make public**
 
 !!! tip "Quality Content"
 

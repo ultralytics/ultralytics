@@ -66,6 +66,12 @@ class DistanceCalculation(BaseSolution):
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.selected_boxes = {}
 
+    def forget_tracks(self, track_ids):
+        """Drop retired IDs from `selected_boxes` so a vanished object can't freeze the distance."""
+        super().forget_tracks(track_ids)
+        for track_id in track_ids:
+            self.selected_boxes.pop(track_id, None)
+
     def process(self, im0) -> SolutionResults:
         """Process a video frame and calculate the distance between two selected bounding boxes.
 

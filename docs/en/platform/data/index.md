@@ -157,7 +157,7 @@ Ultralytics Platform supports:
 
 **Videos:** MP4, WebM, MOV, MKV, M4V (max 1GB, frames extracted at 1 FPS, max 100 frames)
 
-**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format) or COCO JSON labels or [semantic PNG masks](datasets.md#preparing-your-dataset), plus [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) exports
+**Dataset files:** ZIP or TAR archives including `.tar.gz` and `.tgz` (max 10GB on Free, 20GB on Pro, 50GB on Enterprise) containing images with optional [YOLO-format](../../datasets/detect/index.md#ultralytics-yolo-format), COCO JSON, or [LabelMe](../integrations/labelme.md) JSON labels, [semantic PNG masks](datasets.md#preparing-your-dataset), or [depth maps](../../datasets/depth/index.md#depth-map-format), plus [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON exports
 
 Any of these archive or NDJSON formats can also be imported by pasting a direct HTTP(S) link in the `URL` tab of the `New Dataset` dialog. Pascal VOC XML labels are detected but not imported.
 

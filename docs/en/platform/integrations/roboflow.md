@@ -27,7 +27,7 @@ Imported datasets appear in your [Datasets](../data/datasets.md) list immediatel
 
 Any workspace editor can run the import. The preview is the slow step: Roboflow generates each new dataset's export archive before it can report a size, so a workspace with many fresh versions can take a minute or more to preview. If a very large workspace times out, run it again — Roboflow keeps generating the exports it already started, so the next preview has less to wait for.
 
-If some datasets can't be started, for example because one exceeds your plan's per-import size limit, the rest still import and the notification after you confirm names the first failure and its reason.
+If some datasets can't be started, for example because one exceeds your plan's per-import size limit, the rest still import and the notification after you confirm names the first failure and its reason. Requests that are rate-limited, fail with a server error, or time out are retried automatically, so one hiccup doesn't fail the whole workspace.
 
 ## Supported Task Types
 

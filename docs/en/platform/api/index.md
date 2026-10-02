@@ -178,17 +178,17 @@ Most resources are addressed by the same human-readable names that appear in Pla
 The API enforces sliding-window limits per API key. Each route falls into one category, and each category
 has an independent counter, so 20 predict requests do not consume your default allowance.
 
-| Category       | Limit            | Applies To                                                                                                                   |
-| -------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Default**    | 100 requests/min | Every route not listed below                                                                                                 |
-| **Training**   | 10 requests/min  | `POST /api/training/start`                                                                                                   |
-| **Upload**     | 10 requests/min  | Signed upload URLs, upload completion, and dataset ingest                                                                    |
-| **Predict**    | 20 requests/min  | Model and deployment inference through Platform API routes                                                                   |
-| **Export**     | 20 requests/min  | Model export routes and dataset export/version routes, except reading a dataset export (`GET`), which uses the default limit |
-| **Download**   | 30 requests/min  | Model file downloads                                                                                                         |
-| **Mutation**   | 10 requests/min  | Listing API keys, connecting or discovering cloud storage, and deployment `PATCH` actions                                    |
-| **Hydrate**    | 20 requests/min  | `POST /api/datasets/{owner}/{dataset}/images` (fetching a selected set of images) and `GET /api/images/{imageId}/similar`    |
-| **Clustering** | 10 requests/min  | `GET /api/datasets/{owner}/{dataset}/images/clustering` and `GET /api/models/{owner}/{project}/{model}/similar-images`       |
+| Category       | Limit            | Applies To                                                                                                                                                      |
+| -------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Default**    | 100 requests/min | Every route not listed below                                                                                                                                    |
+| **Training**   | 10 requests/min  | `POST /api/training/start`                                                                                                                                      |
+| **Upload**     | 10 requests/min  | Signed upload URLs, upload completion, and dataset ingest                                                                                                       |
+| **Predict**    | 20 requests/min  | Model and deployment inference through Platform API routes                                                                                                      |
+| **Export**     | 20 requests/min  | Listing and creating model exports, and creating or updating dataset versions; reading a dataset export (`GET`) and a single model export use the default limit |
+| **Download**   | 30 requests/min  | Model file downloads                                                                                                                                            |
+| **Mutation**   | 10 requests/min  | Listing API keys, listing or connecting cloud storage integrations, discovering storage locations, and deployment updates (`PATCH`)                             |
+| **Hydrate**    | 20 requests/min  | `POST /api/datasets/{owner}/{dataset}/images` (fetching a selected set of images) and `GET /api/images/{imageId}/similar`                                       |
+| **Clustering** | 10 requests/min  | `GET /api/datasets/{owner}/{dataset}/images/clustering` and `GET /api/models/{owner}/{project}/{model}/similar-images`                                          |
 
 Browser-only Platform routes, such as billing checkout and team management, have their own limits that do not apply to
 API-key traffic.
@@ -234,8 +234,8 @@ collection, most alongside counts, and mutations return the changed identifiers.
 }
 ```
 
-Data-bearing responses other than the Agents API and version comparisons also include `region` (`us`, `eu`, or `ap`),
-the storage region for that workspace.
+Resource lists, create and clone responses, and a few reads such as deployments, storage, and trash also include
+`region` (`us`, `eu`, or `ap`), the storage region for that workspace.
 
 ### Error Responses
 
@@ -437,8 +437,10 @@ PATCH /api/datasets/{owner}/{dataset}
 ```
 
 Accepted fields: `name`, `description`, `visibility`, `metadata`, `tags`, `classNames`, `classColors`, `format`, `task`,
-`license`, `iconColor`, `iconLetter`, `starred`, and `blurFaces`. Send an empty `metadata` object (`{}`) to clear custom
-metadata. Metadata keys are limited to 128 characters and the serialized object to 500,000 characters.
+`license`, `iconColor`, `iconLetter`, `starred`, `blurFaces`, `kptSkeletonId` (assign a pose skeleton template to a
+pose dataset), and `initializeClassNames` (the update returns `409` unless the dataset has no classes or annotations
+yet). Send an empty `metadata` object (`{}`) to clear custom metadata. Metadata keys are limited to 128 characters and
+the serialized object to 500,000 characters.
 
 **Response:**
 
@@ -910,7 +912,7 @@ one source:
 
 | Field            | Type   | Description                                                                                                                                                 |
 | ---------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId`      | string | Upload session from `POST /api/upload/signed-url`, already completed                                                                                        |
+| `sessionId`      | string | Upload session from `POST /api/upload/signed-url`; ingest verifies and completes the upload if `POST /api/upload/complete` was not called                   |
 | `sourceUrl`      | string | Public HTTP or HTTPS URL of a ZIP, TAR, TAR.GZ, TGZ, or NDJSON file (max 4096 chars)                                                                        |
 | `reference`      | object | A connected source: cloud storage (`provider: "cloud"`, `integrationId`, `target`, `prefix`) or On Premise (`provider: "local"`, `keyId`, `root`, `prefix`) |
 | `targetSplit`    | string | `train`, `val`, or `test`; overrides the archive's split structure                                                                                          |
@@ -983,7 +985,7 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 graph LR
     A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
     B --> C[PUT archive to signed URL]:::proc
-    C --> D[POST /api/upload/complete]:::proc
+    C --> D["POST /api/upload/complete (optional)"]:::proc
     D --> E["POST /api/datasets/{owner}/{dataset}/ingest"]:::proc
     E --> F[Process archive]:::proc
     F --> G[Dataset ready]:::out
@@ -1137,7 +1139,20 @@ Runs the model on the image and returns predicted annotations. It does not save 
 | `iou`          | float  | No       | IoU threshold for non-maximum suppression, 0.0 – 0.95 (default: 0.7); ignored by class-prompted models                                                                                                                                                                                                                                                                 |
 | `classMapping` | array  | No       | For a YOLO model, the dataset class index for each model class in order, or `null` to drop that class; a wrong length or an index outside the dataset classes returns `400`. Ignored by class-prompted models                                                                                                                                                          |
 
-**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when a generative model's truncated output returned only the complete boxes), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `403`, or `404` (a rejected key, model, or request), `429` for its rate limit, and `503` for any other provider error.
+**Response:** `success`, `predictions` (annotation objects), `confidences` (index-aligned scores, empty for class-prompted models), `modelUsed`, `inferenceTime`, for class-prompted models `partial` (`true` when a generative model's truncated output returned only the complete boxes), and, for paid provider models, an optional `cost` (the estimated provider cost in USD billed to your provider key, omitted when no estimate is available). A YOLO model whose classes do not match the dataset returns `422`, as does a class-prompted model on a non-detection dataset or one outside 1–200 classes, and a paid provider model without a provider key saved in the dataset workspace's **Settings > API Keys** (`code`: `missing_provider_api_key`). A provider error carries the provider's message: `422` when the provider answers `400`, `401`, `403`, or `404` (a rejected key, model, or request), `429` for its rate limit, and `503` for any other provider error. Depth datasets return `400`, and datasets on connected storage or with more than 3 image channels return `409`.
+
+### Find Similar Images
+
+```http
+GET /api/images/{imageId}/similar
+```
+
+**Python SDK:** `client.images.find_similar_images(image_id)`
+
+Returns up to 24 visually similar `images` from public datasets and from your own and team datasets, each with
+`score` (0-1), a signed `thumbnailUrl`, and the source `dataset` (`owner`, `dataset`, `license`). Images already in
+the source dataset and copies of the query image are excluded. Requires an API key with view access to the image; an
+image that has not been embedded yet is embedded first, and `503` means that preparation failed, so retry.
 
 ### Auto-Annotate a Dataset
 
@@ -1258,7 +1273,7 @@ GET /api/projects/{owner}/{project}
 **Python SDK:** `client.projects.retrieve(owner, project)`
 
 Returns the `project` object, a `models` array of per-model summaries (status, metrics, epochs, weights, train args),
-and `isOwner`.
+and `isOwner`. Pass `search` (max 200 chars) to filter `models` by model name or metadata.
 
 ### Create Project
 
@@ -1338,7 +1353,9 @@ DELETE /api/projects/{owner}/{project}
 
 **Python SDK:** `client.projects.delete(owner, project)`
 
-Moves the project and its models to [trash](../account/trash.md), returning `cascadedModels`.
+Moves the project and its models to [trash](../account/trash.md), returning `cascadedModels`, and permanently deletes
+their deployments. Restoring the project does not restore deployments. `502` means deployment cleanup did not finish;
+the models stay in Trash until it succeeds.
 
 ### Clone Project
 
@@ -1450,7 +1467,8 @@ DELETE /api/models/{owner}/{project}/{model}
 
 **Python SDK:** `client.models.delete(owner, project, model)`
 
-Moves the model to [trash](../account/trash.md) for 30 days.
+Moves the model to [trash](../account/trash.md) for 30 days and permanently deletes every deployment using it, including
+pending replacements. Restoring the model does not restore deployments.
 
 ### Download Model Files
 
@@ -1473,6 +1491,20 @@ Returns short-lived signed URLs for the model's weights.
     ]
 }
 ```
+
+### Find Images Similar to Worst Validation Images
+
+```http
+GET /api/models/{owner}/{project}/{model}/similar-images
+```
+
+**Python SDK:** `client.models.find_similar_training_images(owner, project, model)`
+
+Returns up to 100 `images`, in the same shape as [Find Similar Images](#find-similar-images), that look like the
+validation images this training run scored worst on, excluding images its training dataset already holds. Pass
+`hashes` (comma-separated, up to 100) to search from a subset of those worst images. Requires an API key with access to
+the model's workspace. The list is empty when the run recorded no per-image results, and `404` also means the worst
+images are not embedded yet: run [dataset embeddings](#dataset-embeddings) on the training dataset first.
 
 ### Clone Model
 
@@ -1761,7 +1793,8 @@ POST /api/models/{owner}/{project}/{model}/exports
 
 Each format honors only the options in its **Arguments** column of the export table below: a non-default `batch`,
 `dynamic`, `opset`, `simplify`, `workspace`, or `optimize` value for a format that does not support it returns `400`.
-`imx` exports are INT8 only and available for detect, segment, classify, and pose models.
+`imx` exports are INT8 only and available for detect, segment, classify, and pose models; YOLO26 models and YOLOv8 or
+YOLO11 sizes other than nano return `400`.
 
 **Response (`201`):** `id`, `format`, `status` (`queued` or `running`), `region`, and `gpuType` for TensorRT exports.
 An equivalent export that is already in flight returns `409`.
@@ -2129,12 +2162,12 @@ GET /api/trash
 
 **Query Parameters:**
 
-| Parameter | Type   | Description                                                                    |
-| --------- | ------ | ------------------------------------------------------------------------------ |
-| `type`    | string | `all` (default), `project`, `dataset`, or `model`                              |
-| `page`    | int    | Page number (default: 1)                                                       |
-| `limit`   | int    | Items per page (default: 50, max: 200)                                         |
-| `id`      | string | With `type` `project` or `model`, preview what a permanent delete would remove |
+| Parameter | Type   | Description                                                                                   |
+| --------- | ------ | --------------------------------------------------------------------------------------------- |
+| `type`    | string | `all` (default), `project`, `dataset`, or `model`                                             |
+| `page`    | int    | Page number (default: 1)                                                                      |
+| `limit`   | int    | Items per page (default: 50, max: 200)                                                        |
+| `id`      | string | With `type` `project` or `model`, preview the models and deployments that deleting it affects |
 
 The response includes `items` (each with `daysRemaining`), `total`, `page`, `limit`, `totalPages`, and a `summary`
 with totals by type. With `id`, it instead returns `resources`: the affected models and the deployments that would be
@@ -2193,8 +2226,8 @@ The response reports `deletedCount`, plus `cascadedModels` and `survivingDeploym
 ## Upload API
 
 Upload files directly to cloud storage using signed URLs. Completing a model upload attaches its weights; completing a
-dataset archive upload records the session, which you then pass to
-[dataset ingest](#ingest-dataset-data). See [Data documentation](../data/index.md).
+dataset archive upload verifies it, and you then pass the session to [dataset ingest](#ingest-dataset-data), which also
+completes the upload itself if you skip that step. See [Data documentation](../data/index.md).
 
 ### Get Signed Upload URL
 
@@ -2274,6 +2307,9 @@ and is not verified.
 
 Connect read-only Google Cloud Storage, Amazon S3, or Azure Blob Storage accounts and browse them as dataset sources.
 See [Integrations documentation](../integrations/index.md).
+
+Discovering and connecting storage require workspace admin access and a Pro or Enterprise plan (`403` otherwise);
+listing integrations and browsing objects require editor access.
 
 ### List Integrations
 
@@ -2390,8 +2426,8 @@ POST /api/integrations/roboflow/preview
 **Python SDK:** `client.datasets.preview_roboflow(api_key=...)`
 
 Resolves a Roboflow API key into an import plan: workspace details, `newDatasets` that would be imported, counts of
-skipped, unsupported, and unresolved projects, `bytesTotal`, and your `storage` headroom. The Roboflow API key is read
-from the body and is not persisted.
+already-imported (`skippedCount`), version-less, unsupported, and unresolved projects, `bytesTotal`, and your `storage`
+headroom. The Roboflow API key is read from the body and is not persisted.
 
 ```json
 {
@@ -2457,8 +2493,8 @@ Returns the plan, credit balance, and resource counts for the workspace that iss
 
 !!! note "Team List"
 
-    `teams` is populated for browser sessions. API-key responses return an empty list, because a key is already scoped
-    to a single workspace.
+    For a personal account, `teams` lists the team workspaces you belong to, each with your `role` and a `deniedReason`
+    when the workspace is currently inaccessible, such as after its plan lapses. Team workspaces return an empty list.
 
 ### List API Keys
 
@@ -2869,7 +2905,8 @@ admin access to disconnect storage, or a higher plan or quota for exports and de
 ### Which endpoints work without an API key?
 
 Reading public datasets, projects, and models, including their images, signed image URLs, class statistics, embedding
-status, clustering layout, and export list; checking training progress on a public model; downloading a public model's
-files; running inference on a public model; looking up a public user profile; listing deployments filtered to one public
-model; and searching Explore. `GET /api/training/gpu-availability` is fully public unless you request managed capacity.
-Everything else requires a key, and supplying one on a public endpoint also reveals your private resources.
+status, clustering layout, models trained on a dataset, and export list; checking training progress on a public model;
+downloading a public model's files; running inference on a public model; looking up a public user profile; listing
+deployments filtered to one public model; and searching Explore. `GET /api/training/gpu-availability` is fully public
+unless you request managed capacity. Everything else requires a key, and supplying one on a public endpoint also
+reveals your private resources.

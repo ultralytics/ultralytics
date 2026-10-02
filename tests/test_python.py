@@ -1207,7 +1207,9 @@ def test_annotator_keeps_explicit_zero_line_width():
     from ultralytics.utils.plotting import Annotator
 
     image = np.zeros((32, 32, 3), dtype=np.uint8)
-    assert Annotator(image, line_width=0).lw == 0
+    zero = Annotator(image, line_width=0)
+    assert zero.lw == 0
+    assert zero.sf > 0
     assert Annotator(image).lw >= 2
 
 

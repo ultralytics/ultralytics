@@ -347,8 +347,9 @@ class Annotator:
                 "Image not contiguous. Apply contiguous() or np.ascontiguousarray(im) to Annotator input images."
             )
             self.im = im if input_is_tensor or im.flags.writeable else im.copy()
-            self.tf = max(self.lw - 1, 1)  # font thickness
-            self.sf = self.lw / 3  # font scale
+            text_lw = self.lw or max(round(sum(self.im.shape) / 2 * 0.003), 2)  # labels need a positive scale
+            self.tf = max(text_lw - 1, 1)  # font thickness
+            self.sf = text_lw / 3  # font scale stays positive when the outline width is 0
         # Pose
         self.skeleton = [
             [16, 14],

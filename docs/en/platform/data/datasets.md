@@ -88,7 +88,7 @@ The file extension alone isn't enough: a video can still fail if its codec canno
 
 ### Preparing Your Dataset
 
-The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [semantic PNG masks](../../datasets/semantic/index.md#png-mask-format), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format), and raw (unannotated) uploads:
+The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), [COCO](https://cocodataset.org/#format-data), [LabelMe](../integrations/labelme.md) JSON, [semantic PNG masks](../../datasets/semantic/index.md#png-mask-format), [depth datasets](../../datasets/depth/index.md#depth-map-format), [Ultralytics NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) and [Labelbox](../integrations/labelbox.md) NDJSON, and raw (unannotated) uploads:
 
 === "YOLO Format"
 
@@ -249,7 +249,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! warning "Pascal VOC XML Is Not Imported"
 
-    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload as unannotated. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
+    Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload without them, and five or more images kept in a folder such as `images/` or `JPEGImages/` also pick up a class named after that folder. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
 If labels reference class IDs but no class names are supplied, Platform remaps the IDs to a dense 0-indexed sequence and names each class after its source ID (`class0`, `class3`, …), which you can rename later in the [Classes tab](#classes-tab).
 
@@ -325,7 +325,7 @@ graph LR
 1. **Validation**: Format and size checks
 2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded
 3. **Thumbnails**: 256px WebP previews generated
-4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted
+4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
 !!! info "Stored Image Encoding"

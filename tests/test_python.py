@@ -154,9 +154,13 @@ def test_cfg_rejects_fuzzed_values():
         ("split", None),
         ("copy_paste_mode", None),
         ("patience", -1),
+        ("workers", -1),
+        ("close_mosaic", -1),
     ):
         with pytest.raises((TypeError, ValueError), match=key):
             get_cfg(overrides={key: value})
+    assert get_cfg(overrides={"workers": 0}).workers == 0
+    assert get_cfg(overrides={"close_mosaic": 0}).close_mosaic == 0
     assert get_cfg(overrides={"fraction": 1}).fraction == 1.0
     assert get_cfg(overrides={"fraction": [1000, 1, 0]}).fraction == [1000, 1.0, 0.0]
     assert type(get_split_fraction([1, 1, 0], "train")) is float

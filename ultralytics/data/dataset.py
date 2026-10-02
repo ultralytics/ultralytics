@@ -1189,7 +1189,6 @@ class ClassificationDataset:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
-        imread: Read a BGR image, decoding the formats cv2 cannot read through the shared PIL fallback.
         cache_images: Decode images into one contiguous RAM cache.
     """
 

@@ -1248,7 +1248,14 @@ class Exporter:
             check_requirements("nncf>=2.14.0,<3.0.0" if not TORCH_2_3 else "nncf>=2.14.0")
             import nncf
 
-            calibration_dataset = nncf.Dataset(self.get_int8_calibration_dataloader(prefix), self._transform_fn)
+            def transform_fn(data_item):
+                """Repeat calibration images to fill the static batch, including for NMS-unrolled graphs."""
+                im = self._transform_fn(data_item)
+                if not self.args.dynamic and im.shape[0] < self.args.batch:
+                    im = np.tile(im, (-(-self.args.batch // im.shape[0]), 1, 1, 1))[: self.args.batch]
+                return im
+
+            calibration_dataset = nncf.Dataset(self.get_int8_calibration_dataloader(prefix), transform_fn)
 
         ov_model = torch2openvino(
             model=NMSModel(self.model, self.args) if self.args.nms else self.model,

@@ -42,21 +42,23 @@ Choose an official Ultralytics model or one of your own completed models:
 | **Official**  | YOLO26 (recommended), YOLO11, YOLOv8, and YOLOv5 project models        |
 | **My Models** | Your completed or uploaded models, grouped by project, for fine-tuning |
 
-Within each tab, models are grouped by task in canonical order and sorted by size. The selector filters official models to tasks compatible with the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Classify](../../tasks/classify.md), [Pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md) variants in sizes from nano to xlarge.
+Within each tab, models are grouped by task in canonical order and sorted by size. Both tabs list only models whose task can train the selected dataset. YOLO26 includes [Detect](../../tasks/detect.md), [Segment](../../tasks/segment.md), [Semantic](../../tasks/semantic.md), [Depth](../../tasks/depth.md), [Classify](../../tasks/classify.md), [Pose](../../tasks/pose.md), and [OBB](../../tasks/obb.md) variants in sizes from nano to xlarge.
 
 !!! note "Depth Training"
 
     Depth datasets can be uploaded with float NPY targets in meters or uint16 PNG targets using the dataset's
-    `depth_scale`. See the [depth dataset format](../../datasets/depth/index.md#depth-map-format).
+    `depth_scale`. See the [depth dataset format](../../datasets/depth/index.md#depth-map-format). Depth models
+    default to a fine-tuning recipe (`optimizer: AdamW`, `lr0: 0.0001`, `warmup_bias_lr: 0.0001`) unless you set
+    those parameters yourself.
 
 ### Step 2: Select Dataset
 
 Choose a dataset to train on (see [Datasets](../data/datasets.md)):
 
-| Option            | Description                       |
-| ----------------- | --------------------------------- |
-| **Official**      | Curated datasets from Ultralytics |
-| **Your Datasets** | Datasets you've uploaded          |
+| Option          | Description                       |
+| --------------- | --------------------------------- |
+| **Official**    | Curated datasets from Ultralytics |
+| **My Datasets** | Datasets in your workspace        |
 
 !!! note "Dataset Requirements"
 
@@ -89,21 +91,21 @@ Values typed outside a parameter's range are clamped when the field loses focus.
 
 ### Step 4: Advanced Settings (Optional)
 
-Expand **Advanced Settings** to access the full YAML-based parameter editor with 50+ training parameters organized by group (see [configuration reference](../../usage/cfg.md)):
+Expand **Advanced Settings** to access the YAML-based parameter editor with 50+ training parameters under **Training Settings** and **Image Augmentations** sections (see [configuration reference](../../usage/cfg.md)):
 
-| Group                       | Parameters                                                                                                                                                                               |
-| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Learning Rate**           | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr                                                                                                         |
-| **Optimizer**               | auto (default), SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax                                                                                                                   |
-| **Loss Weights**            | box, cls, cls_pw, dfl, pose, kobj, rle, angle, dlog, dgrad, dlam                                                                                                                         |
-| **Color Augmentation**      | hsv_h, hsv_s, hsv_v                                                                                                                                                                      |
-| **Geometric Augmentation**  | degrees, translate, scale, shear, perspective                                                                                                                                            |
-| **Flip & Mix Augmentation** | flipud, fliplr, mosaic, mixup, copy_paste, bgr, cutmix, copy_paste_mode, auto_augment, erasing                                                                                           |
-| **Training Control**        | epochs, batch, imgsz, pretrained, patience, time, seed, deterministic, amp, cos_lr, compile, close_mosaic, save_period, nbs, cls_remap, channels_last, profile, overlap_mask, mask_ratio |
-| **Dataset**                 | fraction, freeze, single_cls, rect, multi_scale, val, resume                                                                                                                             |
-| **Device & Inference**      | device, cache, workers, dropout, iou, max_det                                                                                                                                            |
+| Group                       | Parameters                                                                                                                                                                         |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Learning Rate**           | lr0, lrf, momentum, weight_decay, warmup_epochs, warmup_momentum, warmup_bias_lr                                                                                                   |
+| **Optimizer**               | auto (default), SGD, MuSGD, Adam, AdamW, NAdam, RAdam, RMSProp, Adamax                                                                                                             |
+| **Loss Weights**            | box, cls, cls_pw, dfl, pose, kobj, rle, angle, dlog, dgrad, dlam                                                                                                                   |
+| **Color Augmentation**      | hsv_h, hsv_s, hsv_v                                                                                                                                                                |
+| **Geometric Augmentation**  | degrees, translate, scale, shear, perspective                                                                                                                                      |
+| **Flip & Mix Augmentation** | flipud, fliplr, mosaic, mixup, copy_paste, bgr, cutmix, copy_paste_mode, auto_augment, erasing                                                                                     |
+| **Training Control**        | epochs, batch, imgsz, pretrained, patience, seed, deterministic, amp, cos_lr, compile, close_mosaic, save_period, nbs, cls_remap, channels_last, profile, overlap_mask, mask_ratio |
+| **Dataset**                 | fraction, freeze, single_cls, rect, multi_scale, resume                                                                                                                            |
+| **Validation**              | max_det                                                                                                                                                                            |
 
-Parameters are task-aware (e.g., `copy_paste` only shows for segment, semantic, and OBB tasks, `pose`/`kobj` only for pose tasks, `dropout` only for classify). A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button. Only non-default advanced values are sent to the training job (the basic epochs, batch, and image size parameters are always included), so the resulting command stays readable.
+Parameters are task-aware (e.g., `copy_paste` only shows for segment, semantic, and OBB tasks, `pose`/`kobj` only for pose tasks, `auto_augment`/`erasing` only for classify). The editor omits `device`, `cache`, `workers`, `iou`, `dropout`, `val`, and `time`, and ignores them in pasted or dropped configurations; set them in your own `yolo train` command when training locally. A **Modified** badge appears when values differ from defaults, and you can reset all to defaults with the reset button. Only non-default advanced values are sent to the training job (the basic epochs, batch, and image size parameters are always included), so the resulting command stays readable.
 
 ??? example "Example: Tuning Augmentation for Small Datasets"
 
@@ -176,16 +178,15 @@ Retraining an existing model reuses the same model page and clears the previous 
 
 Training jobs progress through the following statuses:
 
-| Status        | Description                                          |
-| ------------- | ---------------------------------------------------- |
-| **Pending**   | Job submitted, waiting for GPU allocation            |
-| **Starting**  | GPU provisioned, downloading dataset and model       |
-| **Running**   | Training in progress, metrics streaming in real-time |
-| **Completed** | Training finished successfully                       |
-| **Failed**    | Training failed (see console logs for details)       |
-| **Cancelled** | Training was cancelled by the user                   |
+| Status        | Description                                                    |
+| ------------- | -------------------------------------------------------------- |
+| **Starting**  | Job submitted, provisioning GPU, downloading dataset and model |
+| **Running**   | Training in progress, metrics streaming in real-time           |
+| **Completed** | Training finished successfully                                 |
+| **Failed**    | Training failed (see console logs for details)                 |
+| **Cancelled** | Training was cancelled by the user                             |
 
-A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for several hours are automatically marked failed, and their compute is released.
+A fatal Python error in the console stream — a traceback, a CUDA out-of-memory error, or a failed CUDA initialization — ends the run immediately rather than waiting for a timeout, and the extracted message appears in an error banner on the model page with **View full console logs** and **Retry Training** actions. Runs that stop reporting activity for 4 hours are automatically marked failed, and their compute is released.
 
 To receive the completed and failed results without keeping this page open, connect [Slack alerts](../integrations/slack.md).
 
@@ -390,7 +391,7 @@ Cloud training billing flow:
 | **Failed**    | Yes, when cloud compute started — elapsed GPU time used |
 | **Stuck**     | Yes — elapsed GPU time until automatic termination      |
 
-A run that stops reporting activity for several hours is automatically marked failed; the instance is terminated and the elapsed GPU time settled. Remote runs on your own hardware are simply marked failed with nothing to charge.
+A run that stops reporting activity for 4 hours is automatically marked failed; the instance is terminated and the elapsed GPU time settled. Remote runs on your own hardware are simply marked failed with nothing to charge.
 
 !!! note "Failures Before Compute Starts"
 
@@ -622,7 +623,7 @@ This makes it easy to reproduce or iterate on previous training configurations w
 
 ### Can I retry a failed run?
 
-Yes. A failed model shows an error banner with a **Retry** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
+Yes. A failed model shows an error banner with a **Retry Training** action that reopens the training dialog with the same base model, dataset, and parameters, so you can adjust one value and start again. Retrying reuses the same model page: the previous run's charts, console output, system metrics, and error are cleared once the new job is created, and its weights are replaced when the new run produces a better checkpoint.
 
 ### Can I train from a dataset page?
 

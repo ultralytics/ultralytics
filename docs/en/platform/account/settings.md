@@ -34,7 +34,7 @@ Update your profile information:
 | **Company / Organization** | Company or organization name                             |
 | **Primary Use Case**       | Primary application (select from list)                   |
 | **Bio**                    | Short description (minimum 10 characters when filled in) |
-| **Profile Icon**           | Avatar with color, initials, or image                    |
+| **Profile Picture**        | Avatar with color, initials, or image                    |
 
 In a team workspace the same card edits the workspace profile and icon, and requires the Admin role or higher.
 
@@ -65,9 +65,8 @@ In a team workspace the same card edits the workspace profile and icon, and requ
 ### Edit Profile
 
 1. Go to **Settings > Profile**
-2. Update fields (display name, company, use case, bio)
-3. Wait for the **Saved** indicator next to the Profile heading. Changes save automatically about a second after you
-   stop typing — there is no Save button.
+2. Update fields (display name, company, use case, bio, and social links)
+3. Click **Save profile** below the Social profiles card. The button is enabled once you have unsaved changes.
 
 ### Early Access
 
@@ -355,7 +354,7 @@ Owners and admins can manage the team from the actions menu on each row:
 - **Leave team**: any member can leave their own team, which returns them to their personal workspace
 - **Cancel invite** / **Resend invite**: cancel a pending invitation to free its seat, or rotate its token and restart
   the 14-day window
-- **Transfer ownership**: transfer workspace ownership to another member (Owner only; you become an Admin)
+- **Transfer Ownership**: transfer a team workspace to another member (Owner only; you become an Admin)
 
 ### Shared Resources
 

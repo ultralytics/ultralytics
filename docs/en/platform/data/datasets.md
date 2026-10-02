@@ -243,7 +243,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. Without a COCO file, per-image [LabelMe](../integrations/labelme.md) JSON files (containing `shapes` and `imagePath`) are read as LabelMe annotations. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. Without a COCO file, per-image [LabelMe](../integrations/labelme.md) JSON files (containing `shapes` and `imagePath`) are read as LabelMe annotations. `.ndjson` exports are imported as Ultralytics NDJSON, or as [Labelbox](../integrations/labelbox.md) exports when their rows carry a `data_row` key. Datasets with only images and no annotations are treated as raw.
 
     When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
 
@@ -251,7 +251,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
     Label files in Pascal VOC XML format are detected but their annotations are **not** imported — the images upload as unannotated. Platform warns you before the upload starts ("Pascal VOC labels detected"). Convert VOC XML to YOLO or COCO first; see [format conversion tools](../../datasets/detect/index.md#port-or-convert-label-formats).
 
-If labels reference class IDs but no class names are supplied, Platform generates dense placeholder names (`class0`, `class1`, …) that you can rename later in the [Classes tab](#classes-tab).
+If labels reference class IDs but no class names are supplied, Platform remaps the IDs to a dense 0-indexed sequence and names each class after its source ID (`class0`, `class3`, …), which you can rename later in the [Classes tab](#classes-tab).
 
 For task-specific format details, see [supported tasks](index.md#supported-tasks) and the [Datasets Overview](../../datasets/index.md).
 
@@ -281,6 +281,8 @@ The `New Dataset` dialog offers four sources:
 | **Cloud**      | Use data in place from [Google Cloud Storage](../integrations/google-cloud-storage.md), [Amazon S3](../integrations/amazon-s3.md), or [Azure Blob Storage](../integrations/azure-blob-storage.md) (Pro and Enterprise) |
 | **On Premise** | Index and train on data that never leaves your own machines via [On Premise](../integrations/on-premise.md) workers (Enterprise)                                                                                       |
 
+Depth datasets can only be created from **Upload** or **URL**; the **Cloud** and **On Premise** tabs are disabled for the depth task.
+
 !!! note "URL Import Limits"
 
     A URL import is capped by both your plan's per-upload limit (10 GB Free / 20 GB Pro / 50 GB Enterprise) and your remaining storage quota, whichever is smaller. The link must be publicly reachable over HTTP or HTTPS and end in a supported extension.
@@ -291,9 +293,9 @@ Platform validates your files in the browser before uploading anything, so commo
 
 Two dialogs may then appear:
 
-=== "Map Imported Classes"
+=== "Map Classes"
 
-    When the archive declares class names and your dataset already has classes, the `Map imported classes` dialog lists one row per incoming class. For each one, choose an existing class to merge into, create a new class, or skip it. Exact name matches are preselected, and skipped classes and their annotations are not imported.
+    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case) are preselected, and the annotations of skipped classes are not imported.
 
 === "Handle Conflicts"
 
@@ -434,7 +436,7 @@ Filter images by their dataset split:
 
 ## Clustering
 
-The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page.
+The `Clustering` panel projects your dataset into an interactive 2D scatter plot where visually similar images sit close together. Use it to surface clusters, spot duplicates and outliers, and inspect how splits or classes are distributed across your data — without leaving the gallery. Open it from the scatter-chart icon in the gallery toolbar on any dataset page. The panel is desktop-only, and viewers without edit access see the icon once the dataset has been analyzed.
 
 ![Ultralytics Platform Datasets Clustering Empty State](https://cdn.ul.run/i/9fa778552a0c0c3e6b4b7047841f658e.avif)<!-- screenshot -->
 
@@ -601,17 +603,15 @@ Charts appear in this order, and each one is omitted when the dataset has no dat
 
 View all models trained on this dataset in a searchable table:
 
-| Column   | Description                                         |
-| -------- | --------------------------------------------------- |
-| Name     | Model name with link                                |
-| Project  | Parent project with icon                            |
-| Version  | Immutable dataset version used for training, if any |
-| Status   | Training status badge                               |
-| Task     | YOLO task type                                      |
-| Epochs   | Best epoch / total epochs                           |
-| mAP50-95 | Mean average precision                              |
-| mAP50    | mAP at IoU 0.50                                     |
-| Created  | Creation date                                       |
+| Column  | Description                                                                                                           |
+| ------- | --------------------------------------------------------------------------------------------------------------------- |
+| Model   | Parent project and model name, with links                                                                             |
+| Version | Immutable dataset version used for training, shown when any listed model used one                                     |
+| Status  | Training status badge                                                                                                 |
+| Task    | YOLO task type                                                                                                        |
+| Epochs  | Best epoch / total epochs                                                                                             |
+| Metrics | Two headline metrics for each task in the table, such as mAP50 and mAP50-95 for detection or Top-1 and Top-5 Accuracy |
+| Created | Creation date                                                                                                         |
 
 ![Ultralytics Platform Datasets Models Tab Trained Models Table](https://cdn.ul.run/i/c68f167c5eff1f7fff6a2c8b1772ad7a.avif)<!-- screenshot -->
 
@@ -665,10 +665,12 @@ Each version is numbered sequentially (v1, v2, v3...) and is immutable — versi
 #### Compare Versions
 
 Click the compare icon on any version after v1 to see what changed since an earlier version. **Compare versions** starts
-from the previous version; pick another one in the **From** menu. Chips count the images added, removed, modified, and
-moved to another split, and the labels added and removed, and each changed image is listed with its badge. Select an
-image to see it **Before** and **After**, each side with the labels that version stored. When the images and labels are
-identical, the dialog reports that, including when only dataset settings such as class names differ.
+from the previous version; pick another one in the **From** menu. Chips grouped under **Images**, **Annotations**,
+**Classes**, and **Settings** count the images added, removed, modified, and moved to another split and the annotations
+added and removed, and name the classes added, removed, or renamed and any dataset settings that changed. Each changed
+image is listed with its badge. Select an image to see it **Before** and **After**, each side with the labels that
+version stored. When the images and annotations are identical, the dialog reports **No changes**, or **No image
+changes** when only class definitions or dataset settings differ.
 
 !!! warning "Restoring a Version"
 
@@ -923,7 +925,7 @@ Control who can see your dataset:
 | **Private** | You and permitted workspace members can access   |
 | **Public**  | Anyone can view, including from the Explore page |
 
-Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. Public datasets are visible on the [Explore](../explore.md) page.
+Visibility is set when creating a dataset in the `New Dataset` dialog using a toggle switch. To change it later, click the **Public** or **Private** badge next to the dataset name in the page breadcrumb; making a dataset public asks for confirmation. [On Premise](../integrations/on-premise.md) datasets are always private. Public datasets are visible on the [Explore](../explore.md) page.
 
 ## Edit Dataset
 
@@ -1039,7 +1041,7 @@ Use the bulk move-to-split feature:
 
 ### What label formats are supported?
 
-Ultralytics Platform supports YOLO labels, COCO JSON, Ultralytics NDJSON, and raw image uploads. Pascal VOC XML labels are detected but not imported:
+Ultralytics Platform supports YOLO labels, COCO JSON, [LabelMe](../integrations/labelme.md) JSON, Ultralytics and [Labelbox](../integrations/labelbox.md) NDJSON, [semantic PNG masks and depth maps](#preparing-your-dataset), and raw image uploads. Pascal VOC XML labels are detected but not imported:
 
 === "YOLO Format"
 

@@ -69,6 +69,10 @@ class OBBValidator(DetectionValidator):
         super().init_metrics(model)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
+        if self.args.save_json and self.is_dota:  # each run replaces the DOTA files a previous run left
+            for d in ("predictions_txt", "predictions_merged_txt"):
+                for f in (self.save_dir / d).glob("Task1_*.txt"):
+                    f.unlink(missing_ok=True)
         self.confusion_matrix.task = "obb"  # set confusion matrix task to 'obb'
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> dict[str, np.ndarray]:

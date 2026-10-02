@@ -308,6 +308,8 @@ class BaseValidator:
                     LOGGER.info(f"Saving {f.name}...")
                     json.dump(self.jdict, f)  # flatten and save
                 stats = self.eval_json(stats)  # update stats
+            elif self.args.save_json:  # no predictions, drop a previous run's file
+                (self.save_dir / "predictions.json").unlink(missing_ok=True)
             if self.args.plots or self.args.save_json:
                 LOGGER.info(f"Results saved to {colorstr('bold', self.save_dir)}")
             return stats

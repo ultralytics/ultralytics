@@ -206,8 +206,8 @@ computer keeps the same host, so its datasets keep working and no duplicate host
 computer there and disconnects its host in the workspace it leaves.
 
 **Reconnect** issues a fresh install command for a disconnected host. Run it on the computer that should serve that
-host, and its existing datasets resume without being re-imported. Disconnected hosts stay listed only while datasets
-still depend on them.
+host, and its existing datasets resume without being re-imported. Disconnected hosts stay listed only while datasets or
+models still depend on them.
 
 **Disconnect** revokes that host's access immediately. Queued, starting, and running jobs bound to it are cancelled,
 including training in progress, and a dataset that was still being imported fails with `On Premise host disconnected
@@ -234,6 +234,8 @@ files are never touched.
 - **Docker asks for permission:** Approve the prompt and wait for Docker to start. Setup continues automatically.
 - **Windows asks for a restart:** Restart the computer, return to `Settings > Integrations`, and create a new install command.
 - **The setup command expired:** Create a new install command. Each command is temporary and works once.
+- **Another machine already reconnected this host:** A different computer ran a Reconnect command for the same host
+  first. Create a new install command for this computer.
 - **The connection stays offline:** Open Docker Desktop, rerun a newly generated command, and keep the terminal open until it reports that On Premise is running.
 - **Previews do not load:** Open Platform in a browser on the connected computer. Dataset previews come directly from
   that computer.

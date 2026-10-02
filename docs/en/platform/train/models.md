@@ -86,14 +86,15 @@ Above the tabs, the header shows the model color (editable), the name (click to 
 
 Directly below, one card per task metric shows the final value over a sparkline of its training progression — click any card to jump to the charts — alongside a card linking the dataset the model was trained on.
 
-| Task                | Summary metrics                                     |
-| ------------------- | --------------------------------------------------- |
-| **Detect**, **OBB** | mAP50, mAP50-95, precision, recall                  |
-| **Segment**         | The same four metrics, mask (M) variants            |
-| **Pose**            | The same four metrics, keypoint (P) variants        |
-| **Classify**        | Top-1 accuracy, Top-5 accuracy                      |
-| **Semantic**        | mIoU, pixel accuracy                                |
-| **Depth**           | δ1, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
+| Task         | Summary metrics                                     |
+| ------------ | --------------------------------------------------- |
+| **Detect**   | mAP50, mAP50-95, precision, recall                  |
+| **Segment**  | The same four metrics, mask (M) variants            |
+| **Semantic** | mIoU, pixel accuracy                                |
+| **Depth**    | δ1, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
+| **Classify** | Top-1 accuracy, Top-5 accuracy                      |
+| **Pose**     | The four Detect metrics, keypoint (P) variants      |
+| **OBB**      | mAP50, mAP50-95, precision, recall                  |
 
 ### Overview Tab
 
@@ -334,7 +335,7 @@ Some export formats have architecture or task restrictions:
 !!! note "Additional Export Rules"
 
     - Classification, semantic segmentation, and depth exports do not include NMS. CoreML embeds NMS only for detect, segment, and pose, and MNN only for detect and pose.
-    - RKNN INT8 export requires a detection model.
+    - RKNN INT8 export requires a detection model. The RV1103, RV1106, RV1103B, and RV1106B targets are INT8-only, so they are available for detection models only.
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.
@@ -367,8 +368,8 @@ The model and its weights are copied to the target project. **Clone Model** appe
 
 Download your model weights:
 
-1. Navigate to the model's **Overview** tab
-2. Click the **Download** button
+1. Open the model page
+2. Click the **download icon** in the model header (available from any tab)
 3. The model's primary `.pt` checkpoint downloads automatically
 
 Exported formats can be downloaded from the **Export** tab after export completes.
@@ -447,7 +448,7 @@ YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../t
 
 Yes, download your model weights from the model page:
 
-1. Click the download icon on the Overview tab
+1. Click the download icon in the model header
 2. The model's primary `.pt` checkpoint downloads automatically
 3. Exported formats can be downloaded from the Export tab
 

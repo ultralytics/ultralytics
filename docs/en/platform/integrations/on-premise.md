@@ -70,8 +70,8 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
 image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the
 terminal. Connecting a host requires the workspace editor [role](../account/teams.md#roles-and-permissions) and an
-active Enterprise plan; workspaces on another plan see a **Continue** button that requests a guided On Premise
-walkthrough instead of an install command.
+active Enterprise plan; workspaces on another plan see a **Request a demo** button, which sends an Enterprise demo
+request instead of creating an install command.
 
 Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 
@@ -159,7 +159,7 @@ On Premise supports the same ingest formats and computer-vision tasks as uploade
 
 - Images and videos
 - ZIP, TAR, TAR.GZ, and TGZ archives
-- Ultralytics NDJSON and COCO JSON
+- Ultralytics and [Labelbox](labelbox.md) NDJSON, COCO JSON, and [LabelMe](labelme.md) JSON
 - YOLO datasets and classification folders
 - Detect, segment, semantic, classify, pose, and oriented bounding box (OBB) tasks
 
@@ -190,12 +190,24 @@ compute credits, and Platform never sends the training job to cloud compute.
 
 ## Manage the Connection
 
-Open `Settings > Integrations` to see each connected computer, its hostname and hardware, and whether its CPU and GPU
-are currently online. The host reports in continuously, so a computer that is shut down or loses connectivity shows as
-offline and its datasets become temporarily unavailable rather than falling back to cloud compute.
+Open `Settings > Integrations` to see each computer, its hostname and hardware, whether its CPU and GPU are online, and
+when it last reported. A computer that is shut down or loses connectivity shows as **Offline** with its last-seen
+details, and its datasets become temporarily unavailable rather than falling back to cloud compute. The worker starts
+with Docker and reconnects on its own once the computer is back online; nothing needs to be rerun.
 
-**Reconnect** issues a fresh install command for a host you previously disconnected. It reuses the same host record, so
-its existing datasets resume working without being re-imported.
+**The worker updates itself.** Each time its container starts, and every 10 minutes while it is idle, it downloads any
+newer worker code from Platform and restarts into it. It never restarts during a job. Computers connected before
+self-updating was available start updating after you run a new install command on them once.
+
+**Run the install command again** on a connected computer to change its folders or refresh its Docker image. The
+computer keeps the same host, so its datasets keep working and no duplicate host appears.
+
+**One workspace per computer.** A computer runs one worker. Running an install command from another workspace moves the
+computer there and disconnects its host in the workspace it leaves.
+
+**Reconnect** issues a fresh install command for a disconnected host. Run it on the computer that should serve that
+host, and its existing datasets resume without being re-imported. Disconnected hosts stay listed only while datasets or
+models still depend on them.
 
 **Disconnect** revokes that host's access immediately. Queued, starting, and running jobs bound to it are cancelled,
 including training in progress, and a dataset that was still being imported fails with `On Premise host disconnected
@@ -222,6 +234,8 @@ files are never touched.
 - **Docker asks for permission:** Approve the prompt and wait for Docker to start. Setup continues automatically.
 - **Windows asks for a restart:** Restart the computer, return to `Settings > Integrations`, and create a new install command.
 - **The setup command expired:** Create a new install command. Each command is temporary and works once.
+- **Another machine already reconnected this host:** A different computer ran a Reconnect command for the same host
+  first. Create a new install command for this computer.
 - **The connection stays offline:** Open Docker Desktop, rerun a newly generated command, and keep the terminal open until it reports that On Premise is running.
 - **Previews do not load:** Open Platform in a browser on the connected computer. Dataset previews come directly from
   that computer.

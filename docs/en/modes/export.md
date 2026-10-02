@@ -74,7 +74,7 @@ Available YOLO26 export formats are in the table below. You can export to any fo
 
 !!! note "Automatic installation of export dependencies"
 
-    Most formats need packages that are not installed with `ultralytics`. When one is missing, export installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages such as the Edge TPU compiler or Java for IMX. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Export then still checks for the missing packages and reports them, but leaves the environment unchanged and fails until they are installed.
+    Most formats need packages that are not installed with `ultralytics`. When one is missing, export installs it at runtime with `uv` or `pip`, and on Linux with `apt` for system packages such as Java for IMX. The Edge TPU compiler is downloaded without `apt` or `sudo`. To keep the environment fixed, for example in a container image, CI job, or production service, set `YOLO_AUTOINSTALL=False`. Export then still checks for the missing packages and reports them, but leaves the environment unchanged and fails until they are installed.
 
     ```bash
     export YOLO_AUTOINSTALL=False

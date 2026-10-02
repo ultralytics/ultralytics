@@ -39,10 +39,10 @@ keys**. SAS-token connection strings, which contain `SharedAccessSignature` inst
 
 ![Ultralytics Platform Azure Blob Storage Integration Settings](https://cdn.ul.run/i/9f607a4743cfbeb6d8dc85145aa45d36.avif)<!-- screenshot -->
 
-You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. One
-connection carries up to 50 containers, and discovery lists up to 300 containers in the storage account.
+You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. You
+can add up to 50 containers at a time, and discovery lists up to 300 containers in the storage account.
 
-Reconnecting the same storage account later adds new containers to the existing integration. A saved credential is only replaced once its replacement can still read every container you've already connected.
+Reconnecting the same storage account later adds new containers to the existing integration. A saved credential is only replaced once its replacement can still read every container you've already connected. If any container can't be read, the error names it, including containers connected earlier with the same storage account.
 
 !!! note "Credential security"
 
@@ -85,9 +85,11 @@ Managed training works through the normal training flow. Training uses Platform'
 
 ## Disconnect a Connection
 
-Disconnecting deletes the stored connection string without touching anything in Azure. Datasets built from those containers stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same storage account is connected again.
+Disconnecting deletes the stored connection string without touching anything in Azure. Datasets built from those containers stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same storage account is connected again. You can still rename them, edit their labels, or delete them while disconnected.
 
-Use the [REST API](../api/index.md) with the integration ID returned by `GET /api/integrations/buckets`:
+To disconnect, go to **Settings > Integrations**, select **Azure Blob Storage**, click **Disconnect** next to the credential, and confirm. Opening one of its datasets then shows **Azure Blob Storage Disconnected** with a link back to these settings, and the dataset returns automatically once you reconnect.
+
+You can also disconnect with the [REST API](../api/index.md), using the integration ID returned by `GET /api/integrations/buckets`:
 
 ```bash
 curl -X DELETE \

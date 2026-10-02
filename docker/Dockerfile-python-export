@@ -9,8 +9,9 @@ FROM ultralytics/ultralytics:latest-python-3.13
 # Install export-specific system packages
 # gnupg required for Edge TPU install
 # Java runtime environment (default-jre-headless) required for Sony IMX export
+# libgomp1 required by PaddlePaddle's OpenMP runtime
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gnupg default-jre-headless && \
+    apt-get install -y --no-install-recommends gnupg default-jre-headless libgomp1 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

@@ -64,7 +64,11 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if hasattr(predictor, "_orig_postprocess"):  # restore any raw-preds wrapper left by a prior TRACKTRACK run
         predictor.postprocess = predictor._orig_postprocess
         del predictor._orig_postprocess
-    if cfg.tracker_type in {"botsort", "tracktrack", "deepocsort"} and cfg.with_reid and cfg.model == "auto":
+    if (
+        cfg.tracker_type in {"botsort", "tracktrack", "deepocsort"}
+        and cfg.with_reid
+        and getattr(cfg, "model", "auto") == "auto"
+    ):
         from ultralytics.nn.modules.head import Detect
 
         if not (

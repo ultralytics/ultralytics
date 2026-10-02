@@ -325,7 +325,7 @@ graph LR
 1. **Validation**: Format and size checks
 2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded
 3. **Thumbnails**: 256px WebP previews generated
-4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted
+4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, [LabelMe](../integrations/labelme.md), and [Ultralytics](../../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](../integrations/labelbox.md) NDJSON labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
 !!! info "Stored Image Encoding"

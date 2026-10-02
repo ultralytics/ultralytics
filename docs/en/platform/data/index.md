@@ -118,14 +118,14 @@ Dataset pages can show up to six tabs, depending on the dataset state and your p
 | **Classes**  | View, rename, recolor, merge, and delete classes with per-class label counts |
 | **Charts**   | Automatic statistics: split distribution, class counts, heatmaps             |
 | **Models**   | [Models](../train/models.md) trained on this dataset with metrics and status |
-| **Versions** | Create, download, and restore immutable NDJSON snapshots for reproducibility |
+| **Versions** | Create, compare, download, and restore immutable NDJSON snapshots            |
 | **Errors**   | Images that failed processing with error details and fix guidance            |
 
 `Classes` appears when the dataset has images and its task has classes, while `Charts` appears whenever it has images. `Errors` appears only when processing failures exist. `Versions` appears when you have edit access, or in read-only mode when versions already exist.
 
 ### Clustering
 
-Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region of the plot to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. The same embeddings let you [find similar images](datasets.md#find-similar-images) in public, your own, and team datasets and add them to yours. See [Clustering](datasets.md#clustering) for details.
+Explore your dataset as an interactive 2D scatter plot where visually similar images sit close together — useful for surfacing clusters, duplicates, and outliers, and for inspecting how splits or classes are distributed across your data. Lasso a region or click a point to filter the gallery to those images. Analysis needs between 20 and 200,000 non-errored images. The same embeddings let you [find similar images](datasets.md#find-similar-images) in public, your own, and team datasets and add them to yours. See [Clustering](datasets.md#clustering) for details.
 
 ### Statistics and Visualization
 

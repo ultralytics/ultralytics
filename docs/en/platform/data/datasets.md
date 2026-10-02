@@ -243,7 +243,7 @@ The Platform supports [Ultralytics YOLO](../../datasets/detect/index.md#ultralyt
 
 !!! tip "Format Auto-Detection"
 
-    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
+    The format is detected automatically: datasets with a `data.yaml` containing `names`, `train`, or `val` keys are treated as YOLO. Datasets with COCO JSON files (containing `images`, `annotations`, and `categories` arrays) are treated as COCO. Without a COCO file, per-image [LabelMe](../integrations/labelme.md) JSON files (containing `shapes` and `imagePath`) are read as LabelMe annotations. `.ndjson` exports are imported as Ultralytics NDJSON. Datasets with only images and no annotations are treated as raw.
 
     When an archive contains several YAML files, Platform prefers standard names (`data.yaml`, `data.yml`, `dataset.yaml`, `dataset.yml`) closest to the archive root. Keep one clearly named YAML per archive to avoid ambiguity.
 
@@ -323,7 +323,7 @@ graph LR
 1. **Validation**: Format and size checks
 2. **Normalization**: Large images resized (max 4096px, min dimension 28px), grayscale expanded to RGB, transparency flattened onto white, and EXIF orientation applied; TIFF originals are stored as uploaded
 3. **Thumbnails**: 256px WebP previews generated
-4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted; in a detect dataset, an image with a normalized box center, width, or height below `-0.01` or above `1.01` is skipped with its labels and counted as `labels outside image` in the import summary; fix the out-of-range box and re-upload the image
+4. **Label Parsing**: [YOLO](../../datasets/detect/index.md#ultralytics-yolo-format), COCO, and [NDJSON](../../datasets/detect/index.md#ultralytics-ndjson-format) labels extracted
 5. **Statistics**: Class distributions and image dimensions computed
 
 !!! info "Stored Image Encoding"
@@ -462,28 +462,29 @@ Once analysis completes, the panel shows a 2D scatter of all analyzed images wit
 
 Change how data points are shaded with the `Color by` dropdown in the panel toolbar. Switch view modes at any time — the plot re-colors instantly so you can see how splits, classes, or image properties are distributed across your clusters:
 
-| Option          | Shading                              |
-| --------------- | ------------------------------------ |
-| **Splits**      | Train / Val / Test                   |
-| **Classes**     | First annotation class on each image |
-| **Width**       | Image width                          |
-| **Height**      | Image height                         |
-| **Size**        | File size                            |
-| **Annotations** | Number of annotations per image      |
+| Option          | Shading                                                                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Splits**      | Train / Val / Test                                                                                                                                        |
+| **Classes**     | First annotation class on each image                                                                                                                      |
+| **Clusters**    | Visual island in the layout, largest first; **Scattered** for points outside any island, **Not computed** for layouts analyzed before this option existed |
+| **Width**       | Image width                                                                                                                                               |
+| **Height**      | Image height                                                                                                                                              |
+| **Size**        | File size                                                                                                                                                 |
+| **Annotations** | Number of annotations per image                                                                                                                           |
 
 ![Ultralytics Platform Datasets Clustering Color Modes](https://cdn.ul.run/i/2b569b2849ebbcabf3aa9cb27c890cbd.avif)<!-- screenshot -->
 
-#### Lasso Selection
+#### Lasso and Click Selection
 
-Draw a free-form selection around a region to highlight points on the plot. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
+Draw a free-form selection around a region to highlight points on the plot, or click a point to select every point drawn in the same color (only that point when coloring by width, height, size, or annotations); click an empty area of the plot to clear the selection. The gallery filters down to the matching images, so you can inspect, relabel, move, or delete them using the usual [image operations](#image-operations).
 
 !!! tip "Clear Selection"
 
-    A chip above the chart shows how many points are selected — click the `×` to clear the lasso and return to the full gallery view.
+    A chip above the chart shows how many points are selected — click the `×` or an empty area of the plot to clear the selection and return to the full gallery view.
 
 !!! note "Selection Size"
 
-    A lasso resolves to at most 1,000 images. If your selection matches more, Platform shows a sampled 1,000 and suggests drawing a smaller region.
+    A lasso or click selection resolves to at most 1,000 images. If your selection matches more, Platform shows a sampled 1,000 and suggests drawing a smaller region.
 
 #### Pan and Zoom
 
@@ -498,7 +499,7 @@ Navigate large scatters directly from your mouse and keyboard, or with the zoom 
 
 ### Re-analyzing
 
-If your dataset changes after analysis — new images arrive, or the analyzed count no longer matches the dataset — a `Re-analyze` button appears at the top of the panel for owners and editors.
+If your dataset changes after analysis — new images arrive, or the analyzed count no longer matches the dataset — or the analysis predates the **Clusters** color option, a `Re-analyze` button appears at the top of the panel for owners and editors.
 
 Click `Re-analyze` to recompute embeddings and the 2D projection from scratch.
 
@@ -639,7 +640,7 @@ Images that failed processing are listed here with:
 
 ### Versions Tab
 
-Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, annotation counts, and file size at the time of creation.
+Create immutable NDJSON snapshots of your dataset for reproducible training. Each version captures image counts, class counts, annotation counts, and the storage it added at the time of creation.
 
 | Column      | Description                          |
 | ----------- | ------------------------------------ |
@@ -648,18 +649,26 @@ Create immutable NDJSON snapshots of your dataset for reproducible training. Eac
 | Images      | Image count at time of snapshot      |
 | Classes     | Class count at time of snapshot      |
 | Annotations | Annotation count at time of snapshot |
-| Size        | NDJSON export file size              |
+| Size        | Storage this version added           |
 | Created     | When the version was created         |
-| Actions     | Download or restore                  |
+| Actions     | Compare, download, or restore        |
 
 To create a version:
 
 1. Open the **Versions** tab
 2. Optionally enter a description (e.g., "Added 500 training images" or "Fixed mislabeled classes")
 3. Click **New Version**
-4. The new version appears in the table
+4. The new version appears in the table. If the dataset matches an existing version, for example right after restoring it, that version is reused and takes the new description if you entered one
 
 Each version is numbered sequentially (v1, v2, v3...) and is immutable — versions cannot be edited or removed, only their descriptions can be changed. Use the row actions to download or restore any version at any time.
+
+#### Compare Versions
+
+Click the compare icon on any version after v1 to see what changed since an earlier version. **Compare versions** starts
+from the previous version; pick another one in the **From** menu. Chips count the images added, removed, modified, and
+moved to another split, and the labels added and removed, and each changed image is listed with its badge. Select an
+image to see it **Before** and **After**, each side with the labels that version stored. When the images and labels are
+identical, the dialog reports that, including when only dataset settings such as class names differ.
 
 !!! warning "Restoring a Version"
 
@@ -677,9 +686,9 @@ Each version is numbered sequentially (v1, v2, v3...) and is immutable — versi
 
     Create a version before and after major changes to your dataset — adding images, fixing annotations, or rebalancing splits. This lets you compare model performance across different dataset states.
 
-!!! note "NDJSON File Size"
+!!! note "Version Size"
 
-    The size shown is the NDJSON export file size, which contains image URLs and annotations — not the images themselves. Actual image data is stored separately and accessed via signed URLs. The snapshot file still counts against your workspace [storage quota](../account/billing.md), so version creation fails if you have no headroom left.
+    The size shown is the compressed snapshot storage the version adds: image records (URLs, splits, annotations, and metadata) and dataset settings, not the image pixels. Snapshot data unchanged since an earlier version is shared and counts toward the version that first stored it. Actual image data is stored separately and accessed via signed URLs. Snapshot storage counts against your workspace [storage quota](../account/billing.md), so creating a new version fails if you have no headroom left; reusing a matching version does not.
 
 ## Export Dataset
 
@@ -809,7 +818,7 @@ Create new training images from one you already have. In a dataset you can edit,
 | -------------------- | ------------------------------------------------------------------------------------------------------------------ |
 | **Model**            | **Ultralytics Image 4B** (default) is the fastest; **Ultralytics Image 6B** has a different style and takes longer |
 | **Number of images** | Variations to create, from `1` to `16` (default `4`)                                                               |
-| **Image Size**       | Target longest edge from `320` to `1280` px (default `1024`)                                                       |
+| **Image Size**       | Target longest edge from `256` to `2048` px in steps of `64` (default `1024`)                                      |
 | **Instructions**     | Optional description of what to vary or keep, such as lighting, viewpoint, background, or objects                  |
 
 ![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
@@ -943,7 +952,7 @@ Workspace viewers can inspect metadata, while members with edit access can repla
 
 When viewing a public dataset you do not own, click `Clone Dataset` to open the clone dialog. Review the destination workspace, name, visibility, and license, then confirm the clone. The copy includes all images, annotations, and class definitions. Public source datasets stay public by default in workspaces whose default visibility is public; Enterprise workspace clones default to private. If the original dataset has a copyleft license, the clone inherits it and the license selector is locked.
 
-The destination slug is auto-renamed if it is already taken, and cloning requires enough remaining storage quota to hold the copy.
+The clone dialog keeps **Clone Dataset** disabled while the URL is already used in the target workspace, and cloning requires enough remaining storage quota to hold the copy.
 
 !!! note "Connected Datasets"
 

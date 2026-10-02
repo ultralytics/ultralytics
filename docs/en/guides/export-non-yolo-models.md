@@ -300,7 +300,7 @@ onnx_model = ONNXBackend("resnet18.onnx", device=torch.device("cpu"))
 onnx_output = onnx_model(im)[0]
 
 diff = np.abs(pytorch_output - onnx_output).max()
-print(f"Max difference: {diff:.6f}")  # ~1e-6 for an FP32 ONNX export
+print(f"Max difference: {diff:.6f}")  # ~1e-5 for an FP32 ONNX export
 ```
 
 !!! tip "Expected difference"
@@ -354,7 +354,7 @@ Three things the `YOLO()` route handles for you and a direct call does not:
 
 - **Multi-input support is uneven**: `torch2onnx`, `torch2openvino`, and `torch2torchscript` accept a tuple of example tensors for models with multiple inputs. `torch2coreml`, `torch2coreai`, `torch2ncnn`, `torch2paddle`, and `torch2executorch` assume a single input tensor.
 - **YOLO-only formats**: [Axelera](../integrations/axelera.md) and [Sony IMX500](../integrations/sony-imx500.md) exports require YOLO-specific model attributes and are not available for generic models.
-- **Platform-specific formats**: [TensorRT](../integrations/tensorrt.md) requires an NVIDIA GPU. [RKNN](../integrations/rockchip-rknn.md) requires the `rknn-toolkit2` SDK (Linux only). [Edge TPU](../integrations/edge-tpu.md) requires the `edgetpu_compiler` binary (Linux only).
+- **Platform-specific formats**: [TensorRT](../integrations/tensorrt.md) requires an NVIDIA GPU. [RKNN](../integrations/rockchip-rknn.md) requires the `rknn-toolkit2` SDK (Linux only). [Edge TPU](../integrations/edge-tpu.md) requires the `edgetpu_compiler` binary (x86_64 Linux only).
 
 ## Conclusion
 

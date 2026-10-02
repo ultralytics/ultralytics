@@ -25,7 +25,9 @@ The Roboflow integration imports every supported dataset in your Roboflow worksp
 
 Imported datasets appear in your [Datasets](../data/datasets.md) list immediately with a `processing` status and become ready once their images and annotations finish importing.
 
-Any workspace editor can run the import. The preview is the slow step: Roboflow generates each new dataset's export archive before it can report a size, so a workspace with many fresh versions can take a minute or more to preview. If a very large workspace times out, run it again — everything already imported is skipped, so the second pass only has the remainder to do.
+Any workspace editor can run the import. The preview is the slow step: Roboflow generates each new dataset's export archive before it can report a size, so a workspace with many fresh versions can take a minute or more to preview. If a very large workspace times out, run it again — Roboflow keeps generating the exports it already started, so the next preview has less to wait for.
+
+If some datasets can't be started, for example because one exceeds your plan's per-import size limit, the rest still import and the notification after you confirm names the first failure and its reason.
 
 ## Supported Task Types
 
@@ -40,7 +42,7 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 
 !!! note "Where to find your Roboflow API key"
 
-    Follow Roboflow's guide to [find your API key](https://docs.roboflow.com/developer/authentication/find-your-roboflow-api-key). Platform uses the key to run the preview and the import and then discards it — nothing is saved, and there is no connection to disconnect later.
+    Follow Roboflow's guide to [find your API key](https://docs.roboflow.com/reference/authentication/authentication/find-your-roboflow-api-key). Platform uses the key to run the preview and the import and then discards it — nothing is saved, and there is no connection to disconnect later.
 
 !!! note "Unsupported projects are skipped"
 
@@ -48,7 +50,7 @@ Roboflow projects are mapped to the matching [YOLO task type](../data/index.md#s
 
 !!! tip "Re-run to sync new datasets"
 
-    Already-imported dataset versions are detected and skipped automatically, so you can safely re-run the import to pull in newly added datasets without creating duplicates. Bumping a project's version in Roboflow makes it a new dataset to import rather than an update to the one you already have.
+    Already-imported dataset versions are detected and skipped automatically, so you can safely re-run the import to pull in newly added datasets without creating duplicates. A dataset whose import failed is retried in place instead of skipped. Bumping a project's version in Roboflow makes it a new dataset to import rather than an update to the one you already have.
 
 !!! warning "Trashed imports still count as imported"
 
@@ -68,6 +70,10 @@ Object detection, instance segmentation, single-label classification, and keypoi
 
 Run the import again. Datasets that are already imported, including ones sitting in [Trash](../account/trash.md), are skipped, so only new projects and new versions are transferred.
 
+### What if a dataset import fails?
+
+Open the dataset to see why it failed, then run the import again. The preview counts the failed dataset as new, and the import retries it in place rather than creating a second copy.
+
 ### Why does the preview take a long time?
 
-Roboflow generates an export archive for each new dataset version before it can report a size, so workspaces with many fresh versions can take a minute or more to preview. If it times out, run it again and the second pass only has the remainder to do.
+Roboflow generates an export archive for each new dataset version before it can report a size, so workspaces with many fresh versions can take a minute or more to preview. If it times out, run it again — Roboflow keeps generating the exports it already started, so the next preview has less to wait for.

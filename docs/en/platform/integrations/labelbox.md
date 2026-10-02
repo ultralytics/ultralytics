@@ -52,7 +52,7 @@ Platform recognizes the Labelbox format on its own and maps bounding boxes and p
 | Polygon                                                          | [Segment](../../datasets/segment/index.md) |
 | Segmentation mask, point, polyline, relationship, classification | Not yet                                    |
 
-Each object's `name` becomes the class name — so a `"name": "Dog"` annotation imports as the class `Dog`, not its lowercase `value` — and pixel coordinates are normalized against the `media_attributes` dimensions in the export. Each image is named after its `data_row.external_id`, falling back to the file name in the signed URL when the export carries no external ID. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
+Each object's `name` becomes the class name — so a `"name": "Dog"` annotation imports as the class `Dog`, not its lowercase `value` — and pixel coordinates are normalized against the `media_attributes` dimensions in the export. Only objects Platform can import register a class, so mask, point, and polyline tools don't add empty classes to the dataset. Each image is named after its `data_row.external_id`, then its `global_key`, falling back to the file name in the signed URL when the export carries neither. Image data rows are imported; video, text, and other non-image data rows are skipped. A catalog export with no annotations imports as an unlabeled image dataset, ready to label in Platform's [annotation editor](../data/annotation.md).
 
 A single data row looks like this, trimmed to the fields Platform reads:
 
@@ -60,6 +60,7 @@ A single data row looks like this, trimmed to the fields Platform reads:
 {
     "data_row": {
         "external_id": "000000000307.jpg",
+        "global_key": "000000000307.jpg",
         "row_data": "https://storage.labelbox.com/...?Expires=...&Signature=..."
     },
     "media_attributes": { "height": 480, "width": 640, "mime_type": "image/jpeg" },

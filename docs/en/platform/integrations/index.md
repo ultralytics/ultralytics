@@ -36,7 +36,7 @@ selected bucket before anything is saved.
 | [**Slack**](slack.md)                               | Notifications  | Posts selected training, auto-annotation, export, and deployment results to one Slack channel |
 | [**Roboflow**](roboflow.md)                         | Imports        | Imports every supported dataset in a Roboflow workspace from an API key                       |
 | [**Labelbox**](labelbox.md)                         | Imports        | Reads Labelbox NDJSON exports as datasets                                                     |
-| [**LabelMe**](labelme.md)                           | Imports        | Imports the YOLO export produced by the LabelMe Toolkit                                       |
+| [**LabelMe**](labelme.md)                           | Imports        | Reads zipped LabelMe JSON annotations as detection or segmentation datasets                   |
 | [**CVAT**](cvat.md)                                 | Imports        | Imports CVAT Ultralytics YOLO and COCO exports — direct import coming soon                    |
 | [**Label Studio**](label-studio.md)                 | Imports        | Imports Label Studio YOLO and COCO exports — direct import coming soon                        |
 

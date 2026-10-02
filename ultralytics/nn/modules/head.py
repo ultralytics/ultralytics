@@ -1072,8 +1072,8 @@ class LRPCHead(nn.Module):
             if not conf:  # static export, every anchor passes the proposal filter
                 cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2))
                 return self.loc(loc_feat), cls_feat.transpose(-1, -2), None
-            pf_score = self.pf(cls_feat)[0, 0].flatten(0)
-            mask = pf_score.sigmoid() > conf
+            pf_score = self.pf(cls_feat)[:, 0].flatten(1)
+            mask = (pf_score.sigmoid() > conf).any(0)  # batch union so every image keeps its own anchors
             cls_feat = cls_feat.flatten(2).transpose(-1, -2)
             cls_feat = self.vocab(cls_feat[:, mask])
             return self.loc(loc_feat), cls_feat.transpose(-1, -2), mask

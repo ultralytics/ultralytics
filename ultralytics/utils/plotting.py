@@ -799,16 +799,16 @@ def save_one_box(
     """Save image crop as {file} with crop size multiple {gain} and {pad} pixels. Save and/or return crop.
 
     This function takes a bounding box and an image, and then saves a cropped portion of the image according to the
-    bounding box. Optionally, the crop can be squared, and the function allows for gain and padding adjustments to the
-    bounding box.
+    bounding box. Four OBB corners produce a rotation-aligned crop at the box's own size, with black fill beyond the image
+    boundary. Axis-aligned crops can be squared and adjusted with gain and padding.
 
     Args:
-        xyxy (torch.Tensor | list): A tensor or list representing the bounding box in xyxy format.
+        xyxy (torch.Tensor | list): A box in xyxy format or four ordered OBB corner points.
         im (np.ndarray): The input BGR image with shape (H, W, C).
         file (Path, optional): The path where the cropped image will be saved.
-        gain (float, optional): A multiplicative factor to increase the size of the bounding box.
-        pad (int, optional): The number of pixels to add to the width and height of the bounding box.
-        square (bool, optional): If True, the bounding box will be transformed into a square.
+        gain (float, optional): Multiplier for axis-aligned crop size.
+        pad (int, optional): Pixels added to axis-aligned crop width and height.
+        square (bool, optional): If True, make an axis-aligned crop square.
         BGR (bool, optional): If True, the image will be returned in BGR format, otherwise in RGB.
         save (bool, optional): If True, the cropped image will be saved to disk.
 
@@ -825,14 +825,32 @@ def save_one_box(
     """
     if not isinstance(xyxy, torch.Tensor):
         xyxy = torch.as_tensor(xyxy)  # list, tuple, or ndarray
-    b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
-    if square:
-        b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
-    b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
-    xyxy = ops.xywh2xyxy(b).long()
-    xyxy = ops.clip_boxes(xyxy, im.shape)
     grayscale = im.shape[2] == 1  # grayscale image
-    crop = im[int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)]
+    if xyxy.shape[-2:] == (4, 2):
+        corners = xyxy.reshape(4, 2).detach().cpu().numpy().astype(np.float32)
+        box_w = np.linalg.norm(corners[0] - corners[3])
+        box_h = np.linalg.norm(corners[0] - corners[1])
+        w, h = max(round(box_w), 1), max(round(box_h), 1)
+        center = np.array([w / 2, h / 2], dtype=np.float32)
+        target = np.array([[box_w / 2, box_h / 2], [box_w / 2, -box_h / 2], [-box_w / 2, -box_h / 2]], dtype=np.float32)
+        crop = cv2.warpAffine(
+            im,
+            cv2.getAffineTransform(corners[:3], target + center),
+            (w, h),
+            borderMode=cv2.BORDER_CONSTANT,
+            borderValue=0,
+        )
+        crop = crop[:, :, None] if grayscale else crop if BGR else crop[..., ::-1]
+    else:
+        b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
+        if square:
+            b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square
+        b[:, 2:] = b[:, 2:] * gain + pad  # box wh * gain + pad
+        xyxy = ops.xywh2xyxy(b).long()
+        xyxy = ops.clip_boxes(xyxy, im.shape)
+        crop = im[
+            int(xyxy[0, 1]) : int(xyxy[0, 3]), int(xyxy[0, 0]) : int(xyxy[0, 2]), :: (1 if BGR or grayscale else -1)
+        ]
     if save:
         file.parent.mkdir(parents=True, exist_ok=True)  # make directory
         f = str(increment_path(file).with_suffix(".jpg"))

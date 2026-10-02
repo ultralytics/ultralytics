@@ -67,7 +67,7 @@ class ObjectCropper(BaseSolution):
         for box in boxes:
             self.crop_idx += 1
             save_one_box(
-                box.xyxy,
+                box.xyxyxyxy[0] if results.obb is not None else box.xyxy,
                 im0,
                 file=Path(self.crop_dir) / f"crop_{self.crop_idx}.jpg",
                 BGR=True,

@@ -1228,6 +1228,43 @@ def test_results_update_probs():
     assert r.verbose() and r.summary(), "verbose()/summary() raise AttributeError on a raw Tensor probs"
 
 
+@pytest.mark.parametrize("as_numpy", [False, True])
+@pytest.mark.parametrize("width,height", [(40, 20), (20, 40)])
+def test_results_save_obb_crop(tmp_path, as_numpy, width, height):
+    """Save one rotation-aligned crop per OBB, including boxes extending beyond the source image."""
+    from ultralytics.engine.results import Results
+
+    im = np.zeros((100, 100, 3), dtype=np.uint8)
+    polygon = cv2.boxPoints(((50, 50), (width, height), 45)).astype(np.int32)
+    cv2.fillConvexPoly(im, polygon, (0, 0, 255))
+    boxes = torch.tensor([[50, 50, width, height, np.pi / 4, 0.9, 0], [50, 50, width, height, np.pi / 4, 0.8, 0]])
+    result = Results(im, path="image.jpg", names={0: "object"}, obb=boxes.numpy() if as_numpy else boxes)
+    result.save_crop(tmp_path, file_name="image.jpg")
+
+    crops = sorted((tmp_path / "object").glob("*.jpg"))
+    assert len(crops) == 2
+    crop = np.asarray(Image.open(crops[0]))
+    assert crop.shape[:2] == (height, width), "the crop should follow the OBB dimensions"
+    assert crop[crop.shape[0] // 2, crop.shape[1] // 2, 0] > 220  # BGR source saves as RGB
+    assert crop[crop.shape[0] // 2, crop.shape[1] // 2, 1:].max() < 40
+
+    edge_box = boxes[:1].clone()
+    edge_box[0, :2] = 5
+    edge_result = Results(
+        np.full_like(im, 255), path="edge.jpg", names={0: "object"}, obb=edge_box.numpy() if as_numpy else edge_box
+    )
+    edge_result.save_crop(tmp_path, file_name="edge.jpg")
+    edge = np.asarray(Image.open(tmp_path / "object" / "edge.jpg"))
+    assert edge.shape == crop.shape
+    assert edge[0, 0].max() < 30, "the out-of-image area should be filled with black"
+    assert edge[edge.shape[0] // 2, edge.shape[1] // 2].min() > 220
+
+    det_box = torch.tensor([[30, 40, 70, 60, 0.9, 0]])
+    det_result = Results(im, path="detect.jpg", names={0: "object"}, boxes=det_box.numpy() if as_numpy else det_box)
+    det_result.save_crop(tmp_path, file_name="detect.jpg")
+    assert (tmp_path / "object" / "detect.jpg").exists(), "standard detection crops must still save"
+
+
 def test_labels_and_crops(tmp_path):
     """Test output from prediction args for saving YOLO detection labels and crops."""
     imgs = [SOURCE, ASSETS / "zidane.jpg"]

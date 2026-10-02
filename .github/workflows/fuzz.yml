@@ -77,7 +77,6 @@ jobs:
           key: ultralytics-fuzz-assets-${{ runner.os }}-${{ hashFiles('.github/scripts/fuzz.py') }}
           restore-keys: |
             ultralytics-fuzz-assets-${{ runner.os }}-
-            ultralytics-test-assets-${{ runner.os }}-
       - name: Cache fuzz exploration history
         # Separate from the asset cache: this entry is rewritten every run while the multi-GB assets are not. Cache
         # entries are immutable, so the key carries run id AND attempt — a re-run reuses the run id and would

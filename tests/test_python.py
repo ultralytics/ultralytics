@@ -165,6 +165,13 @@ def test_cfg_rejects_fuzzed_values():
         get_split_fraction([1, 0], "val")
     with pytest.raises(TypeError, match="fraction"):
         get_cfg(overrides={"fraction": True})
+        
+    for value in (-0.1, 1.5, float("nan"), float("inf"), True, "0.5"):
+        with pytest.raises((TypeError, ValueError), match="fraction"):
+            get_split_fraction(value, "train")
+    assert get_split_fraction(2, "train") == 2
+    assert get_split_fraction(1.0, "train") == 1.0
+    
     assert get_cfg(overrides={"auto_augment": None}).auto_augment is None
     assert get_cfg(overrides={"end2end": True, "nms": True}).nms is False
     assert get_cfg(overrides={"end2end": False, "nms": False}).nms is None

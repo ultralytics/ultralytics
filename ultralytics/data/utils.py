@@ -647,7 +647,7 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all).
 
     Args:
-        fraction (float | int | list[float | int]): Dataset fraction (ratio or image count), or a per-split list ordered
+        fraction (float | list[float | int]): Dataset fraction (ratio or image count), or a per-split list ordered
             as [train, val, test]. A scalar only applies to the train split; missing list entries default to 1.0.
         split (str): Dataset split name, e.g. 'train', 'val', or 'test'.
 
@@ -662,9 +662,17 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
         fraction = fraction[index] if index < len(fraction) else 1.0
     elif split != "train":
         fraction = 1.0
+
+    if isinstance(fraction, bool) or not isinstance(fraction, (int, float)):
+        raise TypeError(f"fraction must be an int, float, or list, not {type(fraction).__name__}")
+    if not np.isfinite(fraction) or fraction < 0 or (isinstance(fraction, float) and fraction > 1):
+        raise ValueError(f"Invalid {split} fraction {fraction}. Use an integer count >1 or ratio (0, 1].")
+
     fraction = float(fraction) if fraction in {0, 1} else fraction
+
     if split in {"train", "val"} and fraction == 0:
         raise ValueError(f"{split} fraction must select at least one image")
+
     return fraction
 
 

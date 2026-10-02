@@ -1,5 +1,7 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
+from __future__ import annotations
+
 import math
 from typing import Any
 
@@ -65,6 +67,16 @@ class DistanceCalculation(BaseSolution):
 
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.selected_boxes = {}
+
+    def forget_tracks(self, track_ids: list[int]) -> None:
+        """Drop retired IDs from `selected_boxes` so a vanished object doesn't freeze the distance.
+
+        Args:
+            track_ids (list[int]): Track IDs removed by the tracker in the latest frame.
+        """
+        super().forget_tracks(track_ids)
+        for track_id in track_ids:
+            self.selected_boxes.pop(track_id, None)
 
     def process(self, im0) -> SolutionResults:
         """Process a video frame and calculate the distance between two selected bounding boxes.

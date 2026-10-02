@@ -56,8 +56,22 @@ on:
         description: Publish to DockerHub and ghcr.io
 
 jobs:
+  Assets:
+    if: github.repository == 'ultralytics/ultralytics'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
+        with:
+          python-version: "3.13"
+          activate-environment: true
+      - uses: ./.github/actions/ci-assets
+        with:
+          build: true
+
   docker:
     if: github.repository == 'ultralytics/ultralytics'
+    needs: Assets
     name: Build
     strategy:
       fail-fast: false
@@ -256,6 +270,13 @@ jobs:
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda'
         run: docker builder prune -af
 
+      # Restored only after every image is built and mounted at the images' default asset dirs in throwaway containers,
+      # so pushed images never contain test assets (only the fonts and yolo26n.pt their Dockerfiles add)
+      - if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && matrix.dockerfile != 'Dockerfile-conda'
+        uses: ./.github/actions/ci-assets
+        with:
+          configure: false
+
       - name: Run Tests
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.platforms == 'linux/arm64') && matrix.dockerfile != 'Dockerfile-conda' && matrix.dockerfile != 'Dockerfile-amd'
         run: |
@@ -263,11 +284,15 @@ jobs:
           if [[ "${{ matrix.dockerfile }}" == "Dockerfile-python" ]]; then
             test_torch="'torch<2.7'"
           fi
-          docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false python3 tests/cache_test_assets.py && YOLO_AUTOINSTALL=false pytest tests --export-env base"
+          tests="tests"
+          if [[ "${{ matrix.dockerfile }}" == "Dockerfile-jetson-jetpack4" ]]; then
+            tests="tests/test_cli.py" # its GPU-only torch 1.11 wheel runs CPU inference ~50x slower than other images
+          fi
+          docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "uv pip install --system --break-system-packages -e '.[solutions]' aiohttp pytest $test_torch 'git+https://github.com/ultralytics/CLIP.git' && YOLO_AUTOINSTALL=false pytest $tests --export-env base"
 
       - name: Run Benchmarks
         if: (github.event_name == 'push' || github.event.inputs[matrix.dockerfile] == 'true') && (matrix.platforms == 'linux/amd64' || matrix.dockerfile == 'Dockerfile-arm64') && matrix.dockerfile != 'Dockerfile' && matrix.dockerfile != 'Dockerfile-conda'
-        run: docker run --rm ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
+        run: docker run --rm -v "$PWD/weights:/ultralytics/weights" -v "$PWD/datasets:/datasets" ultralytics/ultralytics:${{ (matrix.tags == 'latest-python' && 'latest-python-export') || (matrix.tags == 'latest' && 'latest-export') || matrix.tags }} /bin/bash -c "YOLO_AUTOINSTALL=false yolo benchmark model=yolo26n.pt imgsz=160 format=onnx verbose=0.216"
 
       - name: Push All Images
         if: github.event_name == 'push' || (github.event.inputs[matrix.dockerfile] == 'true' && github.event.inputs.push == 'true')
@@ -305,11 +330,11 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: docker
+    needs: [Assets, docker]
     if: always()
     steps:
       - name: Check for failure and notify
-        if: needs.docker.result == 'failure' && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
+        if: (needs.Assets.result == 'failure' || needs.docker.result == 'failure') && github.repository == 'ultralytics/ultralytics' && github.event_name == 'push' && github.run_attempt == '1'
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook

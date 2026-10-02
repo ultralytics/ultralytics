@@ -219,7 +219,7 @@ After upload, the platform automatically processes your data:
 
 1. Images larger than 4096px are resized (preserving aspect ratio; TIFF originals are stored as uploaded)
 2. 256px thumbnails are generated for fast browsing
-3. YOLO, COCO, and Ultralytics NDJSON labels are parsed and validated
+3. YOLO, COCO, LabelMe, and Ultralytics or Labelbox NDJSON labels are parsed and validated
 4. Statistics are computed (class distribution, heatmaps, dimensions)
 
 !!! tip "YOLO Dataset Structure"
@@ -446,7 +446,7 @@ Your username is permanent, and the data region is set during onboarding and can
 
 ### What dataset formats can I upload?
 
-Upload a ZIP, TAR, or TAR.GZ archive in YOLO format, COCO JSON, or [Ultralytics NDJSON](../datasets/detect/index.md#ultralytics-ndjson-format), or a plain folder of images to annotate in Platform. Platform detects the task and splits from the archive layout. See [Datasets](data/datasets.md#supported-formats) for the full list.
+Upload a ZIP, TAR, or TAR.GZ archive in YOLO format, COCO JSON, [LabelMe](integrations/labelme.md) JSON, or [Ultralytics](../datasets/detect/index.md#ultralytics-ndjson-format) or [Labelbox](integrations/labelbox.md) NDJSON, or a plain folder of images to annotate in Platform. Platform detects the task and splits from the archive layout. See [Datasets](data/datasets.md#supported-formats) for the full list.
 
 ### Can I train on my own hardware instead of cloud GPUs?
 

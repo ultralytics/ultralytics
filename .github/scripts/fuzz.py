@@ -381,7 +381,7 @@ def prepare_sources(uni):
     empty_image.touch()
     corrupt_image.write_bytes(b"not an image")
     empty_dir.mkdir(exist_ok=True)
-    video = source_dir / "decelera_portrait_min.mov"
+    video = WEIGHTS_DIR / "solution_assets" / "decelera_portrait_min.mov"  # restored with the CI asset cache
     safe_download(f"{ASSETS_URL}/{video.name}", file=video)
     uni["sources"] = {
         "predict": [

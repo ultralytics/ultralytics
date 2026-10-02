@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -550,10 +551,14 @@ class YOLOE(Model):
                     _callbacks=self.callbacks,
                 )
 
-            self.model.model[-1].nc = num_cls
-            self.model.names = [f"object{i}" for i in range(num_cls)]
+            # Scope the visual-prompt labels to a copy handed to the predictor so the shared model keeps its
+            # original names/prompt embeddings for later predict/val/train calls (set_classes below stays shared).
+            names = [f"object{i}" for i in range(num_cls)]
+            model = deepcopy(self.model)
+            model.model[-1].nc = num_cls
+            model.names = names
             self.predictor.set_prompts(visual_prompts.copy())
-            self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)
+            self.predictor.setup_model(model=model, verbose=self.predictor.args.verbose)
 
             if refer_image is None and source is not None:
                 dataset = load_inference_source(source)
@@ -562,11 +567,11 @@ class YOLOE(Model):
                     refer_image = next(iter(dataset))[1][0]
             if refer_image is not None:
                 vpe = self.predictor.get_vpe(refer_image)
-                self.model.set_classes(self.model.names, vpe)
+                self.model.set_classes(names, vpe)
                 self.task = "segment" if isinstance(self.predictor, yolo.segment.SegmentationPredictor) else "detect"
                 self.predictor = None  # reset predictor
         elif isinstance(self.predictor, yolo.yoloe.YOLOEVPDetectPredictor):
             self.predictor = None  # reset predictor if no visual prompts
-        self.overrides["agnostic_nms"] = True  # use agnostic nms for YOLOE default
+        kwargs.setdefault("agnostic_nms", True)  # use agnostic nms for YOLOE default
 
         return super().predict(source, stream, **kwargs)

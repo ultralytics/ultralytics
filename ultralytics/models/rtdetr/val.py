@@ -117,6 +117,13 @@ class RTDETRValidator(DetectionValidator):
         """Return predictions unchanged as RT-DETR handles scaling in postprocessing and `pred_to_json`."""
         return predn
 
+    def save_one_txt(self, predn: dict[str, torch.Tensor], save_conf: bool, shape: tuple[int, int], file: Path) -> None:
+        """Rescale input-space pixel boxes to original-image space before saving, mirroring `pred_to_json`."""
+        bboxes = predn["bboxes"].clone()
+        bboxes[..., [0, 2]] *= shape[1] / self.args.imgsz  # native-space pred
+        bboxes[..., [1, 3]] *= shape[0] / self.args.imgsz  # native-space pred
+        super().save_one_txt({**predn, "bboxes": bboxes}, save_conf, shape, file)
+
     def postprocess(
         self, preds: torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor]
     ) -> list[dict[str, torch.Tensor]]:

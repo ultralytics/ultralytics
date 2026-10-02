@@ -69,9 +69,6 @@ class OBBValidator(DetectionValidator):
         super().init_metrics(model)
         val = self.data.get(self.args.split, "")  # validation path
         self.is_dota = isinstance(val, str) and "DOTA" in val  # check if dataset is DOTA format
-        if self.args.save_json and self.is_dota:  # each run replaces the DOTA files a previous run left
-            for f in self.save_dir.glob("predictions*_txt/Task1_*.txt"):
-                f.unlink(missing_ok=True)
         self.confusion_matrix.task = "obb"  # set confusion matrix task to 'obb'
 
     def _process_batch(self, preds: dict[str, torch.Tensor], batch: dict[str, torch.Tensor]) -> dict[str, np.ndarray]:
@@ -263,6 +260,8 @@ class OBBValidator(DetectionValidator):
             from collections import defaultdict
 
             pred_json = self.save_dir / "predictions.json"  # predictions
+            for f in self.save_dir.glob("predictions*_txt/Task1_*.txt"):  # appended below, drop a previous run's
+                f.unlink()
             pred_txt = self.save_dir / "predictions_txt"  # predictions
             pred_txt.mkdir(parents=True, exist_ok=True)
             with open(pred_json) as f:

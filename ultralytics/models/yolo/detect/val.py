@@ -115,7 +115,7 @@ class DetectionValidator(BaseValidator):
         Args:
             model (torch.nn.Module): Model to validate.
         """
-        if self.args.save_txt:  # each run replaces the label files a previous run left in save_dir
+        if self.args.save_txt:  # labels are appended per image, drop those a previous run or epoch left in save_dir
             with torch_distributed_zero_first(LOCAL_RANK):
                 if LOCAL_RANK in {-1, 0}:
                     for f in (self.save_dir / "labels").glob("*.txt"):

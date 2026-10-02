@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.utils import get_split_fraction
+from ultralytics.data.utils import get_split_fraction, img2label_paths
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -648,10 +648,13 @@ def yolo_bbox2segment(
 
     # YOLODataset clears every polygon when the folder mixes detect and segment labels. Restore each
     # image's on-disk segments so a segmented neighbor does not force SAM to overwrite it.
-    for label, lb_file in zip(dataset.labels, dataset.label_files):
-        if label["segments"] or not Path(lb_file).is_file():
+    # Derive the label path from im_file: label_files stays in the pre-filter order when corrupt
+    # entries are dropped from labels/im_files, so zipping those lists can pair the wrong file.
+    for label in dataset.labels:
+        lb_file = Path(img2label_paths([label["im_file"]])[0])
+        if label["segments"] or not lb_file.is_file():
             continue
-        rows = [x.split() for x in Path(lb_file).read_text(encoding="utf-8").strip().splitlines() if x.strip()]
+        rows = [x.split() for x in lb_file.read_text(encoding="utf-8").strip().splitlines() if x.strip()]
         if not rows or any(len(x) == 5 for x in rows) or not any(len(x) > 6 for x in rows):
             continue
         classes = np.array([x[0] for x in rows], dtype=np.float32)

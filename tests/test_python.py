@@ -1397,9 +1397,12 @@ def test_yolo_bbox2segment_mixed_labels(tmp_path, monkeypatch):
     out = tmp_path / "labels-segment"
     images.mkdir()
     labels.mkdir()
+    # Corrupt image sorts first; get_labels drops it from labels/im_files but not from label_files
+    (images / "0bad.jpg").write_bytes(b"not-an-image")
+    (labels / "0bad.txt").write_text("0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n", encoding="utf-8")
     for name in ("a.jpg", "b.jpg"):
         cv2.imwrite(str(images / name), np.zeros((32, 32, 3), dtype=np.uint8))
-    # First label is already a polygon; second is detection-only. Sorting puts a.jpg first.
+    # First valid label is already a polygon; second is detection-only. Sorting puts a.jpg before b.jpg.
     (labels / "a.txt").write_text("0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n", encoding="utf-8")
     (labels / "b.txt").write_text("0 0.5 0.5 0.4 0.4\n", encoding="utf-8")
 
@@ -1427,6 +1430,7 @@ def test_yolo_bbox2segment_mixed_labels(tmp_path, monkeypatch):
     assert calls == [1]  # only the detection image is sent to SAM
     assert (out / "a.txt").read_text(encoding="utf-8").startswith("0 0.1 0.1")
     assert (out / "b.txt").read_text(encoding="utf-8").startswith("0 0.2 0.2")
+    assert not (out / "0bad.txt").exists()
 
     converter.yolo_bbox2segment(images, save_dir=out, sam_model="sam_b.pt")
     assert len((out / "b.txt").read_text(encoding="utf-8").strip().splitlines()) == 1  # overwrite, not append

@@ -10,7 +10,7 @@ description: Restore the shared CI weights and datasets cache, or build it in th
 
 inputs:
   build:
-    description: Download and save the cache when it is missing (only the Assets job builds it)
+    description: Download and save the cache when it is missing (Assets jobs only; they set up uv first)
     default: "false"
   configure:
     description: Point Ultralytics settings at the restored dirs (false when they are mounted into containers)
@@ -32,11 +32,6 @@ runs:
         enableCrossOsArchive: true
         lookup-only: ${{ inputs.build }}
         fail-on-cache-miss: ${{ inputs.build != 'true' }}
-    - if: inputs.build == 'true' && steps.cache.outputs.cache-hit != 'true'
-      uses: ultralytics/actions/setup-uv@main
-      with:
-        python-version: "3.13"
-        activate-environment: true
     - if: inputs.build == 'true' && steps.cache.outputs.cache-hit != 'true'
       uses: ultralytics/actions/retry@main
       with:

@@ -1202,6 +1202,15 @@ def test_results_plot_empty_dense_selection():
             r[1]
 
 
+def test_annotator_keeps_explicit_zero_line_width():
+    """Explicit line_width=0 stays zero; None still selects the auto width."""
+    from ultralytics.utils.plotting import Annotator
+
+    image = np.zeros((32, 32, 3), dtype=np.uint8)
+    assert Annotator(image, line_width=0).lw == 0
+    assert Annotator(image).lw >= 2
+
+
 def test_annotator_tensor_image():
     """Annotator accepts tensor images and matches Results.plot compositing pixels."""
     from ultralytics.engine.results import Results

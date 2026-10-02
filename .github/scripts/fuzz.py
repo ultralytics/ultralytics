@@ -97,8 +97,8 @@ EXPORT_POOL = ["torchscript", "onnx", "openvino"]  # CPU-friendly formats instal
 # The last field overrides CLAMPS: RT-DETR's 300-query decoder needs >=160px of anchors (below that is a T2 gap).
 ALTERNATE_CORPUS = (
     ("detect", "rtdetr-l.pt", "coco8.yaml", {"val", "predict", "export"}, "imgsz=160"),
-    ("detect", "yolov8s-worldv2.pt", "coco8.yaml", {"predict", "export"}, ""),
-    ("segment", "yoloe-11s-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-26n-seg.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
+    ("segment", "yoloe-26n-seg-pf.pt", "coco8-seg.yaml", {"predict", "export"}, ""),
 )
 
 # Controlled variations for cost-sensitive keys excluded from arbitrary mutation.

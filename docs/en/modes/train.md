@@ -136,7 +136,7 @@ Multi-GPU training allows for more efficient utilization of available hardware r
     python -m torch.distributed.run --nproc_per_node 2 your_training_script.py
     ```
 
-AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for installation and the current MIGraphX, DirectML, and Ryzen AI NPU support status.
+AMD GPU training uses a PyTorch ROCm build with the standard `device=0` or `device=cuda:0` syntax. See the [AMD integration guide](../integrations/amd.md) for ROCm installation, multi-GPU training, AMP notes, and [MIGraphX inference](../integrations/amd.md#export-and-inference-with-migraphx) of exported models.
 
 Intel GPU training uses `device=xpu:0`, or multiple XPU IDs with a PyTorch build that provides XCCL.
 

@@ -1,31 +1,27 @@
 ---
 plans: [free, pro, enterprise]
 comments: true
-description: Convert LabelMe JSON annotations to YOLO format, upload the dataset to Ultralytics Platform, and train a computer vision model.
-keywords: Ultralytics Platform, LabelMe, LabelMe to YOLO, LabelMe JSON to YOLO, labelmetk, YOLO export, dataset import, offline annotation, computer vision
-title: LabelMe to YOLO Dataset Export - Ultralytics Platform
+description: Upload LabelMe JSON annotations directly to Ultralytics Platform as a detection or segmentation dataset, with no conversion step, and train a computer vision model.
+keywords: Ultralytics Platform, LabelMe, LabelMe to YOLO, LabelMe JSON to YOLO, LabelMe import, polygon segmentation, dataset import, offline annotation, computer vision
+title: Import LabelMe Annotations - Ultralytics Platform
 ---
 
-# Export LabelMe Annotations to YOLO and Ultralytics Platform
+# Import LabelMe Annotations to Ultralytics Platform
 
 [LabelMe](https://labelme.io/) is an offline image annotation tool with an
 [open-source Python application](https://github.com/wkentaro/labelme). There is no live LabelMe connection or API key
-to configure in [Ultralytics Platform](https://platform.ultralytics.com). The complete integration is a local workflow:
-annotate in LabelMe, convert the LabelMe JSON annotations to YOLO format with the LabelMe Toolkit, and upload the
-resulting ZIP as a Platform dataset.
+to configure in [Ultralytics Platform](https://platform.ultralytics.com), and no conversion step: Platform reads the
+LabelMe JSON files directly. Annotate in LabelMe, zip the folder, and upload it as a Platform dataset.
 
 ## 1. Annotate the Images in LabelMe
 
 Install LabelMe using the [desktop app](https://labelme.io/download) or the
 [open-source Python package](https://labelme.io/docs/install-labelme-terminal), then open the directory
-containing your images. LabelMe saves each image's annotations in a matching JSON file.
+containing your images. The [LabelMe starter guide](https://labelme.io/docs/starter-guide) covers opening images,
+drawing shapes, and saving annotations.
 
-For the YOLO detection workflow in this guide, draw rectangles around each object and assign a class name. The
-[LabelMe starter guide](https://labelme.io/docs/starter-guide) covers opening images, drawing shapes, and saving
-annotations, while the [LabelMe dataset guide](https://labelme.io/docs/dataset-guide) covers reviewing and preparing a
-complete annotated dataset.
-
-Your source directory should contain the images and LabelMe JSON files:
+Draw rectangles for a detection dataset, or polygons for a segmentation dataset. LabelMe saves each image's
+annotations in a JSON file beside it:
 
 ```text
 your_dataset/
@@ -35,77 +31,27 @@ your_dataset/
 └── image_002.json
 ```
 
-## 2. Install the LabelMe Toolkit
+## 2. Create the ZIP Archive
 
-Install the LabelMe Toolkit by following LabelMe's
-[toolkit installation guide](https://labelme.io/docs/install-toolkit). The toolkit and its exports run locally.
-
-!!! info "LabelMe Pro is required for the export"
-
-    `export-to-yolo` is part of the LabelMe Pro Toolkit, and downloading its installer requires a LabelMe sign-in.
-    This is a LabelMe product requirement; the resulting ZIP can be uploaded on any Platform plan.
-
-Verify the installation, then list every label found in the source dataset:
+Compress the folder with its images and JSON files. On macOS or Linux:
 
 ```bash
-labelmetk --version
-labelmetk list-labels your_dataset/
-```
-
-Review the output before exporting. Labels omitted from `--class-names` are skipped, and the order you provide becomes
-the YOLO class ID order.
-
-## 3. Export to YOLO Format
-
-Run [`export-to-yolo`](https://labelme.io/docs/export-to-yolo) with the source directory and a comma-separated list of
-class names:
-
-```bash
-labelmetk export-to-yolo your_dataset/ --class-names crack,normal
-```
-
-Replace `crack,normal` with the labels returned by `list-labels`. LabelMe writes the result to
-`your_dataset.export/`:
-
-```text
-your_dataset.export/
-├── classes.txt
-├── images/
-│   ├── image_001.jpg
-│   └── image_002.jpg
-└── labels/
-    ├── image_001.txt
-    └── image_002.txt
-```
-
-`classes.txt` preserves the class names in the same order used by the YOLO label files. Keep it at the root of the
-export.
-
-!!! note "This workflow creates a detection dataset"
-
-    LabelMe Toolkit exports rectangles as YOLO bounding boxes. It also reduces polygons and masks to their
-    axis-aligned bounding boxes, so `export-to-yolo` does not preserve segmentation geometry. Draw rectangles when
-    preparing a detection dataset with this workflow.
-
-## 4. Create the ZIP Archive
-
-Compress the **contents** of `your_dataset.export/`, not the directory around them. On macOS or Linux:
-
-```bash
-cd your_dataset.export
-zip -r ../your_dataset.zip classes.txt images labels
+zip -r your_dataset.zip your_dataset
 ```
 
 On Windows PowerShell:
 
 ```powershell
-Compress-Archive -Path .\your_dataset.export\* -DestinationPath .\your_dataset.zip
+Compress-Archive -Path .\your_dataset -DestinationPath .\your_dataset.zip
 ```
 
-Open the ZIP before uploading and confirm that `classes.txt`, `images/`, and `labels/` are at its root. An extra
-`your_dataset.export/` wrapper prevents Platform from finding the root class list.
+An outer folder, nested subfolders, and separate image and annotation folders all work, as long as each JSON file's
+`imagePath` points at an image inside the ZIP. Platform reads that image file, not the copy LabelMe can embed in the
+JSON as `imageData`, so keep the image files in the archive. Images inside folders whose names start with `train`,
+`val`, or `test` keep that split. LabelMe JSON is read only when the archive has no `data.yaml` or COCO JSON file, so
+leave those out of a LabelMe ZIP.
 
-## 5. Upload to Ultralytics Platform
+## 3. Upload to Ultralytics Platform
 
 1. Open [**Settings > Integrations > LabelMe**](https://platform.ultralytics.com/settings?tab=integrations&integration=labelme).
 2. Click **Upload export**.
@@ -116,38 +62,55 @@ Open the ZIP before uploading and confirm that `classes.txt`, `images/`, and `la
 
 ![Ultralytics Platform LabelMe Dataset Import](https://cdn.ul.run/i/b605ec7fd34c2eb5d1f74bb55039d921.avif)<!-- screenshot -->
 
-LabelMe and the YOLO export remain entirely offline. Only the ZIP file you select in the upload dialog is sent to
-Platform.
+LabelMe runs entirely offline. Only the ZIP file you select in the upload dialog is sent to Platform.
+
+## How LabelMe Shapes Import
+
+| LabelMe shape                          | Imported as                                                  |
+| -------------------------------------- | ------------------------------------------------------------ |
+| `rectangle`                            | Bounding box, or a 4-point polygon in a segmentation dataset |
+| `polygon`                              | Polygon                                                      |
+| `oriented_rectangle`                   | 4-point polygon                                              |
+| `circle`                               | 32-point polygon                                             |
+| `mask`                                 | Polygon traced from the mask's outer outline, filling holes  |
+| `line`, `linestrip`, `point`, `points` | Skipped, since these shapes have no area to train on         |
+
+- **Task:** a dataset annotated only with rectangles imports as a [detection](../../tasks/detect.md) dataset. Any
+  polygon, oriented rectangle, circle, or mask makes it a [segmentation](../../tasks/segment.md) dataset, and its
+  rectangles become 4-point polygons so no annotation is lost.
+- **Classes:** LabelMe label names become the class names, in alphabetical order. Importing into an existing dataset
+  matches labels to its classes by name and adds the rest.
+- **Grouped shapes:** shapes that share a label and group ID are one object. Their parts merge into a single polygon,
+  or a single box in a detection dataset.
+- **Skipped:** shapes with no label, shapes labeled `__ignore__`, and image-level flags are not imported. Shapes that
+  extend past the image edge are clipped to it.
 
 ## Troubleshooting
 
-- **Classes are named `class0`, `class1`, and so on:** confirm that `classes.txt` is present at the root of the ZIP.
-- **Some annotations are missing:** run `labelmetk list-labels your_dataset/` again and include every required label in
-  `--class-names`.
-- **Polygons became boxes:** this is the documented behavior of LabelMe's `export-to-yolo`; it converts non-rectangle
-  shapes to bounding boxes.
-- **The dataset has no images:** confirm that the exported `images/` directory is included in the ZIP.
-- **Platform cannot find the classes:** remove any outer directory from the archive so `classes.txt`, `images/`, and
-  `labels/` are the top-level entries.
-
-For the complete local workflow, see LabelMe's
-[YOLO training guide](https://labelme.io/blog/yolo-training-with-labelme) and
-[`export-to-yolo` reference](https://labelme.io/docs/export-to-yolo).
+- **Images imported without annotations:** confirm the JSON files are in the ZIP and that each file's `imagePath` names
+  an image in the archive. Platform also matches by file name, so a stale absolute path still works when the image
+  file name is unchanged.
+- **Polygons became 4-point boxes:** rectangles are converted to 4-point polygons in segmentation datasets. Draw
+  polygons for objects that need a precise outline.
+- **Lines or points are missing:** these shapes have no area, so they can't be used for detection or segmentation and
+  are skipped.
+- **The dataset has no images:** LabelMe can embed images in the JSON files, but Platform reads the image files. Add the
+  images to the ZIP.
 
 ## FAQ
 
 ### Do I need a LabelMe account or API key in Platform?
 
-No. LabelMe and the export run locally, and only the ZIP you upload is sent to Platform. The `export-to-yolo` command is part of the LabelMe Pro Toolkit, which is a LabelMe requirement, but the resulting ZIP uploads on any Platform plan.
+No. LabelMe runs locally, Platform reads its JSON files directly, and only the ZIP you upload is sent to Platform. No LabelMe Pro membership or Toolkit export is required.
 
-### Can I export polygons for segmentation?
+### Can I import polygons for segmentation?
 
-Not with this workflow. LabelMe Toolkit reduces polygons and masks to their axis-aligned bounding boxes, so the result is always a detection dataset. Draw rectangles when preparing data for this export.
+Yes. Polygons, oriented rectangles, circles, and masks import as segmentation polygons, and the dataset becomes a segmentation dataset.
 
-### Why are my classes named `class0`, `class1`, and so on?
+### How are class IDs assigned?
 
-Platform reads class names from `classes.txt` at the root of the ZIP. Compress the contents of the export folder, not the folder itself, so `classes.txt`, `images/`, and `labels/` are the top-level entries.
+Class names come from the LabelMe labels, sorted alphabetically, so the same labels always map to the same class IDs. When you add to an existing dataset, labels are matched to its classes by name.
 
-### Which labels end up in the export?
+### Can I still upload a LabelMe Toolkit YOLO export?
 
-Only the labels passed to `--class-names`, in the order you list them. Run `labelmetk list-labels` first and include every label you want to keep.
+Yes. A `labelmetk export-to-yolo` export uploads as an ordinary YOLO dataset. Keep the export's `classes.txt` in the ZIP (Platform reads the shallowest one) so your class names carry over.

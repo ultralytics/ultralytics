@@ -329,7 +329,7 @@ Get started with these resources:
 
 ??? question "How do I share my work publicly?"
 
-    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make Public**.
+    Open the project or dataset, click its **Private** badge in the top navigation bar, and confirm **Make public**.
     Public content appears on the Explore page.
 
 ??? question "What are the file size limits?"

@@ -97,9 +97,9 @@ Each deployment page shows real-time metrics above its `Overview`, `Monitoring`,
 | -------------------------- | -------------------------------------------------------------------- |
 | **HTTP Requests (24h)**    | Request count, including prediction, monitoring, and health requests |
 | **HTTP Error Rate (24h)**  | Share of 4xx and 5xx responses                                       |
-| **HTTP P95 Latency (24h)** | Average of hourly 95th-percentile latencies                          |
+| **HTTP P95 Latency (24h)** | 95th percentile of the 15-minute P95 latencies                       |
 
-Each card shows a sparkline and refreshes automatically, next to a card linking to the deployed model. Metrics are
+Each card shows a sparkline and refreshes every minute, next to a card linking to the deployed model. Metrics are
 collected only for deployments in the **Ready** state. On the Deployments tab, metrics are fetched for the 20 most
 recent deployments.
 

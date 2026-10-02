@@ -517,6 +517,8 @@ class BasePredictor:
 
         # Save results
         if self.args.save_txt:
+            if self.dataset.mode == "image":  # names are unique per run above, so replace a previous run's label file
+                Path(f"{self.txt_path}.txt").unlink(missing_ok=True)
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
             result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)

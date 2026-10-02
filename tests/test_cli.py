@@ -195,6 +195,7 @@ def test_train_gpu(task: str, model: str, data: str) -> None:
     "solution",
     ["count", "blur", "workout", "heatmap", "isegment", "visioneye", "speed", "queue", "analytics", "trackzone"],
 )
-def test_solutions(solution: str) -> None:
+def test_solutions(solution: str, solution_assets) -> None:
     """Test yolo solutions command-line modes."""
-    run(f"yolo solutions {solution} verbose=False")
+    source = solution_assets("pose_video" if solution == "workout" else "demo_video")
+    run(f"yolo solutions {solution} verbose=False source={source}")

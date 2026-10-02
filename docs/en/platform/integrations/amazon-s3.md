@@ -55,10 +55,10 @@ Platform only ever reads from your storage — it never writes, modifies, or del
 
 ![Ultralytics Platform Amazon S3 Integration Settings](https://cdn.ul.run/i/66145cad9a04e1287e673bbd96b9e831.avif)<!-- screenshot -->
 
-You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. One
-connection carries up to 50 buckets, and discovery lists up to 300 of the buckets the key can see.
+You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. You
+can add up to 50 buckets at a time, and discovery lists up to 300 of the buckets the key can see.
 
-Reconnecting the same IAM user later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected.
+Reconnecting the same IAM user later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected. If any bucket can't be read, the error names it, including buckets connected earlier with the same IAM user.
 
 !!! note "One region per connection"
 
@@ -105,9 +105,11 @@ Managed training works through the normal training flow. Training uses Platform'
 
 ## Disconnect a Connection
 
-Disconnecting deletes the stored credentials without touching anything in AWS. Datasets built from those buckets stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same IAM user is connected again.
+Disconnecting deletes the stored credentials without touching anything in AWS. Datasets built from those buckets stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same IAM user is connected again. You can still rename them, edit their labels, or delete them while disconnected.
 
-Use the [REST API](../api/index.md) with the integration ID returned by `GET /api/integrations/buckets`:
+To disconnect, go to **Settings > Integrations**, select **Amazon S3**, click **Disconnect** next to the credential, and confirm. Opening one of its datasets then shows **Amazon S3 Disconnected** with a link back to these settings, and the dataset returns automatically once you reconnect.
+
+You can also disconnect with the [REST API](../api/index.md), using the integration ID returned by `GET /api/integrations/buckets`:
 
 ```bash
 curl -X DELETE \

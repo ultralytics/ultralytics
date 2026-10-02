@@ -821,7 +821,7 @@ class Results(SimpleClass, DataExportMixin):
             return
         for d in (self.obb if self.obb is not None else self.boxes).cpu():  # one host transfer avoids per-box GPU syncs
             save_one_box(
-                d.xyxyxyxy[0] if self.obb is not None else d.xyxy,
+                d.xyxyxyxy if self.obb is not None else d.xyxy,
                 self.orig_img.copy(),
                 file=Path(save_dir) / self.names[int(d.cls.item())] / Path(file_name).with_suffix(".jpg"),
                 BGR=True,

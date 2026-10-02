@@ -172,10 +172,7 @@ Use a trained YOLO26n-obb model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
-Pass `save_crop=True` to `predict()` to save rotation-aligned crops for each OBB. Areas where a box extends beyond the
-source image are filled with black. The equivalent CLI argument is `save_crop=True`. `ObjectCropper` also saves
-rotation-aligned crops when given an OBB model. The OBB corner order sets the crop orientation; it does not make text or
-objects upright.
+Pass `save_crop=True` to save a rotation-aligned crop of each OBB at its box size, as `ObjectCropper` also does.
 
 ### Results Output
 

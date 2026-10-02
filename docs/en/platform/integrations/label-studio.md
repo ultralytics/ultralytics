@@ -58,7 +58,7 @@ Label Studio offers [several export formats](https://labelstud.io/guide/export).
 | -------------------------- | ----- | ---------------------------------------------------------------------- |
 | **YOLO with Images**       | Best  | Ships `classes.txt` and the images, so a single upload is enough       |
 | **YOLOv8 OBB with Images** | Yes   | Keeps box rotation and imports as an OBB dataset                       |
-| **COCO with Images**       | Yes   | Read too; the better choice when every polygon has exactly four points |
+| **COCO with Images**       | Yes   | Read too; the better choice if each annotation is a four-point polygon |
 | **YOLO** / **COCO**        | No    | Annotation files only — the upload fails with no images found          |
 | **Pascal VOC XML**         | No    | XML label files cannot be read                                         |
 
@@ -67,7 +67,7 @@ category names become your class names — so a COCO archive does not need `clas
 
 !!! warning "Pascal VOC imports without annotations"
 
-    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import as a classification dataset with a single class named `images`, and the boxes do not. Choose YOLO with Images or COCO with Images instead.
+    Platform does not read Pascal VOC XML labels, and a VOC export fails quietly rather than loudly: the images import, the boxes do not, and an export of five or more images also picks up a single class named `images`. Choose YOLO with Images or COCO with Images instead.
 
 ## What Carries Over
 
@@ -76,14 +76,14 @@ Platform picks the [YOLO task](../data/index.md#supported-tasks) from the labels
 | Label Studio labels                 | Platform dataset                                                                    |
 | ----------------------------------- | ----------------------------------------------------------------------------------- |
 | `RectangleLabels`                   | Detect, or OBB from a YOLOv8 OBB export                                             |
-| `PolygonLabels`                     | Segment                                                                             |
+| `PolygonLabels`                     | Segment, or OBB from a YOLO export when every polygon has four points               |
 | `RectangleLabels` + `PolygonLabels` | Segment — the boxes stay editable, but only the polygons are used for training      |
 | `KeyPointLabels` inside a rectangle | Pose                                                                                |
 | `Choices`                           | Not exported by Label Studio's YOLO or COCO formats, so the images import unlabeled |
 
 - **Rotated boxes** — the YOLO and COCO exports drop the rotation; use **YOLOv8 OBB with Images** to keep it.
 - **Keypoints** — Label Studio's YOLO export includes a keypoint only when its `<Label>` in `KeyPointLabels` has a `model_index` attribute and the point was drawn inside a rectangle; otherwise the export holds the boxes alone and the dataset imports as detect.
-- **Four-point polygons** — in YOLO files a polygon with exactly four points looks the same as an oriented box, so a YOLO export in which every polygon has four points imports as OBB. Use **COCO with Images** for those projects.
+- **Four-point polygons** — in YOLO files a polygon with exactly four points looks the same as an oriented box, so a YOLO export in which every label is a four-point polygon imports as OBB. Use **COCO with Images** for those projects.
 
 ## What the Integration Will Add
 
@@ -96,7 +96,7 @@ Picking the right export format is the step the integration removes. Once it shi
 
 !!! tip "Available now"
 
-    The [Labelbox](labelbox.md) and [Roboflow](roboflow.md) integrations work today, and Platform imports YOLO, COCO, and Ultralytics NDJSON datasets directly.
+    The [Labelbox](labelbox.md) and [Roboflow](roboflow.md) integrations work today, and Platform imports YOLO, COCO, [LabelMe](labelme.md) JSON, and Ultralytics or Labelbox NDJSON datasets directly.
 
 ## FAQ
 

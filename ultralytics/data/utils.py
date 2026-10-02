@@ -647,8 +647,8 @@ def get_split_fraction(fraction: float | list[float | int], split: str) -> float
     """Return a split ratio/count, normalizing boundary values to 0.0 (none) or 1.0 (all).
 
     Args:
-        fraction (float | list[float | int]): Dataset fraction (ratio or image count), or a per-split list ordered
-            as [train, val, test]. A scalar only applies to the train split; missing list entries default to 1.0.
+        fraction (float | list[float | int]): Dataset fraction (ratio or image count), or a per-split list ordered as
+            [train, val, test]. A scalar only applies to the train split; missing list entries default to 1.0.
         split (str): Dataset split name, e.g. 'train', 'val', or 'test'.
 
     Returns:

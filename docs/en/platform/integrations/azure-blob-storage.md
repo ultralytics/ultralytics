@@ -85,7 +85,7 @@ Managed training works through the normal training flow. Training uses Platform'
 
 ## Disconnect a Connection
 
-Disconnecting deletes the stored connection string without touching anything in Azure. Datasets built from those containers stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same storage account is connected again.
+Disconnecting deletes the stored connection string without touching anything in Azure. Datasets built from those containers stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same storage account is connected again. You can still rename them, edit their labels, or delete them while disconnected.
 
 To disconnect, go to **Settings > Integrations**, select **Azure Blob Storage**, click **Disconnect** next to the credential, and confirm. Opening one of its datasets then shows **Azure Blob Storage Disconnected** with a link back to these settings, and the dataset returns automatically once you reconnect.
 

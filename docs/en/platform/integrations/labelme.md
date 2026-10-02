@@ -48,7 +48,8 @@ Compress-Archive -Path .\your_dataset -DestinationPath .\your_dataset.zip
 An outer folder, nested subfolders, and separate image and annotation folders all work, as long as each JSON file's
 `imagePath` points at an image inside the ZIP. Platform reads that image file, not the copy LabelMe can embed in the
 JSON as `imageData`, so keep the image files in the archive. Images inside folders whose names start with `train`,
-`val`, or `test` keep that split.
+`val`, or `test` keep that split. LabelMe JSON is read only when the archive has no `data.yaml` or COCO JSON file, so
+leave those out of a LabelMe ZIP.
 
 ## 3. Upload to Ultralytics Platform
 
@@ -112,4 +113,4 @@ Class names come from the LabelMe labels, sorted alphabetically, so the same lab
 
 ### Can I still upload a LabelMe Toolkit YOLO export?
 
-Yes. A `labelmetk export-to-yolo` export uploads as an ordinary YOLO dataset. Keep `classes.txt` at the root of the ZIP so your class names carry over.
+Yes. A `labelmetk export-to-yolo` export uploads as an ordinary YOLO dataset. Keep the export's `classes.txt` in the ZIP (Platform reads the shallowest one) so your class names carry over.

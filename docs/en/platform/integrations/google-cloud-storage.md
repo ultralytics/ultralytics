@@ -87,7 +87,7 @@ Managed training works through the normal training flow. Training uses Platform'
 
 ## Disconnect a Connection
 
-Disconnecting deletes the stored credentials without touching anything in Google Cloud. Datasets built from those buckets stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same service account is connected again.
+Disconnecting deletes the stored credentials without touching anything in Google Cloud. Datasets built from those buckets stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same service account is connected again. You can still rename them, edit their labels, or delete them while disconnected.
 
 To disconnect, go to **Settings > Integrations**, select **Google Cloud Storage**, click **Disconnect** next to the credential, and confirm. Opening one of its datasets then shows **Google Cloud Storage Disconnected** with a link back to these settings, and the dataset returns automatically once you reconnect.
 

@@ -387,13 +387,13 @@ active workspace.
 
 **Notifications**
 
-- **Slack** — send selected training, export, and deployment results to a [Slack channel](../integrations/slack.md).
+- **Slack** — send selected training, export, auto-annotation, and deployment results to a [Slack channel](../integrations/slack.md).
 
 **Imports**
 
 - **Roboflow** — preview and import annotated datasets from a [Roboflow](../integrations/roboflow.md) workspace using a Roboflow API key.
 - **Labelbox** — upload a [Labelbox](../integrations/labelbox.md) NDJSON export directly, with no key to connect.
-- **LabelMe** — export offline annotations to YOLO format and upload the archive using the [LabelMe guide](../integrations/labelme.md).
+- **LabelMe** — upload a zipped folder of LabelMe JSON annotations and their images directly, with no conversion or key. See the [LabelMe guide](../integrations/labelme.md).
 - **CVAT** — marked **Coming Soon**; upload a CVAT Ultralytics YOLO export today. See [CVAT](../integrations/cvat.md).
 - **Label Studio** — marked **Coming Soon**; upload a Label Studio "YOLO with Images" export today. See [Label Studio](../integrations/label-studio.md).
 

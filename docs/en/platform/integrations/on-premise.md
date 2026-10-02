@@ -70,8 +70,8 @@ A GPU is optional. Every computer can ingest datasets and train models on its CP
 The page tracks the six setup steps live — running the command, downloading the worker files, downloading the Docker
 image, building the worker, starting it, and confirming the connection — so you can watch progress without reading the
 terminal. Connecting a host requires the workspace editor [role](../account/teams.md#roles-and-permissions) and an
-active Enterprise plan; workspaces on another plan see a **Continue** button that requests a guided On Premise
-walkthrough instead of an install command.
+active Enterprise plan; workspaces on another plan see a **Request a demo** button, which sends an Enterprise demo
+request instead of creating an install command.
 
 Platform fills in the folders and one-time connection token before you copy the command. The generated command follows the format below:
 

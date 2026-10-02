@@ -638,26 +638,45 @@ def yolo_bbox2segment(
     """
     from ultralytics import SAM
     from ultralytics.data import YOLODataset
-    from ultralytics.utils.ops import xywh2xyxy
+    from ultralytics.utils.ops import segments2boxes, xywh2xyxy
 
     # NOTE: add placeholder to pass class index check
     dataset = YOLODataset(im_dir, data={"names": list(range(1000)), "channels": 3})
-    if len(dataset.labels[0]["segments"]) > 0:  # if it's segment data
+    if not dataset.labels:
+        LOGGER.warning(f"No labels found under {im_dir}. Nothing to convert.")
+        return
+
+    # YOLODataset clears every polygon when the folder mixes detect and segment labels. Restore each
+    # image's on-disk segments so a segmented neighbor does not force SAM to overwrite it.
+    for label, lb_file in zip(dataset.labels, dataset.label_files):
+        if label["segments"] or not Path(lb_file).is_file():
+            continue
+        rows = [x.split() for x in Path(lb_file).read_text(encoding="utf-8").strip().splitlines() if x.strip()]
+        if not rows or any(len(x) == 5 for x in rows) or not any(len(x) > 6 for x in rows):
+            continue
+        classes = np.array([x[0] for x in rows], dtype=np.float32)
+        segments = [np.array(x[1:], dtype=np.float32).reshape(-1, 2) for x in rows]
+        label["cls"] = classes.reshape(-1, 1)
+        label["bboxes"] = segments2boxes(segments)
+        label["segments"] = segments
+
+    # Decide per image: a single background/segmented first label must not decide for the whole dataset
+    needs_conversion = [lb for lb in dataset.labels if len(lb["segments"]) == 0 and len(lb["bboxes"]) > 0]
+    if not needs_conversion and any(len(lb["segments"]) > 0 for lb in dataset.labels):
         LOGGER.info("Segmentation labels detected, no need to generate new ones!")
         return
 
-    LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
-    sam_model = SAM(sam_model)
-    for label in TQDM(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
-        h, w = label["shape"]
-        boxes = label["bboxes"]
-        if len(boxes) == 0:  # skip empty labels
-            continue
-        boxes[:, [0, 2]] *= w
-        boxes[:, [1, 3]] *= h
-        im = cv2.imread(label["im_file"])
-        sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
-        label["segments"] = sam_results[0].masks.xyn
+    if needs_conversion:
+        LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
+        sam_model = SAM(sam_model)
+        for label in TQDM(needs_conversion, total=len(needs_conversion), desc="Generating segment labels"):
+            h, w = label["shape"]
+            boxes = label["bboxes"].copy()
+            boxes[:, [0, 2]] *= w
+            boxes[:, [1, 3]] *= h
+            im = cv2.imread(label["im_file"])
+            sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
+            label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -671,7 +690,7 @@ def yolo_bbox2segment(
                 continue
             line = (int(cls[i, 0]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
-        with open(txt_file, "a", encoding="utf-8") as f:
+        with open(txt_file, "w", encoding="utf-8") as f:  # replace, do not append across reruns
             f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
 

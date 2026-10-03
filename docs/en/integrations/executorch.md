@@ -301,7 +301,7 @@ The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy bet
 
 ```bash
 # Using conda
-conda create -n executorch python=3.10
+conda create -n executorch python=3.14
 conda activate executorch
 ```
 

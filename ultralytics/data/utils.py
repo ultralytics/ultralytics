@@ -453,13 +453,14 @@ def verify_image_label(args: tuple) -> tuple | list:
             if nl := len(lb):
                 if keypoint:
                     assert lb.shape[1] == (5 + nkpt * ndim), f"labels require {(5 + nkpt * ndim)} columns each"
-                    points = lb[:, 5:].reshape(-1, ndim)[:, :2]
+                    points = np.concatenate((lb[:, 1:5].reshape(-1, 2), lb[:, 5:].reshape(-1, ndim)[:, :2]))
                 else:
                     assert lb.shape[1] == 5, f"labels require 5 columns, {lb.shape[1]} columns detected"
-                    points = lb[:, 1:]
+                    points = np.concatenate(segments) if segments else lb[:, 1:]
                 # Coordinate points check with 1% tolerance
                 assert points.max() <= 1.01, f"non-normalized or out of bounds coordinates {points[points > 1.01]}"
-                assert lb.min() >= -0.01, f"negative class labels or coordinate {lb[lb < -0.01]}"
+                minimum = min(lb.min(), points.min())
+                assert minimum >= -0.01, f"negative class labels or coordinate {minimum}"
                 assert (lb[:, 0] % 1 == 0).all(), f"non-integer class labels {lb[:, 0][lb[:, 0] % 1 != 0]}"
 
                 # All labels

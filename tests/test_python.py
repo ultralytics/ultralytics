@@ -1546,6 +1546,39 @@ def test_verify_image_label_keeps_polygons_sharing_a_box(tmp_path):
     assert len(labels) == len(segments) == 2
 
 
+def test_verify_image_label_checks_segment_vertices(tmp_path):
+    """Reject out-of-bounds polygon vertices even when their derived box is normalized."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    args = (str(im), str(lb), "", False, 1, 0, 0, False)
+    for x, other_x, expected_corrupt in (
+        (0.0, 0.2, 0),
+        (-0.005, 0.2, 0),
+        (-0.1, 0.2, 1),
+        (1.005, 0.9, 0),
+        (1.1, 0.9, 1),
+    ):
+        lb.write_text(f"0 {x} 0.5 {other_x} 0.5 {other_x} 0.6\n")
+        result = verify_image_label(args)
+        assert result[8] == expected_corrupt
+
+
+def test_verify_image_label_checks_pose_boxes(tmp_path):
+    """Reject out-of-bounds pose boxes even when all keypoints are normalized."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    args = (str(im), str(lb), "", True, 1, 1, 2, False)
+    for x, expected_corrupt in ((1.005, 0), (1.2, 1)):
+        lb.write_text(f"0 {x} 0.5 0.1 0.1 0.5 0.5\n")
+        assert verify_image_label(args)[8] == expected_corrupt
+    lb.write_text("0 0.5 0.5 0.1 0.1 0.5 0.5 2\n")
+    assert verify_image_label((*args[:5], 1, 3, False))[8] == 0  # visibility=2 is not a coordinate
+
+
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset

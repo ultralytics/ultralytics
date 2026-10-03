@@ -1,4 +1,5 @@
 ---
+title: Object Detection Datasets for YOLO
 comments: true
 description: Learn about dataset formats compatible with Ultralytics YOLO for robust object detection. Explore supported datasets and learn how to convert formats.
 keywords: Ultralytics, YOLO, object detection datasets, dataset formats, COCO, dataset conversion, training datasets

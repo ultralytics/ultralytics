@@ -1,5 +1,5 @@
 ---
-title: Global Wheat Head Detection Dataset
+title: Global Wheat Head Dataset for YOLO
 comments: true
 creator:
     name: Global Wheat Dataset Consortium

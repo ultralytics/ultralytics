@@ -1208,7 +1208,6 @@ class Exporter:
                 f_int8,
                 self.get_int8_calibration_dataloader(prefix),
                 self._transform_fn,
-                batch=0 if self.args.dynamic else self.args.batch,
                 prefix=prefix,
             )
             source.unlink(missing_ok=True)
@@ -1647,7 +1646,6 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
-            batch=self.args.batch,
             prefix=prefix,
         )
 
@@ -1808,13 +1806,19 @@ class Exporter:
         with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
 
-    @staticmethod
-    def _transform_fn(data_item) -> np.ndarray:
-        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
+    def _transform_fn(self, data_item) -> np.ndarray:
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN).
+
+        Calibration datasets smaller than the export batch yield undersized batches that static-batch graphs reject, so
+        images are tiled up to exactly the export batch.
+        """
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
         im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
-        return im[None] if im.ndim == 3 else im
+        im = im[None] if im.ndim == 3 else im
+        if not self.args.dynamic and len(im) < self.args.batch:  # tile up to the static batch dimension
+            im = np.tile(im, (-(-self.args.batch // len(im)), 1, 1, 1))[: self.args.batch]
+        return im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

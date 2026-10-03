@@ -1559,6 +1559,7 @@ def test_verify_image_label_checks_segment_vertices(tmp_path):
         (-0.1, 0.2, 1),
         (1.005, 0.9, 0),
         (1.1, 0.9, 1),
+        (-0.01, 1.01, 1),  # tolerated vertices can still produce an invalid box width
     ):
         lb.write_text(f"0 {x} 0.5 {other_x} 0.5 {other_x} 0.6\n")
         result = verify_image_label(args)

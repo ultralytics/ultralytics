@@ -70,10 +70,18 @@ class ClassificationPredictor(BasePredictor):
         )
         self.host_transforms = T.Compose(tfl[:2]) if split else None
         self.device_transform = tfl[-1] if split else None
+        if self.args.preprocess_tensor and self.source_type.tensor:  # drop ToTensor, raw sources are already tensors
+            if any(not isinstance(t, (T.Resize, T.CenterCrop, T.ToTensor, T.Normalize)) for t in tfl):
+                raise NotImplementedError("'preprocess_tensor=True' requires standard classification transforms.")
+            self.tensor_transforms = T.Compose([t for t in tfl if not isinstance(t, T.ToTensor)])
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Resize and crop images on the host, leaving uint8 BGR for the device-side conversion."""
         return [np.array(self.host_transforms(Image.fromarray(x))) for x in im]
+
+    def pre_transform_tensor(self, im: torch.Tensor) -> torch.Tensor:
+        """Resize, crop and normalize a raw (B, C, H, W) tensor on-device; classification never letterboxes."""
+        return self.tensor_transforms(im)
 
     def preprocess(self, img):
         """Convert input images to model-compatible tensor format with appropriate normalization."""

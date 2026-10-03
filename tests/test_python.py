@@ -1389,7 +1389,7 @@ def test_data_converter(tmp_path):
 
 
 def test_convert_segment_masks_accepts_jpeg_and_case_insensitive_suffixes(tmp_path):
-    """convert_segment_masks_to_yolo_seg must not silently skip .jpeg or uppercase .PNG/.JPG masks."""
+    """convert_segment_masks_to_yolo_seg must not silently skip .jpeg or uppercase/mixed-case suffixes."""
     from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
     masks_dir = tmp_path / "masks"
@@ -1398,13 +1398,17 @@ def test_convert_segment_masks_accepts_jpeg_and_case_insensitive_suffixes(tmp_pa
     mask = np.zeros((32, 48), dtype=np.uint8)
     mask[8:24, 10:38] = 1  # class index + 1
 
-    for name in ("a.jpeg", "b.JPG", "c.PNG", "d.jpg"):
-        assert cv2.imwrite(str(masks_dir / name), mask)
+    # Write via a known OpenCV suffix, then rename so .JPEG / .JpEg are preserved on disk
+    # (cv2.imwrite may not accept every casing of jpeg as an output extension).
+    for name in ("a.jpeg", "b.JPG", "c.PNG", "d.jpg", "e.JPEG", "f.JpEg"):
+        tmp = masks_dir / f"_write_{Path(name).stem}.jpg"
+        assert cv2.imwrite(str(tmp), mask)
+        tmp.rename(masks_dir / name)
 
     convert_segment_masks_to_yolo_seg(str(masks_dir), str(out_dir), classes=80)
 
     written = sorted(p.name for p in out_dir.iterdir())
-    assert written == ["a.txt", "b.txt", "c.txt", "d.txt"]
+    assert written == ["a.txt", "b.txt", "c.txt", "d.txt", "e.txt", "f.txt"]
     for path in out_dir.iterdir():
         rows = path.read_text(encoding="utf-8").strip().splitlines()
         assert rows and all(row.split()[0] == "0" for row in rows)

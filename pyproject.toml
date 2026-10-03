@@ -51,6 +51,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
@@ -131,7 +132,7 @@ export-executorch = [
     "numpy<=2.3.5",
 ]
 export-deepx = [
-    "dx_com",
+    "dx_com>=2.4.1",
     "numpy<2; python_version < '3.13'",  # NumPy 1.x wheels stop at Python 3.12
 ]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)

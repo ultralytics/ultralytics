@@ -18,6 +18,7 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -35,6 +36,7 @@ from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
+    IMG_FORMATS,
     check_file_speeds,
     get_hash,
     get_split_fraction,
@@ -280,7 +282,7 @@ class YOLODataset(BaseDataset):
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == cache_hash  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+        except Exception:  # missing, stale, or unreadable (e.g. truncated) cache
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
         return cache, exists
 
@@ -1187,6 +1189,7 @@ class ClassificationDataset:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
+        imread: Read a BGR image, decoding the formats cv2 cannot read through the shared PIL fallback.
         cache_images: Decode images into one contiguous RAM cache.
     """
 
@@ -1214,10 +1217,10 @@ class ClassificationDataset:
         import torchvision  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
-        if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
-            self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
-        else:
-            self.base = torchvision.datasets.ImageFolder(root=root)
+        kwargs = {"allow_empty": True} if TORCHVISION_0_18 else {}  # 'allow_empty' first introduced in torchvision 0.18
+        self.base = torchvision.datasets.ImageFolder(
+            root=root, is_valid_file=lambda x: x.rpartition(".")[-1].lower() in IMG_FORMATS, **kwargs
+        )
         is_ndjson = (Path(root).parent / ".ndjson.yaml").is_file()
         self.samples = self.base.samples
         self.root = self.base.root
@@ -1284,11 +1287,11 @@ class ClassificationDataset:
         if self.cache_ram:
             im = self.img_cache[i]
         elif self.cache_disk:
-            if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+            if not fn.exists() or fn.stat().st_mtime < Path(f).stat().st_mtime:  # missing or stale
+                np.save(fn.as_posix(), self.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
-            im = cv2.imread(f)  # BGR
+            im = self.imread(f)  # BGR
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
@@ -1297,6 +1300,11 @@ class ClassificationDataset:
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
+
+    @staticmethod
+    def imread(f: str) -> np.ndarray | None:
+        """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
+        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else cv2.imread(f)
 
     def cache_images(self) -> None:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
@@ -1308,7 +1316,7 @@ class ClassificationDataset:
         with ThreadPool(NUM_THREADS) as pool:
             ims = list(
                 TQDM(
-                    pool.imap(lambda s: cv2.imread(s[0]), self.samples),
+                    pool.imap(lambda s: self.imread(s[0]), self.samples),
                     total=len(self.samples),
                     desc=f"{self.prefix}Caching images",
                     disable=LOCAL_RANK > 0,
@@ -1338,9 +1346,7 @@ class ClassificationDataset:
                     LOGGER.info("\n".join(cache["msgs"]))  # display warnings
             return samples
 
-        # NOTE: ModuleNotFoundError to prevent numpy version conflicts when loading cache files created with different numpy versions
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            # Run scan if *.cache retrieval failed
+        except Exception:  # run scan if *.cache retrieval failed, e.g. missing, stale, or truncated
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
             with ThreadPool(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))

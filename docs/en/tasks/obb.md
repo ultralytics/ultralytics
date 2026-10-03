@@ -172,6 +172,8 @@ Use a trained YOLO26n-obb model to run predictions on images.
 
 See full `predict` mode details in the [Predict](../modes/predict.md) page.
 
+Pass `save_crop=True` to save a rotation-aligned crop of each OBB at its box size, as `ObjectCropper` also does.
+
 ### Results Output
 
 Oriented bounding box detection returns one `Results` object per image. The primary prediction field is `result.obb`,

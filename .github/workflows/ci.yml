@@ -421,6 +421,7 @@ jobs:
           activate-environment: true
       - name: Install requirements
         run: |
+          sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml  # headless OpenCV
           # Use the CUDA 13 ONNX Runtime wheel; ModelOpt still pins its CUDA 12 predecessor.
           uv pip install -e ".[export-base]" pytest-cov onnxruntime-gpu tensorrt-cu13 "nvidia-modelopt[onnx]>=0.44" lap cloudpickle --torch-backend cu132 --excludes <(echo onnxruntime) --overrides <(echo "onnxruntime-gpu>=1.30.0")
         env:

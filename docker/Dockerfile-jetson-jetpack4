@@ -22,7 +22,6 @@ RUN wget -q -O - https://repo.download.nvidia.com/jetson/jetson-ota-public.asc |
 
 # Install dependencies
 # pkg-config and libhdf5-dev (not included) are needed to build 'h5py==3.11.0' aarch64 wheel required by 'tensorflow'
-# gnupg required for Edge TPU install
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     git python3.8 python3.8-dev python3-pip python3-libnvinfer libopenmpi-dev libopenblas-base libomp-dev gcc && \

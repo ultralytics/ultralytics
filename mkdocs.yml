@@ -460,6 +460,7 @@ nav:
   - Solutions:
       - Solutions: solutions/index.md
       - Analytics: guides/analytics.md
+      - Detection to OCR: guides/object-ocr.md
       - Distance Calculation: guides/distance-calculation.md
       - Heatmaps: guides/heatmaps.md
       - Instance Segmentation Tracking: guides/instance-segmentation-and-tracking.md
@@ -800,6 +801,7 @@ nav:
           - object_blurrer: reference/solutions/object_blurrer.md
           - object_counter: reference/solutions/object_counter.md
           - object_cropper: reference/solutions/object_cropper.md
+          - ocr: reference/solutions/ocr.md
           - parking_management: reference/solutions/parking_management.md
           - queue_management: reference/solutions/queue_management.md
           - region_counter: reference/solutions/region_counter.md

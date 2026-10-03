@@ -110,13 +110,6 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
         return None
 
 
-def imread_color(filename: str | Path) -> np.ndarray | None:
-    """Read an 8-bit 3-channel BGR image with cv2.imread, decoding AVIF/HEIC/HEIF through PIL first."""
-    filename = str(filename)
-    im = _imread_pil(filename) if filename.lower().endswith(PIL_FALLBACK_SUFFIXES) else None
-    return cv2.imread(filename) if im is None else im
-
-
 def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """Read an image with multilanguage filename support, preserving native cv2.imread behavior.
 

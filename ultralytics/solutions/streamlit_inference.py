@@ -12,7 +12,6 @@ from ultralytics import YOLO
 from ultralytics.utils import LOGGER
 from ultralytics.utils.checks import check_requirements
 from ultralytics.utils.downloads import GITHUB_ASSETS_STEMS
-from ultralytics.utils.patches import imread_color
 
 torch.classes.__path__ = []  # Torch module __path__._path issue: https://github.com/datalab-to/marker/issues/442
 
@@ -188,7 +187,7 @@ class Inference:
         """Perform inference on uploaded images."""
         for img_info in self.img_file_names:
             img_path = img_info["path"]
-            image = imread_color(img_path)  # Load and display the original image
+            image = cv2.imread(img_path)  # Load and display the original image
             if image is not None:
                 self.st.markdown(f"#### Processed: {img_info['name']}")
                 col1, col2 = self.st.columns(2)

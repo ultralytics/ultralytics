@@ -18,7 +18,7 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
-from ultralytics.utils.patches import imread_color
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -1189,6 +1189,7 @@ class ClassificationDataset:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
+        imread: Read a BGR image, decoding the formats cv2 cannot read through the shared PIL fallback.
         cache_images: Decode images into one contiguous RAM cache.
     """
 
@@ -1287,10 +1288,10 @@ class ClassificationDataset:
             im = self.img_cache[i]
         elif self.cache_disk:
             if not fn.exists() or fn.stat().st_mtime < Path(f).stat().st_mtime:  # missing or stale
-                np.save(fn.as_posix(), imread_color(f), allow_pickle=False)
+                np.save(fn.as_posix(), self.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
-            im = imread_color(f)  # BGR
+            im = self.imread(f)  # BGR
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
@@ -1299,6 +1300,11 @@ class ClassificationDataset:
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
+
+    @staticmethod
+    def imread(f: str) -> np.ndarray | None:
+        """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
+        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else cv2.imread(f)
 
     def cache_images(self) -> None:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
@@ -1310,7 +1316,7 @@ class ClassificationDataset:
         with ThreadPool(NUM_THREADS) as pool:
             ims = list(
                 TQDM(
-                    pool.imap(lambda s: imread_color(s[0]), self.samples),
+                    pool.imap(lambda s: self.imread(s[0]), self.samples),
                     total=len(self.samples),
                     desc=f"{self.prefix}Caching images",
                     disable=LOCAL_RANK > 0,

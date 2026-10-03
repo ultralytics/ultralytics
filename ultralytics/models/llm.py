@@ -11,7 +11,6 @@ import numpy as np
 from PIL import Image
 
 from ultralytics.utils.checks import check_requirements
-from ultralytics.utils.patches import imread_color
 
 
 class LLM:
@@ -188,7 +187,7 @@ class LLM:
         if isinstance(source, str) and source.startswith(("http://", "https://", "data:image/")):
             return source
         if isinstance(source, (str, Path)):
-            image = imread_color(source)
+            image = cv2.imread(str(source))
         else:
             image = (
                 cv2.cvtColor(np.asarray(source.convert("RGB")), cv2.COLOR_RGB2BGR)

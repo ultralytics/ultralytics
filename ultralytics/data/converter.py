@@ -34,7 +34,6 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
-from ultralytics.utils.patches import imread_color
 
 
 def coco91_to_coco80_class() -> list[int | None]:
@@ -650,14 +649,13 @@ def yolo_bbox2segment(
     LOGGER.info("Detection labels detected, generating segment labels by SAM model!")
     sam_model = SAM(sam_model)
     for label in TQDM(dataset.labels, total=len(dataset.labels), desc="Generating segment labels"):
+        h, w = label["shape"]
         boxes = label["bboxes"]
         if len(boxes) == 0:  # skip empty labels
             continue
-        if (im := imread_color(label["im_file"])) is None:  # SAM would otherwise segment its demo assets
-            raise FileNotFoundError(f"Unable to read image {label['im_file']}")
-        h, w = im.shape[:2]  # decoded upright size; label["shape"] ignores EXIF rotation outside JPEG
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
+        im = cv2.imread(label["im_file"])
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 
@@ -776,7 +774,7 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     else:
         # Process a single image
         output_path = path.with_suffix(".tiff")
-        img = cv2.cvtColor(imread_color(path), cv2.COLOR_BGR2RGB)
+        img = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2RGB)
 
         # Interpolate all pixels at once with linear interpolation and extrapolation across RGB wavelengths
         rgb_wavelengths = np.array([650, 510, 475])  # R, G, B wavelengths (nm)

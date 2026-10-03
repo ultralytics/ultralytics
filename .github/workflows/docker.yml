@@ -330,14 +330,16 @@ jobs:
               # Check each image so new derivatives receive version tags without overwriting existing releases.
               if [[ "${{ matrix.dockerfile }}" != "Dockerfile-conda" ]]; then
                 version_tag=$(echo "$tag" | sed "s/latest/${{ steps.get_version.outputs.version }}/")
-                status=$(curl -s -o /dev/null -w '%{http_code}' "https://hub.docker.com/v2/repositories/ultralytics/ultralytics/tags/$version_tag")
-                if [[ "$status" == "404" ]]; then
-                  docker push "ultralytics/ultralytics:$version_tag"
-                  docker push "ghcr.io/ultralytics/ultralytics:$version_tag"
-                elif [[ "$status" != "200" ]]; then
-                  echo "Unexpected DockerHub response for $version_tag: HTTP $status" >&2
-                  exit 1
-                fi
+                for registry in ultralytics/ultralytics ghcr.io/ultralytics/ultralytics; do
+                  version_image="$registry:$version_tag"
+                  if ! manifest=$(docker manifest inspect "$version_image" 2>&1); then
+                    if [[ "$manifest" != *"no such manifest"* ]]; then
+                      printf '%s\n' "$manifest" >&2
+                      exit 1
+                    fi
+                    docker push "$version_image"
+                  fi
+                done
               fi
             done
 

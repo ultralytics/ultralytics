@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from ultralytics.utils import LOGGER, YAML
-from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.checks import check_requirements, parse_requirements
 
 
 def onnx2deepx(
@@ -31,7 +31,15 @@ def onnx2deepx(
     Returns:
         (str): Path to the exported DEEPX model directory.
     """
-    check_requirements("dx_com>=2.4.1")
+    # dx_com requires GUI opencv-python, which would replace headless OpenCV, so install its other requirements only
+    check_requirements("dx_com>=2.4.1", cmds="--no-deps")
+    check_requirements(
+        [
+            f"{r.name}{r.specifier}"
+            for r in parse_requirements(package="dx_com")
+            if r.name != "opencv-python" and ";" not in r.specifier
+        ]
+    )
     import dx_com
 
     LOGGER.info(f"\n{prefix} starting export with DEEPX...")

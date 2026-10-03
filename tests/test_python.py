@@ -1089,6 +1089,25 @@ def test_results(model: str, tmp_path, solution_assets):
         print(r, len(r), r.path)  # print after methods
 
 
+@pytest.mark.parametrize("as_numpy", [False, True], ids=["cpu", "numpy"])
+@pytest.mark.parametrize(
+    "classes,expected",
+    [([5, 0, 5], "1 person, 2 cars, "), ([0, 5, 0], "2 persons, 1 car, "), ([], "(no detections), ")],
+)
+def test_results_verbose(as_numpy, classes, expected):
+    """Test exact detection summaries for CPU tensors and NumPy arrays with sparse class IDs and empty boxes."""
+    from ultralytics.engine.results import Results
+
+    boxes = np.array([[0, 0, 1, 1, 0.9, cls] for cls in classes], dtype=np.float32).reshape(-1, 6)
+    results = Results(
+        orig_img=np.zeros((2, 2, 3), dtype=np.uint8),
+        path="image.jpg",
+        names={0: "person", 5: "car"},
+        boxes=boxes if as_numpy else torch.from_numpy(boxes),
+    )
+    assert results.verbose() == expected
+
+
 def test_results_plot_without_boxes():
     """Test that plotting a masks-only Results (boxes=None) does not raise an AttributeError."""
     from ultralytics.engine.results import Results

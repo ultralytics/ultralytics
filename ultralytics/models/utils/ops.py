@@ -101,9 +101,9 @@ class HungarianMatcher(nn.Module):
         # Pad targets to compute costs within each image.
         gt_bboxes = torch.nn.utils.rnn.pad_sequence(gt_bboxes.split(gt_groups), batch_first=True)
         gt_cls = torch.nn.utils.rnn.pad_sequence(gt_cls.split(gt_groups), batch_first=True)
-        pred_scores = pred_scores.detach()
+        pred_scores = pred_scores.detach().float()  # avoid saturated AMP probabilities and non-finite focal costs
         pred_scores = pred_scores.sigmoid() if self.use_fl else F.softmax(pred_scores, dim=-1)
-        pred_bboxes = pred_bboxes.detach()
+        pred_bboxes = pred_bboxes.detach().float()
 
         # Compute classification cost
         pred_scores = pred_scores.gather(2, gt_cls[:, None].expand(-1, nq, -1))

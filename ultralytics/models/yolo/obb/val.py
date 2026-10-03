@@ -260,6 +260,8 @@ class OBBValidator(DetectionValidator):
             from collections import defaultdict
 
             pred_json = self.save_dir / "predictions.json"  # predictions
+            for f in self.save_dir.glob("predictions*_txt/Task1_*.txt"):  # appended below, drop a previous run's
+                f.unlink()
             pred_txt = self.save_dir / "predictions_txt"  # predictions
             pred_txt.mkdir(parents=True, exist_ok=True)
             with open(pred_json) as f:

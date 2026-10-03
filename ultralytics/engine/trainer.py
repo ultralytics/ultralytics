@@ -652,6 +652,8 @@ class BaseTrainer:
 
             # NaN recovery
             if self._handle_nan_recovery(epoch):
+                last_opt_step = -1  # redo the epoch with normal step cadence, like the OOM restart
+                self.optimizer.zero_grad()  # drop the corrupted pass's gradients, including NaNs still in .grad
                 continue
 
             self.nan_recovery_attempts = 0
@@ -795,6 +797,7 @@ class BaseTrainer:
             {
                 "epoch": self.epoch,
                 "best_fitness": self.best_fitness,
+                "stopper": {"best_fitness": self.stopper.best_fitness, "best_epoch": self.stopper.best_epoch},
                 "model": None,  # resume and final checkpoints derive from EMA
                 "ema": ema,
                 "updates": self.ema.updates,
@@ -1062,7 +1065,7 @@ class BaseTrainer:
         self.resume = resume
 
     def _load_checkpoint_state(self, ckpt):
-        """Load optimizer, scaler, EMA, and best_fitness from checkpoint."""
+        """Load optimizer, scaler, EMA, best_fitness, and early stopping state from checkpoint."""
         if ckpt.get("optimizer") is not None:
             for saved, group in zip(ckpt["optimizer"]["param_groups"], self.optimizer.param_groups):
                 saved["fused"] = group.get("fused")  # runtime device, not the checkpoint, picks the kernel
@@ -1076,6 +1079,7 @@ class BaseTrainer:
             self.ema.ema.load_state_dict(ckpt["ema"].float().state_dict())
             self.ema.updates = ckpt["updates"]
         self.best_fitness = ckpt.get("best_fitness")
+        self.stopper.__dict__.update(ckpt.get("stopper") or {})  # older checkpoints keep a fresh stopper
 
     def _handle_nan_recovery(self, epoch):
         """Detect and recover from NaN/Inf loss by loading last checkpoint."""
@@ -1174,6 +1178,7 @@ class BaseTrainer:
             nc = self.data.get("nc", 10)  # number of classes
             lr_fit = round(0.002 * 5 / (4 + nc), 6)  # lr0 fit equation to 6 decimal places
             name, lr, momentum = ("MuSGD", 0.01, 0.9) if iterations > 10000 else ("AdamW", lr_fit, 0.9)
+            self.args.optimizer, self.args.lr0 = name, lr  # resume rebuilds this choice from train_args
             self.args.warmup_bias_lr = 0.0  # no higher than 0.01 for Adam
 
         use_muon = name == "MuSGD"

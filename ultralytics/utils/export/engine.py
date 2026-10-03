@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import types
+from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
@@ -14,7 +16,7 @@ import torch
 
 from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
-from ultralytics.utils.torch_utils import TORCH_2_4
+from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_10
 
 
 @lru_cache
@@ -98,6 +100,10 @@ def torch2onnx(
 ) -> str:
     """Export a PyTorch model to ONNX format.
 
+    torch>=2.10 exports opset>=18 with the torch.export-based exporter, naming nodes by module scope like the deprecated
+    TorchScript-based exporter used for older torch and opsets (e.g. ``/model.23/cv2.0/cv2.0.2/Conv``) so tools that
+    select layers by name, like TensorRT INT8 precision constraints, work with both.
+
     Args:
         model (torch.nn.Module): The PyTorch model to export.
         im (torch.Tensor | tuple[torch.Tensor, ...]): Example input tensor(s) for tracing.
@@ -114,17 +120,38 @@ def torch2onnx(
         input_names = ["images"]
     if output_names is None:
         output_names = ["output0"]
-    kwargs = {"dynamo": False} if TORCH_2_4 else {}
-    torch.onnx.export(
-        model,
+    if not (TORCH_2_10 and opset >= 18):  # torch.export-based exporter, opset>=18 only and unreliable in torch 2.9
+        torch.onnx.export(
+            model,
+            im,
+            output_file,
+            opset_version=opset,
+            input_names=input_names,
+            output_names=output_names,
+            dynamic_axes=dynamic,
+            **({"dynamo": False} if TORCH_2_4 else {}),
+        )
+        return str(output_file)
+    check_requirements("onnxscript>=0.7.2")  # torch 2.14 NMS exports fail with onnxscript<0.7.2
+    program = torch.onnx.export(
+        model.eval(),  # wrappers like NMSModel are built in train mode, which the TorchScript exporter overrode
         im,
-        output_file,
         opset_version=opset,
         input_names=input_names,
         output_names=output_names,
-        dynamic_axes=dynamic,
-        **kwargs,
+        dynamic_shapes=tuple(dynamic.get(name) for name in input_names) if dynamic else None,  # outputs are derived
+        dynamo=True,
+        verbose=False,
     )
+    seen = Counter()
+    for node in program.model.graph:
+        # e.g. scopes ['', 'model.23', 'model.23.cv2.0', 'model.23.cv2.0.2', 'conv2d'] -> /model.23/cv2.0/cv2.0.2/Conv
+        scopes = ast.literal_eval(node.metadata_props.get("pkg.torch.onnx.name_scopes", "[]"))[1:-1]
+        name = "/".join(["", *(re.sub(r".*\.(?=[^.]*[^.\d])", "", s) for s in scopes), node.op_type])
+        node.name = f"{name}_{seen[name]}" if seen[name] else name
+        seen[name] += 1
+        node.metadata_props.clear()  # drop stack traces and local source paths
+    program.save(output_file)
     return str(output_file)
 
 

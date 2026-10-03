@@ -379,6 +379,21 @@ def time_sync(device: torch.device | None = None):
     return time.perf_counter()
 
 
+def shape_as_tensor(x: torch.Tensor) -> torch.Tensor:
+    """Return the shape of a tensor as a tensor that both export tracers record as dynamic.
+
+    TorchScript tracing (TorchScript, OpenVINO and opset<18 ONNX exports) records only shapes read as tensors, while
+    torch.export records int shapes symbolically but cannot trace `torch._shape_as_tensor`.
+
+    Args:
+        x (torch.Tensor): Input tensor.
+
+    Returns:
+        (torch.Tensor): 1D int64 tensor of the shape of x.
+    """
+    return torch._shape_as_tensor(x) if torch.jit.is_tracing() else torch.tensor(x.shape)
+
+
 def fuse_conv_and_bn(conv, bn):
     """Fuse Conv2d and BatchNorm2d layers for inference optimization.
 

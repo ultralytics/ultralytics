@@ -13,7 +13,7 @@ from torch.nn.init import constant_, xavier_uniform_
 
 from ultralytics.utils import LOGGER
 from ultralytics.utils.tal import dist2bbox, dist2rbox, make_anchors
-from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, smart_inference_mode
+from ultralytics.utils.torch_utils import TORCH_1_11, fuse_conv_and_bn, shape_as_tensor, smart_inference_mode
 
 from .block import DFL, SAVPE, BNContrastiveHead, ContrastiveHead, Proto, Proto26, RealNVP, Residual, SwiGLUFFN
 from .conv import Conv, DWConv
@@ -1714,11 +1714,7 @@ class RTDETRDecoder(nn.Module):
                 export, and last dimension format [cx, cy, w, h, score, class_index].
         """
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
-        k = (
-            (torch._shape_as_tensor(scores)[1] * self.nc).clamp(max=k)
-            if self.dynamic
-            else min(k, scores.shape[1] * self.nc)
-        )
+        k = (shape_as_tensor(scores)[1] * self.nc).clamp(max=k) if self.dynamic else min(k, scores.shape[1] * self.nc)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
@@ -1821,7 +1817,7 @@ class RTDETRDecoder(nn.Module):
         # (bs*num_queries,)
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         k = (
-            torch._shape_as_tensor(enc_outputs_scores)[1].clamp(max=self.num_queries)
+            shape_as_tensor(enc_outputs_scores)[1].clamp(max=self.num_queries)
             if self.dynamic
             else min(self.num_queries, enc_outputs_scores.shape[1])
         )

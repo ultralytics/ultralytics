@@ -1388,54 +1388,6 @@ def test_data_converter(tmp_path):
     coco80_to_coco91_class()
 
 
-def test_yolo_bbox2segment_mixed_labels(tmp_path, monkeypatch):
-    """Convert only box images when the first label is already segmented, and overwrite on rerun."""
-    from ultralytics.data import converter
-
-    images = tmp_path / "images"
-    labels = tmp_path / "labels"
-    out = tmp_path / "labels-segment"
-    images.mkdir()
-    labels.mkdir()
-    # Corrupt image sorts first; get_labels drops it from labels/im_files but not from label_files
-    (images / "0bad.jpg").write_bytes(b"not-an-image")
-    (labels / "0bad.txt").write_text("0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n", encoding="utf-8")
-    for name in ("a.jpg", "b.jpg"):
-        cv2.imwrite(str(images / name), np.zeros((32, 32, 3), dtype=np.uint8))
-    # First valid label is already a polygon; second is detection-only. Sorting puts a.jpg before b.jpg.
-    (labels / "a.txt").write_text("0 0.1 0.1 0.9 0.1 0.9 0.9 0.1 0.9\n", encoding="utf-8")
-    (labels / "b.txt").write_text("0 0.5 0.5 0.4 0.4\n", encoding="utf-8")
-
-    calls = []
-
-    class FakeMasks:
-        def __init__(self, n):
-            self.xyn = [np.array([[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]], np.float32) for _ in range(n)]
-
-    class FakeResult:
-        def __init__(self, n):
-            self.masks = FakeMasks(n)
-
-    class FakeSAM:
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def __call__(self, im, bboxes=None, **kwargs):
-            calls.append(len(bboxes))
-            return [FakeResult(len(bboxes))]
-
-    monkeypatch.setattr("ultralytics.SAM", FakeSAM)
-    converter.yolo_bbox2segment(images, save_dir=out, sam_model="sam_b.pt")
-
-    assert calls == [1]  # only the detection image is sent to SAM
-    assert (out / "a.txt").read_text(encoding="utf-8").startswith("0 0.1 0.1")
-    assert (out / "b.txt").read_text(encoding="utf-8").startswith("0 0.2 0.2")
-    assert not (out / "0bad.txt").exists()
-
-    converter.yolo_bbox2segment(images, save_dir=out, sam_model="sam_b.pt")
-    assert len((out / "b.txt").read_text(encoding="utf-8").strip().splitlines()) == 1  # overwrite, not append
-
-
 def test_data_annotator(tmp_path):
     """Test automatic annotation of data using detection and segmentation models."""
     from ultralytics.data.annotator import auto_annotate

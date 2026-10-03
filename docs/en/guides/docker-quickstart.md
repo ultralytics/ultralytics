@@ -254,6 +254,13 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
 ### Using Docker with a GUI
 
+Ultralytics images ship headless OpenCV, so first install the GUI build of OpenCV and its system libraries inside the container:
+
+```bash
+apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libsm6
+pip uninstall -y opencv-python-headless && pip install opencv-python
+```
+
 Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO26 model](../models/yolo26.md):
 
 ```bash
@@ -325,7 +332,7 @@ xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
   --net=host -it --ipc=host ultralytics/ultralytics:latest
 ```
 
-More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
+Inside the container, install the GUI build of OpenCV before using `show=True`, as described in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
 
 ### Can I mount local directories into the Ultralytics Docker container?
 

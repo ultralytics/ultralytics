@@ -109,12 +109,13 @@ To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB
 
 ## Supported Trackers
 
-Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
+Ultralytics YOLO ships with seven built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
 
 | Tracker                           | Config file       | Motion model               | Appearance / ReID      | Camera motion compensation  | Occlusion handling                              |
 | --------------------------------- | ----------------- | -------------------------- | ---------------------- | --------------------------- | ----------------------------------------------- |
 | **[BoT-SORT](#bot-sort)**         | `botsort.yaml`    | Linear Kalman              | Optional (`with_reid`) | Configurable (`gmc_method`) | Track buffer + ReID rebinding                   |
 | **[ByteTrack](#bytetrack)**       | `bytetrack.yaml`  | Linear Kalman              | None                   | No                          | Two-stage low-conf rescue                       |
+| **[ByteTraX](#bytetrax)**         | `bytetrax.yaml`   | Linear Kalman              | None                   | No                          | Lost-track reconnection + same-class merging    |
 | **[OC-SORT](#oc-sort)**           | `ocsort.yaml`     | Observation-centric Kalman | None                   | No                          | ORU, OCM, OCR re-update from last observation   |
 | **[Deep OC-SORT](#deep-oc-sort)** | `deepocsort.yaml` | Observation-centric Kalman | Optional (`with_reid`) | Configurable (`gmc_method`) | OC-SORT + optional adaptive appearance EMA      |
 | **[FastTracker](#fasttracker)**   | `fasttrack.yaml`  | Linear Kalman + rollback   | None                   | No                          | Kalman rollback + bbox enlargement on occlusion |
@@ -124,11 +125,12 @@ Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAM
 
 Use this flow to pick a starting point; `tracktrack.yaml` is used when you pass no `tracker`:
 
-1. **Need the fastest, simplest baseline?** → **ByteTrack** (no ReID, no camera-motion compensation, minimum overhead).
+1. **Need the fastest, simplest baseline?** → **ByteTrack** or **ByteTraX** (both have no ReID, no camera-motion compensation, and minimum overhead).
 2. **Handheld, drone, or moving-camera footage?** → **BoT-SORT** (adds camera-motion compensation and optional ReID).
 3. **Non-linear motion (sports, dancing, abrupt turns) and no ReID?** → **OC-SORT** (observation-centric corrections without appearance cost).
 4. **Crowded moving-camera scenes where ID swaps are the main problem?** → **Deep OC-SORT** or **TrackTrack** (both support optional appearance matching; TrackTrack also adds multi-cue association and duplicate-ID suppression).
 5. **Frequent partial overlap in real-time, no ReID budget?** → **FastTracker** (occlusion-aware ByteTrack variant with Kalman rollback).
+6. **Fixed set of objects that stay in frame, low tolerance for ID switches?** → **ByteTraX** (enables track reconnection and merging to suppress excess IDs).
 
 ## Switching Trackers
 
@@ -212,9 +214,10 @@ The following parameters are common to most tracker YAML files; not every parame
 
 | Parameter           | Valid Values or Ranges                                                    | Description                                                                                                                                                                                                                                                 |
 | ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tracker_type`      | `botsort`, `bytetrack`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                                                                                 |
+| `tracker_type`      | `botsort`, `bytetrack`, `bytetrax`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                                                                     |
 | `track_high_thresh` | `0.0-1.0`                                                                 | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                                                                                   |
 | `track_low_thresh`  | `0.0-1.0`                                                                 | Lower bound for low-confidence recovery detections. OC-SORT and Deep OC-SORT use these only when `use_byte: True`; TrackTrack includes them in its penalized association pool.                                                                              |
+| `track_thresh`      | `0.0-1.0`                                                                 | Single unified detection threshold used by ByteTraX in place of `track_high_thresh`/`track_low_thresh`.                                                                                                                                                    |
 | `new_track_thresh`  | `0.0-1.0`                                                                 | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                                                                                    |
 | `track_buffer`      | `>=0`                                                                     | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                                                                          |
 | `match_thresh`      | `0.0-1.0`                                                                 | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                                                                                    |
@@ -231,6 +234,7 @@ Each algorithm exposes additional knobs on top of the shared parameters. See the
 
 - [`botsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/botsort.yaml)
 - [`bytetrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrack.yaml)
+- [`bytetrax.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/bytetrax.yaml)
 - [`ocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/ocsort.yaml)
 - [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml)
 - [`fasttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/fasttrack.yaml)
@@ -347,6 +351,29 @@ There is no appearance model and no camera-motion compensation.
 - **Noisy detector:** lower `track_low_thresh` so the second stage has more candidates.
 - **High-recall detector:** raise `track_high_thresh` to reduce fragmented IDs.
 - **Frequent ID flicker:** raise `track_buffer` so briefly-missed tracks survive.
+
+### ByteTraX
+
+[ByteTraX](https://arxiv.org/abs/2609.37801) (O'Shea-Wheller, 2026) is an enhancment of the ByteTrack architecture that replaces the two-stage track association system with a single unified threshold, and adds functionality to limit identity switches:
+
+- **Unified Threshold:** uses a single confidence threshold for all associations, increasing processing speed by >10%.
+- **Lenient Matching** optimises tracking continuity via a lenient association threshold, while penalising ID switches through stringent track initition criteria.
+- **Track Reconnection:** for systems with fixed track counts, unmatched detections near a recently lost track's last position reactivate the track instead of spawning a new ID.
+- **Track Merging:** in systems with fixed track counts, a new detection that strongly overlaps (IoU > 0.5) with an active same-class track is merged into it, rather than creating a new ID.
+
+**Best for:** systems with fixed object counts in which track continuity is the priority, and cases where ID switching must be minimised.
+
+**ByteTraX-specific arguments:**
+
+| Parameter          | Valid Values or Ranges | Description                                                                                          |
+| ------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `enable_reconnect` | `True`, `False`        | Enable lost-track reconnection and same-class track merging. This is recommended for systems with a fixed track count over time. Disable to fall back to plain matching. |
+| `track_thresh` | `0.0-1.0` | Matching threshold for all associations; raise for cleaner tracks, lower to improve continuity. |
+
+**Tuning tips:**
+
+- **Fixed object counts:** activate `enable_reconnect` to limit erronous ID switches.
+- **Fluctuating detection confidence:** minimise `track_thresh` to ensure that low confidence detections are retained.
 
 ### OC-SORT
 
@@ -680,7 +707,7 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 ### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
 
-Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), OC-SORT, Deep OC-SORT, FastTracker, and TrackTrack, which can be configured via YAML files.
+Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), [ByteTraX](https://github.com/Toshea111/ByteTraX), OC-SORT, Deep OC-SORT, FastTracker, and TrackTrack, which can be configured via YAML files.
 
 ### Can I store the tracker inside a YOLO model file?
 

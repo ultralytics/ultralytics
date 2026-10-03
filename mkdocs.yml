@@ -814,6 +814,7 @@ nav:
           - basetrack: reference/trackers/basetrack.md
           - bot_sort: reference/trackers/bot_sort.md
           - byte_tracker: reference/trackers/byte_tracker.md
+          - bytetrax: reference/trackers/bytetrax.md
           - deep_oc_sort: reference/trackers/deep_oc_sort.md
           - fast_tracker: reference/trackers/fast_tracker.md
           - oc_sort: reference/trackers/oc_sort.md

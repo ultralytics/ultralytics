@@ -79,7 +79,7 @@ conf = 0.3  # Minimum confidence threshold for object detection
 iou = 0.3  # IoU threshold for Non-Maximum Suppression (NMS)
 max_det = 20  # Maximum number of objects to detect per frame
 
-tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'botsort.yaml', 'ocsort.yaml', 'deepocsort.yaml', 'fasttrack.yaml', 'tracktrack.yaml'
+tracker = "bytetrack.yaml"  # Tracker config: 'bytetrack.yaml', 'bytetrax.yaml', 'botsort.yaml', 'ocsort.yaml', 'deepocsort.yaml', 'fasttrack.yaml', 'tracktrack.yaml'
 track_args = {
     "persist": True,  # Keep track history across frames
     "verbose": False,  # Suppress detailed tracker debug output

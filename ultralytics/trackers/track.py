@@ -10,6 +10,7 @@ from ultralytics.utils.checks import check_yaml
 
 from .bot_sort import BOTSORT
 from .byte_tracker import BYTETracker
+from .bytetrax import BYTETRAX
 from .deep_oc_sort import DeepOCSORT
 from .fast_tracker import FASTTracker
 from .oc_sort import OCSORT
@@ -18,6 +19,7 @@ from .track_tracker import TRACKTRACK
 # A mapping of tracker types to corresponding tracker classes
 TRACKER_MAP = {
     "bytetrack": BYTETracker,
+    "bytetrax": BYTETRAX,
     "botsort": BOTSORT,
     "tracktrack": TRACKTRACK,
     "fasttrack": FASTTracker,

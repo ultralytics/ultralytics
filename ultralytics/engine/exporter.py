@@ -319,7 +319,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=coreml model=yolo26n.pt imgsz=32"],
     },
     "mnn": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
@@ -328,7 +328,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
     },
     "ncnn": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["ncnn", "pnnx==20260526"],
@@ -337,7 +337,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=ncnn model=yolo26n.pt imgsz=32"],
     },
     "executorch": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base", "export-executorch"],
         "torch": ">=2.12",
         "requirements": [],
@@ -389,20 +389,17 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
-        # dx-com 2.3.0 does not provide Python 3.13 wheels.
-        "python": "3.12",
+        "python": "3.14",
         "extras": ["export-base", "export-deepx"],
         "torch": ">=2.8,<2.12",
         "requirements": [],
-        "indexes": [
-            ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
-        ],
+        "indexes": [],
         # DeepX export is only supported on non-aarch64 Linux.
         "env": {},
         "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
     "litert": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base", "export-litert"],
         "torch": None,
         "requirements": [],

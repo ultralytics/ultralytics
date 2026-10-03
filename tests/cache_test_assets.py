@@ -32,7 +32,6 @@ WEIGHTS = [
     "yolo26s-seg.pt",
     "yolo26s-pose.pt",
     "yolo26s-obb.pt",
-    "sam2.1_b.pt",
 ]
 
 DATASETS = [

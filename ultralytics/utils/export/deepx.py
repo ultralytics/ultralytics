@@ -31,11 +31,8 @@ def onnx2deepx(
     Returns:
         (str): Path to the exported DEEPX model directory.
     """
-    try:
-        import dx_com
-    except ImportError:
-        check_requirements("dx_com", cmds="-f https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html")
-        import dx_com
+    check_requirements("dx_com>=2.4.1")
+    import dx_com
 
     LOGGER.info(f"\n{prefix} starting export with DEEPX...")
 

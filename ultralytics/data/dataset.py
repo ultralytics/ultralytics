@@ -280,7 +280,7 @@ class YOLODataset(BaseDataset):
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == cache_hash  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+        except Exception:  # missing, stale, or unreadable (e.g. truncated) cache
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
         return cache, exists
 
@@ -1338,9 +1338,7 @@ class ClassificationDataset:
                     LOGGER.info("\n".join(cache["msgs"]))  # display warnings
             return samples
 
-        # NOTE: ModuleNotFoundError to prevent numpy version conflicts when loading cache files created with different numpy versions
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            # Run scan if *.cache retrieval failed
+        except Exception:  # run scan if *.cache retrieval failed, e.g. missing, stale, or truncated
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
             with ThreadPool(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))

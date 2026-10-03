@@ -263,6 +263,7 @@ CFG_INT_KEYS = frozenset(
         "line_width",
         "nbs",
         "save_period",
+        "val_period",
         "opset",
     }
 )
@@ -273,6 +274,7 @@ CFG_INT_MIN = {  # minimum valid values for integer arguments used as counts, di
     "max_det": 1,
     "mask_ratio": 1,
     "vid_stride": 1,
+    "val_period": 1,
     "seed": 0,
 }
 CFG_BOOL_KEYS = frozenset(

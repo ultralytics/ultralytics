@@ -803,7 +803,7 @@ def save_one_box(
     bounding box.
 
     Args:
-        xyxy (torch.Tensor | list): A tensor or list representing the bounding box in xyxy format.
+        xyxy (torch.Tensor | list): A bounding box in xyxy format, or (4, 2) OBB corners for a rotation-aligned crop.
         im (np.ndarray): The input BGR image with shape (H, W, C).
         file (Path, optional): Output path, saved as JPEG with an incremented name if the JPEG path already exists.
         gain (float, optional): A multiplicative factor to increase the size of the bounding box.
@@ -824,6 +824,11 @@ def save_one_box(
         >>> cropped_im = save_one_box(xyxy, im, file=Path("cropped.jpg"), square=True)
     """
     xyxy = torch.as_tensor(xyxy, dtype=torch.float32)  # float so integer boxes keep fractional centers and gain/pad
+    if xyxy.shape[-2:] == (4, 2):  # OBB corners: warp the box upright at its size, then crop the whole warp below
+        p = xyxy.reshape(4, 2).cpu().numpy()
+        w, h = (max(round(float(np.linalg.norm(p[0] - p[i]))), 1) for i in (3, 1))
+        M = cv2.getAffineTransform(p[:3], np.float32([[w, h], [w, 0], [0, 0]]))
+        im, xyxy = cv2.warpAffine(im, M, (w, h)).reshape(h, w, -1), torch.tensor([0.0, 0.0, w, h])
     b = ops.xyxy2xywh(xyxy.view(-1, 4))  # boxes
     if square:
         b[:, 2:] = b[:, 2:].max(1)[0].unsqueeze(1)  # attempt rectangle to square

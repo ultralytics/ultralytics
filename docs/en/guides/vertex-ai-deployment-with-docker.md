@@ -410,8 +410,7 @@ Create a `Dockerfile` in the root of your project with the following content:
 # Extends official Ultralytics Docker image for YOLO26
 FROM ultralytics/ultralytics:latest
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # Install FastAPI and dependencies
 RUN uv pip install --system fastapi[all] uvicorn[standard] loguru

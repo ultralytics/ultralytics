@@ -2045,12 +2045,12 @@ class DepthMetrics(SimpleClass, DataExportMixin):
 
     @property
     def delta2(self) -> float:
-        """Mean per-image fraction of pixels with max(p/g, g/p) < 1.25**2."""
+        """Mean per-image fraction of pixels with max(p/g, g/p) < `1.25**2`."""
         return self._results.get("metrics/delta2", 0.0)
 
     @property
     def delta3(self) -> float:
-        """Mean per-image fraction of pixels with max(p/g, g/p) < 1.25**3."""
+        """Mean per-image fraction of pixels with max(p/g, g/p) < `1.25**3`."""
         return self._results.get("metrics/delta3", 0.0)
 
     @property

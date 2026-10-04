@@ -164,7 +164,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
-          python-version: "3.x"
+          python-version: "3.14"
       - uses: ultralytics/actions/setup-uv@main
       - run: |
           uv venv sbom-env

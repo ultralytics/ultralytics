@@ -26,6 +26,7 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
 
 Requirements:
     $ pip install "ultralytics[export]"
@@ -63,6 +64,7 @@ Inference:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n_xilinx_model       # AMD Xilinx
 """
 
 from __future__ import annotations
@@ -114,6 +116,7 @@ from ultralytics.utils import (
     SETTINGS,
     TORCH_VERSION,
     WINDOWS,
+    XILINX_TARGETS,
     YAML,
     callbacks,
     colorstr,
@@ -125,6 +128,7 @@ from ultralytics.utils.checks import (
     IS_PYTHON_MINIMUM_3_13,
     check_data_portable,
     check_imgsz,
+    check_python,
     check_requirements,
     check_version,
     is_intel,
@@ -278,6 +282,15 @@ def export_formats():
             ["batch", "name", "quantize", "opset", "simplify", "nms"],
             "base",
         ],
+        [
+            "AMD Xilinx",
+            "xilinx",
+            "_xilinx_model",
+            True,
+            False,
+            ["name", "quantize", "data", "fraction", "opset", "simplify"],
+            "isolated-xilinx",
+        ],
     ]
     return dict(zip(["Format", "Argument", "Suffix", "CPU", "GPU", "Arguments", "Env"], zip(*x)))
 
@@ -319,7 +332,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=coreml model=yolo26n.pt imgsz=32"],
     },
     "mnn": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["MNN>=2.9.6", "aliyun-log-python-sdk", "protobuf<6.0.0,>=3.20.3"],
@@ -328,7 +341,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=mnn model=yolo26n.pt imgsz=32"],
     },
     "ncnn": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base"],
         "torch": None,
         "requirements": ["ncnn", "pnnx==20260526"],
@@ -337,7 +350,7 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=ncnn model=yolo26n.pt imgsz=32"],
     },
     "executorch": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base", "export-executorch"],
         "torch": ">=2.12",
         "requirements": [],
@@ -389,20 +402,26 @@ EXPORT_ENVS = {
         "smoke": ["yolo export format=axelera model=yolo26n.pt imgsz=64 data=coco8.yaml"],
     },
     "isolated-deepx": {
-        # dx-com 2.3.0 does not provide Python 3.13 wheels.
-        "python": "3.12",
+        "python": "3.14",
         "extras": ["export-base", "export-deepx"],
         "torch": ">=2.8,<2.12",
         "requirements": [],
-        "indexes": [
-            ("--find-links", "https://sdk.deepx.ai/release/dxcom/v2.3.0/index.html"),
-        ],
+        "indexes": [],
         # DeepX export is only supported on non-aarch64 Linux.
         "env": {},
         "smoke": ["yolo export format=deepx model=yolo26n.pt imgsz=32 data=coco8.yaml"],
     },
+    "isolated-xilinx": {
+        "python": "3.12",
+        "extras": ["export-base", "export-xilinx"],
+        "torch": None,
+        "requirements": [],
+        "indexes": [],
+        "env": {},
+        "smoke": ["yolo export format=xilinx model=yolo26n.pt imgsz=64 data=coco8.yaml"],
+    },
     "litert": {
-        "python": "3.13",
+        "python": "3.14",
         "extras": ["export-base", "export-litert"],
         "torch": None,
         "requirements": [],
@@ -432,11 +451,12 @@ INT8_FORMATS = frozenset(
         "axelera",
         "deepx",
         "hailo",
+        "xilinx",
     }
 )
 W8A16_FORMATS = frozenset({"coreml", "litert", "qnn"})  # INT8 weights + 16-bit activations (FP16; INT16 on LiteRT)
 W8A32_FORMATS = frozenset({"litert"})  # INT8 weights + FP32 activations (dynamic/weight-only INT8, no calibration)
-FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend"})
+FP32_UNSUPPORTED_FORMATS = frozenset({"edgetpu", "imx", "rknn", "axelera", "deepx", "qnn", "hailo", "ascend", "xilinx"})
 # (label, supporting formats) per quantize precision, used to list valid options in errors. 32/None (FP32) is universal except FP32_UNSUPPORTED_FORMATS.
 QUANTIZE_PRECISIONS = (
     ("16 (FP16)", FP16_FORMATS),
@@ -552,6 +572,7 @@ class Exporter:
         export_qnn: Export model to Qualcomm QNN format.
         export_hailo: Export model to Hailo HEF format.
         export_ascend: Export model to Huawei Ascend format.
+        export_xilinx: Export model to AMD Xilinx Vitis AI format.
 
     Examples:
         Export a YOLO26 model to TorchScript format
@@ -598,6 +619,8 @@ class Exporter:
             fmt = "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
+        if fmt in {"vitis", "vitisai", "versal"}:  # 'xilinx' aliases
+            fmt = self.args.format = "xilinx"
         if fmt in {"tflite", "tfjs"}:  # deprecated formats, replaced by the unified Google LiteRT export
             LOGGER.warning(
                 f"format='{fmt}' is deprecated as of 8.4.83 and has been replaced by the unified Google LiteRT "
@@ -636,10 +659,13 @@ class Exporter:
         # Argument compatibility checks
         fmt_keys = dict(zip(fmts_dict["Argument"], fmts_dict["Arguments"]))[fmt]
         validate_args(fmt, self.args, fmt_keys)
-        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo"} and self.args.quantize not in {8, "w8a16"}:
+        if fmt in {"deepx", "axelera", "imx", "edgetpu", "qnn", "hailo", "xilinx"} and self.args.quantize not in {
+            8,
+            "w8a16",
+        }:
             LOGGER.warning(f"{fmt} export requires INT8 quantization, enabling it.")
             self.args.quantize = "w8a16" if fmt == "qnn" else 8
-        if fmt in {"axelera", "hailo"} and not self.args.data:
+        if fmt in {"axelera", "hailo", "xilinx"} and not self.args.data:
             self.args.data = TASK2CALIBRATIONDATA.get(model.task)
         if fmt == "hailo":
             assert LINUX and not ARM64, "Hailo export is only supported on Linux x86_64."
@@ -784,6 +810,11 @@ class Exporter:
             self.args.name = str(self.args.name).lower().lstrip("v")  # accept '73', 'v73', or a supported SoC
             assert self.args.name in QNN_HTP_TARGETS, (
                 f"Invalid Qualcomm QNN target '{self.args.name}'. Valid targets are {tuple(QNN_HTP_TARGETS)}."
+            )
+        if fmt == "xilinx":
+            self.args.name = str(self.args.name or XILINX_TARGETS[0]).lower()
+            assert self.args.name in XILINX_TARGETS, (
+                f"Invalid AMD Xilinx device '{self.args.name}'. Valid devices are {XILINX_TARGETS}."
             )
         if self.args.nms and "nms" not in fmt_keys:
             LOGGER.warning(f"format={fmt} does not support embedded NMS; exporting native outputs for external NMS.")
@@ -1087,7 +1118,7 @@ class Exporter:
             # (e.g. onnxruntime-qnn for QNN export) instead of reinstalling stable onnxruntime and breaking its ABI.
             # ROCm gets stock onnxruntime, the base the MIGraphX EP plugin installs onto at inference.
             ort = "onnxruntime-gpu" if "cuda" in self.device.type and not rocm_is_available() else "onnxruntime"
-            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn")]
+            requirements += [(ort, "onnxruntime", "onnxruntime-gpu", "onnxruntime-qnn", "onnxruntime-vitisai")]
         if self.args.simplify:
             requirements += ["onnxslim>=0.1.82"]
         check_requirements(requirements)
@@ -1211,7 +1242,6 @@ class Exporter:
                 f_int8,
                 self.get_int8_calibration_dataloader(prefix),
                 self._transform_fn,
-                batch=0 if self.args.dynamic else self.args.batch,
                 prefix=prefix,
             )
             source.unlink(missing_ok=True)
@@ -1650,7 +1680,23 @@ class Exporter:
             transform_fn=self._transform_fn,
             name=self.args.name,
             metadata=self.metadata,
-            batch=self.args.batch,
+            prefix=prefix,
+        )
+
+    @try_export
+    def export_xilinx(self, prefix=colorstr("AMD Xilinx:")):  # noqa: B008
+        """Export YOLO model to AMD Xilinx Vitis AI format for Versal AI Edge Series Gen 2 NPUs."""
+        assert LINUX, "AMD Xilinx export is only supported on Linux."
+        check_python(">=3.11,<3.14")  # AMD Quark wheels, checked before the ONNX trace
+        from ultralytics.utils.export.xilinx import onnx2xilinx
+
+        self.args.opset = self.args.opset or 17  # opset validated by AMD for YOLO on Vitis AI
+        return onnx2xilinx(
+            onnx_file=self.export_onnx(),
+            output_dir=self.file.parent / f"{self.file.stem}_xilinx_model",
+            dataset=self.get_int8_calibration_dataloader(prefix),
+            transform_fn=self._transform_fn,
+            name=self.args.name,
             prefix=prefix,
         )
 
@@ -1811,13 +1857,19 @@ class Exporter:
         with zipfile.ZipFile(file, "a", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("metadata.json", json.dumps(self.metadata, indent=2))
 
-    @staticmethod
-    def _transform_fn(data_item) -> np.ndarray:
-        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN)."""
+    def _transform_fn(self, data_item) -> np.ndarray:
+        """Quantization preprocessing transform for INT8 calibration (Axelera, OpenVINO, ONNX, QNN).
+
+        Calibration datasets smaller than the export batch yield undersized batches that static-batch graphs reject, so
+        images are tiled up to exactly the export batch.
+        """
         data_item: torch.Tensor = data_item["img"] if isinstance(data_item, dict) else data_item
         assert data_item.dtype == torch.uint8, "Input image must be uint8 for the quantization preprocessing"
         im = data_item.numpy().astype(np.float32) / 255.0  # uint8 to float32 and 0 - 255 to 0.0 - 1.0
-        return im[None] if im.ndim == 3 else im
+        im = im[None] if im.ndim == 3 else im
+        if not self.args.dynamic and len(im) < self.args.batch:  # tile up to the static batch dimension
+            im = np.tile(im, (-(-self.args.batch // len(im)), 1, 1, 1))[: self.args.batch]
+        return im
 
     def add_callback(self, event: str, callback):
         """Append the given callback to the specified event."""

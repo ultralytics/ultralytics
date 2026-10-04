@@ -520,21 +520,26 @@ Using the Docker image you've just pushed, you can now import the model in Verte
 
 1. In Google Cloud navigation menu, go to Vertex AI > Model Registry. Alternatively, search for "Vertex AI" in the search bar at the top of the Google Cloud Console.
 
- <p align="center">
-   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
- </p>
+    <p align="center">
+      <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/vertex-ai-import.png" alt="Vertex AI Model Registry import interface">
+    </p>
+
 1. Click Import.
 1. Select Import as a new model.
 1. Select the region. You can choose the same region as your Artifact Registry repository, but your selection should be dictated by the availability of machine types and quotas in your region.
 1. Select Import an existing model container.
- <p align="center">
-   <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/import-model.png" alt="Vertex AI import model dialog">
- </p>
+
+    <p align="center">
+      <img width="80%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/import-model.png" alt="Vertex AI import model dialog">
+    </p>
+
 1. In the Container image field, browse the Artifact Registry repository you created earlier and select the image you just pushed.
 1. Scroll down to the Environment variables section and enter the predict and health endpoints, and the port that you defined in your FastAPI application.
- <p align="center">
-   <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/predict-health-port.png" alt="Vertex AI environment variables configuration">
- </p>
+
+    <p align="center">
+      <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/predict-health-port.png" alt="Vertex AI environment variables configuration">
+    </p>
+
 1. Click Import. Vertex AI will take several minutes to register the model and prepare it for deployment. You will receive an email notification once the import is complete.
 
 ## 5. Create a Vertex AI Endpoint and deploy your model
@@ -547,9 +552,10 @@ To deploy a model, you need to create an Endpoint in Vertex AI.
 
 1.  In your Vertex AI navigation menu, go to Endpoints. Select your region you used when importing your model. Click Create.
 
-<p align="center">
-  <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface">
-</p>
+    <p align="center">
+      <img width="60%" src="https://github.com/lussebullar/temp-image-storage/releases/download/docs/endpoint-name.png" alt="Vertex AI create endpoint interface">
+    </p>
+
 1.  Enter the Endpoint name.
 1.  For Access, Vertex AI recommends using private Vertex AI endpoints. Apart from security benefits, you get a higher payload limit if you select a private endpoint, however you will need to configure your VPC network and firewall rules to allow access to the endpoint. Refer to the Vertex AI documentation for more instructions on [private endpoints](https://docs.cloud.google.com/gemini-enterprise-agent-platform/machine-learning/predictions/choose-endpoint-type).
 1.  Click Continue.

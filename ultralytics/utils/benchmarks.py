@@ -31,6 +31,7 @@ DEEPX                   | `deepx`                   | yolo26n_deepx_model/
 Qualcomm QNN            | `qnn`                     | yolo26n_qnn.onnx
 Hailo                   | `hailo`                   | yolo26n_hailo_model/
 Huawei Ascend           | `ascend`                  | yolo26n_ascend_model/
+AMD Xilinx              | `xilinx`                  | yolo26n_xilinx_model/
 """
 
 from __future__ import annotations
@@ -40,6 +41,7 @@ import platform
 import shutil
 import time
 from copy import deepcopy
+from importlib.util import find_spec
 from pathlib import Path
 
 import numpy as np
@@ -191,6 +193,9 @@ def benchmark(
                 assert not (model.task == "segment" and any(isinstance(m, Segment26) for m in model.model.modules())), (
                     "Axelera export does not currently support YOLO26 segmentation models"
                 )
+            if export_format == "xilinx":
+                assert LINUX, "AMD Xilinx export only supported on Linux"
+                assert find_spec("quark"), "AMD Xilinx benchmark requires amd-quark"
             if export_format == "litert":
                 assert MACOS or (LINUX and not ARM64), "LiteRT benchmark only supported on Linux x86 and macOS"
                 # benchmark() deadlocks on the ai-edge-litert/TensorFlow abseil mutex (RAW: Lock blocking) on macOS CI

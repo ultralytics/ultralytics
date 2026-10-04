@@ -9,7 +9,7 @@ keywords: Ultralytics, YOLO, depth estimation, ETH3D, multi-view stereo, laser s
 
 # ETH3D Depth Dataset
 
-[ETH3D](https://www.eth3d.net/) is a high-resolution multi-view-stereo benchmark used for [monocular depth estimation](index.md). It provides survey-grade laser-scanner ground truth across both indoor and outdoor scenes.
+[ETH3D](https://openaccess.thecvf.com/content_cvpr_2017/html/Schops_A_Multi-View_Stereo_CVPR_2017_paper.html) is a high-resolution multi-view-stereo benchmark used for [monocular depth estimation](index.md). It provides survey-grade laser-scanner ground truth across both indoor and outdoor scenes.
 
 ## Key Features
 

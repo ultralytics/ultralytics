@@ -67,6 +67,8 @@ Welcome to the Ultralytics Integrations page! This page provides an overview of 
 
 - [AMD](amd.md): Export Ultralytics YOLO to ONNX and run GPU-accelerated inference on AMD Instinct and Radeon GPUs through the ONNX Runtime MIGraphX execution provider on ROCm, with native PyTorch ROCm training also supported.
 
+- [AMD Xilinx](xilinx.md): Export Ultralytics YOLO with `format="xilinx"` for AMD Versal AI Edge Series Gen 2 NPUs using AMD Quark and Vitis AI, with a guide to Zynq, Kria and Versal devices, DPU vs NPU accelerators and YOLO operator support.
+
 - [Axelera](axelera.md): Explore Metis accelerators and the Voyager SDK for running Ultralytics models with efficient edge inference.
 
 - [Core AI](coreai.md): Learn about Apple's new `.aimodel` format, how Core AI compares with Core ML, its current limitations, and how to export YOLO26 models with `format="coreai"` for the iOS 27 and macOS 27 generation.

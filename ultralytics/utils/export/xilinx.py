@@ -41,7 +41,8 @@ def onnx2xilinx(
     Returns:
         (str): Path to the exported AMD Xilinx model directory.
     """
-    check_requirements("amd-quark>=0.13.0,<0.14.0")
+    # Quark imports onnxruntime but only declares it in its cli extra
+    check_requirements(["amd-quark>=0.13.0,<0.14.0", ("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")])
     import onnx
 
     from ultralytics.utils.export.onnx import onnx_calibration_reader
@@ -67,6 +68,7 @@ def onnx2xilinx(
 
         config = get_default_config("VINT8")  # includes the Int32Bias, DedicatedQDQPair and QuantizeAllOpTypes options
         config.enable_npu_cnn = True
+        config.print_summary = False  # otherwise Quark writes quantized_info.csv to the working directory
         config.nodes_to_exclude = exclude
         ModelQuantizer(Config(global_quant_config=config)).quantize_model(
             str(onnx_file), str(f), onnx_calibration_reader(dataset, transform_fn)

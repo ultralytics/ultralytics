@@ -88,17 +88,17 @@ class KPTTracker:
     models flip people who turn). Two people side by side, or one half hidden behind the other, can have heavily
     overlapping boxes but look nothing alike by their keypoints. A track seen last frame takes a detection within
     `wobble_gate` times its wobble, how far its own matches usually land (a dancer's limbs land further from the
-    prediction than a walker's), and at least `match_gate`. A track's keypoints move with the person's velocity; a
-    lost person's velocity decays while the gate around them widens with time, so someone hidden for a moment comes
-    back close to where they vanished. Between the tracks a detection could go to, a lost track also
-    weighs the skeleton's scale (COCO keypoints).
+    prediction than a walker's), and at least `match_gate`. A track's keypoints move with the person's velocity; a lost
+    person's velocity decays while the gate around them widens with time, so someone hidden for a moment comes back
+    close to where they vanished. Between the tracks a detection could go to, a lost track also weighs the skeleton's
+    scale (COCO keypoints).
 
     A detection whose keypoints lie on a more confident detection's keypoints is first dropped as a duplicate
     (`kpt_nms`), which box NMS keeps when the boxes differ, e.g. a box around part of a person. Association follows
-    ByteTrack's stages: confident detections to every confirmed track, lost ones included; low-confidence detections
-    to the tracks seen last frame; the confident detections left to the tracks left, in a wider gate (the full
-    `lost_gate` for lost tracks: someone back sooner than their gate had widened); tentative tracks
-    to the confident detections left. A new tentative track is confirmed (given an ID) if matched the very next
+    ByteTrack's stages: confident detections to every confirmed track, lost ones included; low-confidence detections to
+    the tracks seen last frame; the confident detections left to the tracks left, in a wider gate (the full `lost_gate`
+    for lost tracks: someone back sooner than their gate had widened); tentative tracks to the confident detections
+    left. A new tentative track is confirmed (given an ID) if matched the very next
     frame. Lost tracks are forgotten after `track_buffer` frames, never for being close to somebody: that is where
     hidden people are.
 
@@ -165,8 +165,8 @@ class KPTTracker:
                 `cls`.
             img (np.ndarray | None): Current frame, unused.
             feats (np.ndarray | None): Per-detection features, unused.
-            kpts (np.ndarray | None): Keypoints of shape (N, K, 3) as x, y, confidence, or (N, K, 2) without
-                confidence (all seen), one row per detection.
+            kpts (np.ndarray | None): Keypoints of shape (N, K, 3) as x, y, confidence, or (N, K, 2) without confidence
+                (all seen), one row per detection.
             **kwargs (Any): Additional tracker-specific inputs, ignored by KPTTracker.
 
         Returns:
@@ -258,8 +258,8 @@ class KPTTracker:
             floor (float | list[float]): Minimum gate, or one per track.
 
         Returns:
-            matches (list[tuple[KeypointTrack, int, bool, float]]): (track, detection index, matched left-right
-                flipped, distance).
+            matches (list[tuple[KeypointTrack, int, bool, float]]): (track, detection index, matched left-right flipped,
+                distance).
             tracks_left (list[KeypointTrack]): Unmatched tracks.
             dets_left (np.ndarray): Indices of the unmatched detections.
         """
@@ -341,8 +341,8 @@ class KPTTracker:
         return np.where(m >= 2, np.take_along_axis(ratio, middle, axis=2)[..., 0], 0)
 
     def _gate(self, t: KeypointTrack) -> float:
-        """Return a track's gate: `wobble_gate` times its wobble, at least `match_gate`, if seen last frame; widening
-        to `lost_gate` over `lost_ramp` frames once lost.
+        """Return a track's gate: `wobble_gate` times its wobble, at least `match_gate`, if seen last frame; widening to
+        `lost_gate` over `lost_ramp` frames once lost.
         """
         a = self.args
         base = np.fmax(a.match_gate, a.wobble_gate * t.wobble)

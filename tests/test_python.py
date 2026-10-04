@@ -1261,6 +1261,35 @@ def test_labels_and_crops(tmp_path):
     assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
 
 
+def test_save_crop_file_names(tmp_path):
+    """Test crop file names keep dotted image and video names and get a single .jpg extension."""
+    from ultralytics.engine.results import Results
+
+    src = tmp_path / "src"
+    src.mkdir()
+    for name in ("bus", "frame.001", "frame.002", "IMG_1234_jpg.rf.6b0d5c3e7a"):
+        shutil.copy(SOURCE, src / f"{name}.jpg")
+    im = cv2.resize(cv2.imread(str(SOURCE)), (64, 64))
+    writer = cv2.VideoWriter(str(src / "traffic.cam1.avi"), cv2.VideoWriter_fourcc(*"MJPG"), 30, (64, 64))
+    for _ in range(3):
+        writer.write(im)
+    writer.release()
+    YOLO(CFG).predict(src, imgsz=64, conf=0.0, max_det=1, save_crop=True, project=tmp_path, name="p", verbose=False)
+    assert sorted(f.name for f in (tmp_path / "p/crops").rglob("*.jpg")) == [
+        "IMG_1234_jpg.rf.6b0d5c3e7a.jpg",
+        "bus.jpg",
+        "frame.001.jpg",
+        "frame.002.jpg",
+        "traffic.cam1_1.jpg",
+        "traffic.cam1_2.jpg",
+        "traffic.cam1_3.jpg",
+    ]
+
+    r = Results(im, path="im.jpg", names={0: "a"}, boxes=torch.tensor([[0.0, 0.0, 32.0, 32.0, 0.9, 0.0]]))
+    r.save_crop(save_dir=tmp_path / "direct", file_name="im.jpg")
+    assert [f.name for f in (tmp_path / "direct").rglob("*.jpg")] == ["im.jpg"]
+
+
 def test_data_utils(tmp_path):
     """Test data utility functions including auto-splitting and zip archiving."""
     from ultralytics.data.split import autosplit

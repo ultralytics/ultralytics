@@ -1,7 +1,7 @@
 ---
 title: AMD Xilinx Export for Ultralytics YOLO with Vitis AI on Versal, Zynq and Kria
 comments: true
-description: Export Ultralytics YOLO26 to AMD Xilinx Versal AI Edge NPUs with format="xilinx" and AMD Quark. Learn Vitis AI, DPU vs NPU, .rai and operator support.
+description: Export Ultralytics YOLO26 to AMD Xilinx Versal AI Edge Gen 2 NPUs with format="xilinx" and AMD Quark. Learn Vitis AI, DPU vs NPU, .rai and operator support.
 keywords: AMD Xilinx, Xilinx YOLO, format="xilinx", YOLO export AMD, Vitis AI, Vitis AI YOLO, Versal YOLO, VEK385 YOLO, AMD Quark VINT8, YOLO on FPGA, FPGA object detection, Zynq UltraScale+ MPSoC, Zynq YOLO, Kria KV260, Kria KR260, K26 system-on-module, Versal AI Edge, Versal AI Edge Gen 2, VEK280, VEK385, ZCU104, ZCU102, DPU, DPUCZDX8G, deep learning processing unit, NPU, AI Engine, AIE-ML, xmodel, rai, VART, XIR, AMD Quark, ONNX Runtime Vitis AI Execution Provider, INT8 quantization, Hard-Swish, SiLU, edge AI, embedded vision, Ultralytics, YOLO26, YOLO11, YOLOv8, ONNX export
 ---
 

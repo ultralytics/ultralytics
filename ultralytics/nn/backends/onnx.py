@@ -208,7 +208,7 @@ class ONNXBackend(BaseBackend):
                 if rocm
                 else "onnxruntime-gpu"
                 if cuda
-                else [("onnxruntime", "onnxruntime-vitisai")]  # keep AMD's Vitis AI build
+                else [("onnxruntime", "onnxruntime-gpu", "onnxruntime-vitisai")]  # keep GPU or AMD Vitis AI builds
             )
             import onnxruntime
 

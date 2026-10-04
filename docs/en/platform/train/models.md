@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 21 deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 22 deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -166,7 +166,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 21 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 22 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -228,7 +228,7 @@ graph LR
     classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 21 deployment formats:
+Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format

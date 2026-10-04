@@ -528,7 +528,7 @@ class BasePredictor:
             Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
+            result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:
             self.show(str(p))
         if self.args.save:

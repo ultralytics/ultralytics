@@ -12,6 +12,7 @@ FROM rocm/pytorch:rocm10.0_ubuntu24.04_py3.12_pytorch_release_2.13.0
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
+    UV_BREAK_SYSTEM_PACKAGES=1 \
     OMP_NUM_THREADS=1 \
     TF_CPP_MIN_LOG_LEVEL=3 \
     TORCH_CPP_LOG_LEVEL=ERROR
@@ -38,12 +39,13 @@ ADD https://github.com/ultralytics/assets/releases/download/v8.4.0/yolo26n.pt .
 
 # Install pip packages (PyTorch + ROCm already present in base image)
 # migraphx-libs provides the MIGraphX EP plugin's C library; libamdhip64.so.7 comes from the base image
-RUN pip install -e "." albumentations faster-coco-eval uv && \
-    pip install "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" \
+RUN python -m pip install --no-cache-dir uv && \
+    uv pip install --system --no-cache -e "." albumentations faster-coco-eval && \
+    uv pip install --system --no-cache "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" \
       --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ \
-      --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ && \
-    pip install "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" && \
-    rm -rf tmp ~/.cache /root/.config/Ultralytics/persistent_cache.json
+      --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ --index-strategy unsafe-best-match && \
+    uv pip install --system --no-cache "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82" && \
+    rm -rf tmp /root/.config/Ultralytics/persistent_cache.json
 
 # Usage --------------------------------------------------------------------------------------------------------------
 

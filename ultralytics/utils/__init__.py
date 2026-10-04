@@ -177,8 +177,9 @@ warnings.filterwarnings("ignore", message="The figure layout has changed to tigh
 warnings.filterwarnings("ignore", category=FutureWarning, module="timm")  # mobileclip timm.layers deprecation
 warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/TorchScript export tracer warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
-warnings.filterwarnings("ignore", message="`create_unbacked_symint` is deprecated")  # torchvision NMS torch.export
-warnings.filterwarnings("ignore", message="The tensor attribute")  # Detect anchors/strides cache under torch.export
+warnings.filterwarnings("ignore", "`create_unbacked_symint` is deprecated", FutureWarning, "torchvision")  # NMS export
+warnings.filterwarnings("ignore", r"`isinstance\(treespec, LeafSpec\)` is deprecated", FutureWarning)  # torch 2.13
+warnings.filterwarnings("ignore", r"The tensor attributes? self\.[\w.]+\.(anchors|valid_mask)\b", UserWarning)  # heads
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
 logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 

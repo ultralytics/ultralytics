@@ -1181,10 +1181,9 @@ class Exporter:
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
 
-        # IR version
-        if getattr(model_onnx, "ir_version", 0) > 10:
-            LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
-            model_onnx.ir_version = 10
+        # IR version: the opset's minimum like the TorchScript-based exporter writes, at most 10 for ONNX Runtime
+        ir_version = onnx.helper.OP_SET_ID_VERSION_MAP.get(("ai.onnx", opset), 10)
+        model_onnx.ir_version = min(model_onnx.ir_version, ir_version, 10)
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
         if self.args.quantize == 16 and self.args.format == "onnx" and self.device.type == "cpu":
@@ -1195,6 +1194,10 @@ class Exporter:
                 # Keep ConstantOfShape FP32: torch.export writes it without a value, which the converter mistypes
                 block = [*float16.DEFAULT_OP_BLOCK_LIST, "ConstantOfShape"]
                 model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True, op_block_list=block)
+                # The converter repeats an identical Cast for each consumer of a shared initializer, keep one
+                nodes = dict.fromkeys(n.SerializeToString() for n in model_onnx.graph.node)
+                del model_onnx.graph.node[:]
+                model_onnx.graph.node.extend(onnx.NodeProto.FromString(n) for n in nodes)
             except Exception as e:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 

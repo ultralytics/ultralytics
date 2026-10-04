@@ -176,7 +176,7 @@ class BaseBackend(ABC):
                         return json.loads(z.read("metadata.json"))
                     name = next((n for n in names if n.endswith("extra/config.txt")), None)  # torch.jit extra file
                     return json.loads(z.read(name)) if name else ast.literal_eval(z.read(names[0]).decode())
-            if p.suffix == ".onnx" or p.name.endswith("_imx_model"):  # IMX packages its ONNX in a directory
+            if p.suffix == ".onnx" or p.name.endswith(("_imx_model", "_xilinx_model")):  # ONNX packaged in a directory
                 return _read_proto_map(next(p.glob("*.onnx")) if p.is_dir() else p, (14,))  # metadata_props
             if p.suffix in {".mlpackage", ".mlmodel"}:  # description.metadata.userDefined
                 return _read_proto_map(next(p.rglob("*.mlmodel")) if p.is_dir() else p, (2, 100, 100))

@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-from scipy.optimize import linear_sum_assignment
+
+from ..utils.ops import linear_sum_assignment
 
 COCO_FLIP = [0, 2, 1, 4, 3, 6, 5, 8, 7, 10, 9, 12, 11, 14, 13, 16, 15]  # COCO keypoints, left <-> right
 COCO_BONES = np.array([(5, 6), (11, 12), (5, 11), (6, 12), (11, 13), (12, 14), (13, 15), (14, 16)])  # torso and legs

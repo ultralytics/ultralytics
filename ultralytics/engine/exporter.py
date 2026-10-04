@@ -1311,7 +1311,7 @@ class Exporter:
 
         if self.args.nms:  # MNN can't convert or run torch.export-based (opset>=18) ONNX NMS, keep the TorchScript one
             if self.args.opset and self.args.opset > 17:
-                LOGGER.warning(f"{prefix} 'nms=True' requires opset<=17, setting opset=17.")
+                LOGGER.warning(f"{prefix} 'nms=True' exports use opset<=17 for MNN compatibility, setting opset=17.")
             self.args.opset = min(self.args.opset or 17, 17)
         return onnx2mnn(
             onnx_file=self.export_onnx(),

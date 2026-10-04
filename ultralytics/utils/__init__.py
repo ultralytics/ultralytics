@@ -179,7 +179,8 @@ warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)  # ONNX/Torc
 warnings.filterwarnings("ignore", category=UserWarning, message=".*prim::Constant.*")  # ONNX shape warning
 warnings.filterwarnings("ignore", "`create_unbacked_symint` is deprecated", FutureWarning, "torchvision")  # NMS export
 warnings.filterwarnings("ignore", r"`isinstance\(treespec, LeafSpec\)` is deprecated", FutureWarning)  # torch 2.13
-warnings.filterwarnings("ignore", r"The tensor attributes? self\.[\w.]+\.(anchors|valid_mask)\b", UserWarning)  # heads
+# Detect and RT-DETR heads cache anchors in forward, which torch.export reports as attribute assignments
+warnings.filterwarnings("ignore", r"The tensor attributes? (self\.[\w.]+, )*self\.[\w.]+\.anchors\b", UserWarning)
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="coremltools")  # CoreML np.bool deprecation
 logging.getLogger("coremltools").setLevel(logging.ERROR)  # Suppress native binary load failures on non-macOS
 

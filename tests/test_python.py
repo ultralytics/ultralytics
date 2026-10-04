@@ -589,6 +589,48 @@ def test_track_second_association_indices():
     assert len(low) == 1 and int(low[0, -1]) == 2, f"second-association idx not preserved:\n{tracks}"
 
 
+def test_track_postprocess_drops_unconfirmed_when_no_tracks():
+    """When the tracker returns no confirmed tracks, raw unconfirmed detections must not leak into results.
+
+    BYTETrack hides unconfirmed dets whenever any confirmed track exists (via result[idx]). Leaving them
+    in place when len(tracks)==0 would make model.track() return is_track=False boxes for brand-new objects.
+    """
+    from ultralytics.engine.results import Results
+    from ultralytics.trackers.byte_tracker import BYTETracker
+    from ultralytics.trackers.track import on_predict_postprocess_end
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    args = IterableSimpleNamespace(**YAML.load(ROOT / "cfg/trackers/bytetrack.yaml"))
+    tracker = BYTETracker(args)
+
+    class _Pred:
+        def __init__(self):
+            self.args = IterableSimpleNamespace(mode="track", task="detect")
+            self.dataset = IterableSimpleNamespace(mode="image")
+            self.trackers = [tracker]
+            self.vid_path = [None]
+            self.results = []
+
+    def _result(rows):
+        data = torch.zeros((0, 6)) if not rows else torch.tensor(rows, dtype=torch.float32)
+        return Results(np.zeros((480, 640, 3), dtype=np.uint8), path="clip.mp4", names={0: "obj"}, boxes=data)
+
+    pred = _Pred()
+    a = [[100, 100, 200, 200, 0.9, 0]]
+    b = [[300, 300, 400, 400, 0.9, 0]]
+    for rows in (a, a, [], b):  # confirm A, clear frame, then brand-new B (unconfirmed)
+        pred.results = [_result(rows)]
+        on_predict_postprocess_end(pred, persist=True)
+
+    r = pred.results[0]
+    assert len(r.boxes) == 0, f"unconfirmed detection leaked when no tracks were confirmed:\n{r.boxes.data}"
+
+    pred.results = [_result(b)]  # second sighting confirms B
+    on_predict_postprocess_end(pred, persist=True)
+    r = pred.results[0]
+    assert len(r.boxes) == 1 and r.boxes.is_track, f"confirmed track not restored:\n{r.boxes.data}"
+
+
 def test_track_split_detections_degenerate_boxes():
     """`_split_detections` must drop zero/negative-dimension boxes from both confidence partitions while keeping every
     valid detection's index into the full detection-set space (later assigned to `track.idx`).

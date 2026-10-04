@@ -100,8 +100,8 @@ def torch2onnx(
 ) -> str:
     """Export a PyTorch model to ONNX format.
 
-    torch>=2.10 exports opset>=18 with the torch.export-based exporter. Older torch and opsets, and QAT models whose Q/DQ
-    nodes need its symbolics, keep the deprecated TorchScript-based exporter. Both name nodes by module scope (e.g.
+    torch>=2.10 exports opset>=18 with the torch.export-based exporter. Older torch and opsets, and QAT models whose
+    Q/DQ nodes need its symbolics, keep the deprecated TorchScript-based exporter. Both name nodes by module scope (e.g.
     ``/model.23/cv2.0/cv2.0.2/Conv``) so tools that select layers by name, like TensorRT INT8 precision constraints,
     work with either.
 
@@ -135,7 +135,9 @@ def torch2onnx(
         return str(output_file)
     check_requirements("onnxscript>=0.7.2")  # torch 2.14 NMS exports fail with onnxscript<0.7.2
     if dynamic and isinstance(im, torch.Tensor) and len(im) == 1 and 0 in dynamic.get(input_names[0], ()):
-        im = torch.cat((im, im))  # torch.export can trace a size-1 dynamic batch as static, e.g. through 1x1 attention
+        im = torch.cat(
+            (im, im)
+        )  # torch.export can specialize a size-1 batch, e.g. YOLOE heads or attention on 1x1 maps
     program = torch.onnx.export(
         model.eval(),  # wrappers like NMSModel are built in train mode, which the TorchScript exporter overrode
         im,

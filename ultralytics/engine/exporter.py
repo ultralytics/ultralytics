@@ -89,6 +89,7 @@ from ultralytics.nn.modules import (
     OBB,
     OBB26,
     Attention,
+    BNContrastiveHead,
     C2f,
     Classify,
     Depth,
@@ -99,6 +100,7 @@ from ultralytics.nn.modules import (
     Segment,
     Segment26,
     SemanticSegment,
+    WorldDetect,
 )
 from ultralytics.nn.tasks import ClassificationModel, DepthModel, DetectionModel, SegmentationModel, WorldModel
 from ultralytics.utils import (
@@ -143,9 +145,9 @@ from ultralytics.utils.torch_utils import (
     TORCH_2_3,
     TORCH_2_8,
     TORCH_2_9,
+    fuse_conv_and_bn,
     is_qat,
     select_device,
-    shape_as_tensor,
 )
 
 
@@ -914,6 +916,10 @@ class Exporter:
                 m.shape = None  # reset cached shape for new export input size
                 if hasattr(model, "pe") and hasattr(m, "fuse") and not hasattr(m, "lrpc"):  # for YOLOE models
                     m.fuse(model.pe.to(self.device))
+                if isinstance(m, WorldDetect):  # fold BN into cv3 so torch.export keeps its .2/Conv name for INT8 tools
+                    for cv3, cv4 in zip(m.cv3, m.cv4):
+                        if isinstance(cv4, BNContrastiveHead):
+                            cv3[-1], cv4.norm = fuse_conv_and_bn(cv3[-1], cv4.norm), torch.nn.Identity()
             elif isinstance(m, C2f) and not is_tf_format:
                 # EdgeTPU does not support FlexSplitV while split provides cleaner ONNX graph
                 m.forward = m.forward_split
@@ -1182,10 +1188,9 @@ class Exporter:
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
 
-        # IR version
-        if getattr(model_onnx, "ir_version", 0) > 10:
-            LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
-            model_onnx.ir_version = 10
+        # IR version: the opset minimum, like the TorchScript-based exporter, for older runtimes and at most 10 for ORT
+        min_ir = onnx.helper.find_min_ir_version_for(model_onnx.opset_import, ignore_unknown=True)
+        model_onnx.ir_version = min(model_onnx.ir_version, min_ir, 10)
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
         if self.args.quantize == 16 and self.args.format == "onnx" and self.device.type == "cpu":
@@ -1193,7 +1198,9 @@ class Exporter:
                 from onnxruntime.transformers import float16
 
                 LOGGER.info(f"{prefix} converting to FP16...")
-                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
+                # Keep ConstantOfShape FP32: torch.export writes it without a value, which the converter mistypes
+                block = [*float16.DEFAULT_OP_BLOCK_LIST, "ConstantOfShape"]
+                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True, op_block_list=block)
             except Exception as e:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
@@ -1306,6 +1313,8 @@ class Exporter:
         from ultralytics.utils.export.mnn import onnx2mnn
 
         if self.args.nms:  # MNN can't convert or run torch.export-based (opset>=18) ONNX NMS, keep the TorchScript one
+            if self.args.opset and self.args.opset > 17:
+                LOGGER.warning(f"{prefix} 'nms=True' requires opset<=17, setting opset=17.")
             self.args.opset = min(self.args.opset or 17, 17)
         return onnx2mnn(
             onnx_file=self.export_onnx(),
@@ -1934,10 +1943,12 @@ class NMSModel(torch.nn.Module):
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         bs = pred.shape[0]
+        # TorchScript tracing records shapes read as tensors, torch.export records int shapes symbolically
+        shape = torch._shape_as_tensor if torch.jit.is_tracing() else lambda t: torch.tensor(t.shape)
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = pred.new_zeros((self.args.batch - shape_as_tensor(pred)[0]).clamp(min=0), *pred.shape[1:])
+            pad = pred.new_zeros((self.args.batch - shape(pred)[0]).clamp(min=0), *pred.shape[1:])
             pred = torch.cat((pred, pad))
         if self.args.dynamic and self.args.format == "onnx" and self.obb:
             pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)
@@ -1958,7 +1969,7 @@ class NMSModel(torch.nn.Module):
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            nmsbox = multiplier * (nmsbox / shape_as_tensor(x)[2:].max().to(nmsbox.dtype))
+            nmsbox = multiplier * (nmsbox / shape(x)[2:].max().to(nmsbox.dtype))
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
@@ -1979,7 +1990,7 @@ class NMSModel(torch.nn.Module):
                 if self.obb
                 else nms
             )
-            keep = nms_fn(  # ONNX NonMaxSuppression takes FP32 only, which the torch.export-based exporter keeps
+            keep = nms_fn(  # ONNX NonMaxSuppression is FP32-only and the torch.export-based exporter adds no Cast
                 torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox.float(),
                 score if self.obb else score.float(),
                 self.args.iou,

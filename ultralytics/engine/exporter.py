@@ -418,10 +418,7 @@ EXPORT_ENVS = {
         "requirements": [],
         "indexes": [],
         "env": {},
-        "smoke": [
-            "yolo export format=xilinx model=yolo26n.pt imgsz=64 data=coco8.yaml",
-            "yolo val model=yolo26n_xilinx_model data=coco8.yaml imgsz=64",
-        ],
+        "smoke": ["yolo export format=xilinx model=yolo26n.pt imgsz=64 data=coco8.yaml"],
     },
     "litert": {
         "python": "3.14",

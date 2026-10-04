@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import sysconfig
 from pathlib import Path
 
@@ -41,33 +42,37 @@ def onnx2xilinx(
         (str): Path to the exported AMD Xilinx model directory.
     """
     check_requirements("amd-quark>=0.13.0,<0.14.0")
-    # Quark JIT-loads its ONNX custom ops with the ninja it installs beside this interpreter, which is missing from PATH
-    # when the interpreter is launched by absolute path instead of through an activated environment
-    scripts = sysconfig.get_path("scripts")
-    if scripts not in os.environ.get("PATH", "").split(os.pathsep):
-        os.environ["PATH"] = os.pathsep.join(filter(None, (scripts, os.environ.get("PATH"))))
     import onnx
-    from quark.onnx import ModelQuantizer
-    from quark.onnx.quantization.config import Config, get_default_config
 
     from ultralytics.utils.export.onnx import onnx_calibration_reader
 
     onnx_file, output_dir = Path(onnx_file), Path(output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    if output_dir.exists():
+        shutil.rmtree(output_dir)  # the Vitis AI EP would reuse a previous export's compiled model cache
+    output_dir.mkdir(parents=True)
     graph = onnx.load(onnx_file).graph
     head = max(int(m[1]) for n in graph.node if (m := re.match(r"/model\.(\d+)/", n.name)))
     exclude = [n.name for n in graph.node if n.name.startswith(f"/model.{head}/")]
     del graph
 
-    config = get_default_config("VINT8")
-    config.extra_options.update(Int32Bias=False, DedicatedQDQPair=True, QuantizeAllOpTypes=True)
-    config.enable_npu_cnn = True
-    config.nodes_to_exclude = exclude
     f = output_dir / onnx_file.name
     LOGGER.info(f"{prefix} quantizing VINT8 with AMD Quark, keeping {len(exclude)} head nodes float...")
-    ModelQuantizer(Config(global_quant_config=config)).quantize_model(
-        str(onnx_file), str(f), onnx_calibration_reader(dataset, transform_fn)
-    )
+    # Quark JIT-loads its ONNX custom ops with the ninja it installs beside this interpreter, which is missing from PATH
+    # when the interpreter is launched by absolute path instead of through an activated environment
+    path = os.environ.get("PATH", "")
+    os.environ["PATH"] = os.pathsep.join(filter(None, (sysconfig.get_path("scripts"), path)))
+    try:
+        from quark.onnx import ModelQuantizer
+        from quark.onnx.quantization.config import Config, get_default_config
+
+        config = get_default_config("VINT8")  # includes the Int32Bias, DedicatedQDQPair and QuantizeAllOpTypes options
+        config.enable_npu_cnn = True
+        config.nodes_to_exclude = exclude
+        ModelQuantizer(Config(global_quant_config=config)).quantize_model(
+            str(onnx_file), str(f), onnx_calibration_reader(dataset, transform_fn)
+        )
+    finally:
+        os.environ["PATH"] = path
     onnx_file.unlink()
 
     vaiml = {"device": name, "keep_outputs": True, "optimize_level": 2, "threshold_gops_percent": 20}

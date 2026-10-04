@@ -1305,6 +1305,8 @@ class Exporter:
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
         from ultralytics.utils.export.mnn import onnx2mnn
 
+        if self.args.nms:  # MNN can't convert or run torch.export-based (opset>=18) ONNX NMS, keep the TorchScript one
+            self.args.opset = min(self.args.opset or 17, 17)
         return onnx2mnn(
             onnx_file=self.export_onnx(),
             output_file=self.file.with_suffix(".mnn"),
@@ -1977,9 +1979,9 @@ class NMSModel(torch.nn.Module):
                 if self.obb
                 else nms
             )
-            keep = nms_fn(
-                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
-                score,
+            keep = nms_fn(  # ONNX NonMaxSuppression takes FP32 only, which the torch.export-based exporter keeps
+                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox.float(),
+                score if self.obb else score.float(),
                 self.args.iou,
             )[: self.args.max_det]
             dets = torch.cat(

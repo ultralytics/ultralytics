@@ -16,7 +16,7 @@ import torch
 
 from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
-from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_10
+from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_10, is_qat
 
 
 @lru_cache
@@ -100,9 +100,10 @@ def torch2onnx(
 ) -> str:
     """Export a PyTorch model to ONNX format.
 
-    torch>=2.10 exports opset>=18 with the torch.export-based exporter, naming nodes by module scope like the deprecated
-    TorchScript-based exporter used for older torch and opsets (e.g. ``/model.23/cv2.0/cv2.0.2/Conv``) so tools that
-    select layers by name, like TensorRT INT8 precision constraints, work with both.
+    torch>=2.10 exports opset>=18 with the torch.export-based exporter. Older torch and opsets, and QAT models whose Q/DQ
+    nodes need its symbolics, keep the deprecated TorchScript-based exporter. Both name nodes by module scope (e.g.
+    ``/model.23/cv2.0/cv2.0.2/Conv``) so tools that select layers by name, like TensorRT INT8 precision constraints,
+    work with either.
 
     Args:
         model (torch.nn.Module): The PyTorch model to export.
@@ -120,7 +121,7 @@ def torch2onnx(
         input_names = ["images"]
     if output_names is None:
         output_names = ["output0"]
-    if not (TORCH_2_10 and opset >= 18):  # torch.export-based exporter, opset>=18 only and unreliable in torch 2.9
+    if not (TORCH_2_10 and opset >= 18) or is_qat(model):  # torch 2.9 fails dynamic and NMS exports
         torch.onnx.export(
             model,
             im,

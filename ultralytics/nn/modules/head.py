@@ -1722,7 +1722,8 @@ class RTDETRDecoder(nn.Module):
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
-        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        # torch.export lowers that floor-div through float, which TensorRT FP16 rounds, so it keeps integer floor-div.
+        query_idx = torch.div(index, self.nc, rounding_mode="floor") if torch.jit.is_tracing() else index // self.nc
         boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
         return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
 

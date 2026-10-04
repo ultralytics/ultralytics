@@ -16,7 +16,7 @@ import torch
 
 from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
-from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_10, is_qat
+from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_13, is_qat
 
 
 @lru_cache
@@ -100,7 +100,7 @@ def torch2onnx(
 ) -> str:
     """Export a PyTorch model to ONNX format.
 
-    torch>=2.10 exports opset>=18 with the torch.export-based exporter. Older torch and opsets, and QAT models whose
+    torch>=2.13 exports opset>=18 with the torch.export-based exporter. Older torch and opsets, and QAT models whose
     Q/DQ nodes need its symbolics, keep the deprecated TorchScript-based exporter. Both name nodes by module scope (e.g.
     ``/model.23/cv2.0/cv2.0.2/Conv``) so tools that select layers by name, like TensorRT INT8 precision constraints,
     work with either.
@@ -121,7 +121,7 @@ def torch2onnx(
         input_names = ["images"]
     if output_names is None:
         output_names = ["output0"]
-    if not (TORCH_2_10 and opset >= 18) or is_qat(model):  # torch 2.9 fails dynamic and NMS exports
+    if not (TORCH_2_13 and opset >= 18) or is_qat(model):  # earlier torch.export fails NMS, dynamic and World models
         torch.onnx.export(
             model,
             im,
@@ -135,9 +135,8 @@ def torch2onnx(
         return str(output_file)
     check_requirements("onnxscript>=0.7.2")  # torch 2.14 NMS exports fail with onnxscript<0.7.2
     if dynamic and isinstance(im, torch.Tensor) and len(im) == 1 and 0 in dynamic.get(input_names[0], ()):
-        im = torch.cat(
-            (im, im)
-        )  # torch.export can specialize a size-1 batch, e.g. YOLOE heads or attention on 1x1 maps
+        # torch.export can specialize a size-1 batch, e.g. YOLOE heads or attention on 1x1 maps
+        im = torch.cat((im, im))
     program = torch.onnx.export(
         model.eval(),  # wrappers like NMSModel are built in train mode, which the TorchScript exporter overrode
         im,
@@ -156,6 +155,11 @@ def torch2onnx(
         node.name = f"{name}_{seen[name]}" if seen[name] else name
         seen[name] += 1
         node.metadata_props.clear()  # drop stack traces and local source paths
+    # Write the opset's minimum IR version like the TorchScript-based exporter, which older runtimes (ORT<1.18) load
+    import onnx
+
+    ir_version = onnx.helper.OP_SET_ID_VERSION_MAP.get(("ai.onnx", opset), program.model.ir_version)
+    program.model.ir_version = min(program.model.ir_version, ir_version)
     program.save(output_file)
     return str(output_file)
 

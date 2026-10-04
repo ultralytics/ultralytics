@@ -1001,6 +1001,13 @@ class WorldDetect(Detect):
         y = self._inference(preds)
         return y if self.export else (y, preds)
 
+    def fuse(self) -> None:
+        """Remove the unused detection branch and fold the contrastive-head BatchNorm into the cv3 output convs."""
+        super().fuse()
+        for cv3, cv4 in zip(self.cv3, self.cv4):
+            if isinstance(getattr(cv4, "norm", None), nn.BatchNorm2d):
+                cv3[-1], cv4.norm = fuse_conv_and_bn(cv3[-1], cv4.norm), nn.Identity()
+
     def bias_init(self):
         """Initialize box biases; class scores come from text-embedding similarity, so cv3 keeps its defaults."""
         for a in self.cv2:

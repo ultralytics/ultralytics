@@ -296,6 +296,30 @@ YOLO depth estimation returns one `Results` object per image. Each result stores
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
+### Per-object depth with instance segmentation
+
+Combine [instance segmentation](segment.md) with depth to estimate how far away each detected object is. Run both models on the same image with `retina_masks=True` so the masks share the depth map's original-image resolution, then take the median of the valid depth pixels inside each mask.
+
+!!! example "Median depth per segmented object"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        image = "https://ultralytics.com/images/bus.jpg"
+        seg = YOLO("yolo26n-seg.pt")(image, retina_masks=True)[0]
+        depth = YOLO("yolo26n-depth.pt")(image)[0].depth.data  # (H, W) meters
+
+        if seg.masks is not None:
+            for mask, cls in zip(seg.masks.data.bool(), seg.boxes.cls):
+                values = depth[mask & (depth > 0)]  # valid depth pixels inside this mask
+                if values.numel():
+                    print(f"{seg.names[int(cls)]}: {values.median():.2f} m")
+        ```
+
+The median is robust to background pixels at mask edges, but it describes the object's visible surface rather than its center, and its accuracy follows the model's depth scale (see [Calibrating the depth scale](#calibrating-the-depth-scale)).
+
 ### Colorizing the depth map
 
 The raw depth map is a single-channel float array in meters — useful for computation, but hard to read directly. To turn it into a color image, use the `colorize_depth` helper in `ultralytics.utils.plotting`, which maps the `(H, W)` depth array to a `(H, W, 3)` BGR `uint8` image (invalid pixels `<= 0` are rendered black).

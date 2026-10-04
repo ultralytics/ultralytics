@@ -135,6 +135,9 @@ export-deepx = [
     "dx_com>=2.4.1",
     "numpy<2; python_version < '3.13'",  # NumPy 1.x wheels stop at Python 3.12
 ]
+export-xilinx = [  # AMD Xilinx Versal AI Edge Gen 2 export, AMD Quark quantizer
+    "amd-quark>=0.13.0,<0.14.0; platform_system == 'Linux' and python_version >= '3.11' and python_version < '3.14'",
+]
 export-litert = [  # LiteRT export, Linux x86 and macOS (litert-torch trace + ai-edge-litert/quantizer)
     "litert-torch>=0.9.0; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",
     "ai-edge-litert>=2.1.4; ((platform_system == 'Linux' and platform_machine == 'x86_64') or platform_system == 'Darwin') and python_version >= '3.10'",
@@ -203,6 +206,8 @@ conflicts = [
     [{ extra = "export-deepx" }, { extra = "export-executorch" }, { extra = "export-tensorflow" }],
     [{ extra = "export-legacy-torch" }, { extra = "export-openvino" }],
     [{ extra = "export-legacy-torch" }, { extra = "export-tensorflow" }],
+    [{ extra = "export-xilinx" }, { extra = "export" }, { extra = "export-legacy-torch" }],
+    [{ extra = "export-xilinx" }, { extra = "export-tensorflow" }, { extra = "export-deepx" }],
 ]
 
 [tool.pytest.ini_options]

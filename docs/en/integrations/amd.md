@@ -349,7 +349,8 @@ Support for one AMD product or runtime does not imply support for every AMD acce
 | Native MIGraphX export                           | ❌      | Export to ONNX with `format="onnx"` and run it on the MIGraphX EP for AMD GPU inference.                             |
 | Windows DirectML                                 | ❌      | No DirectML training or prediction backend in the Python package.                                                    |
 | Ryzen AI NPU                                     | ❌      | No native NPU integration; external ONNX/Vitis AI workflows are community-managed.                                   |
-| AMD Xilinx Zynq, Kria and Versal                 | ❌      | No native export yet (coming soon); deploy with AMD Vitis AI using the [AMD Xilinx guide](xilinx.md).                |
+| AMD Xilinx Versal AI Edge Gen 2 NPUs             | ✅      | Export with `format="xilinx"`; see the [AMD Xilinx guide](xilinx.md).                                                |
+| AMD Xilinx Zynq, Kria, Versal AI Edge Gen 1      | ❌      | No native export; use AMD Vitis AI flows in the [AMD Xilinx guide](xilinx.md#deploying-on-other-amd-xilinx-targets). |
 | AMD CPUs                                         | ✅ CPU  | Use `device=cpu`; standard CPU execution, not an AMD-specific acceleration backend.                                  |
 
 !!! note "Check AMD and PyTorch compatibility first"
@@ -413,7 +414,7 @@ This is expected. PyTorch ROCm intentionally reuses the `torch.cuda` API and CUD
 
 ### Does Ultralytics support DirectML or Ryzen AI NPUs?
 
-Not through the Python package. DirectML has no training or prediction backend, and Ryzen AI NPUs are not exposed through PyTorch ROCm. Community workflows may export to ONNX and run with AMD's external Ryzen AI or Vitis AI tools, but those runtimes are outside the supported Ultralytics execution path. For embedded AMD Xilinx Zynq, Kria and Versal devices, see the [AMD Xilinx deployment guide](xilinx.md).
+Not through the Python package. DirectML has no training or prediction backend, and Ryzen AI NPUs are not exposed through PyTorch ROCm. Community workflows may export to ONNX and run with AMD's external Ryzen AI or Vitis AI tools, but those runtimes are outside the supported Ultralytics execution path. For embedded AMD Xilinx Versal AI Edge Series Gen 2 NPUs, export with `format="xilinx"`; for Zynq, Kria and first-generation Versal AI Edge devices, see the [AMD Xilinx guide](xilinx.md).
 
 ### How do I select a specific GPU on a multi-GPU AMD host?
 

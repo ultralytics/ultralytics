@@ -134,6 +134,8 @@ def torch2onnx(
         )
         return str(output_file)
     check_requirements("onnxscript>=0.7.2")  # torch 2.14 NMS exports fail with onnxscript<0.7.2
+    if dynamic and isinstance(im, torch.Tensor) and len(im) == 1 and 0 in dynamic.get(input_names[0], ()):
+        im = torch.cat((im, im))  # torch.export can trace a size-1 dynamic batch as static, e.g. through 1x1 attention
     program = torch.onnx.export(
         model.eval(),  # wrappers like NMSModel are built in train mode, which the TorchScript exporter overrode
         im,

@@ -411,7 +411,7 @@ class BYTETRAX:
                         and existing_track.track_id not in merged_track_ids
                     ):
                         iou = self.calculate_iou(track, existing_track)
-                        if iou > max_iou and iou > 0.5:  # IoU > 0.5 as default threshold
+                        if existing_track.cls == track.cls and iou > max_iou and iou > 0.5:
                             max_iou = iou
                             merge_candidate = existing_track
 

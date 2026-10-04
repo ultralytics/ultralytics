@@ -178,13 +178,16 @@ class ONNXBackend(BaseBackend):
         """Load an ONNX model using ONNX Runtime or OpenCV DNN.
 
         Args:
-            weight (str | Path): Path to the .onnx model file.
+            weight (str | Path): Path to the .onnx model file, or an AMD Xilinx export directory containing one.
         """
         if not isinstance(self.device, torch.device):  # 'intel', 'tpu' or 'vulkan' device strings run on CPU
             self.device = torch.device("cpu")
         cuda = torch.cuda.is_available() and self.device.type != "cpu"
 
         self.apply_metadata(self.read_metadata(weight))
+        w = Path(weight)
+        if w.is_dir():  # AMD Xilinx export: Quark-quantized ONNX model beside its Vitis AI compiler config
+            weight = next(w.glob("*.onnx"))
 
         if self.format == "dnn":
             # OpenCV DNN
@@ -201,7 +204,11 @@ class ONNXBackend(BaseBackend):
                 check_requirements(ROCM_EP_PACKAGES, cmds=ROCM_EXTRA_INDEX)
             # Stock onnxruntime underlies the MIGraphX plugin and is the CPU fallback if the plugin is unavailable
             check_requirements(
-                [("onnxruntime", "onnxruntime-gpu")] if rocm else "onnxruntime-gpu" if cuda else "onnxruntime"
+                [("onnxruntime", "onnxruntime-gpu")]
+                if rocm
+                else "onnxruntime-gpu"
+                if cuda
+                else [("onnxruntime", "onnxruntime-vitisai")]  # keep AMD's Vitis AI build
             )
             import onnxruntime
 
@@ -218,6 +225,10 @@ class ONNXBackend(BaseBackend):
                     providers = [("CUDAExecutionProvider", {"device_id": self.device.index}), "CPUExecutionProvider"]
                 elif self.device.type == "mps" and "CoreMLExecutionProvider" in available:
                     providers = ["CoreMLExecutionProvider", "CPUExecutionProvider"]
+                elif "VitisAIExecutionProvider" in available and (config := w / "vitisai_config.json").exists():
+                    # Compiles the AMD Xilinx export to a cached .rai model on first load, then runs it on the NPU
+                    options = {"config_file": str(config), "cache_dir": str(w), "cache_key": Path(weight).stem}
+                    providers = [("VitisAIExecutionProvider", {**options, "target": "VAIML"}), "CPUExecutionProvider"]
                 else:
                     providers = ["CPUExecutionProvider"]
 

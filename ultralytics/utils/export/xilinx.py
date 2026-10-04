@@ -25,8 +25,8 @@ def onnx2xilinx(
     The model is quantized to the Vitis AI `VINT8` configuration (symmetric INT8 with power-of-two scales) using the
     options AMD requires for NPU compilation. The model head stays in floating point, which the Vitis AI compiler runs
     in BF16 on the NPU, because INT8 there costs most of the quantization accuracy loss. The output directory holds the
-    quantized ONNX model, which keeps the Ultralytics metadata, and a `vitisai_config.json` for the target device. The ONNX Runtime Vitis AI Execution Provider compiles them to a `.rai` model in the same
-    directory on first load.
+    quantized ONNX model, which keeps the Ultralytics metadata, and a `vitisai_config.json` for the target device. The
+    ONNX Runtime Vitis AI Execution Provider compiles them to a `.rai` model in the same directory on first load.
 
     Args:
         onnx_file (str | Path): Path to the source FP32 ONNX model, deleted after quantization.

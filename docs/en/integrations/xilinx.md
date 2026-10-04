@@ -292,6 +292,8 @@ The table compares the exported INT8 model with the FP32 ONNX model on [COCO](..
 | Model                          | FP32 mAP50-95 | AMD Xilinx INT8 mAP50-95 |
 | :----------------------------- | :------------ | :----------------------- |
 | [YOLO26n](../models/yolo26.md) | 40.3          | 36.7                     |
+| [YOLO26s](../models/yolo26.md) | 47.9          | 42.5                     |
+| [YOLO11n](../models/yolo11.md) | 38.8          | 35.5                     |
 
 These host results run the quantized model with ONNX Runtime on the CPU, the baseline AMD's [accuracy methodology](https://vitisai.docs.amd.com/projects/gen2/en/latest/docs/model_compilation/accuracy_methodology.html) compares NPU results against. AMD's published YOLOv8m results on the VEK385 show the same mixed-precision approach on the NPU:
 

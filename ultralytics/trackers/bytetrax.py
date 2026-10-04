@@ -45,7 +45,7 @@ class STrack(BaseTrack):
         tlwh_to_xyah: Convert tlwh bounding box to xyah format.
 
     Examples:
-        Initialise and activate a new track
+        Initialize and activate a new track
         >>> track = STrack(xywh=[100, 200, 50, 80, 0], score=0.9, cls="person")
         >>> track.activate(kalman_filter=KalmanFilterXYAH(), frame_id=1)
     """
@@ -53,7 +53,7 @@ class STrack(BaseTrack):
     shared_kalman = KalmanFilterXYAH()
 
     def __init__(self, xywh: list[float], score: float, cls: Any):
-        """Initialise a new STrack instance.
+        """Initialize a new STrack instance.
 
         Args:
             xywh (list[float]): Bounding box in `(x, y, w, h, idx)` or `(x, y, w, h, angle, idx)` format, where (x, y)
@@ -98,7 +98,7 @@ class STrack(BaseTrack):
             stracks[i].covariance = cov
 
     def activate(self, kalman_filter: KalmanFilterXYAH, frame_id: int):
-        """Activate a new tracklet using the provided Kalman filter and initialise its state and covariance."""
+        """Activate a new tracklet using the provided Kalman filter and initialize its state and covariance."""
         self.kalman_filter = kalman_filter
         self.track_id = self.next_id()
         self.mean, self.covariance = self.kalman_filter.initiate(self.convert_coords(self._tlwh))
@@ -210,12 +210,12 @@ class STrack(BaseTrack):
 
 
 class BYTETRAX:
-    """BYTETRAX: An enhanced implementation of the ByteTrack architecture with optimised thresholding.
+    """BYTETRAX: An enhanced implementation of the ByteTrack architecture with optimized thresholding.
 
-    A simple enhancement of the ByteTrack algorithm that optimises track continuity via a single unified matching
+    A simple enhancement of the ByteTrack algorithm that optimizes track continuity via a single unified matching
     threshold. To further limit identity switches, this includes functions to reconnect lost tracks, and merge
-    overlapping same-class tracks into existing trajectories. These modifications improve both accuracy
-    and processing speed.
+    overlapping same-class tracks into existing trajectories. These modifications improve both accuracy and processing
+    speed.
 
     Attributes:
         tracked_stracks (list[STrack]): List of successfully activated tracks.
@@ -229,7 +229,7 @@ class BYTETRAX:
     Methods:
         update: Update object tracker with new detections.
         get_kalmanfilter: Return a Kalman filter object for tracking bounding boxes.
-        init_track: Initialise object tracking with detections.
+        init_track: Initialize object tracking with detections.
         get_dists: Calculate the distance between tracks and detections.
         multi_predict: Predict the location of tracks.
         reset_id: Reset the ID counter of STrack.
@@ -238,14 +238,14 @@ class BYTETRAX:
         calculate_iou: Calculate Intersection over Union (IoU) between two tracks.
 
     Examples:
-        Initialise BYTETRAX and update with detection results
+        Initialize BYTETRAX and update with detection results
         >>> tracker = BYTETRAX(args, frame_rate=30)
         >>> results = yolo_model.detect(image)
         >>> tracked_objects = tracker.update(results)
     """
 
     def __init__(self, args, frame_rate: int = 30):
-        """Initialise a BYTETRAX instance for object tracking.
+        """Initialize a BYTETRAX instance for object tracking.
 
         Args:
             args (Namespace): Command-line arguments containing tracking parameters.
@@ -267,15 +267,14 @@ class BYTETRAX:
         Args:
             results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
                 `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
-            img (np.ndarray | None): Current BGR frame, used for global motion compensation when a `gmc` estimator
-                is attached.
+            img (np.ndarray | None): Current BGR frame, used for global motion compensation when a `gmc` estimator is
+                attached.
             feats (np.ndarray | None): Optional per-detection features, accepted for interface compatibility.
             **kwargs (Any): Additional tracker-specific inputs, ignored by BYTETRAX.
 
         Returns:
-            (np.ndarray): Array of shape (N, 8) with `[x1, y1, x2, y2, track_id, score, cls, idx]` rows, or (N, 9)
-                with `[x, y, w, h, angle, track_id, score, cls, idx]` rows for OBB, where `idx` is the detection
-                index.
+            (np.ndarray): Array of shape (N, 8) with `[x1, y1, x2, y2, track_id, score, cls, idx]` rows, or (N, 9) with
+                `[x, y, w, h, angle, track_id, score, cls, idx]` rows for OBB, where `idx` is the detection index.
         """
         self.frame_id += 1
         activated_stracks = []
@@ -339,7 +338,7 @@ class BYTETRAX:
             track = unconfirmed[it]
             track.mark_removed()
             removed_stracks.append(track)
-        # Step 4: Check for track reconnection before initialising new tracks (if enabled)
+        # Step 4: Check for track reconnection before initializing new tracks (if enabled)
         reconnected_tracks = []
         remaining_detections = []
 
@@ -386,7 +385,7 @@ class BYTETRAX:
 
         u_detection = remaining_detections
 
-        # Step 5: Initialise new stracks with track merging (if enabled)
+        # Step 5: Initialize new stracks with track merging (if enabled)
         merged_tracks = []
         tracks_to_remove = []
 
@@ -457,7 +456,7 @@ class BYTETRAX:
         return KalmanFilterXYAH()
 
     def init_track(self, results, img: np.ndarray | None = None) -> list[STrack]:
-        """Initialise object tracking with given detections, scores, and class labels using the STrack algorithm."""
+        """Initialize object tracking with given detections, scores, and class labels using the STrack algorithm."""
         if len(results) == 0:
             return []
         bboxes = parse_bboxes(results)
@@ -550,7 +549,7 @@ class BYTETRAX:
         STrack.reset_id()
 
     def reset(self):
-        """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitialising the Kalman filter."""
+        """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""
         self.tracked_stracks: list[STrack] = []
         self.lost_stracks: list[STrack] = []
         self.removed_stracks: list[STrack] = []

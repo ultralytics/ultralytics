@@ -135,11 +135,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             kwargs["dets_del"] = dets_del_list[i]
         tracks = tracker.update(det, result.orig_img, **kwargs)
         if len(tracks) == 0:
-            # Drop unconfirmed raw detections. BYTETrack-style trackers only return confirmed
-            # tracks, and when any track is confirmed those same unconfirmed dets are already
-            # filtered out via result[idx] below — leaving them here when the frame has zero
-            # confirmed tracks would leak is_track=False boxes into model.track() results.
-            predictor.results[i] = result[:0]
+            predictor.results[i] = result[:0]  # drop unconfirmed detections, as result[idx] does below
             continue
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]

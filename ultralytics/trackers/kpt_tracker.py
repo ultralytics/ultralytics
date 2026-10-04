@@ -298,7 +298,8 @@ class KPTTracker:
         size = np.array([t.size for t in tracks])[:, None, None]
         lost = np.flatnonzero([self.frame_id - t.last > 1 for t in tracks])
         track_bones = np.array([tracks[i].bones for i in lost]).reshape(len(lost), 1, len(tracks[0].bones))
-        orders = [(slice(None), 0.0)] + ([(COCO_FLIP, a.flip_cost)] if kpts.shape[1] == 17 else [])
+        coco = kpts.shape[1] == 17  # flip and skeleton scale need COCO keypoints
+        orders = [(slice(None), 0.0)] + ([(COCO_FLIP, a.flip_cost)] if coco else [])
         out = []
         for order, extra in orders:
             k = kpts[:, order]
@@ -311,7 +312,7 @@ class KPTTracker:
                 cost = (w * np.minimum(d, 1)).sum(axis=2) / total
                 cost = np.where((common >= a.min_common) & (total > 0), cost, np.inf) + extra
             scale = np.zeros_like(cost)
-            if len(lost):
+            if len(lost) and coco:
                 scale[lost] = self._scale(_bones(k[..., :2], seen), track_bones)
             out.append((cost, cost + a.scale_weight * scale))
         if len(out) == 1:
@@ -336,8 +337,6 @@ class KPTTracker:
             ratio = np.abs(np.log(det_bones[None] / track_bones))
         ratio = np.sort(np.where(np.isfinite(ratio), ratio, np.inf), axis=2)
         m = np.isfinite(ratio).sum(axis=2)
-        if not ratio.shape[2]:
-            return np.zeros(m.shape)
         middle = np.maximum(m - 1, 0)[..., None] // 2
         return np.where(m >= 2, np.take_along_axis(ratio, middle, axis=2)[..., 0], 0)
 

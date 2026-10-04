@@ -875,7 +875,7 @@ class Exporter:
                 f"other precisions."
             )
             self.args.quantize = 8  # the graph carries Q/DQ nodes whether or not INT8 was requested
-        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat:
+        if self.args.quantize in {8, "w8a16"} and not self.args.data and not self.qat and "data" in fmt_keys:
             self.args.data = DEFAULT_CFG.data or TASK2DATA[getattr(model, "task", "detect")]  # assign default data
             LOGGER.warning(
                 f"INT8 export requires a missing 'data' arg for calibration. Using default 'data={self.args.data}'."

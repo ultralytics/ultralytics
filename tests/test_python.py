@@ -691,6 +691,32 @@ def test_bytetrax_reconnect():
     assert out[:, 4].tolist() == [2.0], f"expected a new ID without reconnection:\n{out}"
 
 
+def test_bytetrax_obb_merge_reset():
+    """BYTETRAX propagates OBB angles, merges duplicate same-class detections, and resets cleanly."""
+    from ultralytics.engine.results import OBB, Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = YAML.load(ROOT / "cfg/trackers/bytetrax.yaml")
+    size = (640, 640)
+    box = lambda x1, y1, x2, y2, score: Boxes(torch.tensor([[x1, y1, x2, y2, score, 0]], dtype=torch.float32), size)
+
+    tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**cfg))
+    obb = lambda cx, r: OBB(torch.tensor([[cx, 100, 40, 40, r, 0.9, 0]], dtype=torch.float32), size)
+    out = tracker.update(obb(100, 0.5))
+    assert out.shape == (1, 9), f"expected OBB output with angle column:\n{out}"
+    out = tracker.update(obb(102, 0.55))
+    assert out.shape == (1, 9) and out[0, 5] == 1.0, f"OBB track lost or new ID:\n{out}"
+
+    tracker.reset()
+    assert not tracker.tracked_stracks and not tracker.lost_stracks and tracker.frame_id == 0
+    tracker.update(box(80, 80, 120, 120, 0.9))
+    # Two detections overlapping the track, one matches, and the other is merged instead generating a new ID
+    dets = Boxes(torch.tensor([[82, 81, 122, 121, 0.95, 0], [79, 79, 119, 119, 0.9, 0]], dtype=torch.float32), size)
+    out = tracker.update(dets)
+    assert out[:, 4].tolist() == [1.0], f"duplicate detection spawned a new ID:\n{out}"
+
+
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):
     """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""

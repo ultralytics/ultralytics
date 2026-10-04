@@ -284,11 +284,15 @@ class BYTETRAX:
         removed_stracks = []
 
         scores = results.conf
-        remain_inds = scores >= self.args.track_thresh
+        wh = (results.xywhr if hasattr(results, "xywhr") else results.xywh)[:, 2:4]
+        valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)  # tlwh_to_xyah divides by height, so h=0 would give an inf Kalman mean
+        remain_inds = valid & (scores >= self.args.track_thresh)
         results = results[remain_inds]
         feats_keep = feats[remain_inds] if feats is not None and len(feats) else img
 
         detections = self.init_track(results, feats_keep)
+        for track, i in zip(detections, np.flatnonzero(remain_inds)):
+            track.idx = i  # idx must be in full detection-set space; parse_bboxes only sees the subset
         # Add newly detected tracklets to tracked_stracks
         unconfirmed = []
         tracked_stracks: list[STrack] = []

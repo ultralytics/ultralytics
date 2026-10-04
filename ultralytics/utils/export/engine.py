@@ -154,6 +154,7 @@ def torch2onnx(
                 node.metadata_props.clear()  # drop stack traces and local source paths
             program.save(output_file)
             return str(output_file)
+    kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         model,
         im,
@@ -162,7 +163,7 @@ def torch2onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic,
-        **({"dynamo": False} if TORCH_2_4 else {}),
+        **kwargs,
     )
     return str(output_file)
 

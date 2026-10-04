@@ -59,8 +59,10 @@ class CoreMLBackend(BaseBackend):
         im = im.cpu().numpy()
         h, w = im.shape[1:3]
 
-        if self.dynamic:
-            y = list(self.model.predict({self.input_name: im.transpose(0, 3, 1, 2)}).values())
+        if self.dynamic:  # the batch dim is capped at the export batch, so predict larger batches in chunks
+            im = im.transpose(0, 3, 1, 2)
+            y = [self.model.predict({self.input_name: im[i : i + self.batch]}) for i in range(0, len(im), self.batch)]
+            y = [np.concatenate([d[k] for d in y]) for k in y[0]]
         else:  # static exports take one image per request: predict the batch as a list and stack the outputs
             y = self.model.predict([{self.input_name: Image.fromarray((x * 255).astype("uint8"))} for x in im])
             if "confidence" in y[0]:  # NMS included: zero-pad per image, return (B, n, 6) before the swap below

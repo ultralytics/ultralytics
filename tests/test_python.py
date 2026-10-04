@@ -592,8 +592,8 @@ def test_track_second_association_indices():
 def test_track_postprocess_drops_unconfirmed_when_no_tracks():
     """When the tracker returns no confirmed tracks, raw unconfirmed detections must not leak into results.
 
-    BYTETrack hides unconfirmed dets whenever any confirmed track exists (via result[idx]). Leaving them
-    in place when len(tracks)==0 would make model.track() return is_track=False boxes for brand-new objects.
+    BYTETrack hides unconfirmed dets whenever any confirmed track exists (via result[idx]). Leaving them in place when
+    len(tracks)==0 would make model.track() return is_track=False boxes for brand-new objects.
     """
     from ultralytics.engine.results import Results
     from ultralytics.trackers.byte_tracker import BYTETracker

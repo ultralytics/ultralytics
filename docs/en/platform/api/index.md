@@ -1771,7 +1771,7 @@ POST /api/models/{owner}/{project}/{model}/exports
 | --------- | ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `format`  | string | Yes         | Target export format (see table below)                                                                                                                                                           |
 | `gpuType` | string | Conditional | Required when `format` is `engine`; use a supported [GPU or Jetson target](../train/models.md#nvidia-jetson-tensorrt-targets)                                                                    |
-| `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `optimize`, and `name` (device target for RKNN, QNN, Hailo, and Ascend formats) |
+| `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `optimize`, and `name` (device target for RKNN, QNN, Hailo, Ascend, and Xilinx) |
 
 === "cURL"
 

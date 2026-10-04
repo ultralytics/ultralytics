@@ -128,6 +128,7 @@ class AutoBackend(nn.Module):
             | Qualcomm QNN          | *_qnn.onnx             |
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
+            | AMD Xilinx            | *_xilinx_model/        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -177,6 +178,7 @@ class AutoBackend(nn.Module):
         "qnn": QNNBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "xilinx": ONNXBackend,
     }
 
     @smart_inference_mode(False)

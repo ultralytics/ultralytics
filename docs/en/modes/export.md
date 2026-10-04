@@ -120,6 +120,7 @@ Not every export format supports every precision. Explicit `quantize` requests e
 | Qualcomm QNN  | ❌                | ❌                | ❌         | ✅ auto           | QNN HTP export is fixed to INT8 weights with 16-bit activations.                                                                                                                                                                                        |
 | Hailo         | ❌                | ❌                | ✅ auto    | ❌                | Hailo export requires INT8; it is auto-enabled when unset.                                                                                                                                                                                              |
 | Huawei Ascend | ❌                | ✅ auto           | ❌         | ❌                | Ascend AI Core convolutions accept only FP16/INT8 inputs, so ATC compiles FP16; it is auto-enabled when unset.                                                                                                                                          |
+| AMD Xilinx    | ❌                | ❌                | ✅ auto    | ❌                | AMD Xilinx export requires Vitis AI INT8 (`VINT8`); it is auto-enabled when unset.                                                                                                                                                                      |
 
 For INT8 and W8A16 exports, provide representative calibration data with `data`, such as `data="coco8.yaml"`, unless the target integration documents a default or auto-enabled behavior. The LiteRT `"w8a32"` (dynamic INT8) scheme needs no calibration data.
 
@@ -240,7 +241,7 @@ INT8 quantization is an excellent way to compress the model and speed up inferen
         yolo export model=yolo26n.pt format=onnx quantize=8 data=coco8.yaml # export ONNX model with INT8 quantization
         ```
 
-INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), and [Rockchip RKNN](../integrations/rockchip-rknn.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
+INT8 quantization can be applied to formats such as [ONNX](../integrations/onnx.md), [TensorRT](../integrations/tensorrt.md), [OpenVINO](../integrations/openvino.md), [CoreML](../integrations/coreml.md), [Rockchip RKNN](../integrations/rockchip-rknn.md), and [AMD Xilinx](../integrations/xilinx.md). For optimal quantization results, provide a representative [dataset](../datasets/index.md) using the `data` parameter. See [Quantization Options](#quantization-options) for accepted `quantize` values and supported formats.
 
 ### Why is dynamic input size important when exporting models?
 

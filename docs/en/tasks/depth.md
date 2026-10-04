@@ -296,6 +296,97 @@ YOLO depth estimation returns one `Results` object per image. Each result stores
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
 
+### Summarizing depth inside instance masks
+
+Run [instance segmentation](segment.md) and depth prediction on the **same image** to summarize the predicted depth of each visible object. The example below uses `retina_masks=True` so masks and depth share the original image's pixel coordinates. It rejects different spatial shapes rather than resizing an unknown coordinate frame. Matching shapes alone cannot establish alignment: do not combine results from different frames, crops, or geometric transforms. For registered RGB-D sensor input, see the [ROS depth example](../guides/ros-quickstart.md#use-ultralytics-with-ros-depth-images).
+
+The following function is local example code, not an Ultralytics API. It returns one dictionary per input mask, in input order:
+
+- Mask pixels are those with values greater than `0.5`; valid depth pixels are finite and strictly positive.
+- `median_depth_m` is the median valid depth. `depth_spread_m` is the 90th percentile minus the 10th percentile, using NumPy's default linear interpolation. This spread describes variation, not calibrated uncertainty.
+- `valid_fraction` is the valid depth pixel count divided by **all pixels inside that mask**, including pixels with invalid depth. An empty mask has a fraction of `0.0`.
+- Empty and all-invalid masks retain their row, with `valid_pixels=0` and both depth statistics set to `None`. No input masks produces an empty list.
+
+```python
+import numpy as np
+
+
+def summarize_mask_depth(depth, masks):
+    """Summarize an aligned (H, W) depth array under (N, H, W) instance masks."""
+    if depth.ndim != 2 or masks.ndim != 3 or masks.shape[1:] != depth.shape:
+        raise ValueError("Depth and masks must have matching original-image spatial shapes")
+
+    summaries = []
+    for index, mask in enumerate(masks):
+        inside = mask > 0.5
+        mask_pixels = int(inside.sum())
+        values = depth[inside]
+        values = values[np.isfinite(values) & (values > 0)]
+        median = spread = None
+        if values.size:
+            p10, median, p90 = np.percentile(values, [10, 50, 90])
+            median, spread = float(median), float(p90 - p10)
+        summaries.append(
+            {
+                "mask_index": index,
+                "median_depth_m": median,
+                "depth_spread_m": spread,
+                "valid_pixels": int(values.size),
+                "valid_fraction": float(values.size / mask_pixels) if mask_pixels else 0.0,
+            }
+        )
+    return summaries
+```
+
+Use the function with the two predictions below. Each `mask_index` also indexes the segmentation result's boxes and class labels. When there are no detections, `seg.masks` is `None` and the example returns an empty list.
+
+```python
+import cv2
+
+from ultralytics import YOLO
+
+image = cv2.imread("path/to/image.jpg")  # One original image shared by both models
+if image is None:
+    raise ValueError("Could not read the input image")
+
+seg = YOLO("yolo26n-seg.pt")(image, retina_masks=True)[0]
+depth = YOLO("yolo26n-depth.pt")(image)[0].depth.data.cpu().numpy()
+masks = seg.masks.data.cpu().numpy() if seg.masks is not None else np.empty((0, *depth.shape))
+summaries = summarize_mask_depth(depth, masks)
+print(summaries)
+```
+
+These are summaries of the model's depth estimates, subject to mask and depth errors and [depth-scale calibration](#calibrating-the-depth-scale). They do not require camera intrinsics, but do not determine XYZ positions, complete object dimensions, or orientation. A mask's visible surfaces can span several depths; its median is not necessarily the depth of the object's physical center. The example moves both predictions to CPU for NumPy processing and runs two models; it makes no real-time performance guarantee.
+
+#### Deterministic checks
+
+Run this block after defining `summarize_mask_depth`; it needs no weights or image downloads. It checks the statistics, the denominator for partially invalid masks, retained empty/all-invalid rows, no instances, and a spatial mismatch.
+
+```python
+depth = np.array([[np.nan, np.inf, 0.0, -1.0], [1.0, 3.0, 5.0, 7.0]])
+masks = np.zeros((4, 2, 4), dtype=bool)
+masks[1, 0] = True  # All invalid
+masks[2, 1] = True  # All valid
+masks[3, :, :2] = True  # Two valid depths among four mask pixels
+
+rows = summarize_mask_depth(depth, masks)
+assert [row["mask_index"] for row in rows] == [0, 1, 2, 3]
+for row in rows[:2]:
+    assert row["median_depth_m"] is None and row["depth_spread_m"] is None
+    assert row["valid_pixels"] == 0 and row["valid_fraction"] == 0.0
+assert rows[2]["median_depth_m"] == 4.0 and np.isclose(rows[2]["depth_spread_m"], 4.8)
+assert rows[2]["valid_pixels"] == 4 and rows[2]["valid_fraction"] == 1.0
+assert rows[3]["valid_pixels"] == 2 and rows[3]["valid_fraction"] == 0.5
+assert summarize_mask_depth(depth, np.empty((0, 2, 4))) == []
+
+try:
+    summarize_mask_depth(depth, np.zeros((1, 4, 2)))
+except ValueError:
+    pass
+else:
+    raise AssertionError("Spatially mismatched masks must be rejected")
+```
+
 ### Colorizing the depth map
 
 The raw depth map is a single-channel float array in meters — useful for computation, but hard to read directly. To turn it into a color image, use the `colorize_depth` helper in `ultralytics.utils.plotting`, which maps the `(H, W)` depth array to a `(H, W, 3)` BGR `uint8` image (invalid pixels `<= 0` are rendered black).

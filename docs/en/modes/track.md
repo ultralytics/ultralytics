@@ -109,16 +109,17 @@ To run the tracker on video streams, use a trained Detect, Segment, Pose, or OBB
 
 ## Supported Trackers
 
-Ultralytics YOLO ships with six built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
+Ultralytics YOLO ships with seven built-in trackers. Enable one by passing its YAML config file to the `tracker` argument.
 
-| Tracker                           | Config file       | Motion model               | Appearance / ReID      | Camera motion compensation  | Occlusion handling                              |
-| --------------------------------- | ----------------- | -------------------------- | ---------------------- | --------------------------- | ----------------------------------------------- |
-| **[BoT-SORT](#bot-sort)**         | `botsort.yaml`    | Linear Kalman              | Optional (`with_reid`) | Configurable (`gmc_method`) | Track buffer + ReID rebinding                   |
-| **[ByteTrack](#bytetrack)**       | `bytetrack.yaml`  | Linear Kalman              | None                   | No                          | Two-stage low-conf rescue                       |
-| **[OC-SORT](#oc-sort)**           | `ocsort.yaml`     | Observation-centric Kalman | None                   | No                          | ORU, OCM, OCR re-update from last observation   |
-| **[Deep OC-SORT](#deep-oc-sort)** | `deepocsort.yaml` | Observation-centric Kalman | Optional (`with_reid`) | Configurable (`gmc_method`) | OC-SORT + optional adaptive appearance EMA      |
-| **[FastTracker](#fasttracker)**   | `fasttrack.yaml`  | Linear Kalman + rollback   | None                   | No                          | Kalman rollback + bbox enlargement on occlusion |
-| **[TrackTrack](#tracktrack)**     | `tracktrack.yaml` | Linear Kalman (NSA)        | Optional (`with_reid`) | Configurable (`gmc_method`) | Iterative multi-cue association + TAI           |
+| Tracker                           | Config file       | Motion model                          | Appearance / ReID      | Camera motion compensation  | Occlusion handling                              |
+| --------------------------------- | ----------------- | ------------------------------------- | ---------------------- | --------------------------- | ----------------------------------------------- |
+| **[BoT-SORT](#bot-sort)**         | `botsort.yaml`    | Linear Kalman                         | Optional (`with_reid`) | Configurable (`gmc_method`) | Track buffer + ReID rebinding                   |
+| **[ByteTrack](#bytetrack)**       | `bytetrack.yaml`  | Linear Kalman                         | None                   | No                          | Two-stage low-conf rescue                       |
+| **[OC-SORT](#oc-sort)**           | `ocsort.yaml`     | Observation-centric Kalman            | None                   | No                          | ORU, OCM, OCR re-update from last observation   |
+| **[Deep OC-SORT](#deep-oc-sort)** | `deepocsort.yaml` | Observation-centric Kalman            | Optional (`with_reid`) | Configurable (`gmc_method`) | OC-SORT + optional adaptive appearance EMA      |
+| **[FastTracker](#fasttracker)**   | `fasttrack.yaml`  | Linear Kalman + rollback              | None                   | No                          | Kalman rollback + bbox enlargement on occlusion |
+| **[TrackTrack](#tracktrack)**     | `tracktrack.yaml` | Linear Kalman (NSA)                   | Optional (`with_reid`) | Configurable (`gmc_method`) | Iterative multi-cue association + TAI           |
+| **[KPTTrack](#kpttrack)**         | `kpttrack.yaml`   | Keypoint velocity, decaying when lost | None                   | No                          | Keypoint matching + gate widening while lost    |
 
 ### Which Tracker Should I Use?
 
@@ -129,6 +130,7 @@ Use this flow to pick a starting point; `tracktrack.yaml` is used when you pass 
 3. **Non-linear motion (sports, dancing, abrupt turns) and no ReID?** → **OC-SORT** (observation-centric corrections without appearance cost).
 4. **Crowded moving-camera scenes where ID swaps are the main problem?** → **Deep OC-SORT** or **TrackTrack** (both support optional appearance matching; TrackTrack also adds multi-cue association and duplicate-ID suppression).
 5. **Frequent partial overlap in real-time, no ReID budget?** → **FastTracker** (occlusion-aware ByteTrack variant with Kalman rollback).
+6. **People with a Pose model, side by side or half hidden behind each other?** → **KPTTrack** (matches keypoints instead of boxes; Pose models only).
 
 ## Switching Trackers
 
@@ -146,6 +148,9 @@ Pass the tracker config filename to `tracker=`. All other code stays the same.
         results = model.track(source="path/to/video.mp4", tracker="bytetrack.yaml")
         results = model.track(source="path/to/video.mp4", tracker="ocsort.yaml")
         results = model.track(source="path/to/video.mp4", tracker="tracktrack.yaml")
+
+        model = YOLO("yolo26n-pose.pt")  # KPTTrack needs a Pose model
+        results = model.track(source="path/to/video.mp4", tracker="kpttrack.yaml")
         ```
 
     === "CLI"
@@ -210,20 +215,20 @@ The following parameters are common to most tracker YAML files; not every parame
 
     Detections at or above `track_high_thresh` enter the first association stage. Detections between `track_low_thresh` and `track_high_thresh` can recover existing tracks when the selected tracker enables low-confidence association, but they do not start new tracks. Detections at or below `track_low_thresh` are ignored.
 
-| Parameter           | Valid Values or Ranges                                                    | Description                                                                                                                                                                                                                                                 |
-| ------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tracker_type`      | `botsort`, `bytetrack`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                                                                                 |
-| `track_high_thresh` | `0.0-1.0`                                                                 | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                                                                                   |
-| `track_low_thresh`  | `0.0-1.0`                                                                 | Lower bound for low-confidence recovery detections. OC-SORT and Deep OC-SORT use these only when `use_byte: True`; TrackTrack includes them in its penalized association pool.                                                                              |
-| `new_track_thresh`  | `0.0-1.0`                                                                 | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                                                                                    |
-| `track_buffer`      | `>=0`                                                                     | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                                                                          |
-| `match_thresh`      | `0.0-1.0`                                                                 | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                                                                                    |
-| `fuse_score`        | `True`, `False`                                                           | Whether to fuse confidence scores with IoU distances before matching.                                                                                                                                                                                       |
-| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none`                             | Global motion compensation method. Helps account for camera movement.                                                                                                                                                                                       |
-| `proximity_thresh`  | `0.0-1.0`                                                                 | Minimum IoU required for a valid ReID match. Ensures spatial closeness before using appearance cues.                                                                                                                                                        |
-| `appearance_thresh` | `0.0-1.0`                                                                 | Minimum normalized appearance similarity required for ReID.                                                                                                                                                                                                 |
-| `with_reid`         | `True`, `False`                                                           | Enable appearance-based matching for better tracking across occlusions. Supported by BoT-SORT, Deep OC-SORT, and TrackTrack.                                                                                                                                |
-| `model`             | `auto` or compatible ReID model path                                      | ReID model. `auto` uses native YOLO backbone features when available; otherwise falls back to `yolo26n-cls.pt`. A custom encoder can be a `.pt` checkpoint or an exported model such as `.torchscript`, `.onnx`, `.engine`, or an OpenVINO model directory. |
+| Parameter           | Valid Values or Ranges                                                                | Description                                                                                                                                                                                                                                                 |
+| ------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tracker_type`      | `botsort`, `bytetrack`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack`, `kpttrack` | Specifies the tracker type.                                                                                                                                                                                                                                 |
+| `track_high_thresh` | `0.0-1.0`                                                                             | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                                                                                   |
+| `track_low_thresh`  | `0.0-1.0`                                                                             | Lower bound for low-confidence recovery detections. OC-SORT and Deep OC-SORT use these only when `use_byte: True`; TrackTrack includes them in its penalized association pool.                                                                              |
+| `new_track_thresh`  | `0.0-1.0`                                                                             | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                                                                                    |
+| `track_buffer`      | `>=0`                                                                                 | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                                                                          |
+| `match_thresh`      | `0.0-1.0`                                                                             | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                                                                                    |
+| `fuse_score`        | `True`, `False`                                                                       | Whether to fuse confidence scores with IoU distances before matching.                                                                                                                                                                                       |
+| `gmc_method`        | `sparseOptFlow`, `orb`, `sift`, `ecc`, `none`                                         | Global motion compensation method. Helps account for camera movement.                                                                                                                                                                                       |
+| `proximity_thresh`  | `0.0-1.0`                                                                             | Minimum IoU required for a valid ReID match. Ensures spatial closeness before using appearance cues.                                                                                                                                                        |
+| `appearance_thresh` | `0.0-1.0`                                                                             | Minimum normalized appearance similarity required for ReID.                                                                                                                                                                                                 |
+| `with_reid`         | `True`, `False`                                                                       | Enable appearance-based matching for better tracking across occlusions. Supported by BoT-SORT, Deep OC-SORT, and TrackTrack.                                                                                                                                |
+| `model`             | `auto` or compatible ReID model path                                                  | ReID model. `auto` uses native YOLO backbone features when available; otherwise falls back to `yolo26n-cls.pt`. A custom encoder can be a `.pt` checkpoint or an exported model such as `.torchscript`, `.onnx`, `.engine`, or an OpenVINO model directory. |
 
 #### Tracker-specific Arguments
 
@@ -235,6 +240,7 @@ Each algorithm exposes additional knobs on top of the shared parameters. See the
 - [`deepocsort.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/deepocsort.yaml)
 - [`fasttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/fasttrack.yaml)
 - [`tracktrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/tracktrack.yaml)
+- [`kpttrack.yaml`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/trackers/kpttrack.yaml)
 
 ### Enabling Re-Identification (ReID)
 
@@ -470,6 +476,41 @@ With OBB models, OCR uses the Kalman-predicted oriented box because an oriented 
 - **Enable ReID only when needed:** it adds inference cost; for short occlusions, the default multi-cue cost is usually sufficient.
 
 With Segment and Pose models, TrackTrack skips loose-NMS detection recovery so masks and keypoints remain aligned with their detections.
+
+### KPTTrack
+
+KPTTrack follows people with a [Pose model](../tasks/pose.md) by their keypoints instead of their boxes. Two people side by side, or one half hidden behind the other, can have heavily overlapping boxes, but their keypoints are far apart:
+
+- **Keypoint distance:** a detection matches a track by the mean distance between the keypoints both see, each capped and divided by the person's size (their box's longer side). With COCO keypoints, left and right swapped are tried too, as Pose models flip people who turn.
+- **Adaptive gate:** each track learns its wobble, how far its matches usually land from the prediction, and searches within `wobble_gate` times that (at least `match_gate`): steady walkers keep a tight gate, dancers get a wider one.
+- **Lost tracks:** a track's keypoints move at the person's velocity. Once lost, the velocity decays and the gate widens from `match_gate` to `lost_gate`, so someone hidden for a moment comes back close to where they vanished. With COCO keypoints, a lost track also weighs the skeleton's scale between the detections it could take.
+- **Keypoint NMS:** a detection whose keypoints lie on a more confident detection's keypoints is dropped as a duplicate, which box NMS keeps when the boxes differ (e.g. a box around part of a person).
+- **ByteTrack's stages:** confident detections first, to every track; low-confidence ones only to tracks seen last frame; then the confident detections and tracks left, in a wider `recover_gate` for tracks seen last frame and the full `lost_gate` for lost ones (someone back sooner than their gate had widened), before new tracks start.
+
+**Best for:** people tracked with a Pose model in crowded scenes (dance, audiences, sports) with a still camera.
+
+**KPTTrack-specific arguments:**
+
+| Parameter            | Valid Values or Ranges | Description                                                                             |
+| -------------------- | ---------------------- | --------------------------------------------------------------------------------------- |
+| `kpt_conf`           | `0.0-1.0`              | Confidence above which a keypoint counts as seen.                                       |
+| `kpt_nms`            | `>=0`                  | Drop a detection whose keypoints lie within this mean distance of a stronger one's.     |
+| `min_common`         | `>=0`                  | Keypoint confidence a track and a detection must share to be compared.                  |
+| `match_gate`         | `>=0`                  | Max mean keypoint distance, over the person's size, to a track seen last frame.         |
+| `wobble_gate`        | `>=0`                  | Or this many times the track's wobble (how far its matches usually land), if wider.     |
+| `lost_gate`          | `>=0`                  | Max distance to a track lost for `lost_ramp` frames or more.                            |
+| `lost_ramp`          | `>=1`                  | Frames over which a lost track's gate widens to `lost_gate` and its velocity fades.     |
+| `recover_gate`       | `>=0`                  | Confident detections left go to the tracks left seen last frame in at least this gate.  |
+| `flip_cost`          | `>=0`                  | Cost added to a left-right flipped match (COCO keypoints).                              |
+| `velocity_smoothing` | `0.0-1.0`              | Smoothing factor of the track velocity.                                                 |
+| `joint_memory`       | `>=1`                  | Frames over which an unseen keypoint's weight in the match fades.                       |
+| `size_smoothing`     | `0.0-1.0`              | Smoothing factor of the person's size and bone lengths.                                 |
+| `scale_weight`       | `>=0`                  | Cost weight of a lost track's skeleton scale mismatch (COCO keypoints).                 |
+
+**Tuning tips:**
+
+- **Frame rate:** `track_buffer`, `lost_ramp`, and `joint_memory` count frames at ~30 FPS; scale them with your video's frame rate.
+- **Long occlusions:** raise `track_buffer` to keep lost tracks longer.
 
 ## Python Examples
 

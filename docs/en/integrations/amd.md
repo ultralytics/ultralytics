@@ -284,6 +284,21 @@ YOLO26 benchmarks below were run by the Ultralytics team on an AMD Radeon 8060S 
         | YOLO26x-sem | PyTorch         | ✅     | 77.0      | 0.8364       | 419.0                  |
         | YOLO26x-sem | ONNX (MIGraphX) | ✅     | 143.1     | 0.8364       | 228.4                  |
 
+    === "Depth Estimation (NYU Depth V2)"
+
+        | Model         | Format          | Status | Size (MB) | metrics/delta1 | metrics/abs_rel | metrics/rmse | Inference time (ms/im) |
+        | ------------- | --------------- | ------ | --------- | -------------- | --------------- | ------------ | ---------------------- |
+        | YOLO26n-depth | PyTorch         | ✅     | 12.4      | 0.7834         | 0.1563          | 0.5701       | 5.6                    |
+        | YOLO26n-depth | ONNX (MIGraphX) | ✅     | 19.8      | 0.7834         | 0.1563          | 0.5701       | 6.0                    |
+        | YOLO26s-depth | PyTorch         | ✅     | 25.5      | 0.7932         | 0.1500          | 0.5570       | 9.0                    |
+        | YOLO26s-depth | ONNX (MIGraphX) | ✅     | 46.0      | 0.7932         | 0.1500          | 0.5570       | 9.2                    |
+        | YOLO26m-depth | PyTorch         | ✅     | 44.8      | 0.8404         | 0.1275          | 0.5309       | 19.0                   |
+        | YOLO26m-depth | ONNX (MIGraphX) | ✅     | 84.3      | 0.8404         | 0.1275          | 0.5309       | 18.0                   |
+        | YOLO26l-depth | PyTorch         | ✅     | 53.3      | 0.8529         | 0.1202          | 0.5169       | 24.0                   |
+        | YOLO26l-depth | ONNX (MIGraphX) | ✅     | 101.2     | 0.8529         | 0.1202          | 0.5169       | 22.5                   |
+        | YOLO26x-depth | PyTorch         | ✅     | 109.3     | 0.8600         | 0.1155          | 0.5061       | 47.7                   |
+        | YOLO26x-depth | ONNX (MIGraphX) | ✅     | 213.0     | 0.8600         | 0.1155          | 0.5061       | 38.4                   |
+
     === "Classification (ImageNet)"
 
         | Model       | Format          | Status | Size (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
@@ -329,11 +344,11 @@ YOLO26 benchmarks below were run by the Ultralytics team on an AMD Radeon 8060S 
         | YOLO26x-obb | PyTorch         | ✅     | 121.1     | 0.5562              | 105.3                  |
         | YOLO26x-obb | ONNX (MIGraphX) | ✅     | 219.9     | 0.5562              | 65.9                   |
 
-    Benchmarked with Ultralytics 8.4.165
+    Benchmarked with Ultralytics 8.4.165 (depth estimation with 8.4.172)
 
     !!! note
 
-        Validation for the above benchmarks was done at batch size 1 on the full validation sets, at 640 for detection, segmentation and pose estimation, 2048 for semantic segmentation, 224 for classification and 1024 for OBB. Inference time does not include pre/post-processing or the one-time MIGraphX compile. Depth estimation is supported but not included in these benchmarks.
+        Validation for the above benchmarks was done at batch size 1 on the full validation sets, at 640 for detection, segmentation and pose estimation, 2048 for semantic segmentation, 768 for depth estimation, 224 for classification and 1024 for OBB. Inference time does not include pre/post-processing or the one-time MIGraphX compile.
 
 ## Support at a Glance
 

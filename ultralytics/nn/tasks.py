@@ -1824,20 +1824,9 @@ class _SafeLoad:
             (ul_loss.E2EDetectLoss, "ultralytics.utils.loss.v10DetectLoss"),  # YOLOv10
             (_getattr, "builtins.getattr"),  # non-det YOLOv8, YOLO11 ckpts (restrict to nn.Module attrs)
         ]
-        if WINDOWS:
-            allow += [
-                pathlib.WindowsPath,
-                (pathlib.WindowsPath, "pathlib.WindowsPath"),
-                (pathlib.WindowsPath, "pathlib.PosixPath"),
-                (pathlib.WindowsPath, f"{pathlib.PosixPath.__module__}.{pathlib.PosixPath.__qualname__}"),
-            ]
-        else:
-            allow += [
-                pathlib.PosixPath,
-                (pathlib.PosixPath, "pathlib.PosixPath"),
-                (pathlib.PosixPath, "pathlib.WindowsPath"),
-                (pathlib.PosixPath, f"{pathlib.WindowsPath.__module__}.{pathlib.WindowsPath.__qualname__}"),
-            ]
+        # Map either OS's pickled path to the local class; Python 3.13 pickles name them under `pathlib._local`.
+        path = pathlib.WindowsPath if WINDOWS else pathlib.PosixPath
+        allow += [(path, f"{m}.{c}") for m in ("pathlib", "pathlib._local") for c in ("PosixPath", "WindowsPath")]
         return {
             (e[1] if isinstance(e, tuple) else f"{e.__module__}.{e.__qualname__}"): (
                 e[0] if isinstance(e, tuple) else e

@@ -1068,16 +1068,17 @@ class LRPCHead(nn.Module):
         Returns:
             loc (torch.Tensor): Box regression output of the localization module.
             cls (torch.Tensor): Class scores with shape (B, num_classes, N) for the N kept anchors.
-            mask (torch.Tensor | None): Boolean mask of kept anchors, or None when `conf` is 0 and the head is enabled.
+            mask (torch.Tensor | None): Boolean mask of anchors kept by any image, or None when `conf` is 0 and the head
+                is enabled.
         """
         if self.enabled:
             if not conf:  # static export, every anchor passes the proposal filter
                 cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2))
                 return self.loc(loc_feat), cls_feat.transpose(-1, -2), None
-            pf_score = self.pf(cls_feat)[0, 0].flatten(0)
-            mask = pf_score.sigmoid() > conf
-            cls_feat = cls_feat.flatten(2).transpose(-1, -2)
-            cls_feat = self.vocab(cls_feat[:, mask])
+            keep = self.pf(cls_feat)[:, 0].flatten(1).sigmoid() > conf  # (B, N) per-image proposals
+            mask = keep.any(0)  # batch union, then suppress anchors each image's own filter rejected
+            cls_feat = self.vocab(cls_feat.flatten(2).transpose(-1, -2)[:, mask])
+            cls_feat = cls_feat.masked_fill(~keep[:, mask, None], float("-inf"))
             return self.loc(loc_feat), cls_feat.transpose(-1, -2), mask
         else:
             cls_feat = self.vocab(cls_feat)

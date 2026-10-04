@@ -664,6 +664,33 @@ def test_tracktrack_new_lifecycle():
     assert tracker.tracked_stracks[0].state == TrackState.Tracked
 
 
+def test_bytetrax_reconnect():
+    """BYTETRAX reactivates a lost track on a nearby non-overlapping detection; disabling it spawns a new ID."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = YAML.load(ROOT / "cfg/trackers/bytetrax.yaml")
+    empty = Boxes(torch.empty((0, 6)), (640, 640))
+    first = Boxes(torch.tensor([[80, 80, 120, 120, 0.9, 0]], dtype=torch.float32), (640, 640))
+    # Non-overlapping detection with a center (131, 95) within one bounding box-width of the lost track's last center (100, 100)
+    det = Boxes(torch.tensor([[121, 85, 141, 105, 0.9, 0]], dtype=torch.float32), (640, 640))
+
+    tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**cfg))
+    tracker.update(first)
+    tracker.update(empty)  # Track is lost
+    out = tracker.update(det)
+    assert out[:, 4].tolist() == [1.0], f"lost track not reconnected:\n{out}"
+
+    tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**{**cfg, "enable_reconnect": False}))
+    tracker.update(first)
+    tracker.update(empty)
+    out = tracker.update(det)
+    assert out.size == 0, f"unexpected confirmed track:\n{out}"  # New track is unconfirmed
+    out = tracker.update(det)
+    assert out[:, 4].tolist() == [2.0], f"expected a new ID without reconnection:\n{out}"
+
+
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])
 def test_track_reid_auto_user_detections(tracker_type):
     """Native ReID (model='auto') must degrade to motion-only with user-supplied detections, not encode the raw frame."""

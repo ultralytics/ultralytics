@@ -354,10 +354,10 @@ There is no appearance model and no camera-motion compensation.
 
 ### ByteTraX
 
-[ByteTraX](https://arxiv.org/abs/2609.37801) (O'Shea-Wheller, 2026) is an enhancment of the ByteTrack architecture that replaces the two-stage track association system with a single unified threshold, and adds functionality to limit identity switches:
+[ByteTraX](https://arxiv.org/abs/2609.37801) (O'Shea-Wheller, 2026) is an enhancement of the ByteTrack architecture that replaces the two-stage track association system with a single unified threshold, and adds functionality to limit identity switches:
 
 - **Unified Threshold:** uses a single confidence threshold for all associations, increasing processing speed by >10%.
-- **Lenient Matching** optimises tracking continuity via a lenient association threshold, while penalising ID switches through stringent track initition criteria.
+- **Lenient Matching** optimises tracking continuity via a lenient association threshold, while penalising ID switches through stringent track initiation criteria.
 - **Track Reconnection:** for systems with fixed track counts, unmatched detections near a recently lost track's last position reactivate the track instead of spawning a new ID.
 - **Track Merging:** in systems with fixed track counts, a new detection that strongly overlaps (IoU > 0.5) with an active same-class track is merged into it, rather than creating a new ID.
 
@@ -372,7 +372,7 @@ There is no appearance model and no camera-motion compensation.
 
 **Tuning tips:**
 
-- **Fixed object counts:** activate `enable_reconnect` to limit erronous ID switches.
+- **Fixed object counts:** activate `enable_reconnect` to limit erroneous ID switches.
 - **Fluctuating detection confidence:** minimise `track_thresh` to ensure that low confidence detections are retained.
 
 ### OC-SORT

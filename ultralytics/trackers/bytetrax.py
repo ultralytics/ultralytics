@@ -235,6 +235,7 @@ class BYTETRAX:
         reset_id: Reset the ID counter of STrack.
         reset: Reset the tracker by clearing all tracks.
         can_reconnect_track: Check if a lost track can be reconnected to a new detection.
+        calculate_iou: Calculate Intersection over Union (IoU) between two tracks.
 
     Examples:
         Initialise BYTETRAX and update with detection results
@@ -261,7 +262,21 @@ class BYTETRAX:
         self.reset_id()
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None, **kwargs) -> np.ndarray:
-        """Update the tracker with new detections and return the current list of tracked objects."""
+        """Update the tracker with new detections and return the current list of tracked objects.
+
+        Args:
+            results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
+                `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
+            img (np.ndarray | None): Current BGR frame, used for global motion compensation when a `gmc` estimator
+                is attached.
+            feats (np.ndarray | None): Optional per-detection features, accepted for interface compatibility.
+            **kwargs (Any): Additional tracker-specific inputs, ignored by BYTETRAX.
+
+        Returns:
+            (np.ndarray): Array of shape (N, 8) with `[x1, y1, x2, y2, track_id, score, cls, idx]` rows, or (N, 9)
+                with `[x, y, w, h, angle, track_id, score, cls, idx]` rows for OBB, where `idx` is the detection
+                index.
+        """
         self.frame_id += 1
         activated_stracks = []
         refind_stracks = []

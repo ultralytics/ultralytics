@@ -390,7 +390,7 @@ POST /api/datasets
 | `name`        | string  | Yes      | Display name (max 100 chars)                                                                    |
 | `description` | string  | No       | Description (max 1000 chars)                                                                    |
 | `task`        | string  | No       | Task type (default: `detect`)                                                                   |
-| `classNames`  | array   | No       | Class names in index order (max 25,000)                                                         |
+| `classNames`  | array   | No       | Class names in index order (max 25,000); no duplicates, ignoring case beyond 2 characters       |
 | `format`      | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                    |
 | `visibility`  | string  | No       | `public` or `private`                                                                           |
 | `blurFaces`   | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces)) |
@@ -895,10 +895,10 @@ Setting `release` or `classMapping` preserves labels and splits from datasets yo
 images and `release: true` moves them out of their source dataset. Omitting both fields imports unlabeled `train`
 images, as does copying from a read-only source; moving from a read-only source returns `403`. Existing images are
 skipped; when preserving labels and splits, duplicates are checked within the destination split. Classes are matched
-by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
-each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
-dataset or a source or destination is busy. When preserving labels and splits, incompatible tasks, image channels,
-pose settings, or depth scales also return `409`, even for images without labels.
+by name, ignoring case for names longer than two characters; `422` returns the source classes with no match in
+`unmatchedClasses`, and `classMapping` maps each to a class index, a new class name, or `null` to drop its labels. `409`
+means the destination is a connected dataset or a source or destination is busy. When preserving labels and splits,
+incompatible tasks, image channels, pose settings, or depth scales also return `409`, even for images without labels.
 
 ### Ingest Dataset Data
 
@@ -970,8 +970,8 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 !!! note "Class Mapping"
 
     The first ingest creates classes from the archive automatically. On later ingests, archive classes omitted from
-    `classMapping` fall back to a case-insensitive match against existing dataset classes. Labels are skipped only for
-    classes explicitly mapped to `null` or without a matching existing class.
+    `classMapping` fall back to a name match against existing dataset classes, ignoring case for names longer than two
+    characters. Labels are skipped only for classes explicitly mapped to `null` or without a matching existing class.
 
 **Response (`201`):**
 

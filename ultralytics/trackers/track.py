@@ -48,7 +48,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
     if (task := predictor.args.task) in TASKS and task not in trackable:  # unknown third-party tasks are left alone
         raise ValueError(f"❌ Task '{task}' doesn't support 'mode=track', valid tasks are {', '.join(trackable)}")
 
-    if persist and getattr(predictor, "_tracker_cfg", None) == predictor.args.tracker:
+    n = predictor.dataset.bs if predictor.dataset.mode == "stream" else 1  # non-stream modes reuse a single tracker
+    if persist and getattr(predictor, "_tracker_cfg", None) == predictor.args.tracker and len(predictor.trackers) >= n:
         return
 
     tracker = check_yaml(predictor.args.tracker)
@@ -85,13 +86,7 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
-    trackers = []
-    for _ in range(predictor.dataset.bs):
-        tracker = TRACKER_MAP[cfg.tracker_type](args=cfg)
-        trackers.append(tracker)
-        if predictor.dataset.mode != "stream":  # non-stream modes reuse a single tracker
-            break
-    predictor.trackers = trackers
+    predictor.trackers = [TRACKER_MAP[cfg.tracker_type](args=cfg) for _ in range(n)]
     predictor._tracker_cfg = predictor.args.tracker  # persist reuses trackers only while this config is unchanged
     predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
 

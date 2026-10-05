@@ -70,7 +70,7 @@ def check_class_names(names: list | dict) -> dict[int, str]:
             from ultralytics.utils import ROOT, YAML
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
-            names = {k: names_map[v] for k, v in names.items()}
+            names = {k: names_map.get(v, v) for k, v in names.items()}
     return names
 
 

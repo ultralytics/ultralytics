@@ -10,7 +10,7 @@ import torch
 
 from ultralytics.cfg import get_cfg
 from ultralytics.data.build import load_inference_source
-from ultralytics.engine.model import Model
+from ultralytics.engine.model import PREDICTOR_SETUP_KEYS, Model
 from ultralytics.models import yolo
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.backends.base import BaseBackend
@@ -534,21 +534,20 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
+            overrides = {
+                **self.overrides,
+                **kwargs,
+                "task": self.model.task,
+                "mode": "predict",
+                "save": False,
+                "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
+                "batch": 1,
+            }
             if type(self.predictor) is not predictor:
-                args = get_cfg(overrides={**self.overrides, **kwargs})
-                self.predictor = predictor(
-                    overrides={
-                        "task": self.model.task,
-                        "mode": "predict",
-                        "save": False,
-                        "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
-                        "batch": 1,
-                        "device": args.device,
-                        "quantize": args.quantize,
-                        "imgsz": args.imgsz,
-                    },
-                    _callbacks=self.callbacks,
-                )
+                self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
+            else:  # setup_model below applies this call's setup args; Model.predict owns the rest
+                setup = {k: overrides[k] for k in PREDICTOR_SETUP_KEYS if k in overrides}
+                self.predictor.args = get_cfg(self.predictor.args, setup)
 
             self.predictor.set_prompts(visual_prompts.copy())
             self.predictor.setup_model(model=self.model, verbose=self.predictor.args.verbose)

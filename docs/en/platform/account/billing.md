@@ -149,8 +149,9 @@ Enable automatic credit purchases when your balance drops below a threshold:
 Default settings: threshold $20, amount $100.
 
 Auto top-up is evaluated whenever a charge lowers your balance, including mid-run training charges, and charges your
-default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined, a
-**Auto Top-Up Failed** row is added to your transaction history with the reason, and no credits are added.
+default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined or
+missing, a **Auto Top-Up Failed** row is added to your transaction history with the reason, no credits are added, and
+auto top-up turns off until you switch it back on.
 
 !!! tip "Reduce Training Interruptions"
 
@@ -332,7 +333,7 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Signup Bonus**       | Signup credit, including the company-email top-up                       |
 | **Credit Purchase**    | Manual top-up                                                           |
 | **Auto Top-Up**        | Automatic top-up triggered by your threshold                            |
-| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added                 |
+| **Auto Top-Up Failed** | An automatic top-up failed; no credits were added                       |
 | **Subscription**       | Pro subscription or seat charge                                         |
 | **Monthly Grant**      | $30/seat monthly Pro credit                                             |
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade           |

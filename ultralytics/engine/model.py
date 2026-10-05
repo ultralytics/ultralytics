@@ -558,7 +558,7 @@ class Model(torch.nn.Module):
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
-                **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
+                **{k: getattr(self.predictor.args, k) for k in (*PREDICTOR_SETUP_KEYS, "tracker")},
             }
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
             if self.predictor.args.show:

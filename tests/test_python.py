@@ -1806,6 +1806,12 @@ def test_scale_coords_nonuniform_letterbox():
     assert np.allclose(ops.scale_boxes((640, 640), boxes, (100, 200)), [[10, 10, 100, 60]])
     assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
 
+    # A 998x483 image letterboxed to 320x160 is resized to 320x155: rounding makes the x gain 155/483, not 320/998
+    boxes = np.array([[79.5, 160.0, 79.5, 160.0]])
+    coords = torch.tensor([[79.5, 160.0]])
+    assert np.allclose(ops.scale_boxes((320, 160), boxes, (998, 483)), [[241.5, 499, 241.5, 499]])
+    assert torch.allclose(ops.scale_coords((320, 160), coords, (998, 483)), coords.new_tensor([[241.5, 499]]))
+
 
 def test_scale_masks_odd_letterbox_pad():
     """Mask scaling with the dataloader's ratio_pad must end the crop where the letterbox content ends."""

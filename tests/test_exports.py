@@ -206,6 +206,18 @@ def test_int8_calibration_fraction(task, fraction, expected, tmp_path):
     assert len(exporter.get_int8_calibration_dataloader().dataset) == expected
 
 
+def test_hailo_calibration_is_rereadable():
+    """Check Hailo calibration is materialized, since AdaRound and bias correction re-read the set."""
+    exporter = object.__new__(Exporter)
+    exporter.model = SimpleNamespace(task="detect")
+    exporter.args = get_cfg(overrides={"data": "coco8.yaml", "split": "val", "fraction": 1.0, "batch": 1})
+    exporter.imgsz = [32, 32]
+    exporter.im = torch.zeros(1, 3, *exporter.imgsz)
+    images = exporter._int8_calibration_images()
+    assert images.ndim == 4 and len(images)  # one BHWC array, not a single-pass generator
+    assert len(list(images)) == len(list(images)) == len(images)  # survives repeated reads
+
+
 def test_export_rknn_batch_expansion(monkeypatch, tmp_path):
     """Check RKNN calibrates batch 1 before Toolkit expands to the requested batch."""
     calls = {}

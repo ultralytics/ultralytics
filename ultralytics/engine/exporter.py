@@ -1704,13 +1704,14 @@ class Exporter:
     def export_hailo(self, prefix=colorstr("Hailo:")):  # noqa: B008
         """Export a YOLO model to Hailo Executable Format (HEF)."""
         try:
-            import tensorflow as tf
             from hailo_sdk_client import ClientRunner
         except ImportError as e:
             raise ImportError("Hailo export requires the Hailo Dataflow Compiler.") from e
 
-        calibration_dataloader = self.get_int8_calibration_dataloader(prefix)
-        calibration_size = len(calibration_dataloader.dataset)
+        # Materialize calibration up front: a tf.data generator is consumed once, so optimization
+        # algorithms that re-read the calibration set (AdaRound, bias correction) see it empty.
+        calibration_images = self._int8_calibration_images(prefix)
+        calibration_size = len(calibration_images)
         LOGGER.warning(
             f"\nHailo level-2 optimization will use {calibration_size} calibration images. "
             "Hailo recommends at least 1,024 representative images for best accuracy. "
@@ -1823,17 +1824,7 @@ class Exporter:
                     model_script.append("allocator_param(width_splitter_defuse=disabled)")
             runner.load_model_script("\n".join(model_script))
 
-            def calibration_dataset():
-                for batch in calibration_dataloader:
-                    for image in batch["img"].permute(0, 2, 3, 1).numpy().astype(np.float32):
-                        yield image, {}
-
-            runner.optimize(
-                lambda: tf.data.Dataset.from_generator(
-                    calibration_dataset,
-                    output_signature=(tf.TensorSpec(shape=(*self.imgsz, 3), dtype=tf.float32), {}),
-                )
-            )
+            runner.optimize(calibration_images)
             (output_dir / f"{self.file.stem}.hef").write_bytes(runner.compile())
             YAML.save(
                 output_dir / "metadata.yaml",

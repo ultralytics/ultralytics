@@ -1994,7 +1994,8 @@ returns `404` and the `serviceUrl` stays the same. An empty `metadata` object
 clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
 URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
 that your key can access. The camera action saves an RTSP or RTSPS camera that a ready endpoint with custom resources
-keeps running inference on; `"url": null` removes it, as does resizing back to the default size. Completed operations
+keeps running inference on (see [Background Camera](../deploy/inference.md#background-camera)); `"url": null` removes
+it, as does resizing back to the default size, and saving a camera on a default-size endpoint returns `403`. Completed operations
 return `200` with `status` `ready` or `stopped`; operations still rolling out return `202` with `deploying` or
 `stopping`, or `ready` for a camera change, since the endpoint keeps serving while it applies.
 

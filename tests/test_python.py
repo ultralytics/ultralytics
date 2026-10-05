@@ -682,6 +682,17 @@ def test_bytetrax_reconnect():
     out = tracker.update(det)
     assert out[:, 4].tolist() == [1.0], f"lost track not reconnected:\n{out}"
 
+    # Two lost tracks both qualify for one detection: only the first-claimed track reconnects to it
+    tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**cfg))
+    both = Boxes(
+        torch.tensor([[80, 80, 120, 120, 0.9, 0], [140, 80, 180, 120, 0.9, 0]], dtype=torch.float32), (640, 640)
+    )
+    det2 = Boxes(torch.tensor([[120, 85, 140, 105, 0.9, 0]], dtype=torch.float32), (640, 640))
+    tracker.update(both)
+    tracker.update(empty)
+    out = tracker.update(det2)
+    assert out[:, 4].tolist() == [1.0], f"detection should reconnect a single track:\n{out}"
+
     tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**{**cfg, "enable_reconnect": False}))
     tracker.update(first)
     tracker.update(empty)
@@ -711,10 +722,41 @@ def test_bytetrax_obb_merge_reset():
     tracker.reset()
     assert not tracker.tracked_stracks and not tracker.lost_stracks and tracker.frame_id == 0
     tracker.update(box(80, 80, 120, 120, 0.9))
-    # Two detections overlapping the track, one matches, and the other is merged instead generating a new ID
+    # Two detections overlapping the track, one matches, and the other is merged instead of generating a new ID
     dets = Boxes(torch.tensor([[82, 81, 122, 121, 0.95, 0], [79, 79, 119, 119, 0.9, 0]], dtype=torch.float32), size)
     out = tracker.update(dets)
     assert out[:, 4].tolist() == [1.0], f"duplicate detection spawned a new ID:\n{out}"
+
+
+def test_bytetrax_lost_track_expiry():
+    """BYTETRAX removes tracks lost beyond track_buffer and will not reconnect them."""
+    from ultralytics.engine.results import Boxes
+    from ultralytics.trackers.track import TRACKER_MAP
+    from ultralytics.utils import ROOT, YAML, IterableSimpleNamespace
+
+    cfg = {**YAML.load(ROOT / "cfg/trackers/bytetrax.yaml"), "track_buffer": 3}
+    size = (640, 640)
+    empty = Boxes(torch.empty((0, 6)), size)
+    first = Boxes(torch.tensor([[80, 80, 120, 120, 0.9, 0]], dtype=torch.float32), size)
+    det = Boxes(torch.tensor([[121, 85, 141, 105, 0.9, 0]], dtype=torch.float32), size)
+
+    tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**cfg))
+    tracker.update(first)
+    tracker.update(empty)  # The track is lost at frame two
+
+    lost = tracker.lost_stracks[0]
+    lost.predict()  # Prediction on a non-tracked state sets the velocity term to zero
+    assert repr(lost) == f"OT_1_(1-{lost.end_frame})"
+    assert lost.xywha.shape == (4,), "angle-less track should warn and fall back to xywh"
+
+    for _ in range(2):
+        tracker.update(empty)
+    # The track is beyond the track_buffer in frame five, thus the nearby detection cannot reconnect to it
+    out = tracker.update(det)
+    assert out.size == 0, f"expired track reconnected instead of removed:\n{out}"
+    out = tracker.update(det)
+    assert out[:, 4].tolist() == [2.0], f"expected a fresh ID after expiry:\n{out}"
+    assert not tracker.lost_stracks, f"expired track still in lost_stracks:\n{tracker.lost_stracks}"
 
 
 @pytest.mark.parametrize("tracker_type", ["botsort", "deepocsort", "tracktrack"])

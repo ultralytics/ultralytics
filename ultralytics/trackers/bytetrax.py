@@ -11,7 +11,7 @@ from ..utils.ops import xywh2ltwh
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
-from .utils.stracks import joint_stracks, multi_gmc, parse_bboxes, remove_duplicate_stracks, sub_stracks
+from .utils.stracks import joint_stracks, parse_bboxes, remove_duplicate_stracks, sub_stracks
 
 
 class STrack(BaseTrack):
@@ -267,8 +267,8 @@ class BYTETRAX:
         Args:
             results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
                 `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
-            img (np.ndarray | None): Current BGR frame, used for global motion compensation when a `gmc` estimator is
-                attached.
+            img (np.ndarray | None): Current BGR frame, included for interface compatibility; BYTETRAX does not use
+                global motion compensation.
             feats (np.ndarray | None): Optional per-detection features, accepted for interface compatibility.
             **kwargs (Any): Additional tracker-specific inputs, ignored by BYTETRAX.
 
@@ -304,15 +304,6 @@ class BYTETRAX:
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
         self.multi_predict(strack_pool)
-        if hasattr(self, "gmc") and img is not None:
-            # Use try-except here to bypass errors from gmc module
-            try:
-                warp = self.gmc.apply(img, results.xyxy)
-            except Exception as e:
-                LOGGER.warning(f"GMC failed, falling back to identity: {e}")
-                warp = np.eye(2, 3)
-            multi_gmc(strack_pool, warp)
-            multi_gmc(unconfirmed, warp)
 
         dists = self.get_dists(strack_pool, detections)
         matches, u_track, u_detection = matching.linear_assignment(dists, thresh=self.args.match_thresh)

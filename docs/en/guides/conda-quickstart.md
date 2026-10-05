@@ -39,6 +39,7 @@ conda activate ultralytics-env
 
     ```bash
     conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
+    conda activate ultralytics-env
     ```
 
 ### Note on ROCm Environment (AMD GPU, Linux)

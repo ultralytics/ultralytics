@@ -37,6 +37,7 @@ Install the `ultralytics` package with pip, conda, or Docker, or from source, th
 
         ```bash
         conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
+        conda activate ultralytics-env
         ```
 
         See the [Conda Quickstart Guide](guides/conda-quickstart.md) for environment setup, the libmamba solver, and the Conda Docker image.
@@ -160,6 +161,7 @@ This method is a great alternative to pip, ensuring compatibility with other pac
 
 ```bash
 conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
+conda activate ultralytics-env
 ```
 
 For more instructions, see the [Conda quickstart guide](guides/conda-quickstart.md).

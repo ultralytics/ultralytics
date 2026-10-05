@@ -26,10 +26,10 @@ You should have Anaconda or Miniconda installed on your system. If not, download
 
 ## Installing Ultralytics
 
-Create a new Conda environment with Ultralytics from the conda-forge channel, then activate it. Install Python and Ultralytics in the same command so conda resolves current, compatible versions of Python, PyTorch, and Ultralytics together:
+Create a new Conda environment with Ultralytics from the conda-forge channel, then activate it. Install Python, Ultralytics, and `torchvision` (not a dependency of the conda-forge package) in the same command so conda resolves current, compatible versions together:
 
 ```bash
-conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics -y
+conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision -y
 conda activate ultralytics-env
 ```
 
@@ -38,7 +38,7 @@ conda activate ultralytics-env
     If you're working in a CUDA-enabled environment, add the conda-forge `pytorch-gpu` metapackage to the same command so conda resolves a CUDA-enabled PyTorch build:
 
     ```bash
-    conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics pytorch-gpu -y
+    conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
     ```
 
 ### Note on ROCm Environment (AMD GPU, Linux)
@@ -114,7 +114,7 @@ You have successfully set up a Conda environment, installed the Ultralytics pack
 Setting up a Conda environment for Ultralytics projects is straightforward and ensures smooth package management. Create the environment with Python and Ultralytics from the conda-forge channel in one command, so conda resolves them together, then activate it:
 
 ```bash
-conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics -y
+conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision -y
 conda activate ultralytics-env
 ```
 
@@ -127,7 +127,8 @@ Conda is a robust package and environment management system that offers several 
 Yes, you can enhance performance by utilizing a CUDA-enabled environment. Create the environment with `ultralytics` and the conda-forge `pytorch-gpu` metapackage in the same command so a CUDA-enabled PyTorch build is resolved alongside it:
 
 ```bash
-conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics pytorch-gpu -y
+conda create --name ultralytics-env -c conda-forge python=3.11 ultralytics torchvision pytorch-gpu -y
+conda activate ultralytics-env
 ```
 
 This setup enables GPU acceleration, crucial for intensive tasks like [deep learning](https://www.ultralytics.com/glossary/deep-learning-dl) model training and inference. For more information, visit the [Ultralytics installation guide](../quickstart.md).

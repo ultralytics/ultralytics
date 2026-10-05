@@ -1930,7 +1930,7 @@ GET /api/deployments/{owner}/{deployment}
 **Python SDK:** `client.deployments.retrieve(owner, deployment)`
 
 Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, `resources`, and custom
-`metadata`.
+`metadata`, plus `camera` and `cameraApplying` for the owner.
 
 ### Update a Deployment
 
@@ -1983,12 +1983,20 @@ Send one of these bodies:
     { "action": "resize", "cpu": 2, "memoryGi": 4 }
     ```
 
+=== "Camera"
+
+    ```json
+    { "action": "camera", "url": "rtsp://user:password@camera.example.com:554/stream" }
+    ```
+
 Renaming sets the `deployment` value in the URL to a slug of the new name, returned as `deployment`; the old path
 returns `404` and the `serviceUrl` stays the same. An empty `metadata` object
 clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
 URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
-that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still
-rolling out return `202` with `deploying` or `stopping`.
+that your key can access. The camera action saves an RTSP or RTSPS camera that a ready endpoint with custom resources
+keeps running inference on; `"url": null` removes it, as does resizing back to the default size. Completed operations
+return `200` with `status` `ready` or `stopped`; operations still rolling out return `202` with `deploying` or
+`stopping`, or `ready` for a camera change, since the endpoint keeps serving while it applies.
 
 ### Delete Deployment
 

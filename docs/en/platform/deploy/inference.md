@@ -35,6 +35,7 @@ The predict panel supports multiple input methods:
 | **Image upload**   | Drag and drop or click to upload an image            |
 | **Example images** | Click built-in examples (dataset images or defaults) |
 | **Webcam capture** | Live camera feed with single-frame capture           |
+| **IP camera**      | RTSP or RTSPS stream on your own deployment          |
 
 ```mermaid
 graph LR
@@ -82,12 +83,15 @@ For OBB models, aerial images of boats and an airport are shown instead.
 
 ### Webcam
 
-Click the webcam card to start a live camera feed:
+Select **Webcam** above the image area to start a live camera feed:
 
 1. Grant camera permission when prompted
 2. Click the video preview to capture a frame
 3. Inference runs automatically on the captured frame
-4. Click again to restart the webcam
+4. Click **Back to webcam** to return to the live feed
+
+On your own deployment's Predict tab, the webcam runs inference on the live feed continuously, and **IP camera**
+connects an RTSP or RTSPS stream from a camera reachable from the internet, not only from your local network.
 
 ### View Results
 

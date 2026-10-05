@@ -131,20 +131,20 @@ Each item displays:
 
 === "Dataset Cards"
 
-    | Element         | Description                                                   |
-    | --------------- | ------------------------------------------------------------- |
-    | **Thumbnails**  | Up to four annotated previews, search matches first           |
-    | **Name**        | Dataset title                                                 |
-    | **Creator**     | Author avatar and username                                    |
-    | **Task Badge**  | YOLO task type (detect, segment, etc.)                        |
-    | **Image Count** | Number of images, overlaid on the thumbnail strip             |
-    | **Star Count**  | Number of community stars (shown when above zero)             |
-    | **Class Count** | Number of classes defined in the dataset                      |
-    | **Size**        | Total storage used by the dataset                             |
-    | **Updated**     | Date the dataset last changed                                 |
-    | **Class Names** | First few class names as badges                               |
-    | **Tags**        | Dataset tags                                                  |
-    | **Split Bar**   | Relative sizes of the train, val, and test splits             |
+    | Element         | Description                                         |
+    | --------------- | --------------------------------------------------- |
+    | **Thumbnails**  | Up to four annotated previews, search matches first |
+    | **Name**        | Dataset title                                       |
+    | **Creator**     | Author avatar and username                          |
+    | **Task Badge**  | YOLO task type (detect, segment, etc.)              |
+    | **Image Count** | Number of images, overlaid on the thumbnail strip   |
+    | **Star Count**  | Number of community stars (shown when above zero)   |
+    | **Class Count** | Number of classes defined in the dataset            |
+    | **Size**        | Total storage used by the dataset                   |
+    | **Updated**     | Date the dataset last changed                       |
+    | **Class Names** | First few class names as badges                     |
+    | **Tags**        | Dataset tags                                        |
+    | **Split Bar**   | Relative sizes of the train, val, and test splits   |
 
 ## Use Public Content
 

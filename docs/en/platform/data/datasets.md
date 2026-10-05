@@ -385,12 +385,12 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                                            |
-    | ---------------- | -------------------------------------------------- |
-    | **Split filter** | Train, Val, Test, or All                           |
-    | **Annotations**  | All images, Annotated, or Unannotated              |
-    | **Class filter** | Filter by class name                               |
-    | **Search**       | By filename, class, metadata, or content           |
+    | Filter           | Options                                  |
+    | ---------------- | ---------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All                 |
+    | **Annotations**  | All images, Annotated, or Unannotated    |
+    | **Class filter** | Filter by class name                     |
+    | **Search**       | By filename, class, metadata, or content |
 
 !!! tip "Finding Unlabeled Images"
 

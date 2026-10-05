@@ -357,7 +357,9 @@ reduce the chance of an active job being stopped for insufficient funds.
 
 ### How do I get an invoice?
 
-Transaction receipts are available in the transaction history. Click the receipt icon next to any purchase transaction.
+Card payments (credit purchases, auto top-ups, and Pro subscription and seat charges) show a receipt link in the
+**Details** column of the transaction history. It opens the payment's invoice when one was issued, otherwise the card
+receipt.
 
 ### What if training fails?
 

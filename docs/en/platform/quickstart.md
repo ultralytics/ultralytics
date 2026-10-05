@@ -110,9 +110,9 @@ The sidebar provides access to all Platform sections:
 |             | Settings    | Account, billing, teams, and preferences                                              |
 |             | Account     | Profile menu with workspace switcher, activity, and **Log out**                       |
 
-Each content section lists your five most recent items with a link to the rest. Hovering an item reveals a delete
-action that moves it to [Trash](account/trash.md); Trash itself is reached from search (`Cmd+K`) or by opening
-`platform.ultralytics.com/trash`.
+Each content section lists your five most recent items with a link to the rest. Hovering an item reveals a delete action
+that moves it to [Trash](account/trash.md), except deployments, which are deleted permanently after confirmation; Trash
+itself is reached from search (`Cmd+K`) or by opening `platform.ultralytics.com/trash`.
 
 !!! note "Browsing Signed Out"
 
@@ -387,7 +387,8 @@ graph LR
 Once provisioning completes, your endpoint provides:
 
 - **Unique URL**: HTTPS endpoint for API calls
-- **Scale-to-zero behavior**: Idle endpoints scale to zero (deployments currently run a single active instance)
+- **Scale-to-zero behavior**: Idle default-size endpoints scale to zero; custom sizes stay warm and use hourly uptime
+  billing (deployments currently run a single active instance)
 - **Monitoring**: Request metrics and logs
 
 !!! info "Deployment Lifecycle"

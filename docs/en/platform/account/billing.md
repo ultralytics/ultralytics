@@ -284,7 +284,7 @@ If you cancel before the end of your billing period, a **Resume Subscription** b
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
+    Pro features remain active until the end of your current billing period, and monthly credits continue to be granted until then.
 
 ### Downgrading to Free
 
@@ -350,7 +350,8 @@ supports free-text search across every field, and exports to CSV or JSON from th
 
 - **Running paid cloud training**: Stops when metered usage pushes the balance below zero
 - **New training**: Cannot start new jobs until balance is positive
-- **Deployments**: Continue running regardless of balance
+- **Deployments**: Default-size endpoints keep running; custom-size endpoints, and any background camera on them, are
+  stopped automatically
 
 Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to
 reduce the chance of an active job being stopped for insufficient funds.

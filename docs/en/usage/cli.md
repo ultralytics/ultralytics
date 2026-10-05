@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without writing Python code.
 keywords: YOLO CLI, command line interface, YOLO commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface
 
-The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without needing a Python environment. The CLI supports running various tasks directly from the terminal using the `yolo` command, requiring no customization or Python code.
+The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without writing Python code. The CLI supports running various tasks directly from the terminal using the `yolo` command, requiring no customization or Python code.
 
 <p align="center">
   <br>

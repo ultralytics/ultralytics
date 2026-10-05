@@ -1995,9 +1995,10 @@ clears custom metadata. Replacing rolls out a new revision while preserving the 
 URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
 that your key can access. The camera action saves an RTSP or RTSPS camera that a ready endpoint with custom resources
 keeps running inference on (see [Background Camera](../deploy/inference.md#background-camera)); `"url": null` removes
-it, as does resizing back to the default size, and saving a camera on a default-size endpoint returns `403`. Completed operations
-return `200` with `status` `ready` or `stopped`; operations still rolling out return `202` with `deploying` or
-`stopping`, or `ready` for a camera change, since the endpoint keeps serving while it applies.
+it, as does resizing back to the default size, and saving a camera on a default-size endpoint returns `403`. A camera
+change returns `202` with `status` `ready`: poll the deployment until `cameraApplying` is gone, then check `camera`; a
+failed change keeps the previous camera and sets `statusMessage`. Completed operations return `200` with `status`
+`ready` or `stopped`; other operations still rolling out return `202` with `deploying` or `stopping`.
 
 ### Delete Deployment
 
@@ -2028,7 +2029,8 @@ POST /api/deployments/{owner}/{deployment}/predict
 **Python SDK:** `client.deployments.predict(owner, deployment, body=...)`
 
 Routes an image or video through the dedicated endpoint. The request and response contracts match
-[model inference](#run-inference).
+[model inference](#run-inference). Camera streams are not proxied; send them to the endpoint URL as described in
+[Live Camera Inference](../deploy/inference.md#stream-results-from-the-api).
 
 **Multipart Form:**
 

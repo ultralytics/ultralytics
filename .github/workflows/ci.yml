@@ -640,14 +640,15 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
       - uses: conda-incubator/setup-miniconda@v4
         with:
-          python-version: ${{ matrix.python }}
           channels: conda-forge
           channel-priority: strict
           conda-remove-defaults: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
         timeout-minutes: 20
-        run: conda install --yes pytorch-cpu torchvision ultralytics openvino
+        # Solve python with the rest: a pre-created env keeps setuptools>=82, which current pytorch rejects (<82), so
+        # conda falls back to pytorch 2.6.0 cpu_generic, whose oneDNN conv backward hangs pose training
+        run: conda install --yes python=${{ matrix.python }} pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")

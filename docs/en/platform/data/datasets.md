@@ -390,7 +390,7 @@ Images can be sorted and filtered for efficient browsing:
     | **Split filter** | Train, Val, Test, or All                           |
     | **Annotations**  | All images, Annotated, or Unannotated              |
     | **Class filter** | Filter by class name                               |
-    | **Search**       | Filter images by filename, class name, or metadata |
+    | **Search**       | By filename, class, metadata, or content           |
 
 !!! tip "Finding Unlabeled Images"
 
@@ -402,6 +402,10 @@ Images can be sorted and filtered for efficient browsing:
 
     Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
     directly, bypassing the text search.
+
+    Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
+    images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
+    active, and a search that ends in a file extension, or an image ID, skips the look-alike matches.
 
 ### Fullscreen Viewer
 

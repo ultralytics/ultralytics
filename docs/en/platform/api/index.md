@@ -79,7 +79,7 @@ graph LR
 | [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
 | [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
 | [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
-| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                                  |
+| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, and images                         |
 
 ## Authentication
 
@@ -2633,7 +2633,8 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community. See [Explore documentation](../explore.md).
+Search public projects and datasets shared by the community, or search images by what they show. See [Explore
+documentation](../explore.md).
 
 ### Search Public Content
 
@@ -2647,8 +2648,8 @@ GET /api/explore/search
 
 | Parameter | Type    | Description                                                                                       |
 | --------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `q`       | string  | Search term (max 200 chars)                                                                       |
-| `type`    | string  | `all` (default), `projects`, or `datasets`                                                        |
+| `q`       | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match   |
+| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (requires `q`, ignores `sort`)               |
 | `sort`    | string  | `newest` (default), `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`         |
 | `offset`  | int     | Results to skip (default: 0)                                                                      |
 | `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                         |
@@ -2656,7 +2657,9 @@ GET /api/explore/search
 | `author`  | string  | Owner username filter                                                                             |
 | `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                      |
 
-**Response:** `projects`, `datasets`, and `hasMore`.
+**Response:** `projects`, `datasets`, and `hasMore`. `type=images` also returns `images`, best match first, each with
+its source `dataset` and a 0–1 similarity `score`; it searches public datasets, plus your own and team datasets when you
+send an API key.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"

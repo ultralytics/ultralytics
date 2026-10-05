@@ -101,7 +101,7 @@ The sidebar provides access to all Platform sections:
 | ----------- | ----------- | ------------------------------------------------------------------------------------- |
 | **Top**     | Search      | Quick search across all your resources (Cmd+K)                                        |
 |             | Home        | Dashboard with quick actions and recent activity                                      |
-|             | Explore     | Discover public projects and datasets                                                 |
+|             | Explore     | Discover public projects, datasets, and images                                        |
 |             | Agents      | Build visual [Agents](agents.md) workflows with YOLO, conditions, and VLMs            |
 | **Content** | Annotate    | Your datasets, with a `+` shortcut to create one                                      |
 |             | Train       | Your projects containing trained models                                               |

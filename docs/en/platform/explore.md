@@ -30,9 +30,10 @@ graph LR
 
 ## Overview
 
-The Explore page features two tabs:
+The Explore page features three tabs:
 
 - **Public Datasets**: Community training data with image previews
+- **Images**: Images from public datasets, and from your own and team datasets when signed in, found by what they show
 - **Public Projects**: Complete experiments containing trained models
 
 Official `@ultralytics` projects are pinned to the top of the Projects tab.
@@ -44,11 +45,12 @@ placeholders never surface in results.
 
 ### Tabs
 
-The Explore page uses a tabbed interface with `Datasets` and `Projects` tabs. Each tab has its own search, sort, and view mode controls.
+The Explore page uses a tabbed interface with `Datasets`, `Images`, and `Projects` tabs. Each tab has its own search; the Datasets and Projects tabs also have sort and view mode controls.
 
 | Tab          | Description                                       |
 | ------------ | ------------------------------------------------- |
 | **Datasets** | Labeled image collections for training (default)  |
+| **Images**   | Images found by what they show                    |
 | **Projects** | Organized model collections with training results |
 
 ### Search
@@ -61,11 +63,18 @@ easy to bookmark or share.
 | Tab          | Matched Fields                                           |
 | ------------ | -------------------------------------------------------- |
 | **Datasets** | Name, description, owner username, tags, and class names |
+| **Images**   | What the image shows                                     |
 | **Projects** | Name, description, owner username, and tags              |
+
+On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
+search, and their cards show the matching images. The Images tab searches by what an image shows, such as `cats on a
+sofa`, with a task and starred filter but no sorting; click an image to view it full size with its source dataset and
+license.
 
 ### Sort and Filter
 
-The dropdown next to the view toggle holds sort options and, on the Datasets tab, filters:
+The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on the Datasets and Images
+tabs:
 
 | Sort Option             | Description                                                            |
 | ----------------------- | ---------------------------------------------------------------------- |
@@ -74,10 +83,10 @@ The dropdown next to the view toggle holds sort options and, on the Datasets tab
 | **Name**                | Alphabetical, ascending or descending                                  |
 | **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
 
-| Filter         | Availability   | Description                                                                                       |
-| -------------- | -------------- | ------------------------------------------------------------------------------------------------- |
-| **Task type**  | Everyone       | Show only datasets for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
-| **My starred** | Signed in only | Show only datasets you have starred                                                               |
+| Filter         | Availability   | Description                                                                                      |
+| -------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| **Task type**  | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **My starred** | Signed in only | Show only datasets you have starred, or images from them                                         |
 
 Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, and `starred`), so the browser back button
 restores the previous result list.
@@ -88,7 +97,7 @@ restores the previous result list.
 
 ### View Modes
 
-Toggle between three view modes for browsing:
+On the Datasets and Projects tabs, toggle between three view modes for browsing:
 
 | Mode        | Description                                      |
 | ----------- | ------------------------------------------------ |
@@ -124,7 +133,7 @@ Each item displays:
 
     | Element         | Description                                                   |
     | --------------- | ------------------------------------------------------------- |
-    | **Thumbnails**  | Up to four preview images with their annotations drawn on top |
+    | **Thumbnails**  | Up to four annotated previews, search matches first           |
     | **Name**        | Dataset title                                                 |
     | **Creator**     | Author avatar and username                                    |
     | **Task Badge**  | YOLO task type (detect, segment, etc.)                        |

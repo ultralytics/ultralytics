@@ -228,7 +228,7 @@ m = (
 Standard modules become available through imports in [`tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
 ```python
-from ultralytics.nn.modules import (
+from ultralytics.nn.modules import (  # noqa: F401
     SPPF,
     C2f,
     Conv,
@@ -266,13 +266,13 @@ Modifying the source code is the most versatile way to integrate your custom mod
 3. **Expose your module at the package level** in [`ultralytics/nn/modules/__init__.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/modules/__init__.py):
 
     ```python
-    from .block import CustomBlock
+    from .block import CustomBlock  # noqa makes CustomBlock available as ultralytics.nn.modules.CustomBlock
     ```
 
 4. **Add to imports** in [`ultralytics/nn/tasks.py`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py):
 
     ```python
-    from ultralytics.nn.modules import CustomBlock
+    from ultralytics.nn.modules import CustomBlock  # noqa
     ```
 
 5. **Add the module to `base_modules`** inside [`parse_model()`](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/nn/tasks.py). Modules in this set automatically receive input and output channels:

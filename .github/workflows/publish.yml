@@ -29,7 +29,7 @@ jobs:
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@setup-uv-defaults
+      - uses: ultralytics/actions/setup-uv@main
       - run: uv pip install --no-cache ultralytics-actions
       - name: Check PyPI version and publish flag
         id: check_pypi
@@ -75,7 +75,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@setup-uv-defaults
+      - uses: ultralytics/actions/setup-uv@main
       - name: Build ultralytics
         run: uv build --out-dir dist/
       - name: Build ultralytics-opencv-headless
@@ -155,7 +155,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@setup-uv-defaults
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.14"
       - run: uv pip install -e .

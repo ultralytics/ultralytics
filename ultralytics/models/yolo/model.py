@@ -545,8 +545,8 @@ class YOLOE(Model):
             }
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
-            else:  # setup_model below applies this call's setup args; Model.predict owns the rest
-                setup = {k: overrides[k] for k in PREDICTOR_SETUP_KEYS if k in overrides}
+            else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict
+                setup = {"quantize": None, **{k: overrides[k] for k in PREDICTOR_SETUP_KEYS if k in overrides}}
                 self.predictor.args = get_cfg(self.predictor.args, setup)
 
             self.predictor.set_prompts(visual_prompts.copy())

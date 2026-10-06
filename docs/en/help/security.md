@@ -1,6 +1,6 @@
 ---
 description: Learn about the security measures and tools used by Ultralytics to protect user data and systems. Discover how we address vulnerabilities with Snyk, CodeQL, Dependabot, and more.
-keywords: Ultralytics security policy, Snyk scanning, CodeQL scanning, Dependabot alerts, secret scanning, vulnerability reporting, GitHub security, open-source security
+keywords: Ultralytics security policy, ISO 27001, SOC 2, HIPAA, Trust Center, Snyk scanning, CodeQL scanning, Dependabot alerts, secret scanning, vulnerability reporting, GitHub security, open-source security
 ---
 
 # Ultralytics Security Policy
@@ -34,6 +34,18 @@ We enable private vulnerability reporting, allowing users to discreetly report p
 If you suspect or discover a security vulnerability in any of our repositories, please let us know immediately. You can reach out to us directly via our [contact form](https://www.ultralytics.com/contact) or via [security@ultralytics.com](mailto:security@ultralytics.com). Our security team will investigate and respond as soon as possible.
 
 We appreciate your help in keeping all Ultralytics open-source projects secure and safe for everyone.
+
+## Compliance and Certifications
+
+Our [Information Security Management System (ISMS)](https://handbook.ultralytics.com/security/isms) covers Ultralytics YOLO models and [Ultralytics Platform](https://platform.ultralytics.com):
+
+- **ISO/IEC 27001:2022**: Certified ISMS.
+- **SOC 2 Type I**: Independent attestation of the design of our security controls.
+- **Penetration testing**: Independent third-party testing of Ultralytics Platform.
+- **HIPAA**: Completed HIPAA Security Rule self-assessment, with a Business Associate Agreement (BAA) available to Enterprise customers.
+- **Privacy**: GDPR and CCPA programs, with a Data Processing Agreement (DPA) available.
+
+Certificates, audit reports, and policies are available through the [Ultralytics Trust Center](https://trust.ultralytics.com), with some documents shared on request. See [Trust and Security](https://www.ultralytics.com/security) for an overview.
 
 ## FAQ
 
@@ -72,3 +84,7 @@ For more details, explore the [GitHub Dependabot Alerts section](#github-dependa
 Ultralytics encourages users to report potential security issues through private channels. Users can report vulnerabilities discreetly via the [contact form](https://www.ultralytics.com/contact) or by emailing [security@ultralytics.com](mailto:security@ultralytics.com). This ensures responsible disclosure and allows the security team to investigate and address vulnerabilities securely and efficiently.
 
 For more information on private vulnerability reporting, refer to the [Private Vulnerability Reporting section](#private-vulnerability-reporting).
+
+### Is Ultralytics ISO 27001 certified and SOC 2 attested?
+
+Yes. Our ISMS is certified to ISO/IEC 27001:2022, and we have completed a SOC 2 Type I examination covering Ultralytics YOLO models and Ultralytics Platform. Request the certificate, SOC 2 report, and penetration test attestation through the [Ultralytics Trust Center](https://trust.ultralytics.com). For details, see the [Compliance and Certifications section](#compliance-and-certifications).

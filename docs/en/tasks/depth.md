@@ -268,31 +268,35 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
 
     === "Metric depth model"
 
-        Label every pixel with a larger monocular model that outputs **metric** depth. Models that output relative depth, such as Marigold, do not work. This example uses [Depth Anything V2 Metric](https://huggingface.co/depth-anything/Depth-Anything-V2-Metric-Indoor-Large-hf) through `transformers`:
+        Label every pixel with a larger monocular model that outputs **metric** depth. Models that output relative depth, such as Marigold, do not work. This example uses [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE), which uses your camera's focal length to set the scale. Install it with Python 3.12 or older:
+
+        ```bash
+        git clone https://github.com/ByteDance-Seed/depth-anything-3
+        pip install -e depth-anything-3 addict
+        ```
+
+        Then write the depth maps:
 
         ```python
         from pathlib import Path
 
+        import cv2
         import numpy as np
-        import torch
-        from PIL import Image
-        from transformers import AutoImageProcessor, AutoModelForDepthEstimation
+        from depth_anything_3.api import DepthAnything3
 
-        model_id = "depth-anything/Depth-Anything-V2-Metric-Indoor-Large-hf"  # Outdoor-Large-hf for outdoor scenes
-        processor = AutoImageProcessor.from_pretrained(model_id)
-        model = AutoModelForDepthEstimation.from_pretrained(model_id).eval()
+        focal = 519.2  # focal length in pixels, (fx + fy) / 2 from your camera intrinsics
+        model = DepthAnything3.from_pretrained("depth-anything/da3metric-large").to("cuda")
 
         for f in sorted(Path("dataset/images/val").iterdir()):
-            image = Image.open(f).convert("RGB")
-            with torch.no_grad():
-                outputs = model(**processor(images=image, return_tensors="pt"))
-            depth = processor.post_process_depth_estimation(outputs, target_sizes=[image.size[::-1]])[0]["predicted_depth"]
+            h, w = cv2.imread(str(f)).shape[:2]
+            depth = model.inference([str(f)]).depth[0]  # at the model's processing resolution
+            depth = focal * (depth.shape[1] / w) * depth / 300  # meters, with focal scaled to that resolution
             out = Path("dataset/depth/val") / f"{f.stem}.npy"
             out.parent.mkdir(parents=True, exist_ok=True)
-            np.save(out, depth.numpy())  # float meters, no range limit
+            np.save(out, cv2.resize(depth, (w, h), interpolation=cv2.INTER_LINEAR))
         ```
 
-        The labels are only as accurate as the labeling model's scale for your camera. A model that does not know your focal length gets the scale wrong on lenses unlike its training data, so check a few labels against measured distances before calibrating. Models that take the focal length, such as [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE), avoid this.
+        If you only know the horizontal field of view, use `focal = w / (2 * tan(hfov / 2))`. The labels are only as accurate as the labeling model, so check a few of them against measured distances before calibrating.
 
 3.  **Write the dataset YAML** as `calib.yaml`:
 
@@ -322,7 +326,10 @@ The table shows how far each label source put the fitted scale from a calibratio
 | -------------------------------- | -------------------- | -------------------- | -------------------- |
 | None (released calibration)      | -4.2%                | -10.6%               | -45.9%               |
 | 5 measured points per image      | -0.9%                | -0.5%                | -0.8%                |
+| DA3METRIC-LARGE                  | -2.6%                | -6.2%                | -0.3%                |
 | Depth Anything V2 Metric (Large) | +21.9%               | +3.1%                | -20.4%               |
+
+Depth Anything V2 Metric does not take the focal length, so its scale is off on the narrow lens. DA3METRIC-LARGE stays within 7% on all three cameras.
 
 With measured points, 150 images with 1 point each gave a scale within 2% of the full ground-truth fit across 3 random draws, while 20 images with 5 points each varied by up to 9%. More images help more than more points per image.
 

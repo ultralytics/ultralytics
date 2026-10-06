@@ -247,7 +247,7 @@ def exif_size(img: Image.Image) -> tuple[int, int]:
         if exif.get(274) in {5, 6, 7, 8}:  # EXIF orientations that swap width and height
             if img.format in {"JPEG", "MPO", "PNG", "AVIF"}:  # imread decodes these upright on every version
                 s = s[1], s[0]
-            else:  # e.g. WebP and TIFF, whose orientation handling depends on the cv2/Pillow version
+            else:  # WebP (rotated from cv2 4.13) and TIFF (PIL size rotated from Pillow 11): use the decoded shape
                 s = imread(img.filename).shape[1::-1]
     except Exception:
         pass

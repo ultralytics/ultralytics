@@ -252,7 +252,7 @@ Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` 
 Get started with these resources:
 
 - [**Quickstart**](quickstart.md): Create your first project and train a model in minutes
-- [**Explore**](explore.md): Browse and clone public datasets and projects
+- [**Explore**](explore.md): Browse and clone public datasets and projects, and search images by what they show
 - [**Data**](data/index.md): Dataset preparation overview
 - [**Datasets**](data/datasets.md): Upload and manage your training data
 - [**Annotation**](data/annotation.md): Label your data with manual and AI-assisted tools

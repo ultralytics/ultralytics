@@ -295,7 +295,7 @@ Two dialogs may then appear:
 
 === "Map Classes"
 
-    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case) are preselected, and the annotations of skipped classes are not imported.
+    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
 
 === "Handle Conflicts"
 
@@ -385,12 +385,12 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                                            |
-    | ---------------- | -------------------------------------------------- |
-    | **Split filter** | Train, Val, Test, or All                           |
-    | **Annotations**  | All images, Annotated, or Unannotated              |
-    | **Class filter** | Filter by class name                               |
-    | **Search**       | Filter images by filename, class name, or metadata |
+    | Filter           | Options                                        |
+    | ---------------- | ---------------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All                       |
+    | **Annotations**  | All images, Annotated, or Unannotated          |
+    | **Class filter** | Filter by class name                           |
+    | **Search**       | By filename, class, metadata, or what it shows |
 
 !!! tip "Finding Unlabeled Images"
 
@@ -400,8 +400,12 @@ Images can be sorted and filtered for efficient browsing:
 
     The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional), the name of any class annotated in the image, and custom metadata keys, scalar values, and array entries, so an image named `img_0042` with a `boat` annotation and `{"ship_type": "yacht"}` metadata is found by searching `img_0042`, `boat`, or `yacht`.
 
-    Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
-    directly, bypassing the text search.
+    Values nested inside sub-objects are not matched. Pasting a 24-character image ID or 32-character content hash
+    looks up that exact image directly, bypassing the text search.
+
+    Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
+    images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
+    active, and a search that ends in a file extension skips the look-alike matches.
 
 ### Fullscreen Viewer
 
@@ -810,7 +814,7 @@ Copy or move images from one dataset you can edit into another, including a data
 
 Pasted images keep their labels and splits, and images the destination already holds in the same split are skipped. **Cut** removes the pasted images from the source dataset; **Copy** leaves it unchanged. The source and destination must have the same task and compatible image channels, pose keypoint settings, and depth scale, even when the copied images have no labels. An empty destination can inherit unset image-channel and pose settings. Images cannot be pasted into a [connected dataset](#what-is-not-available-for-connected-datasets).
 
-Classes are matched by name, ignoring case, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
+Classes are matched by name, ignoring case except for one- and two-character names, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
 
 ### Generate Similar Images
 
@@ -825,7 +829,7 @@ Create new training images from one you already have. In a dataset you can edit,
 
 ![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
 
-**Ultralytics Image 9B** is also listed, but you can select it only after you turn on [Early access](../account/settings.md#early-access). Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
+**Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
 Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear as they finish, all selected, and **Stop** ends a running batch while keeping the images that already arrived. To try other instructions or settings, change them and click **Generate more**: each new batch appears above the earlier ones, which keep their selection. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
 

@@ -11,7 +11,6 @@ new_track_thresh: 0.25 # (float) Start a tentative track from an unmatched detec
 track_buffer: 30 # (int) Frames to keep lost tracks alive; their gate widens meanwhile
 kpt_conf: 0.5 # (float) A keypoint counts as seen above this confidence
 kpt_nms: 0.1 # (float) Drop a detection whose keypoints lie within this mean distance, over the size, of a more confident one's
-min_common: 1.0 # (float) Keypoint confidence a track and a detection must share to be compared
 match_gate: 0.1 # (float) Max mean keypoint distance, over the person's size (box's longer side), to a track seen last frame
 wobble_gate: 3.0 # (float) ... or this many times the track's wobble (how far its matches usually land), if wider
 lost_gate: 0.5 # (float) Max distance to a track lost for lost_ramp frames or more

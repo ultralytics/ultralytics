@@ -495,7 +495,6 @@ KPTTrack follows people with a [Pose model](../tasks/pose.md) by their keypoints
 | -------------------- | ---------------------- | -------------------------------------------------------------------------------------- |
 | `kpt_conf`           | `0.0-1.0`              | Confidence above which a keypoint counts as seen.                                      |
 | `kpt_nms`            | `>=0`                  | Drop a detection whose keypoints lie within this mean distance of a stronger one's.    |
-| `min_common`         | `>=0`                  | Keypoint confidence a track and a detection must share to be compared.                 |
 | `match_gate`         | `>=0`                  | Max mean keypoint distance, over the person's size, to a track seen last frame.        |
 | `wobble_gate`        | `>=0`                  | Or this many times the track's wobble (how far its matches usually land), if wider.    |
 | `lost_gate`          | `>=0`                  | Max distance to a track lost for `lost_ramp` frames or more.                           |

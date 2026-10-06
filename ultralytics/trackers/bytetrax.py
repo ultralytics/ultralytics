@@ -282,7 +282,7 @@ class BYTETRAX:
         lost_stracks = []
         removed_stracks = []
 
-        # Step 1: Filter detections by confidence and validity, then initialise candidate tracks
+        # Step 1: Filter detections by confidence and validity, then initialize candidate tracks
         scores = results.conf
         wh = (results.xywhr if hasattr(results, "xywhr") else results.xywh)[:, 2:4]
         valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)  # tlwh_to_xyah divides by height, so h=0 would give an inf Kalman mean

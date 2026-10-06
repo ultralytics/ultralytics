@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from ultralytics.cfg import get_cfg
+from ultralytics.cfg import _handle_deprecation, get_cfg
 from ultralytics.data.build import load_inference_source
 from ultralytics.engine.model import PREDICTOR_SETUP_KEYS, Model
 from ultralytics.models import yolo
@@ -534,7 +534,7 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
-            overrides = {"verbose": refer_image is None, **self.overrides, **kwargs}
+            overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
             overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)

@@ -79,7 +79,7 @@ graph LR
 | [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
 | [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
 | [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
-| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                                  |
+| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, and images                         |
 
 ## Authentication
 
@@ -390,7 +390,7 @@ POST /api/datasets
 | `name`        | string  | Yes      | Display name (max 100 chars)                                                                    |
 | `description` | string  | No       | Description (max 1000 chars)                                                                    |
 | `task`        | string  | No       | Task type (default: `detect`)                                                                   |
-| `classNames`  | array   | No       | Class names in index order (max 25,000)                                                         |
+| `classNames`  | array   | No       | Class names in index order (max 25,000); no duplicates, ignoring case beyond 2 characters       |
 | `format`      | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                    |
 | `visibility`  | string  | No       | `public` or `private`                                                                           |
 | `blurFaces`   | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces)) |
@@ -821,6 +821,7 @@ GET /api/datasets/{owner}/{dataset}/images
 | `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
 | `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
 | `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
+| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                        |
 | `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
 | `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
 | `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
@@ -894,10 +895,10 @@ Setting `release` or `classMapping` preserves labels and splits from datasets yo
 images and `release: true` moves them out of their source dataset. Omitting both fields imports unlabeled `train`
 images, as does copying from a read-only source; moving from a read-only source returns `403`. Existing images are
 skipped; when preserving labels and splits, duplicates are checked within the destination split. Classes are matched
-by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
-each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
-dataset or a source or destination is busy. When preserving labels and splits, incompatible tasks, image channels,
-pose settings, or depth scales also return `409`, even for images without labels.
+by name, ignoring case for names longer than two characters; `422` returns the source classes with no match in
+`unmatchedClasses`, and `classMapping` maps each to a class index, a new class name, or `null` to drop its labels. `409`
+means the destination is a connected dataset or a source or destination is busy. When preserving labels and splits,
+incompatible tasks, image channels, pose settings, or depth scales also return `409`, even for images without labels.
 
 ### Ingest Dataset Data
 
@@ -969,8 +970,9 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 !!! note "Class Mapping"
 
     The first ingest creates classes from the archive automatically. On later ingests, archive classes omitted from
-    `classMapping` fall back to a case-insensitive match against existing dataset classes. Labels are skipped only for
-    classes explicitly mapped to `null` or without a matching existing class.
+    `classMapping` fall back to a name match against existing dataset classes, ignoring case for names longer than two
+    characters; classes without a match are added as new classes. Labels are skipped only for classes explicitly
+    mapped to `null`.
 
 **Response (`201`):**
 
@@ -1929,7 +1931,7 @@ GET /api/deployments/{owner}/{deployment}
 **Python SDK:** `client.deployments.retrieve(owner, deployment)`
 
 Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, `resources`, and custom
-`metadata`.
+`metadata`, plus `camera` and `cameraApplying` for the owner.
 
 ### Update a Deployment
 
@@ -1982,12 +1984,23 @@ Send one of these bodies:
     { "action": "resize", "cpu": 2, "memoryGi": 4 }
     ```
 
+=== "Camera"
+
+    ```json
+    { "action": "camera", "url": "rtsp://user:password@camera.example.com:554/stream" }
+    ```
+
 Renaming sets the `deployment` value in the URL to a slug of the new name, returned as `deployment`; the old path
 returns `404` and the `serviceUrl` stays the same. An empty `metadata` object
 clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
 URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
-that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still
-rolling out return `202` with `deploying` or `stopping`.
+that your key can access. The camera action saves an RTSP or RTSPS camera that a ready endpoint with custom resources
+keeps running inference on (see [Background Camera](../deploy/inference.md#background-camera)); `"url": null` removes
+it, as does resizing back to the default size, and saving a camera on a default-size endpoint returns `403`. A camera
+change returns `202` with `status` `ready` while it applies: poll the deployment until `cameraApplying` is no longer
+`true`, then check `camera`; a failed change keeps the previous camera and sets `statusMessage`. Completed operations
+return `200` with `status` `ready` or `stopped`; other operations still rolling out return `202` with `deploying` or
+`stopping`.
 
 ### Delete Deployment
 
@@ -2018,7 +2031,8 @@ POST /api/deployments/{owner}/{deployment}/predict
 **Python SDK:** `client.deployments.predict(owner, deployment, body=...)`
 
 Routes an image or video through the dedicated endpoint. The request and response contracts match
-[model inference](#run-inference).
+[model inference](#run-inference). Camera streams are not proxied; send them to the endpoint URL as described in
+[Live Camera Inference](../deploy/inference.md#stream-results-from-the-api).
 
 **Multipart Form:**
 
@@ -2633,7 +2647,8 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community. See [Explore documentation](../explore.md).
+Search public projects and datasets shared by the community, or search images by what they show. See [Explore
+documentation](../explore.md).
 
 ### Search Public Content
 
@@ -2647,8 +2662,8 @@ GET /api/explore/search
 
 | Parameter | Type    | Description                                                                                       |
 | --------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `q`       | string  | Search term (max 200 chars)                                                                       |
-| `type`    | string  | `all` (default), `projects`, or `datasets`                                                        |
+| `q`       | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match   |
+| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                             |
 | `sort`    | string  | `newest` (default), `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`         |
 | `offset`  | int     | Results to skip (default: 0)                                                                      |
 | `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                         |
@@ -2656,7 +2671,9 @@ GET /api/explore/search
 | `author`  | string  | Owner username filter                                                                             |
 | `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                      |
 
-**Response:** `projects`, `datasets`, and `hasMore`.
+**Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
+first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your
+own and team datasets when you send an API key.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"

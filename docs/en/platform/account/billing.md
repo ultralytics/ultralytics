@@ -149,8 +149,9 @@ Enable automatic credit purchases when your balance drops below a threshold:
 Default settings: threshold $20, amount $100.
 
 Auto top-up is evaluated whenever a charge lowers your balance, including mid-run training charges, and charges your
-default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined, a
-**Auto Top-Up Failed** row is added to your transaction history with the reason, and no credits are added.
+default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined or
+missing, an **Auto Top-Up Failed** row is added to your transaction history with the reason, no credits are added, and
+auto top-up turns off until you switch it back on.
 
 !!! tip "Reduce Training Interruptions"
 
@@ -283,7 +284,7 @@ If you cancel before the end of your billing period, a **Resume Subscription** b
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
+    Pro features remain active until the end of your current billing period, and yearly plans keep receiving monthly credit grants until then.
 
 ### Downgrading to Free
 
@@ -332,7 +333,7 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Signup Bonus**       | Signup credit, including the company-email top-up                       |
 | **Credit Purchase**    | Manual top-up                                                           |
 | **Auto Top-Up**        | Automatic top-up triggered by your threshold                            |
-| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added                 |
+| **Auto Top-Up Failed** | An automatic top-up failed; no credits were added                       |
 | **Subscription**       | Pro subscription or seat charge                                         |
 | **Monthly Grant**      | $30/seat monthly Pro credit                                             |
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade           |
@@ -349,14 +350,17 @@ supports free-text search across every field, and exports to CSV or JSON from th
 
 - **Running paid cloud training**: Stops when metered usage pushes the balance below zero
 - **New training**: Cannot start new jobs until balance is positive
-- **Deployments**: Continue running regardless of balance
+- **Deployments**: Default-size endpoints keep running; custom-size endpoints, and any background camera on them, are
+  stopped automatically
 
 Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to
 reduce the chance of an active job being stopped for insufficient funds.
 
 ### How do I get an invoice?
 
-Transaction receipts are available in the transaction history. Click the receipt icon next to any purchase transaction.
+Card payments (credit purchases, auto top-ups, and Pro subscription and seat charges) show a receipt link in the
+**Details** column of the transaction history. It opens the payment's invoice when one was issued, otherwise the card
+receipt.
 
 ### What if training fails?
 

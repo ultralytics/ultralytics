@@ -234,7 +234,7 @@ edit custom metadata.
 
 ![Ultralytics Platform Deployment Update CPU Memory Configuration](https://cdn.ul.run/i/ae535e3dae4adb3d69c5750272926a40.avif)<!-- screenshot -->
 
-Custom resources use uptime billing and keep an instance warm. Returning to default resources restores scale-to-zero behavior.
+Custom resources use uptime billing and keep an instance warm, which can also keep an IP camera running at no extra charge (see [Background Camera](inference.md#background-camera)). Returning to default resources restores scale-to-zero behavior and removes the background camera.
 
 !!! warning "Temporary Monitoring Data"
 

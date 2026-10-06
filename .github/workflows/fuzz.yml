@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
+      - uses: ultralytics/actions/setup-uv@setup-uv-defaults # outside the composite so it adds no post step to every consumer
         with:
           python-version: "3.13"
       - uses: ./.github/actions/ci-assets
@@ -69,7 +69,7 @@ jobs:
         shell: bash # multi-line run blocks and ${GITHUB_WORKSPACE} expansion on all three OSes
     steps:
       - uses: actions/checkout@v7
-      - uses: ultralytics/actions/setup-uv@main
+      - uses: ultralytics/actions/setup-uv@setup-uv-defaults
         with:
           python-version: "3.13"
       - name: Install requirements

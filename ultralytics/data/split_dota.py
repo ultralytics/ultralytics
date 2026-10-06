@@ -340,9 +340,8 @@ def split_test(
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
-        w, h = exif_size(Image.open(im_file))
-        windows = get_windows((h, w), crop_sizes=crop_sizes, gaps=gaps)
         im = imread_unicode(im_file)
+        windows = get_windows(im.shape[:2], crop_sizes=crop_sizes, gaps=gaps)
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()

@@ -244,11 +244,8 @@ def exif_size(img: Image.Image) -> tuple[int, int]:
     s = img.size  # (width, height)
     try:
         exif = img.tag_v2 if img.format == "TIFF" else img.getexif()  # TIFF tags stay readable after verify()
-        if exif.get(274) in {5, 6, 7, 8}:  # EXIF orientations that swap width and height
-            if img.format in {"JPEG", "MPO", "PNG", "AVIF"}:  # imread decodes these upright on every version
-                s = s[1], s[0]
-            else:  # WebP (rotated from cv2 4.13) and TIFF (PIL size rotated from Pillow 11): use the decoded shape
-                s = imread(img.filename).shape[1::-1]
+        if exif.get(274) in {5, 6, 7, 8}:  # swap w and h; WebP/TIFF vary by cv2/Pillow version, so decode those
+            s = s[::-1] if img.format in {"JPEG", "MPO", "PNG", "AVIF"} else imread(img.filename).shape[1::-1]
     except Exception:
         pass
     return s

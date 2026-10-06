@@ -7,7 +7,6 @@ import numpy as np
 from .basetrack import TrackState
 from .byte_tracker import BYTETracker, STrack
 from .utils import matching
-from .utils.stracks import sub_stracks
 
 
 class BYTETRAX(BYTETracker):
@@ -28,6 +27,10 @@ class BYTETRAX(BYTETracker):
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None, **kwargs) -> np.ndarray:
         """Expire lost tracks older than `track_buffer`, then update the tracker with this frame's detections.
 
+        `BYTETracker` expires lost tracks only after association, so an expired track could still be revived for one or
+        two more frames. Expiring them first keeps every revival within `track_buffer`, and the expired tracks are
+        reported in `removed_stracks_frame`.
+
         Args:
             results (Any): NumPy-backed detections (e.g. `Boxes` or `OBB` after `.cpu().numpy()`) exposing `conf`,
                 `cls`, and `xywh` (or `xywhr`), and supporting boolean indexing.
@@ -38,11 +41,8 @@ class BYTETRAX(BYTETracker):
         Returns:
             (np.ndarray): Tracked objects in the same format as `BYTETracker.update`.
         """
-        # BYTETracker expires lost tracks after association, which lets an expired track match once more first
         expired = [t for t in self.lost_stracks if self.frame_id + 1 - t.end_frame > self.max_frames_lost]
-        for track in expired:
-            track.mark_removed()
-        self.lost_stracks = sub_stracks(self.lost_stracks, expired)
+        self.lost_stracks = [t for t in self.lost_stracks if t not in expired]
         tracks = super().update(results, img, feats, **kwargs)
         self.removed_stracks_frame += expired
         return tracks

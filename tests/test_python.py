@@ -738,7 +738,8 @@ def test_bytetrax_lost_track_expiry():
     size = (640, 640)
     empty = Boxes(torch.empty((0, 6)), size)
     first = Boxes(torch.tensor([[80, 80, 120, 120, 0.9, 0]], dtype=torch.float32), size)
-    det = Boxes(torch.tensor([[121, 85, 141, 105, 0.9, 0]], dtype=torch.float32), size)
+    # Overlapping detection that would reactivate the track through IoU association were it still in the pool
+    det = Boxes(torch.tensor([[82, 81, 122, 121, 0.9, 0]], dtype=torch.float32), size)
 
     tracker = TRACKER_MAP["bytetrax"](IterableSimpleNamespace(**cfg))
     tracker.update(first)
@@ -751,7 +752,7 @@ def test_bytetrax_lost_track_expiry():
 
     for _ in range(2):
         tracker.update(empty)
-    # The track is beyond the track_buffer in frame five, thus the nearby detection cannot reconnect to it
+    # The track is beyond the track_buffer in frame five, so neither association nor reconnection can revive it
     out = tracker.update(det)
     assert out.size == 0, f"expired track reconnected instead of removed:\n{out}"
     out = tracker.update(det)

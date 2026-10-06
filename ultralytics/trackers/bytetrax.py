@@ -282,6 +282,7 @@ class BYTETRAX:
         lost_stracks = []
         removed_stracks = []
 
+        # Step 1: Filter detections by confidence and validity, then initialise candidate tracks
         scores = results.conf
         wh = (results.xywhr if hasattr(results, "xywhr") else results.xywh)[:, 2:4]
         valid = (wh[:, 0] > 0) & (wh[:, 1] > 0)  # tlwh_to_xyah divides by height, so h=0 would give an inf Kalman mean
@@ -300,6 +301,12 @@ class BYTETRAX:
                 unconfirmed.append(track)
             else:
                 tracked_stracks.append(track)
+        # Remove lost tracks that exceed the buffer before association to ensure that they cannot be reactivated or shadow new detections
+        for track in self.lost_stracks:
+            if self.frame_id - track.end_frame > self.max_time_lost:
+                track.mark_removed()
+                removed_stracks.append(track)
+        self.lost_stracks = sub_stracks(self.lost_stracks, removed_stracks)
         # Step 2: First association, with unified confidence threshold
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
         # Predict the current location with KF
@@ -426,11 +433,6 @@ class BYTETRAX:
         # Step 6: Update state
         # Remove reconnected tracks from lost_stracks
         self.lost_stracks = [t for t in self.lost_stracks if t not in reconnected_tracks]
-
-        for track in self.lost_stracks:
-            if self.frame_id - track.end_frame > self.max_time_lost:
-                track.mark_removed()
-                removed_stracks.append(track)
 
         self.tracked_stracks = [t for t in self.tracked_stracks if t.state == TrackState.Tracked]
         self.tracked_stracks = joint_stracks(self.tracked_stracks, activated_stracks)

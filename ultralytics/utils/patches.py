@@ -113,8 +113,9 @@ def _imread_pil(filename: str, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | No
 def imread_unicode(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | None:
     """Read an image with multilanguage filename support, preserving native cv2.imread behavior.
 
-    This is intended as a Windows monkey-patch for cv2.imread. Unlike `imread`, it does not expand grayscale dimensions
-    or handle TIFF/AVIF/HEIC fallback.
+    This is intended as a Windows monkey-patch for cv2.imread. Decoding from bytes also reads EXIF-rotated TIFFs, which
+    file-based cv2.imread returns as None on OpenCV >= 4.12. Unlike `imread`, it does not expand grayscale dimensions or
+    handle TIFF/AVIF/HEIC fallback.
 
     Args:
         filename (str | Path): Path to the file to read.

@@ -32,6 +32,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
+from ultralytics.utils.patches import imread
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {
@@ -241,14 +242,12 @@ def get_hash(paths: list[str]) -> str:
 def exif_size(img: Image.Image) -> tuple[int, int]:
     """Return exif-corrected PIL size."""
     s = img.size  # (width, height)
-    if img.format == "JPEG":  # only support JPEG images
-        try:
-            if exif := img.getexif():
-                rotation = exif.get(274, None)  # the EXIF key for the orientation tag is 274
-                if rotation in {6, 8}:  # rotation 270 or 90
-                    s = s[1], s[0]
-        except Exception:
-            pass
+    try:
+        exif = img.tag_v2 if img.format == "TIFF" else img.getexif()  # TIFF tags stay readable after verify()
+        if exif.get(274) in {5, 6, 7, 8}:  # swap w and h; WebP/TIFF vary by cv2/Pillow version, so decode those
+            s = s[::-1] if img.format in {"JPEG", "MPO", "PNG", "AVIF"} else imread(img.filename).shape[1::-1]
+    except Exception:
+        pass
     return s
 
 

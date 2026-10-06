@@ -401,20 +401,18 @@ class AutoBackend(nn.Module):
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
         name = Path(p).name
-        types = [name.endswith(s) for s in sf]
-        types[5] |= name.endswith(".mlmodel")
-        if not any(types):  # renamed export directories, i.e. 'best_openvino_model (1)'
-            types = [s in name for s in sf]
-        format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
-            format = "qnn"
-        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
-            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
-        elif format == "-":
+        # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
+        matches = [
+            (name.rfind(s) + len(s), len(s), f)
+            for s, f in zip([*sf, ".mlmodel"], [*export_formats()["Argument"], "coreml"])
+            if s in name
+        ]
+        format = max(matches)[2] if matches else None
+        if format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"
-        elif not any(types):
+        elif format is None:
             from urllib.parse import urlsplit
 
             url = urlsplit(p)

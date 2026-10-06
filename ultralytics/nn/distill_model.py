@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import sys
+from importlib import import_module
 from pathlib import Path
 
 import torch
@@ -9,6 +11,8 @@ import torch.nn.functional as F
 from torch import nn
 
 from ultralytics.nn.modules.head import Detect
+from ultralytics.utils import YAML
+from ultralytics.utils.patches import torch_load
 from ultralytics.utils.torch_utils import copy_attr
 
 from .tasks import load_checkpoint
@@ -33,15 +37,15 @@ class FeatureHook:
 class DistillationModel(nn.Module):
     """YOLO knowledge distillation model.
 
-    This class wraps a teacher-student pair for knowledge distillation training. Features are extracted from both models
-    via forward hooks for distillation.
+    This class wraps a teacher-student pair for knowledge distillation training. YOLO teachers supervise neck features;
+    DINOv3 teachers supervise the student's final backbone feature with spatial cosine distillation.
 
     Attributes:
         teacher_model (nn.Module): Frozen teacher model providing features.
         student_model (nn.Module): Trainable student model being distilled.
         feats_idx (list): Student layer indices for feature extraction.
-        teacher_feats_idx (list): Teacher layer indices at the same feature levels.
-        projector (nn.ModuleList): MLP projector aligning student features to teacher dimensions.
+        teacher_feats_idx (list): Teacher layer indices at the same feature levels; empty for a DINOv3 teacher.
+        projector (nn.ModuleList): Projectors aligning student features to teacher dimensions.
         dis (float): Distillation loss weight factor.
 
     Methods:
@@ -65,27 +69,41 @@ class DistillationModel(nn.Module):
         """Initialize the distillation model with teacher, student, and feature extraction hooks.
 
         Args:
-            teacher_model (str | Path | nn.Module): Teacher model checkpoint path or module.
+            teacher_model (str | Path | nn.Module): YOLO teacher checkpoint/module or DINOv3 YAML with model, repo, weights.
             student_model (nn.Module): Student model module to be trained.
         """
         super().__init__()
         ch = student_model.yaml.get("channels", 3)
+        dinov3 = False
         if isinstance(teacher_model, (str, Path)):
-            teacher_model = load_checkpoint(teacher_model)[0]
-            if teacher_model.yaml.get("channels", 3) != ch:
-                weights = teacher_model
-                teacher_model = type(weights)(weights.yaml.copy(), ch=ch, nc=weights.yaml["nc"], verbose=False)
-                teacher_model.load(weights)
+            if Path(teacher_model).suffix in {".yaml", ".yml"}:
+                config_path = Path(teacher_model).resolve()
+                config = YAML.load(config_path)
+                if ch != 3 or student_model.args.task != "detect" or not config["model"].startswith("dinov3_vit"):
+                    raise ValueError("DINOv3 distillation requires a ViT teacher and an RGB detection student")
+                repo = (config_path.parent / config["repo"]).resolve()
+                weights = (config_path.parent / config["weights"]).resolve()
+                sys.path.insert(0, str(repo))
+                factory = getattr(import_module("dinov3.hub.backbones"), config["model"])
+                teacher_model = factory(pretrained=False)
+                teacher_model.load_state_dict(torch_load(weights, map_location="cpu", weights_only=True), strict=True)
+                dinov3 = True
+            else:
+                teacher_model = load_checkpoint(teacher_model)[0]
+                if teacher_model.yaml.get("channels", 3) != ch:
+                    weights = teacher_model
+                    teacher_model = type(weights)(weights.yaml.copy(), ch=ch, nc=weights.yaml["nc"], verbose=False)
+                    teacher_model.load(weights)
         device = next(student_model.parameters()).device
         self.teacher_model = teacher_model.to(device)
         self._freeze_teacher()
         self.student_model = student_model
-        self.feats_idx = self.get_distill_layers(student_model)
-        self.teacher_feats_idx = self.get_distill_layers(teacher_model)
-        if len(self.feats_idx) != len(self.teacher_feats_idx):
+        self.feats_idx = [len(student_model.yaml["backbone"]) - 1] if dinov3 else self.get_distill_layers(student_model)
+        self.teacher_feats_idx = [] if dinov3 else self.get_distill_layers(teacher_model)
+        if not dinov3 and len(self.feats_idx) != len(self.teacher_feats_idx):
             raise ValueError("Teacher and student detection heads must have the same number of feature levels")
 
-        # Hook-based feature capture: identical for teacher and student
+        # DINOv3 returns patch tokens directly; YOLO teacher features are captured through hooks.
         self._teacher_feats: dict[int, torch.Tensor] = {}
         self._student_feats: dict[int, torch.Tensor] = {}
         self._teacher_hooks: list = []
@@ -97,15 +115,16 @@ class DistillationModel(nn.Module):
         student_model.eval()
         with torch.no_grad():
             im = torch.zeros(2, ch, imgsz, imgsz, device=device)
-            teacher_model(im)
+            if not dinov3:
+                teacher_model(im)
             student_model(im)
         student_model.train()
-        teacher_output = [self._teacher_feats[i] for i in range(len(self.feats_idx))]
+        teacher_output = [self._teacher_feats[i] for i in range(len(self.teacher_feats_idx))]
         student_output = [self._student_feats[i] for i in range(len(self.feats_idx))]
 
         copy_attr(self, student_model)
         self.dis = self.student_model.args.dis
-        projectors = []
+        projectors = [nn.Conv2d(student_output[0].shape[1], teacher_model.embed_dim, kernel_size=1)] if dinov3 else []
         for student_out, teacher_out in zip(student_output[:-1], teacher_output[:-1]):
             student_dim = self.decouple_outputs(student_out).shape[1]
             teacher_dim = self.decouple_outputs(teacher_out).shape[1]
@@ -160,12 +179,13 @@ class DistillationModel(nn.Module):
     def _register_feature_hooks(self) -> None:
         """Register feature-capture hooks, removing stale FeatureHook instances first."""
         self._remove_feature_hooks()
-        for i, (s, t) in enumerate(zip(self.feats_idx, self.teacher_feats_idx)):  # features stored by level i
+        for i, s in enumerate(self.feats_idx):  # features stored by level i
             self._clear_feature_hooks(self.student_model.model[s])
             self._student_hooks.append(
                 self.student_model.model[s].register_forward_hook(FeatureHook(self._student_feats, i))
             )
-            if self.teacher_model is not None:
+        if self.teacher_model is not None:
+            for i, t in enumerate(self.teacher_feats_idx):
                 self._clear_feature_hooks(self.teacher_model.model[t])
                 self._teacher_hooks.append(
                     self.teacher_model.model[t].register_forward_hook(FeatureHook(self._teacher_feats, i))
@@ -259,26 +279,43 @@ class DistillationModel(nn.Module):
         self._student_feats.clear()
 
         with torch.no_grad():
-            self.teacher_model(batch["img"])  # hooks capture teacher features
+            if self.teacher_feats_idx:
+                self.teacher_model(batch["img"])  # hooks capture YOLO teacher features
+            else:
+                im = batch["img"]
+                im = (im - im.new_tensor((0.485, 0.456, 0.406))[None, :, None, None]) / im.new_tensor(
+                    (0.229, 0.224, 0.225)
+                )[None, :, None, None]
+                im = F.avg_pool2d(im, 2)
+                tokens = self.teacher_model.forward_features(im)["x_norm_patchtokens"]
+                h, w = (s // self.teacher_model.patch_size for s in im.shape[-2:])
+                self._teacher_feats[0] = tokens.transpose(1, 2).reshape(im.shape[0], -1, h, w)
         preds = self.student_model(batch["img"])  # hooks capture student features
 
         regular_loss, loss_items = self.student_model.loss(batch, preds)
-        n = len(self.feats_idx) - 1  # neck levels; level n is the Detect head
-        teacher_head_feat = self._teacher_feats[n]
-        teacher_scores = (
-            self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
-            + self.decouple_outputs(teacher_head_feat, branch="one2one")["scores"]
-        ) / 2
-        # neck feature sizes vary per batch (e.g. multi_scale), so split scores by the live teacher feats
-        neck_feats = [self._teacher_feats[i] for i in range(n)]
-        parts = torch.split(teacher_scores, [f.shape[-2] * f.shape[-1] for f in neck_feats], dim=-1)
-        teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
-        for i in range(n):
-            teacher_feat = self.decouple_outputs(self._teacher_feats[i])
-            student_feat = self.projector[i](self.decouple_outputs(self._student_feats[i]))
-            loss_distill += (
-                self.loss_sl2(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.dis
+        if not self.teacher_feats_idx:
+            student_feat = self.projector[0](self._student_feats[0]).float()
+            teacher_feat = F.interpolate(
+                self._teacher_feats[0].float(), size=student_feat.shape[-2:], mode="bilinear", align_corners=False
             )
+            loss_distill += (1 - F.cosine_similarity(student_feat, teacher_feat, dim=1, eps=1e-8)).mean() * self.dis
+        else:
+            n = len(self.feats_idx) - 1  # neck levels; level n is the Detect head
+            teacher_head_feat = self._teacher_feats[n]
+            teacher_scores = (
+                self.decouple_outputs(teacher_head_feat, branch="one2many")["scores"]
+                + self.decouple_outputs(teacher_head_feat, branch="one2one")["scores"]
+            ) / 2
+            # neck feature sizes vary per batch (e.g. multi_scale), so split scores by the live teacher feats
+            neck_feats = [self._teacher_feats[i] for i in range(n)]
+            parts = torch.split(teacher_scores, [f.shape[-2] * f.shape[-1] for f in neck_feats], dim=-1)
+            teacher_scores = tuple(p.sigmoid().max(dim=1, keepdim=True).values for p in parts)
+            for i in range(n):
+                teacher_feat = self.decouple_outputs(self._teacher_feats[i])
+                student_feat = self.projector[i](self.decouple_outputs(self._student_feats[i]))
+                loss_distill += (
+                    self.loss_sl2(student_feat, teacher_feat, feat_idx=i, teacher_scores=teacher_scores) * self.dis
+                )
 
         loss_items["dis_loss"] = loss_distill.detach()
         loss_distill = loss_distill * batch["img"].shape[0]

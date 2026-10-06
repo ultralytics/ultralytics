@@ -45,7 +45,7 @@ Train a smaller student model with guidance from a larger teacher model by addin
 
 ## Performance
 
-Knowledge distillation improves student [mAP](yolo-performance-metrics.md) across the entire YOLO26 family on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), with no added inference cost. The table below compares the standard YOLO26 models (baseline) against the same models trained with distillation from their recommended teacher.
+Distillation from YOLO teachers improves student [mAP](yolo-performance-metrics.md) across the entire YOLO26 family on [COCO](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco.yaml), with no added inference cost. The table below compares the standard YOLO26 models (baseline) against the same models trained with distillation from their recommended teacher.
 
 | Model                                                                  | size<br><sup>(pixels)</sup> | mAP<sup>val<br>50-95</sup><br>baseline | mAP<sup>val<br>50-95</sup><br>distilled | mAP<sup>val<br>50-95 (e2e)</sup><br>baseline | mAP<sup>val<br>50-95 (e2e)</sup><br>distilled |
 | ---------------------------------------------------------------------- | --------------------------- | -------------------------------------- | --------------------------------------- | -------------------------------------------- | --------------------------------------------- |
@@ -62,8 +62,8 @@ Knowledge distillation improves student [mAP](yolo-performance-metrics.md) acros
 
 Before you begin, ensure you meet the following requirements:
 
-- **Trained teacher model**: a `.pt` checkpoint from the same YOLO family as the student.
-- **Matching task**: use a teacher for the same task as the student and train it on relevant data.
+- **Teacher model**: a `.pt` checkpoint from the same YOLO family as the student, or a [DINOv3 teacher configuration](#dinov3-teacher).
+- **Matching task**: YOLO teachers must match the student's task and be trained on relevant data. DINOv3 teachers support RGB detection only.
 - **GPU resources**: enough memory to hold both models; the teacher runs forward-only without gradients or optimizer state.
 
 ### Recommended Model Pairs
@@ -75,16 +75,18 @@ Before you begin, ensure you meet the following requirements:
 | `yolo26m.pt` | `yolo26x.pt`        |
 | `yolo26l.pt` | `yolo26x.pt`        |
 
-Cross-family distillation (e.g., YOLO11 teacher with YOLO26 student) is **not supported**.
+Cross-family distillation between YOLO models (e.g., YOLO11 teacher with YOLO26 student) is **not supported**.
 
 ## Key Parameters
 
 | Parameter       | Type    | Default | Description                                                                                               |
 | --------------- | ------- | ------- | --------------------------------------------------------------------------------------------------------- |
-| `distill_model` | `str`   | `None`  | Path to the teacher model file (e.g., `yolo26x.pt`). Setting this enables knowledge distillation.         |
+| `distill_model` | `str`   | `None`  | Path to a YOLO teacher checkpoint or DINOv3 teacher YAML. Setting this enables knowledge distillation.    |
 | `dis`           | `float` | `6.0`   | Distillation loss weight. Controls how much the distillation loss contributes to the total training loss. |
 
 ## How It Works
+
+For YOLO teachers, distillation uses the following feature alignment:
 
 1. The **teacher model** remains frozen in `eval` mode and runs inference on each batch
 2. The **student model** trains with standard task losses plus distillation guidance
@@ -123,9 +125,42 @@ flowchart TD
     classDef extern fill:#607D8B,color:#fff
 ```
 
+### DINOv3 Teacher
+
+Use a frozen [DINOv3 ViT-B/16](https://github.com/facebookresearch/dinov3) teacher with local Meta `.pth` weights. Create `dinov3-teacher.yaml` with these three fields; relative paths resolve from the YAML file's directory:
+
+```yaml
+model: dinov3_vitb16
+repo: ../dinov3
+weights: ../weights/dinov3_vitb16_pretrain_lvd1689m.pth
+```
+
+The native backbone is constructed without downloading pretrained weights, then the local state dictionary is loaded strictly. The external DINOv3 source repository and weights are needed for training and resuming; student inference and export do not need them.
+
+!!! example "DINOv3 Distillation"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        student = YOLO("yolo26n.pt")
+        student.train(data="VisDrone.yaml", distill_model="dinov3-teacher.yaml", dis=1.0, imgsz=640, epochs=100, device=0)
+        ```
+
+    === "CLI"
+
+        ```bash
+        yolo detect train model=yolo26n.pt data=VisDrone.yaml distill_model=dinov3-teacher.yaml dis=1.0 imgsz=640 epochs=100 device=0
+        ```
+
+The teacher receives the same augmented RGB images as the student, applies ImageNet normalization and 2× average pooling, and returns normalized patch tokens. A single 1×1 convolution projects the student's final backbone feature (layer 10, C2PSA, in standard YOLO26) to the teacher's 768 channels. Teacher features are resized to match the student grid when needed, and a spatial cosine loss is computed in FP32. The loss is scaled by batch size, added once to the detection loss, and weighted by `dis`.
+
+This implements the semantic alignment approach from [RT-DETRv4](https://arxiv.org/abs/2510.25257) with a fixed loss weight; it does not include GAM. Start with `dis=1.0` and compare against an otherwise identical baseline. The global default remains `6.0`, and DINOv3 accuracy gains on VisDrone must be measured.
+
 ## Task Support
 
-The distillation implementation extracts features from the three neck layers that feed the model's Detect-family head. Because the **segment**, **pose**, and **obb** heads inherit from the same `Detect` architecture, distillation is technically compatible with those tasks as well.
+With YOLO teachers, distillation extracts features from the three neck layers that feed the model's Detect-family head. Because the **segment**, **pose**, and **obb** heads inherit from the same `Detect` architecture, distillation is technically compatible with those tasks as well. DINOv3 teachers support **detect** with RGB input only.
 
 Classification, semantic segmentation, depth estimation, and RT-DETR do not use a compatible Detect-family head and are not supported.
 
@@ -217,6 +252,8 @@ The `dis` parameter (default: `6.0`) controls distillation loss contribution:
 
 Distillation training supports resuming from checkpoints. The teacher model is rebuilt automatically from the `distill_model` path recorded in the checkpoint:
 
+For DINOv3, keep the teacher YAML, source repository, and weights available when resuming. The trained projector is restored with the student checkpoint.
+
 !!! example "Resume Distillation Training"
 
     === "Python"
@@ -249,10 +286,10 @@ The exported model contains **only the student weights**—file size and inferen
 
 ### Why is my distillation loss not decreasing?
 
-- Verify teacher and student are from the **same YOLO generation**
+- For YOLO teachers, verify teacher and student are from the **same YOLO generation**
 - Confirm `distill_model` path is correct and the file loads
 - Try increasing `dis` if the loss value is very small
-- Ensure the teacher model is trained on the **same dataset**
+- For YOLO teachers, ensure the teacher model is trained on the **same dataset**
 
 ### How does distillation differ from standard training?
 
@@ -268,4 +305,4 @@ Knowledge distillation works with **detect**, **segment**, **pose**, and **obb**
 
 Only **detect** has been experimentally verified for accuracy improvements. Segment, pose, and obb are technically compatible but not yet benchmarked.
 
-The teacher and student must belong to the **same YOLO family** (e.g., YOLOv8, YOLO11, or YOLO26). Cross-family distillation (e.g., a YOLO11 teacher with a YOLO26 student) is not supported.
+For YOLO teachers, the teacher and student must belong to the **same YOLO family** (e.g., YOLOv8, YOLO11, or YOLO26). Cross-family distillation between YOLO models is not supported. DINOv3 teachers use the separate backbone alignment described above and support RGB detection only.

@@ -56,7 +56,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
         with:
           python-version: "3.13"
-          activate-environment: true
       - uses: ./.github/actions/ci-assets
         with:
           build: true
@@ -80,9 +79,6 @@ jobs:
         model: [yolo26n]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
@@ -94,11 +90,11 @@ jobs:
           timeout_minutes: 20
           run: |
             # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
-            uv pip install --system -e ".[export,export-executorch]" \
+            uv pip install -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
             # Core AI benchmark rows: export on macOS and x86_64 Linux, inference on macOS (a no-op on Linux arm64)
-            uv pip install --system -e ".[export-coreai]" --torch-backend cpu
+            uv pip install -e ".[export-coreai]" --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -173,7 +169,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -314,7 +309,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -365,9 +359,6 @@ jobs:
       - name: Cleanup disk space
         uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
@@ -386,7 +377,7 @@ jobs:
           restore-keys: |
             isolated-exports-uv-
       - name: Install base package
-        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+        run: uv pip install -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - uses: ./.github/actions/ci-assets
       - name: Build and run export tests in isolated environments
         env:
@@ -417,8 +408,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
-        with:
-          activate-environment: true
       - name: Install requirements
         run: |
           sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml  # headless OpenCV
@@ -464,7 +453,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.12"
-          activate-environment: true
       - name: Install requirements
         run: |
           uv pip install "torch[device-all]==2.13.0+rocm10.0.0" "torchvision[device-all]==0.28.0+rocm10.0.0" --index-url https://stable.repo.amd.com/rocm/whl-next/ --index-strategy unsafe-best-match
@@ -509,6 +497,8 @@ jobs:
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # use env-tests above
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -596,6 +586,8 @@ jobs:
         uses: eviden-actions/clean-self-hosted-runner@v1.4.41
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # use the venv below
       - name: Activate virtual environment
         run: |
           python${{ matrix.python }} -m venv env --system-site-packages
@@ -638,6 +630,8 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # use the conda env
       - uses: conda-incubator/setup-miniconda@v4
         with:
           channels: conda-forge

@@ -1646,6 +1646,30 @@ def test_utils_torchutils():
     time_sync()
 
 
+def test_profile_ops_nested_backward():
+    """Test profile_ops backward timing and gradients for nested dict/tuple outputs and detached-only outputs."""
+    from ultralytics.utils.torch_utils import profile_ops
+
+    class NestedOutput(torch.nn.Module):
+        def __init__(self, detached=False):
+            super().__init__()
+            self.conv = torch.nn.Conv2d(3, 4, 1)
+            self.detached = detached
+
+        def forward(self, x):
+            y = self.conv(x).detach() if self.detached else self.conv(x)
+            return {"one2many": (y, [y * 2]), "one2one": {"scores": y.sigmoid()}}
+
+    x = torch.randn(1, 3, 8, 8)
+    m = NestedOutput()
+    assert np.isfinite(profile_ops(x, [m], n=1, device="cpu")[0][4])  # backward time (ms)
+    assert all(p.grad is not None and p.grad.abs().sum() > 0 for p in m.parameters())
+
+    m = NestedOutput(detached=True)  # no differentiable outputs keep the existing NaN backward time
+    assert np.isnan(profile_ops(x, [m], n=1, device="cpu")[0][4])
+    assert all(p.grad is None for p in m.parameters())
+
+
 def test_rtdetr_remap_cls_by_names():
     """Test RT-DETR decoder cls-head remap (direct-name match, unmatched, denoising partial transfer)."""
     from types import SimpleNamespace

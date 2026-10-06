@@ -1,12 +1,12 @@
 ---
 comments: true
-description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without needing a Python environment.
+description: Explore the YOLO command line interface (CLI) for easy execution of detection tasks without writing Python code.
 keywords: YOLO CLI, command line interface, YOLO commands, detection tasks, Ultralytics, model training, model prediction
 ---
 
 # Command Line Interface
 
-The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without needing a Python environment. The CLI supports running various tasks directly from the terminal using the `yolo` command, requiring no customization or Python code.
+The Ultralytics command line interface (CLI) provides a straightforward way to use Ultralytics YOLO models without writing Python code. The CLI supports running various tasks directly from the terminal using the `yolo` command.
 
 <p align="center">
   <br>
@@ -257,7 +257,7 @@ Ultralytics provides ready-to-use solutions for common computer vision applicati
         Crop detected objects and save them to disk:
 
         ```bash
-        yolo solutions crop show=True
+        yolo solutions crop
         yolo solutions crop source="path/to/video.mp4" # specify video file path
         yolo solutions crop classes="[0, 2]"           # crop only selected classes
         ```

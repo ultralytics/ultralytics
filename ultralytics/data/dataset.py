@@ -18,7 +18,7 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
-from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread, imread_unicode
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -53,7 +53,7 @@ from .utils import (
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
 # rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
-DATASET_CACHE_VERSION = "1.0.9"  # 16-bit semantic masks are now read at full depth and validated
+DATASET_CACHE_VERSION = "1.0.10"  # EXIF-rotated image shapes now match the decoded image
 
 
 class YOLODataset(BaseDataset):
@@ -1304,7 +1304,7 @@ class ClassificationDataset:
     @staticmethod
     def imread(f: str) -> np.ndarray | None:
         """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
-        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else cv2.imread(f)
+        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else imread_unicode(f)
 
     def cache_images(self) -> None:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.

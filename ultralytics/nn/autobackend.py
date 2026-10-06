@@ -70,7 +70,7 @@ def check_class_names(names: list | dict) -> dict[int, str]:
             from ultralytics.utils import ROOT, YAML
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
-            names = {k: names_map[v] for k, v in names.items()}
+            names = {k: names_map.get(v, v) for k, v in names.items()}
     return names
 
 
@@ -128,6 +128,7 @@ class AutoBackend(nn.Module):
             | Qualcomm QNN          | *_qnn.onnx             |
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
+            | AMD Xilinx            | *_xilinx_model/        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -177,6 +178,7 @@ class AutoBackend(nn.Module):
         "qnn": QNNBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "xilinx": ONNXBackend,
     }
 
     @smart_inference_mode(False)

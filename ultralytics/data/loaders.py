@@ -745,8 +745,6 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
 
     Notes:
         - Requires additional libraries based on the chosen method: pytubefix, pafy, or yt-dlp.
-        - The "pytube" and "yt-dlp" methods only return streams of at least 1080p resolution, and return None if
-          none is found.
         - For the "yt-dlp" method, it looks for formats with video codec, no audio, and *.mp4 extension.
     """
     if method == "pytube":
@@ -757,7 +755,7 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
         stream = (
             YouTube(url).streams.filter(file_extension="mp4", only_video=True).order_by("resolution").desc().first()
         )
-        if stream and int(stream.resolution[:-1]) >= 1080:  # check if highest resolution is at least 1080p
+        if stream:
             return stream.url
 
     elif method == "pafy":
@@ -773,9 +771,8 @@ def get_best_youtube_url(url: str, method: str = "pytube") -> str | None:
         with yt_dlp.YoutubeDL({"quiet": True}) as ydl:
             info_dict = ydl.extract_info(url, download=False)  # extract info
         for f in reversed(info_dict.get("formats", [])):  # reversed because best is usually last
-            # Find a format with video codec, no audio, *.mp4 extension at least 1920x1080 size
-            good_size = (f.get("width") or 0) >= 1920 or (f.get("height") or 0) >= 1080
-            if good_size and f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
+            # Find a format with video codec, no audio, *.mp4 extension
+            if f["vcodec"] != "none" and f["acodec"] == "none" and f["ext"] == "mp4":
                 return f.get("url")
 
 

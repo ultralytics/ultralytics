@@ -1,15 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# BYTETRAX tracker defaults for mode="track"
-# Docs: https://docs.ultralytics.com/modes/track/
+# ByteTraX tracker defaults for mode="track"
+# Docs: https://docs.ultralytics.com/modes/track
 
-tracker_type: bytetrax # (str) Tracker backend: botsort|bytetrack|bytetrax; choose bytetrax for enhanced reconnection features
-track_thresh: 0.1 # (float) Matching threshold for all associations; raise for cleaner tracks, lower to keep more
+tracker_type: bytetrax # (str) Tracker backend: bytetrax
+track_high_thresh: 0.1 # (float) Single association threshold; detections below it are ignored
+track_low_thresh: 0.1 # (float) Equal to track_high_thresh, so there is no second low-score association stage
 new_track_thresh: 0.2 # (float) Start a new track if no match ≥ this; higher reduces false tracks
-track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switch risk
-match_thresh: 0.99 # (float) Association similarity threshold (IoU/cost); tune with detector quality
+track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switches risk
+match_thresh: 0.99 # (float) Association similarity threshold (IoU/cost); lenient to favor track continuity
 fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; stabilizes weak detections
-
-# For use only when tracking a fixed number of objects that do not enter or leave the frame
-
-enable_reconnect: True # (bool) Enable track reconnection for lost tracks and merging to prevent ID switches
+enable_reconnect: True # (bool) Reconnect lost tracks and merge duplicates; use when objects do not enter or leave

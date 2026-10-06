@@ -12,10 +12,6 @@ keywords: Ultralytics, BYTETRAX, ByteTraX, object tracking, Kalman filter, track
 
 <br>
 
-## ::: ultralytics.trackers.bytetrax.STrack
-
-<br><br><hr><br>
-
 ## ::: ultralytics.trackers.bytetrax.BYTETRAX
 
 <br><br>

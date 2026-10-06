@@ -125,12 +125,12 @@ Ultralytics YOLO ships with seven built-in trackers. Enable one by passing its Y
 
 Use this flow to pick a starting point; `tracktrack.yaml` is used when you pass no `tracker`:
 
-1. **Need the fastest, simplest baseline?** → **ByteTrack** or **ByteTraX** (both have no ReID, no camera-motion compensation, and minimum overhead).
+1. **Need the fastest, simplest baseline?** → **ByteTrack** (no ReID, no camera-motion compensation, minimum overhead).
 2. **Handheld, drone, or moving-camera footage?** → **BoT-SORT** (adds camera-motion compensation and optional ReID).
 3. **Non-linear motion (sports, dancing, abrupt turns) and no ReID?** → **OC-SORT** (observation-centric corrections without appearance cost).
 4. **Crowded moving-camera scenes where ID swaps are the main problem?** → **Deep OC-SORT** or **TrackTrack** (both support optional appearance matching; TrackTrack also adds multi-cue association and duplicate-ID suppression).
 5. **Frequent partial overlap in real-time, no ReID budget?** → **FastTracker** (occlusion-aware ByteTrack variant with Kalman rollback).
-6. **Fixed set of objects that stay in frame, low tolerance for ID switches?** → **ByteTraX** (enables track reconnection and merging to suppress excess IDs).
+6. **Fixed set of objects that stay in frame, low tolerance for ID switches?** → **ByteTraX** (reconnects lost tracks and merges duplicates instead of issuing new IDs).
 
 ## Switching Trackers
 
@@ -217,7 +217,6 @@ The following parameters are common to most tracker YAML files; not every parame
 | `tracker_type`      | `botsort`, `bytetrack`, `bytetrax`, `ocsort`, `deepocsort`, `fasttrack`, `tracktrack` | Specifies the tracker type.                                                                                                                                                                                                                                 |
 | `track_high_thresh` | `0.0-1.0`                                                                             | Threshold for the first association. Affects how confidently a detection is matched to an existing track.                                                                                                                                                   |
 | `track_low_thresh`  | `0.0-1.0`                                                                             | Lower bound for low-confidence recovery detections. OC-SORT and Deep OC-SORT use these only when `use_byte: True`; TrackTrack includes them in its penalized association pool.                                                                              |
-| `track_thresh`      | `0.0-1.0`                                                                             | Single unified detection threshold used by ByteTraX in place of `track_high_thresh`/`track_low_thresh`.                                                                                                                                                     |
 | `new_track_thresh`  | `0.0-1.0`                                                                             | Threshold to initialize a new track if the detection does not match any existing tracks.                                                                                                                                                                    |
 | `track_buffer`      | `>=0`                                                                                 | Frames lost tracks are kept alive before removal. Higher value means more tolerance for occlusion.                                                                                                                                                          |
 | `match_thresh`      | `0.0-1.0`                                                                             | Threshold for matching tracks. Higher values make matching more lenient.                                                                                                                                                                                    |
@@ -354,26 +353,24 @@ There is no appearance model and no camera-motion compensation.
 
 ### ByteTraX
 
-[ByteTraX](https://arxiv.org/abs/2609.37801) (O'Shea-Wheller, 2026) is an enhancement of the ByteTrack architecture that replaces the two-stage track association system with a single unified threshold, and adds functionality to limit identity switches:
+[ByteTraX](https://arxiv.org/abs/2609.37801) (O'Shea-Wheller, 2026) is a ByteTrack variant for scenes where identity continuity matters most. It keeps ByteTrack's linear Kalman + IoU matching and changes how unmatched detections are handled:
 
-- **Unified Threshold:** uses a single confidence threshold for all associations, increasing processing speed by >10%.
-- **Lenient Matching** optimises tracking continuity via a lenient association threshold, while penalising ID switches through stringent track initiation criteria.
-- **Track Reconnection:** for systems with fixed track counts, unmatched detections near a recently lost track's last position reactivate the track instead of spawning a new ID.
-- **Track Merging:** in systems with fixed track counts, a new detection that strongly overlaps (IoU > 0.5) with an active same-class track is merged into it, rather than creating a new ID.
+- **Single association stage:** `bytetrax.yaml` sets `track_low_thresh` equal to `track_high_thresh`, so every kept detection is matched in one stage, and a lenient `match_thresh` favors keeping existing tracks.
+- **Track reconnection:** an unmatched detection whose center lies within one box width of a lost same-class track reactivates that track instead of starting a new ID.
+- **Track merging:** a detection that would start a new track but overlaps an active same-class track with IoU > 0.5 updates that track instead.
 
-**Best for:** systems with fixed object counts in which track continuity is the priority, and cases where ID switching must be minimised.
+**Best for:** a fixed set of objects that stay in view, such as laboratory animals or players in a top-down sports feed, where an ID switch costs more than a missed new track.
 
 **ByteTraX-specific arguments:**
 
-| Parameter          | Valid Values or Ranges | Description                                                                                                                                                              |
-| ------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `enable_reconnect` | `True`, `False`        | Enable lost-track reconnection and same-class track merging. This is recommended for systems with a fixed track count over time. Disable to fall back to plain matching. |
-| `track_thresh`     | `0.0-1.0`              | Matching threshold for all associations; raise for cleaner tracks, lower to improve continuity.                                                                          |
+| Parameter          | Valid Values or Ranges | Description                                                                                                  |
+| ------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `enable_reconnect` | `True`, `False`        | Enable lost-track reconnection and same-class track merging. Disable when objects enter and leave the scene. |
 
 **Tuning tips:**
 
-- **Fixed object counts:** activate `enable_reconnect` to limit erroneous ID switches.
-- **Fluctuating detection confidence:** minimise `track_thresh` to ensure that low confidence detections are retained.
+- **Objects enter and leave the scene:** set `enable_reconnect: False` so new objects get new IDs instead of taking over lost ones.
+- **Fluctuating detection confidence:** lower `track_high_thresh` and `track_low_thresh` together to keep low-confidence detections.
 
 ### OC-SORT
 

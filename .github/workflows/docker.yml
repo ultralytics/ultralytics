@@ -64,7 +64,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
         with:
           python-version: "3.13"
-          activate-environment: true
       - uses: ./.github/actions/ci-assets
         with:
           build: true

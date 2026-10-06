@@ -18,7 +18,7 @@ lost_gate: 0.5 # (float) Max distance to a track lost for lost_ramp frames or mo
 lost_ramp: 30 # (int) Frames over which a lost track's gate widens from match_gate to lost_gate and its velocity fades
 recover_gate: 0.15 # (float) Confident detections left are matched to the tracks left seen last frame in a gate at least this wide (lost ones: lost_gate)
 flip_cost: 0.02 # (float) Cost added to a left-right flipped match (COCO keypoints only)
-velocity_smoothing: 0.2 # (float) Smoothing factor of the track velocity; higher follows motion changes faster
+velocity_smoothing: 0.2 # (float) Smoothing factor of the track velocity and wobble; higher follows motion changes faster
 joint_memory: 60 # (int) Frames over which an unseen keypoint's weight in the match fades
 size_smoothing: 0.1 # (float) Smoothing factor of the person's size and bone lengths
 scale_weight: 0.5 # (float) Cost weight of a lost track's skeleton scale mismatch (COCO keypoints only)

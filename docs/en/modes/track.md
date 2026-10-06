@@ -485,7 +485,7 @@ KPTTrack follows people with a [Pose model](../tasks/pose.md) by their keypoints
 - **Adaptive gate:** each track learns its wobble, how far its matches usually land from the prediction, and searches within `wobble_gate` times that (at least `match_gate`): steady walkers keep a tight gate, dancers get a wider one.
 - **Lost tracks:** a track's keypoints move at the person's velocity. Once lost, the velocity decays and the gate widens from `match_gate` to `lost_gate`, so someone hidden for a moment comes back close to where they vanished. With COCO keypoints, a lost track also weighs the skeleton's scale between the detections it could take.
 - **Keypoint NMS:** a detection whose keypoints lie on a more confident detection's keypoints is dropped as a duplicate, which box NMS keeps when the boxes differ (e.g. a box around part of a person).
-- **ByteTrack's stages:** confident detections first, to every track; low-confidence ones only to tracks seen last frame; then the confident detections and tracks left, in a wider `recover_gate` for tracks seen last frame and the full `lost_gate` for lost ones (someone back sooner than their gate had widened), before new tracks start.
+- **ByteTrack's stages:** confident detections first, to every confirmed track, lost ones included; low-confidence ones only to tracks seen last frame; then the confident detections and tracks left, in a wider `recover_gate` for tracks seen last frame and the full `lost_gate` for lost ones (someone back sooner than their gate had widened); then tentative tracks, which are confirmed if matched the frame after they start.
 
 **Best for:** people tracked with a Pose model in crowded scenes (dance, audiences, sports) with a still camera.
 
@@ -502,7 +502,7 @@ KPTTrack follows people with a [Pose model](../tasks/pose.md) by their keypoints
 | `lost_ramp`          | `>=1`                  | Frames over which a lost track's gate widens to `lost_gate` and its velocity fades.    |
 | `recover_gate`       | `>=0`                  | Confident detections left go to the tracks left seen last frame in at least this gate. |
 | `flip_cost`          | `>=0`                  | Cost added to a left-right flipped match (COCO keypoints).                             |
-| `velocity_smoothing` | `0.0-1.0`              | Smoothing factor of the track velocity.                                                |
+| `velocity_smoothing` | `0.0-1.0`              | Smoothing factor of the track velocity and wobble.                                     |
 | `joint_memory`       | `>=1`                  | Frames over which an unseen keypoint's weight in the match fades.                      |
 | `size_smoothing`     | `0.0-1.0`              | Smoothing factor of the person's size and bone lengths.                                |
 | `scale_weight`       | `>=0`                  | Cost weight of a lost track's skeleton scale mismatch (COCO keypoints).                |
@@ -721,7 +721,7 @@ Together, let's enhance the tracking capabilities of the Ultralytics YOLO ecosys
 
 ### What is Multi-Object Tracking and how does Ultralytics YOLO support it?
 
-Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), OC-SORT, Deep OC-SORT, FastTracker, and TrackTrack, which can be configured via YAML files.
+Multi-object tracking in video analytics involves both identifying objects and maintaining a unique ID for each detected object across video frames. Ultralytics YOLO supports this by providing real-time tracking along with object IDs, facilitating tasks such as security surveillance and sports analytics. The system uses trackers such as [BoT-SORT](https://github.com/NirAharon/BoT-SORT), [ByteTrack](https://github.com/FoundationVision/ByteTrack), OC-SORT, Deep OC-SORT, FastTracker, TrackTrack, and KPTTrack (Pose models), which can be configured via YAML files.
 
 ### Can I store the tracker inside a YOLO model file?
 

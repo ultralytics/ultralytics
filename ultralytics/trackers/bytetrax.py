@@ -76,7 +76,7 @@ class BYTETRAX(BYTETracker):
                         refind.append(track)
                         dist[:, j] = np.inf
                         used.add(u_detection[j])
-            tracked = [t for t in self.tracked_stracks if t.is_activated and t.state == TrackState.Tracked]
+            tracked = [t for t in self.tracked_stracks + refind if t.is_activated and t.state == TrackState.Tracked]
             new = [i for i in u_detection if i not in used and detections[i].score >= self.args.new_track_thresh]
             if tracked and new:
                 iou = 1 - matching.iou_distance([detections[i] for i in new], tracked)

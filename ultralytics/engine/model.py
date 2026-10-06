@@ -259,6 +259,10 @@ class Model(torch.nn.Module):
             self.model, self.ckpt = weights, None
             self.task = task or guess_model_task(weights)
             self.ckpt_path = weights
+            from ultralytics.nn.backends.base import BaseBackend
+
+            if imgsz := BaseBackend.read_metadata(weights).get("imgsz"):  # default to the export imgsz, like a .pt
+                self.overrides["imgsz"] = checks.check_imgsz(imgsz, stride=1)  # parse only, keep the export shape
         self.overrides["model"] = model_uri if str(model_uri).startswith("ul://") else weights
         self.overrides["task"] = self.task
         self.model_name = weights

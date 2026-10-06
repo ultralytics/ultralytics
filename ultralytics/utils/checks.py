@@ -232,8 +232,8 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         stride (int | torch.Tensor): Stride value. For a tensor, its maximum is used.
         min_dim (int): Minimum number of dimensions. A single size is returned as an int if 1 or expanded to [sz, sz] if
             2.
-        max_dim (int): Maximum number of dimensions. If 1, longer inputs are reduced to their maximum with a warning;
-            otherwise, exceeding it raises a ValueError.
+        max_dim (int): Maximum number of dimensions. If 1, longer inputs are reduced to their maximum, with a warning
+            when their dimensions differ; otherwise, exceeding it raises a ValueError.
         floor (int): Minimum allowed value for image size.
 
     Returns:
@@ -246,19 +246,19 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
     # Convert stride to integer if it is a tensor
     stride = int(stride.max() if isinstance(stride, torch.Tensor) else stride)
 
-    # Convert image size to list if it is an integer
-    if isinstance(imgsz, int):
-        imgsz = [imgsz]
-    elif isinstance(imgsz, (list, tuple)):
-        imgsz = list(imgsz)
-    elif isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
+    # Parse a string, then convert image size to list if it is an integer
+    if isinstance(imgsz, str):  # i.e. '640' or '[640,640]'
         try:
-            imgsz = [int(imgsz)] if imgsz.isnumeric() else ast.literal_eval(imgsz)
+            imgsz = int(imgsz) if imgsz.isnumeric() else ast.literal_eval(imgsz)
         except (ValueError, SyntaxError):
             raise ValueError(
                 f"'imgsz={imgsz}' is not a valid image size. "
                 f"Valid imgsz values are int i.e. 'imgsz=640' or list i.e. 'imgsz=[640,640]'"
             ) from None
+    if isinstance(imgsz, int):
+        imgsz = [imgsz]
+    elif isinstance(imgsz, (list, tuple)):
+        imgsz = list(imgsz)
     else:
         raise TypeError(
             f"'imgsz={imgsz}' is of invalid type {type(imgsz).__name__}. "
@@ -273,7 +273,8 @@ def check_imgsz(imgsz, stride=32, min_dim=1, max_dim=2, floor=0):
         )
         if max_dim != 1:
             raise ValueError(f"imgsz={imgsz} is not a valid image size. {msg}")
-        LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
+        if len(set(imgsz)) > 1:  # equal sides reduce without loss
+            LOGGER.warning(f"updating to 'imgsz={max(imgsz)}'. {msg}")
         imgsz = [max(imgsz)]
     # Make image size a multiple of the stride
     sz = [max(math.ceil(x / stride) * stride, floor, stride) for x in imgsz]  # at least one stride, i.e. imgsz=0

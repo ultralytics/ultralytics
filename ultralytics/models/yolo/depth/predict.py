@@ -9,6 +9,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
+from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
@@ -32,6 +33,11 @@ class DepthPredictor(BasePredictor):
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "depth"
 
+    def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
+        """Stretch images to the model input size without padding, matching depth validation and calibration."""
+        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
+        return [letterbox(image=x) for x in im]
+
     def postprocess(
         self, preds: torch.Tensor | tuple | list, img: torch.Tensor, orig_imgs: list[np.ndarray] | torch.Tensor
     ) -> list[Results]:
@@ -39,7 +45,7 @@ class DepthPredictor(BasePredictor):
         depth_maps = preds[0] if isinstance(preds, (tuple, list)) else preds  # (B, 1, H, W)
         if depth_maps.ndim == 3:
             depth_maps = depth_maps.unsqueeze(1)  # (B, H, W) → (B, 1, H, W)
-        # Restore model-input resolution so all backends crop letterbox padding before scaling to the original image.
+        # Restore model-input resolution so all backends upsample the same way before scaling to the original image.
         # align_corners=True matches the depth loss, validator and exported head upsample.
         depth_maps = F.interpolate(depth_maps.float(), size=img.shape[2:], mode="bilinear", align_corners=True)
 
@@ -49,7 +55,7 @@ class DepthPredictor(BasePredictor):
         results = []
         for i, orig_img in enumerate(orig_imgs):
             img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            depth = ops.scale_masks(depth_maps[i : i + 1].float(), orig_img.shape[:2])
+            depth = F.interpolate(depth_maps[i : i + 1], orig_img.shape[:2], mode="bilinear", align_corners=True)
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth.squeeze()))
 
         return results

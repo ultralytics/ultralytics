@@ -33,7 +33,8 @@ graph LR
 The Explore page features three tabs:
 
 - **Public Datasets**: Community training data with image previews
-- **Images**: Images from public datasets, and from your own and team datasets when signed in, found by what they show
+- **Search Images**: Images from public datasets, and from your own and team datasets when signed in, found by what
+  they show
 - **Public Projects**: Complete experiments containing trained models
 
 Official `@ultralytics` projects are pinned to the top of the Projects tab.
@@ -67,9 +68,8 @@ easy to bookmark or share.
 | **Projects** | Name, description, owner username, and tags              |
 
 On the Datasets tab, datasets that match the fields above come first, followed by datasets whose images match the
-search, and their cards show the matching images. The Images tab searches by what an image shows, such as `cats on a
-sofa`, with a task and starred filter but no sorting; click an image to view it full size with its source dataset and
-license.
+search, and their cards show the matching images. On the Images tab, describe a scene such as `cats on a sofa`, then
+click an image to view it full size with its source dataset and license.
 
 ### Sort and Filter
 
@@ -131,20 +131,20 @@ Each item displays:
 
 === "Dataset Cards"
 
-    | Element         | Description                                         |
-    | --------------- | --------------------------------------------------- |
-    | **Thumbnails**  | Up to four annotated previews, search matches first |
-    | **Name**        | Dataset title                                       |
-    | **Creator**     | Author avatar and username                          |
-    | **Task Badge**  | YOLO task type (detect, segment, etc.)              |
-    | **Image Count** | Number of images, overlaid on the thumbnail strip   |
-    | **Star Count**  | Number of community stars (shown when above zero)   |
-    | **Class Count** | Number of classes defined in the dataset            |
-    | **Size**        | Total storage used by the dataset                   |
-    | **Updated**     | Date the dataset last changed                       |
-    | **Class Names** | First few class names as badges                     |
-    | **Tags**        | Dataset tags                                        |
-    | **Split Bar**   | Relative sizes of the train, val, and test splits   |
+    | Element         | Description                                                   |
+    | --------------- | ------------------------------------------------------------- |
+    | **Thumbnails**  | Up to four preview images with their annotations drawn on top |
+    | **Name**        | Dataset title                                                 |
+    | **Creator**     | Author avatar and username                                    |
+    | **Task Badge**  | YOLO task type (detect, segment, etc.)                        |
+    | **Image Count** | Number of images, overlaid on the thumbnail strip             |
+    | **Star Count**  | Number of community stars (shown when above zero)             |
+    | **Class Count** | Number of classes defined in the dataset                      |
+    | **Size**        | Total storage used by the dataset                             |
+    | **Updated**     | Date the dataset last changed                                 |
+    | **Class Names** | First few class names as badges                               |
+    | **Tags**        | Dataset tags                                                  |
+    | **Split Bar**   | Relative sizes of the train, val, and test splits             |
 
 ## Use Public Content
 

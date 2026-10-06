@@ -385,12 +385,12 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                                  |
-    | ---------------- | ---------------------------------------- |
-    | **Split filter** | Train, Val, Test, or All                 |
-    | **Annotations**  | All images, Annotated, or Unannotated    |
-    | **Class filter** | Filter by class name                     |
-    | **Search**       | By filename, class, metadata, or content |
+    | Filter           | Options                                        |
+    | ---------------- | ---------------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All                       |
+    | **Annotations**  | All images, Annotated, or Unannotated          |
+    | **Class filter** | Filter by class name                           |
+    | **Search**       | By filename, class, metadata, or what it shows |
 
 !!! tip "Finding Unlabeled Images"
 
@@ -400,12 +400,12 @@ Images can be sorted and filtered for efficient browsing:
 
     The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional), the name of any class annotated in the image, and custom metadata keys, scalar values, and array entries, so an image named `img_0042` with a `boat` annotation and `{"ship_type": "yacht"}` metadata is found by searching `img_0042`, `boat`, or `yacht`.
 
-    Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
-    directly, bypassing the text search.
+    Values nested inside sub-objects are not matched. Pasting a 24-character image ID or 32-character content hash
+    looks up that exact image directly, bypassing the text search.
 
     Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
     images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
-    active, and a search that ends in a file extension, or an image ID, skips the look-alike matches.
+    active, and a search that ends in a file extension skips the look-alike matches.
 
 ### Fullscreen Viewer
 

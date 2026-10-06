@@ -160,12 +160,12 @@ On the `Predict` tab of a deployment you own, select **Webcam** or **IP camera**
 | **Webcam**    | The browser sends frames to the endpoint one at a time and draws each result over the live feed                                                    |
 | **IP camera** | Enter an `rtsp://` or `rtsps://` URL, including any credentials, and click **Connect**; the endpoint reads the camera and streams each result back |
 
-Live inference needs a **Ready** endpoint and its bound API key; without them the webcam captures single frames and
-**IP camera** is hidden, as on a model's `Predict` tab. The IP camera must be reachable from the internet: the endpoint
-refuses local network addresses such as `192.168.x.x`. Each result is for the newest frame, so frames are skipped when
-inference falls behind. Slider changes apply to the next webcam frame and restart an IP camera stream. Live inference
-pauses while the browser tab is hidden. Click the preview to capture a frame, or **Disconnect** to stop viewing the IP
-camera.
+Live inference uses the endpoint's bound API key, which only the workspace owner can load; for other team members the
+webcam captures single frames and **IP camera** is unavailable, as on a model's `Predict` tab. The IP camera must be
+reachable from the internet: the endpoint refuses local network addresses such as `192.168.x.x`. Each result is for the
+newest frame, so frames are skipped when inference falls behind. Slider changes apply to the next webcam frame and
+restart an IP camera stream. Live inference pauses while the browser tab is hidden. Click the preview to capture a
+frame, or **Disconnect** to stop viewing the IP camera.
 
 ### Background Camera
 
@@ -176,13 +176,14 @@ background**. The deployment header shows **Camera on**, and results go to the
 
 - **Settings:** The background camera always uses the default confidence (0.25), IoU (0.7), and the model's training
   image size; the sliders do not apply to it.
-- **Cost:** It runs on the endpoint's warm instance at no extra charge beyond the endpoint's hourly uptime rate.
+- **Cost:** It runs on the endpoint's warm instance at no extra charge; the hourly uptime rate applies whether the
+  camera is on or off.
 - **Changes:** Turning the camera on, off, or to another camera restarts the endpoint's instance, which keeps the
   endpoint ready but clears its temporary monitoring data.
 - **Stopping:** Turn the switch off. Disconnecting or closing the page does not stop it, and resizing the endpoint to
   the default size removes it. If the camera goes offline, the endpoint keeps reconnecting.
-- **Endpoint lifecycle:** Turning the camera off does not stop the endpoint's uptime charges. Stopping the endpoint
-  stops the camera and the charges; starting it again resumes the saved camera.
+- **Endpoint lifecycle:** Stopping the endpoint stops the camera and the charges; starting it again resumes the saved
+  camera.
 
 Default-size endpoints offer live webcam and IP camera inference without the background option. To save a background
 camera from the API, use the deployment [`camera` action](../api/index.md#update-a-deployment).
@@ -207,8 +208,7 @@ streaming the endpoint's background camera URL uses its default settings. Events
 and an event with an `error` message (the camera could not be read, or the endpoint cannot run the model) ends the
 stream. The stream also closes when the endpoint restarts or the request reaches its time limit, so reconnect with a
 backoff when it ends without an error. The Platform API's deployment predict route and SDK do not stream; send camera
-requests to the endpoint URL with its bound API key. Camera streams run only
-on dedicated endpoints, and a camera `source` without the header returns `400`.
+requests to the endpoint URL with its bound API key. A camera `source` without the header returns `400`.
 
 ## Dedicated Endpoint API
 

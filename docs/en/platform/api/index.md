@@ -971,7 +971,8 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 
     The first ingest creates classes from the archive automatically. On later ingests, archive classes omitted from
     `classMapping` fall back to a name match against existing dataset classes, ignoring case for names longer than two
-    characters. Labels are skipped only for classes explicitly mapped to `null` or without a matching existing class.
+    characters; classes without a match are added as new classes. Labels are skipped only for classes explicitly
+    mapped to `null`.
 
 **Response (`201`):**
 
@@ -1996,9 +1997,10 @@ URL; the existing revision stays live if the rollout fails. The replacement mode
 that your key can access. The camera action saves an RTSP or RTSPS camera that a ready endpoint with custom resources
 keeps running inference on (see [Background Camera](../deploy/inference.md#background-camera)); `"url": null` removes
 it, as does resizing back to the default size, and saving a camera on a default-size endpoint returns `403`. A camera
-change returns `202` with `status` `ready`: poll the deployment until `cameraApplying` is gone, then check `camera`; a
-failed change keeps the previous camera and sets `statusMessage`. Completed operations return `200` with `status`
-`ready` or `stopped`; other operations still rolling out return `202` with `deploying` or `stopping`.
+change returns `202` with `status` `ready` while it applies: poll the deployment until `cameraApplying` is no longer
+`true`, then check `camera`; a failed change keeps the previous camera and sets `statusMessage`. Completed operations
+return `200` with `status` `ready` or `stopped`; other operations still rolling out return `202` with `deploying` or
+`stopping`.
 
 ### Delete Deployment
 
@@ -2661,7 +2663,7 @@ GET /api/explore/search
 | Parameter | Type    | Description                                                                                       |
 | --------- | ------- | ------------------------------------------------------------------------------------------------- |
 | `q`       | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match   |
-| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (requires `q`, ignores `sort`)               |
+| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                             |
 | `sort`    | string  | `newest` (default), `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`         |
 | `offset`  | int     | Results to skip (default: 0)                                                                      |
 | `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                         |
@@ -2669,9 +2671,9 @@ GET /api/explore/search
 | `author`  | string  | Owner username filter                                                                             |
 | `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                      |
 
-**Response:** `projects`, `datasets`, and `hasMore`. `type=images` also returns `images`, best match first, each with
-its source `dataset` and a 0–1 similarity `score`; it searches public datasets, plus your own and team datasets when you
-send an API key.
+**Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
+first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your
+own and team datasets when you send an API key.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"

@@ -150,7 +150,7 @@ Default settings: threshold $20, amount $100.
 
 Auto top-up is evaluated whenever a charge lowers your balance, including mid-run training charges, and charges your
 default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined or
-missing, a **Auto Top-Up Failed** row is added to your transaction history with the reason, no credits are added, and
+missing, an **Auto Top-Up Failed** row is added to your transaction history with the reason, no credits are added, and
 auto top-up turns off until you switch it back on.
 
 !!! tip "Reduce Training Interruptions"
@@ -284,7 +284,7 @@ If you cancel before the end of your billing period, a **Resume Subscription** b
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your current billing period, and monthly credits continue to be granted until then.
+    Pro features remain active until the end of your current billing period, and yearly plans keep receiving monthly credit grants until then.
 
 ### Downgrading to Free
 

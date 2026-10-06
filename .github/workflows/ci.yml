@@ -467,7 +467,7 @@ jobs:
           activate-environment: true
       - name: Install requirements
         run: |
-          uv pip install "torch[device-all]" "torchvision[device-all]" --index-url https://stable.repo.amd.com/rocm/whl-next/ --index-strategy unsafe-best-match
+          uv pip install "torch[device-all]==2.13.0+rocm10.0.0" "torchvision[device-all]==0.28.0+rocm10.0.0" --index-url https://stable.repo.amd.com/rocm/whl-next/ --index-strategy unsafe-best-match
           uv pip install -e . pytest-cov "onnx>=1.12.0,<2.0.0" "onnxslim>=0.1.82"
           uv pip install "onnxruntime-ep-migraphx==1.0.0+rocm10.0.0" "migraphx-libs==2.17.0+rocm10.0.0" --extra-index-url https://stable.repo.amd.com/rocm/onnxruntime/whl-next/ --extra-index-url https://stable.repo.amd.com/rocm/migraphx/whl-next/ --index-strategy unsafe-best-match
         env:
@@ -640,14 +640,15 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
       - uses: conda-incubator/setup-miniconda@v4
         with:
-          python-version: ${{ matrix.python }}
           channels: conda-forge
           channel-priority: strict
           conda-remove-defaults: true
           activate-environment: anaconda-client-env
       - name: Install Ultralytics package from conda-forge
         timeout-minutes: 20
-        run: conda install --yes pytorch-cpu torchvision ultralytics openvino
+        # Solve python with the rest: a pre-created env keeps setuptools>=82, which current pytorch rejects (<82), so
+        # conda falls back to pytorch 2.6.0 cpu_generic, whose oneDNN conv backward hangs pose training
+        run: conda install --yes python=${{ matrix.python }} pytorch-cpu torchvision ultralytics openvino
       - name: Install pip packages
         run: |
           VERSION=$(python -c "from importlib.metadata import version; print(version('ultralytics'))")

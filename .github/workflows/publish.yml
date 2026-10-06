@@ -163,7 +163,7 @@ jobs:
         with:
           format: spdx-json
           output-file: sbom.spdx.json
-          path: .venv
+          path: ${{ env.VIRTUAL_ENV }}
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

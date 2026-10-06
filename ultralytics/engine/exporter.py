@@ -1392,12 +1392,13 @@ class Exporter:
                 r = self.model.model[-1].max_det / sum(int(h / s) * int(w / s) for s in self.model.stride.tolist())
                 lb_h = max(lb_h, int(np.ceil(h * r**0.5 / stride)) * stride)
                 lb_w = max(lb_w, int(np.ceil(w * r**0.5 / stride)) * stride)
+            # Include default val/predict sizes while keeping the spatial ranges bounded.
             input_shape = ct.Shape(
                 shape=(
                     ct.RangeDim(lower_bound=1, upper_bound=self.args.batch, default=1),
                     self.im.shape[1],
-                    ct.RangeDim(lower_bound=lb_h, upper_bound=h * 2, default=h),
-                    ct.RangeDim(lower_bound=lb_w, upper_bound=w * 2, default=w),
+                    ct.RangeDim(lower_bound=lb_h, upper_bound=max(h, DEFAULT_CFG.imgsz) * 2, default=h),
+                    ct.RangeDim(lower_bound=lb_w, upper_bound=max(w, DEFAULT_CFG.imgsz) * 2, default=w),
                 )
             )
             inputs = [ct.TensorType("image", shape=input_shape)]

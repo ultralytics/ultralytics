@@ -150,9 +150,9 @@ def scale_boxes(
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        gain_y = gain_x = gain
-        pad_x = round((img1_shape[1] - round(img0_shape[1] * gain)) / 2 - 0.1)
-        pad_y = round((img1_shape[0] - round(img0_shape[0] * gain)) / 2 - 0.1)
+        new_h, new_w = round(img0_shape[0] * gain), round(img0_shape[1] * gain)  # LetterBox rounds each side
+        gain_y, gain_x = new_h / img0_shape[0], new_w / img0_shape[1]
+        pad_x, pad_y = round((img1_shape[1] - new_w) / 2 - 0.1), round((img1_shape[0] - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad_x, pad_y = ratio_pad[1]
@@ -640,8 +640,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        gain_y = gain_x = gain
-        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
+        new_h, new_w = round(img0_h * gain), round(img0_w * gain)  # LetterBox rounds each side
+        gain_y, gain_x = new_h / img0_h, new_w / img0_w
+        pad = round((img1_w - new_w) / 2 - 0.1), round((img1_h - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad = ratio_pad[1]

@@ -137,6 +137,8 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             kwargs["dets_del"] = dets_del_list[i]
         tracks = tracker.update(det, result.orig_img, **kwargs)
         if len(tracks) == 0:
+            if any(not t.is_activated for t in tracker.tracked_stracks):  # hide new tracks until confirmed
+                predictor.results[i] = result[:0]
             continue
         idx = tracks[:, -1].astype(int)
         predictor.results[i] = result[idx]

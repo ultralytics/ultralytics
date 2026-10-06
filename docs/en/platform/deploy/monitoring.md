@@ -125,7 +125,7 @@ sending traffic.
 
 ## Monitoring Tab
 
-Open the deployment page of a **Ready** dedicated endpoint and select the **Monitoring** tab. Send an image through its **Predict** tab or endpoint API to populate **Temporary Examples** and **Prediction Statistics**. Before the first processed image, the tab shows **No images processed**.
+Open the deployment page of a **Ready** dedicated endpoint and select the **Monitoring** tab. Send an image through its **Predict** tab or endpoint API, or keep a [background camera](inference.md#background-camera) running, to populate **Temporary Examples** and **Prediction Statistics**. Before the first processed image, the tab shows **No images processed**.
 
 !!! note "Endpoint Eligibility"
 

@@ -4,6 +4,7 @@ import contextlib
 import csv
 import os
 import platform
+import random
 import shutil
 import tarfile
 import urllib
@@ -1259,6 +1260,26 @@ def test_labels_and_crops(tmp_path):
 
     model(SOURCE, imgsz=160, save_crop=True, verbose=False, project=tmp_path, name="crop", exist_ok=True)
     assert any((tmp_path / "crop/crops").rglob("*.jpg")), "save_crop=True alone must write crop files"
+
+
+def test_autosplit_preserves_random_state(tmp_path):
+    """Autosplitting must not alter the caller's random sequence or its own repeatability."""
+    from ultralytics.data.split import autosplit
+
+    images = tmp_path / "images"
+    images.mkdir()
+    for i in range(8):
+        Image.new("RGB", (8, 8)).save(images / f"{i}.jpg")
+
+    state = random.getstate()
+    try:
+        autosplit(images)
+        assert random.getstate() == state
+        first = {p.name: p.read_text() for p in tmp_path.glob("autosplit_*.txt")}
+        autosplit(images)
+        assert {p.name: p.read_text() for p in tmp_path.glob("autosplit_*.txt")} == first
+    finally:
+        random.setstate(state)
 
 
 def test_data_utils(tmp_path):

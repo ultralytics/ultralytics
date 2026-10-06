@@ -15,6 +15,7 @@ from PIL import Image
 from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.patches import imread_unicode
 
 
 def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.ndarray:
@@ -202,7 +203,7 @@ def crop_and_save(
                     - train
                     - val
     """
-    im = cv2.imread(anno["filepath"])
+    im = imread_unicode(anno["filepath"])  # cv2.imread returns None for EXIF-rotated TIFF on OpenCV >= 4.12
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
@@ -340,7 +341,7 @@ def split_test(
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
         w, h = exif_size(Image.open(im_file))
         windows = get_windows((h, w), crop_sizes=crop_sizes, gaps=gaps)
-        im = cv2.imread(im_file)
+        im = imread_unicode(im_file)
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()

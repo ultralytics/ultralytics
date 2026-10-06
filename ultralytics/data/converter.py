@@ -34,6 +34,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
+from ultralytics.utils.patches import imread_unicode
 
 
 def coco91_to_coco80_class() -> list[int | None]:
@@ -655,7 +656,7 @@ def yolo_bbox2segment(
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(label["im_file"])
+        im = imread_unicode(label["im_file"])  # cv2.imread returns None for EXIF-rotated TIFF on OpenCV >= 4.12
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 

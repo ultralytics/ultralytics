@@ -221,6 +221,112 @@ Training does this for you automatically: after `model.train(...)` completes, th
 
 The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
 
+#### Getting ground-truth depth without a depth camera
+
+If your camera has no depth sensor, you can still calibrate for it. Calibration only fits one global scale, and it ignores pixels with 0 depth, so a few measured points per image are enough.
+
+1.  **Collect images.** Take 50 to 150 images with your camera at the resolution and lens settings you will deploy with, and put them in `dataset/images/val/`. Calibration reads the `val` split.
+
+2.  **Label depth.** Use one of the two methods below. Both write a uint16 PNG in millimeters per image to `dataset/depth/val/`, following the [dataset format](#dataset-format).
+
+    === "Measured points"
+
+        Measure the distance to a few points in each image with a laser rangefinder or a tape measure, and record the pixel location of each point in `points.csv`:
+
+        ```text
+        image,x,y,meters
+        img_0001.jpg,352,453,3.15
+        img_0001.jpg,28,300,2.672
+        ```
+
+        Then write the depth maps, leaving every unmeasured pixel at 0:
+
+        ```python
+        import csv
+        from collections import defaultdict
+        from pathlib import Path
+
+        import cv2
+        import numpy as np
+
+        points = defaultdict(list)
+        with open("points.csv") as f:  # columns: image, x, y, meters
+            for row in csv.DictReader(f):
+                points[row["image"]].append((int(row["x"]), int(row["y"]), float(row["meters"])))
+
+        for name, pts in points.items():
+            h, w = cv2.imread(f"dataset/images/val/{name}").shape[:2]
+            depth = np.zeros((h, w), np.uint16)  # 0 means no label
+            for x, y, meters in pts:
+                depth[y, x] = round(meters * 1000)  # meters to millimeters
+            out = Path("dataset/depth/val") / f"{Path(name).stem}.png"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(str(out), depth)
+        ```
+
+        Depth maps store distance along the camera's viewing axis, while a rangefinder measures the straight-line distance to the point. The two match at the image center and differ by about 3.5% at 15° off-center. Measure points near the center, or convert each reading with `meters / sqrt(1 + ((x - cx) / fx) ** 2 + ((y - cy) / fy) ** 2)` using your camera intrinsics.
+
+    === "Metric depth model"
+
+        Label every pixel with a larger monocular model that outputs **metric** depth. Models that output relative depth, such as Marigold, do not work. This example uses [Depth Anything V2 Metric](https://huggingface.co/depth-anything/Depth-Anything-V2-Metric-Indoor-Large-hf) through `transformers`:
+
+        ```python
+        from pathlib import Path
+
+        import cv2
+        import numpy as np
+        import torch
+        from PIL import Image
+        from transformers import AutoImageProcessor, AutoModelForDepthEstimation
+
+        model_id = "depth-anything/Depth-Anything-V2-Metric-Indoor-Large-hf"  # Outdoor-Large-hf for outdoor scenes
+        processor = AutoImageProcessor.from_pretrained(model_id)
+        model = AutoModelForDepthEstimation.from_pretrained(model_id).eval()
+
+        for f in sorted(Path("dataset/images/val").glob("*.jpg")):
+            image = Image.open(f).convert("RGB")
+            with torch.no_grad():
+                outputs = model(**processor(images=image, return_tensors="pt"))
+            depth = processor.post_process_depth_estimation(outputs, target_sizes=[image.size[::-1]])[0]["predicted_depth"]
+            out = Path("dataset/depth/val") / f"{f.stem}.png"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(str(out), (depth.numpy() * 1000).clip(0, 65535).astype(np.uint16))  # meters to millimeters
+        ```
+
+        The labels are only as accurate as the labeling model's scale for your camera. A model that does not know your focal length gets the scale wrong on lenses unlike its training data, so check a few labels against measured distances before calibrating. Models that take the focal length, such as [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE), avoid this.
+
+3.  **Write the dataset YAML** as `calib.yaml`:
+
+    ```yaml
+    path: dataset
+    train: images/val
+    val: images/val
+    names:
+        0: depth
+    ```
+
+4.  **Calibrate and save.**
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26s-depth.pt")
+    model.calibrate(data="calib.yaml", imgsz=768)
+    model.save("yolo26s-depth-calibrated.pt")
+    ```
+
+    The log shows the fitted scale, for example `Depth calibration selected 'scale-only' (a=1.0000 b=1.7267)`. Load `yolo26s-depth-calibrated.pt` for prediction or export.
+
+The table shows how far each label source put the fitted scale from a calibration on full ground truth. It uses `yolo26s-depth.pt` with 150 calibration images per camera. The narrow-lens camera is NYU center-cropped to half width and height, which doubles the focal length.
+
+| Labels                           | NYU (Kinect, indoor) | KITTI (car, outdoor) | Narrow lens (indoor) |
+| -------------------------------- | -------------------- | -------------------- | -------------------- |
+| None (released calibration)      | -4.2%                | -10.6%               | -45.9%               |
+| 5 measured points per image      | -0.9%                | -0.5%                | -0.8%                |
+| Depth Anything V2 Metric (Large) | +21.9%               | +3.1%                | -20.4%               |
+
+With measured points, 150 images with 1 point each gave a scale within 2% of the full ground-truth fit across 3 random draws, while 20 images with 5 points each varied by up to 9%. More images help more than more points per image.
+
 ## Val
 
 Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768`, so validate and predict at that size for best accuracy.

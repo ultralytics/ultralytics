@@ -540,8 +540,7 @@ class Model(torch.nn.Module):
         kwargs = _handle_deprecation(kwargs)
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
-        # canonicalize quantize, which is always compared so that leaving it unset restores full precision
-        args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+        args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
         if not self.predictor or any(
             getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args

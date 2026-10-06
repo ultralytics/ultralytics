@@ -534,15 +534,8 @@ class YOLOE(Model):
             per_image = [len(set(c.tolist() if isinstance(c, np.ndarray) else c)) for _, c in pairs]
             assert all(per_image), "Expected at least one class per image"
             num_cls = max(per_image)
-            overrides = {
-                **self.overrides,
-                **kwargs,
-                "task": self.model.task,
-                "mode": "predict",
-                "save": False,
-                "verbose": kwargs.get("verbose", self.overrides.get("verbose", refer_image is None)),
-                "batch": 1,
-            }
+            overrides = {"verbose": refer_image is None, **self.overrides, **kwargs}
+            overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict

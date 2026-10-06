@@ -69,7 +69,8 @@ class DistillationModel(nn.Module):
         """Initialize the distillation model with teacher, student, and feature extraction hooks.
 
         Args:
-            teacher_model (str | Path | nn.Module): YOLO teacher checkpoint/module or DINOv3 YAML with model, repo, weights.
+            teacher_model (str | Path | nn.Module): YOLO teacher checkpoint/module or DINOv3 YAML with model, repo,
+                weights.
             student_model (nn.Module): Student model module to be trained.
         """
         super().__init__()

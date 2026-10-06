@@ -656,7 +656,7 @@ def yolo_bbox2segment(
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = imread_unicode(label["im_file"])  # cv2.imread returns None for EXIF-rotated TIFF on OpenCV >= 4.12
+        im = imread_unicode(label["im_file"])
         sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 

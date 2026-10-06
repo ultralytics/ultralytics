@@ -203,7 +203,7 @@ def crop_and_save(
                     - train
                     - val
     """
-    im = imread_unicode(anno["filepath"])  # cv2.imread returns None for EXIF-rotated TIFF on OpenCV >= 4.12
+    im = imread_unicode(anno["filepath"])
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()

@@ -1304,7 +1304,6 @@ class ClassificationDataset:
     @staticmethod
     def imread(f: str) -> np.ndarray | None:
         """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
-        # decode from bytes: cv2.imread returns None for EXIF-rotated TIFF on OpenCV >= 4.12
         return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else imread_unicode(f)
 
     def cache_images(self) -> None:

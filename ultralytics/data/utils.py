@@ -32,7 +32,7 @@ from ultralytics.utils import (
 from ultralytics.utils.checks import check_file, check_font, is_ascii, normalize_platform_uri
 from ultralytics.utils.downloads import download, safe_download
 from ultralytics.utils.ops import segments2boxes
-from ultralytics.utils.patches import imread_unicode
+from ultralytics.utils.patches import imread
 
 HELP_URL = "See https://docs.ultralytics.com/datasets for dataset formatting guidance."
 IMG_FORMATS = {
@@ -248,7 +248,7 @@ def exif_size(img: Image.Image) -> tuple[int, int]:
             if img.format in {"JPEG", "MPO", "PNG", "AVIF"}:  # imread decodes these upright on every version
                 s = s[1], s[0]
             else:  # WebP (rotated from cv2 4.13) and TIFF (PIL size rotated from Pillow 11): use the decoded shape
-                s = imread_unicode(img.filename).shape[1::-1]
+                s = imread(img.filename).shape[1::-1]
     except Exception:
         pass
     return s

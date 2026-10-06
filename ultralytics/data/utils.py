@@ -243,7 +243,8 @@ def exif_size(img: Image.Image) -> tuple[int, int]:
     """Return exif-corrected PIL size."""
     s = img.size  # (width, height)
     try:
-        if img.getexif().get(274) in {5, 6, 7, 8}:  # EXIF orientations that swap width and height
+        exif = img.tag_v2 if img.format == "TIFF" else img.getexif()  # TIFF tags stay readable after verify()
+        if exif.get(274) in {5, 6, 7, 8}:  # EXIF orientations that swap width and height
             if img.format in {"JPEG", "MPO", "PNG", "AVIF"}:  # imread decodes these upright on every version
                 s = s[1], s[0]
             else:  # e.g. WebP and TIFF, whose orientation handling depends on the cv2/Pillow version

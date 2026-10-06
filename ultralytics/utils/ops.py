@@ -152,8 +152,7 @@ def scale_boxes(
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
         new_h, new_w = round(img0_shape[0] * gain), round(img0_shape[1] * gain)  # LetterBox rounds each side
         gain_y, gain_x = new_h / img0_shape[0], new_w / img0_shape[1]
-        pad_x = round((img1_shape[1] - new_w) / 2 - 0.1)
-        pad_y = round((img1_shape[0] - new_h) / 2 - 0.1)
+        pad_x, pad_y = round((img1_shape[1] - new_w) / 2 - 0.1), round((img1_shape[0] - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad_x, pad_y = ratio_pad[1]

@@ -28,8 +28,8 @@ from ultralytics.utils import (
 )
 from ultralytics.utils.torch_utils import unwrap_model
 
-# Predictor arguments applied at model setup, so changing one rebuilds the predictor
-PREDICTOR_SETUP_KEYS = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize")
+# Predictor arguments applied at model or tracker setup, so changing one rebuilds the predictor and its trackers
+PREDICTOR_SETUP_KEYS = ("device", "dnn", "data", "nms", "compile", "channels_last", "quantize", "tracker")
 
 
 class Model(torch.nn.Module):
@@ -525,7 +525,7 @@ class Model(torch.nn.Module):
             - If 'source' is not provided, it defaults to the ASSETS directory (or a sample image for OBB) with a
               warning.
             - The method sets up a new predictor if not already present and updates its arguments with each call,
-              rebuilding it when an argument applied at model setup changes.
+              rebuilding it when an argument applied at model or tracker setup changes.
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         if source is None:
@@ -540,15 +540,11 @@ class Model(torch.nn.Module):
         kwargs = _handle_deprecation(kwargs)
         prompts = kwargs.pop("prompts", None)  # for SAM-type models
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
+        # canonicalize quantize, which is always compared so that leaving it unset restores full precision
+        args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
 
-        if (
-            not self.predictor
-            or any(
-                getattr(self.predictor.args, k) != args[k]
-                for k in PREDICTOR_SETUP_KEYS
-                if k in args and k != "quantize"
-            )
-            or self.predictor.args.quantize != QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)
+        if not self.predictor or any(
+            getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)
@@ -558,7 +554,7 @@ class Model(torch.nn.Module):
             base_args = {
                 **DEFAULT_CFG_DICT,
                 **self.overrides,
-                **{k: getattr(self.predictor.args, k) for k in (*PREDICTOR_SETUP_KEYS, "tracker")},
+                **{k: getattr(self.predictor.args, k) for k in PREDICTOR_SETUP_KEYS},
             }
             self.predictor.args = get_cfg(base_args, {**custom, **kwargs})
             if self.predictor.args.show:

@@ -1708,9 +1708,7 @@ class Exporter:
         except ImportError as e:
             raise ImportError("Hailo export requires the Hailo Dataflow Compiler.") from e
 
-        # Materialize calibration up front: a tf.data generator is consumed once, so optimization
-        # algorithms that re-read the calibration set (AdaRound, bias correction) see it empty.
-        calibration_images = self._int8_calibration_images(prefix)
+        calibration_images = self._int8_calibration_images(prefix)  # fixed set, every DFC pass must see the same images
         calibration_size = len(calibration_images)
         LOGGER.warning(
             f"\nHailo level-2 optimization will use {calibration_size} calibration images. "

@@ -691,13 +691,53 @@ jobs:
   Summary:
     runs-on: ubuntu-latest
     needs: [Assets, Benchmarks, Tests, SlowTests, IsolatedExports, GPU, AMD_GPU, RaspberryPi, NVIDIA_Jetson, Conda]
-    if: always()
+    if: always() && (needs.Assets.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+    permissions:
+      actions: read # read failed job logs
     steps:
-      - name: Check for failure and notify
-        if: (needs.Assets.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+      - uses: ultralytics/actions/setup-uv@main
+      - name: Analyze failure logs
+        id: ai
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          uv pip install --system --no-cache ultralytics-actions
+          python - <<'EOF'
+          import json, os, requests
+          from actions.utils import get_response
+
+          api = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/actions"
+          headers = {"Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"}
+          url = f"{api}/runs/{os.environ['GITHUB_RUN_ID']}/jobs?filter=latest&per_page=100"
+          failed = [j for j in requests.get(url, headers=headers, timeout=30).json()["jobs"] if j["conclusion"] == "failure"]
+          logs = [f"Failed jobs: {', '.join(j['name'] for j in failed)}"]
+          for j in failed[:12]:  # last 6000 chars of each failed job log before cleanup, where the error is
+              r = requests.get(f"{api}/jobs/{j['id']}/logs", headers=headers, timeout=60)
+              r.raise_for_status()
+              logs.append(f"## {j['name']}\n{r.text.split('Post job cleanup.')[0][-6000:]}")
+          summary = get_response(
+              [
+                  {
+                      "role": "system",
+                      "content": "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble.",
+                  },
+                  {"role": "user", "content": "\n\n".join(logs)},
+              ],
+              check_links=False,
+          )
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"summary={json.dumps(chr(10) + summary[:2500])}\n")  # JSON keeps the output on one line
+          EOF
+      - name: Notify Slack
+        if: ${{ !cancelled() }} # notify even if analysis setup fails
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}`  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
+            text: ${{ toJSON(format('<!subteam^S082BPCRAJ3> *{0}* ❌ `{1}`  <https://github.com/{1}/actions/runs/{2}|*Run*>{3}', github.workflow, github.repository, github.run_id, fromJSON(steps.ai.outputs.summary || '""'))) }}

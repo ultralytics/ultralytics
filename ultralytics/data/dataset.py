@@ -18,7 +18,7 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
-from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread, imread_unicode
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -1304,7 +1304,8 @@ class ClassificationDataset:
     @staticmethod
     def imread(f: str) -> np.ndarray | None:
         """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
-        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else cv2.imread(f)
+        # decode from bytes: cv2.imread returns None for EXIF-rotated TIFF on OpenCV >= 4.12
+        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else imread_unicode(f)
 
     def cache_images(self) -> None:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.

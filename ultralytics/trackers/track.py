@@ -135,9 +135,7 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
             kwargs["dets_del"] = dets_del_list[i]
         tracks = tracker.update(det, result.orig_img, **kwargs)
         if len(tracks) == 0:
-            # Drop only when unconfirmed tracks exist (would be hidden if any confirmed track were present).
-            # Keep raw dets when the tracker has nothing (first frame / single-image / below new_track_thresh).
-            if any(not t.is_activated for t in getattr(tracker, "tracked_stracks", ())):
+            if any(not t.is_activated for t in tracker.tracked_stracks):  # hide new tracks until confirmed
                 predictor.results[i] = result[:0]
             continue
         idx = tracks[:, -1].astype(int)

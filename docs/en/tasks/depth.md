@@ -227,7 +227,7 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
 
 1.  **Collect images.** Take 50 to 150 images with your camera at the resolution and lens settings you will deploy with, and put them in `dataset/images/val/`. Calibration reads the `val` split.
 
-2.  **Label depth.** Use one of the two methods below. Both write a uint16 PNG in millimeters per image to `dataset/depth/val/`, following the [dataset format](#dataset-format).
+2.  **Label depth.** Use one of the two methods below. Both write one depth map per image to `dataset/depth/val/`, following the [dataset format](#dataset-format).
 
     === "Measured points"
 
@@ -273,7 +273,6 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
         ```python
         from pathlib import Path
 
-        import cv2
         import numpy as np
         import torch
         from PIL import Image
@@ -283,14 +282,14 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
         processor = AutoImageProcessor.from_pretrained(model_id)
         model = AutoModelForDepthEstimation.from_pretrained(model_id).eval()
 
-        for f in sorted(Path("dataset/images/val").glob("*.jpg")):
+        for f in sorted(Path("dataset/images/val").iterdir()):
             image = Image.open(f).convert("RGB")
             with torch.no_grad():
                 outputs = model(**processor(images=image, return_tensors="pt"))
             depth = processor.post_process_depth_estimation(outputs, target_sizes=[image.size[::-1]])[0]["predicted_depth"]
-            out = Path("dataset/depth/val") / f"{f.stem}.png"
+            out = Path("dataset/depth/val") / f"{f.stem}.npy"
             out.parent.mkdir(parents=True, exist_ok=True)
-            cv2.imwrite(str(out), (depth.numpy() * 1000).clip(0, 65535).astype(np.uint16))  # meters to millimeters
+            np.save(out, depth.numpy())  # float meters, no range limit
         ```
 
         The labels are only as accurate as the labeling model's scale for your camera. A model that does not know your focal length gets the scale wrong on lenses unlike its training data, so check a few labels against measured distances before calibrating. Models that take the focal length, such as [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE), avoid this.

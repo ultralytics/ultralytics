@@ -401,8 +401,10 @@ class AutoBackend(nn.Module):
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
         name = Path(p).name
-        types = [s in name for s in sf]
+        types = [name.endswith(s) for s in sf]
         types[5] |= name.endswith(".mlmodel")
+        if not any(types):  # renamed export directories, i.e. 'best_openvino_model (1)'
+            types = [s in name for s in sf]
         format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
         if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
             format = "qnn"

@@ -64,8 +64,8 @@ class KPTTracker:
     models flip people who turn). Two people side by side, or one half hidden behind the other, can have heavily
     overlapping boxes but look nothing alike by their keypoints. A track seen last frame takes a detection within
     `wobble_gate` times its wobble, how far its own matches usually land, and at least `match_gate`. A track's keypoints
-    move with the person's velocity; a lost person's velocity decays while the gate around them widens with time. Between
-    the tracks a detection could go to, a lost track also weighs the skeleton's scale (COCO keypoints).
+    move with the person's velocity; a lost person's velocity decays while the gate around them widens with time.
+    Between the tracks a detection could go to, a lost track also weighs the skeleton's scale (COCO keypoints).
 
     A detection whose keypoints lie on a more confident detection's keypoints is first dropped as a duplicate
     (`kpt_nms`). Association follows ByteTrack's stages: confident detections to every confirmed track; low-confidence

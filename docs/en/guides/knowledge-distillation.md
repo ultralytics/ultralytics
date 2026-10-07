@@ -95,7 +95,7 @@ Cross-family distillation (e.g., YOLO11 teacher with YOLO26 student) is **not su
 
 ```mermaid
 flowchart TD
-    A([Image batch]) --> T[Frozen teacher]
+    A([Image batch]) --> T[Teacher]
     A --> S[Student]
     S --> P[Projector]
     T --> L[Score-weighted L2 loss]

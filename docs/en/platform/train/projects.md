@@ -14,10 +14,8 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 flowchart TD
     P([Project]) --> M1[Model 1]
     P --> M2[Model 2]
-    P --> M3[Model 3]
     M1 --> S[Check in the sidebar]
     M2 --> S
-    M3 --> S
     S --> C[Charts]
     S --> T[Comparison table]
 ```

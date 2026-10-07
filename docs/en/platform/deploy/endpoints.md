@@ -42,16 +42,16 @@ Create a deployment from the **Deployments** tab on your profile or from the sid
 ```mermaid
 stateDiagram-v2
     [*] --> Creating: deploy
-    Creating --> Deploying
-    Deploying --> Ready
+    Stopped --> Deploying: start
+    Stopped --> [*]: delete
     Ready --> Stopping: stop
     Ready --> Deploying: replace or resize
-    Stopping --> Stopped
-    Stopped --> Deploying: start
     Deploying --> Stopped: start failed
-    Ready --> [*]: delete
-    Stopped --> [*]: delete
+    Stopping --> Stopped
     Creating --> Failed
+    Creating --> Deploying
+    Deploying --> Ready
+    Ready --> [*]: delete
     Deploying --> Failed
     Failed --> [*]: delete
     class Failed error

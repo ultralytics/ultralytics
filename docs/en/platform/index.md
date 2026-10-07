@@ -86,7 +86,7 @@ flowchart TD
     B --> C[Browse and filter]
     C --> D{Annotation mode?}
     D -->|draw| E[Manual tools]
-    D -->|smart| F[SAM or model predictions]
+    D -->|smart| F[SAM or model labels]
     E --> G([Train-ready dataset])
     F --> G
 ```

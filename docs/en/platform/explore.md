@@ -148,9 +148,9 @@ Each item displays:
 flowchart TD
     A([Find content on Explore]) --> B{Content type?}
     B -->|dataset| C([Clone dataset])
-    B -->|project| D{Clone or download?}
-    D -->|clone| E([Project or model copy])
-    D -->|download| F([".pt and exports"])
+    B -->|project| D{Clone it?}
+    D -->|yes| E([Project or model copy])
+    D -->|no, download| F([".pt and exports"])
 ```
 
 ### Clone Dataset
@@ -270,7 +270,7 @@ flowchart TD
     B --> C[Confirm Make public]
     C --> D{Has content?}
     D -->|yes| E[Listed on Explore]
-    D -->|no| F[Stays off Explore]
+    D -->|no| F[Not listed yet]
     E --> G([Others clone or download])
 ```
 

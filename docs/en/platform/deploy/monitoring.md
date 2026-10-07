@@ -20,15 +20,15 @@ The **Deployments** tab on your profile serves as the monitoring dashboard for a
 flowchart TD
     subgraph tab["Deployments tab"]
         direction TB
-        A[World map] ~~~ C[Deployments list]
-        B[Overview cards] ~~~ C
+        A[Overview cards] ~~~ B[World map]
+        B ~~~ C[Deployments list]
     end
     subgraph page["Deployment page"]
         direction TB
-        D[Metrics cards] ~~~ E[Overview tab]
-        D ~~~ F[Monitoring tab]
-        E ~~~ G[Predict tab]
-        F ~~~ H[Logs tab]
+        D[Metrics cards] ~~~ E[Overview]
+        D ~~~ F[Monitoring]
+        E ~~~ G[Predict]
+        F ~~~ H[Logs]
     end
     tab -->|open| page
 ```

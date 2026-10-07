@@ -61,7 +61,6 @@ flowchart TD
     C --> E[Export]
     C --> F[Deploy]
     E --> G[22 formats]
-    F --> H[Endpoint]
 ```
 
 ## Model Page Tabs

@@ -22,17 +22,18 @@ The Platform provides an end-to-end workflow:
 ```mermaid
 flowchart TD
     subgraph data["Data"]
+        direction TB
         A([Upload]) --> B[Annotate]
     end
     subgraph train["Train"]
+        direction TB
         C[Configure] --> D[Train on GPU]
     end
-    subgraph ship["Export or deploy"]
-        F[Export]
-        G[Deploy endpoint] --> H([Monitor])
-    end
     data --> train
-    train --> ship
+    train --> E{Export or deploy?}
+    E -->|export| F([Export])
+    E -->|deploy| G[Deploy endpoint]
+    G --> H([Monitor])
 ```
 
 | Stage        | Features                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -153,12 +154,14 @@ You can train models either through the web UI (cloud training) or from your own
 
 ```mermaid
 flowchart TD
-    A([Trained model]) --> C[Test in the browser]
-    C --> B{Export or deploy?}
-    B -->|export| D[22 formats]
-    B -->|deploy| E[42 regions]
-    E --> F[Endpoint URL]
-    F --> G([Monitor and scale])
+    A([Trained model]) --> B{Test it first?}
+    B -->|yes| C[Test in the browser]
+    B -->|no| D{Export or deploy?}
+    C --> D
+    D -->|export| E[22 formats]
+    D -->|deploy| F[42 regions]
+    F --> G[Endpoint URL]
+    G --> H([Monitor and scale])
 ```
 
 Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to

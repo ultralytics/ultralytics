@@ -21,10 +21,10 @@ flowchart TD
     A([Choose Metis hardware]) --> B{30+ streams?}
     B -->|yes| C[Metis PCIe x4]
     B -->|no| D{PC host?}
-    D -->|no| F{Embedded device?}
+    D -->|no| F{Standalone device?}
     D -->|yes| E[Metis PCIe x1]
-    F -->|no| G[Metis Compute Board]
-    F -->|yes| H{Advanced thermal needs?}
+    F -->|yes| G[Metis Compute Board]
+    F -->|no| H{Advanced thermal needs?}
     H -->|yes| J[Metis M.2 MAX]
     H -->|no| I[Metis M.2]
 

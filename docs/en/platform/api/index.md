@@ -1630,12 +1630,12 @@ Launch YOLO training on cloud GPUs and monitor progress in real time. See
 [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
-flowchart TD
-    A(["POST /api/training/start"]) --> B[Training]
-    P["GET .../training"] -.->|progress| B
-    B -->|cancel| D(["DELETE .../training"])
-    B -->|complete| C[Model ready]
-    C --> G([Deploy or export])
+stateDiagram-v2
+    [*] --> Training: POST start
+    Training --> Training: GET progress
+    Training --> Cancelled: DELETE
+    Training --> Ready: complete
+    Ready --> [*]: deploy or export
 ```
 
 ### Get GPU Availability

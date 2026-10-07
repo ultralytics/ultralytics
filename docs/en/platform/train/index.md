@@ -88,14 +88,17 @@ During training, view live metrics across three subtabs:
 ```mermaid
 flowchart TD
     subgraph charts["Charts"]
+        direction TB
         A[Losses]
         B[Task metrics]
     end
     subgraph console["Console"]
+        direction TB
         C[Live logs]
         D[Error detection]
     end
     subgraph system["System"]
+        direction TB
         E[GPU stats]
         F["CPU, RAM, I/O"]
     end

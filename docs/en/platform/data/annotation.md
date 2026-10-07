@@ -258,8 +258,7 @@ flowchart TD
     D -->|no| F{Mask accurate?}
     D -->|yes| E([Mask applied])
     F -->|yes| G([Press Enter])
-    F -->|no| H[Add or subtract points]
-    H -.-> C
+    F -->|no, refine| B
 ```
 
 !!! tip "SAM Tips"

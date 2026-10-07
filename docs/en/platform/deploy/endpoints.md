@@ -295,7 +295,8 @@ Control your endpoint state:
 ```mermaid
 stateDiagram-v2
     Ready --> Stopped: stop
-    Stopped --> Ready: start
+    Stopped --> Deploying: start
+    Deploying --> Ready
     Ready --> [*]: delete
     Stopped --> [*]: delete
 ```

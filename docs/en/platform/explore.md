@@ -149,7 +149,7 @@ flowchart TD
     A([Find content on Explore]) --> B{Content type?}
     B -->|dataset| C([Clone dataset])
     B -->|project| D{Clone or download?}
-    D -->|clone| E([Your own copy])
+    D -->|clone| E([Project or model copy])
     D -->|download| F([".pt and exports"])
 ```
 

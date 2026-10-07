@@ -19,10 +19,12 @@ The **Deployments** tab on your profile serves as the monitoring dashboard for a
 ```mermaid
 flowchart TD
     subgraph tab["Deployments tab"]
+        direction TB
         A[World map] ~~~ C[Deployments list]
         B[Overview cards] ~~~ C
     end
     subgraph page["Deployment page"]
+        direction TB
         D[Metrics cards] ~~~ E[Overview tab]
         D ~~~ F[Monitoring tab]
         E ~~~ G[Predict tab]

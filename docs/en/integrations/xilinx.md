@@ -82,7 +82,7 @@ Most AMD Xilinx AI deployments follow the same pattern. The accelerator runs the
 ```mermaid
 flowchart TD
     A([Camera or video input]) --> B["Arm CPU: pre/post-processing"]
-    B <-->|supported layers| C["Accelerator (DPU or NPU)"]
+    B <-->|supported layers| C[DPU or NPU]
     B --> D(["Alerts, control, display"])
 ```
 
@@ -110,8 +110,8 @@ Pick your flow from the device on your board:
 flowchart TD
     A{Device family?}
     A -->|Zynq or Kria| B([DPU flow])
-    A -->|Versal AI Edge| C([NPU snapshot])
-    A -->|Gen 2| D([Xilinx export])
+    A -->|VEK280 class| C([NPU snapshot])
+    A -->|VEK385, Gen 2| D([Xilinx export])
 ```
 
 ## Export to AMD Xilinx: Converting Your YOLO Model
@@ -322,10 +322,12 @@ An accelerator only speeds up the operators it implements in hardware. When a mo
 ```mermaid
 flowchart TD
     subgraph stock["Stock YOLO26 on the DPU"]
+        direction TB
         A1[Conv on DPU] --> A2[SiLU on CPU]:::error
         A2 -.->|repeats| A1
     end
     subgraph hswish["Hard-Swish YOLO26 on the DPU"]
+        direction TB
         B1[Backbone on DPU] --> B2[C2PSA attention on CPU]:::error
         B2 --> B3[Neck on DPU]
         B3 --> B4[C3k2 attention on CPU]:::error

@@ -356,13 +356,13 @@ Deploy your model to a dedicated endpoint for production use:
 ![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.ul.run/i/10b367836b087d68241e529da20a1257.avif)<!-- screenshot -->
 
 ```mermaid
-flowchart TD
-    A([Select a region]) --> B[Click Deploy]
-    B --> C[Provisioning]
-    C --> D[Ready]
-    D -->|stop| E[Stopped]
-    E -->|start| C
-    D -->|delete| F([Deleted])
+stateDiagram-v2
+    [*] --> Provisioning: deploy
+    Provisioning --> Ready
+    Ready --> Stopped: stop
+    Stopped --> Provisioning: start
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 Once provisioning completes, your endpoint provides:

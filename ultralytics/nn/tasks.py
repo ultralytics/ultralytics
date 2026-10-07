@@ -347,7 +347,9 @@ class BaseModel(torch.nn.Module):
             cc1, cc2, ch, cw = csd[first_conv].shape
             if ch == h and cw == w:
                 c1, c2 = min(c1, cc1), min(c2, cc2)
-                state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
+                src = csd[first_conv][:c1]
+                # summed filters respond to one gray channel as the RGB filters respond to it replicated
+                state_dict[first_conv][:c1, :c2] = src.sum(1, keepdim=True) if c2 == 1 else src[:, :c2]
                 len_updated_csd += 1
         self.pt_path = getattr(model, "pt_path", None)  # provenance follows the weights selected above
         if verbose:

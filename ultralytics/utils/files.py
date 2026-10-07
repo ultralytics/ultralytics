@@ -46,6 +46,7 @@ class WorkingDirectory(contextlib.ContextDecorator):
 
     def __enter__(self):
         """Change the current working directory to the specified directory upon entering the context."""
+        self.cwd = Path.cwd().resolve()
         os.chdir(self.dir)
 
     def __exit__(self, exc_type, exc_val, exc_tb):

@@ -1858,9 +1858,16 @@ def test_process_mask_empty():
     assert ops.scale_masks(torch.zeros(1, 0, 160, 160), (640, 640)).shape == (1, 0, 640, 640)
 
 
-def test_utils_files(tmp_path):
+def test_utils_files(tmp_path, monkeypatch):
     """Test file handling utilities including file age, date, and paths with spaces."""
-    from ultralytics.utils.files import file_age, file_date, get_latest_run, increment_path, spaces_in_path
+    from ultralytics.utils.files import (
+        WorkingDirectory,
+        file_age,
+        file_date,
+        get_latest_run,
+        increment_path,
+        spaces_in_path,
+    )
 
     file_age(SOURCE)
     file_date(SOURCE)
@@ -1878,6 +1885,13 @@ def test_utils_files(tmp_path):
     results_file = exp_dir / "results.txt"
     results_file.touch()
     assert increment_path(results_file) == exp_dir / "results-2.txt"
+
+    working_dir = tmp_path / "working"
+    working_dir.mkdir()
+    decorator = WorkingDirectory(working_dir)(Path.cwd)
+    monkeypatch.chdir(tmp_path)
+    assert decorator() == working_dir
+    assert Path.cwd() == tmp_path
 
 
 @pytest.mark.slow

@@ -20,25 +20,20 @@ Ultralytics Platform brings dataset management and annotation, experiment tracki
 The Platform provides an end-to-end workflow:
 
 ```mermaid
-graph LR
-    subgraph Data["📁 Data"]
-        A[Upload]:::start --> B[Annotate]:::proc
+flowchart TD
+    subgraph data["Data"]
+        direction TB
+        A([Upload]) --> B[Annotate]
     end
-    subgraph Train["🚀 Train"]
-        D[Configure]:::proc --> E[Train on GPU]:::proc
-        E --> F[View Metrics]:::out
+    subgraph train["Train"]
+        direction TB
+        C[Configure] --> D[Train on GPU]
     end
-    subgraph Deploy["🌐 Export or Deploy"]
-        G[Export]:::proc
-        H[Deploy Endpoint]:::proc --> I[Monitor]:::out
-    end
-    Data --> Train
-    E --> G
-    E --> H
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    data --> train
+    train --> E{Export or deploy?}
+    E -->|export| F([Export])
+    E -->|deploy| G[Deploy endpoint]
+    G --> H([Monitor])
 ```
 
 | Stage        | Features                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -86,21 +81,14 @@ Dedicated endpoints are deployed separately to a region you choose from the glob
 - **Statistics**: Class distribution, split distribution, location heatmaps, and bounding box dimension analysis
 
 ```mermaid
-graph LR
-    A[Upload Dataset/Images/Video]:::start --> B[Auto-Process]:::proc
-    B --> C[Browse & Filter]:::proc
-    C --> D{Annotate}:::decide
-    D --> E[Manual Tools]:::proc
-    D --> F[SAM Smart]:::proc
-    D --> G[YOLO Auto-Label]:::proc
-    E --> H[Train-Ready Dataset]:::out
-    F --> H
-    G --> H
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload data]) --> B[Automatic processing]
+    B --> C[Browse and filter]
+    C --> D{Annotation mode?}
+    D -->|draw| E[Manual tools]
+    D -->|smart| F[SAM or model labels]
+    E --> G([Train-ready dataset])
+    F --> G
 ```
 
 !!! tip "Supported Task Types"
@@ -165,20 +153,15 @@ You can train models either through the web UI (cloud training) or from your own
 - **Monitoring**: Real-time metrics, request logs, and performance dashboards
 
 ```mermaid
-graph LR
-    A[Trained Model]:::start --> B{Action}:::decide
-    B --> C[Browser Predict]:::proc
-    B --> D[Export Format]:::proc
-    B --> E[Deploy Endpoint]:::proc
-    D --> F[ONNX / TensorRT / CoreML / LiteRT / ...]:::out
-    E --> G[42 Global Regions]:::proc
-    G --> H[API Endpoint URL]:::proc
-    H --> I[Monitor & Scale]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Trained model]) --> B{Test it first?}
+    B -->|yes| C[Test in the browser]
+    B -->|no| D{Export or deploy?}
+    C --> D
+    D -->|export| E[22 formats]
+    D -->|deploy| F[42 regions]
+    F --> G[Endpoint URL]
+    G --> H([Monitor and scale])
 ```
 
 Once deployed, call your endpoint from any language. `conf`, `iou`, and `imgsz` are optional form fields that default to

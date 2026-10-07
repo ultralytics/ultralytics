@@ -401,6 +401,8 @@ def verify_image_mask(args: tuple) -> tuple:
                     mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
             assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
+            if mode == "1":
+                mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255
             assert not invalid[mask].any(), (  # ids above 255 raise IndexError
                 f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"
             )

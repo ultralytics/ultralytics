@@ -446,7 +446,7 @@ def check_source(
         source = str(source)
         source_lower = source.lower()
         is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))  # streamed whatever the suffix
+        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))
         is_file = not is_stream and (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
             IMG_FORMATS | VID_FORMATS
         )
@@ -454,15 +454,14 @@ def check_source(
         screenshot = source_lower == "screen"
         if is_url and is_file:
             source = check_file(source)  # download
-        elif webcam and source_lower.startswith("http"):  # an http(s) URL with no known suffix may be one image
+        elif webcam and source_lower.startswith("http"):  # a sized image/* response is one image, not a stream
             import requests  # scoped as slow import
 
             try:
-                with requests.get(source, stream=True, timeout=3) as r:  # headers only, HEAD is often refused
-                    # a finite image has a length; an endless camera feed labeled image/* does not
+                with requests.get(source, stream=True, timeout=3) as r:
                     is_image = r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers
             except requests.RequestException:
-                is_image = False  # leave it to the stream loader
+                is_image = False
             if is_image:
                 source, webcam, from_img = autocast_list([source]), False, True
     elif isinstance(source, LOADERS):

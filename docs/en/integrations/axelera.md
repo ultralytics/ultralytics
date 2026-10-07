@@ -23,14 +23,14 @@ graph TD
     B -->|Embedded / Robotics| D{Space Constraints?}:::decide
     B -->|Standalone / R&D| E[Dev Kits & Systems]:::proc
 
-    C -->|Max Density <br> 30+ Streams| F[**Metis PCIe x4**<br>856 TOPS]:::out
-    C -->|Standard PC <br> Low Profile| G[**Metis PCIe x1**<br>214 TOPS]:::out
+    C -->|Max Density <br> 30+ Streams| F[Metis PCIe x4<br>856 TOPS]:::out
+    C -->|Standard PC <br> Low Profile| G[Metis PCIe x1<br>214 TOPS]:::out
 
-    D -->|Drones & Handhelds| H[**Metis M.2**<br>2280 M-Key]:::out
-    D -->|High Performance Embedded| I[**Metis M.2 MAX**<br>Extended Thermal]:::out
+    D -->|Drones & Handhelds| H[Metis M.2<br>2280 M-Key]:::out
+    D -->|High Performance Embedded| I[Metis M.2 MAX<br>Extended Thermal]:::out
 
-    E -->|ARM-based All-in-One| J[**Metis Compute Board**<br>RK3588 + AIPU]:::out
-    E -->|Prototyping| K[**Arduino Portenta x8**<br>Integration Kit]:::out
+    E -->|ARM-based All-in-One| J[Metis Compute Board<br>RK3588 + AIPU]:::out
+    E -->|Prototyping| K[Arduino Portenta x8<br>Integration Kit]:::out
 
     click F "https://store.axelera.ai/"
     click G "https://store.axelera.ai/"

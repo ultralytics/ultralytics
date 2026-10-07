@@ -260,7 +260,7 @@ YOLO26n reports `reg_max=1` and an `Identity` DFL layer. Prediction and validati
 
 ## Conclusion
 
-Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's NMS-free, DFL-free end-to-end design.
+Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's DFL-free design with an optional NMS-free end-to-end head.
 
 To define custom architectures, see the [Model YAML Configuration Guide](model-yaml-config.md), or compare models on the [model pages](../models/index.md). For questions, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 

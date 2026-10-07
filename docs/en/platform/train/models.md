@@ -54,18 +54,14 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 ## Model Lifecycle
 
 ```mermaid
-graph LR
-    A[Upload .pt]:::start --> B[Overview]:::proc
-    C[Train]:::start --> B
-    B --> D[Predict]:::proc
-    B --> E[Export]:::proc
-    B --> F[Deploy]:::proc
-    E --> G[22 Formats]:::out
-    F --> H[Endpoint]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload .pt]) --> C[Overview]
+    B([Train]) --> C
+    C --> D[Predict]
+    C --> E[Export]
+    C --> F[Deploy]
+    E --> G[22 formats]
+    F --> H[Endpoint]
 ```
 
 ## Model Page Tabs
@@ -213,19 +209,14 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 ## Export Model
 
 ```mermaid
-graph LR
-    A[Select Format]:::start --> B[Configure Args]:::proc
-    B --> C[Export]:::proc
-    C --> D{GPU Required?}:::decide
-    D -->|Yes| E[Cloud GPU Export]:::proc
-    D -->|No| F[CPU Export]:::proc
-    E --> G[Download]:::out
+flowchart TD
+    A([Select a format]) --> B[Configure arguments]
+    B --> C[Click Export]
+    C --> D{GPU required?}
+    D -->|yes| E[Cloud GPU export]
+    D -->|no| F[CPU export]
+    E --> G([Download])
     F --> G
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
 ```
 
 Export your model to 22 deployment formats:

@@ -11,19 +11,15 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 [Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
 
 ```mermaid
-graph TB
-    P[Project]:::start --> M1[Model 1]:::proc
-    P --> M2[Model 2]:::proc
-    P --> M3[Model 3]:::proc
-    M1 --> S[Check in Sidebar]:::proc
+flowchart TD
+    P([Project]) --> M1[Model 1]
+    P --> M2[Model 2]
+    P --> M3[Model 3]
+    M1 --> S[Check in the sidebar]
     M2 --> S
     M3 --> S
-    S --> C[Charts]:::out
-    S --> T[Comparison Table]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    S --> C[Charts]
+    S --> T[Comparison table]
 ```
 
 ## Create Project

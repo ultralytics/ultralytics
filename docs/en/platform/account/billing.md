@@ -193,14 +193,10 @@ Cloud training estimates cost before start, meters GPU time while the run is in 
 when the run ends.
 
 ```mermaid
-flowchart LR
-    A[Start Training]:::start --> B[Estimate Cost]:::proc
-    B --> C[Meter GPU Usage]:::proc
-    C --> D[Settle at Terminal State]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Start training]) --> B[Estimate cost]
+    B --> C[Meter GPU usage]
+    C --> D([Settle when the run ends])
 ```
 
 ### How It Works

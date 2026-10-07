@@ -36,15 +36,11 @@ The Training section helps you:
 ## Workflow
 
 ```mermaid
-graph LR
-    A[📁 Project]:::start --> B[⚙️ Configure]:::proc
-    B --> C[🚀 Train]:::proc
-    C --> D[📈 Monitor]:::proc
-    D --> E[📦 Export]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Project]) --> B[Configure]
+    B --> C[Train]
+    C --> D[Monitor]
+    D --> E([Export])
 ```
 
 | Stage         | Description                                                                |
@@ -90,16 +86,21 @@ Available GPUs for cloud training on Ultralytics Cloud:
 During training, view live metrics across three subtabs:
 
 ```mermaid
-graph LR
-    A[Charts]:::start --> B[Loss Curves]:::out
-    A --> C[Task Metrics]:::out
-    D[Console]:::start --> E[Live Logs]:::out
-    D --> F[Error Detection]:::out
-    G[System]:::start --> H[GPU, CPU & Memory]:::out
-    G --> I[Network & Disk I/O]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    subgraph charts["Charts"]
+        A[Losses]
+        B[Task metrics]
+    end
+    subgraph console["Console"]
+        C[Live logs]
+        D[Error detection]
+    end
+    subgraph system["System"]
+        E[GPU stats]
+        F["CPU, RAM, I/O"]
+    end
+    charts ~~~ console
+    console ~~~ system
 ```
 
 | Subtab      | Metrics                                                                                          |

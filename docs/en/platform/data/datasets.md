@@ -310,16 +310,12 @@ Two dialogs may then appear:
 After upload, the platform processes your data automatically:
 
 ```mermaid
-graph LR
-    A[Upload]:::start --> B[Validate]:::proc
-    B --> C[Normalize]:::proc
-    C --> D[Thumbnail]:::proc
-    D --> E[Parse Labels]:::proc
-    E --> F[Statistics]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> B[Validate]
+    B --> C[Normalize]
+    C --> D[Generate thumbnails]
+    D --> E[Parse labels]
+    E --> F([Compute statistics])
 ```
 
 1. **Validation**: Format and size checks
@@ -993,15 +989,11 @@ Start training directly from your dataset:
 4. Start training
 
 ```mermaid
-graph LR
-    A[Dataset]:::start --> B[New Model]:::proc
-    B --> C[Select Project]:::proc
-    C --> D[Configure]:::proc
-    D --> E[Start Training]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Dataset page]) --> B[Open the New Model dialog]
+    B --> C[Select a project]
+    C --> D[Configure training]
+    D --> E([Start training])
 ```
 
 See [Cloud Training](../train/cloud-training.md) for details.

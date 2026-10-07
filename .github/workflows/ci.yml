@@ -707,16 +707,21 @@ jobs:
           import json, os, requests
           from actions.utils import get_response
 
-          api = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/actions"
+          repo = os.environ["GITHUB_REPOSITORY"]
+          api = f"https://api.github.com/repos/{repo}/actions"
           headers = {"Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"}
-          url = f"{api}/runs/{os.environ['GITHUB_RUN_ID']}/jobs?filter=latest&per_page=100"
-          failed = [j for j in requests.get(url, headers=headers, timeout=30).json()["jobs"] if j["conclusion"] == "failure"]
-          logs = [f"Failed jobs: {', '.join(j['name'] for j in failed)}"]
+          run = requests.get(f"{api}/runs/{os.environ['GITHUB_RUN_ID']}", headers=headers, timeout=30).json()
+          jobs = requests.get(f"{run['jobs_url']}?filter=latest&per_page=100", headers=headers, timeout=30).json()["jobs"]
+          failed = [j for j in jobs if j["conclusion"] == "failure"]
+          logs = [  # context for links
+              f"Commit: https://github.com/{repo}/commit/{run['head_sha']} {run['head_commit']['message'].splitlines()[0]}",
+              "Failed jobs:\n" + "\n".join(f"{j['name']}: {j['html_url']}" for j in failed),
+          ]
           for j in failed[:12]:  # last 6000 chars of each failed job log before cleanup, where the error is
               r = requests.get(f"{api}/jobs/{j['id']}/logs", headers=headers, timeout=60)
               r.raise_for_status()
               logs.append(f"## {j['name']}\n{r.text.split('Post job cleanup.')[0][-6000:]}")
-          prompt = "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn, not Markdown: single asterisks for bold, no headings, no links. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble."
+          prompt = "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn, not Markdown: single asterisks for bold, no headings, links only as <url|text>. Add links only where they help, such as the failing job, a source line (https://github.com/<repo>/blob/<sha>/<repo-relative path>#L<line>), or the PR or commit that likely caused a regression. Never invent URLs or PR numbers. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble."
           messages = [{"role": "system", "content": prompt}, {"role": "user", "content": "\n\n".join(logs)}]
           summary = get_response(messages, check_links=False)
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:

@@ -262,7 +262,7 @@ With a SAM model selected:
 
 ```mermaid
 graph LR
-    A[Press S]:::start --> B[Left-click Object]:::proc
+    A["Press S, pick a SAM model"]:::start --> B[Left-click Object]:::proc
     B --> C[SAM Generates Mask]:::proc
     C --> D{Auto-apply?}:::decide
     D -->|Yes| E[Mask Applied Automatically]:::out

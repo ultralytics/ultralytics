@@ -51,17 +51,13 @@ stateDiagram-v2
     Deploying --> Stopped: Start failed
     Ready --> [*]: Delete
     Stopped --> [*]: Delete
-    Creating --> Failed: Error
-    Deploying --> Failed: Error
-    Failed --> [*]: Delete
+    Creating --> Stopped: Failed to start
 
     classDef proc fill:#2196F3,color:#fff
     classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
     classDef extern fill:#607D8B,color:#fff
     class Creating,Deploying,Stopping proc
     class Ready out
-    class Failed error
     class Stopped extern
 ```
 
@@ -270,8 +266,7 @@ Replacement requires all of the following, and is rejected otherwise:
 | **Deploying** | Container is starting                   |
 | **Ready**     | Endpoint is live and accepting requests |
 | **Stopping**  | Endpoint is shutting down               |
-| **Stopped**   | Endpoint is paused and unavailable      |
-| **Failed**    | Deployment failed (see error message)   |
+| **Stopped**   | Paused or failed to start; click Start  |
 
 On a **Ready** deployment, the page's badge reads **Starting** until the endpoint answers its first
 [health check](monitoring.md#health-check), and **Not responding** if the check fails.

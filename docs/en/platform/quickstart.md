@@ -374,7 +374,7 @@ graph LR
     D --> E{Lifecycle}:::decide
     E --> F[Stop]:::error
     E --> G[Delete]:::error
-    F --> H[Resume]:::proc
+    F --> H[Start]:::proc
     H --> D
 
     classDef start fill:#4CAF50,color:#fff

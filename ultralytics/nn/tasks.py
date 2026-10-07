@@ -355,7 +355,7 @@ class BaseModel(torch.nn.Module):
         if (
             isinstance(src_names, dict)
             and len(updated_csd) == len(state_dict)  # the class head came from the source too
-            and not hasattr(self, "set_classes")  # open-vocabulary names also need embeddings load() does not copy
+            and not any(hasattr(m, "set_classes") for m in (self, model))  # open-vocabulary names need embeddings
             and getattr(self, "names", None) == {i: str(i) for i in range(len(src_names))}
         ):
             self.names = dict(src_names)  # a YAML-built model takes the checkpoint's class names

@@ -44,6 +44,7 @@ from .utils import (
     load_dataset_cache_file,
     load_depth,
     polygons2masks_overlap,
+    read_mask,
     save_dataset_cache_file,
     verify_image,
     verify_image_depth,
@@ -1055,17 +1056,9 @@ class SemanticDataset(YOLODataset):
             FileNotFoundError: If the mask file is missing or unreadable.
         """
         mask_file = self.labels[index]["mask_file"]
-        mode = self.labels[index]["mode"]
-        if mode == "P":  # palette PNGs store class ids as indices, not grayscale colors
-            with Image.open(mask_file) as im:
-                p = np.array(im.getpalette()).reshape(-1, 3)  # gray palettes (e.g. pngquant) hold gray-level class ids
-                mask = np.array(im.convert("L") if (p == p[:, :1]).all() else im)
-        else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
+        mask = read_mask(mask_file, self.labels[index]["mode"])
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if mode == "1":
-            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)

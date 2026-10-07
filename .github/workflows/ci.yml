@@ -724,7 +724,7 @@ jobs:
               [
                   {
                       "role": "system",
-                      "content": "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble.",
+                      "content": "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn, not Markdown: single asterisks for bold, no headings, no links. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble.",
                   },
                   {"role": "user", "content": "\n\n".join(logs)},
               ],

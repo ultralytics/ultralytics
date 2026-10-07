@@ -413,8 +413,8 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
-            with Image.open(mask_path) as im:  # palette PNGs store class ids as indices, not colors
-                mask = np.asarray(im) if im.mode == "P" else cv2.imread(str(mask_path), cv2.IMREAD_ANYDEPTH)
+            with Image.open(mask_path) as im:  # palette and 1-bit PNGs store class ids, not colors
+                mask = np.asarray(im) if im.mode in {"P", "1"} else cv2.imread(str(mask_path), cv2.IMREAD_ANYDEPTH)
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 

@@ -615,7 +615,9 @@ class Exporter:
         fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = self.args.format = "engine"
-        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
+        if fmt in {"mlpackage", "mlprogram", "apple", "ios"}:  # 'coreml' aliases
+            fmt = self.args.format = "coreml"
+        if fmt == "mlmodel":  # legacy *.mlmodel export keeps its name for export_coreml
             fmt = "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
@@ -1402,7 +1404,8 @@ class Exporter:
             )
             inputs = [ct.TensorType("image", shape=input_shape)]
         else:
-            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
+            layout = ct.colorlayout.GRAYSCALE if self.im.shape[1] == 1 else ct.colorlayout.RGB
+            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, color_layout=layout)]
 
         quantize = 16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize
         self.metadata["args"]["quantize"] = quantize
@@ -1955,6 +1958,7 @@ class NMSModel(torch.nn.Module):
         self.args = args
         self.obb = model.task == "obb"
         self.is_tf = self.args.format == "saved_model"
+        self.is_coreml = self.args.format in {"coreml", "mlmodel"}
 
     def forward(self, x):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1985,6 +1989,9 @@ class NMSModel(torch.nn.Module):
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
+            # CoreML aborts on an empty gather: keep the max-score anchors, zero-scored unless they pass
+            if self.is_coreml:
+                mask, score = torch.logical_or(mask, score == score.max()), score * mask
             if self.is_tf or (self.args.format == "onnx" and self.obb):
                 # TFLite GatherND error if mask is empty
                 score *= mask

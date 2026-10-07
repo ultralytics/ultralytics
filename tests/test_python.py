@@ -811,6 +811,60 @@ def test_pose_metrics_curves():
     assert len(curves) == len(set(curves)) == 8
 
 
+def test_pose_val_ignores_gt_without_keypoints():
+    """Test that pose metrics ignore GTs without labeled keypoints like COCO, leaving box metrics unchanged."""
+    from ultralytics.models.yolo.pose.val import PoseValidator
+    from ultralytics.utils.metrics import OKS_SIGMA, PoseMetrics
+
+    validator = PoseValidator()
+    validator.sigma = OKS_SIGMA
+    kpts = torch.rand(2, 17, 3) * 50
+    kpts[0] += 10  # person inside box 0
+    kpts[1] += 100  # person inside box 1
+    kpts[..., 2] = 1
+    gt = {"cls": torch.zeros(2), "bboxes": torch.tensor([[10.0, 10, 60, 60], [100, 100, 150, 150]]), "keypoints": kpts}
+    gt["keypoints"][1, :, 2] = 0  # person 1 has no labeled keypoints (COCO num_keypoints == 0)
+    preds = {  # exact hit on person 0, two hits on person 1 of which COCO ignores only one
+        "cls": torch.zeros(3),
+        "conf": torch.tensor([0.9, 0.95, 0.85]),
+        "bboxes": gt["bboxes"][[0, 1, 1]],
+        "keypoints": kpts[[0, 1, 1]].clone(),
+    }
+    stat = validator._process_batch(preds, gt)
+    assert stat["tp"][:, 0].tolist() == [True, True, False]  # box matching is unchanged
+    assert stat["tp_p"][:, 0].tolist() == [True, False, False]
+    assert stat["ignore_p"].all(1).tolist() == [False, True, False]  # an ignored GT absorbs at most one prediction
+    assert stat["target_cls_p"].tolist() == [0.0]
+
+    metrics = PoseMetrics(names={0: "person"})
+    metrics.update_stats(
+        {
+            **stat,
+            "target_cls": np.zeros(2),
+            "target_img": np.zeros(1),
+            "conf": preds["conf"].numpy(),
+            "pred_cls": np.zeros(3),
+            "im_name": "im0",
+        }
+    )
+    metrics.process()
+    assert metrics.pose.map == pytest.approx(0.995)  # perfect score under compute_ap (pycocotools: 1.0), was 0.2475
+
+
+def test_pose_metrics_without_ignore_keys():
+    """Test that PoseMetrics matches ap_per_class when callers pass no ignore information."""
+    from ultralytics.utils.metrics import PoseMetrics, ap_per_class
+
+    rng = np.random.default_rng(0)
+    tp, conf = rng.random((50, 10)) > 0.4, rng.random(50)
+    pred_cls, target_cls = rng.integers(0, 3, 50), rng.integers(0, 3, 40)
+    stat = {"tp": tp, "tp_p": tp, "conf": conf, "pred_cls": pred_cls, "target_cls": target_cls, "im_name": "im0"}
+    metrics = PoseMetrics(names={0: "a", 1: "b", 2: "c"})
+    metrics.update_stats({**stat, "target_img": np.unique(target_cls)})  # callers without the new keys still work
+    metrics.process()
+    assert np.array_equal(metrics.pose.all_ap, ap_per_class(tp, conf, pred_cls, target_cls)[5])
+
+
 @pytest.mark.skipif(not ONLINE, reason="environment is offline")
 @pytest.mark.skipif(IS_JETSON or IS_RASPBERRYPI, reason="Edge devices not intended for training")
 def test_train_multi():

@@ -171,24 +171,77 @@ class PoseValidator(DetectionValidator):
                 for bounding boxes, and 'keypoints' for keypoint annotations.
 
         Returns:
-            (dict[str, np.ndarray]): Dictionary containing the box true positives 'tp' and the pose true positives
-                'tp_p', each with shape (N, 10) for 10 IoU/OKS thresholds.
+            (dict[str, np.ndarray]): Dictionary containing the box true positives 'tp', the pose true positives 'tp_p'
+                and the pose ignore flags 'ignore_p', each with shape (N, 10) for 10 IoU/OKS thresholds, plus the
+                classes 'target_cls_p' of the GTs with at least one labeled keypoint.
 
         Notes:
             `0.53` scale factor used in area computation is referenced from
             https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384.
+            Like COCO, GTs without labeled keypoints are excluded from the pose targets, and predictions matched only
+            to them are ignored instead of being counted as false positives.
         """
         tp = super()._process_batch(preds, batch)
-        gt_cls = batch["cls"]
-        if gt_cls.shape[0] == 0 or preds["cls"].shape[0] == 0:
-            tp_p = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
-        else:
+        gt_cls, kpts = batch["cls"], batch["keypoints"]
+        # COCO ignores GTs without labeled keypoints (num_keypoints == 0): they are neither targets nor sources of FPs
+        valid = (kpts[..., 2] > 0).any(-1) if kpts.shape[-1] == 3 else torch.ones_like(gt_cls, dtype=torch.bool)
+        tp_p = np.zeros((preds["cls"].shape[0], self.niou), dtype=bool)
+        ignore_p = np.zeros_like(tp_p)
+        if gt_cls.shape[0] and preds["cls"].shape[0]:
             # `0.53` is from https://github.com/jin-s13/xtcocoapi/blob/master/xtcocotools/cocoeval.py#L384
             area = ops.xyxy2xywh(batch["bboxes"])[:, 2:].prod(1) * 0.53
-            iou = kpt_iou(batch["keypoints"], preds["keypoints"], sigma=self.sigma, area=area)
-            tp_p = self.match_predictions(preds["cls"], gt_cls, iou).cpu().numpy()
-        tp.update({"tp_p": tp_p})  # update tp with kpts IoU
+            if valid.any():
+                iou = kpt_iou(kpts[valid], preds["keypoints"], sigma=self.sigma, area=area[valid])
+                tp_p = self.match_predictions(preds["cls"], gt_cls[valid], iou).cpu().numpy()
+            if not valid.all():
+                ignore_p = self._match_ignored(preds, batch["bboxes"][~valid], gt_cls[~valid], area[~valid], tp_p)
+        tp.update({"tp_p": tp_p, "ignore_p": ignore_p, "target_cls_p": gt_cls[valid].cpu().numpy()})
         return tp
+
+    def _match_ignored(
+        self,
+        preds: dict[str, torch.Tensor],
+        gt_bboxes: torch.Tensor,
+        gt_cls: torch.Tensor,
+        area: torch.Tensor,
+        tp_p: np.ndarray,
+    ) -> np.ndarray:
+        """Find unmatched predictions that COCO would match to GTs without labeled keypoints, and thus ignore.
+
+        OKS against such a GT follows pycocotools `computeOks` for `k1 == 0`: each predicted keypoint is scored by its
+        distance to the GT box expanded by its width and height on each side. Predictions are visited in descending
+        confidence and each ignored GT absorbs at most one prediction per OKS threshold, as in COCO for non-crowd GTs.
+
+        Args:
+            preds (dict[str, torch.Tensor]): Predictions with keys 'cls', 'conf' and 'keypoints'.
+            gt_bboxes (torch.Tensor): Boxes of the ignored GTs in xyxy format, shape (M, 4).
+            gt_cls (torch.Tensor): Classes of the ignored GTs, shape (M,).
+            area (torch.Tensor): Areas of the ignored GTs used for OKS, shape (M,).
+            tp_p (np.ndarray): Pose true positives against the valid GTs, shape (N, 10).
+
+        Returns:
+            (np.ndarray): Boolean array of shape (N, 10), True where a prediction is ignored at that OKS threshold.
+        """
+        wh = gt_bboxes[:, 2:] - gt_bboxes[:, :2]
+        lo = (gt_bboxes[:, :2] - wh)[:, None, None]  # (M, 1, 1, 2), box expanded by its size on each side
+        hi = (gt_bboxes[:, 2:] + wh)[:, None, None]
+        xy = preds["keypoints"][None, ..., :2]  # (1, N, K, 2)
+        d = ((lo - xy).clamp(min=0) + (xy - hi).clamp(min=0)).pow(2).sum(-1)  # (M, N, K)
+        sigma = torch.as_tensor(self.sigma, device=d.device, dtype=d.dtype)
+        e = d / ((2 * sigma).pow(2) * (area[:, None, None] + 1e-7) * 2)  # same scaling as kpt_iou
+        oks = ((-e).exp().mean(-1) * (gt_cls[:, None] == preds["cls"][None])).cpu().numpy()  # (M, N)
+
+        ignore_p = np.zeros_like(tp_p)
+        thr = self.iouv.cpu().numpy()[:, None]  # (T, 1)
+        used = np.zeros((len(thr), oks.shape[0]), dtype=bool)  # (T, M) ignored GTs already taken per threshold
+        order = preds["conf"].argsort(descending=True).cpu().numpy()
+        for j in order[oks.max(0)[order] >= thr.min()]:  # greedy by confidence, only predictions that can match
+            cand = np.where(used, -1.0, oks[None, :, j])  # (T, M)
+            best = cand.argmax(1)
+            hit = (cand.max(1) >= thr[:, 0]) & ~tp_p[j]
+            used[hit, best[hit]] = True
+            ignore_p[j] = hit
+        return ignore_p
 
     def gather_stats(self) -> None:
         """Gather stats from all GPUs."""

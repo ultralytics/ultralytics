@@ -354,6 +354,7 @@ class BaseModel(torch.nn.Module):
         src_names = getattr(model, "names", None)
         if (
             isinstance(src_names, dict)
+            and len(updated_csd) == len(state_dict)  # the class head came from the source too
             and not hasattr(self, "set_classes")  # open-vocabulary names also need embeddings load() does not copy
             and getattr(self, "names", None) == {i: str(i) for i in range(len(src_names))}
         ):

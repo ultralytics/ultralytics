@@ -1705,6 +1705,20 @@ def test_semantic_confusion_matrix_large_counts():
     assert metrics.matrix[0, 0].item() == 2**24 + 100, f"confusion matrix saturated at {metrics.matrix[0, 0].item()}"
 
 
+@pytest.mark.parametrize("nc", [1, 2, 19])
+def test_semantic_pixel_counts_large_dataset(nc):
+    """Semantic validation must retain populated classes when pixel counts exceed int32."""
+    from ultralytics.utils.metrics import SemanticMetrics
+
+    metrics = SemanticMetrics(names={i: str(i) for i in range(nc)})
+    pixels = 129 * 4096**2
+    metrics.matrix = torch.eye(metrics.cm_nc) * pixels
+    metrics.process()
+    assert metrics.nt_per_class.tolist() == [pixels] * nc
+    assert metrics.ap_class_index == list(range(nc))
+    assert [row["Pixels"] for row in metrics.summary()] == [pixels] * nc
+
+
 class _DepthLossModel(torch.nn.Module):
     """Tiny stub mirroring the model surface DepthLoss26 reads: .parameters() for device and .args for hyps."""
 

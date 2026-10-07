@@ -351,6 +351,13 @@ class BaseModel(torch.nn.Module):
                 # summed filters respond to one gray channel as the RGB filters respond to it replicated
                 state_dict[first_conv][:c1, :c2] = src.sum(1, keepdim=True) if c2 == 1 else src[:, :c2]
                 len_updated_csd += 1
+        src_names = getattr(model, "names", None)
+        if (
+            isinstance(src_names, dict)
+            and not hasattr(self, "set_classes")  # open-vocabulary names also need embeddings load() does not copy
+            and getattr(self, "names", None) == {i: str(i) for i in range(len(src_names))}
+        ):
+            self.names = dict(src_names)  # a YAML-built model takes the checkpoint's class names
         self.pt_path = getattr(model, "pt_path", None)  # provenance follows the weights selected above
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")

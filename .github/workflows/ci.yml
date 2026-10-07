@@ -695,9 +695,6 @@ jobs:
     permissions:
       actions: read # read failed job logs
     steps:
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
       - name: Analyze failure logs
         id: ai
@@ -706,8 +703,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          uv pip install --system --no-cache ultralytics-actions
-          python - <<'EOF'
+          uvx --from ultralytics-actions python - <<'EOF'
           import json, os, requests
           from actions.utils import get_response
 
@@ -720,16 +716,9 @@ jobs:
               r = requests.get(f"{api}/jobs/{j['id']}/logs", headers=headers, timeout=60)
               r.raise_for_status()
               logs.append(f"## {j['name']}\n{r.text.split('Post job cleanup.')[0][-6000:]}")
-          summary = get_response(
-              [
-                  {
-                      "role": "system",
-                      "content": "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn, not Markdown: single asterisks for bold, no headings, no links. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble.",
-                  },
-                  {"role": "user", "content": "\n\n".join(logs)},
-              ],
-              check_links=False,
-          )
+          prompt = "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn, not Markdown: single asterisks for bold, no headings, no links. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble."
+          messages = [{"role": "system", "content": prompt}, {"role": "user", "content": "\n\n".join(logs)}]
+          summary = get_response(messages, check_links=False)
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write(f"summary={json.dumps(chr(10) + summary[:2500])}\n")  # JSON keeps the output on one line
           EOF

@@ -29,11 +29,8 @@ jobs:
       previous_tag: ${{ steps.check_pypi.outputs.previous_tag }}
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
-      - run: uv pip install --system --no-cache ultralytics-actions
+      - run: uv pip install --no-cache ultralytics-actions
       - name: Check PyPI version and publish flag
         id: check_pypi
         shell: python
@@ -78,13 +75,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
       - uses: ultralytics/actions/setup-uv@main
-      - run: uv pip install --system --no-cache build
       - name: Build ultralytics
-        run: python -m build --outdir dist/
+        run: uv build --out-dir dist/
       - name: Build ultralytics-opencv-headless
         run: |
           python - <<'PY'
@@ -104,7 +97,7 @@ jobs:
           text = text.replace('"opencv-python>=', '"opencv-python-headless>=', 1)
           path.write_text(text)
           PY
-          python -m build --outdir dist/
+          uv build --out-dir dist/
           git checkout pyproject.toml
       - uses: actions/upload-artifact@v7
         with:
@@ -162,20 +155,17 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.14"
-      - uses: ultralytics/actions/setup-uv@main
-      - run: |
-          uv venv sbom-env
-          uv pip install -e .
-        env:
-          VIRTUAL_ENV: sbom-env
+      - run: uv pip install -e .
       - uses: anchore/sbom-action@v0
         with:
           format: spdx-json
           output-file: sbom.spdx.json
-          path: sbom-env
+          path: ${{ env.VIRTUAL_ENV }}
+        env:
+          SYFT_SOURCE_NAME: ${{ github.repository }} # name the SBOM after the repo, not the venv path
       - run: gh release upload ${{ needs.check.outputs.current_tag }} sbom.spdx.json --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

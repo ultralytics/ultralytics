@@ -393,7 +393,7 @@ def verify_image_mask(args: tuple) -> tuple:
                     break
         if os.path.isfile(mask_file):
             with Image.open(mask_file) as im:
-                mode = im.mode  # recorded so load_mask reads each mask once and a yaml 'nc' edit never needs a rescan
+                mode = im.mode  # recorded so load_mask reads each mask once
                 if mode == "P":  # colored (VOC-style) palettes hold class ids as indices, gray palettes as gray levels
                     p = np.array(im.getpalette()).reshape(-1, 3)
                     mask = np.asarray(im.convert("L") if (p == p[:, :1]).all() else im)

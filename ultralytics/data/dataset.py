@@ -985,13 +985,13 @@ class SemanticDataset(YOLODataset):
         return self.mask_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash for semantic cache validation that also includes label_mapping changes.
+        """Return a hash for semantic cache validation that also includes label_mapping and class count changes.
 
         Returns:
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", f"nc:{len(self.data['names'])}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""

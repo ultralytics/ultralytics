@@ -459,7 +459,8 @@ def check_source(
 
             try:
                 with requests.get(source, stream=True, timeout=3) as r:  # headers only, HEAD is often refused
-                    is_image = r.headers.get("Content-Type", "").startswith("image/")
+                    # a finite image has a length; an endless camera feed labelled image/* does not
+                    is_image = r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers
             except requests.RequestException:
                 is_image = False  # leave it to the stream loader
             if is_image:

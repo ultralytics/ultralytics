@@ -1064,7 +1064,7 @@ class SemanticDataset(YOLODataset):
             mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
         if mask is None:
             raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if int(self.data.get("nc", 0)) == 1 and mode == "1":
+        if mode == "1":
             mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)

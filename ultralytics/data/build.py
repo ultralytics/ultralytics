@@ -386,7 +386,7 @@ def build_dataloader(
         else ContiguousDistributedSampler(dataset)
     )
     samples = len(sampler) if sampler is not None else dataset_len
-    drop_last = drop_last and bool(batch) and dataset_len % batch != 0
+    drop_last = drop_last and bool(batch) and samples >= batch and samples % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0

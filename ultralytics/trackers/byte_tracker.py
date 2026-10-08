@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from itertools import count
 from typing import Any
 
 import numpy as np
@@ -292,7 +293,7 @@ class BYTETracker:
         for tracks, mask in ((detections, mask_high), (detections_second, mask_low)):
             for track, i in zip(tracks, np.flatnonzero(mask)):
                 track.idx = i  # idx must be in full detection-set space; parse_bboxes only sees the subset
-                track.next_id = self._next_id  # IDs are per tracker, so other trackers cannot reissue them
+                track.next_id = self._ids.__next__  # IDs are per tracker, so other trackers cannot reissue them
 
         unconfirmed, tracked_stracks = self._split_tracked()
         strack_pool = joint_stracks(tracked_stracks, self.lost_stracks)
@@ -530,14 +531,9 @@ class BYTETracker:
         """Predict the next states for multiple tracks using Kalman filter."""
         STrack.multi_predict(tracks)
 
-    def _next_id(self) -> int:
-        """Return the next track ID of this tracker."""
-        self._count += 1
-        return self._count
-
     def reset_id(self):
         """Restart this tracker's track IDs at 1."""
-        self._count = 0
+        self._ids = count(1)
 
     def reset(self):
         """Reset the tracker by clearing all tracked, lost, and removed tracks and reinitializing the Kalman filter."""

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 import shutil
+from contextlib import suppress
 from pathlib import Path
 
 from ultralytics.data.utils import IMG_FORMATS, img2label_paths
@@ -96,8 +97,9 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
                 try:
                     old.unlink(missing_ok=True)
                 except PermissionError:  # Windows cannot unlink a read-only image copied from a read-only source
-                    old.chmod(0o666)
-                    old.unlink()
+                    with suppress(FileNotFoundError):  # another DDP rank may have already removed it
+                        old.chmod(0o666)
+                    old.unlink(missing_ok=True)
                 shutil.copy2(img, target / class_dir.name / img.name)
 
     LOGGER.info(f"Split complete in {split_path} ✅")

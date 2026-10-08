@@ -463,6 +463,36 @@ def test_predict_classes_with_max_det(model_name, nms):
     assert len(reused) > 1  # classes=[0]/max_det=1 from the previous call must not leak into this one
 
 
+def test_predictor_arg_switch_and_reuse():
+    """Test that an explicit `predictor=` class switches, reuses, and restores the cached predictor."""
+    from ultralytics.models.yolo.detect.predict import DetectionPredictor
+
+    built = []
+
+    class CountingPredictor(DetectionPredictor):
+        """Detection predictor subclass that records each construction."""
+
+        def __init__(self, overrides=None, _callbacks=None):
+            built.append(self)
+            super().__init__(overrides=overrides, _callbacks=_callbacks)
+
+    model = YOLO(MODEL)
+    model.predict(SOURCE, imgsz=64, verbose=False)  # bare call smart-loads the default predictor
+    assert len(built) == 0 and type(model.predictor) is DetectionPredictor
+
+    model.predict(SOURCE, imgsz=64, verbose=False, predictor=CountingPredictor)  # switch default -> custom
+    assert len(built) == 1 and type(model.predictor) is CountingPredictor
+
+    model.predict(SOURCE, imgsz=64, verbose=False)  # `predictor=` omitted: reuse the cached custom class
+    assert len(built) == 1 and type(model.predictor) is CountingPredictor
+
+    model.predict(SOURCE, imgsz=64, verbose=False, predictor=CountingPredictor)  # same class: no rebuild
+    assert len(built) == 1
+
+    model.predict(SOURCE, imgsz=64, verbose=False, predictor=DetectionPredictor)  # switch back explicitly
+    assert len(built) == 1 and type(model.predictor) is DetectionPredictor
+
+
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
@@ -2210,11 +2240,16 @@ def test_yoloe(tmp_path):
         "bboxes": np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),
         "cls": np.array([0, 1]),
     }
-    model.predict(
+    results = model.predict(
         SOURCE,
         visual_prompts=visuals,
         predictor=YOLOEVPSegPredictor,
     )
+    # YOLOE.predict forwards through super() without the named `predictor` arg, so the explicit class must be
+    # honored; a rebuild away from it would restore the full class vocabulary instead of the visual prompts
+    assert type(model.predictor) is YOLOEVPSegPredictor
+    assert list(model.predictor.model.names.values()) == ["object0", "object1"]
+    assert len(results) == 1
 
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg.pt")

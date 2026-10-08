@@ -13,15 +13,11 @@ keywords: Ultralytics Platform, explore, public datasets, public projects, compu
 ![Ultralytics Platform Explore Datasets Tab Cards View](https://cdn.ul.run/i/11d4848264006e44b186cf661be3a8fe.avif)<!-- screenshot -->
 
 ```mermaid
-graph LR
-    A[🔍 Browse Explore]:::start --> B[📥 Clone to Account]:::proc
-    B --> C[✏️ Customize & Annotate]:::proc
-    C --> D[🚀 Train Model]:::proc
-    D --> E[🌐 Deploy Endpoint]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Browse Explore]) --> B[Clone to your account]
+    B --> C[Customize and annotate]
+    C --> D[Train a model]
+    D --> E([Deploy an endpoint])
 ```
 
 !!! info "Anonymous Access"
@@ -149,27 +145,12 @@ Each item displays:
 ## Use Public Content
 
 ```mermaid
-graph TD
-    A[Find Content on Explore]:::start --> B{Content Type}:::decide
-    B --> C[Dataset]:::proc
-    B --> D[Project]:::proc
-    D --> E[Model in the Project]:::proc
-    C --> F[Clone Dataset]:::proc
-    D --> G[Clone Project]:::proc
-    E --> H[Download Model]:::proc
-    E --> I[Clone Model]:::proc
-    F --> J[Copy in Destination Workspace]:::out
-    G --> K[Project Copy with Completed Models]:::out
-    H --> L[.pt / Completed Exports]:::out
-    I --> M[Copy to Your Project]:::proc
-    J --> N[Edit, Annotate, Train]:::out
-    K --> N
-    M --> N
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Find content on Explore]) --> B{Content type?}
+    B -->|dataset| C([Clone dataset])
+    B -->|project| D{Clone it?}
+    D -->|yes| E([Project or model copy])
+    D -->|no, download| F([".pt and exports"])
 ```
 
 ### Clone Dataset
@@ -284,15 +265,13 @@ profiles. The **Share** button next to it copies a link or opens a pre-filled so
 Make your work available to the community. Public content is visible to everyone, including users who aren't signed in. Explore lists public datasets that contain at least one image and public projects that contain at least one model, so an empty dataset or a project with no models stays off the Explore page until you add content to it. Models follow the visibility of the project that holds them and have no separate badge.
 
 ```mermaid
-graph LR
-    A[Your Private Dataset or Project]:::start --> B[Click Private Badge]:::proc
-    B --> C[Confirm Make public]:::proc
-    C --> D[Appears on Explore Once It Has Content]:::proc
-    D --> E[Community Can Clone/Download]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Private dataset or project]) --> B[Click the Private badge]
+    B --> C[Confirm Make public]
+    C --> D{Has content?}
+    D -->|yes| E[Listed on Explore]
+    D -->|no| F[Not listed yet]
+    E --> G([Others clone or download])
 ```
 
 ### Make Dataset Public

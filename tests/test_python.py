@@ -76,7 +76,7 @@ def test_dataloader_caps_workers_to_batches():
 
 
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
-    """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
+    """Test worker cap and drop_last follow the distributed sampler shard size."""
     sampler_cls = data_build.distributed.DistributedSampler
 
     def distributed_sampler(dataset, shuffle, seed):

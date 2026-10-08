@@ -41,24 +41,17 @@ Create a deployment from the **Deployments** tab on your profile or from the sid
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Creating: Deploy
-    Creating --> Deploying: Service starting
-    Deploying --> Ready: Service URL published
-    Ready --> Stopping: Stop
-    Ready --> Deploying: Replace model or resize
-    Stopping --> Stopped: Stopped
-    Stopped --> Deploying: Start
-    Deploying --> Stopped: Start failed
-    Ready --> [*]: Delete
-    Stopped --> [*]: Delete
-    Creating --> Stopped: Failed to start
-
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef extern fill:#607D8B,color:#fff
-    class Creating,Deploying,Stopping proc
-    class Ready out
-    class Stopped extern
+    [*] --> Creating: deploy
+    Stopped --> Deploying: start
+    Stopped --> [*]: delete
+    Ready --> Stopping: stop
+    Ready --> Deploying: replace or resize
+    Deploying --> Stopped: start failed
+    Stopping --> Stopped
+    Creating --> Stopped: start failed
+    Creating --> Deploying
+    Deploying --> Ready
+    Ready --> [*]: delete
 ```
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when a deployment becomes ready or fails to start.
@@ -296,15 +289,12 @@ serves these paths:
 Control your endpoint state:
 
 ```mermaid
-graph LR
-    R[Ready]:::out -->|Stop| S[Stopped]:::extern
-    S -->|Start| R
-    R -->|Delete| D[Deleted]:::error
-    S -->|Delete| D
-
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
-    classDef extern fill:#607D8B,color:#fff
+stateDiagram-v2
+    Ready --> Stopped: stop
+    Stopped --> Deploying: start
+    Deploying --> Ready
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 | Action     | Description                 |

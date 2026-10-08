@@ -20,24 +20,18 @@ keywords: Ultralytics Platform, Quickstart, YOLO models, dataset upload, model t
   <strong>Watch:</strong> Get Started with Ultralytics Platform - QuickStart
 </p>
 
-The following interactive diagram outlines the four primary stages of the Ultralytics Platform workflow. Click any stage or sub-step to access detailed instructions for that section.
+The following interactive diagram outlines the four primary stages of the Ultralytics Platform workflow. Click any stage to jump to its instructions.
 
 ```mermaid
-graph LR
-    A(Sign Up):::start --> B(Prepare Data):::proc --> C(Train):::proc --> D(Deploy):::out
-    A -.- A1["<a href='#get-started'>Create account</a><br/><a href='#region-selection'>Select region</a>"]:::proc
-    B -.- B1["<a href='#upload-your-first-dataset'>Upload dataset</a><br/><a href='#create-your-first-project'>Create Project</a>"]:::proc
-    C -.- C1["<a href='#training-configuration'>Configure training</a><br/><a href='#monitor-training'>Monitor progress</a>"]:::proc
-    D -.- D1["<a href='#test-your-model'>Test model</a><br/><a href='#deploy-to-production'>Deploy endpoint</a>"]:::proc
+flowchart TD
+    A([Sign up]) --> B[Prepare data]
+    B --> C[Train]
+    C --> D([Deploy])
 
     click A "#get-started"
     click B "#upload-your-first-dataset"
     click C "#train-your-first-model"
     click D "#deploy-to-production"
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
 ```
 
 ## Get Started
@@ -201,18 +195,13 @@ Uploads support multiple formats (full details in [Datasets](data/datasets.md)):
 | **NDJSON**          | 10 / 20 / 50 GB                    | Ultralytics dataset export format for portable metadata                    |
 
 ```mermaid
-graph LR
-    A[Drop Files]:::start --> B[Auto-Package ZIP]:::proc
-    B --> C[Upload to Storage]:::proc
-    C --> D[Process Data]:::proc
-    D --> E[Resize & Thumbnail]:::proc
-    E --> F[Parse Labels]:::proc
-    F --> G[Compute Statistics]:::proc
-    G --> H[Dataset Ready]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Drop files]) --> B[Package as ZIP]
+    B --> C[Upload to storage]
+    C --> D[Resize and thumbnail]
+    D --> E[Parse labels]
+    E --> F[Compute statistics]
+    F --> G([Dataset ready])
 ```
 
 After upload, the platform automatically processes your data:
@@ -367,21 +356,13 @@ Deploy your model to a dedicated endpoint for production use:
 ![Ultralytics Platform Deploy Tab Region Map With Latency](https://cdn.ul.run/i/10b367836b087d68241e529da20a1257.avif)<!-- screenshot -->
 
 ```mermaid
-graph LR
-    A[Select Region]:::start --> B[Deploy]:::proc
-    B --> C[Provisioning]:::proc
-    C --> D[Running]:::out
-    D --> E{Lifecycle}:::decide
-    E --> F[Stop]:::error
-    E --> G[Delete]:::error
-    F --> H[Start]:::proc
-    H --> D
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
+stateDiagram-v2
+    [*] --> Provisioning: deploy
+    Provisioning --> Ready
+    Ready --> Stopped: stop
+    Stopped --> Provisioning: start
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 Once provisioning completes, your endpoint provides:

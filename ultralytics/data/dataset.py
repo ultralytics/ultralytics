@@ -1055,10 +1055,7 @@ class SemanticDataset(YOLODataset):
         Raises:
             FileNotFoundError: If the mask file is missing or unreadable.
         """
-        mask_file = self.labels[index]["mask_file"]
-        mask = read_mask(mask_file, self.labels[index]["mode"])
-        if mask is None:
-            raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
+        mask = read_mask(self.labels[index]["mask_file"], self.labels[index]["mode"])
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)

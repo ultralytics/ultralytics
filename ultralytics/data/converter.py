@@ -414,8 +414,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
             with Image.open(mask_path) as im:
-                mode = im.mode
-            mask = read_mask(str(mask_path), mode)
+                mask = read_mask(str(mask_path), im.mode)
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 

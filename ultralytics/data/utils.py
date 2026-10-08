@@ -366,16 +366,27 @@ def verify_image_depth(args: tuple) -> tuple:
     return None, None, nf, nm, nc, msg
 
 
-def read_mask(mask_file: str, mode: str) -> np.ndarray | None:
-    """Read a semantic mask file as class ids given its PIL image mode, returning None if OpenCV cannot decode it."""
+def read_mask(mask_file: str, mode: str) -> np.ndarray:
+    """Read a semantic mask file as an array of class ids.
+
+    Args:
+        mask_file (str): Path to the mask image.
+        mode (str): PIL image mode of the mask, which selects how class ids are decoded.
+
+    Returns:
+        (np.ndarray): (H, W) array of mask class ids.
+
+    Raises:
+        FileNotFoundError: If the mask file is missing or unreadable.
+    """
     if mode == "P":  # colored (VOC-style) palettes hold class ids as indices, gray palettes as gray levels
         with Image.open(mask_file) as im:
             p = np.array(im.getpalette()).reshape(-1, 3)
             return np.array(im.convert("L") if (p == p[:, :1]).all() else im)
     mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # keeps 16-bit ids
-    if mask is not None and mode == "1":
-        mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255
-    return mask
+    if mask is None:
+        raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
+    return mask // 255 if mode == "1" else mask  # cv2 expands 1-bit PNG foreground to 255
 
 
 def verify_image_mask(args: tuple) -> tuple:
@@ -407,7 +418,6 @@ def verify_image_mask(args: tuple) -> tuple:
             with Image.open(mask_file) as im:
                 mode = im.mode  # recorded so load_mask reads each mask once
             mask = read_mask(mask_file, mode)
-            assert mask is not None, f"mask file {mask_file} is unreadable"
             assert mask.shape[:2] == shape, f"mask size {mask.shape[:2]} does not match image size {shape}"
             assert not invalid[mask].any(), (  # ids above 255 raise IndexError
                 f"mask ids {np.unique(mask[invalid[mask] > 0]).tolist()} are not dataset class ids or 255 ignore"

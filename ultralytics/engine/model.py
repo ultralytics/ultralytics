@@ -542,8 +542,11 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
-        if not self.predictor or any(
-            getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args
+        is_custom = predictor is not None  # an explicitly passed predictor class overrides a cached different class
+        if (
+            not self.predictor
+            or (is_custom and type(self.predictor) is not predictor)
+            or any(getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)

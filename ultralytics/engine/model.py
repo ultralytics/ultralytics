@@ -525,7 +525,8 @@ class Model(torch.nn.Module):
             - If 'source' is not provided, it defaults to the ASSETS directory (or a sample image for OBB) with a
               warning.
             - The method sets up a new predictor if not already present and updates its arguments with each call,
-              rebuilding it when an argument applied at model or tracker setup changes.
+              rebuilding it when an argument applied at model or tracker setup changes or a different `predictor` class
+              is passed.
             - For SAM-type models, 'prompts' can be passed as a keyword argument.
         """
         if source is None:
@@ -542,8 +543,10 @@ class Model(torch.nn.Module):
         args = {**self.overrides, **custom, **kwargs}  # highest priority args on the right
         args["quantize"] = QUANTIZE_ALIASES.get(str(q := args.get("quantize")).lower(), q)  # unset quantize is FP32
 
-        if not self.predictor or any(
-            getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args
+        if (
+            not self.predictor
+            or (predictor and type(self.predictor) is not predictor)
+            or any(getattr(self.predictor.args, k) != args[k] for k in PREDICTOR_SETUP_KEYS if k in args)
         ):
             self.predictor = (predictor or self._smart_load("predictor"))(overrides=args, _callbacks=self.callbacks)
             self.predictor.setup_model(model=self.model, verbose=is_cli)

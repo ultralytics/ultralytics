@@ -342,6 +342,7 @@ class BaseModel(torch.nn.Module):
         if (
             isinstance(head, Detect)
             and isinstance(src_head, Detect)
+            and not (self.is_fused() or model.is_fused())
             and [m[0].conv.in_channels for m in head.cv2] == [m[0].conv.in_channels for m in src_head.cv2]
         ):
             for attr in ("cv3", "one2one_cv3"):

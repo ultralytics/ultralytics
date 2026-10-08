@@ -1466,8 +1466,6 @@ class PoseMetrics(DetMetrics):
         super().__init__(names)
         self.pose = Metric()
         self.stats["tp_p"] = []  # add additional stats for pose
-        self.stats["ignore_p"] = []  # predictions matched only to GTs without labeled keypoints
-        self.stats["target_cls_p"] = []  # classes of GTs with at least one labeled keypoint
 
     def update_stats(self, stat: dict[str, Any]) -> None:
         """Update statistics by appending new values to existing stat collections.
@@ -1476,12 +1474,8 @@ class PoseMetrics(DetMetrics):
             stat (dict[str, Any]): Dictionary containing new statistical values to append. Keys should match existing
                 keys in self.stats, plus 'im_name' for per-image metrics.
         """
-        stat = {"ignore_p": np.zeros_like(stat["tp_p"]), "target_cls_p": stat["target_cls"], **stat}  # defaults
         super().update_stats(stat)  # update box stats
-        keep = ~stat["ignore_p"][:, 0]  # per-image metrics use the OKS 0.5 column, like `tp`
-        self.pose.update_image_metrics(
-            stat["tp_p"][keep], stat["target_cls_p"], stat["pred_cls"][keep], stat["im_name"]
-        )
+        self.pose.update_image_metrics(stat["tp_p"], stat["target_cls"], stat["pred_cls"], stat["im_name"])
 
     def clear_image_metrics(self) -> None:
         """Clear stored per-image metrics."""
@@ -1500,29 +1494,17 @@ class PoseMetrics(DetMetrics):
             (dict[str, np.ndarray]): Dictionary containing concatenated statistics arrays.
         """
         stats = DetMetrics.process(self, save_dir, plot, on_plot=on_plot)  # process box stats
-        tp, ignore = stats["tp_p"], stats["ignore_p"]
-        args = {"target_cls": stats["target_cls_p"], "names": self.names, "prefix": "Pose"}
-        if not ignore.any():
-            results_pose = ap_per_class(
-                tp, stats["conf"], stats["pred_cls"], plot=plot, on_plot=on_plot, save_dir=save_dir, **args
-            )[2:]
-        else:  # ignored predictions differ per OKS threshold, so drop them and compute AP one threshold at a time
-            ap = []
-            for j in range(tp.shape[1]):
-                k = ~ignore[:, j]
-                r = ap_per_class(
-                    tp[k, j : j + 1],
-                    stats["conf"][k],
-                    stats["pred_cls"][k],
-                    plot=plot and j == 0,
-                    on_plot=on_plot,
-                    save_dir=save_dir,
-                    **args,
-                )[2:]
-                if j == 0:  # P/R/F1 and curves come from the OKS 0.5 threshold, as usual
-                    results_pose = r
-                ap.append(r[3])
-            results_pose = (*results_pose[:3], np.concatenate(ap, 1), *results_pose[4:])
+        results_pose = ap_per_class(
+            stats["tp_p"],
+            stats["conf"],
+            stats["pred_cls"],
+            stats["target_cls"],
+            plot=plot,
+            on_plot=on_plot,
+            save_dir=save_dir,
+            names=self.names,
+            prefix="Pose",
+        )[2:]
         self.pose.nc = len(self.names)
         self.pose.update(results_pose)
         return stats

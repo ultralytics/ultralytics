@@ -795,6 +795,7 @@ class PoseModel(DetectionModel):
             LOGGER.info(f"Overriding model.yaml kpt_shape={cfg['kpt_shape']} with kpt_shape={data_kpt_shape}")
             cfg["kpt_shape"] = data_kpt_shape
         super().__init__(cfg=cfg, ch=ch, nc=nc, verbose=verbose)
+        self.kpt_shape = cfg["kpt_shape"]
 
     def init_criterion(self):
         """Initialize the loss criterion for the PoseModel."""

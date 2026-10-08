@@ -355,7 +355,6 @@ class TRACKTRACK:
 
     Methods:
         update: Advance the tracker by one frame and return per-object tracking results.
-        next_id: Return the next track ID of this tracker.
         reset: Clear all tracker state.
 
     Examples:
@@ -480,7 +479,7 @@ class TRACKTRACK:
         def _new_track(box, score, cls, feat=None):
             track = TTSTrack(box, score, cls, feat) if feat is not None else TTSTrack(box, score, cls)
             track.min_track_len = self.min_track_len
-            track.next_id = self.next_id  # IDs are per tracker, so other trackers cannot reissue them
+            track.next_id = self._next_id  # IDs are per tracker, so other trackers cannot reissue them
             return track
 
         high_boxes, high_scores, high_cls = boxes[high_mask], scores[high_mask], results.cls[high_mask]
@@ -592,7 +591,7 @@ class TRACKTRACK:
             dtype=np.float32,
         )
 
-    def next_id(self) -> int:
+    def _next_id(self) -> int:
         """Return the next track ID of this tracker."""
         self._count += 1
         return self._count

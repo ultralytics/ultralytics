@@ -363,8 +363,8 @@ def build_dataloader(
         workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
-        drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller
-            than one batch is kept.
+        drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller than
+            one batch is kept.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 

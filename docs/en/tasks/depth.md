@@ -223,15 +223,15 @@ The released `yolo26*-depth.pt` checkpoints ship with this calibration already b
 
 #### Getting ground-truth depth without a depth camera
 
-If your camera has no depth sensor, you can still calibrate for it. Calibration only fits one global scale, and it ignores pixels with 0 depth, so a few measured points per image are enough.
+If your camera has no depth sensor, you can still calibrate for it. Calibration fits one global scale and ignores pixels with 0 depth, so a few measured points per image are enough.
 
 1.  **Collect images.** Take 50 to 150 images with your camera at the resolution and lens settings you will deploy with, and put them in `dataset/images/val/`. Calibration reads the `val` split.
 
-2.  **Label depth.** Use one of the two methods below. Both write one depth map per image to `dataset/depth/val/`, following the [dataset format](#dataset-format).
+2.  **Label depth.** Use one of the two methods below. Both write one depth map per image to `dataset/depth/val/` in the [dataset format](#dataset-format).
 
     === "Measured points"
 
-        Measure the distance to a few points in each image with a laser rangefinder or a tape measure, and record the pixel location of each point in `points.csv`:
+        Measure the distance to a few points in each image with a laser rangefinder or a tape measure, on flat surfaces away from object edges, and record the pixel location of each point in `points.csv`:
 
         ```text
         image,x,y,meters
@@ -239,7 +239,7 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
         img_0001.jpg,28,300,2.672
         ```
 
-        Then write the depth maps, leaving every unmeasured pixel at 0:
+        Then write the depth maps, leaving every unmeasured pixel at 0. Each point is drawn as a small dot so it survives the resize to `imgsz`:
 
         ```python
         import csv
@@ -257,18 +257,19 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
         for name, pts in points.items():
             h, w = cv2.imread(f"dataset/images/val/{name}").shape[:2]
             depth = np.zeros((h, w), np.uint16)  # 0 means no label
+            r = max(h, w) // 768 + 1  # dot radius that survives the resize to imgsz=768
             for x, y, meters in pts:
-                depth[y, x] = round(meters * 1000)  # meters to millimeters
+                cv2.circle(depth, (x, y), r, round(meters * 100), -1)  # centimeters, matching depth_scale: 100
             out = Path("dataset/depth/val") / f"{Path(name).stem}.png"
             out.parent.mkdir(parents=True, exist_ok=True)
             cv2.imwrite(str(out), depth)
         ```
 
-        Depth maps store distance along the camera's viewing axis, while a rangefinder measures the straight-line distance to the point. The two match at the image center and differ by about 3.5% at 15° off-center. Measure points near the center, or convert each reading with `meters / sqrt(1 + ((x - cx) / fx) ** 2 + ((y - cy) / fy) ** 2)` using your camera intrinsics.
+        A rangefinder measures the straight-line distance to a point, while depth maps store distance along the camera's viewing axis. The two match at the image center and differ by about 3.5% at 15° off-center, so measure points near the center or convert each reading with `meters / sqrt(1 + ((x - cx) / fx) ** 2 + ((y - cy) / fy) ** 2)` using your camera intrinsics.
 
     === "Metric depth model"
 
-        Label every pixel with a larger monocular model that outputs **metric** depth. Models that output relative depth, such as Marigold, do not work. This example uses [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE), which uses your camera's focal length to set the scale. Install it with Python 3.12 or older:
+        Label every pixel with a larger monocular model that outputs **metric** depth from your camera's focal length. Relative-depth models such as Marigold do not work, and metric models that ignore the focal length, such as Depth Anything V2 Metric, were off by up to 22% in our tests. This example uses [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE). Install it with Python 3.12 or older:
 
         ```bash
         git clone https://github.com/ByteDance-Seed/depth-anything-3
@@ -296,19 +297,20 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
             np.save(out, cv2.resize(depth, (w, h), interpolation=cv2.INTER_LINEAR))
         ```
 
-        If you only know the horizontal field of view, use `focal = w / (2 * tan(hfov / 2))`. The labels are only as accurate as the labeling model, so check a few of them against measured distances before calibrating.
+        If you only know the horizontal field of view, use `focal = w / (2 * tan(hfov / 2))`. The labels are only as accurate as the labeling model, so check a few against measured distances before calibrating.
 
-3.  **Write the dataset YAML** as `calib.yaml`:
+3.  **Write the dataset YAML** as `calib.yaml`. `depth_scale: 100` reads the centimeter PNGs from measured points and is ignored for NPY maps:
 
     ```yaml
     path: dataset
     train: images/val
     val: images/val
+    depth_scale: 100 # PNG value 100 = 1 meter
     names:
         0: depth
     ```
 
-4.  **Calibrate and save.**
+4.  **Calibrate and save**, then load `yolo26s-depth-calibrated.pt` for prediction or export:
 
     ```python
     from ultralytics import YOLO
@@ -318,20 +320,7 @@ If your camera has no depth sensor, you can still calibrate for it. Calibration 
     model.save("yolo26s-depth-calibrated.pt")
     ```
 
-    The log shows the fitted scale, for example `Depth calibration selected 'scale-only' (a=1.0000 b=1.7267)`. Load `yolo26s-depth-calibrated.pt` for prediction or export.
-
-The table shows how far each label source put the fitted scale from a calibration on full ground truth. It uses `yolo26s-depth.pt` with 150 calibration images per camera. The narrow-lens camera is NYU center-cropped to half width and height, which doubles the focal length.
-
-| Labels                           | NYU (Kinect, indoor) | KITTI (car, outdoor) | Narrow lens (indoor) |
-| -------------------------------- | -------------------- | -------------------- | -------------------- |
-| None (released calibration)      | -4.2%                | -10.6%               | -45.9%               |
-| 5 measured points per image      | -0.9%                | -0.5%                | -0.8%                |
-| DA3METRIC-LARGE                  | -2.6%                | -6.2%                | -0.3%                |
-| Depth Anything V2 Metric (Large) | +21.9%               | +3.1%                | -20.4%               |
-
-Depth Anything V2 Metric does not take the focal length, so its scale is off on the narrow lens. DA3METRIC-LARGE stays within 7% on all three cameras.
-
-With measured points, 150 images with 1 point each gave a scale within 2% of the full ground-truth fit across 3 random draws, while 20 images with 5 points each varied by up to 9%. More images help more than more points per image.
+In tests with `yolo26s-depth.pt` and 150 images per camera, the released calibration was 4% to 46% off the scale fit on full ground truth for NYU, KITTI and a narrow-lens camera. Calibrating on 5 measured points per image came within 1% of that fit, and on DA3METRIC-LARGE labels within 7%. More images help more than more points per image: 150 images with 1 point each came within about 3%, while 20 images with 5 points each varied by up to 9%.
 
 ## Val
 

@@ -25,7 +25,7 @@ The fundamental unit is the **`Conv`** block (defined in [`conv.py`](../referenc
 
 ## Architecture Diagrams
 
-Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure: the backbone and neck stages follow the configs in `ultralytics/cfg/models/`, while the YOLOv3 and YOLOv5 heads are drawn in their original anchor-based form rather than the anchor-free `u`-variant head their package configs actually ship. Stepping through the tabs shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual and makes the head NMS-free and DFL-free.
+Each version keeps the same **backbone → neck → head** skeleton and changes specific stages. The tabs below show the per-version structure: the backbone and neck stages follow the configs in `ultralytics/cfg/models/`, while the YOLOv3 and YOLOv5 heads are drawn in their original anchor-based form rather than the anchor-free `u`-variant head their package configs actually ship. Stepping through the tabs shows what each generation added. In short, the progression is: YOLOv3 is an FPN-only, anchor-based detector; YOLOv5 adds the bottom-up PAN path and `SPPF`; YOLOv8 switches to the `C2f` block with an anchor-free, [DFL](#distribution-focal-loss-dfl) head; YOLO11 inserts `C2PSA` attention and the `C3k2` block; and YOLO26 adds an `SPPF` residual, removes DFL, and adds an optional NMS-free head.
 
 === "YOLOv3"
 
@@ -237,7 +237,7 @@ YOLO26n reports `reg_max=1` and an `Identity` DFL layer. Prediction and validati
 
 ## Conclusion
 
-Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's NMS-free, DFL-free end-to-end design.
+Across versions, the YOLO architecture changed one stage at a time: the backbone moved from Darknet-53 to CSP-based `C3`, `C2f`, and `C3k2` blocks with `C2PSA` attention; the neck kept its FPN + PAN structure while `SPP` became `SPPF`; and the head moved from anchor-based to anchor-free, then to YOLO26's DFL-free design with an optional NMS-free end-to-end head.
 
 To define custom architectures, see the [Model YAML Configuration Guide](model-yaml-config.md), or compare models on the [model pages](../models/index.md). For questions, reach out on [GitHub](https://github.com/ultralytics/ultralytics/issues/new/choose) or [Discord](https://discord.com/invite/ultralytics).
 

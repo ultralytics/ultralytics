@@ -2649,6 +2649,7 @@ GET /api/explore/search
 | `offset`  | int     | Results to skip (default: 0)                                                                      |
 | `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                         |
 | `task`    | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb` |
+| `license` | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license |
 | `author`  | string  | Owner username filter                                                                             |
 | `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                      |
 

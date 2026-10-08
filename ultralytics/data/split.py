@@ -87,11 +87,18 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
-        for img in image_files[:split_idx]:
-            shutil.copy2(img, train_path / class_dir.name / img.name)
-
-        for img in image_files[split_idx:]:
-            shutil.copy2(img, val_path / class_dir.name / img.name)
+        for images, target, previous in (
+            (image_files[:split_idx], train_path, val_path),
+            (image_files[split_idx:], val_path, train_path),
+        ):
+            for img in images:
+                old = previous / class_dir.name / img.name
+                try:
+                    old.unlink(missing_ok=True)
+                except PermissionError:  # Windows cannot unlink a read-only image copied from a read-only source
+                    old.chmod(0o666)
+                    old.unlink()
+                shutil.copy2(img, target / class_dir.name / img.name)
 
     LOGGER.info(f"Split complete in {split_path} ✅")
     return split_path

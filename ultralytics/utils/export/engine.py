@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import types
+from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
@@ -14,7 +16,7 @@ import torch
 
 from ultralytics.utils import ASSETS, IS_JETSON, LOGGER, TORCH_VERSION, ThreadingLocked, imread, is_dgx, is_jetson
 from ultralytics.utils.checks import check_requirements, check_tensorrt, check_version
-from ultralytics.utils.torch_utils import TORCH_2_4
+from ultralytics.utils.torch_utils import TORCH_2_4, TORCH_2_13, is_qat
 
 
 @lru_cache
@@ -98,6 +100,11 @@ def torch2onnx(
 ) -> str:
     """Export a PyTorch model to ONNX format.
 
+    torch>=2.13 exports opset>=18 with the torch.export-based exporter. Older torch and opsets, QAT models whose Q/DQ
+    nodes need its symbolics, and models torch.export cannot trace use the deprecated TorchScript-based exporter. Both
+    name nodes by module scope (e.g. ``/model.23/cv2.0/cv2.0.2/Conv``) and dynamic axes as declared, so tools that
+    select layers by name, like TensorRT INT8 precision constraints, work with either.
+
     Args:
         model (torch.nn.Module): The PyTorch model to export.
         im (torch.Tensor | tuple[torch.Tensor, ...]): Example input tensor(s) for tracing.
@@ -114,6 +121,39 @@ def torch2onnx(
         input_names = ["images"]
     if output_names is None:
         output_names = ["output0"]
+    if TORCH_2_13 and opset >= 18 and not is_qat(model):
+        try:  # torch.export does not trace every model yet, e.g. YOLOv9 with dynamic shapes
+            check_requirements("onnxscript>=0.7.2")  # torch 2.14 NMS exports fail with onnxscript<0.7.2
+            # torch.export can specialize a size-1 batch, e.g. YOLOE heads or attention on 1x1 maps
+            batch = dynamic and isinstance(im, torch.Tensor) and len(im) == 1 and 0 in dynamic.get(input_names[0], ())
+            program = torch.onnx.export(
+                model.eval(),  # wrappers like NMSModel are built in train mode, which the TorchScript exporter overrode
+                torch.cat((im, im)) if batch else im,
+                opset_version=opset,
+                input_names=input_names,
+                output_names=output_names,
+                dynamic_shapes=tuple(dynamic.get(name) for name in input_names) if dynamic else None,
+                dynamo=True,
+                verbose=False,
+            )
+        except Exception as e:
+            e = e.__cause__ or e  # torch.onnx wraps the torch.export error in a multi-line report
+            LOGGER.warning(f"torch.export-based ONNX export failed, using the TorchScript-based exporter: {e!r:.300}")
+        else:
+            for value in program.model.graph.outputs:  # torch.export derives output axes, keep the declared names
+                axes = (dynamic or {}).get(value.name)
+                for axis, name in axes.items() if isinstance(axes, dict) else ():
+                    value.shape[axis] = name
+            seen = Counter()
+            for node in program.model.graph:
+                # e.g. ['', 'model.23', 'model.23.cv2.0', 'model.23.cv2.0.2', 'conv2d'] -> /model.23/cv2.0/cv2.0.2/Conv
+                scopes = ast.literal_eval(node.metadata_props.get("pkg.torch.onnx.name_scopes", "[]"))[1:-1]
+                name = "/".join(["", *(re.sub(r".*\.(?=[^.]*[^.\d])", "", s) for s in scopes), node.op_type])
+                node.name = f"{name}_{seen[name]}" if seen[name] else name
+                seen[name] += 1
+                node.metadata_props.clear()  # drop stack traces and local source paths
+            program.save(output_file)
+            return str(output_file)
     kwargs = {"dynamo": False} if TORCH_2_4 else {}
     torch.onnx.export(
         model,

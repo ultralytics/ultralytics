@@ -1215,10 +1215,9 @@ class Exporter:
             meta = model_onnx.metadata_props.add()
             meta.key, meta.value = k, str(v)
 
-        # IR version
-        if getattr(model_onnx, "ir_version", 0) > 10:
-            LOGGER.info(f"{prefix} limiting IR version {model_onnx.ir_version} to 10 for ONNXRuntime compatibility...")
-            model_onnx.ir_version = 10
+        # IR version: the opset's minimum like the TorchScript-based exporter writes, at most 10 for ONNX Runtime
+        ir_version = onnx.helper.OP_SET_ID_VERSION_MAP.get(("ai.onnx", opset), 10)
+        model_onnx.ir_version = min(model_onnx.ir_version, ir_version, 10)
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
         if self.args.quantize == 16 and self.args.format == "onnx" and self.device.type == "cpu":
@@ -1226,7 +1225,13 @@ class Exporter:
                 from onnxruntime.transformers import float16
 
                 LOGGER.info(f"{prefix} converting to FP16...")
-                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
+                # Keep ConstantOfShape FP32: torch.export writes it without a value, which the converter mistypes
+                block = [*float16.DEFAULT_OP_BLOCK_LIST, "ConstantOfShape"]
+                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True, op_block_list=block)
+                # The converter repeats an identical Cast for each consumer of a shared initializer, keep one
+                nodes = dict.fromkeys(n.SerializeToString() for n in model_onnx.graph.node)
+                del model_onnx.graph.node[:]
+                model_onnx.graph.node.extend(onnx.NodeProto.FromString(n) for n in nodes)
             except Exception as e:
                 LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
 
@@ -1338,6 +1343,10 @@ class Exporter:
         """Export YOLO model to MNN format using MNN https://github.com/alibaba/MNN."""
         from ultralytics.utils.export.mnn import onnx2mnn
 
+        if self.args.nms:  # MNN can't convert or run torch.export-based (opset>=18) ONNX NMS, keep the TorchScript one
+            if self.args.opset and self.args.opset > 17:
+                LOGGER.warning(f"{prefix} 'nms=True' exports use opset<=17 for MNN compatibility, setting opset=17.")
+            self.args.opset = min(self.args.opset or 17, 17)
         return onnx2mnn(
             onnx_file=self.export_onnx(),
             output_file=self.file.with_suffix(".mnn"),
@@ -1971,10 +1980,12 @@ class NMSModel(torch.nn.Module):
         preds = self.model(x)
         pred = preds[0] if isinstance(preds, tuple) else preds
         bs = pred.shape[0]
+        # TorchScript tracing records shapes read as tensors, torch.export records int shapes symbolically
+        shape = torch._shape_as_tensor if torch.jit.is_tracing() else lambda t: torch.tensor(t.shape)
         pred = pred.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         extra_shape = pred.shape[-1] - (4 + len(self.model.names))  # extras from Segment, OBB, Pose
         if self.args.dynamic and self.args.batch > 1:  # batch size needs to always be same due to loop unroll
-            pad = pred.new_zeros((self.args.batch - torch._shape_as_tensor(pred)[0]).clamp(min=0), *pred.shape[1:])
+            pad = pred.new_zeros((self.args.batch - shape(pred)[0]).clamp(min=0), *pred.shape[1:])
             pred = torch.cat((pred, pad))
         if self.args.dynamic and self.args.format == "onnx" and self.obb:
             pred = torch.cat((pred, pred.new_zeros(pred.shape[0], self.args.max_det * 5, pred.shape[2])), dim=1)
@@ -1982,7 +1993,7 @@ class NMSModel(torch.nn.Module):
         scores, classes = scores.max(dim=-1)
         # (N, max_det, 4 coords + 1 class score + 1 class label + extra_shape).
         out = pred.new_zeros(pred.shape[0], self.args.max_det, boxes.shape[-1] + 2 + extra_shape)
-        for i in range(bs):
+        for i in range(self.args.batch):  # bs specializes the torch.export batch dim, padding keeps args.batch rows
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
             if self.is_tf or (self.args.format == "onnx" and self.obb):
@@ -1995,7 +2006,7 @@ class NMSModel(torch.nn.Module):
             # `8` is the minimum value experimented to get correct NMS results for obb
             multiplier = 8 if self.obb else 1 / max(len(self.model.names), 1)
             # Normalize boxes for NMS since large values for class offset causes issue with int8 quantization
-            nmsbox = multiplier * (nmsbox / torch._shape_as_tensor(x)[2:].max().to(nmsbox.dtype))
+            nmsbox = multiplier * (nmsbox / shape(x)[2:].max().to(nmsbox.dtype))
             if not self.args.agnostic_nms:  # class-wise NMS
                 end = 2 if self.obb else 4
                 # fully explicit expansion otherwise reshape error
@@ -2016,9 +2027,9 @@ class NMSModel(torch.nn.Module):
                 if self.obb
                 else nms
             )
-            keep = nms_fn(
-                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox,
-                score,
+            keep = nms_fn(  # ONNX NonMaxSuppression is FP32-only and the torch.export-based exporter adds no Cast
+                torch.cat([nmsbox, extra], dim=-1) if self.obb else nmsbox.float(),
+                score if self.obb else score.float(),
                 self.args.iou,
             )[: self.args.max_det]
             dets = torch.cat(

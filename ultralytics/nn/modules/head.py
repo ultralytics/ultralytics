@@ -1001,6 +1001,13 @@ class WorldDetect(Detect):
         y = self._inference(preds)
         return y if self.export else (y, preds)
 
+    def fuse(self) -> None:
+        """Remove the unused detection branch and fold the contrastive-head BatchNorm into the cv3 output convs."""
+        super().fuse()
+        for cv3, cv4 in zip(self.cv3, self.cv4):
+            if isinstance(getattr(cv4, "norm", None), nn.BatchNorm2d):
+                cv3[-1], cv4.norm = fuse_conv_and_bn(cv3[-1], cv4.norm), nn.Identity()
+
     def bias_init(self):
         """Initialize box biases; class scores come from text-embedding similarity, so cv3 keeps its defaults."""
         for a in self.cv2:
@@ -1716,13 +1723,15 @@ class RTDETRDecoder(nn.Module):
         k = min(self.num_queries, self.max_det) if self.export else self.num_queries
         k = (
             (torch._shape_as_tensor(scores)[1] * self.nc).clamp(max=k)
-            if self.dynamic
+            if self.dynamic and torch.jit.is_tracing()  # torch.export traces the int min symbolically
             else min(k, scores.shape[1] * self.nc)
         )
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         scores, index = Detect._grouped_topk(scores.flatten(1), k, groups)
         # CoreML MIL lacks integer floor-div and mod lowering: use torch.div(rounding_mode="floor") and (index - q*nc).
-        query_idx = torch.div(index, self.nc, rounding_mode="floor")
+        # torch.export lowers that floor-div through float, which TensorRT FP16 rounds, so it keeps integer floor-div.
+        torch_export = self.export and not torch.jit.is_tracing()
+        query_idx = index // self.nc if torch_export else torch.div(index, self.nc, rounding_mode="floor")
         boxes = boxes.gather(dim=1, index=query_idx.unsqueeze(-1).expand(-1, -1, 4).long())
         return torch.cat([boxes, scores[..., None], (index - query_idx * self.nc)[..., None].float()], dim=-1)
 
@@ -1822,7 +1831,7 @@ class RTDETRDecoder(nn.Module):
         groups = 8 if self.export and self.format == "engine" and not self.dynamic else 1
         k = (
             torch._shape_as_tensor(enc_outputs_scores)[1].clamp(max=self.num_queries)
-            if self.dynamic
+            if self.dynamic and torch.jit.is_tracing()  # torch.export traces the int min symbolically
             else min(self.num_queries, enc_outputs_scores.shape[1])
         )
         topk_ind = Detect._grouped_topk(enc_outputs_scores.max(-1).values, k, groups)[1].view(-1)

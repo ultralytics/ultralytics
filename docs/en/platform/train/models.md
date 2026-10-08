@@ -455,7 +455,10 @@ Model comparison works within a project. To compare across projects:
 
 Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
-### Can I fine-tune pretrained models?
+### How do I keep training a model with new images or classes?
 
-Yes. Choose a compatible model from the official YOLO26, YOLO11, YOLOv8, or YOLOv5 projects, or select one of
-your own completed or uploaded checkpoints from **My Models** in the training dialog.
+Add the new images to your dataset (and any new classes), then click **New Model** and pick your existing model from
+**My Models** in the training dialog as the starting point. This fine-tunes a new model from your checkpoint; it does
+not continue the old run, which stays unchanged. The class list can change: the new model reuses the features your
+model has already learned and learns the new classes during training. You can also start from any official YOLO26,
+YOLO11, YOLOv8 or YOLOv5 model, or from a `.pt` file you [uploaded](#upload-model).

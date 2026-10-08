@@ -336,9 +336,14 @@ class BaseModel(torch.nn.Module):
         """
         model = (weights.get("ema") or weights["model"]) if isinstance(weights, dict) else weights  # ema first
         csd = model.float().state_dict()  # checkpoint state_dict as FP32
-        # Detect cls branch width (c3) depends on nc, so rebuild it at the source width to transfer its hidden layers
+        # Detect cls branch width (c3) depends on nc, so rebuild it at the source width to transfer its hidden layers,
+        # but only when the head input widths match, since a branch from another model scale cannot run on this neck
         head, src_head = self.model[-1], getattr(model, "model", [None])[-1]
-        if isinstance(head, Detect) and isinstance(src_head, Detect):
+        if (
+            isinstance(head, Detect)
+            and isinstance(src_head, Detect)
+            and [m[0].conv.in_channels for m in head.cv2] == [m[0].conv.in_channels for m in src_head.cv2]
+        ):
             for attr in ("cv3", "one2one_cv3"):
                 dst, src = getattr(head, attr, None), getattr(src_head, attr, None)
                 if dst is not None and src is not None and dst[0][-1].in_channels != src[0][-1].in_channels:
@@ -424,6 +429,8 @@ class BaseModel(torch.nn.Module):
         remapped = 0
         for k in cls_keys & csd.keys():
             v_src, v_tgt = csd[k], state_dict[k]
+            if v_src.shape[1:] != v_tgt.shape[1:]:  # cls-conv input width differs across model scales; copy bias only
+                continue
             v_tgt[valid] = v_src[idx[valid]].to(v_tgt.dtype)
             csd.pop(k)  # prevent intersect_dicts from copying these rows in the wrong (source) order
             remapped += 1

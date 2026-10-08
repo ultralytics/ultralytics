@@ -69,8 +69,7 @@ click an image to view it full size with its source dataset and license.
 
 ### Sort and Filter
 
-The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on the Datasets and Images
-tabs:
+The dropdown in the toolbar holds sort options on the Datasets and Projects tabs and filters on all three tabs:
 
 | Sort Option             | Description                                                            |
 | ----------------------- | ---------------------------------------------------------------------- |
@@ -79,13 +78,14 @@ tabs:
 | **Name**                | Alphabetical, ascending or descending                                  |
 | **Images** / **Models** | Image count (datasets) or model count (projects), most or fewest first |
 
-| Filter         | Availability   | Description                                                                                      |
-| -------------- | -------------- | ------------------------------------------------------------------------------------------------ |
-| **Task type**  | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
-| **My starred** | Signed in only | Show only datasets you have starred, or images from them                                         |
+| Filter         | Tabs                       | Availability   | Description                                                                                      |
+| -------------- | -------------------------- | -------------- | ------------------------------------------------------------------------------------------------ |
+| **Task type**  | Datasets, Images           | Everyone       | Show only content for the selected tasks (detect, segment, semantic, depth, classify, pose, obb) |
+| **My starred** | Datasets, Images           | Signed in only | Show only datasets you have starred, or images from them                                         |
+| **License**    | Datasets, Images, Projects | Everyone       | Show only datasets (or images from them) or projects published under the selected licenses       |
 
-Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, and `starred`), so the browser back button
-restores the previous result list.
+Sorting and filtering are also stored in the URL (`dsort`, `psort`, `task`, `starred`, `license`, and `plicense`), so
+the browser back button restores the previous result list.
 
 !!! note "Sorting by Stars"
 
@@ -101,8 +101,8 @@ On the Datasets and Projects tabs, toggle between three view modes for browsing:
 | **Compact** | Smaller cards in a responsive grid (2-3 columns) |
 | **Table**   | Paginated table with sortable columns            |
 
-Cards and compact views load more results by infinite scroll. Table view replaces the sort dropdown with sortable
-column headers and its own pagination controls.
+Cards and compact views load more results by infinite scroll. Table view moves sorting from the dropdown to sortable
+column headers, keeps the filters in the dropdown, and adds its own pagination controls.
 
 ## Content Cards
 

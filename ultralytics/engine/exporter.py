@@ -615,10 +615,8 @@ class Exporter:
         fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = self.args.format = "engine"
-        if fmt in {"mlpackage", "mlprogram", "apple", "ios"}:  # 'coreml' aliases
-            fmt = self.args.format = "coreml"
-        if fmt == "mlmodel":  # legacy *.mlmodel export keeps its name for export_coreml
-            fmt = "coreml"
+        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios"}:  # 'coreml' aliases, legacy 'mlmodel' kept
+            fmt, self.args.format = "coreml", "mlmodel" if fmt == "mlmodel" else "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
         if fmt in {"vitis", "vitisai", "versal"}:  # 'xilinx' aliases
@@ -1958,7 +1956,6 @@ class NMSModel(torch.nn.Module):
         self.args = args
         self.obb = model.task == "obb"
         self.is_tf = self.args.format == "saved_model"
-        self.is_coreml = self.args.format in {"coreml", "mlmodel"}
 
     def forward(self, x):
         """Perform inference with NMS post-processing. Supports Detect, Segment, OBB and Pose.
@@ -1989,14 +1986,13 @@ class NMSModel(torch.nn.Module):
         for i in range(bs):
             box, cls, score, extra = boxes[i], classes[i], scores[i], extras[i]
             mask = score > self.args.conf
-            # CoreML aborts on an empty gather: keep the max-score anchors, zero-scored unless they pass
-            if self.is_coreml:
-                mask, score = torch.logical_or(mask, score == score.max()), score * mask
             if self.is_tf or (self.args.format == "onnx" and self.obb):
                 # TFLite GatherND error if mask is empty
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
+            elif self.args.format in {"coreml", "mlmodel"}:  # CoreML aborts on an empty gather: keep the top anchor
+                mask, score = torch.logical_or(mask, score == score.max()), score * mask
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb

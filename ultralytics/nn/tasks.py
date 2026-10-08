@@ -326,6 +326,10 @@ class BaseModel(torch.nn.Module):
     def load(self, weights, verbose=True):
         """Load weights into the model.
 
+        A first convolution whose input channel count differs from the source is filled from the source filters, summed
+        for a single-channel model. When every tensor transfers, a YAML-built model with placeholder class names takes
+        the source model's names.
+
         Args:
             weights (dict | torch.nn.Module): The pre-trained weights to be loaded.
             verbose (bool, optional): Whether to log the transfer progress.
@@ -339,16 +343,16 @@ class BaseModel(torch.nn.Module):
         updated_csd = intersect_dicts(csd, self.state_dict())  # intersect
         self.load_state_dict(updated_csd, strict=False)  # load
         len_updated_csd = len(updated_csd) + cls_remapped
-        first_conv = "model.0.conv.weight"  # hard-coded to yolo models for now
-        # mostly used to boost multi-channel training
-        state_dict = self.state_dict()
-        if first_conv not in updated_csd and first_conv in state_dict:
-            c1, c2, h, w = state_dict[first_conv].shape
-            cc1, cc2, ch, cw = csd[first_conv].shape
-            if ch == h and cw == w:
-                c1, c2 = min(c1, cc1), min(c2, cc2)
-                state_dict[first_conv][:c1, :c2] = csd[first_conv][:c1, :c2]
-                len_updated_csd += 1
+        first_conv = "model.0.conv.weight"  # hard-coded to yolo models, mostly used to boost multi-channel training
+        w, src = self.state_dict().get(first_conv), csd.get(first_conv)
+        if first_conv not in updated_csd and w is not None and src is not None and w.shape[2:] == src.shape[2:]:
+            c1, c2 = min(len(w), len(src)), min(w.shape[1], src.shape[1])
+            w[:c1, :c2] = src[:c1].sum(1, keepdim=True) if c2 == 1 else src[:c1, :c2]  # gray input sums RGB filters
+            len_updated_csd += 1
+        if len_updated_csd == len(self.state_dict()) and not hasattr(self, "set_classes"):  # World/YOLOE use embeddings
+            names = getattr(model, "names", {})
+            if getattr(self, "names", None) == {i: str(i) for i in range(len(names))}:  # YAML placeholder names
+                self.names = dict(names)
         self.pt_path = getattr(model, "pt_path", None)  # provenance follows the weights selected above
         if verbose:
             LOGGER.info(f"Transferred {len_updated_csd}/{len(self.model.state_dict())} items from pretrained weights")

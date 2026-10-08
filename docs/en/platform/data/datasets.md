@@ -669,8 +669,9 @@ from the previous version; pick another one in the **From** menu. Chips grouped 
 **Classes**, and **Settings** count the images added, removed, modified, and moved to another split and the annotations
 added and removed, and name the classes added, removed, or renamed and any dataset settings that changed. Each changed
 image is listed with its badge. Select an image to see it **Before** and **After**, each side with the labels that
-version stored. When the images and annotations are identical, the dialog reports **No changes**, or **No image
-changes** when only class definitions or dataset settings differ.
+version stored. When the image's metadata changed, **Metadata changes** lists each added, removed, or modified key with
+its value in both versions. When the images, their metadata, and annotations are identical, the dialog reports **No
+changes**, or **No image changes** when only class definitions or dataset settings differ.
 
 !!! warning "Restoring a Version"
 

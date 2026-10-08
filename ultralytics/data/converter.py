@@ -19,7 +19,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from ultralytics.data.utils import get_split_fraction
+from ultralytics.data.utils import get_split_fraction, read_mask
 from ultralytics.utils import (
     ASSETS_URL,
     DATASETS_DIR,
@@ -256,7 +256,8 @@ def convert_coco(
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
         save_dir (str, optional): Path to directory to save results to.
         use_segments (bool, optional): Whether to include segmentation masks in the output.
-        use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
+        use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
+            labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
@@ -315,7 +316,7 @@ def convert_coco(
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
                 if use_keypoints:
-                    if ann.get("keypoints") is None:
+                    if not any((ann.get("keypoints") or [])[2::3]):  # no labeled keypoints, ignored by COCO eval
                         continue
                     keypoints.append(
                         box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
@@ -413,8 +414,8 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in sorted(Path(masks_dir).iterdir()):
         if mask_path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
-            with Image.open(mask_path) as im:  # palette PNGs store class ids as indices, not colors
-                mask = np.asarray(im) if im.mode == "P" else cv2.imread(str(mask_path), cv2.IMREAD_ANYDEPTH)
+            with Image.open(mask_path) as im:
+                mask = read_mask(str(mask_path), im.mode)
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
@@ -655,8 +656,7 @@ def yolo_bbox2segment(
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(label["im_file"])
-        sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
+        sam_results = sam_model(label["im_file"], bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"

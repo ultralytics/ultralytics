@@ -35,17 +35,14 @@ The predict panel supports multiple input methods:
 | **Image upload**   | Drag and drop or click to upload an image            |
 | **Example images** | Click built-in examples (dataset images or defaults) |
 | **Webcam capture** | Live camera feed with single-frame capture           |
+| **IP camera**      | RTSP or RTSPS stream on your own deployment          |
 
 ```mermaid
-graph LR
-    A[Upload Image]:::start --> D[Auto-Inference]:::proc
-    B[Example Image]:::start --> D
-    C[Webcam Capture]:::start --> D
-    D --> E[Results + Overlays]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> D[Automatic inference]
+    B([Example]) --> D
+    C([Webcam]) --> D
+    D --> E([Results with overlays])
 ```
 
 ### Upload Image
@@ -82,12 +79,15 @@ For OBB models, aerial images of boats and an airport are shown instead.
 
 ### Webcam
 
-Click the webcam card to start a live camera feed:
+Select **Webcam** above the image area to start a live camera feed:
 
 1. Grant camera permission when prompted
 2. Click the video preview to capture a frame
 3. Inference runs automatically on the captured frame
-4. Click again to restart the webcam
+4. Click **Back to webcam** to return to the live feed
+
+On your own deployment's `Predict` tab, the webcam runs inference continuously instead. See
+[Live Camera Inference](#live-camera-inference).
 
 ### View Results
 
@@ -146,6 +146,65 @@ Control Non-Maximum Suppression:
 Each running [dedicated endpoint](endpoints.md) includes a `Predict` tab on its deployment page. This uses the deployment's own inference service rather than the shared predict service, letting you test your deployed endpoint from the browser.
 
 On a ready endpoint, processed images also contribute to the [Monitoring tab](monitoring.md#monitoring-tab). Its examples and aggregate charts are lightweight, temporary data held in memory; stopping, restarting, redeploying, resizing, or replacing the model can clear them. Save examples to a dataset to keep them.
+
+## Live Camera Inference
+
+On the `Predict` tab of a deployment you own, select **Webcam** or **IP camera** to run the endpoint on live video:
+
+| Source        | How it works                                                                                                                                       |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Webcam**    | The browser sends frames to the endpoint one at a time and draws each result over the live feed                                                    |
+| **IP camera** | Enter an `rtsp://` or `rtsps://` URL, including any credentials, and click **Connect**; the endpoint reads the camera and streams each result back |
+
+Live inference uses the endpoint's bound API key, which only the workspace owner can load; for other team members the
+webcam captures single frames and **IP camera** is unavailable, as on a model's `Predict` tab. The IP camera must be
+reachable from the internet: the endpoint refuses local network addresses such as `192.168.x.x`. Each result is for the
+newest frame, so frames are skipped when inference falls behind. Slider changes apply to the next webcam frame and
+restart an IP camera stream. Live inference pauses while the browser tab is hidden. Click the preview to capture a
+frame, or **Disconnect** to stop viewing the IP camera.
+
+### Background Camera
+
+An endpoint with a [custom CPU and memory size](endpoints.md#update-cpu-and-memory) can keep watching one IP camera
+after you disconnect or close the page. Once the connected camera shows results, turn on **Keep running in the
+background**. The deployment header shows **Camera on**, and results go to the
+[Monitoring tab](monitoring.md#monitoring-tab) as temporary examples and prediction statistics.
+
+- **Settings:** The background camera always uses the default confidence (0.25), IoU (0.7), and the model's training
+  image size; the sliders do not apply to it.
+- **Cost:** It runs on the endpoint's warm instance at no extra charge; the hourly uptime rate applies whether the
+  camera is on or off.
+- **Changes:** Turning the camera on, off, or to another camera restarts the endpoint's instance, which keeps the
+  endpoint ready but clears its temporary monitoring data.
+- **Stopping:** Turn the switch off. Disconnecting or closing the page does not stop it, and resizing the endpoint to
+  the default size removes it. If the camera goes offline, the endpoint keeps reconnecting.
+- **Endpoint lifecycle:** Stopping the endpoint stops the camera and the charges; starting it again resumes the saved
+  camera.
+
+Default-size endpoints offer live webcam and IP camera inference without the background option. To save a background
+camera from the API, use the deployment [`camera` action](../api/index.md#update-a-deployment).
+
+### Stream Results from the API
+
+Send an RTSP or RTSPS URL as `source` with the `Accept: text/event-stream` header to a dedicated endpoint URL to
+receive results as server-sent events:
+
+```bash
+curl -N -X POST \
+  "https://YOUR_DEPLOYMENT_URL.run.app/predict" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Accept: text/event-stream" \
+  -F "source=rtsp://user:password@camera.example.com:554/stream" \
+  -F "conf=0.25"
+```
+
+Each frame event carries `images` in the [response](#response) shape with normalized (0-1) coordinates, a `preview`
+JPEG data URL of the frame, and `metadata` with the task and class names. Only `conf`, `iou`, and `imgsz` apply, and
+streaming the endpoint's background camera URL uses its default settings. Events with only a `status` carry no frame,
+and an event with an `error` message (the camera could not be read, or the endpoint cannot run the model) ends the
+stream. The stream also closes when the endpoint restarts or the request reaches its time limit, so reconnect with a
+backoff when it ends without an error. The Platform API's deployment predict route and SDK do not stream; send camera
+requests to the endpoint URL with its bound API key. A camera `source` without the header returns `400`.
 
 ## Dedicated Endpoint API
 
@@ -473,10 +532,10 @@ Both inference methods accept video files:
 - **Dedicated endpoints** accept video files directly. Supported formats (up to 32 MB per request): ASF, AVI, GIF, M4V, MKV, MOV, MP4, MPEG, MPG, TS, WEBM, WMV. Results are returned per processed frame, and a request may run for up to 1 hour. See [dedicated endpoints](endpoints.md#request-parameters) for details.
 - **Shared inference** (`POST /api/models/{owner}/{project}/{model}/predict`) uses the same predict service and accepts
   the same video formats, but requests are limited to about 4.5 MB and time out after about 30 seconds, which suits
-  only short clips. The browser **Predict** tab only selects images, so use a [dedicated endpoint](endpoints.md) for
-  video.
+  only short clips. The browser **Predict** tab uploads images only, so use a [dedicated endpoint](endpoints.md) for
+  video files, or [Live Camera Inference](#live-camera-inference) for a webcam or IP camera.
 
-Depth models accept images only.
+Depth models do not accept video files.
 
 ### How do I get the annotated image?
 

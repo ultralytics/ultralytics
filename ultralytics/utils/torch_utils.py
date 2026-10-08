@@ -20,6 +20,7 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from torch import nn
 from torch.nn.utils.fusion import fuse_conv_bn_weights
+from torch.utils._pytree import tree_flatten
 
 from ultralytics import __version__
 from ultralytics.utils import (
@@ -1066,7 +1067,7 @@ def profile_ops(input, ops, n=10, device=None, max_num_obj=0):
                         y = m(x)
                         t[1] = time_sync(device)
                         try:
-                            (sum(yi.sum() for yi in y) if isinstance(y, list) else y).sum().backward()
+                            sum(yi.sum() for yi in tree_flatten(y)[0] if isinstance(yi, torch.Tensor)).backward()
                             t[2] = time_sync(device)
                         except Exception:  # no backward method
                             # print(e)  # for debug

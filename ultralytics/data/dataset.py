@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -18,7 +19,7 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
-from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread, imread_unicode
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -44,6 +45,7 @@ from .utils import (
     load_dataset_cache_file,
     load_depth,
     polygons2masks_overlap,
+    read_mask,
     save_dataset_cache_file,
     verify_image,
     verify_image_depth,
@@ -53,7 +55,7 @@ from .utils import (
 
 # Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
 # rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
-DATASET_CACHE_VERSION = "1.0.9"  # 16-bit semantic masks are now read at full depth and validated
+DATASET_CACHE_VERSION = "1.0.10"  # EXIF-rotated image shapes now match the decoded image
 
 
 class YOLODataset(BaseDataset):
@@ -250,8 +252,8 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
-        if (self.use_segments or self.use_obb) and len_boxes != len_segments:
-            task = "OBB" if self.use_obb else "Segment"
+        if (self.use_segments or self.use_obb or self.format_class is SemanticFormat) and len_boxes != len_segments:
+            task = "OBB" if self.use_obb else "Semantic" if self.format_class is SemanticFormat else "Segment"
             raise ValueError(
                 f"{task} dataset requires equal numbers of boxes and segments, but got len(segments) = "
                 f"{len_segments}, len(boxes) = {len_boxes}. Please supply {'an OBB' if self.use_obb else 'a segment'} "
@@ -985,13 +987,13 @@ class SemanticDataset(YOLODataset):
         return self.mask_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash for semantic cache validation that also includes label_mapping changes.
+        """Return a hash for semantic cache validation that also includes label_mapping and class count changes.
 
         Returns:
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", f"nc:{len(self.data['names'])}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -1054,18 +1056,7 @@ class SemanticDataset(YOLODataset):
         Raises:
             FileNotFoundError: If the mask file is missing or unreadable.
         """
-        mask_file = self.labels[index]["mask_file"]
-        mode = self.labels[index]["mode"]
-        if mode == "P":  # palette PNGs store class ids as indices, not grayscale colors
-            with Image.open(mask_file) as im:
-                p = np.array(im.getpalette()).reshape(-1, 3)  # gray palettes (e.g. pngquant) hold gray-level class ids
-                mask = np.array(im.convert("L") if (p == p[:, :1]).all() else im)
-        else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
-        if mask is None:
-            raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if int(self.data.get("nc", 0)) == 1 and mode == "1":
-            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
+        mask = read_mask(self.labels[index]["mask_file"], self.labels[index]["mode"])
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
@@ -1255,6 +1246,9 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
+            self.cache_disk = False
+            LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # RandomResizedCrop area range, e.g. (0.5, 1.0) for scale=0.5
@@ -1304,7 +1298,7 @@ class ClassificationDataset:
     @staticmethod
     def imread(f: str) -> np.ndarray | None:
         """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
-        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else cv2.imread(f)
+        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else imread_unicode(f)
 
     def cache_images(self) -> None:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.

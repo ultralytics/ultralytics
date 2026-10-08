@@ -1888,7 +1888,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
         self._pixel_accuracy = 0.0
         self._per_class_iou = np.zeros(self.nc, dtype=np.float32)
         self._per_class_pixel_acc = np.zeros(self.nc, dtype=np.float32)
-        self.nt_per_class = np.zeros(self.nc, dtype=np.int32)
+        self.nt_per_class = np.zeros(self.nc, dtype=np.int64)
 
     def update_stats(self, preds: torch.Tensor, targets: torch.Tensor) -> None:
         """Accumulate confusion matrix from predictions and targets.
@@ -1935,7 +1935,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self._miou = float(iou[1].item())
             self._per_class_iou = iou[1:].cpu().numpy()
             self._per_class_pixel_acc = pa[1:].cpu().numpy()
-            self.nt_per_class = np.array([row_sum[1].item()], dtype=np.int32)
+            self.nt_per_class = np.array([row_sum[1].item()], dtype=np.int64)
         else:
             # Average IoU only over classes present in the ground truth; classes with no GT pixels (absent
             # from the val set or removed by the `classes` filter) are excluded.
@@ -1943,7 +1943,7 @@ class SemanticMetrics(SimpleClass, DataExportMixin):
             self._miou = float(iou[present].mean().item()) if present.any() else 0.0
             self._per_class_iou = iou.cpu().numpy()
             self._per_class_pixel_acc = pa.cpu().numpy()
-            self.nt_per_class = row_sum[: self.nc].cpu().numpy().astype(np.int32)
+            self.nt_per_class = row_sum[: self.nc].cpu().numpy().astype(np.int64)
 
         self._pixel_accuracy = float((intersection.sum() / (self.matrix.sum() + 1e-10)).item())
 

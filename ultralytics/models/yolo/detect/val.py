@@ -429,7 +429,6 @@ class DetectionValidator(BaseValidator):
             self.args.workers,
             shuffle=False,
             rank=-1,
-            drop_last=self.args.compile,
             pin_memory=self.training,
             device=self.device,
         )

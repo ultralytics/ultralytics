@@ -37,6 +37,7 @@ Usage - formats:
                          yolo26n_qnn.onnx           # Qualcomm QNN
                          yolo26n_hailo_model        # Hailo
                          yolo26n_ascend_model       # Huawei Ascend
+                         yolo26n_xilinx_model       # AMD Xilinx
 """
 
 from __future__ import annotations
@@ -117,6 +118,7 @@ class BasePredictor:
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
+        scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -132,6 +134,8 @@ class BasePredictor:
         run_callbacks: Execute registered callbacks for an event.
         add_callback: Register a new callback function.
     """
+
+    scale_fill = False
 
     def __init__(
         self,
@@ -232,7 +236,9 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
+            and not self.scale_fill
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            scale_fill=self.scale_fill,
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]
@@ -527,7 +533,7 @@ class BasePredictor:
             Path(f"{self.txt_path}.txt").unlink(missing_ok=True)  # replace, not append to, a previous run's labels
             result.save_txt(f"{self.txt_path}.txt", save_conf=self.args.save_conf)
         if self.args.save_crop:
-            result.save_crop(save_dir=self.save_dir / "crops", file_name=self.txt_path.stem)
+            result.save_crop(save_dir=self.save_dir / "crops", file_name=f"{self.txt_path.name}.jpg")
         if self.args.show:
             self.show(str(p))
         if self.args.save:

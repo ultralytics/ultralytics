@@ -708,13 +708,16 @@ def merge_equals_args(args: list[str]) -> list[str]:
         (list[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets
             are joined.
 
+    Raises:
+        SyntaxError: If an argument has an unmatched '[' or ']' bracket, which would fuse every later argument into it.
+
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz", "=", "[3,", "640,", "640]"]
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
     """
     new_args = []
-    current = ""
+    current = []
     depth = 0
 
     i = 0
@@ -733,16 +736,15 @@ def merge_equals_args(args: list[str]) -> list[str]:
 
         # Handle bracket joining
         depth += arg.count("[") - arg.count("]")
-        current += arg
+        current.append(arg)
         if depth == 0:
-            new_args.append(current)
-            current = ""
+            new_args.append("".join(current))
+            current = []
 
         i += 1
 
-    # Append any remaining current string
     if current:
-        new_args.append(current)
+        raise SyntaxError(f"'{colorstr('red', 'bold', current[0])}' has an unmatched '[' or ']' bracket.")
 
     return new_args
 

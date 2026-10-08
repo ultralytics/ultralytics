@@ -724,7 +724,7 @@ class Results(SimpleClass, DataExportMixin):
             return f"{', '.join(f'{self.names[j]} {self.probs.data[j]:.2f}' for j in self.probs.top5)}, "
         if boxes:
             counts = torch.as_tensor(boxes.cls, dtype=torch.int64).bincount()  # no-op for torch, converts numpy()
-            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts) if n > 0)
+            return "".join(f"{n} {self.names[i]}{'s' * (n > 1)}, " for i, n in enumerate(counts.tolist()) if n > 0)
         if self.depth is not None:
             d = self.depth.data
             d = d[d > 0]

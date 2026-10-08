@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 21 deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 22 deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -54,18 +54,13 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 ## Model Lifecycle
 
 ```mermaid
-graph LR
-    A[Upload .pt]:::start --> B[Overview]:::proc
-    C[Train]:::start --> B
-    B --> D[Predict]:::proc
-    B --> E[Export]:::proc
-    B --> F[Deploy]:::proc
-    E --> G[21 Formats]:::out
-    F --> H[Endpoint]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload .pt]) --> C[Overview]
+    B([Train]) --> C
+    C --> D[Predict]
+    C --> E[Export]
+    C --> F[Deploy]
+    E --> G[22 formats]
 ```
 
 ## Model Page Tabs
@@ -166,7 +161,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 21 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 22 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -213,22 +208,17 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 ## Export Model
 
 ```mermaid
-graph LR
-    A[Select Format]:::start --> B[Configure Args]:::proc
-    B --> C[Export]:::proc
-    C --> D{GPU Required?}:::decide
-    D -->|Yes| E[Cloud GPU Export]:::proc
-    D -->|No| F[CPU Export]:::proc
-    E --> G[Download]:::out
+flowchart TD
+    A([Select a format]) --> B[Configure arguments]
+    B --> C[Click Export]
+    C --> D{GPU required?}
+    D -->|yes| E[Cloud GPU export]
+    D -->|no| F[CPU export]
+    E --> G([Download])
     F --> G
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 21 deployment formats:
+Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -243,7 +233,7 @@ Connect [Slack alerts](../integrations/slack.md) to receive a message when an ex
 
 ### Supported Formats
 
-The Platform supports export to [21 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, and Huawei Ascend.
+The Platform supports export to [22 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, and AMD Xilinx.
 
 ### Format Selection Guide
 
@@ -256,6 +246,7 @@ The Platform supports export to [21 deployment formats](../../modes/export.md#ex
 | **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
 | **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
+| **AMD Versal**     | AMD Xilinx          | Versal AI Edge Series Gen 2 NPUs, compiled with AMD Vitis AI   |
 | **General**        | ONNX                | Works with most runtimes                                       |
 
 ### NVIDIA Jetson TensorRT Targets
@@ -330,6 +321,7 @@ Some export formats have architecture or task restrictions:
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
+| **Xilinx**   | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |
 | **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
 
 !!! note "Additional Export Rules"
@@ -429,7 +421,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 21 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 22 export formats
 
 ## FAQ
 
@@ -463,7 +455,10 @@ Model comparison works within a project. To compare across projects:
 
 Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
-### Can I fine-tune pretrained models?
+### How do I keep training a model with new images or classes?
 
-Yes. Choose a compatible model from the official YOLO26, YOLO11, YOLOv8, or YOLOv5 projects, or select one of
-your own completed or uploaded checkpoints from **My Models** in the training dialog.
+Add the new images to your dataset (and any new classes), then click **New Model** and pick your existing model from
+**My Models** in the training dialog as the starting point. This fine-tunes a new model from your checkpoint; it does
+not continue the old run, which stays unchanged. The class list can change: the new model reuses the features your
+model has already learned and learns the new classes during training. You can also start from any official YOLO26,
+YOLO11, YOLOv8 or YOLOv5 model, or from a `.pt` file you [uploaded](#upload-model).

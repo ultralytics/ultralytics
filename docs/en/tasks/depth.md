@@ -221,9 +221,110 @@ Training does this for you automatically: after `model.train(...)` completes, th
 
 The released `yolo26*-depth.pt` checkpoints ship with this calibration already baked in, fit on the pretraining validation mix. It is a single global scale across all domains, so for the most accurate absolute depth on a specific camera or scene type, run `model.calibrate()` on a small labeled split from your own data — it replaces the baked-in fit.
 
+#### Getting ground-truth depth without a depth camera
+
+If your camera has no depth sensor, you can still calibrate for it. Calibration fits one global scale and ignores pixels with 0 depth, so a few measured points per image are enough.
+
+1.  **Collect images.** Take 50 to 150 images with your camera at the resolution and lens settings you will deploy with, and put them in `dataset/images/val/`. Calibration reads the `val` split.
+
+2.  **Label depth.** Use one of the two methods below. Both write one depth map per image to `dataset/depth/val/` in the [dataset format](#dataset-format).
+
+    === "Measured points"
+
+        Measure the distance to a few points in each image with a laser rangefinder or a tape measure, on flat surfaces away from object edges, and record the pixel location of each point in `points.csv`:
+
+        ```text
+        image,x,y,meters
+        img_0001.jpg,352,453,3.15
+        img_0001.jpg,28,300,2.672
+        ```
+
+        Then write the depth maps, leaving every unmeasured pixel at 0. Each point is drawn as a small dot so it survives the resize to `imgsz`:
+
+        ```python
+        import csv
+        from collections import defaultdict
+        from pathlib import Path
+
+        import cv2
+        import numpy as np
+
+        points = defaultdict(list)
+        with open("points.csv") as f:  # columns: image, x, y, meters
+            for row in csv.DictReader(f):
+                points[row["image"]].append((int(row["x"]), int(row["y"]), float(row["meters"])))
+
+        for name, pts in points.items():
+            h, w = cv2.imread(f"dataset/images/val/{name}").shape[:2]
+            depth = np.zeros((h, w), np.uint16)  # 0 means no label
+            r = max(h, w) // 768 + 1  # dot radius that survives the resize to imgsz=768
+            for x, y, meters in pts:
+                cv2.circle(depth, (x, y), r, round(meters * 100), -1)  # centimeters, matching depth_scale: 100
+            out = Path("dataset/depth/val") / f"{Path(name).stem}.png"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            cv2.imwrite(str(out), depth)
+        ```
+
+        A rangefinder measures the straight-line distance to a point, while depth maps store distance along the camera's viewing axis. The two match at the image center and differ by about 3.5% at 15° off-center, so measure points near the center or convert each reading with `meters / sqrt(1 + ((x - cx) / fx) ** 2 + ((y - cy) / fy) ** 2)` using your camera intrinsics.
+
+    === "Metric depth model"
+
+        Label every pixel with a larger monocular model that outputs **metric** depth from your camera's focal length. Relative-depth models such as Marigold do not work, and metric models that ignore the focal length, such as Depth Anything V2 Metric, were off by up to 22% in our tests. This example uses [DA3METRIC-LARGE](https://huggingface.co/depth-anything/DA3METRIC-LARGE). Install it with Python 3.12 or older:
+
+        ```bash
+        git clone https://github.com/ByteDance-Seed/depth-anything-3
+        pip install -e depth-anything-3 addict
+        ```
+
+        Then write the depth maps:
+
+        ```python
+        from pathlib import Path
+
+        import cv2
+        import numpy as np
+        from depth_anything_3.api import DepthAnything3
+
+        focal = 519.2  # focal length in pixels, (fx + fy) / 2 from your camera intrinsics
+        model = DepthAnything3.from_pretrained("depth-anything/da3metric-large").to("cuda")
+
+        for f in sorted(Path("dataset/images/val").iterdir()):
+            h, w = cv2.imread(str(f)).shape[:2]
+            depth = model.inference([str(f)]).depth[0]  # at the model's processing resolution
+            depth = focal * (depth.shape[1] / w) * depth / 300  # meters, with focal scaled to that resolution
+            out = Path("dataset/depth/val") / f"{f.stem}.npy"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            np.save(out, cv2.resize(depth, (w, h), interpolation=cv2.INTER_LINEAR))
+        ```
+
+        If you only know the horizontal field of view, use `focal = w / (2 * tan(hfov / 2))`. The labels are only as accurate as the labeling model, so check a few against measured distances before calibrating.
+
+3.  **Write the dataset YAML** as `calib.yaml`. `depth_scale: 100` reads the centimeter PNGs from measured points and is ignored for NPY maps:
+
+    ```yaml
+    path: dataset
+    train: images/val
+    val: images/val
+    depth_scale: 100 # PNG value 100 = 1 meter
+    names:
+        0: depth
+    ```
+
+4.  **Calibrate and save**, then load `yolo26s-depth-calibrated.pt` for prediction or export:
+
+    ```python
+    from ultralytics import YOLO
+
+    model = YOLO("yolo26s-depth.pt")
+    model.calibrate(data="calib.yaml", imgsz=768)
+    model.save("yolo26s-depth-calibrated.pt")
+    ```
+
+In tests with `yolo26s-depth.pt` and 150 images per camera, the released calibration was 4% to 46% off the scale fit on full ground truth for NYU, KITTI and a narrow-lens camera. Calibrating on 5 measured points per image came within 1% of that fit, and on DA3METRIC-LARGE labels within 7%. More images help more than more points per image: 150 images with 1 point each came within about 3%, while 20 images with 5 points each varied by up to 9%.
+
 ## Val
 
-Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768`, so validate and predict at that size for best accuracy.
+Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768` on images stretched to a square rather than letterboxed with padding, so validate and predict at that size for best accuracy. Prediction, validation and `model.calibrate()` all stretch the input the same way.
 
 !!! example
 
@@ -295,6 +396,30 @@ YOLO depth estimation returns one `Results` object per image. Each result stores
 | `result.masks`      | -              | -       | No instance masks.                                       |
 
 For task-specific `Results` fields across every task, see the [Predict Results by Task](../modes/predict.md#results-by-task) section.
+
+### Per-object depth with instance segmentation
+
+Combine [instance segmentation](segment.md) with depth to estimate how far away each detected object is. Run both models on the same image with `retina_masks=True` so the masks share the depth map's original-image resolution, then take the median of the valid depth pixels inside each mask.
+
+!!! example "Median depth per segmented object"
+
+    === "Python"
+
+        ```python
+        from ultralytics import YOLO
+
+        image = "https://ultralytics.com/images/bus.jpg"
+        seg = YOLO("yolo26n-seg.pt")(image, retina_masks=True)[0]
+        depth = YOLO("yolo26n-depth.pt")(image)[0].depth.data  # (H, W) meters
+
+        if seg.masks is not None:
+            for mask, cls in zip(seg.masks.data.bool(), seg.boxes.cls):
+                values = depth[mask & (depth > 0)]  # valid depth pixels inside this mask
+                if values.numel():
+                    print(f"{seg.names[int(cls)]}: {values.median():.2f} m")
+        ```
+
+The median is robust to background pixels at mask edges, but it describes the object's visible surface rather than its center, and its accuracy follows the model's depth scale (see [Calibrating the depth scale](#calibrating-the-depth-scale)).
 
 ### Colorizing the depth map
 

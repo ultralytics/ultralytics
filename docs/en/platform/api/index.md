@@ -52,17 +52,14 @@ integrations_path: ../../integrations
 The API is organized around the core Platform resources:
 
 ```mermaid
-graph LR
-    A[API Key]:::start --> B[Datasets]:::proc
-    A --> C[Projects]:::proc
-    B -->|images| G[Images]:::proc
-    C -->|contains| D[Models]:::proc
-    B -->|train on| D
-    D -->|deploy| E[Deployments]:::proc
-    D -->|export| F[Exports]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
+flowchart TD
+    A([API key]) --> B[(Datasets)]
+    A --> C[Projects]
+    B -->|contains| G[Images]
+    C -->|contains| D[Models]
+    B -->|trains| D
+    D -->|deploy| E[Deployments]
+    D -->|export| F[Exports]
 ```
 
 | Resource                                   | Description                     | Key Operations                                                |
@@ -79,7 +76,7 @@ graph LR
 | [Storage](../integrations/index.md)        | Cloud storage integrations      | Connect, discover, browse, disconnect                         |
 | [Account](../account/settings.md)          | Plan, credits, storage, profile | Account summary, API keys, storage usage, user lookup         |
 | [Billing](../account/billing.md)           | Plan usage and ledger           | Usage summary, transactions                                   |
-| [Explore](../explore.md)                   | Public content search           | Search projects and datasets                                  |
+| [Explore](../explore.md)                   | Public content search           | Search projects, datasets, and images                         |
 
 ## Authentication
 
@@ -390,7 +387,7 @@ POST /api/datasets
 | `name`        | string  | Yes      | Display name (max 100 chars)                                                                    |
 | `description` | string  | No       | Description (max 1000 chars)                                                                    |
 | `task`        | string  | No       | Task type (default: `detect`)                                                                   |
-| `classNames`  | array   | No       | Class names in index order (max 25,000)                                                         |
+| `classNames`  | array   | No       | Class names in index order (max 25,000); no duplicates, ignoring case beyond 2 characters       |
 | `format`      | string  | No       | Annotation format: `yolo` (default), `coco`, `raw`, `ndjson`                                    |
 | `visibility`  | string  | No       | `public` or `private`                                                                           |
 | `blurFaces`   | boolean | No       | Blur faces in images uploaded to the dataset (see [Blur Faces](../data/datasets.md#blur-faces)) |
@@ -821,6 +818,7 @@ GET /api/datasets/{owner}/{dataset}/images
 | `hasError`          | boolean | Filter by processing error state                                                                                                                                    |
 | `classIds`          | string  | Comma-separated class IDs; returns images containing any of them                                                                                                    |
 | `search`            | string  | Substring match on filename, class name, and custom metadata (max 200 chars)                                                                                        |
+| `q`                 | string  | Ranks by relevance instead of `sort`: text matches, then up to 1,000 look-alikes; an ID, hash, or file name acts as `search` (max 200 chars)                        |
 | `sort`              | string  | `newest` (default), `oldest`, `name-asc`, `name-desc`, `height-asc`, `height-desc`, `width-asc`, `width-desc`, `size-asc`, `size-desc`, `labels-asc`, `labels-desc` |
 | `includeThumbnails` | boolean | Include signed thumbnail URLs (default: `true`)                                                                                                                     |
 | `includeImageUrls`  | boolean | Include signed full-size image URLs (default: `false`)                                                                                                              |
@@ -894,10 +892,10 @@ Setting `release` or `classMapping` preserves labels and splits from datasets yo
 images and `release: true` moves them out of their source dataset. Omitting both fields imports unlabeled `train`
 images, as does copying from a read-only source; moving from a read-only source returns `403`. Existing images are
 skipped; when preserving labels and splits, duplicates are checked within the destination split. Classes are matched
-by name, ignoring case; `422` returns the source classes with no match in `unmatchedClasses`, and `classMapping` maps
-each to a class index, a new class name, or `null` to drop its labels. `409` means the destination is a connected
-dataset or a source or destination is busy. When preserving labels and splits, incompatible tasks, image channels,
-pose settings, or depth scales also return `409`, even for images without labels.
+by name, ignoring case for names longer than two characters; `422` returns the source classes with no match in
+`unmatchedClasses`, and `classMapping` maps each to a class index, a new class name, or `null` to drop its labels. `409`
+means the destination is a connected dataset or a source or destination is busy. When preserving labels and splits,
+incompatible tasks, image channels, pose settings, or depth scales also return `409`, even for images without labels.
 
 ### Ingest Dataset Data
 
@@ -969,8 +967,9 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 !!! note "Class Mapping"
 
     The first ingest creates classes from the archive automatically. On later ingests, archive classes omitted from
-    `classMapping` fall back to a case-insensitive match against existing dataset classes. Labels are skipped only for
-    classes explicitly mapped to `null` or without a matching existing class.
+    `classMapping` fall back to a name match against existing dataset classes, ignoring case for names longer than two
+    characters; classes without a match are added as new classes. Labels are skipped only for classes explicitly
+    mapped to `null`.
 
 **Response (`201`):**
 
@@ -982,17 +981,14 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 ```
 
 ```mermaid
-graph LR
-    A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
-    B --> C[PUT archive to signed URL]:::proc
-    C --> D["POST /api/upload/complete (optional)"]:::proc
-    D --> E["POST /api/datasets/{owner}/{dataset}/ingest"]:::proc
-    E --> F[Process archive]:::proc
-    F --> G[Dataset ready]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A(["POST /api/datasets"]) --> B["POST /api/upload/signed-url"]
+    B --> C[PUT archive to signed URL]
+    C -.->|optional| D["POST /api/upload/complete"]
+    C --> E["POST .../{dataset}/ingest"]
+    D -.-> E
+    E --> F[Process archive]
+    F --> G([Dataset ready])
 ```
 
 ??? example "Upload one image with metadata using Python"
@@ -1634,19 +1630,12 @@ Launch YOLO training on cloud GPUs and monitor progress in real time. See
 [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
-graph LR
-    A[POST /api/training/start]:::start --> B[Job Created]:::proc
-    B --> C{Training}:::decide
-    C -->|progress| D[GET .../training]:::proc
-    C -->|cancel| E[DELETE .../training]:::error
-    C -->|complete| F[Model Ready]:::out
-    F --> G[Deploy or Export]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
+stateDiagram-v2
+    [*] --> Training: POST start
+    Training --> Training: GET progress
+    Training --> Cancelled: DELETE
+    Training --> Ready: complete
+    Ready --> [*]: deploy or export
 ```
 
 ### Get GPU Availability
@@ -1771,7 +1760,7 @@ POST /api/models/{owner}/{project}/{model}/exports
 | --------- | ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `format`  | string | Yes         | Target export format (see table below)                                                                                                                                                           |
 | `gpuType` | string | Conditional | Required when `format` is `engine`; use a supported [GPU or Jetson target](../train/models.md#nvidia-jetson-tensorrt-targets)                                                                    |
-| `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `optimize`, and `name` (device target for RKNN, QNN, Hailo, and Ascend formats) |
+| `args`    | object | No          | Export options: `imgsz`, `quantize`, `dynamic`, `simplify`, `opset`, `conf`, `iou`, `batch`, `workspace`, `nms`, `optimize`, and `name` (device target for RKNN, QNN, Hailo, Ascend, and Xilinx) |
 
 === "cURL"
 
@@ -1842,21 +1831,15 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 [Endpoints documentation](../deploy/endpoints.md).
 
 ```mermaid
-graph LR
-    A[Create]:::start --> B[Deploying]:::proc
-    B --> C[Ready]:::out
-    C -->|action stop| D[Stopped]:::extern
-    C -->|action replace| B
-    D -->|action start| C
-    C -->|delete| E[Deleted]:::error
-    D -->|delete| E
-    C -->|predict| F[Inference Results]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
-    classDef extern fill:#607D8B,color:#fff
+stateDiagram-v2
+    [*] --> Deploying: create
+    Deploying --> Ready
+    Ready --> Stopped: stop
+    Stopped --> Deploying: start
+    Ready --> Deploying: replace
+    Ready --> Ready: predict
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 ### List Deployments
@@ -1929,7 +1912,7 @@ GET /api/deployments/{owner}/{deployment}
 **Python SDK:** `client.deployments.retrieve(owner, deployment)`
 
 Returns the `deployment` object with `status`, `statusMessage`, `region`, `serviceUrl`, `resources`, and custom
-`metadata`.
+`metadata`, plus `camera` and `cameraApplying` for the owner.
 
 ### Update a Deployment
 
@@ -1982,12 +1965,23 @@ Send one of these bodies:
     { "action": "resize", "cpu": 2, "memoryGi": 4 }
     ```
 
+=== "Camera"
+
+    ```json
+    { "action": "camera", "url": "rtsp://user:password@camera.example.com:554/stream" }
+    ```
+
 Renaming sets the `deployment` value in the URL to a slug of the new name, returned as `deployment`; the old path
 returns `404` and the `serviceUrl` stays the same. An empty `metadata` object
 clears custom metadata. Replacing rolls out a new revision while preserving the deployment ID, region, and endpoint
 URL; the existing revision stays live if the rollout fails. The replacement model must be a completed model with weights
-that your key can access. Completed operations return `200` with `status` `ready` or `stopped`; operations still
-rolling out return `202` with `deploying` or `stopping`.
+that your key can access. The camera action saves an RTSP or RTSPS camera that a ready endpoint with custom resources
+keeps running inference on (see [Background Camera](../deploy/inference.md#background-camera)); `"url": null` removes
+it, as does resizing back to the default size, and saving a camera on a default-size endpoint returns `403`. A camera
+change returns `202` with `status` `ready` while it applies: poll the deployment until `cameraApplying` is no longer
+`true`, then check `camera`; a failed change keeps the previous camera and sets `statusMessage`. Completed operations
+return `200` with `status` `ready` or `stopped`; other operations still rolling out return `202` with `deploying` or
+`stopping`.
 
 ### Delete Deployment
 
@@ -2018,7 +2012,8 @@ POST /api/deployments/{owner}/{deployment}/predict
 **Python SDK:** `client.deployments.predict(owner, deployment, body=...)`
 
 Routes an image or video through the dedicated endpoint. The request and response contracts match
-[model inference](#run-inference).
+[model inference](#run-inference). Camera streams are not proxied; send them to the endpoint URL as described in
+[Live Camera Inference](../deploy/inference.md#stream-results-from-the-api).
 
 **Multipart Form:**
 
@@ -2633,7 +2628,8 @@ Each transaction includes `id`, `type` (such as `purchase`, `training`, `monthly
 
 ## Explore API
 
-Search public projects and datasets shared by the community. See [Explore documentation](../explore.md).
+Search public projects and datasets shared by the community, or search images by what they show. See [Explore
+documentation](../explore.md).
 
 ### Search Public Content
 
@@ -2647,16 +2643,19 @@ GET /api/explore/search
 
 | Parameter | Type    | Description                                                                                       |
 | --------- | ------- | ------------------------------------------------------------------------------------------------- |
-| `q`       | string  | Search term (max 200 chars)                                                                       |
-| `type`    | string  | `all` (default), `projects`, or `datasets`                                                        |
+| `q`       | string  | Search term (max 200 chars); for datasets, text matches first, then datasets whose images match   |
+| `type`    | string  | `all` (default), `projects`, `datasets`, or `images` (ignores `sort`)                             |
 | `sort`    | string  | `newest` (default), `oldest`, `stars`, `name-asc`, `name-desc`, `count-desc`, `count-asc`         |
 | `offset`  | int     | Results to skip (default: 0)                                                                      |
 | `limit`   | int     | Maximum results per resource type (default: 20, max: 100)                                         |
 | `task`    | string  | Comma-separated task filters: `detect`, `segment`, `semantic`, `depth`, `classify`, `pose`, `obb` |
+| `license` | string  | Comma-separated license identifiers such as `CC-BY-4.0,MIT`; images match their dataset's license |
 | `author`  | string  | Owner username filter                                                                             |
 | `starred` | boolean | Return only content starred by the authenticated caller; requires an API key                      |
 
-**Response:** `projects`, `datasets`, and `hasMore`.
+**Response:** `projects`, `datasets`, and `hasMore`. `type=images` returns its matches in `images` instead, best match
+first, each with its source `dataset` and a 0–1 similarity `score`; it needs `q` and searches public datasets, plus your
+own and team datasets when you send an API key.
 
 ```bash
 curl "https://platform.ultralytics.com/api/explore/search?type=datasets&task=detect&sort=stars&limit=20"

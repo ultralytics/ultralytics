@@ -263,7 +263,7 @@ To create a dataset:
 2. Click `New Dataset`
 3. Pick a data source tab (see [Data Sources](#data-sources) below)
 4. Add a name — the URL slug is derived automatically and can be edited — plus an optional description
-5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private)
+5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/16dcaac210f7f70540f6061c6b98fba9.avif)<!-- screenshot -->
@@ -295,7 +295,7 @@ Two dialogs may then appear:
 
 === "Map Classes"
 
-    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case) are preselected, and the annotations of skipped classes are not imported.
+    When a ZIP archive declares class names and your dataset already has classes, the `Map classes` dialog lists one row per incoming class. Map each one to an existing class or create a new class, or clear its **Include** checkbox to skip it. Matching names (ignoring case, except for one- and two-character names) are preselected, and the annotations of skipped classes are not imported.
 
 === "Handle Conflicts"
 
@@ -310,16 +310,12 @@ Two dialogs may then appear:
 After upload, the platform processes your data automatically:
 
 ```mermaid
-graph LR
-    A[Upload]:::start --> B[Validate]:::proc
-    B --> C[Normalize]:::proc
-    C --> D[Thumbnail]:::proc
-    D --> E[Parse Labels]:::proc
-    E --> F[Statistics]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload]) --> B[Validate]
+    B --> C[Normalize]
+    C --> D[Generate thumbnails]
+    D --> E[Parse labels]
+    E --> F([Compute statistics])
 ```
 
 1. **Validation**: Format and size checks
@@ -385,12 +381,12 @@ Images can be sorted and filtered for efficient browsing:
 
 === "Filters"
 
-    | Filter           | Options                                            |
-    | ---------------- | -------------------------------------------------- |
-    | **Split filter** | Train, Val, Test, or All                           |
-    | **Annotations**  | All images, Annotated, or Unannotated              |
-    | **Class filter** | Filter by class name                               |
-    | **Search**       | Filter images by filename, class name, or metadata |
+    | Filter           | Options                                        |
+    | ---------------- | ---------------------------------------------- |
+    | **Split filter** | Train, Val, Test, or All                       |
+    | **Annotations**  | All images, Annotated, or Unannotated          |
+    | **Class filter** | Filter by class name                           |
+    | **Search**       | By filename, class, metadata, or what it shows |
 
 !!! tip "Finding Unlabeled Images"
 
@@ -400,8 +396,12 @@ Images can be sorted and filtered for efficient browsing:
 
     The search box sits at the right of the gallery toolbar and filters every view mode — grid, compact, and table. It matches the image filename (the file extension is optional), the name of any class annotated in the image, and custom metadata keys, scalar values, and array entries, so an image named `img_0042` with a `boat` annotation and `{"ship_type": "yacht"}` metadata is found by searching `img_0042`, `boat`, or `yacht`.
 
-    Values nested inside sub-objects are not matched. Pasting a 24-character image ID looks up that exact image
-    directly, bypassing the text search.
+    Values nested inside sub-objects are not matched. Pasting a 24-character image ID or 32-character content hash
+    looks up that exact image directly, bypassing the text search.
+
+    Results are ordered by relevance: images whose filename, class, or metadata match come first, then up to 1,000 more
+    images that look like the search, such as `forklift near a doorway`. Sorting is unavailable while a search is
+    active, and a search that ends in a file extension skips the look-alike matches.
 
 ### Fullscreen Viewer
 
@@ -669,8 +669,9 @@ from the previous version; pick another one in the **From** menu. Chips grouped 
 **Classes**, and **Settings** count the images added, removed, modified, and moved to another split and the annotations
 added and removed, and name the classes added, removed, or renamed and any dataset settings that changed. Each changed
 image is listed with its badge. Select an image to see it **Before** and **After**, each side with the labels that
-version stored. When the images and annotations are identical, the dialog reports **No changes**, or **No image
-changes** when only class definitions or dataset settings differ.
+version stored. When the image's metadata changed, **Metadata changes** lists each added, removed, or modified key with
+its value in both versions. When the images, their metadata, and annotations are identical, the dialog reports **No
+changes**, or **No image changes** when only class definitions or dataset settings differ.
 
 !!! warning "Restoring a Version"
 
@@ -810,7 +811,7 @@ Copy or move images from one dataset you can edit into another, including a data
 
 Pasted images keep their labels and splits, and images the destination already holds in the same split are skipped. **Cut** removes the pasted images from the source dataset; **Copy** leaves it unchanged. The source and destination must have the same task and compatible image channels, pose keypoint settings, and depth scale, even when the copied images have no labels. An empty destination can inherit unset image-channel and pose settings. Images cannot be pasted into a [connected dataset](#what-is-not-available-for-connected-datasets).
 
-Classes are matched by name, ignoring case, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
+Classes are matched by name, ignoring case except for one- and two-character names, and a destination without classes takes the source's class list. When a pasted image uses a class the destination does not have, the **Map classes** dialog asks you to map each such class to a dataset class or a new class, or to clear its **Include** checkbox to drop that class's labels; the images are pasted either way.
 
 ### Generate Similar Images
 
@@ -825,7 +826,7 @@ Create new training images from one you already have. In a dataset you can edit,
 
 ![Ultralytics Platform Datasets Generate Similar Images Dialog](https://cdn.ul.run/i/d806fad25bce35fe7fc9f61df5223000.avif)<!-- screenshot -->
 
-**Ultralytics Image 9B** is also listed, but you can select it only after you turn on [Early access](../account/settings.md#early-access). Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
+**Ultralytics Image 9B** and **Krea 2 Turbo** are also listed, but you can select them only after you turn on [Early access](../account/settings.md#early-access). Krea 2 Turbo is the slowest option. Source proportions are preserved where supported. Very narrow images may need a larger longest edge, and output dimensions are rounded and limited to the generator's supported sizes.
 
 Click **Generate**, or press ⌘/Ctrl+Enter in **Instructions**. Images appear as they finish, all selected, and **Stop** ends a running batch while keeping the images that already arrived. To try other instructions or settings, change them and click **Generate more**: each new batch appears above the earlier ones, which keep their selection. Click an image to view it full size, clear the checkbox of any you don't want, and click **Add N to dataset**. The kept images are uploaded as JPEGs named after the source image, without labels, counted against your storage, and ready for [annotation](annotation.md). They use the active split filter: choose **Train** before generating to add them to `train`. With **All** selected, normal upload split assignment applies, including automatic validation splitting when needed. **Cancel** discards the previews without adding them. Generated images follow the dataset's [upload face-blurring setting](#blur-faces). The action is unavailable on [connected datasets](#what-is-not-available-for-connected-datasets).
 
@@ -989,15 +990,11 @@ Start training directly from your dataset:
 4. Start training
 
 ```mermaid
-graph LR
-    A[Dataset]:::start --> B[New Model]:::proc
-    B --> C[Select Project]:::proc
-    C --> D[Configure]:::proc
-    D --> E[Start Training]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Dataset page]) --> B[Open the New Model dialog]
+    B --> C[Select a project]
+    C --> D[Configure training]
+    D --> E([Start training])
 ```
 
 See [Cloud Training](../train/cloud-training.md) for details.
@@ -1031,13 +1028,32 @@ Yes. Drag files onto the dataset gallery or click the upload icon in the page he
 
 Yes. Copy or cut images in one dataset and paste them into another dataset you can edit; they keep their labels and splits, and **Cut** removes them from the source. Classes are matched by name, and the **Map classes** dialog handles any the destination does not have. See [Copy and Move Images](#copy-and-move-images).
 
-### How do I move images between splits?
+### Can I download my dataset in YOLO format?
 
-Use the bulk move-to-split feature:
+Platform exports datasets as [NDJSON](#export-dataset), not as YOLO folders. You usually don't need to convert it: pass the NDJSON file, or the dataset's [`ul://` URI](#dataset-uri), straight to `model.train(data=...)` and Ultralytics downloads the images and builds the YOLO folders for you. To get the folders without training, convert the file locally:
 
-1. Select images in the table view
-2. Right-click and choose `Move to split`
-3. Select the target split (Train, Validation, or Test)
+```python
+import asyncio
+
+from ultralytics.data.converter import convert_ndjson_to_yolo
+
+yaml_path = asyncio.run(convert_ndjson_to_yolo("my-dataset.ndjson", output_path="datasets"))
+```
+
+The image links in an export expire 7 days after the export is generated, and a cached export may have only a day left, so convert it promptly. [On Premise](../integrations/on-premise.md) datasets cannot be exported.
+
+### How does Platform split my images into train, val and test?
+
+Your upload sets the split. With the **All** split filter selected, images inside `train/`, `val/` or `test/` folders keep that split. Selecting **Train**, **Val** or **Test** before uploading sends every new image to that split instead. If an upload with no split selected leaves `val` empty, Platform moves about 20% of the train images (at least one) to `val`. Classification datasets use their folder structure instead, and depth datasets follow separate rules for paired depth maps. Check the dataset's `Ready` badge before training.
+
+To change the split afterwards:
+
+- **Change the ratio**: click the split bar in the dataset toolbar and set the percentages, or click **Auto** for 80/20 train/val. See [Split Redistribution](#split-redistribution).
+- **Move specific images**: select them in **Table** view, right-click, and choose `Move to split`. See [Bulk Move to Split](#bulk-move-to-split).
+
+### Are my datasets private?
+
+Check the visibility toggle before you create a dataset: new datasets default to **Public** on Free and Pro plans and to **Private** on Enterprise. A public dataset can be viewed by anyone, including people who are not signed in, and appears on [Explore](../explore.md). A private dataset is visible only to you and permitted workspace members. Members with edit access can change visibility from the badge next to the dataset name, and [On Premise](../integrations/on-premise.md) datasets are always private. Making a dataset private does not remove copies other users have already cloned. See [Visibility Settings](#visibility-settings).
 
 ### What label formats are supported?
 

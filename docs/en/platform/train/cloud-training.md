@@ -11,18 +11,13 @@ keywords: Ultralytics Platform, cloud training, GPU training, remote training, Y
 [Ultralytics Platform](https://platform.ultralytics.com) Cloud Training offers single-click training on cloud GPUs, making model training accessible without complex setup. Train YOLO models with real-time metrics streaming and automatic checkpoint saving.
 
 ```mermaid
-graph LR
-    A[Configure]:::start --> B[Start Training]:::proc
-    B --> C[Provision GPU]:::proc
-    C --> D[Download Dataset]:::proc
-    D --> E[Train]:::proc
-    E --> F[Stream Metrics]:::proc
-    F --> G[Save Checkpoints]:::proc
-    G --> H[Complete]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Configure]) --> B[Start training]
+    B --> C[Provision a GPU]
+    C --> D[Download the dataset]
+    D --> E[Train and stream metrics]
+    E --> F[Save checkpoints]
+    F --> G([Complete])
 ```
 
 ## Training Dialog
@@ -236,15 +231,11 @@ what it has before exiting.
 ## Remote Training
 
 ```mermaid
-graph LR
-    A[Local GPU]:::start --> B[ultralytics Package]:::proc
-    B --> C[Train]:::proc
-    C --> D[Stream Metrics]:::proc
-    D --> E[Platform Dashboard]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Your own GPU]) --> B[ultralytics package]
+    B --> C[Train]
+    C --> D[Stream metrics]
+    D --> E([Platform dashboard])
 ```
 
 Train on your own hardware while streaming metrics to the platform.
@@ -360,15 +351,10 @@ Estimates are based on real cloud training runs, and the estimate always uses th
 ### Billing Flow
 
 ```mermaid
-graph LR
-    A[Estimate Cost]:::start --> B[Balance Check]:::decide
-    B --> C[Train and Meter GPU Time]:::proc
-    C --> D[Settle at Terminal State]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Estimate cost]) --> B[Check balance]
+    B --> C[Train and meter GPU time]
+    C --> D([Settle when the run ends])
 ```
 
 Cloud training billing flow:
@@ -620,6 +606,13 @@ The YAML editor also supports **importing configurations from previous training 
 ![Ultralytics Platform Training Dialog Copy Training Config JSON](https://cdn.ul.run/i/6910a3d511ca59b4bd99e84fbcccd705.avif)<!-- screenshot -->
 
 This makes it easy to reproduce or iterate on previous training configurations without manually re-entering each parameter.
+
+### Why didn't my learning rate setting take effect?
+
+With the default `optimizer: auto`, training picks the optimizer and initial learning rate for you and ignores your
+`lr0`. To use your own `lr0`, choose a specific optimizer such as `SGD` or `AdamW` in **Advanced Settings**. The
+training console logs the optimizer and learning rate the run selected; the **Training Configuration** card shows the
+arguments you submitted, so with `auto` it can still list your `lr0`.
 
 ### Can I retry a failed run?
 

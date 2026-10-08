@@ -9,7 +9,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from ultralytics.data.augment import LetterBox
 from ultralytics.engine.predictor import BasePredictor
 from ultralytics.engine.results import Results
 from ultralytics.utils import DEFAULT_CFG, ops
@@ -26,16 +25,14 @@ class DepthPredictor(BasePredictor):
         >>> results = predictor("image.jpg")
     """
 
+    scale_fill = True
+
     def __init__(
         self, cfg=DEFAULT_CFG, overrides: dict[str, Any] | None = None, _callbacks: dict | None = None
     ) -> None:
         """Initialize DepthPredictor."""
         super().__init__(cfg, overrides, _callbacks)
         self.args.task = "depth"
-
-    def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
-        """Stretch images to the model input size without padding, matching depth validation and calibration."""
-        return [LetterBox(self.imgsz, scale_fill=True)(image=x) for x in im]
 
     def postprocess(
         self, preds: torch.Tensor | tuple | list, img: torch.Tensor, orig_imgs: list[np.ndarray] | torch.Tensor

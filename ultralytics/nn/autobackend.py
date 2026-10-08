@@ -220,6 +220,10 @@ class AutoBackend(nn.Module):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
         # Check if format supports FP16
+        if fp16 and format in {"pt", "torchscript"} and torch.device(device).type == "cpu":
+            # CPU half-precision kernels silently return all-NaN outputs for some models (e.g. RT-DETR)
+            LOGGER.warning("'fp16=True' on CPU can silently return NaN outputs for some models, using FP32 instead.")
+            fp16 = False
         fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
 
         # Set device

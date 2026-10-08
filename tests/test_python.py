@@ -1888,10 +1888,22 @@ def test_utils_files(tmp_path, monkeypatch):
 
     working_dir = tmp_path / "working"
     working_dir.mkdir()
-    decorator = WorkingDirectory(working_dir)(Path.cwd)
-    monkeypatch.chdir(tmp_path)
-    assert decorator() == working_dir
-    assert Path.cwd() == tmp_path
+
+    def decorated(raise_error=False):
+        if raise_error:
+            raise RuntimeError("test exception")
+        return Path.cwd()
+
+    decorator = WorkingDirectory(working_dir)(decorated)
+    for caller_dir in (tmp_path / "caller1", tmp_path / "caller2"):
+        caller_dir.mkdir()
+        monkeypatch.chdir(caller_dir)
+        assert decorator() == working_dir
+        assert Path.cwd() == caller_dir
+
+    with pytest.raises(RuntimeError, match="test exception"):
+        decorator(raise_error=True)
+    assert Path.cwd() == caller_dir
 
 
 @pytest.mark.slow

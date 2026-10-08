@@ -531,10 +531,6 @@ class DepthDataset(YOLODataset):
         """Return the native-resolution depth map for an image."""
         return load_depth(self.depth_files_by_image[self.im_files[index]], self.data.get("depth_scale", 1000))
 
-    def load_image(self, i: int, rect_mode: bool = False) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
-        """Load an image stretched to a square imgsz, ignoring rect_mode."""
-        return super().load_image(i, rect_mode=False)
-
     def get_image_and_label(self, index: int) -> dict[str, Any]:
         """Load image, label, and depth map for the given index."""
         label = super().get_image_and_label(index)
@@ -556,7 +552,11 @@ class DepthDataset(YOLODataset):
         """
         # NOTE: For now following arguments are not supported
         hyp.mosaic = hyp.mixup = hyp.cutmix = hyp.copy_paste = 0.0
-        return super().build_transforms(hyp)
+        transforms = super().build_transforms(hyp)
+        if not self.augment:
+            # stretch the image instead of padding
+            transforms[-2] = LetterBox(new_shape=(self.imgsz, self.imgsz), scale_fill=True)
+        return transforms
 
 
 class YOLOMultiModalDataset(YOLODataset):

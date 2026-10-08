@@ -267,7 +267,7 @@ def build_yolo_dataset(
     rect = cfg.rect or rect
     if cfg.task == "depth":
         dataset = DepthDataset
-        pad, rect = 0.0, False  # depth images are stretched to a square imgsz, so pad and rect_shape are ignored
+        pad, rect = 0.0, rect and mode == "train"  # depth val letterbox stretches, so pad and rect_shape are ignored
     elif cfg.task == "semantic":
         dataset = SemanticDataset if data.get("masks_dir") else PolygonSemanticDataset
         if dataset is PolygonSemanticDataset:

@@ -1222,13 +1222,10 @@ class Exporter:
 
         # FP16 conversion for CPU export (GPU exports are already FP16 from model.half() during tracing)
         if self.args.quantize == 16 and self.args.format == "onnx" and self.device.type == "cpu":
-            try:
-                from onnxruntime.transformers import float16
+            from onnxruntime.transformers import float16
 
-                LOGGER.info(f"{prefix} converting to FP16...")
-                model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
-            except Exception as e:
-                LOGGER.warning(f"{prefix} FP16 conversion failure: {e}")
+            LOGGER.info(f"{prefix} converting to FP16...")
+            model_onnx = float16.convert_float_to_float16(model_onnx, keep_io_types=True)
 
         onnx.save(model_onnx, f)
         del model_onnx

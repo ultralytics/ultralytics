@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -1245,6 +1246,9 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
+            self.cache_disk = False
+            LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # RandomResizedCrop area range, e.g. (0.5, 1.0) for scale=0.5

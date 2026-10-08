@@ -45,7 +45,9 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         if not success:
             return None
         if len(frames) > 1 or frames[0].ndim == 3:
-            return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
+            # color pages cannot stack (a 4-D array breaks every consumer), so a multi-page color TIFF keeps its first
+            # page like cv2's single-image decoders, while grayscale pages stack as extra channels
+            return frames[0] if len(frames) == 1 or frames[0].ndim == 3 else np.stack(frames, axis=2)
     im = _imread_pil(filename, flags) if filename.lower().endswith(PIL_FALLBACK_SUFFIXES) else None  # EXIF-aware
     if im is None:
         im = cv2.imdecode(file_bytes, flags)

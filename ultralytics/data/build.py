@@ -363,7 +363,8 @@ def build_dataloader(
         workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
-        drop_last (bool, optional): Whether to drop the last incomplete batch.
+        drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller
+            than one batch is kept.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 
@@ -386,7 +387,7 @@ def build_dataloader(
         else ContiguousDistributedSampler(dataset)
     )
     samples = len(sampler) if sampler is not None else dataset_len
-    drop_last = drop_last and bool(batch) and samples >= batch and samples % batch != 0
+    drop_last = drop_last and samples > batch > 0 and samples % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0

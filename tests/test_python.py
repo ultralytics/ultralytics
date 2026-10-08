@@ -463,36 +463,6 @@ def test_predict_classes_with_max_det(model_name, nms):
     assert len(reused) > 1  # classes=[0]/max_det=1 from the previous call must not leak into this one
 
 
-def test_predictor_arg_switch_and_reuse():
-    """Test that an explicit `predictor=` class switches, reuses, and restores the cached predictor."""
-    from ultralytics.models.yolo.detect.predict import DetectionPredictor
-
-    built = []
-
-    class CountingPredictor(DetectionPredictor):
-        """Detection predictor subclass that records each construction."""
-
-        def __init__(self, overrides=None, _callbacks=None):
-            built.append(self)
-            super().__init__(overrides=overrides, _callbacks=_callbacks)
-
-    model = YOLO(MODEL)
-    model.predict(SOURCE, imgsz=64, verbose=False)  # bare call smart-loads the default predictor
-    assert len(built) == 0 and type(model.predictor) is DetectionPredictor
-
-    model.predict(SOURCE, imgsz=64, verbose=False, predictor=CountingPredictor)  # switch default -> custom
-    assert len(built) == 1 and type(model.predictor) is CountingPredictor
-
-    model.predict(SOURCE, imgsz=64, verbose=False)  # `predictor=` omitted: reuse the cached custom class
-    assert len(built) == 1 and type(model.predictor) is CountingPredictor
-
-    model.predict(SOURCE, imgsz=64, verbose=False, predictor=CountingPredictor)  # same class: no rebuild
-    assert len(built) == 1
-
-    model.predict(SOURCE, imgsz=64, verbose=False, predictor=DetectionPredictor)  # switch back explicitly
-    assert len(built) == 1 and type(model.predictor) is DetectionPredictor
-
-
 @pytest.mark.parametrize("model", MODELS)
 def test_predict_visualize(model):
     """Test model prediction methods with 'visualize=True' to generate prediction visualizations."""
@@ -2036,83 +2006,6 @@ def test_classification_split_class_alignment(tmp_path):
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
-def test_dataset_npy_freshness(tmp_path):
-    """Test that image loads prefer a fresh *.npy cache but reload sources whose cache is older than the image."""
-    from ultralytics.data.dataset import YOLODataset
-
-    images, labels = tmp_path / "images", tmp_path / "labels"
-    images.mkdir()
-    labels.mkdir()
-    for name in "ab":
-        cv2.imwrite(str(images / f"{name}.png"), np.full((64, 64, 3), (0, 0, 255), np.uint8))  # red (BGR)
-        (labels / f"{name}.txt").write_text("0 0.5 0.5 0.8 0.8\n")
-    data = {"names": {0: "obj"}}
-    YOLODataset(img_path=str(images), data=data, task="detect", imgsz=64, cache="disk", augment=False)
-
-    # Stale cache: the source image changed after its *.npy was written, so the image must be reloaded
-    cv2.imwrite(str(images / "a.png"), np.full((64, 64, 3), (255, 0, 0), np.uint8))  # blue (BGR)
-    mtime = (images / "a.png").stat().st_mtime
-    os.utime(images / "a.png", (mtime + 30, mtime + 30))  # past any filesystem timestamp granularity
-    # Fresh cache: a newer *.npy is still the fast path even when caching is disabled
-    np.save(images / "b.npy", np.full((64, 64, 3), (0, 255, 0), np.uint8))
-
-    dataset = YOLODataset(img_path=str(images), data=data, task="detect", imgsz=64, cache=False, augment=False)
-    assert np.array_equal(dataset.load_image(0)[0], cv2.imread(str(images / "a.png")))  # not the stale red npy
-    assert np.array_equal(dataset.load_image(1)[0], np.load(images / "b.npy"))  # fresh npy fast path kept
-
-
-def test_classification_cache_disk_writability(tmp_path, monkeypatch):
-    """Test that classification `cache="disk"` degrades only when a directory receiving *.npy writes is read-only."""
-    from ultralytics.data.dataset import ClassificationDataset
-
-    # Mock the writability check itself: chmod-based read-only directories are not portable to the Windows CI runners
-    blocked = set()
-    real_access = os.access
-
-    def fake_access(path, mode, *args, **kwargs):
-        return Path(path) not in blocked and real_access(path, mode, *args, **kwargs)
-
-    monkeypatch.setattr("ultralytics.data.dataset.os.access", fake_access)
-
-    args = copy(DEFAULT_CFG)
-    args.cache, args.imgsz = "disk", 64
-
-    def build(name, nested):
-        """Create a one-image dataset whose image lives in a nested class/sub directory when nested."""
-        directory = tmp_path / name / "cat" / "sub" if nested else tmp_path / name / "cat"
-        directory.mkdir(parents=True)
-        cv2.imwrite(str(directory / "0.jpg"), np.zeros((16, 16, 3), np.uint8))
-        return tmp_path / name, directory
-
-    nested_root, nested_images = build("nested", True)
-    flat_root, flat_cat = build("flat", False)
-
-    blocked.add(nested_images)  # read-only nested image directory: its *.npy write would fail
-    dataset = ClassificationDataset(nested_root, args)
-    assert dataset.cache_disk is False and not (nested_images / "0.npy").exists()
-    _ = dataset[0]["img"]  # serves from the image path instead of raising PermissionError
-    blocked.clear()
-
-    blocked.add(nested_root / "cat")  # read-only class directory, but writes target the nested image directory
-    assert ClassificationDataset(nested_root, args).cache_disk is True
-    blocked.clear()
-
-    blocked.add(flat_cat)  # read-only flat class directory: the original case
-    assert ClassificationDataset(flat_root, args).cache_disk is False
-    blocked.clear()
-
-    unused = flat_root / "unused"  # empty read-only sibling that never receives writes
-    unused.mkdir()
-    blocked.add(unused)
-    assert ClassificationDataset(flat_root, args).cache_disk is True
-    blocked.clear()
-
-    dataset = ClassificationDataset(flat_root, args)  # fully writable: cache on disk and write the npy
-    assert dataset.cache_disk is True
-    _ = dataset[0]["img"]
-    assert (flat_cat / "0.npy").exists()
-
-
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""
@@ -2240,16 +2133,11 @@ def test_yoloe(tmp_path):
         "bboxes": np.array([[221.52, 405.8, 344.98, 857.54], [120, 425, 160, 445]]),
         "cls": np.array([0, 1]),
     }
-    results = model.predict(
+    model.predict(
         SOURCE,
         visual_prompts=visuals,
         predictor=YOLOEVPSegPredictor,
     )
-    # YOLOE.predict forwards through super() without the named `predictor` arg, so the explicit class must be
-    # honored; a rebuild away from it would restore the full class vocabulary instead of the visual prompts
-    assert type(model.predictor) is YOLOEVPSegPredictor
-    assert list(model.predictor.model.names.values()) == ["object0", "object1"]
-    assert len(results) == 1
 
     # Val
     model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg.pt")

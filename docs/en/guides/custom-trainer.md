@@ -126,7 +126,7 @@ model = YOLO("yolo26n.pt")
 model.train(data="custom.yaml", epochs=10, cls_pw=1.0, trainer=WeightedTrainer)
 ```
 
-`set_class_weights()` normalizes these values to a mean of 1.0 and stores them on the model, where the existing detection loss applies them. The indices above require a dataset with at least two classes.
+`set_class_weights()` normalizes these values to a mean of 1.0 over the classes with training labels, sets classes without labels to 1.0, and stores them on the model, where the existing detection loss applies them. The indices above require a dataset with at least two classes.
 
 ## Saving the Best Model by Custom Metric
 

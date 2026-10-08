@@ -163,7 +163,7 @@ class DetectionTrainer(BaseTrainer):
 
         Class weights are computed based on inverse class frequency in the training dataset,
         raised to the power of cls_pw (0 < cls_pw <= 1 dampens; values are restricted to the range [0, 1]).
-        Final weights are normalized so their mean equals 1.0.
+        Weights of classes with train labels are normalized to mean 1.0; classes without labels get weight 1.0.
         """
         assert 0 <= self.args.cls_pw <= 1.0, "cls_pw must be in the range [0, 1]"
         if self.args.cls_pw == 0.0:
@@ -172,7 +172,8 @@ class DetectionTrainer(BaseTrainer):
         if not class_counts.any():  # nothing counted (e.g. missing/unreadable masks); keep default weights
             return
         weights = self.compute_class_weights(class_counts)
-        weights = weights / weights.mean()  # normalize so mean equals 1.0
+        present = class_counts > 0
+        weights = np.where(present, weights / weights[present].mean(), 1.0)
         model = unwrap_model(self.model)
         if hasattr(model, "student_model"):
             model = model.student_model  # distillation: the student model builds the loss criterion

@@ -574,6 +574,8 @@ class LoadPilAndNumpy:
             raise TypeError(f"Expected PIL/np.ndarray image type, but got {type(im)}")
         pil = isinstance(im, Image.Image)
         if pil:
+            if im.mode.startswith("I;16"):  # convert() clips 16-bit values at 255, scale them like cv2 does
+                im = Image.fromarray((np.asarray(im) >> 8).astype(np.uint8))
             flag = "L" if channels == 1 else "RGB"
             im = np.asarray(im if im.mode == flag else im.convert(flag))  # convert() copies even when mode matches
             if flag == "L":

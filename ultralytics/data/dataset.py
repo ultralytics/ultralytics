@@ -1256,9 +1256,8 @@ class ClassificationDataset:
             )
         # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
-        if self.cache_disk and any(not os.access(p, os.W_OK) for p in {Path(s[0]).parent for s in self.samples}):
-            # npy is saved beside each image, so check exactly the directories receiving writes (nested included)
-            self.cache_disk = False  # npy writes would fail; degrade like BaseDataset.check_cache_disk
+        if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
+            self.cache_disk = False
             LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
         if self.cache_ram:
             self.cache_images()

@@ -251,6 +251,9 @@ class BaseDataset(Dataset):
     ) -> tuple[np.ndarray, tuple[int, int], tuple[int, int]]:
         """Load an image from dataset index 'i'.
 
+        An existing *.npy cache is the fastest image read, so it is loaded in any cache mode unless it is older than its
+        image. With cache='disk', `cache_images_to_disk` has already refreshed stale files, so that check is skipped.
+
         Args:
             i (int): Index of the image to load.
             rect_mode (bool): Whether to use rectangular resizing (long side to imgsz).
@@ -267,7 +270,7 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if fn.exists() and fn.stat().st_mtime >= Path(f).stat().st_mtime:  # fresh npy is the fastest image read
+            if fn.exists() and (self.cache == "disk" or fn.stat().st_mtime >= Path(f).stat().st_mtime):
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1

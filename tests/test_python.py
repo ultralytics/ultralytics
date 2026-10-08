@@ -1626,6 +1626,16 @@ def test_utils_checks(monkeypatch):
     checks.print_args()
 
 
+def test_check_requirements_specifiers(tmp_path):
+    """Requirements with extras brackets or ~= operators must keep their version specifier enforced."""
+    req = tmp_path / "requirements.txt"
+    req.write_text("numpy[dev]>=99.0\n")
+    assert [(r.name, r.specifier) for r in checks.parse_requirements(req)] == [("numpy", ">=99.0")]
+    assert not checks.check_requirements(req, install=False)  # unsatisfiable floor must not pass as satisfied
+    assert not checks.check_version("2.0.0", "~=2.5.0")  # ~= lower bound must be enforced like >=
+    assert checks.check_version("2.5.1", "~=2.5.0")
+
+
 @pytest.mark.skipif(WINDOWS, reason="Windows profiling is extremely slow (cause unknown)")
 def test_utils_benchmarks():
     """Benchmark model performance using 'ProfileModels' from 'ultralytics.utils.benchmarks'."""

@@ -46,7 +46,7 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
             return None
         if len(frames) > 1 or frames[0].ndim == 3:
             im = frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
-            return (im >> 8).astype(np.uint8) if im.dtype == np.uint16 else im  # 16-bit to 8-bit, as cv2.imdecode does
+            return (im >> 8).astype(np.uint8) if im.dtype == np.uint16 and not flags & cv2.IMREAD_ANYDEPTH else im
     im = _imread_pil(filename, flags) if filename.lower().endswith(PIL_FALLBACK_SUFFIXES) else None  # EXIF-aware
     if im is None:
         im = cv2.imdecode(file_bytes, flags)

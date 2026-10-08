@@ -86,10 +86,8 @@ def on_predict_start(predictor: object, persist: bool = False) -> None:
 
             predictor._hook = predictor.model.model.model[-1].register_forward_pre_hook(pre_hook)
 
-    trackers = list(getattr(predictor, "trackers", ())) if persist else []  # keep state of existing slots
-    for _ in range(needed - len(trackers)):
-        trackers.append(TRACKER_MAP[cfg.tracker_type](args=cfg))
-    predictor.trackers = trackers
+    trackers = getattr(predictor, "trackers", []) if persist else []  # persist keeps the state of existing slots
+    predictor.trackers = trackers + [TRACKER_MAP[cfg.tracker_type](args=cfg) for _ in range(needed - len(trackers))]
     predictor.vid_path = [None] * predictor.dataset.bs  # used to reset the tracker when switching videos
 
     tracker_cls = TRACKER_MAP[cfg.tracker_type]

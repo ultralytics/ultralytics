@@ -374,7 +374,7 @@ def check_version(
         if (
             (op == "==" and cn != vn)
             or (op == "!=" and cn == vn)
-            or (op == ">=" and not (cn >= vn))
+            or (op in {">=", "~="} and not (cn >= vn))
             or (op == "<=" and not (cn <= vn))
             or (op == ">" and not (cn > vn))
             or (op == "<" and not (cn < vn))
@@ -450,10 +450,9 @@ def check_font(font="Arial.ttf"):
     if file.exists():
         return file
 
-    # Check system fonts in matplotlib's cached list, findSystemFonts() rescans the OS in every process (7s on macOS)
+    # Check system fonts in matplotlib's cached list only: findSystemFonts() rescans the OS (8s on macOS), and a miss
+    # is routine (e.g. Arial.Unicode.ttf on macOS) until the download below lands in USER_CONFIG_DIR
     matches = [f.fname for f in font_manager.fontManager.ttflist if font in f.fname and os.path.exists(f.fname)]
-    if not matches:  # font installed after matplotlib's cached list was built, rescan the OS
-        matches = [f for f in font_manager.findSystemFonts() if font in f]
     if any(matches):
         return matches[0]
 
@@ -577,7 +576,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
+            match = re.match(r"([a-zA-Z0-9-_]+)(?:\[[^\]]*\])?([<>!=~]+.*)?", r_stripped)
             name, required = match[1], match[2].strip() if match[2] else ""
             try:
                 if check_version(metadata.version(name), required):
@@ -744,7 +743,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
     if "yolov3" in file or "yolov5" in file:
         if "u.yaml" in file:
             file = file.replace("u.yaml", ".yaml")  # i.e. yolov5nu.yaml -> yolov5n.yaml
-        elif ".pt" in file and "u" not in file:
+        elif file.endswith(".pt") and "u" not in file:
             original_file = file
             file = re.sub(r"(.*yolov5([nsmlx]))\.pt", "\\1u.pt", file)  # i.e. yolov5n.pt -> yolov5nu.pt
             file = re.sub(r"(.*yolov5([nsmlx])6)\.pt", "\\1u.pt", file)  # i.e. yolov5n6.pt -> yolov5n6u.pt
@@ -796,7 +795,8 @@ def check_file(file, suffix="", download=True, download_dir=".", hard=True):
     file = check_yolov5u_filename(file)  # yolov5n -> yolov5nu
     if (
         not file
-        or ("://" not in file and Path(file).exists())  # '://' check required in Windows Python<3.10
+        # os.path.exists over Path.exists: returns False instead of raising PermissionError under unreadable dirs
+        or ("://" not in file and os.path.exists(file))  # '://' check required in Windows Python<3.10
         or file.lower().startswith("grpc://")
     ):  # file exists or gRPC Triton images
         return file
@@ -1165,6 +1165,15 @@ def cuda_is_available() -> bool:
     return cuda_device_count() > 0
 
 
+def rocm_is_available() -> bool:
+    """Check if ROCm (AMD GPU) is available in the environment.
+
+    Returns:
+        (bool): True if running on Linux with ROCm/HIP-enabled PyTorch, False otherwise.
+    """
+    return sys.platform == "linux" and bool(torch.version.hip) and torch.cuda.is_available()
+
+
 def is_rockchip():
     """Check if the current environment is running on a Rockchip SoC.
 
@@ -1230,5 +1239,6 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
+IS_PYTHON_MINIMUM_3_11 = check_python("3.11", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
 IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)

@@ -101,7 +101,8 @@ class Predictor(BasePredictor):
         """
         if overrides is None:
             overrides = {}
-        overrides.update({"task": "segment", "mode": "predict", "batch": 1})
+        overrides.update({"task": "segment", "batch": 1})
+        overrides.setdefault("mode", "predict")  # keep track mode so tracker callbacks run
         super().__init__(cfg, overrides, _callbacks)
         self.args.retina_masks = True
         self.im = None
@@ -487,7 +488,8 @@ class Predictor(BasePredictor):
             model = self.get_model()
         # Move model to device first, then cast dtype, then set eval so any eval-time caches are created on-device.
         model = model.to(device)
-        model = model.half() if self.args.quantize == 16 else model.float()
+        model.fp16 = self.args.quantize == 16 and device.type != "cpu"  # CPU FP16 is slow and returns empty masks
+        model = model.half() if model.fp16 else model.float()
         model.eval()
         self.model = model
         self.device = device
@@ -498,7 +500,6 @@ class Predictor(BasePredictor):
         self.model.format = "sam"
         self.model.base_model = False  # SAMModel is no Ultralytics BaseModel and honors neither `augment` nor `embed`
         self.model.stride = 32
-        self.model.fp16 = self.args.quantize == 16
         self.done_warmup = True
         self.torch_dtype = torch.float16 if self.model.fp16 else torch.float32
 

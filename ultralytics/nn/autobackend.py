@@ -70,7 +70,7 @@ def check_class_names(names: list | dict) -> dict[int, str]:
             from ultralytics.utils import ROOT, YAML
 
             names_map = YAML.load(ROOT / "cfg/datasets/ImageNet.yaml")["map"]  # human-readable names
-            names = {k: names_map[v] for k, v in names.items()}
+            names = {k: names_map.get(v, v) for k, v in names.items()}
     return names
 
 
@@ -128,6 +128,7 @@ class AutoBackend(nn.Module):
             | Qualcomm QNN          | *_qnn.onnx             |
             | Hailo                 | *_hailo_model/         |
             | Huawei Ascend         | *_ascend_model/        |
+            | AMD Xilinx            | *_xilinx_model/        |
 
     Attributes:
         backend (BaseBackend): The loaded inference backend instance.
@@ -177,6 +178,7 @@ class AutoBackend(nn.Module):
         "qnn": QNNBackend,
         "hailo": HailoBackend,
         "ascend": AscendBackend,
+        "xilinx": ONNXBackend,
     }
 
     @smart_inference_mode(False)
@@ -217,8 +219,8 @@ class AutoBackend(nn.Module):
         ):
             model = deepcopy(model)  # retained backends require normal tensors for fusion and later mutation
 
-        # Check if format supports FP16
-        fp16 &= format in {"pt", "torchscript", "onnx", "openvino", "engine"}
+        # Check if format supports FP16; PyTorch CPU FP16 is slow and breaks some models (e.g. RT-DETR returns no boxes)
+        fp16 &= format in {"onnx", "openvino", "engine"} or (format in {"pt", "torchscript"} and str(device) != "cpu")
 
         # Set device
         if (
@@ -315,10 +317,23 @@ class AutoBackend(nn.Module):
         Returns:
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
+        nms = self.metadata.get("args", {}).get("nms")
+        if nms and self.format not in {"coreml", "imx"} and im.shape[0] > self.batch:
+            # NMSModel graphs only process their export batch per call; clone chunks as backends reuse outputs
+            ys = []
+            for x in im.split(self.batch):
+                y = self.forward(x)
+                ys.append([t.clone() for t in y] if isinstance(y, list) else y.clone())
+            return [torch.cat(t) for t in zip(*ys)] if isinstance(ys[0], list) else torch.cat(ys)
         if self.nhwc:
             im = im.permute(0, 2, 3, 1)  # torch BCHW to numpy BHWC shape(1,320,192,3)
         if self.backend.fp16 and im.dtype != torch.float16:
             im = im.half()
+        fixed = not self.metadata.get("dynamic") and (
+            nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"}
+        )
+        if (pad := self.batch - im.shape[0] if fixed else 0) > 0:  # static-batch exports reject short batches
+            im = torch.cat((im, im.new_zeros(pad, *im.shape[1:])))
 
         # Build forward kwargs based on backend type
         forward_kwargs = {}
@@ -326,6 +341,8 @@ class AutoBackend(nn.Module):
             forward_kwargs = {"augment": augment, "embed": embed, **kwargs}
 
         y = self.backend.forward(im, **forward_kwargs)
+        if pad > 0:  # drop the zero-padded rows
+            y = [x[:-pad] for x in y] if isinstance(y, (list, tuple)) else y[:-pad]
 
         if isinstance(y, (list, tuple)):
             if len(self.names) == 999 and (self.task == "segment" or len(y) == 2):  # segments and names not defined
@@ -394,18 +411,18 @@ class AutoBackend(nn.Module):
         if not is_url(p) and not isinstance(p, str):
             check_suffix(p, sf)
         name = Path(p).name
-        types = [s in name for s in sf]
-        types[5] |= name.endswith(".mlmodel")
-        format = next((f for i, f in enumerate(export_formats()["Argument"]) if types[i]), None)
-        if name.endswith("_qnn.onnx"):  # QNN context-binary file otherwise matches the plain '.onnx' suffix
-            format = "qnn"
-        elif name.endswith(".tflite") and not name.endswith("_edgetpu.tflite"):
-            format = "litert"  # bare .tflite files (incl. legacy TFLite exports) load via LiteRT
-        elif format == "-":
+        # The suffix ending last wins, then the longest, i.e. 'best.pt.onnx' -> onnx, 'best_qnn.onnx' -> qnn
+        matches = [
+            (name.rfind(s) + len(s), len(s), f)
+            for s, f in zip([*sf, ".mlmodel"], [*export_formats()["Argument"], "coreml"])
+            if s in name
+        ]
+        format = max(matches)[2] if matches else None
+        if format == "-":
             format = "pt"
         elif format == "onnx" and dnn:
             format = "dnn"
-        elif not any(types):
+        elif format is None:
             from urllib.parse import urlsplit
 
             url = urlsplit(p)

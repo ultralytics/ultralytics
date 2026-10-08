@@ -11,26 +11,20 @@ keywords: Ultralytics Platform, projects, model management, experiment tracking,
 [Ultralytics Platform](https://platform.ultralytics.com) projects provide an effective solution for organizing and managing your models. Group related models together to facilitate easier management, comparison, and development.
 
 ```mermaid
-graph TB
-    P[Project]:::start --> M1[Model 1]:::proc
-    P --> M2[Model 2]:::proc
-    P --> M3[Model 3]:::proc
-    M1 --> S[Check in Sidebar]:::proc
+flowchart TD
+    P([Project]) --> M1[Model 1]
+    P --> M2[Model 2]
+    M1 --> S[Check in the sidebar]
     M2 --> S
-    M3 --> S
-    S --> C[Charts]:::out
-    S --> T[Comparison Table]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+    S --> C[Charts]
+    S --> T[Comparison table]
 ```
 
 ## Create Project
 
 Open **Train** in the sidebar and click the `+` to open the **New Project** dialog.
 
-![Ultralytics Platform Projects List](https://cdn.ul.run/i/11ba0c7e59d846cbc7bde563701bc141.avif)<!-- screenshot -->
+![Ultralytics Platform Projects List](https://cdn.ul.run/i/f491b7c8354cc79945be1fd47aa1f4cf.avif)<!-- screenshot -->
 
 ??? tip "Quick Create"
 
@@ -44,7 +38,7 @@ Enter your project details:
 - **Visibility**: Public (anyone can view) or Private (only you and your team members can access). New projects default to Public; Enterprise workspaces default new projects to Private with the Ultralytics-Enterprise license.
 - **License**: Optional license for your project (None, Apache-2.0, MIT, BSD-3-Clause, AGPL-3.0, GPL-3.0, LGPL-3.0, MPL-2.0, EUPL-1.1, Unlicense, CC0-1.0, Ultralytics-Enterprise, or Other). The **Ultralytics-Enterprise** license is for commercial use without AGPL requirements and is available with an Enterprise plan — see [Ultralytics Licensing](https://www.ultralytics.com/license). Enterprise workspaces preselect it for new projects.
 
-![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/81a34dad08ad659335f49cd7d9f7bcd9.avif)<!-- screenshot -->
+![Ultralytics Platform New Project Dialog Name Visibility License](https://cdn.ul.run/i/6a29c20aabd7a9ff39c6bca031d655a1.avif)<!-- screenshot -->
 
 Click **Create Project** to finalize. Your new project appears in the Projects list and sidebar.
 
@@ -59,7 +53,7 @@ The project page has two main areas:
 
 A controls row above both areas holds the model search box, the **Diff** toggle (table view only, badged with how many columns differ), the view-options dropdown, and the view-mode toggle.
 
-![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/1ec7d084c2a0ce6b7bf0b582093566f8.avif)<!-- screenshot -->
+![Ultralytics Platform Project Page Sidebar And Charts](https://cdn.ul.run/i/4ebc844d81876e0499e28cf106859b4a.avif)<!-- screenshot -->
 
 ### Project Header
 
@@ -93,7 +87,7 @@ Toggle between three view modes using the view controls. The selected mode is re
 - **Compact**: Condensed models sidebar with the Charts dashboard on the right — more vertical room for models in projects with many experiments.
 - **Table**: Comparison table showing training arguments and final metrics side-by-side. Enable **Diff** to show only the columns where values differ across models.
 
-![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/d2c9ac86bfb48c6afff55f5f2f53167b.avif)<!-- screenshot -->
+![Ultralytics Platform Project Comparison Table View](https://cdn.ul.run/i/37fcd9ad499485c91fdaab7089f2c7b9.avif)<!-- screenshot -->
 
 ### Filter and Sort
 
@@ -211,7 +205,7 @@ Update project name, description, or settings:
 3. Click the icon to customize it
 4. Click the license badge to change the license
 
-![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/efc68367a7a6f0b80f43e28e96b22167.avif)<!-- screenshot -->
+![Ultralytics Platform Projects Settings](https://cdn.ul.run/i/b708cf401cce8867a8f083416678bb5f.avif)<!-- screenshot -->
 
 ### Custom Metadata
 

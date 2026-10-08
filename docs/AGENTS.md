@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Instructions for `docs/`; `CLAUDE.md` points here. Follow the root `AGENTS.md` for repository-wide rules, including the pinned prettier command for markdown formatting (`npx prettier@3.8.5 --tab-width 4 --print-width 120 --write` for `docs/**/*.md`).
+Instructions for `docs/`; `CLAUDE.md` points here. Follow the root `AGENTS.md` for repository-wide rules, including the pinned prettier command for `docs/**/*.md`.
 
 ## Ownership
 
@@ -25,4 +25,4 @@ python -m http.server --directory site
 ```
 
 - `build_reference.py` (stub flow, `build_reference_placeholders`) rewrites the tracked placeholder stubs, deletes orphan stubs, preserves `reference/index.md`, and updates the reference navigation in `mkdocs.yml`.
-- `build_docs.py` temporarily renders the full docstring-based references (`create_markdown`) and macros into `docs/en` and `docs/macros`, builds `site/`, then restores both directories from a backup. The full render fails when a parameter type is missing from both the signature and the docstring, and `create_markdown()` runs `git add -f` on newly created reference files — the directory restore does not touch the Git index, so inspect `git diff --cached` as well as `git diff` before committing. `zensical serve` is fine for simple page previews but performs none of that preparation, so it cannot validate macros, references, or comparison pages.
+- `build_docs.py` temporarily renders the full docstring-based references (`create_markdown`), comparison pages, and macros into `docs/en`, builds `site/`, then restores `docs/en` and `docs/macros` from a backup. The full render fails when a parameter type is missing from both the signature and the docstring, and `create_markdown()` runs `git add -f` on newly created reference files — the directory restore does not touch the Git index, so inspect `git diff --cached` as well as `git diff` before committing. `zensical serve` is fine for simple page previews but performs none of that preparation, so it cannot validate macros, references, or comparison pages.

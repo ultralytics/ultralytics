@@ -32,7 +32,7 @@ The Account section helps you:
 - **Recover** deleted items from Trash within 30 days
 - **Export** your data for GDPR compliance
 
-![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.ul.run/i/c120c6006049504700c1ad82a6e8b11b.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Page Profile Tab With Social Links](https://cdn.ul.run/i/25a3075d0bce50c69d1524decb80d67c.avif)<!-- screenshot -->
 
 ## Account Features
 
@@ -56,7 +56,7 @@ Account management is organized into nine tabs within `Settings` (in order):
 | `Profile`      | Display name, bio, company, use case, emails, social links, data region, connected accounts |
 | `API Keys`     | Create and manage API keys for remote training and programmatic access                      |
 | `Plans`        | Compare Free, Pro, and Enterprise plans                                                     |
-| `Billing`      | Credit balance, top-up, auto top-up, payment methods, billing address, transactions         |
+| `Billing`      | Credit balance, top-ups, promo codes, payment methods, billing address, transactions        |
 | `Usage`        | Spend over time, usage events, and storage breakdown for the active workspace               |
 | `Referrals`    | Personal referral link and the $10 credit earned once a referred friend tops up $10         |
 | `Teams`        | Member list, roles, invites, seat allocation, and the permission matrix                     |

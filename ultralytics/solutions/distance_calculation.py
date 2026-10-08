@@ -16,7 +16,6 @@ class DistanceCalculation(BaseSolution):
     them in a video stream using YOLO object detection and tracking.
 
     Attributes:
-        left_mouse_count (int): Counter for left mouse button clicks.
         selected_boxes (dict[int, Any]): Dictionary to store selected bounding boxes keyed by track ID.
         centroids (list[list[int]]): List to store centroids of selected bounding boxes.
 
@@ -36,8 +35,6 @@ class DistanceCalculation(BaseSolution):
         """Initialize the DistanceCalculation class for measuring object distances in video streams."""
         super().__init__(**kwargs)
 
-        # Mouse event information
-        self.left_mouse_count = 0
         self.selected_boxes: dict[int, list[float]] = {}
         self.centroids: list[list[int]] = []  # Store centroids of selected objects
 
@@ -59,16 +56,21 @@ class DistanceCalculation(BaseSolution):
             >>> cv2.setMouseCallback("window_name", dc.mouse_event_for_distance)
         """
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.left_mouse_count += 1
-            if self.left_mouse_count <= 2:
+            if len(self.selected_boxes) < 2:
                 for box, track_id in zip(self.boxes, self.track_ids):
                     x0, y0, x1, y1 = self.get_enclosing_box(box)
                     if x0 < x < x1 and y0 < y < y1 and track_id not in self.selected_boxes:
                         self.selected_boxes[track_id] = box
+                        break  # one object per click, even where boxes overlap
 
         elif event == cv2.EVENT_RBUTTONDOWN:
             self.selected_boxes = {}
-            self.left_mouse_count = 0
+
+    def forget_tracks(self, track_ids):
+        """Drop retired IDs from `selected_boxes` so a vanished object can't freeze the distance."""
+        super().forget_tracks(track_ids)
+        for track_id in track_ids:
+            self.selected_boxes.pop(track_id, None)
 
     def process(self, im0) -> SolutionResults:
         """Process a video frame and calculate the distance between two selected bounding boxes.

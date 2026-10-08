@@ -6,20 +6,31 @@ import asyncio
 import hashlib
 import json
 import math
+import os
 import random
 import shutil
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from uuid import uuid4
 
 import cv2
 import numpy as np
-from filelock import AsyncFileLock, Timeout
 from PIL import Image
 
-from ultralytics.data.utils import get_split_fraction
-from ultralytics.utils import ASSETS_URL, DATASETS_DIR, LOGGER, NUM_THREADS, TQDM, YAML, clean_url
+from ultralytics.data.utils import get_split_fraction, read_mask
+from ultralytics.utils import (
+    ASSETS_URL,
+    DATASETS_DIR,
+    LOGGER,
+    NUM_THREADS,
+    PLATFORM_URL,
+    TQDM,
+    WINDOWS,
+    YAML,
+    clean_url,
+)
 from ultralytics.utils.checks import check_file
 from ultralytics.utils.downloads import download, zip_directory
 from ultralytics.utils.files import increment_path
@@ -245,7 +256,8 @@ def convert_coco(
         labels_dir (str, optional): Path to directory containing COCO dataset annotation files.
         save_dir (str, optional): Path to directory to save results to.
         use_segments (bool, optional): Whether to include segmentation masks in the output.
-        use_keypoints (bool, optional): Whether to include keypoint annotations in the output.
+        use_keypoints (bool, optional): Whether to include keypoint annotations in the output. Annotations without any
+            labeled keypoint are skipped, as COCO keypoint evaluation ignores them.
         cls91to80 (bool, optional): Whether to map 91 COCO class IDs to the corresponding 80 COCO class IDs.
         lvis (bool, optional): Whether to convert data in lvis dataset way.
 
@@ -270,12 +282,6 @@ def convert_coco(
     for json_file in sorted(Path(labels_dir).resolve().glob("*.json")):
         lname = "" if lvis else json_file.stem.replace("instances_", "")
         fn = Path(save_dir) / "labels" / lname  # folder name
-        fn.mkdir(parents=True, exist_ok=True)
-        if lvis:
-            # NOTE: create folders for both train and val in advance,
-            # since LVIS val set contains images from COCO 2017 train in addition to the COCO 2017 val split.
-            (fn / "train2017").mkdir(parents=True, exist_ok=True)
-            (fn / "val2017").mkdir(parents=True, exist_ok=True)
         with open(json_file, encoding="utf-8") as f:
             data = json.load(f)
 
@@ -286,15 +292,12 @@ def convert_coco(
         for ann in data["annotations"]:
             annotations[ann["image_id"]].append(ann)
 
-        image_txt = []
         dropped = False
         # Write labels file
         for img_id, anns in TQDM(annotations.items(), desc=f"Annotations {json_file}"):
             img = images[f"{img_id:d}"]
             h, w = img["height"], img["width"]
             f = str(Path(img["coco_url"]).relative_to("http://images.cocodataset.org")) if lvis else img["file_name"]
-            if lvis:
-                image_txt.append(str(Path("./images") / f))
 
             bboxes = []
             segments = []
@@ -312,50 +315,47 @@ def convert_coco(
 
                 cls = coco80[ann["category_id"] - 1] if cls91to80 else ann["category_id"] - 1  # class
                 box = [cls, *box.tolist()]
-                if box not in bboxes:
-                    if use_keypoints:
-                        if ann.get("keypoints") is None:
-                            continue
-                        keypoints.append(
-                            box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
-                        )
-                    bboxes.append(box)
-                    if use_segments:
-                        seg = ann.get("segmentation")
-                        polygons = (
-                            [
-                                p
-                                for p in seg or []
-                                if isinstance(p, list)
-                                and len(p) >= 6
-                                and not len(p) % 2
-                                and all(isinstance(c, (int, float)) for c in p)
-                            ]
-                            if isinstance(seg, list)
-                            else []
-                        )
-                        if not polygons:
-                            dropped = True
-                            cx, cy, bw, bh = box[1:]
-                            x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
-                            segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
-                        elif len(polygons) > 1:
-                            s = merge_multi_segment(polygons)
-                            s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
-                            segments.append([cls, *s])
-                        else:
-                            s = [j for i in polygons for j in i]  # all segments concatenated
-                            s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
-                            segments.append([cls, *s])
+                if use_keypoints:
+                    if not any((ann.get("keypoints") or [])[2::3]):  # no labeled keypoints, ignored by COCO eval
+                        continue
+                    keypoints.append(
+                        box + (np.array(ann["keypoints"]).reshape(-1, 3) / np.array([w, h, 1])).reshape(-1).tolist()
+                    )
+                bboxes.append(box)
+                if use_segments:
+                    seg = ann.get("segmentation")
+                    polygons = (
+                        [
+                            p
+                            for p in seg or []
+                            if isinstance(p, list)
+                            and len(p) >= 6
+                            and not len(p) % 2
+                            and all(isinstance(c, (int, float)) for c in p)
+                        ]
+                        if isinstance(seg, list)
+                        else []
+                    )
+                    if not polygons:
+                        dropped = True
+                        cx, cy, bw, bh = box[1:]
+                        x1, y1, x2, y2 = cx - bw / 2, cy - bh / 2, cx + bw / 2, cy + bh / 2
+                        segments.append([cls, x1, y1, x2, y1, x2, y2, x1, y2])
+                    elif len(polygons) > 1:
+                        s = merge_multi_segment(polygons)
+                        s = (np.concatenate(s, axis=0) / np.array([w, h])).reshape(-1).tolist()
+                        segments.append([cls, *s])
+                    else:
+                        s = [j for i in polygons for j in i]  # all segments concatenated
+                        s = (np.array(s).reshape(-1, 2) / np.array([w, h])).reshape(-1).tolist()
+                        segments.append([cls, *s])
 
             # Write
-            with open((fn / f).with_suffix(".txt"), "a", encoding="utf-8") as file:
-                for i in range(len(bboxes)):
-                    if use_keypoints:
-                        line = (*(keypoints[i]),)  # cls, box, keypoints
-                    else:
-                        line = (*(segments[i] if use_segments else bboxes[i]),)  # cls, box or segments
-                    file.write(("%g " * len(line)).rstrip() % line + "\n")
+            label_file = (fn / f).with_suffix(".txt")
+            label_file.parent.mkdir(parents=True, exist_ok=True)  # file_name may include subfolders
+            with open(label_file, "a", encoding="utf-8") as file:
+                rows = keypoints if use_keypoints else segments if use_segments else bboxes
+                file.writelines(("%g " * len(line)).rstrip() % line + "\n" for line in dict.fromkeys(map(tuple, rows)))
 
         if dropped and not use_keypoints:  # segments are unused when keypoints own the output
             LOGGER.warning(
@@ -366,7 +366,10 @@ def convert_coco(
         if lvis:
             filename = Path(save_dir) / json_file.name.replace("lvis_v1_", "").replace(".json", ".txt")
             with open(filename, "a", encoding="utf-8") as f:
-                f.writelines(f"{line}\n" for line in image_txt)
+                f.writelines(  # every image, including unannotated ones; "./" resolves relative to the list file
+                    f"./images/{Path(x['coco_url']).relative_to('http://images.cocodataset.org').as_posix()}\n"
+                    for x in data["images"]
+                )
 
     LOGGER.info(f"{'LVIS' if lvis else 'COCO'} data converted successfully.\nResults saved to {save_dir.resolve()}")
 
@@ -379,7 +382,7 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     specified output directory with the same file stems as the masks.
 
     Args:
-        masks_dir (str): The path to the directory where all mask images (png, jpg) are stored.
+        masks_dir (str): The path to the directory where all mask images (png, jpg, jpeg) are stored.
         output_dir (str): The path to the directory where the converted YOLO segmentation masks will be stored.
         classes (int): Total number of classes in the dataset, e.g., 80 for COCO.
 
@@ -410,8 +413,9 @@ def convert_segment_masks_to_yolo_seg(masks_dir: str, output_dir: str, classes: 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     for mask_path in sorted(Path(masks_dir).iterdir()):
-        if mask_path.suffix in {".png", ".jpg"}:
-            mask = cv2.imread(str(mask_path), cv2.IMREAD_GRAYSCALE)  # Read the mask image in grayscale
+        if mask_path.suffix.lower() in {".png", ".jpg", ".jpeg"}:
+            with Image.open(mask_path) as im:
+                mask = read_mask(str(mask_path), im.mode)
             img_height, img_width = mask.shape  # Get image dimensions
             LOGGER.info(f"Processing {mask_path} imgsz = {img_height} x {img_width}")
 
@@ -639,7 +643,7 @@ def yolo_bbox2segment(
 
     # NOTE: add placeholder to pass class index check
     dataset = YOLODataset(im_dir, data={"names": list(range(1000)), "channels": 3})
-    if len(dataset.labels[0]["segments"]) > 0:  # if it's segment data
+    if any(len(lb["segments"]) for lb in dataset.labels):  # segment data, any label since background images have none
         LOGGER.info("Segmentation labels detected, no need to generate new ones!")
         return
 
@@ -652,8 +656,7 @@ def yolo_bbox2segment(
             continue
         boxes[:, [0, 2]] *= w
         boxes[:, [1, 3]] *= h
-        im = cv2.imread(label["im_file"])
-        sam_results = sam_model(im, bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
+        sam_results = sam_model(label["im_file"], bboxes=xywh2xyxy(boxes), verbose=False, save=False, device=device)
         label["segments"] = sam_results[0].masks.xyn
 
     save_dir = Path(save_dir) if save_dir else Path(im_dir).parent / "labels-segment"
@@ -666,9 +669,9 @@ def yolo_bbox2segment(
         for i, s in enumerate(label["segments"]):
             if len(s) < 3:  # fewer than 3 points is not a polygon, and writes a row no loader accepts
                 continue
-            line = (int(cls[i]), *s.reshape(-1))
+            line = (int(cls[i, 0]), *s.reshape(-1))
             texts.append(("%g " * len(line)).rstrip() % line)
-        with open(txt_file, "a", encoding="utf-8") as f:
+        with open(txt_file, "w", encoding="utf-8") as f:
             f.writelines(text + "\n" for text in texts)
     LOGGER.info(f"Generated segment labels saved in {save_dir}")
 
@@ -754,13 +757,17 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
     if path.is_dir():
         # Process directory
         im_files = [f for ext in (IMG_FORMATS - {"tif", "tiff"}) for f in path.rglob(f"*.{ext}")]
+        outputs = set()
         for im_path in im_files:
             try:
+                if (output := im_path.with_suffix(".tiff")) in outputs:
+                    raise FileExistsError(f"{output} was already converted from another image with the same stem")
+                outputs.add(output)
                 convert_to_multispectral(im_path, n_channels)
                 if replace:
                     im_path.unlink()
             except Exception as e:
-                LOGGER.info(f"Error converting {im_path}: {e}")
+                LOGGER.warning(f"Error converting {im_path}: {e}")
 
         if zip:
             zip_directory(path)
@@ -778,7 +785,8 @@ def convert_to_multispectral(path: str | Path, n_channels: int = 10, replace: bo
         w = (target_wavelengths - xp[seg]) / (xp[seg + 1] - xp[seg])  # weights (<0 or >1 -> extrapolation)
         img = img[..., order]
         multispectral = img[..., seg] * (1 - w) + img[..., seg + 1] * w
-        cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1))
+        if not cv2.imwritemulti(str(output_path), np.clip(multispectral, 0, 255).astype(np.uint8).transpose(2, 0, 1)):
+            raise OSError(f"Failed to write {output_path}")
         LOGGER.info(f"Converted {output_path}")
 
 
@@ -895,14 +903,24 @@ async def convert_ndjson_to_yolo(
         cache_path.write_text(str(result.relative_to(output_path)))
         return result
 
-    try:
-        async with AsyncFileLock(cache_path.with_suffix(".lock"), timeout=0):
-            return await convert()
-    except Timeout:
-        pass
+    loop = asyncio.get_running_loop()
+    with await loop.run_in_executor(None, open, cache_path.with_suffix(".lock"), "a") as lock:  # released on close
+        waited = False
+        while True:
+            try:
+                if WINDOWS:
+                    import msvcrt
 
-    async with AsyncFileLock(cache_path.with_suffix(".lock")):
-        if cache_path.is_file():
+                    msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except (BlockingIOError, PermissionError):  # held by another conversion (POSIX, Windows)
+                waited = True
+                await asyncio.sleep(0.05)
+        if waited and cache_path.is_file():  # reuse the result the lock holder just produced
             result = output_path / cache_path.read_text()
             marker = result / ".ndjson.yaml" if result.is_dir() else result
             if marker.is_file():
@@ -1080,8 +1098,21 @@ async def _convert_ndjson_to_yolo(
             (dataset_dir / ("depth" if is_depth else "labels") / split).mkdir(parents=True, exist_ok=True)
             data_yaml[split] = f"images/{split}"
 
+    # Ultralytics Platform manifests name every asset by its content hash, so its objects never change behind their
+    # URL: dataset versions under the same output_path hard-link one pooled copy instead of downloading it again.
+    # The pool is a plain cache — deleting `.ndjson-assets` never affects converted datasets, which keep their links.
+    platform = str(dataset_record.get("url", "")).startswith(f"{PLATFORM_URL}/")
+    pool = output_path / ".ndjson-assets"
+
+    def pooled_path(url):
+        """Return the pool entry for a Platform content-addressed asset URL, or None for any other source."""
+        source = Path(clean_url(url))
+        if not platform or len(source.stem) != 32 or any(c not in "0123456789abcdef" for c in source.stem.lower()):
+            return None
+        return pool / f"{hashlib.sha256(str(source).encode()).hexdigest()}{source.suffix}"
+
     async def ensure_file(session, path, url):
-        """Return True when the file exists locally, otherwise download one URL with the retry policy."""
+        """Return True when the file exists locally, otherwise link it from the pool or download it with retries."""
         if path.exists():
             return True
         if not url:
@@ -1092,12 +1123,32 @@ async def _convert_ndjson_to_yolo(
                 return False
             await asyncio.get_running_loop().run_in_executor(None, shutil.copy2, url, path)
             return True
+        pooled = pooled_path(url)
+        if pooled:
+            try:
+                os.link(pooled, path)
+                return True
+            except OSError:
+                pass  # not pooled yet, or links unsupported here: download it
         for attempt in range(3):
             error = None
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(sock_connect=30, sock_read=30)) as response:
                     response.raise_for_status()
-                    path.write_bytes(await response.read())
+                    data = await response.read()
+                # Publish complete files only: a failed or concurrent write never leaves partial bytes at `path`
+                tmp = path.with_name(f".{path.name}.{uuid4().hex}")
+                try:
+                    tmp.write_bytes(data)
+                    os.replace(tmp, path)
+                finally:
+                    tmp.unlink(missing_ok=True)
+                if pooled:  # an existing entry wins, and a failed link just skips pooling
+                    try:
+                        pool.mkdir(parents=True, exist_ok=True)
+                        os.link(path, pooled)
+                    except OSError:
+                        pass
                 return True
             except aiohttp.ClientResponseError as e:
                 error = e

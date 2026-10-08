@@ -105,6 +105,14 @@ QNN_HTP_TARGETS = {
     "iq-8275": ("soc_model", "82"),  # Dragonwing IQ-8275
     "qcs8275": ("soc_model", "82"),
 }  # Qualcomm Hexagon HTP targets and their ONNX Runtime QNN provider option
+XILINX_TARGETS = (
+    "ve2-xc2ve3858",
+    "ve2-xc2ve3504",
+    "ve2-xc2ve3558",
+    "ve2-xc2ve3804",
+    "ve2-xc2ve3304",
+    "ve2-xc2ve3358",
+)  # AMD Versal AI Edge Series Gen 2 Vitis AI compiler devices, the first is the VEK385 evaluation kit default
 HELP_MSG = """
     Examples for running Ultralytics:
 

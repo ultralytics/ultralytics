@@ -66,6 +66,9 @@ def generate_ddp_file(trainer: BaseTrainer) -> str:
         - The `.pt` state file stores the trainer class, trainer arguments, model, and callbacks (via cloudpickle)
         - The `.py` script loads that state, rebuilds the trainer with the saved arguments as overrides, and trains
     """
+    from .checks import check_requirements
+
+    check_requirements("cloudpickle>=3.1.1")  # DDP-only, installed on first multi-GPU launch
     import cloudpickle
 
     (USER_CONFIG_DIR / "DDP").mkdir(exist_ok=True)

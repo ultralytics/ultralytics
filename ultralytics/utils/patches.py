@@ -29,15 +29,15 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     Returns:
         (np.ndarray | None): The read image array, or None if reading fails.
 
+    Examples:
+        >>> img = imread("path/to/image.jpg")
+        >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
+
     Notes:
         - Multi-page grayscale TIFFs stack their pages as channels, while multi-page color TIFFs, such as those with
           overview or thumbnail pages, return their first page.
         - 16-bit TIFFs keep their high byte as 8-bit, as cv2 decodes 16-bit PNGs, unless `flags` includes
           cv2.IMREAD_ANYDEPTH.
-
-    Examples:
-        >>> img = imread("path/to/image.jpg")
-        >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
     """
     filename = str(filename)
     try:

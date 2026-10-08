@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 import os
 import random
@@ -363,7 +364,8 @@ def build_dataloader(
         workers (int): Number of worker processes for data loading.
         shuffle (bool, optional): Whether to shuffle the dataset.
         rank (int, optional): Process rank in distributed training. -1 for single-GPU training.
-        drop_last (bool, optional): Whether to drop the last incomplete batch.
+        drop_last (bool, optional): Whether to drop the last incomplete batch of each rank's shard. A shard smaller than
+            one batch is kept.
         pin_memory (bool, optional): Whether to use pinned memory for dataloader.
         device (torch.device | str, optional): Device used by the dataloader consumer.
 
@@ -386,7 +388,7 @@ def build_dataloader(
         else ContiguousDistributedSampler(dataset)
     )
     samples = len(sampler) if sampler is not None else dataset_len
-    drop_last = drop_last and bool(batch) and dataset_len % batch != 0
+    drop_last = drop_last and samples > batch > 0 and samples % batch != 0
     batches = (samples // batch if drop_last else math.ceil(samples / batch)) if batch else 0
     device_type = getattr(device, "type", str(device).split(":")[0])
     nd = get_torch_device_backend(device).device_count() if device_type not in {"cpu", "mps"} else 0
@@ -445,14 +447,20 @@ def check_source(
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        is_file = (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
-            IMG_FORMATS | VID_FORMATS
-        )
-        webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
+        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))  # streams even with a video suffix
+        is_url = source_lower.startswith(("https://", "http://"))
+        is_file = is_url and urlsplit(source_lower).path.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        webcam = source.isnumeric() or source.endswith(".streams") or is_stream or (is_url and not is_file)
         screenshot = source_lower == "screen"
-        if is_url and is_file:
+        if is_file:
             source = check_file(source)  # download
+        elif is_url:  # a URL without a media suffix is one image if it returns a sized image/* response
+            import requests  # scoped as slow import
+
+            with contextlib.suppress(requests.RequestException), requests.get(source, stream=True, timeout=3) as r:
+                webcam = not (r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers)
+            if not webcam:
+                source, from_img = autocast_list([source]), True
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):

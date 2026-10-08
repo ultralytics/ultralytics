@@ -12,19 +12,12 @@ keywords: Ultralytics Platform, annotation, labeling, SAM, auto-annotation, boun
 ![Ultralytics Platform Annotate Editor Toolbar With Canvas](https://cdn.ul.run/i/5ba36616a9363a036217c9b058daf35c.avif)<!-- screenshot -->
 
 ```mermaid
-graph TB
-    subgraph Draw["Shape set by the dataset task"]
-        A[Box]:::start & B[Polygon]:::start & C[Classify]:::start & D[Keypoint]:::start & E[OBB]:::start
-    end
-    subgraph AI["AI-Assisted"]
-        F[SAM Smart]:::start
-        G[YOLO Predict]:::start
-    end
-    Draw --> H[Save Labels]:::out
-    AI --> H
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Open an image]) --> B{Annotation mode?}
+    B -->|draw| C[Draw shapes]
+    B -->|smart| D[SAM or model labels]
+    C --> E([Labels save automatically])
+    D --> E
 ```
 
 ## Supported Task Types
@@ -113,16 +106,13 @@ For datasets you can edit, annotation controls are active as soon as the fullscr
 ![Ultralytics Platform Fullscreen Annotation Editor With Toolbar](https://cdn.ul.run/i/3c42ebce6b9e551108eab728c3b93c13.avif)<!-- screenshot -->
 
 ```mermaid
-graph LR
-    A[Open Dataset]:::start --> B[Click Image]:::proc
-    B --> C[Annotate in Fullscreen]:::proc
-    C --> D[Changes Auto-Save]:::out
-    D --> E[Next Image]:::proc
-    E --> B
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Open a dataset]) --> B[Click an image]
+    B --> C[Annotate in fullscreen]
+    C --> D[Changes save automatically]
+    D --> E{Next image?}
+    E -->|yes| C
+    E -->|no| F([Close the editor])
 ```
 
 ## Annotation Modes
@@ -261,20 +251,14 @@ With a SAM model selected:
 ![Ultralytics Platform Annotate Sam Positive Negative Points Mask](https://cdn.ul.run/i/f7687031600b3e8369f249e53568a4dd.avif)<!-- screenshot -->
 
 ```mermaid
-graph LR
-    A[Press S]:::start --> B[Left-click Object]:::proc
-    B --> C[SAM Generates Mask]:::proc
-    C --> D{Auto-apply?}:::decide
-    D -->|Yes| E[Mask Applied Automatically]:::out
-    D -->|No| F{Accurate?}:::decide
-    F -->|Yes| G[Enter to Save]:::out
-    F -->|No| H[Add +/- Points]:::proc
-    H --> C
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Press S]) --> B[Click the object]
+    B --> C[SAM generates a mask]
+    C --> D{Auto-apply on?}
+    D -->|no| F{Mask accurate?}
+    D -->|yes| E([Mask applied])
+    F -->|yes| G([Press Enter])
+    F -->|no, refine| B
 ```
 
 !!! tip "SAM Tips"

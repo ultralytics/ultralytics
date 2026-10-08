@@ -64,7 +64,7 @@ class CoreMLBackend(BaseBackend):
             y = [self.model.predict({self.input_name: im[i : i + self.batch]}) for i in range(0, len(im), self.batch)]
             y = [np.concatenate([d[k] for d in y]) for k in y[0]]
         else:  # static exports take one image per request: predict the batch as a list and stack the outputs
-            y = self.model.predict([{self.input_name: Image.fromarray((x * 255).astype("uint8"))} for x in im])
+            y = self.model.predict([{self.input_name: Image.fromarray(np.uint8(x.squeeze() * 255))} for x in im])
             if "confidence" in y[0]:  # NMS included: zero-pad per image, return (B, n, 6) before the swap below
                 from ultralytics.utils.ops import xywh2xyxy
 

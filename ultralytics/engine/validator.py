@@ -204,9 +204,9 @@ class BaseValidator:
                 LOGGER.warning(f"'augment' is not supported by this model (format='{fmt}'), ignoring.")
                 augment = False
             imgsz = check_imgsz(self.args.imgsz, stride=stride)
+            if fmt != "pt" and hasattr(model, "imgsz") and not getattr(model, "dynamic", False):
+                self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
             if fmt not in {"pt", "torchscript"} and not getattr(model, "dynamic", False):
-                if hasattr(model, "imgsz"):
-                    self.args.imgsz = imgsz = max(model.imgsz)  # reuse square imgsz from export metadata
                 self.args.batch = model.metadata.get("batch", 1)  # export.py models default to batch-size 1
                 LOGGER.info(f"Setting batch={self.args.batch} input of shape ({self.args.batch}, 3, {imgsz}, {imgsz})")
 

@@ -615,8 +615,8 @@ class Exporter:
         fmt = self.args.format = self.args.format.lower()  # to lowercase
         if fmt in {"tensorrt", "trt"}:  # 'engine' aliases
             fmt = self.args.format = "engine"
-        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios", "coreml"}:  # 'coreml' aliases
-            fmt = "coreml"
+        if fmt in {"mlmodel", "mlpackage", "mlprogram", "apple", "ios"}:  # 'coreml' aliases, legacy 'mlmodel' kept
+            fmt, self.args.format = "coreml", "mlmodel" if fmt == "mlmodel" else "coreml"
         if fmt in {"huawei", "cann", "om"}:  # 'ascend' aliases
             fmt = self.args.format = "ascend"
         if fmt in {"vitis", "vitisai", "versal"}:  # 'xilinx' aliases
@@ -1399,7 +1399,8 @@ class Exporter:
             )
             inputs = [ct.TensorType("image", shape=input_shape)]
         else:
-            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, bias=[0.0, 0.0, 0.0])]
+            layout = ct.colorlayout.GRAYSCALE if self.im.shape[1] == 1 else ct.colorlayout.RGB
+            inputs = [ct.ImageType("image", shape=self.im.shape, scale=1 / 255, color_layout=layout)]
 
         quantize = 16 if self.args.nms and not mlmodel and self.args.quantize is None else self.args.quantize
         self.metadata["args"]["quantize"] = quantize
@@ -1987,6 +1988,8 @@ class NMSModel(torch.nn.Module):
                 score *= mask
                 # Explicit length otherwise reshape error, hardcoded to `self.args.max_det * 5`
                 mask = score.topk(min(self.args.max_det * 5, score.shape[0])).indices
+            elif self.args.format in {"coreml", "mlmodel"}:  # CoreML aborts on an empty gather: keep the top anchor
+                mask, score = torch.logical_or(mask, score == score.max()), score * mask
             box, score, cls, extra = box[mask], score[mask], cls[mask], extra[mask]
             nmsbox = box.clone()
             # `8` is the minimum value experimented to get correct NMS results for obb

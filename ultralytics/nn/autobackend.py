@@ -318,11 +318,11 @@ class AutoBackend(nn.Module):
             (Any): The raw model output, with NumPy arrays converted to tensors on `self.device`.
         """
         nms = self.metadata.get("args", {}).get("nms")
-        if nms and self.format != "coreml" and im.shape[0] > self.batch:
-            # embedded-NMS graphs only process their export batch per call; clone chunks as backends reuse outputs
+        if nms and self.format not in {"coreml", "imx"} and im.shape[0] > self.batch:
+            # NMSModel graphs only process their export batch per call; clone chunks as backends reuse outputs
             ys = []
             for x in im.split(self.batch):
-                y = self.forward(x, augment, embed, **kwargs)
+                y = self.forward(x)
                 ys.append([t.clone() for t in y] if isinstance(y, list) else y.clone())
             return [torch.cat(t) for t in zip(*ys)] if isinstance(ys[0], list) else torch.cat(ys)
         if self.nhwc:

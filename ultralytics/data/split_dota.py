@@ -15,6 +15,7 @@ from PIL import Image
 from ultralytics.data.utils import exif_size, img2label_paths
 from ultralytics.utils import TQDM
 from ultralytics.utils.checks import check_requirements
+from ultralytics.utils.patches import imread_unicode
 
 
 def bbox_iof(polygon1: np.ndarray, bbox2: np.ndarray, eps: float = 1e-6) -> np.ndarray:
@@ -91,10 +92,11 @@ def load_yolo_dota(data_root: str, split: str = "train") -> list[dict[str, Any]]
     annos = []
     for im_file, lb_file in zip(im_files, lb_files):
         w, h = exif_size(Image.open(im_file))
-        with open(lb_file, encoding="utf-8") as f:
-            lb = [x.split() for x in f.read().strip().splitlines() if len(x)]
-            lb = np.array(lb, dtype=np.float32)
-        annos.append({"ori_size": (h, w), "label": lb, "filepath": im_file})
+        lb = []  # an image without a label file is a background image
+        if Path(lb_file).is_file():
+            with open(lb_file, encoding="utf-8") as f:
+                lb = [x.split() for x in f.read().strip().splitlines() if x.strip()]
+        annos.append({"ori_size": (h, w), "label": np.array(lb, dtype=np.float32), "filepath": im_file})
     return annos
 
 
@@ -202,7 +204,7 @@ def crop_and_save(
                     - train
                     - val
     """
-    im = cv2.imread(anno["filepath"])
+    im = imread_unicode(anno["filepath"])
     name = Path(anno["filepath"]).stem
     for i, window in enumerate(windows):
         x_start, y_start, x_stop, y_stop = window.tolist()
@@ -338,9 +340,8 @@ def split_test(
     assert im_dir.exists(), f"Can't find {im_dir}, please check your data root."
     im_files = glob(str(im_dir / "*"))
     for im_file in TQDM(im_files, total=len(im_files), desc="test"):
-        w, h = exif_size(Image.open(im_file))
-        windows = get_windows((h, w), crop_sizes=crop_sizes, gaps=gaps)
-        im = cv2.imread(im_file)
+        im = imread_unicode(im_file)
+        windows = get_windows(im.shape[:2], crop_sizes=crop_sizes, gaps=gaps)
         name = Path(im_file).stem
         for window in windows:
             x_start, y_start, x_stop, y_stop = window.tolist()

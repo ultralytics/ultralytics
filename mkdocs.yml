@@ -601,6 +601,7 @@ nav:
       - TorchScript: integrations/torchscript.md
       - VS Code: integrations/vscode.md
       - Weights & Biases: integrations/weights-biases.md
+      - Xilinx: integrations/xilinx.md
       - YAML2ModelGraph: integrations/yaml2modelgraph.md
   - Platform:
       - Platform: platform/index.md
@@ -865,6 +866,7 @@ nav:
               - rknn: reference/utils/export/rknn.md
               - tensorflow: reference/utils/export/tensorflow.md
               - torchscript: reference/utils/export/torchscript.md
+              - xilinx: reference/utils/export/xilinx.md
           - files: reference/utils/files.md
           - git: reference/utils/git.md
           - instance: reference/utils/instance.md

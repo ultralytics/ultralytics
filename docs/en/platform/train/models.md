@@ -2,7 +2,7 @@
 plans: [free, pro, enterprise]
 title: Trained Model Management
 comments: true
-description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 21 deployment formats.
+description: Learn how to manage, analyze, and export trained models in Ultralytics Platform with support for 22 deployment formats.
 keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT, CoreML, YOLO
 ---
 
@@ -10,7 +10,7 @@ keywords: Ultralytics Platform, models, model management, export, ONNX, TensorRT
 
 [Ultralytics Platform](https://platform.ultralytics.com) provides comprehensive model management for training, analyzing, and deploying YOLO models. Upload pretrained models or train new ones directly on the platform.
 
-![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/3012fee5f840c678a07bd8920b0d34b5.avif)<!-- screenshot -->
+![Ultralytics Platform Model Page Overview Tab](https://cdn.ul.run/i/54e0474716ba6a34834ae9168f4c6297.avif)<!-- screenshot -->
 
 ## Upload Model
 
@@ -22,7 +22,7 @@ Upload existing model weights to the platform:
 
 Multiple files can be uploaded simultaneously (up to 3 concurrent).
 
-![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/bc0d8b8d2325e5fa4d4a5d084cd5338b.avif)<!-- screenshot -->
+![Ultralytics Platform Model Drag Drop Upload](https://cdn.ul.run/i/abdfc6f752765b2bc24b19f055ab39a9.avif)<!-- screenshot -->
 
 Supported model formats:
 
@@ -54,18 +54,13 @@ See [Cloud Training](cloud-training.md) for detailed instructions.
 ## Model Lifecycle
 
 ```mermaid
-graph LR
-    A[Upload .pt]:::start --> B[Overview]:::proc
-    C[Train]:::start --> B
-    B --> D[Predict]:::proc
-    B --> E[Export]:::proc
-    B --> F[Deploy]:::proc
-    E --> G[21 Formats]:::out
-    F --> H[Endpoint]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Upload .pt]) --> C[Overview]
+    B([Train]) --> C
+    C --> D[Predict]
+    C --> E[Export]
+    C --> F[Deploy]
+    E --> G[22 formats]
 ```
 
 ## Model Page Tabs
@@ -86,14 +81,15 @@ Above the tabs, the header shows the model color (editable), the name (click to 
 
 Directly below, one card per task metric shows the final value over a sparkline of its training progression — click any card to jump to the charts — alongside a card linking the dataset the model was trained on.
 
-| Task                | Summary metrics                                     |
-| ------------------- | --------------------------------------------------- |
-| **Detect**, **OBB** | mAP50, mAP50-95, precision, recall                  |
-| **Segment**         | The same four metrics, mask (M) variants            |
-| **Pose**            | The same four metrics, keypoint (P) variants        |
-| **Classify**        | Top-1 accuracy, Top-5 accuracy                      |
-| **Semantic**        | mIoU, pixel accuracy                                |
-| **Depth**           | δ1, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
+| Task         | Summary metrics                                     |
+| ------------ | --------------------------------------------------- |
+| **Detect**   | mAP50, mAP50-95, precision, recall                  |
+| **Segment**  | The same four metrics, mask (M) variants            |
+| **Semantic** | mIoU, pixel accuracy                                |
+| **Depth**    | δ1, AbsRel ↓, RMSE ↓, SILog ↓ (↓ = lower is better) |
+| **Classify** | Top-1 accuracy, Top-5 accuracy                      |
+| **Pose**     | The four Detect metrics, keypoint (P) variants      |
+| **OBB**      | mAP50, mAP50-95, precision, recall                  |
 
 ### Overview Tab
 
@@ -103,7 +99,7 @@ While a run is active the card shows live progress — epoch counter, progress b
 
 Below it, **Training Configuration** lists every hyperparameter used and **Performance Metrics** lists the final evaluation results. Both tables are searchable and have an **Export data** menu (Copy JSON, Download CSV, Download JSON).
 
-![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/5e7fa4c46cadf75c87934a8734838f2c.avif)<!-- screenshot -->
+![Ultralytics Platform Model Overview Metrics And Args](https://cdn.ul.run/i/b985d31f788ea397bf3e1fabead00c37.avif)<!-- screenshot -->
 
 ### Train Tab
 
@@ -121,7 +117,7 @@ Interactive metric charts over epochs, split into **Training** and **Validation*
 
 Each group collapses, its menu hides or shows individual charts (and, for losses, the train or validation series), and charts can be dragged and resized into a layout that persists across sessions.
 
-![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/640ad65e65f173c9088f9637dd98da54.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Charts Subtab](https://cdn.ul.run/i/c2fa4095937cf79df4aac265fe3260af.avif)<!-- screenshot -->
 
 #### Console Subtab
 
@@ -132,7 +128,7 @@ Live console output from the training process:
 - Fatal-error detection that ends the run and surfaces the message in a banner
 - ANSI color support, an optional timestamp column, and one-click copy as plain text
 
-![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/45125323b2fa8bb95dfc4e067f5c01f2.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train Console Subtab](https://cdn.ul.run/i/5ac5e8dccc91202cdfde11f106f2ee19.avif)<!-- screenshot -->
 
 #### System Subtab
 
@@ -148,7 +144,7 @@ A host card summarizing the training instance (hostname, CPU, GPU, RAM and disk 
 
 GPU, network, and disk charts appear only when the run reported those counters.
 
-![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/6e614bf9749f5eba38c384858c05ca0a.avif)<!-- screenshot -->
+![Ultralytics Platform Model Train System Subtab](https://cdn.ul.run/i/431560840cca48aead94bb0fccca9f98.avif)<!-- screenshot -->
 
 ### Predict Tab
 
@@ -165,7 +161,7 @@ Run interactive inference directly in the browser:
 
 ### Export Tab
 
-Export your model to 21 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
+Export your model to 22 deployment formats. See [Export Model](#export-model) below and the core [Export mode guide](../../modes/export.md) for full details.
 
 ### Deploy Tab
 
@@ -179,13 +175,13 @@ After training completes, the **Validation** view inside the Charts subtab shows
 
 Interactive heatmap showing prediction accuracy per class:
 
-![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/64c239ca6baa01d0b65cd7a4d42ece2c.avif)<!-- screenshot -->
+![Ultralytics Platform Model Confusion Matrix](https://cdn.ul.run/i/780955dffa9f05b51aff04e167dc4627.avif)<!-- screenshot -->
 
 ### PR/F1 Curves
 
 When the training run provides them, the **Validation** view also displays performance curves at different confidence thresholds. Available validation plots depend on the artifacts produced by the run.
 
-![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/78226b971bd48bed8f043a377a37c6e9.avif)<!-- screenshot -->
+![Ultralytics Platform Model Pr F1 Curves](https://cdn.ul.run/i/b312aab61b8bdfc868ebbe7400c888a8.avif)<!-- screenshot -->
 
 | Curve                    | Description                              |
 | ------------------------ | ---------------------------------------- |
@@ -201,7 +197,7 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 - **Worst- and best-performing images**, ranked by per-image F1 and drawn with their ground-truth boxes
 - **Characteristic explorer**, correlating F1 against image width, height, pixel count, aspect ratio, and instance count, with the strongest relationship selected by default
 - **Classes associated with failures**, ranking which classes appear most often in the weakest images
-- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace
+- **Find similar**, on the worst-performing gallery, on a single image in its fullscreen view, and on a class row, which searches public datasets and your own and team datasets for images like the captured failures and adds the ones you select to the training dataset as unlabeled `train` images (see [Find Similar Images](../data/datasets.md#find-similar-images)); shown when you can edit the project and the training dataset is a non-connected dataset of the same workspace
 
 !!! note "Requirements"
 
@@ -212,22 +208,17 @@ Detection models trained with a [saved dataset version](cloud-training.md#save-d
 ## Export Model
 
 ```mermaid
-graph LR
-    A[Select Format]:::start --> B[Configure Args]:::proc
-    B --> C[Export]:::proc
-    C --> D{GPU Required?}:::decide
-    D -->|Yes| E[Cloud GPU Export]:::proc
-    D -->|No| F[CPU Export]:::proc
-    E --> G[Download]:::out
+flowchart TD
+    A([Select a format]) --> B[Configure arguments]
+    B --> C[Click Export]
+    C --> D{GPU required?}
+    D -->|yes| E[Cloud GPU export]
+    D -->|no| F[CPU export]
+    E --> G([Download])
     F --> G
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
 ```
 
-Export your model to 21 deployment formats:
+Export your model to 22 deployment formats:
 
 1. Navigate to the **Export** tab
 2. Select target format
@@ -238,11 +229,11 @@ Export your model to 21 deployment formats:
 
 Connect [Slack alerts](../integrations/slack.md) to receive a message when an export is ready or fails.
 
-![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/9e5b54290f479b20ed96d5a0f091659f.avif)<!-- screenshot -->
+![Ultralytics Platform Model Export Tab Format List](https://cdn.ul.run/i/d5716199766bea7ab5ee097b0cc343e6.avif)<!-- screenshot -->
 
 ### Supported Formats
 
-The Platform supports export to [21 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, and Huawei Ascend.
+The Platform supports export to [22 deployment formats](../../modes/export.md#export-formats): TorchScript, ONNX, OpenVINO, TensorRT, CoreML, Apple Core AI, TF SavedModel, TF GraphDef, TF Edge TPU, LiteRT, PaddlePaddle, MNN, NCNN, IMX500, RKNN, ExecuTorch, Axelera, DeepX, Qualcomm (QNN), Hailo, Huawei Ascend, and AMD Xilinx.
 
 ### Format Selection Guide
 
@@ -255,9 +246,8 @@ The Platform supports export to [21 deployment formats](../../modes/export.md#ex
 | **Android**        | LiteRT or NCNN      | LiteRT (Google's on-device runtime) or NCNN for ARM            |
 | **Web Browsers**   | LiteRT.js or ONNX   | LiteRT.js or ONNX via ONNX Runtime Web                         |
 | **Edge Devices**   | TF Edge TPU or RKNN | Coral and Rockchip (see [supported chips](#rknn-chip-support)) |
+| **AMD Versal**     | AMD Xilinx          | Versal AI Edge Series Gen 2 NPUs, compiled with AMD Vitis AI   |
 | **General**        | ONNX                | Works with most runtimes                                       |
-
-![Ultralytics Platform Model Export Progress](https://cdn.ul.run/i/e66458bb5b6753a9f54927a87e8cdae2.avif)<!-- screenshot -->
 
 ### NVIDIA Jetson TensorRT Targets
 
@@ -331,12 +321,13 @@ Some export formats have architecture or task restrictions:
 | **DeepX**    | INT8 only                                                                                                                                                                              |
 | **Hailo**    | INT8 HEF output; select Hailo-8, Hailo-8L, Hailo-10H, Hailo-15H, or Hailo-15L. YOLOv8, YOLO11, and YOLO26 only; for YOLO26, detect, semantic, depth, and classify                      |
 | **Huawei**   | FP16 .om output; Ascend310P1, Ascend310P3, Ascend310B1, and Ascend310B4 targets                                                                                                        |
+| **Xilinx**   | INT8 Vitis AI output; select a [Versal AI Edge Series Gen 2 device](../../integrations/xilinx.md) and compile it to `.rai` with AMD Vitis AI                                           |
 | **Qualcomm** | Fixed W8A16 quantization; select a [supported HTP target](../../integrations/qnn.md#supported-htp-targets). Dragonwing IQ-8275 is supported with `name=iq-8275`; IQ-615 is unsupported |
 
 !!! note "Additional Export Rules"
 
     - Classification, semantic segmentation, and depth exports do not include NMS. CoreML embeds NMS only for detect, segment, and pose, and MNN only for detect and pose.
-    - RKNN INT8 export requires a detection model.
+    - RKNN INT8 export requires a detection model. The RV1103, RV1106, RV1103B, and RV1106B targets are INT8-only, so they are available for detection models only.
     - CoreML exports with batch sizes greater than `1` use `dynamic=true`.
     - Unsupported format/model combinations are disabled in the export dialog before you launch.
     - Only one export per format can run at a time for a given model.
@@ -348,6 +339,8 @@ Move models you can edit into another project of the same workspace without copy
 1. Open the source project and select one or more models in the model list
 2. Right-click and choose **Cut** (`Cmd/Ctrl+X`)
 3. Open the destination project, right-click the model list, and choose **Paste** (`Cmd/Ctrl+V`), or drag the selected models onto the destination project in the sidebar
+
+![Ultralytics Platform Project Models Cut Context Menu](https://cdn.ul.run/i/271ee20993520c38d6a79ffaae6f0e02.avif)<!-- screenshot -->
 
 Moved models keep their weights, metrics, exports, and deployments and take the destination project's URL. A model whose URL name is already used in the destination is renamed on arrival, models that are still training cannot be moved, and `Esc` cancels a pending cut. To copy a model you do not own into one of your projects, use **Clone Model**.
 
@@ -367,8 +360,8 @@ The model and its weights are copied to the target project. **Clone Model** appe
 
 Download your model weights:
 
-1. Navigate to the model's **Overview** tab
-2. Click the **Download** button
+1. Open the model page
+2. Click the **download icon** in the model header (available from any tab)
 3. The model's primary `.pt` checkpoint downloads automatically
 
 Exported formats can be downloaded from the **Export** tab after export completes.
@@ -428,7 +421,7 @@ Remove a model you no longer need:
 - [**Inference**](../deploy/inference.md): Test models in the browser with the Predict tab
 - [**Endpoints**](../deploy/endpoints.md): Deploy models to production with dedicated endpoints
 - [**Cloud Training**](cloud-training.md): Configure and run training jobs on cloud GPUs
-- [**Export Formats**](../../modes/export.md): Full guide to all 21 export formats
+- [**Export Formats**](../../modes/export.md): Full guide to all 22 export formats
 
 ## FAQ
 
@@ -447,7 +440,7 @@ YOLO26 supports 7 task types: [detect](../../tasks/detect.md), [segment](../../t
 
 Yes, download your model weights from the model page:
 
-1. Click the download icon on the Overview tab
+1. Click the download icon in the model header
 2. The model's primary `.pt` checkpoint downloads automatically
 3. Exported formats can be downloaded from the Export tab
 
@@ -462,7 +455,10 @@ Model comparison works within a project. To compare across projects:
 
 Uploaded `.pt` model files are limited to 1 GB, and models near that limit may take longer to upload and process.
 
-### Can I fine-tune pretrained models?
+### How do I keep training a model with new images or classes?
 
-Yes. Choose a compatible model from the official YOLO26, YOLO11, YOLOv8, or YOLOv5 projects, or select one of
-your own completed or uploaded checkpoints from **My Models** in the training dialog.
+Add the new images to your dataset (and any new classes), then click **New Model** and pick your existing model from
+**My Models** in the training dialog as the starting point. This fine-tunes a new model from your checkpoint; it does
+not continue the old run, which stays unchanged. The class list can change: the new model reuses the features your
+model has already learned and learns the new classes during training. You can also start from any official YOLO26,
+YOLO11, YOLOv8 or YOLOv5 model, or from a `.pt` file you [uploaded](#upload-model).

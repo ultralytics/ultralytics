@@ -150,9 +150,9 @@ def scale_boxes(
     """
     if ratio_pad is None:  # calculate from img0_shape
         gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])  # gain  = old / new
-        gain_y = gain_x = gain
-        pad_x = round((img1_shape[1] - round(img0_shape[1] * gain)) / 2 - 0.1)
-        pad_y = round((img1_shape[0] - round(img0_shape[0] * gain)) / 2 - 0.1)
+        new_h, new_w = round(img0_shape[0] * gain), round(img0_shape[1] * gain)  # LetterBox rounds each side
+        gain_y, gain_x = new_h / img0_shape[0], new_w / img0_shape[1]
+        pad_x, pad_y = round((img1_shape[1] - new_w) / 2 - 0.1), round((img1_shape[0] - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad_x, pad_y = ratio_pad[1]
@@ -595,8 +595,8 @@ def scale_masks(
     Args:
         masks (torch.Tensor): Masks with shape (N, C, H, W).
         shape (tuple[int, int]): Target height and width as (height, width).
-        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)); only the padding
-            is used.
+        ratio_pad (tuple, optional): Ratio and padding values as ((ratio_h, ratio_w), (pad_w, pad_h)), the letterbox
+            gains and its top-left padding.
         padding (bool): Whether masks are based on YOLO-style augmented images with padding.
         mode (str): Interpolation mode, e.g. 'bilinear' for logits or 'nearest' for integer class maps.
 
@@ -612,16 +612,12 @@ def scale_masks(
         return masks.new_zeros((*masks.shape[:2], im0_h, im0_w), dtype=torch.float32)
 
     if ratio_pad is None:  # calculate from im0_shape
-        gain = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
-        pad_w, pad_h = (im1_w - round(im0_w * gain)), (im1_h - round(im0_h * gain))  # wh padding
-        if padding:
-            pad_w /= 2
-            pad_h /= 2
+        gain_h = gain_w = min(im1_h / im0_h, im1_w / im0_w)  # gain  = old / new
+        pad_w, pad_h = (im1_w - round(im0_w * gain_w)) / 2, (im1_h - round(im0_h * gain_h)) / 2  # wh padding
     else:
-        pad_w, pad_h = ratio_pad[1]
+        (gain_h, gain_w), (pad_w, pad_h) = ratio_pad
     top, left = (round(pad_h - 0.1), round(pad_w - 0.1)) if padding else (0, 0)
-    bottom = im1_h - round(pad_h + 0.1)
-    right = im1_w - round(pad_w + 0.1)
+    bottom, right = top + round(im0_h * gain_h), left + round(im0_w * gain_w)  # content end, odd pads extra at end
     return F.interpolate(masks[..., top:bottom, left:right].float(), shape, mode=mode)  # NCHW masks
 
 
@@ -644,8 +640,9 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None, normalize: bool
     if ratio_pad is None:  # calculate from img0_shape
         img1_h, img1_w = img1_shape[:2]  # supports both HWC or HW shapes
         gain = min(img1_h / img0_h, img1_w / img0_w)  # gain  = old / new
-        gain_y = gain_x = gain
-        pad = round((img1_w - round(img0_w * gain)) / 2 - 0.1), round((img1_h - round(img0_h * gain)) / 2 - 0.1)
+        new_h, new_w = round(img0_h * gain), round(img0_w * gain)  # LetterBox rounds each side
+        gain_y, gain_x = new_h / img0_h, new_w / img0_w
+        pad = round((img1_w - new_w) / 2 - 0.1), round((img1_h - new_h) / 2 - 0.1)
     else:
         gain_y, gain_x = ratio_pad[0]
         pad = ratio_pad[1]

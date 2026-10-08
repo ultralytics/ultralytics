@@ -99,11 +99,12 @@ Ultralytics publishes the following images to [Docker Hub](https://hub.docker.co
 | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | [`latest`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest)                                 | Linux AMD64 with CUDA for GPU training and inference                                                                                 | [`Dockerfile`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile)                                 |
 | [`latest-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-export)                   | Linux AMD64 with CUDA and export dependencies for conversion and benchmarking                                                        | [`Dockerfile-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-export)                   |
-| [`latest-python`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python)                   | Lightweight Linux AMD64 Python image for CPU inference                                                                               | [`Dockerfile-python`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python)                   |
-| [`latest-python-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python-export)     | Linux AMD64 CPU image with export dependencies                                                                                       | [`Dockerfile-python-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python-export)     |
+| [`latest-amd`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-amd)                         | Linux AMD64 with [ROCm](https://rocm.docs.amd.com/) and MIGraphX for AMD GPU training and inference                                  | [`Dockerfile-amd`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-amd)                         |
+| [`latest-python`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python)                   | Lightweight Linux AMD64 Python 3.14 image for CPU inference                                                                          | [`Dockerfile-python`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python)                   |
+| [`latest-python-export`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-python-export)     | Linux AMD64 Python 3.13 CPU image with export dependencies                                                                           | [`Dockerfile-python-export`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-python-export)     |
 | [`latest-cpu`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-cpu)                         | Linux AMD64 CPU image with Bash as the default command                                                                               | [`Dockerfile-cpu`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-cpu)                         |
 | [`latest-jupyter`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jupyter)                 | Linux AMD64 CPU image with JupyterLab and Ultralytics tutorial notebooks                                                             | [`Dockerfile-jupyter`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jupyter)                 |
-| [`latest-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-arm64)                     | Linux ARM64 CPU image for Apple silicon, [Raspberry Pi](raspberry-pi.md), and other ARM64 systems                                    | [`Dockerfile-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-arm64)                     |
+| [`latest-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-arm64)                     | Linux ARM64 Python 3.13 CPU image for Apple silicon, [Raspberry Pi](raspberry-pi.md), and other ARM64 systems                        | [`Dockerfile-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-arm64)                     |
 | [`latest-nvidia-arm64`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-nvidia-arm64)       | Linux ARM64 for DGX Spark (DGX OS) and PyTorch on Thor (JetPack 7.1); bundled TensorRT does not support JetPack                      | [`Dockerfile-nvidia-arm64`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-nvidia-arm64)       |
 | [`latest-jetson-jetpack6`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack6) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 6](https://developer.nvidia.com/embedded/jetpack-sdk-61)  | [`Dockerfile-jetson-jetpack6`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack6) |
 | [`latest-jetson-jetpack5`](https://hub.docker.com/r/ultralytics/ultralytics/tags?name=latest-jetson-jetpack5) | Linux ARM64 for [NVIDIA Jetson](nvidia-jetson.md) devices running [JetPack 5](https://developer.nvidia.com/embedded/jetpack-sdk-512) | [`Dockerfile-jetson-jetpack5`](https://github.com/ultralytics/ultralytics/blob/main/docker/Dockerfile-jetson-jetpack5) |
@@ -118,6 +119,8 @@ The NVIDIA ARM64 image uses NVIDIA PyTorch 26.08 with CUDA 13.4 and TensorRT 11.
 The Conda Dockerfile is available for [local builds](conda-quickstart.md#ultralytics-conda-docker-image); automated publishing of `latest-conda` is disabled, so that registry tag does not contain these updates.
 
 Use `latest-python-export` for LiteRT exports. The GPU `latest-export` image keeps PyTorch 2.14 and omits LiteRT because its current dependency requires PyTorch below 2.14.
+
+The Python, CPU, Jupyter, and CPU runner images use Python 3.14. The Python export image uses the `latest-python-3.13` base, built from the same `Dockerfile-python` with `--build-arg PYTHON_VERSION=3.13`, because TensorFlow, CoreML, and PaddlePaddle do not support Python 3.14 yet.
 
 Tags beginning with `latest` track the most recently published main-branch build. Versioned tags replace the `latest` prefix with an Ultralytics release, such as `VERSION`, `VERSION-cpu`, or `VERSION-jetson-jetpack6`. Use a versioned tag for a reproducible environment.
 
@@ -148,15 +151,28 @@ sudo docker run -it --ipc=host ultralytics/ultralytics:latest-cpu
 
 ### Using GPUs
 
-```bash
-# Run with all GPUs
-sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
+=== "NVIDIA"
 
-# Run specifying which GPUs to use
-sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest
-```
+    ```bash
+    # Run with all GPUs
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=all ultralytics/ultralytics:latest
 
-The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. The `--device nvidia.com/gpu=...` flag grants the container access to the host's GPUs through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html).
+    # Run specifying which GPUs to use
+    sudo docker run -it --ipc=host --device nvidia.com/gpu=2 --device nvidia.com/gpu=3 ultralytics/ultralytics:latest
+    ```
+
+=== "AMD (ROCm)"
+
+    For AMD GPUs with [ROCm](https://rocm.docs.amd.com/) support on Linux, use the `latest-amd` image and pass the GPU devices:
+
+    ```bash
+    # Run with AMD GPU access
+    sudo docker run -it --ipc=host --device=/dev/kfd --device=/dev/dri --group-add video ultralytics/ultralytics:latest-amd
+    ```
+
+    See the [AMD GPU guide](../integrations/amd.md#usage) for MIGraphX inference in this image.
+
+The `-it` flag assigns a pseudo-TTY and keeps stdin open, allowing you to interact with the container. The `--ipc=host` flag enables sharing of host's IPC namespace, essential for sharing memory between processes. For NVIDIA GPUs, the `--device nvidia.com/gpu=...` flag grants access through [CDI](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html). For AMD GPUs, the `--device` flags grant access to the GPU kernel driver (`/dev/kfd`) and display render nodes (`/dev/dri`).
 
 !!! warning "Use CDI instead of `--gpus all`"
 
@@ -238,6 +254,13 @@ Setup and configuration of an X11 or Wayland display server is outside the scope
 
 ### Using Docker with a GUI
 
+Ultralytics images ship headless OpenCV, so first install the GUI build of OpenCV and its system libraries inside the container:
+
+```bash
+apt-get update && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 libsm6
+pip uninstall -y opencv-python-headless && pip install opencv-python
+```
+
 Now you can display graphical applications inside your Docker container. For example, you can run the following [CLI command](../usage/cli.md) to visualize the [predictions](../modes/predict.md) from a [YOLO26 model](../models/yolo26.md):
 
 ```bash
@@ -309,7 +332,7 @@ xhost +local:docker && docker run -e DISPLAY=$DISPLAY \
   --net=host -it --ipc=host ultralytics/ultralytics:latest
 ```
 
-More information can be found in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
+Inside the container, install the GUI build of OpenCV before using `show=True`, as described in the [Run graphical user interface (GUI) applications in a Docker Container](#run-graphical-user-interface-gui-applications-in-a-docker-container) section.
 
 ### Can I mount local directories into the Ultralytics Docker container?
 

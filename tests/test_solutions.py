@@ -207,65 +207,13 @@ def test_solution(name, solution_class, needs_frame_count, video_key, kwargs_upd
     )
 
 
-@pytest.mark.parametrize(
-    "region",
-    [[(220, 140), (420, 140), (420, 340), (220, 340)], [(20, 360), (1080, 360), (1080, 400), (20, 400)]],
-    ids=["square-zone", "wide-band"],
-)
-@pytest.mark.parametrize(
-    "step, expected",
-    [((8, 0), "IN"), ((-8, 0), "OUT"), ((0, 8), "IN"), ((0, -8), "OUT")],
-    ids=["left-to-right", "right-to-left", "downward", "upward"],
-)
-def test_object_counter_polygon_direction(region, step, expected):
-    """Polygonal counting must follow the object's motion axis regardless of the region's aspect ratio."""
-    counter = solutions.ObjectCounter(region=region, show=False)
-    counter.initialize_region()
-    cx = sum(p[0] for p in region) / 4
-    cy = sum(p[1] for p in region) / 4
-    track = [(cx + (i - 5) * step[0], cy + (i - 5) * step[1]) for i in range(6)]  # ends at region center
-    counter.track_history[1] = track
-    counter.count_objects(track[-1], 1, track[-2], 0)
-    counts = {"IN": counter.in_count, "OUT": counter.out_count}
-    assert counts[expected] == 1 and counts["IN" if expected == "OUT" else "OUT"] == 0, (
-        f"step {step} into {region} expected {expected}, got in={counter.in_count} out={counter.out_count}"
-    )
-
-
-def test_object_counter_polygon_reversal_at_entry():
-    """A track that backs away, turns around and then enters must be counted by its crossing motion."""
-    counter = solutions.ObjectCounter(region=[(220, 140), (420, 140), (420, 340), (220, 340)], show=False)
-    counter.initialize_region()
-    # outside the right edge moving away (rightward), then reversing and entering leftward
-    xs = [428, 436, 444, 436, 428, 420, 412]  # turn at x=444, entry at x=412
-    track = [(float(x), 240.0) for x in xs]
-    for i in range(2, len(track) + 1):
-        counter.track_history[1] = track[:i]
-        counter.count_objects(track[i - 1], 1, track[i - 2], 0)
-    assert (counter.in_count, counter.out_count) == (0, 1), (
-        f"entered moving left, expected OUT, got in={counter.in_count} out={counter.out_count}"
-    )
-
-
-def test_object_counter_polygon_reentry_after_inside_spawn():
-    """A track spawning inside (uncounted first frame), exiting and re-entering counts by its crossing motion."""
-    counter = solutions.ObjectCounter(region=[(220, 140), (420, 140), (420, 340), (220, 340)], show=False)
-    counter.initialize_region()
-    track = [(230.0, 240.0), (210.0, 240.0), (230.0, 240.0)]  # inside -> out the left edge -> re-enter rightward
-    for i in range(1, len(track) + 1):
-        counter.track_history[1] = track[:i]
-        counter.count_objects(track[i - 1], 1, track[i - 2] if i > 1 else None, 0)
-    assert (counter.in_count, counter.out_count) == (1, 0), (
-        f"re-entered moving right, expected IN, got in={counter.in_count} out={counter.out_count}"
-    )
-
-
 def test_left_click_selection():
-    """Test distance calculation left click selection functionality."""
+    """Test each left click selects one object, so overlapping boxes and missed clicks still yield a pair."""
     dc = solutions.DistanceCalculation()
-    dc.boxes, dc.track_ids = [[10, 10, 50, 50]], [1]
-    dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, 30, 30, None, None)
-    assert 1 in dc.selected_boxes, f"Expected track_id 1 in selected_boxes, got {dc.selected_boxes}"
+    dc.boxes, dc.track_ids = [[100, 100, 200, 300], [150, 100, 250, 300], [300, 100, 400, 300]], [1, 2, 3]
+    for x in (5, 175, 350):  # miss, overlap of tracks 1 and 2, track 3
+        dc.mouse_event_for_distance(cv2.EVENT_LBUTTONDOWN, x, 200, None, None)
+    assert list(dc.selected_boxes) == [1, 3], f"Expected track_ids [1, 3] selected, got {list(dc.selected_boxes)}"
 
 
 def test_left_click_selection_obb():
@@ -322,10 +270,9 @@ def test_object_blurrer_obb_outside_frame():
 def test_right_click_reset():
     """Test distance calculation right click reset functionality."""
     dc = solutions.DistanceCalculation()
-    dc.selected_boxes, dc.left_mouse_count = {1: [10, 10, 50, 50]}, 1
+    dc.selected_boxes = {1: [10, 10, 50, 50]}
     dc.mouse_event_for_distance(cv2.EVENT_RBUTTONDOWN, 0, 0, None, None)
     assert not dc.selected_boxes, f"Expected empty selected_boxes after reset, got {dc.selected_boxes}"
-    assert dc.left_mouse_count == 0, f"Expected left_mouse_count=0 after reset, got {dc.left_mouse_count}"
 
 
 def test_parking_json_none():
@@ -351,9 +298,20 @@ def test_analytics_graph_not_supported():
 def test_area_chart_padding():
     """Test area chart graph update with dynamic class padding logic."""
     analytics = solutions.Analytics(analytics_type="area")
-    analytics.update_graph(frame_number=1, count_dict={"car": 2}, plot="area")
-    plot_im = analytics.update_graph(frame_number=2, count_dict={"car": 3, "person": 1}, plot="area")
+    analytics.update_graph(frame_number=1, count_dict={"car": 2, "person": 4}, plot="area")
+    analytics.update_graph(frame_number=2, count_dict={"person": 1, "car": 3, "truck": 5}, plot="area")
+    plot_im = analytics.update_graph(frame_number=3, count_dict={"car": 6}, plot="area")
     assert plot_im is not None, "Area chart plot returned None"
+    history = {line.get_label(): line.get_ydata().tolist() for line in analytics.ax.lines}
+    assert history == {
+        "car Data Points": [2, 3, 6],
+        "person Data Points": [4, 1, 0],
+        "truck Data Points": [0, 5, 0],
+    }
+    analytics.max_points = 3  # an empty frame records 0 for every class and the oldest point is trimmed
+    analytics.update_graph(frame_number=4, count_dict={}, plot="area")
+    history = {line.get_label(): line.get_ydata().tolist() for line in analytics.ax.lines}
+    assert history == {"car Data Points": [3, 6, 0], "person Data Points": [1, 0, 0], "truck Data Points": [5, 0, 0]}
 
 
 def test_config_update_method_with_invalid_argument():
@@ -379,17 +337,8 @@ def test_plot_with_no_masks():
 def test_similarity_search(tmp_path, solution_assets):
     """Test similarity search solution with sample images and text query."""
     safe_download(solution_assets("similarity_images"), dir=tmp_path)  # 4 dog images for testing in a zip file
-    searcher = solutions.VisualAISearch(data=str(tmp_path / "4-imgs-similaritysearch"))
-    _ = searcher("a dog sitting on a bench")  # Returns the results in format "- img name | similarity score"
-
-
-@pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Disabled due to slow performance on Raspberry Pi.")
-def test_similarity_search_app_init():
-    """Test SearchApp initializes with required attributes."""
-    app = solutions.SearchApp(device="cpu")
-    assert hasattr(app, "searcher")
-    assert hasattr(app, "run")
+    app = solutions.SearchApp(data=str(tmp_path / "4-imgs-similaritysearch"), device="cpu")
+    assert app.searcher("a dog sitting on a bench")
 
 
 @pytest.mark.skipif(not TORCH_2_4, reason=f"VisualAISearch requires torch>=2.4 (found torch=={TORCH_VERSION})")

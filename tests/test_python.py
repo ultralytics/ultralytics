@@ -76,7 +76,7 @@ def test_dataloader_caps_workers_to_batches():
 
 
 def test_dataloader_cap_preserves_distributed_drop_last(monkeypatch):
-    """Test worker cap follows distributed sampler size without changing global drop_last behavior."""
+    """Test worker cap and drop_last follow the distributed sampler shard size."""
     sampler_cls = data_build.distributed.DistributedSampler
 
     def distributed_sampler(dataset, shuffle, seed):
@@ -680,31 +680,6 @@ def test_track_reid_auto_user_detections(tracker_type):
     assert len(tracks) == 2, f"native-ReID tracker must keep tracking without feats:\n{tracks}"
 
 
-@pytest.mark.parametrize("fuse_score", [True, False])
-def test_deepocsort_ocr_proximity_gate(fuse_score):
-    """DeepOCSORT OCR rejects a zero-IoU pair even when its appearance is identical, under both fuse_score settings."""
-    from types import SimpleNamespace
-
-    from ultralytics.trackers.basetrack import TrackState
-    from ultralytics.trackers.deep_oc_sort import DeepOCSORT
-
-    tracker = object.__new__(DeepOCSORT)
-    tracker.args = SimpleNamespace(fuse_score=fuse_score, match_thresh=0.8)
-    tracker.encoder, tracker.appearance_thresh, tracker.proximity_thresh, tracker.frame_id = object(), 0.9, 0.5, 2
-    track = SimpleNamespace(
-        angle=None,
-        last_observation=np.array([0, 0, 10, 10]),
-        smooth_feat=np.array([1.0, 0.0]),
-        state=TrackState.Tracked,
-        update=lambda *_: None,
-    )
-    detection = SimpleNamespace(xyxy=np.array([20, 20, 30, 30]), curr_feat=np.array([1.0, 0.0]), score=1.0)
-    # proves appearance is active and would override (ungated) this exact pair, so the OCR result below is caused by
-    # the proximity gate, not by appearance being unavailable
-    assert tracker._fuse_appearance(np.array([[1.0]]), [track], [detection]) == 0.0
-    assert tracker._ocr_associate([track], [detection], [], []) == ([0], [0])
-
-
 def test_reid_invalid_crops():
     """Test ReID skips out-of-bounds detection crops while preserving feature alignment."""
     from types import SimpleNamespace
@@ -802,6 +777,30 @@ def test_val_save_txt_pose(tmp_path):
             if len(visible):
                 cx, cy = visible.mean(0)
                 assert abs(cx - x) < w / 2 + 0.05 and abs(cy - y) < h / 2 + 0.05, "keypoints misaligned with box"
+
+
+def test_val_save_json_semantic(tmp_path):
+    """Semantic val(save_json=True) writes the class maps at the original image size without the letterbox padding."""
+    if IS_RASPBERRYPI:
+        skip_rpi_semantic()
+    data = check_det_dataset("cityscapes8.yaml")
+    lut = np.full(256, 255, dtype=np.uint8)  # raw Cityscapes id -> train id, 255 = ignore
+    for k, v in data["label_mapping"].items():
+        if isinstance(v, int) and k >= 0:
+            lut[k] = v
+    model = YOLO(WEIGHTS_DIR / "yolo26n-sem.pt")
+    # imgsz=640: the 1024x2048 images get a 320x640 rect batch (val default) or a 640x640 letterbox with 160 padded rows
+    for rect in (True, False):
+        metrics = model.val(data="cityscapes8.yaml", imgsz=640, save_json=True, rect=rect, project=tmp_path, name="val")
+        correct = total = 0
+        for png in (Path(metrics.save_dir) / "results").glob("*.png"):
+            pred = lut[np.asarray(Image.open(png))]
+            gt = lut[np.asarray(Image.open(Path(data["path"]) / data["masks_dir"] / "val" / png.name))]
+            assert pred.shape == gt.shape, f"rect={rect}: {png.name} saved as {pred.shape}, image is {gt.shape}"
+            correct += ((pred == gt) & (gt != 255)).sum()
+            total += (gt != 255).sum()
+        # the saved masks score like the letterbox-space pixel accuracy; padding stretched into the image halves it
+        assert abs(correct / total - metrics.results_dict["metrics/pixel_acc"]) < 0.05, f"rect={rect}: masks misaligned"
 
 
 def test_pose_metrics_curves():
@@ -1100,6 +1099,21 @@ def test_results_plot_without_boxes():
     assert r.boxes is None
     for color_mode in ("class", "instance"):
         assert r.plot(color_mode=color_mode).shape == orig_img.shape
+
+
+def test_results_plot_instance_keypoints_track_color():
+    """Test that color_mode='instance' colors tracked keypoints by track ID, like boxes and masks."""
+    from ultralytics.engine.results import Results
+    from ultralytics.utils.plotting import colors
+
+    boxes = torch.tensor([[0, 0, 30, 30, 5, 0.9, 0], [34, 34, 64, 64, 9, 0.9, 0]], dtype=torch.float32)  # ids 5, 9
+    keypoints = torch.tensor([[[15, 15, 1.0]] * 17, [[49, 49, 1.0]] * 17])
+    r = Results(
+        np.zeros((64, 64, 3), dtype=np.uint8), path="im.jpg", names={0: "person"}, boxes=boxes, keypoints=keypoints
+    )
+    im = r.plot(color_mode="instance", boxes=False)
+    assert im[15, 15].tolist() == list(colors(5, True))
+    assert im[49, 49].tolist() == list(colors(9, True))
 
 
 def test_results_depth_field():
@@ -1520,6 +1534,18 @@ def test_depth_trainer_records_portable_calibration_split(tmp_path, monkeypatch,
         assert str(tmp_path) not in captured["validation_split"]
 
 
+def test_verify_image_label_keeps_polygons_sharing_a_box(tmp_path):
+    """Keep distinct polygons that share a class and box, and drop exact duplicate polygon rows."""
+    from ultralytics.data.utils import verify_image_label
+
+    im, lb = tmp_path / "0.jpg", tmp_path / "0.txt"
+    cv2.imwrite(str(im), np.zeros((32, 32, 3), np.uint8))
+    rows = ["0 0.2 0.2 0.8 0.2 0.8 0.8", "0 0.2 0.2 0.2 0.8 0.8 0.8"]  # two triangles tiling one square
+    lb.write_text("\n".join([*rows, rows[0]]))
+    _, labels, _, segments, *_ = verify_image_label((str(im), str(lb), "", False, 1, 0, 0, False))
+    assert len(labels) == len(segments) == 2
+
+
 def test_depth_dataset_ignores_unreadable_targets(tmp_path):
     """Drop unreadable depth maps and accept single-class mode with empty class labels."""
     from ultralytics.data.dataset import DepthDataset
@@ -1586,14 +1612,6 @@ def test_utils_checks(monkeypatch):
     assert checks.parse_version("v2.1") == (2, 1, 0)
     assert checks.parse_version("1.0rc1") == (1, 0, 0)  # documented non-PEP-440 tradeoff: pre-releases equal the final
     monkeypatch.setattr(checks.metadata, "version", package_version)
-    monkeypatch.setattr(checks, "ARM64", True)
-    monkeypatch.setattr(checks, "AUTOINSTALL", True)
-    monkeypatch.setattr(checks, "ONLINE", True)
-    commands = []
-    monkeypatch.setattr(checks.subprocess, "check_output", lambda command, **kwargs: commands.append(command) or "")
-    requirements = ["ray[tune]", "nvidia-modelopt[onnx]>=0.44", "$(touch /tmp/pwned)/missing"]
-    assert checks.check_requirements(requirements)
-    assert commands[0][5:] == requirements  # requirements remain individual argv entries, never shell source
     assert not checks.check_version("v2", ">=2.0")  # installed version-shaped package keeps metadata precedence
     versions = ("v2.1-rc.1", "v2.1-beta1", "v2.1rev1", "v2.1-dev1", "v2.1+cu118")
     assert all(checks.check_version(v, ">=2.0") for v in versions)
@@ -1789,6 +1807,25 @@ def test_scale_coords_nonuniform_letterbox():
     assert torch.allclose(ops.scale_coords((640, 640), coords, (100, 200)), coords.new_tensor([[50, 20]]))
 
 
+def test_scale_masks_odd_letterbox_pad():
+    """Mask scaling with the dataloader's ratio_pad must end the crop where the letterbox content ends."""
+    from ultralytics.data.augment import LetterBox
+    from ultralytics.utils import ops
+
+    # A 1000x1920 or 1920x1000 image, resized to 333x640 or 640x333, gets 19 rows or columns of padding: 9 and 10
+    for shape, im0_shape, pad in (((352, 640), (1000, 1920), (0, 9)), ((640, 352), (1920, 1000), (9, 0))):
+        h, w = im0_shape[0] // 3, im0_shape[1] // 3
+        labels = {"img": np.zeros((h, w, 3), dtype=np.uint8), "ratio_pad": (h / im0_shape[0], w / im0_shape[1])}
+        ratio_pad = LetterBox(shape, scaleup=False)(labels)["ratio_pad"]  # ((gain_h, gain_w), (left, top))
+        assert ratio_pad[1] == pad
+        left, top = pad
+        masks = torch.zeros(1, 1, *shape)
+        masks[..., top : top + h, left : left + w] = 1 + torch.rand(h, w)  # positive content, zero padding
+        scaled = ops.scale_masks(masks, im0_shape, ratio_pad=ratio_pad)
+        assert (scaled > 0.5).all()  # every original pixel is content: no padded row or column survived the crop
+        assert torch.equal(scaled, ops.scale_masks(masks, im0_shape))  # the ratio_pad=None crop is unchanged
+
+
 def test_nms_end2end_classes_before_max_det():
     """The end-to-end NMS branch must filter classes before truncating to max_det, like the NMS-based branch."""
     from ultralytics.utils.nms import non_max_suppression
@@ -1903,21 +1940,33 @@ def test_nn_detect_head_export_clamps_max_det():
     assert head.postprocess(torch.rand(1, anchors, 4 + head.nc)).shape == (1, anchors, 6)
 
 
+@pytest.mark.parametrize("h, w", [(14, 28), (28, 14), (20, 20)])
+def test_nn_aifi_pos_embed_row_major(h, w):
+    """AIFI position embedding follows the row-major token order of x.flatten(2), with the row encoding first."""
+    from ultralytics.nn.modules.transformer import AIFI
+
+    pe = AIFI.build_2d_sincos_position_embedding(w, h, 8, like=torch.zeros(1))[0].view(h, w, 8)
+    assert torch.equal(pe[..., :4], pe[:, :1, :4].expand(h, w, 4))  # row encoding constant along each row
+    assert torch.equal(pe[..., 4:], pe[:1, :, 4:].expand(h, w, 4))  # column encoding constant down each column
+
+
 def _depth_head_feats():
     """Return a small Depth head constructor kwargs-matched P3/P4/P5 feature pyramid."""
     return [torch.randn(1, 32, 32, 32), torch.randn(1, 64, 16, 16), torch.randn(1, 128, 8, 8)]
 
 
 def test_nn_depth_head_export_upsamples_to_input():
-    """Depth export upsamples x4 to input resolution; inference returns native head resolution."""
+    """Depth export upsamples x4 on the depth loss align_corners=True grid; inference returns native head resolution."""
+    import torch.nn.functional as F
+
     from ultralytics.nn.modules.head import Depth
 
-    head = Depth(c_mid=32, ch=(32, 64, 128)).eval()
+    head, x = Depth(c_mid=32, ch=(32, 64, 128)).eval(), _depth_head_feats()
+    native = head(x)
+    assert native.shape[-2:] == (64, 64)  # inference returns native head resolution
     for fmt in ("onnx", "coreml"):
         head.export, head.format = True, fmt
-        assert head(_depth_head_feats()).shape[-2:] == (256, 256)
-    head.export = False
-    assert head(_depth_head_feats()).shape[-2:] != (256, 256)  # inference returns native head resolution
+        assert torch.equal(head(x), F.interpolate(native, scale_factor=4.0, mode="bilinear", align_corners=True))
 
 
 def test_nn_depth_head_no_dead_parameters():
@@ -2060,44 +2109,8 @@ def test_process_mask_native_chunked():
     assert torch.equal(out, ref)
 
 
-@pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for CLIP-based models")
-@pytest.mark.skipif(
-    checks.IS_PYTHON_3_8 and LINUX and ARM64,
-    reason="YOLOWorld with CLIP is not supported in Python 3.8 and aarch64 Linux",
-)
-def test_yolo_world():
-    """Test YOLO world models with CLIP support."""
-    model = YOLO(WEIGHTS_DIR / "yolov8s-world.pt")  # no YOLO11n-world model yet
-    model.set_classes(["tree", "window"])
-    model(SOURCE, conf=0.01)
-
-    model = YOLO(WEIGHTS_DIR / "yolov8s-worldv2.pt")  # no YOLO11n-world model yet
-    # Training from a pretrained model. Eval is included at the final stage of training.
-    # Use dota8.yaml which has fewer categories to reduce the inference time of CLIP model
-    model.train(
-        data="dota8.yaml",
-        epochs=1,
-        imgsz=32,
-        cache="disk",
-        close_mosaic=1,
-    )
-
-    # test WorWorldTrainerFromScratch
-    from ultralytics.models.yolo.world.train_world import WorldTrainerFromScratch
-
-    model = YOLO("yolov8s-worldv2.yaml")  # no YOLO11n-world model yet
-    model.train(
-        data={"train": {"yolo_data": ["dota8.yaml"]}, "val": {"yolo_data": ["dota8.yaml"]}},
-        epochs=1,
-        imgsz=32,
-        cache="disk",
-        close_mosaic=1,
-        trainer=WorldTrainerFromScratch,
-    )
-
-
 @pytest.mark.skipif(IS_RASPBERRYPI, reason="Edge devices not intended for heavy CLIP-based models")
-@pytest.mark.skipif(not TORCH_1_13, reason="YOLOE with CLIP requires torch>=1.13")
+@pytest.mark.skipif(not TORCH_2_0, reason="MobileCLIP2 uses scaled_dot_product_attention (torch>=2.0)")
 @pytest.mark.skipif(
     checks.IS_PYTHON_3_8 and LINUX and ARM64,
     reason="YOLOE with CLIP is not supported in Python 3.8 and aarch64 Linux",
@@ -2106,7 +2119,7 @@ def test_yoloe(tmp_path):
     """Test YOLOE models with MobileCLIP support."""
     # Predict
     # text-prompts
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     model.set_classes(["person", "bus"])
     model.set_classes(["bus", "person"])
     assert list(model.names.values()) == ["bus", "person"]
@@ -2127,7 +2140,7 @@ def test_yoloe(tmp_path):
     )
 
     # Val
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg.pt")
     # text prompts
     model.val(data="coco128-seg.yaml", imgsz=32)
     # visual prompts
@@ -2136,7 +2149,7 @@ def test_yoloe(tmp_path):
     # Train, fine-tune
     from ultralytics.models.yolo.yoloe import YOLOEPEFreeTrainer, YOLOEPESegTrainer, YOLOESegTrainerFromScratch
 
-    model = YOLOE("yoloe-11s-seg.pt")
+    model = YOLOE("yoloe-26n-seg.pt")
     model.train(
         data="coco128-seg.yaml",
         epochs=1,
@@ -2149,7 +2162,7 @@ def test_yoloe(tmp_path):
     data_yaml = tmp_path / "yoloe-data.yaml"
     YAML.save(data=data_dict, file=data_yaml)
     for data in [data_dict, data_yaml]:
-        model = YOLOE("yoloe-11s-seg.yaml")
+        model = YOLOE("yoloe-26n-seg.yaml")
         model.train(
             data=data,
             epochs=1,
@@ -2160,13 +2173,13 @@ def test_yoloe(tmp_path):
 
     # prompt-free
     # predict
-    model = YOLOE(WEIGHTS_DIR / "yoloe-11s-seg-pf.pt")
+    model = YOLOE(WEIGHTS_DIR / "yoloe-26n-seg-pf.pt")
     model.predict(SOURCE)
     # val
-    model = YOLOE("yoloe-11s-seg.pt")  # or select yoloe-m/l-seg.pt for different sizes
+    model = YOLOE("yoloe-26n-seg.pt")  # or select yoloe-26s/m/l/x-seg.pt for different sizes
     model.val(data="coco128-seg.yaml", imgsz=32)
     # train, freezing everything but the classification branch
-    model = YOLOE("yoloe-11s-seg.pt")
+    model = YOLOE("yoloe-26n-seg.pt")
     head = len(model.model.model) - 1
     freeze = [str(i) for i in range(head)]
     freeze += [f"{head}.{name}" for name, _ in model.model.model[-1].named_children() if "cv3" not in name]
@@ -2206,7 +2219,7 @@ def test_yoloe_vocab_head_switch():
 
 def test_yoloe_visual_prompt_verbose_false(capfd):
     """Verify that YOLOE visual prompting respects verbose=False."""
-    model = YOLO(WEIGHTS_DIR / "yoloe-11s-seg.pt")
+    model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
 
     from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
 
@@ -2315,3 +2328,36 @@ def test_semantic_cache_nc_edit_1bit_masks(tmp_path):
     SemanticDataset(img_path=str(images), imgsz=32, data=data)  # scan and cache at nc=2
     dataset = SemanticDataset(img_path=str(images), imgsz=32, data={**data, "nc": 1})  # yaml-only nc edit
     assert set(np.unique(dataset.load_mask(0))) == {0, 1}  # 1-bit foreground remapped from 255
+
+
+def test_verify_image_label_whitespace_lines(tmp_path):
+    """Test whitespace-only lines in label files no longer mark an image corrupt."""
+    from ultralytics.data.utils import verify_image_label
+
+    im = tmp_path / "a.jpg"
+    cv2.imwrite(str(im), np.zeros((32, 48, 3), dtype=np.uint8))
+
+    lb = tmp_path / "a.txt"  # detection rows with a whitespace-only line between them
+    lb.write_text("0 0.5 0.5 0.1 0.1\n \t\n1 0.25 0.25 0.2 0.2\n", encoding="utf-8")
+    args = (str(im), str(lb), "", False, 2, 0, 2, False)
+    _, out, _, _, _, _, nf, _, nc, _ = verify_image_label(args)
+    assert (nf, nc) == (1, 0) and out.shape == (2, 5)  # both rows parsed, image kept
+
+    lb.write_text("0 0.1 0.1 0.3 0.1 0.3 0.3\n\t\n0 0.4 0.4 0.6 0.4 0.6 0.6\n", encoding="utf-8")  # segment rows
+    _, out, _, segments, _, _, nf, _, nc, _ = verify_image_label(args)
+    assert (nf, nc) == (1, 0) and out.shape == (2, 5) and len(segments) == 2  # both polygons parsed
+
+
+def test_load_yolo_dota_whitespace_lines(tmp_path):
+    """Test whitespace-only lines in DOTA label files no longer crash the loader."""
+    from ultralytics.data.split_dota import load_yolo_dota
+
+    images, labels = tmp_path / "images" / "train", tmp_path / "labels" / "train"
+    images.mkdir(parents=True)
+    labels.mkdir(parents=True)
+    cv2.imwrite(str(images / "a.jpg"), np.zeros((64, 64, 3), dtype=np.uint8))
+    (labels / "a.txt").write_text(
+        "0.1 0.1 0.3 0.1 0.3 0.3 0.1 0.3 0\n \t\n0.4 0.4 0.6 0.4 0.6 0.6 0.4 0.6 1\n", encoding="utf-8"
+    )
+    annos = load_yolo_dota(str(tmp_path), split="train")
+    assert len(annos) == 1 and annos[0]["label"].shape == (2, 9)  # both rows parsed

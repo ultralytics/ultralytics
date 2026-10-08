@@ -11,13 +11,13 @@ keywords: Ultralytics Platform, billing, credits, pricing, subscription, payment
 [Ultralytics Platform](https://platform.ultralytics.com) uses credits for metered compute: cloud training, batch annotation, and custom-resource endpoint uptime. Add credits, track
 usage, and manage your subscription from `Settings > Billing`.
 
-![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/8deb4532660afd808780789930cfbeb6.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance And Plan Card](https://cdn.ul.run/i/9e97863665b58a2b009f700b0df120e9.avif)<!-- screenshot -->
 
 ## Plans
 
 Choose the plan that fits your needs. Compare plans in `Settings > Plans`:
 
-![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/4687f31bbcab35be3b474784751759e5.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Free Pro Enterprise Comparison](https://cdn.ul.run/i/cad040a8c00329e621ab2d0c0cf53b5f.avif)<!-- screenshot -->
 
 {% include "macros/platform-plan-comparison.md" %}
 
@@ -31,7 +31,7 @@ Get started at no cost:
 - 3 concurrent cloud training jobs
 - 3 cloud deployments
 - 100 GB storage · 10 GB dataset upload limit
-- Model export to all 21 formats
+- Model export to all 22 formats
 - Manual, SAM 3.1, and YOLO Smart annotation
 - 24 cloud GPU types including 5090, H100 & H200 ($0.24–$4.39/hr)
 - Community support
@@ -85,7 +85,7 @@ Credits are the currency for Platform compute services.
 
 View your balance in `Settings > Billing`:
 
-![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/e7db27e18b14d2a8d2672966455c965f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Credit Balance With Topup Button](https://cdn.ul.run/i/f45c7ce61c718d4a2517cbffcaece256.avif)<!-- screenshot -->
 
 | Balance Type  | Description                           |
 | ------------- | ------------------------------------- |
@@ -122,7 +122,7 @@ Top up your balance:
 
 Your balance updates automatically once the payment succeeds — you don't need to reload the page.
 
-![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.ul.run/i/41dea87cf64f1a2c6366f0707b7ab3fa.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Topup Amount Selection Dialog](https://cdn.ul.run/i/a7203389c72014b326fdb168de898c5d.avif)<!-- screenshot -->
 
 ### Top-Up Presets
 
@@ -149,13 +149,26 @@ Enable automatic credit purchases when your balance drops below a threshold:
 Default settings: threshold $20, amount $100.
 
 Auto top-up is evaluated whenever a charge lowers your balance, including mid-run training charges, and charges your
-default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined, a
-**Auto Top-Up Failed** row is added to your transaction history with the reason, and no credits are added.
+default payment method. Top-ups are briefly rate-limited to prevent duplicate charges. If the card is declined or
+missing, an **Auto Top-Up Failed** row is added to your transaction history with the reason, no credits are added, and
+auto top-up turns off until you switch it back on.
 
 !!! tip "Reduce Training Interruptions"
 
     Auto top-up can reduce the chance that a paid cloud training job is stopped for insufficient credits. It requires
     a valid default payment method.
+
+### Redeem a Promo Code
+
+If you did not apply a promo code during signup, redeem one later:
+
+1. Switch to your personal workspace and go to **Settings > Billing**
+2. Enter the code under **Promo Code**
+3. Click **Redeem**
+
+The credits are added to your balance immediately and appear as a **Promo Bonus** transaction. Each account redeems
+one promo code in total, so a code applied during signup counts. Referral codes (`REF-` followed by eight characters)
+work only during signup.
 
 ### Payment Methods
 
@@ -180,14 +193,10 @@ Cloud training estimates cost before start, meters GPU time while the run is in 
 when the run ends.
 
 ```mermaid
-flowchart LR
-    A[Start Training]:::start --> B[Estimate Cost]:::proc
-    B --> C[Meter GPU Usage]:::proc
-    C --> D[Settle at Terminal State]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A([Start training]) --> B[Estimate cost]
+    B --> C[Meter GPU usage]
+    C --> D([Settle when the run ends])
 ```
 
 ### How It Works
@@ -237,7 +246,7 @@ Upgrade for more features and monthly credits:
 4. Choose billing cycle (Monthly or Yearly)
 5. Complete checkout
 
-![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/c5c4e48ad1cb59d059bc5112c1c6ed2f.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Plans Tab Upgrade to Pro Dialog](https://cdn.ul.run/i/7c830c485f58d8d3ec9243c15f0340f6.avif)<!-- screenshot -->
 
 ### Pro Benefits
 
@@ -271,7 +280,7 @@ If you cancel before the end of your billing period, a **Resume Subscription** b
 
 !!! note "Cancellation Timing"
 
-    Pro features remain active until the end of your current billing period. Monthly credits stop being granted at cancellation.
+    Pro features remain active until the end of your current billing period, and yearly plans keep receiving monthly credit grants until then.
 
 ### Downgrading to Free
 
@@ -301,7 +310,7 @@ When your Pro subscription ends (cancelled or expired), your account reverts to 
 View all transactions in `Settings > Billing`. The table covers the selected date range (last 30 days by default),
 supports free-text search across every field, and exports to CSV or JSON from the menu in the card header.
 
-![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/ecd72fd02c557801a298593d0f8ad2bb.avif)<!-- screenshot -->
+![Ultralytics Platform Settings Billing Tab Transaction History Table](https://cdn.ul.run/i/706d984e623d641af877e83e1d08997c.avif)<!-- screenshot -->
 
 | Column          | Description                                                                           |
 | --------------- | ------------------------------------------------------------------------------------- |
@@ -320,7 +329,7 @@ supports free-text search across every field, and exports to CSV or JSON from th
 | **Signup Bonus**       | Signup credit, including the company-email top-up                       |
 | **Credit Purchase**    | Manual top-up                                                           |
 | **Auto Top-Up**        | Automatic top-up triggered by your threshold                            |
-| **Auto Top-Up Failed** | An automatic top-up was declined; no credits were added                 |
+| **Auto Top-Up Failed** | An automatic top-up failed; no credits were added                       |
 | **Subscription**       | Pro subscription or seat charge                                         |
 | **Monthly Grant**      | $30/seat monthly Pro credit                                             |
 | **Credits Expired**    | Unused monthly grant removed at a cycle boundary or downgrade           |
@@ -337,14 +346,17 @@ supports free-text search across every field, and exports to CSV or JSON from th
 
 - **Running paid cloud training**: Stops when metered usage pushes the balance below zero
 - **New training**: Cannot start new jobs until balance is positive
-- **Deployments**: Continue running regardless of balance
+- **Deployments**: Default-size endpoints keep running; custom-size endpoints, and any background camera on them, are
+  stopped automatically
 
 Add credits to restore a positive balance before starting new training jobs. Enable [auto top-up](#auto-top-up) to
 reduce the chance of an active job being stopped for insufficient funds.
 
 ### How do I get an invoice?
 
-Transaction receipts are available in the transaction history. Click the receipt icon next to any purchase transaction.
+Card payments (credit purchases, auto top-ups, and Pro subscription and seat charges) show a receipt link in the
+**Details** column of the transaction history. It opens the payment's invoice when one was issued, otherwise the card
+receipt.
 
 ### What if training fails?
 
@@ -366,5 +378,8 @@ no extra charge for the rest of the period. See [Teams](teams.md#inviting-member
 
 ### Is there a free trial?
 
-The Free plan includes $5 in signup credit, increased to $25 after verifying a company email. No credit card is
-required to start.
+The Free plan includes $5 in signup credit, and no credit card is required. To raise it to $25, add and verify a company
+email address (not Gmail, Outlook or another consumer domain) from your personal workspace in
+[`Settings > Profile`](settings.md#emails); the extra
+$20 is added once per account. If you have a promo code you didn't use at signup, redeem it from your personal workspace
+under **Settings > Billing**. See [Redeem a Promo Code](#redeem-a-promo-code).

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections import defaultdict
 from itertools import repeat
 from multiprocessing.pool import ThreadPool
@@ -18,6 +19,7 @@ from torch.utils.data import ConcatDataset
 from ultralytics.utils import LOCAL_RANK, LOGGER, NUM_THREADS, TQDM, IterableSimpleNamespace, colorstr
 from ultralytics.utils.instance import Instances
 from ultralytics.utils.ops import resample_segments, segments2boxes
+from ultralytics.utils.patches import PIL_FALLBACK_SUFFIXES, imread, imread_unicode
 from ultralytics.utils.torch_utils import TORCHVISION_0_18
 
 from .augment import (
@@ -35,6 +37,7 @@ from .base import BaseDataset
 from .converter import merge_multi_segment
 from .utils import (
     HELP_URL,
+    IMG_FORMATS,
     check_file_speeds,
     get_hash,
     get_split_fraction,
@@ -42,6 +45,7 @@ from .utils import (
     load_dataset_cache_file,
     load_depth,
     polygons2masks_overlap,
+    read_mask,
     save_dataset_cache_file,
     verify_image,
     verify_image_depth,
@@ -49,8 +53,9 @@ from .utils import (
     verify_image_mask,
 )
 
-# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models
-DATASET_CACHE_VERSION = "1.0.5"  # pose labels scanned for box tasks now keep the box and drop the keypoints
+# Ultralytics dataset *.cache version, >= 1.0.0 for Ultralytics YOLO models. Shared by every dataset type: a bump
+# rescans all users' caches, so scope task-specific scan changes to that dataset's get_cache_hash() instead
+DATASET_CACHE_VERSION = "1.0.10"  # EXIF-rotated image shapes now match the decoded image
 
 
 class YOLODataset(BaseDataset):
@@ -174,7 +179,9 @@ class YOLODataset(BaseDataset):
         Returns:
             (str): Dataset cache hash.
         """
-        scan_args = (self.use_keypoints, len(self.data["names"]), self.data.get("kpt_shape"), self.single_cls)
+        # add_polygon_background() class is not a label class, so segment and semantic share one cache
+        nc = self.data.get("bg_class_idx") or len(self.data["names"])
+        scan_args = (self.use_keypoints, nc, self.data.get("kpt_shape"), self.single_cls)
         return get_hash(self.label_files + self.im_files + [str(scan_args)])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
@@ -203,7 +210,7 @@ class YOLODataset(BaseDataset):
             self.label_files,
             repeat(self.prefix),
             repeat(self.use_keypoints),
-            repeat(len(self.data["names"])),
+            repeat(self.data.get("bg_class_idx") or len(self.data["names"])),  # label classes, no semantic background
             repeat(nkpt),
             repeat(ndim),
             repeat(self.single_cls),
@@ -245,8 +252,8 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
-        if (self.use_segments or self.use_obb) and len_boxes != len_segments:
-            task = "OBB" if self.use_obb else "Segment"
+        if (self.use_segments or self.use_obb or self.format_class is SemanticFormat) and len_boxes != len_segments:
+            task = "OBB" if self.use_obb else "Semantic" if self.format_class is SemanticFormat else "Segment"
             raise ValueError(
                 f"{task} dataset requires equal numbers of boxes and segments, but got len(segments) = "
                 f"{len_segments}, len(boxes) = {len_boxes}. Please supply {'an OBB' if self.use_obb else 'a segment'} "
@@ -277,7 +284,7 @@ class YOLODataset(BaseDataset):
             cache, exists = load_dataset_cache_file(cache_path), True  # attempt to load a *.cache file
             assert cache["version"] == DATASET_CACHE_VERSION  # matches current version
             assert cache["hash"] == cache_hash  # identical hash
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
+        except Exception:  # missing, stale, or unreadable (e.g. truncated) cache
             cache, exists = self.cache_labels(cache_path), False  # run cache ops
         return cache, exists
 
@@ -980,13 +987,13 @@ class SemanticDataset(YOLODataset):
         return self.mask_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash for semantic cache validation that also includes label_mapping changes.
+        """Return a hash for semantic cache validation that also includes label_mapping and class count changes.
 
         Returns:
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", f"nc:{len(self.data['names'])}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -994,17 +1001,19 @@ class SemanticDataset(YOLODataset):
 
     def verify_args(self) -> tuple:
         """Return the mask verification function and its argument iterable."""
-        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix))
+        nc = len(self.data["names"])
+        invalid = ((self.label_lut > max(nc - 1, 1)) & (self.label_lut != 255)).astype(np.uint8)  # nc=1 keeps {0, 1}
+        return verify_image_mask, zip(self.im_files, self.mask_files, repeat(self.prefix), repeat(invalid))
 
     def result_to_label(self, result: tuple) -> tuple[dict | None, int, int, int, int, str]:
         """Convert one verify_image_mask result into a label dict and scan counter increments."""
-        im_file, mask_file, shape, is_1bit, nm_f, nf_f, nc_f, msg = result
+        im_file, mask_file, shape, mode, nm_f, nf_f, nc_f, msg = result
         label = (
             {
                 "im_file": im_file,
                 "mask_file": mask_file,
                 "shape": shape,
-                "is_1bit": is_1bit,
+                "mode": mode,
                 "cls": np.array([], dtype=np.float32),
                 "bboxes": np.zeros((0, 4), dtype=np.float32),
                 "segments": [],
@@ -1047,12 +1056,7 @@ class SemanticDataset(YOLODataset):
         Raises:
             FileNotFoundError: If the mask file is missing or unreadable.
         """
-        mask_file = self.labels[index]["mask_file"]
-        mask = cv2.imread(mask_file, cv2.IMREAD_GRAYSCALE)
-        if mask is None:
-            raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if int(self.data.get("nc", 0)) == 1 and self.labels[index]["is_1bit"]:
-            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
+        mask = read_mask(self.labels[index]["mask_file"], self.labels[index]["mode"])
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)
@@ -1176,6 +1180,7 @@ class ClassificationDataset:
         __getitem__: Return transformed image and class index for the given sample index.
         __len__: Return the total number of samples in the dataset.
         verify_images: Verify all images in dataset.
+        imread: Read a BGR image, decoding the formats cv2 cannot read through the shared PIL fallback.
         cache_images: Decode images into one contiguous RAM cache.
     """
 
@@ -1203,10 +1208,10 @@ class ClassificationDataset:
         import torchvision  # scope for faster 'import ultralytics'
 
         # Base class assigned as attribute rather than used as base class to allow for scoping slow torchvision import
-        if TORCHVISION_0_18:  # 'allow_empty' argument first introduced in torchvision 0.18
-            self.base = torchvision.datasets.ImageFolder(root=root, allow_empty=True)
-        else:
-            self.base = torchvision.datasets.ImageFolder(root=root)
+        kwargs = {"allow_empty": True} if TORCHVISION_0_18 else {}  # 'allow_empty' first introduced in torchvision 0.18
+        self.base = torchvision.datasets.ImageFolder(
+            root=root, is_valid_file=lambda x: x.rpartition(".")[-1].lower() in IMG_FORMATS, **kwargs
+        )
         is_ndjson = (Path(root).parent / ".ndjson.yaml").is_file()
         self.samples = self.base.samples
         self.root = self.base.root
@@ -1239,7 +1244,11 @@ class ClassificationDataset:
             LOGGER.warning(
                 f"{self.prefix}Skipping {n - len(self.samples)} samples from classes the model lacks: {sorted(extra)}"
             )
+        # Same persistent image.npy naming as BaseDataset.npy_files, never rename or relocate existing caches
         self.samples = [[*list(x), Path(x[0]).with_suffix(".npy"), None] for x in self.samples]  # file, index, npy, im
+        if self.cache_disk and not all(os.access(d, os.W_OK) for d in {os.path.dirname(s[0]) for s in self.samples}):
+            self.cache_disk = False
+            LOGGER.warning(f"{self.prefix}Skipping caching images to disk, directory not writable")
         if self.cache_ram:
             self.cache_images()
         scale = (1.0 - args.scale, 1.0)  # RandomResizedCrop area range, e.g. (0.5, 1.0) for scale=0.5
@@ -1268,15 +1277,15 @@ class ClassificationDataset:
         Returns:
             (dict): Dictionary containing the image and its class index.
         """
-        f, j, fn, im = self.samples[i]  # filename, index, filename.with_suffix('.npy'), image
+        f, j, fn, im = self.samples[i]  # filename, class index, npy cache path, image
         if self.cache_ram:
             im = self.img_cache[i]
         elif self.cache_disk:
-            if not fn.exists():  # load npy
-                np.save(fn.as_posix(), cv2.imread(f), allow_pickle=False)
+            if not fn.exists() or fn.stat().st_mtime < Path(f).stat().st_mtime:  # missing or stale
+                np.save(fn.as_posix(), self.imread(f), allow_pickle=False)
             im = np.load(fn)
         else:  # read image
-            im = cv2.imread(f)  # BGR
+            im = self.imread(f)  # BGR
         # Convert NumPy array to PIL image
         im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         sample = self.torch_transforms(im)
@@ -1285,6 +1294,11 @@ class ClassificationDataset:
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
+
+    @staticmethod
+    def imread(f: str) -> np.ndarray | None:
+        """Read a BGR image with cv2, decoding the formats cv2 cannot read through the shared PIL fallback."""
+        return imread(f) if f.lower().endswith(PIL_FALLBACK_SUFFIXES) else imread_unicode(f)
 
     def cache_images(self) -> None:
         """Decode all images once into a single contiguous uint8 buffer before DataLoader workers fork.
@@ -1296,7 +1310,7 @@ class ClassificationDataset:
         with ThreadPool(NUM_THREADS) as pool:
             ims = list(
                 TQDM(
-                    pool.imap(lambda s: cv2.imread(s[0]), self.samples),
+                    pool.imap(lambda s: self.imread(s[0]), self.samples),
                     total=len(self.samples),
                     desc=f"{self.prefix}Caching images",
                     disable=LOCAL_RANK > 0,
@@ -1326,9 +1340,7 @@ class ClassificationDataset:
                     LOGGER.info("\n".join(cache["msgs"]))  # display warnings
             return samples
 
-        # NOTE: ModuleNotFoundError to prevent numpy version conflicts when loading cache files created with different numpy versions
-        except (FileNotFoundError, AssertionError, AttributeError, ModuleNotFoundError):
-            # Run scan if *.cache retrieval failed
+        except Exception:  # run scan if *.cache retrieval failed, e.g. missing, stale, or truncated
             nf, nc, msgs, samples, x = 0, 0, [], [], {}
             with ThreadPool(NUM_THREADS) as pool:
                 results = pool.imap(func=verify_image, iterable=zip(self.samples, repeat(self.prefix)))

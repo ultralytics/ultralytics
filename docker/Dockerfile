@@ -10,7 +10,6 @@ FROM pytorch/pytorch:2.14.0-cuda13.2-cudnn9-runtime
 # Avoid DDP error "MKL_THREADING_LAYER=INTEL is incompatible with libgomp.so.1 library"
 # Suppress TensorFlow cuDNN, cuBLAS, and cuFFT Registration Warnings and PyTorch NNPACK warnings
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     UV_BREAK_SYSTEM_PACKAGES=1 \
@@ -25,11 +24,9 @@ ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/Arial.ttf \
     /root/.config/Ultralytics/
 
 # Install linux packages
-# gnupg required for Edge TPU install
-# libsm6 required by libqxcb to create QT-based windows for visualization; set 'QT_DEBUG_PLUGINS=1' to test in docker
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    gcc git zip unzip wget curl htop libgl1 libglib2.0-0 gnupg libsm6 && \
+    gcc git zip unzip wget curl htop && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

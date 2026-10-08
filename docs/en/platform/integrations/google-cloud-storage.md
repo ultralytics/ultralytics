@@ -36,15 +36,15 @@ Platform only ever reads from your storage — it never writes, modifies, or del
    enter a known bucket name manually.
 4. Click **Connect**. Platform verifies it can list and read each selected bucket before saving anything.
 
-![Ultralytics Platform Google Cloud Storage Integration Settings](https://cdn.ul.run/i/20245971f25b11765202ff542a4faa68.avif)<!-- screenshot -->
+![Ultralytics Platform Google Cloud Storage Integration Settings](https://cdn.ul.run/i/c752e4f516c0eacedc9849a5b0d6c920.avif)<!-- screenshot -->
 
-You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. One
-connection carries up to 50 buckets, and discovery lists up to 300 of the buckets the service account can see.
+You need the workspace admin or owner [role](../account/teams.md#roles-and-permissions) to connect cloud storage. You
+can add up to 50 buckets at a time, and discovery lists up to 300 of the buckets the service account can see.
 
 Your browser reads the pasted key file and sends only the three fields Platform needs — `client_email`, `private_key`,
 and `project_id`. The rest of the JSON never leaves the page.
 
-Reconnecting the same service account later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected.
+Reconnecting the same service account later adds new buckets to the existing integration. A saved credential is only replaced once its replacement can still read every bucket you've already connected. If any bucket can't be read, the error names it, including buckets connected earlier with the same service account.
 
 !!! note "Credential security"
 
@@ -87,9 +87,11 @@ Managed training works through the normal training flow. Training uses Platform'
 
 ## Disconnect a Connection
 
-Disconnecting deletes the stored credentials without touching anything in Google Cloud. Datasets built from those buckets stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same service account is connected again.
+Disconnecting deletes the stored credentials without touching anything in Google Cloud. Datasets built from those buckets stay in your workspace with their classes, labels, and annotations, but their images cannot be loaded, previewed, or trained on until the same service account is connected again. You can still rename them, edit their labels, or delete them while disconnected.
 
-Use the [REST API](../api/index.md) with the integration ID returned by `GET /api/integrations/buckets`:
+To disconnect, go to **Settings > Integrations**, select **Google Cloud Storage**, click **Disconnect** next to the credential, and confirm. Opening one of its datasets then shows **Google Cloud Storage Disconnected** with a link back to these settings, and the dataset returns automatically once you reconnect.
+
+You can also disconnect with the [REST API](../api/index.md), using the integration ID returned by `GET /api/integrations/buckets`:
 
 ```bash
 curl -X DELETE \

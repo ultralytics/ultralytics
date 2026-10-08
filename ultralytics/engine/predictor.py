@@ -118,6 +118,7 @@ class BasePredictor:
         callbacks (dict[str, list[Callable]]): Callback functions for different events.
         txt_path (Path): Path to save text results.
         _lock (threading.Lock): Lock for thread-safe inference.
+        scale_fill (bool): Whether pre_transform stretches images to imgsz instead of letterboxing them.
 
     Methods:
         preprocess: Prepare input image before inference.
@@ -133,6 +134,8 @@ class BasePredictor:
         run_callbacks: Execute registered callbacks for an event.
         add_callback: Register a new callback function.
     """
+
+    scale_fill = False
 
     def __init__(
         self,
@@ -233,7 +236,9 @@ class BasePredictor:
             self.imgsz,
             auto=same_shapes
             and self.args.rect
+            and not self.scale_fill
             and (self.model.format == "pt" or (getattr(self.model, "dynamic", False) and self.model.format != "imx")),
+            scale_fill=self.scale_fill,
             stride=self.model.stride,
         )
         return [letterbox(image=x) for x in im]

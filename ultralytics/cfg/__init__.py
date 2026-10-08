@@ -694,8 +694,6 @@ def merge_equals_args(args: list[str]) -> list[str]:
         2. ['arg=', 'val'] becomes ['arg=val']
         3. ['arg', '=val'] becomes ['arg=val']
         4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
-        5. Keeps arguments separate with a warning when a bracket never closes, e.g., ['name=abc[', 'imgsz=320']
-            stays two arguments instead of fusing into one.
 
     Args:
         args (list[str]): A list of strings where each element represents an argument or fragment.
@@ -704,16 +702,16 @@ def merge_equals_args(args: list[str]) -> list[str]:
         (list[str]): A list of strings where the arguments around isolated '=' are merged and fragments with brackets
             are joined.
 
+    Raises:
+        SyntaxError: If an argument has an unmatched '[' or ']' bracket, which would fuse every later argument into it.
+
     Examples:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz", "=", "[3,", "640,", "640]"]
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
-        >>> merge_equals_args(["name=abc[", "imgsz=320"])  # unmatched bracket keeps arguments separate
-        ['name=abc[', 'imgsz=320']
     """
     new_args = []
-    current = ""
-    parts = []
+    current = []
     depth = 0
 
     i = 0
@@ -732,17 +730,15 @@ def merge_equals_args(args: list[str]) -> list[str]:
 
         # Handle bracket joining
         depth += arg.count("[") - arg.count("]")
-        current += arg
-        parts.append(arg)
+        current.append(arg)
         if depth == 0:
-            new_args.append(current)
-            current, parts = "", []
+            new_args.append("".join(current))
+            current = []
 
         i += 1
 
-    if parts:  # an unmatched bracket fused the remaining arguments into one unusable string
-        LOGGER.warning(f"Unmatched bracket in '{parts[0]}', keeping arguments separate: {parts}")
-        new_args += parts
+    if current:
+        raise SyntaxError(f"'{colorstr('red', 'bold', current[0])}' has an unmatched '[' or ']' bracket.")
 
     return new_args
 

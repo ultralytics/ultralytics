@@ -263,7 +263,7 @@ To create a dataset:
 2. Click `New Dataset`
 3. Pick a data source tab (see [Data Sources](#data-sources) below)
 4. Add a name — the URL slug is derived automatically and can be edited — plus an optional description
-5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private)
+5. Select the task type (see [supported tasks](index.md#supported-tasks)), an optional license (see [available licenses](#available-licenses)), and visibility (public or private). A new public dataset starts with **CC BY 4.0** selected; pick another license or **None** to change it
 6. Click `Create & Upload` for local files, `Create & Import` for a URL or connected source, or `Create Dataset` to start empty
 
 ![Ultralytics Platform Datasets Upload Dialog Task Selector](https://cdn.ul.run/i/16dcaac210f7f70540f6061c6b98fba9.avif)<!-- screenshot -->

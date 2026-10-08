@@ -156,10 +156,8 @@ class DetectionTrainer(BaseTrainer):
     def compute_class_weights(self, class_counts):
         """Return inverse-frequency weights raised to cls_pw, giving classes without train labels the mean weight."""
         present = class_counts > 0
-        weights = np.zeros_like(class_counts)
-        weights[present] = (1.0 / class_counts[present]) ** self.args.cls_pw
-        weights[~present] = weights[present].mean()
-        return weights
+        weights = (1.0 / np.where(present, class_counts, 1.0)) ** self.args.cls_pw
+        return np.where(present, weights, weights[present].mean())
 
     def set_class_weights(self):
         """Compute and set class weights for handling class imbalance.

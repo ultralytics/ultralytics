@@ -32,6 +32,12 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
     Examples:
         >>> img = imread("path/to/image.jpg")
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
+
+    Notes:
+        - Multi-page grayscale TIFFs with same-size pages stack them as channels. Other multi-page TIFFs, such as color
+          pages or Cloud Optimized GeoTIFFs with overview and thumbnail pages, return their first page.
+        - 16-bit TIFFs keep their high byte as 8-bit, as cv2 decodes 16-bit PNGs, unless `flags` includes
+          cv2.IMREAD_ANYDEPTH.
     """
     filename = str(filename)
     try:
@@ -42,10 +48,9 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         return None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if not success:
-            return None
-        if len(frames) > 1 or frames[0].ndim == 3:
-            return frames[0] if len(frames) == 1 else np.stack(frames, axis=2)
+        if success and (frames[0].ndim == 3 or (len(frames) > 1 and all(f.shape == frames[0].shape for f in frames))):
+            im = frames[0] if frames[0].ndim == 3 else np.stack(frames, axis=2)  # color pages keep the first page
+            return (im >> 8).astype(np.uint8) if im.dtype == np.uint16 and not flags & cv2.IMREAD_ANYDEPTH else im
     im = _imread_pil(filename, flags) if filename.lower().endswith(PIL_FALLBACK_SUFFIXES) else None  # EXIF-aware
     if im is None:
         im = cv2.imdecode(file_bytes, flags)

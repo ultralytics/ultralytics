@@ -44,6 +44,7 @@ from .utils import (
     load_dataset_cache_file,
     load_depth,
     polygons2masks_overlap,
+    read_mask,
     save_dataset_cache_file,
     verify_image,
     verify_image_depth,
@@ -250,8 +251,8 @@ class YOLODataset(BaseDataset):
         # Check if the dataset is all boxes or all segments
         lengths = ((len(lb["cls"]), len(lb["bboxes"]), len(lb["segments"])) for lb in labels)
         len_cls, len_boxes, len_segments = (sum(x) for x in zip(*lengths))
-        if (self.use_segments or self.use_obb) and len_boxes != len_segments:
-            task = "OBB" if self.use_obb else "Segment"
+        if (self.use_segments or self.use_obb or self.format_class is SemanticFormat) and len_boxes != len_segments:
+            task = "OBB" if self.use_obb else "Semantic" if self.format_class is SemanticFormat else "Segment"
             raise ValueError(
                 f"{task} dataset requires equal numbers of boxes and segments, but got len(segments) = "
                 f"{len_segments}, len(boxes) = {len_boxes}. Please supply {'an OBB' if self.use_obb else 'a segment'} "
@@ -985,13 +986,13 @@ class SemanticDataset(YOLODataset):
         return self.mask_files
 
     def get_cache_hash(self) -> str:
-        """Return a hash for semantic cache validation that also includes label_mapping changes.
+        """Return a hash for semantic cache validation that also includes label_mapping and class count changes.
 
         Returns:
             (str): Dataset cache hash.
         """
         mapping = json.dumps(self.label_mapping, sort_keys=True, separators=(",", ":"))
-        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}"])
+        return get_hash(self.im_files + self.mask_files + [f"label_mapping:{mapping}", f"nc:{len(self.data['names'])}"])
 
     def scan_summary(self, nf: int, nm: int, ne: int, nc: int) -> str:
         """Return a one-line summary of image-mask scan counters."""
@@ -1054,18 +1055,7 @@ class SemanticDataset(YOLODataset):
         Raises:
             FileNotFoundError: If the mask file is missing or unreadable.
         """
-        mask_file = self.labels[index]["mask_file"]
-        mode = self.labels[index]["mode"]
-        if mode == "P":  # palette PNGs store class ids as indices, not grayscale colors
-            with Image.open(mask_file) as im:
-                p = np.array(im.getpalette()).reshape(-1, 3)  # gray palettes (e.g. pngquant) hold gray-level class ids
-                mask = np.array(im.convert("L") if (p == p[:, :1]).all() else im)
-        else:
-            mask = cv2.imread(mask_file, cv2.IMREAD_ANYDEPTH)  # grayscale that keeps 16-bit ids
-        if mask is None:
-            raise FileNotFoundError(f"Semantic mask not found or unreadable: {mask_file}")
-        if int(self.data.get("nc", 0)) == 1 and mode == "1":
-            mask[mask == 255] = 1  # cv2 expands 1-bit PNG foreground to 255.
+        mask = read_mask(self.labels[index]["mask_file"], self.labels[index]["mode"])
         if self.label_mapping:
             mask = self.convert_label(mask, inverse=False)
         return mask.astype(np.uint8, copy=False)

@@ -37,7 +37,7 @@ class ReID:
             fp16 (bool): Request half precision on the AutoBackend path when the backend supports it. Ignored for `.pt`
                 models; models exported with FP16 inputs run in half precision regardless.
         """
-        self.imgsz = imgsz
+        self.imgsz = (imgsz, imgsz)
         self.batch_size = None
         self.device = (
             torch.device(device) if device is not None else torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -68,7 +68,9 @@ class ReID:
                 if isinstance(shape[0], int) and shape[0] > 0:
                     self.batch_size = shape[0]
                 if isinstance(shape[2], int) and shape[2] > 0:
-                    self.imgsz = shape[2]
+                    self.imgsz = (shape[2], shape[2])
+                if isinstance(shape[3], int) and shape[3] > 0:
+                    self.imgsz = (self.imgsz[0], shape[3])
 
     @staticmethod
     def _crop_detections(img: np.ndarray, dets: np.ndarray) -> list[np.ndarray]:
@@ -85,12 +87,10 @@ class ReID:
 
     def _crops_to_tensor(self, crops: list[np.ndarray]) -> torch.Tensor:
         """Stack a list of valid image crops into a normalized BCHW float tensor at self.imgsz."""
-        batch = torch.empty(len(crops), 3, self.imgsz, self.imgsz, dtype=torch.float32)
+        batch = torch.empty(len(crops), 3, *self.imgsz, dtype=torch.float32)
         for i, c in enumerate(crops):
             t = torch.from_numpy(np.ascontiguousarray(c[..., ::-1])).permute(2, 0, 1).unsqueeze(0).float() / 255.0
-            batch[i] = torch.nn.functional.interpolate(
-                t, size=(self.imgsz, self.imgsz), mode="bilinear", align_corners=False
-            )[0]
+            batch[i] = torch.nn.functional.interpolate(t, size=self.imgsz, mode="bilinear", align_corners=False)[0]
         batch = batch.to(self.device)
         return batch.half() if self.fp16 else batch
 

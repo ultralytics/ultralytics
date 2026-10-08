@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import math
 import os
 import random
@@ -445,25 +446,20 @@ def check_source(
     if isinstance(source, (str, int, Path)):  # int for local usb camera
         source = str(source)
         source_lower = source.lower()
-        is_url = source_lower.startswith(("https://", "http://", "rtsp://", "rtmp://", "tcp://"))
-        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))
-        is_file = not is_stream and (urlsplit(source_lower).path if is_url else source_lower).rpartition(".")[-1] in (
-            IMG_FORMATS | VID_FORMATS
-        )
-        webcam = source.isnumeric() or source.endswith(".streams") or (is_url and not is_file)
+        is_stream = source_lower.startswith(("rtsp://", "rtmp://", "tcp://"))  # streams even with a video suffix
+        is_url = source_lower.startswith(("https://", "http://"))
+        is_file = is_url and urlsplit(source_lower).path.rpartition(".")[-1] in (IMG_FORMATS | VID_FORMATS)
+        webcam = source.isnumeric() or source.endswith(".streams") or is_stream or (is_url and not is_file)
         screenshot = source_lower == "screen"
-        if is_url and is_file:
+        if is_file:
             source = check_file(source)  # download
-        elif webcam and source_lower.startswith("http"):  # a sized image/* response is one image, not a stream
+        elif is_url:  # a URL without a media suffix is one image if it returns a sized image/* response
             import requests  # scoped as slow import
 
-            try:
-                with requests.get(source, stream=True, timeout=3) as r:
-                    is_image = r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers
-            except requests.RequestException:
-                is_image = False
-            if is_image:
-                source, webcam, from_img = autocast_list([source]), False, True
+            with contextlib.suppress(requests.RequestException), requests.get(source, stream=True, timeout=3) as r:
+                webcam = not (r.headers.get("Content-Type", "").startswith("image/") and "Content-Length" in r.headers)
+            if not webcam:
+                source, from_img = autocast_list([source]), True
     elif isinstance(source, LOADERS):
         in_memory = True
     elif isinstance(source, (list, tuple)):

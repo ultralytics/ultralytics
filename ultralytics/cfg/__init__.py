@@ -694,6 +694,8 @@ def merge_equals_args(args: list[str]) -> list[str]:
         2. ['arg=', 'val'] becomes ['arg=val']
         3. ['arg', '=val'] becomes ['arg=val']
         4. Joins fragments with brackets, e.g., ['imgsz=[3,', '640,', '640]'] becomes ['imgsz=[3,640,640]']
+        5. Keeps arguments separate with a warning when a bracket never closes, e.g., ['name=abc[', 'imgsz=320']
+            stays two arguments instead of fusing into one.
 
     Args:
         args (list[str]): A list of strings where each element represents an argument or fragment.
@@ -706,9 +708,12 @@ def merge_equals_args(args: list[str]) -> list[str]:
         >>> args = ["arg1", "=", "value", "arg2=", "value2", "arg3", "=value3", "imgsz", "=", "[3,", "640,", "640]"]
         >>> merge_equals_args(args)
         ['arg1=value', 'arg2=value2', 'arg3=value3', 'imgsz=[3,640,640]']
+        >>> merge_equals_args(["name=abc[", "imgsz=320"])  # unmatched bracket keeps arguments separate
+        ['name=abc[', 'imgsz=320']
     """
     new_args = []
     current = ""
+    parts = []
     depth = 0
 
     i = 0
@@ -728,15 +733,16 @@ def merge_equals_args(args: list[str]) -> list[str]:
         # Handle bracket joining
         depth += arg.count("[") - arg.count("]")
         current += arg
+        parts.append(arg)
         if depth == 0:
             new_args.append(current)
-            current = ""
+            current, parts = "", []
 
         i += 1
 
-    # Append any remaining current string
-    if current:
-        new_args.append(current)
+    if parts:  # an unmatched bracket fused the remaining arguments into one unusable string
+        LOGGER.warning(f"Unmatched bracket in '{parts[0]}', keeping arguments separate: {parts}")
+        new_args += parts
 
     return new_args
 

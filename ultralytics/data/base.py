@@ -267,7 +267,7 @@ class BaseDataset(Dataset):
         """
         im, f, fn = self.ims[i], self.im_files[i], self.npy_files[i]
         if im is None:  # not cached in RAM
-            if fn.exists():  # always load an existing npy regardless of cache mode, it is the fastest image read
+            if fn.exists() and fn.stat().st_mtime >= Path(f).stat().st_mtime:  # fresh npy is the fastest image read
                 try:
                     im = np.load(fn)
                     npy_channels = im.shape[-1] if im.ndim >= 3 else 1

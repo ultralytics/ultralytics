@@ -56,7 +56,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main # outside the composite so it adds no post step to every consumer
         with:
           python-version: "3.13"
-          activate-environment: true
       - uses: ./.github/actions/ci-assets
         with:
           build: true
@@ -80,9 +79,6 @@ jobs:
         model: [yolo26n]
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: ${{ matrix.python }}
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
@@ -94,11 +90,11 @@ jobs:
           timeout_minutes: 20
           run: |
             # Pin PNNX until 20260704 NCNN inference segfault is fixed: https://github.com/pnnx/pnnx/issues/293
-            uv pip install --system -e ".[export,export-executorch]" \
+            uv pip install -e ".[export,export-executorch]" \
               ncnn pnnx==20260526 "coverage[toml]" \
               --torch-backend cpu
             # Core AI benchmark rows: export on macOS and x86_64 Linux, inference on macOS (a no-op on Linux arm64)
-            uv pip install --system -e ".[export-coreai]" --torch-backend cpu
+            uv pip install -e ".[export-coreai]" --torch-backend cpu
       - name: Check environment
         run: |
           yolo checks
@@ -173,7 +169,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -314,7 +309,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: ${{ matrix.python }}
-          activate-environment: true
       - name: Install requirements
         shell: bash # for Windows compatibility
         run: |
@@ -365,9 +359,6 @@ jobs:
       - name: Cleanup disk space
         uses: ultralytics/actions/cleanup-disk@main
       - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.13"
@@ -386,7 +377,7 @@ jobs:
           restore-keys: |
             isolated-exports-uv-
       - name: Install base package
-        run: uv pip install --system -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
+        run: uv pip install -e ".[export-base]" pytest "git+https://github.com/ultralytics/CLIP.git" --torch-backend cpu
       - uses: ./.github/actions/ci-assets
       - name: Build and run export tests in isolated environments
         env:
@@ -417,8 +408,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
-        with:
-          activate-environment: true
       - name: Install requirements
         run: |
           sed -i'' -e 's/"opencv-python/"opencv-python-headless/' pyproject.toml  # headless OpenCV
@@ -464,7 +453,6 @@ jobs:
       - uses: ultralytics/actions/setup-uv@main
         with:
           python-version: "3.12"
-          activate-environment: true
       - name: Install requirements
         run: |
           uv pip install "torch[device-all]==2.13.0+rocm10.0.0" "torchvision[device-all]==0.28.0+rocm10.0.0" --index-url https://stable.repo.amd.com/rocm/whl-next/ --index-strategy unsafe-best-match
@@ -509,6 +497,8 @@ jobs:
           source env-tests/bin/activate
           echo PATH=$PATH >> $GITHUB_ENV
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # use env-tests above
       - name: Install requirements
         uses: ultralytics/actions/retry@main
         with:
@@ -596,6 +586,8 @@ jobs:
         uses: eviden-actions/clean-self-hosted-runner@v1.4.41
       - uses: actions/checkout@v7
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # use the venv below
       - name: Activate virtual environment
         run: |
           python${{ matrix.python }} -m venv env --system-site-packages
@@ -638,6 +630,8 @@ jobs:
         shell: bash -el {0}
     steps:
       - uses: ultralytics/actions/setup-uv@main
+        with:
+          activate-environment: false # use the conda env
       - uses: conda-incubator/setup-miniconda@v4
         with:
           channels: conda-forge
@@ -691,13 +685,47 @@ jobs:
   Summary:
     runs-on: ubuntu-latest
     needs: [Assets, Benchmarks, Tests, SlowTests, IsolatedExports, GPU, AMD_GPU, RaspberryPi, NVIDIA_Jetson, Conda]
-    if: always()
+    if: always() && (needs.Assets.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+    permissions:
+      actions: read # read failed job logs
     steps:
-      - name: Check for failure and notify
-        if: (needs.Assets.result == 'failure' || needs.Benchmarks.result == 'failure' || needs.Tests.result == 'failure' || needs.SlowTests.result == 'failure' || needs.IsolatedExports.result == 'failure' || needs.GPU.result == 'failure' || needs.AMD_GPU.result == 'failure' || needs.RaspberryPi.result == 'failure' || needs.NVIDIA_Jetson.result == 'failure' || needs.Conda.result == 'failure' ) && github.repository == 'ultralytics/ultralytics' && (github.event_name == 'schedule' || github.event_name == 'push') && github.run_attempt == '1'
+      - uses: ultralytics/actions/setup-uv@main
+      - name: Analyze failure logs
+        id: ai
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          uvx --from ultralytics-actions python - <<'EOF'
+          import json, os, requests
+          from actions.utils import get_response
+
+          repo = os.environ["GITHUB_REPOSITORY"]
+          api = f"https://api.github.com/repos/{repo}/actions"
+          headers = {"Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}"}
+          run = requests.get(f"{api}/runs/{os.environ['GITHUB_RUN_ID']}", headers=headers, timeout=30).json()
+          jobs = requests.get(f"{run['jobs_url']}?filter=latest&per_page=100", headers=headers, timeout=30).json()["jobs"]
+          failed = [j for j in jobs if j["conclusion"] == "failure"]
+          logs = [  # context for links
+              f"Commit: https://github.com/{repo}/commit/{run['head_sha']} {run['head_commit']['message'].splitlines()[0]}",
+              "Failed jobs:\n" + "\n".join(f"{j['name']}: {j['html_url']}" for j in failed),
+          ]
+          for j in failed[:12]:  # last 6000 chars of each failed job log before cleanup, where the error is
+              r = requests.get(f"{api}/jobs/{j['id']}/logs", headers=headers, timeout=60)
+              r.raise_for_status()
+              logs.append(f"## {j['name']}\n{r.text.split('Post job cleanup.')[0][-6000:]}")
+          prompt = "You triage CI failures for the Ultralytics YOLO repo. Reply in Slack mrkdwn, not Markdown: single asterisks for bold, no headings, links only as <url|text>. Add links only where they help, such as the failing job, a source line (https://github.com/<repo>/blob/<sha>/<repo-relative path>#L<line>), or the PR or commit that likely caused a regression. Never invent URLs or PR numbers. First line exactly *Verdict:* Transient (flaky test, network, runner or infra issue) or *Verdict:* Bug (code or dependency regression that needs a fix), followed by a short reason. Then at most 3 short bullets: the failing jobs and tests, and the most likely root cause. No preamble."
+          messages = [{"role": "system", "content": prompt}, {"role": "user", "content": "\n\n".join(logs)}]
+          summary = get_response(messages, check_links=False)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"summary={json.dumps(chr(10) + summary[:2500])}\n")  # JSON keeps the output on one line
+          EOF
+      - name: Notify Slack
+        if: ${{ !cancelled() }} # notify even if analysis setup fails
         uses: slackapi/slack-github-action@v4.0.0
         with:
           webhook-type: incoming-webhook
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_YOLO }}
           payload: |
-            text: "<!subteam^S082BPCRAJ3> *${{ github.workflow }}* ❌ `${{ github.repository }}`  <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Run*>"
+            text: ${{ toJSON(format('<!subteam^S082BPCRAJ3> *{0}* ❌ `{1}`  <https://github.com/{1}/actions/runs/{2}|*Run*>{3}', github.workflow, github.repository, github.run_id, fromJSON(steps.ai.outputs.summary || '""'))) }}

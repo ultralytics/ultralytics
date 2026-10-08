@@ -374,7 +374,7 @@ def check_version(
         if (
             (op == "==" and cn != vn)
             or (op == "!=" and cn == vn)
-            or (op == ">=" and not (cn >= vn))
+            or (op in {">=", "~="} and not (cn >= vn))
             or (op == "<=" and not (cn <= vn))
             or (op == ">" and not (cn > vn))
             or (op == "<" and not (cn < vn))
@@ -576,7 +576,7 @@ def check_requirements(requirements=ROOT.parent / "requirements.txt", exclude=()
 
         for candidate in candidates:
             r_stripped = candidate.rpartition("/")[-1].replace(".git", "")  # replace git+https://org/repo.git -> 'repo'
-            match = re.match(r"([a-zA-Z0-9-_]+)([<>!=~]+.*)?", r_stripped)
+            match = re.match(r"([a-zA-Z0-9-_]+)(?:\[[^\]]*\])?([<>!=~]+.*)?", r_stripped)
             name, required = match[1], match[2].strip() if match[2] else ""
             try:
                 if check_version(metadata.version(name), required):

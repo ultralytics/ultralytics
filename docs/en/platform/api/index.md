@@ -52,17 +52,14 @@ integrations_path: ../../integrations
 The API is organized around the core Platform resources:
 
 ```mermaid
-graph LR
-    A[API Key]:::start --> B[Datasets]:::proc
-    A --> C[Projects]:::proc
-    B -->|images| G[Images]:::proc
-    C -->|contains| D[Models]:::proc
-    B -->|train on| D
-    D -->|deploy| E[Deployments]:::proc
-    D -->|export| F[Exports]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
+flowchart TD
+    A([API key]) --> B[(Datasets)]
+    A --> C[Projects]
+    B -->|contains| G[Images]
+    C -->|contains| D[Models]
+    B -->|trains| D
+    D -->|deploy| E[Deployments]
+    D -->|export| F[Exports]
 ```
 
 | Resource                                   | Description                     | Key Operations                                                |
@@ -984,17 +981,14 @@ to 1,024 characters, top-level metadata keys to 128 characters, and each metadat
 ```
 
 ```mermaid
-graph LR
-    A[POST /api/datasets]:::start --> B[POST /api/upload/signed-url]:::proc
-    B --> C[PUT archive to signed URL]:::proc
-    C --> D["POST /api/upload/complete (optional)"]:::proc
-    D --> E["POST /api/datasets/{owner}/{dataset}/ingest"]:::proc
-    E --> F[Process archive]:::proc
-    F --> G[Dataset ready]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
+flowchart TD
+    A(["POST /api/datasets"]) --> B["POST /api/upload/signed-url"]
+    B --> C[PUT archive to signed URL]
+    C -.->|optional| D["POST /api/upload/complete"]
+    C --> E["POST .../{dataset}/ingest"]
+    D -.-> E
+    E --> F[Process archive]
+    F --> G([Dataset ready])
 ```
 
 ??? example "Upload one image with metadata using Python"
@@ -1636,19 +1630,12 @@ Launch YOLO training on cloud GPUs and monitor progress in real time. See
 [Cloud Training documentation](../train/cloud-training.md).
 
 ```mermaid
-graph LR
-    A[POST /api/training/start]:::start --> B[Job Created]:::proc
-    B --> C{Training}:::decide
-    C -->|progress| D[GET .../training]:::proc
-    C -->|cancel| E[DELETE .../training]:::error
-    C -->|complete| F[Model Ready]:::out
-    F --> G[Deploy or Export]:::proc
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef decide fill:#FF9800,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
+stateDiagram-v2
+    [*] --> Training: POST start
+    Training --> Training: GET progress
+    Training --> Cancelled: DELETE
+    Training --> Ready: complete
+    Ready --> [*]: deploy or export
 ```
 
 ### Get GPU Availability
@@ -1844,21 +1831,15 @@ Deploy models to dedicated inference endpoints with health checks and monitoring
 [Endpoints documentation](../deploy/endpoints.md).
 
 ```mermaid
-graph LR
-    A[Create]:::start --> B[Deploying]:::proc
-    B --> C[Ready]:::out
-    C -->|action stop| D[Stopped]:::extern
-    C -->|action replace| B
-    D -->|action start| C
-    C -->|delete| E[Deleted]:::error
-    D -->|delete| E
-    C -->|predict| F[Inference Results]:::out
-
-    classDef start fill:#4CAF50,color:#fff
-    classDef proc fill:#2196F3,color:#fff
-    classDef out fill:#9C27B0,color:#fff
-    classDef error fill:#F44336,color:#fff
-    classDef extern fill:#607D8B,color:#fff
+stateDiagram-v2
+    [*] --> Deploying: create
+    Deploying --> Ready
+    Ready --> Stopped: stop
+    Stopped --> Deploying: start
+    Ready --> Deploying: replace
+    Ready --> Ready: predict
+    Ready --> [*]: delete
+    Stopped --> [*]: delete
 ```
 
 ### List Deployments

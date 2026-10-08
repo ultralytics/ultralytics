@@ -100,6 +100,11 @@ class YOLOETrainer(DetectionTrainer):
             self.args, img_path, batch, self.data, mode=mode, rect=mode == "val", stride=gs, multi_modal=mode == "train"
         )
 
+    def set_class_weights(self):
+        """Skip cls_pw, as RandomLoadText maps cls channels to sampled prompt positions, not dataset classes."""
+        if self.args.cls_pw:
+            LOGGER.warning("'cls_pw' is not supported for text-prompt training, ignoring.")
+
 
 class YOLOEPETrainer(DetectionTrainer):
     """Fine-tune YOLOE model using linear probing approach.

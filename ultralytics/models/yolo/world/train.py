@@ -114,6 +114,11 @@ class WorldTrainer(DetectionTrainer):
             self.set_text_embeddings([dataset], batch)  # cache text embeddings to accelerate training
         return dataset
 
+    def set_class_weights(self):
+        """Skip cls_pw, as RandomLoadText maps cls channels to sampled prompt positions, not dataset classes."""
+        if self.args.cls_pw:
+            LOGGER.warning("'cls_pw' is not supported for text-prompt training, ignoring.")
+
     def set_text_embeddings(self, datasets: list[Any], batch: int | None) -> None:
         """Set text embeddings for datasets to accelerate training by caching category names.
 

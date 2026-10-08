@@ -35,8 +35,7 @@ class DepthPredictor(BasePredictor):
 
     def pre_transform(self, im: list[np.ndarray]) -> list[np.ndarray]:
         """Stretch images to the model input size without padding, matching depth validation and calibration."""
-        letterbox = LetterBox(self.imgsz, auto=False, scale_fill=True)
-        return [letterbox(image=x) for x in im]
+        return [LetterBox(self.imgsz, scale_fill=True)(image=x) for x in im]
 
     def postprocess(
         self, preds: torch.Tensor | tuple | list, img: torch.Tensor, orig_imgs: list[np.ndarray] | torch.Tensor
@@ -53,9 +52,8 @@ class DepthPredictor(BasePredictor):
             orig_imgs = ops.convert_torch2numpy_batch(orig_imgs)[..., ::-1]
 
         results = []
-        for i, orig_img in enumerate(orig_imgs):
-            img_path = self.batch[0][i] if isinstance(self.batch[0], list) else self.batch[0]
-            depth = F.interpolate(depth_maps[i : i + 1], orig_img.shape[:2], mode="bilinear", align_corners=True)
+        for depth, orig_img, img_path in zip(depth_maps, orig_imgs, self.batch[0]):
+            depth = F.interpolate(depth[None], orig_img.shape[:2], mode="bilinear", align_corners=True)
             results.append(Results(orig_img=orig_img, path=img_path, names=self.model.names, depth=depth.squeeze()))
 
         return results

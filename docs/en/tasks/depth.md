@@ -223,7 +223,7 @@ The released `yolo26*-depth.pt` checkpoints ship with this calibration already b
 
 ## Val
 
-Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768`, so validate and predict at that size for best accuracy.
+Validate a trained YOLO26n-depth model [accuracy](https://www.ultralytics.com/glossary/accuracy) on a depth estimation dataset. Pass `data` explicitly so validation uses the intended dataset YAML. The released weights are trained at `imgsz=768` on images stretched to a square rather than letterboxed with padding, so validate and predict at that size for best accuracy. Prediction, validation and `model.calibrate()` all stretch the input the same way.
 
 !!! example
 

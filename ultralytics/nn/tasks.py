@@ -347,10 +347,12 @@ class BaseModel(torch.nn.Module):
             for attr in ("cv3", "one2one_cv3"):
                 dst, src = getattr(head, attr, None), getattr(src_head, attr, None)
                 if dst is not None and src is not None and dst[0][-1].in_channels != src[0][-1].in_channels:
-                    src = deepcopy(src)
+                    src = deepcopy(src).train(dst.training)
                     for s, d in zip(src, dst):
                         if s[-1].out_channels != d[-1].out_channels:  # new class count
                             s[-1] = nn.Conv2d(s[-1].in_channels, d[-1].out_channels, 1)
+                        for sp, dp in zip(s.parameters(), d.parameters()):
+                            sp.requires_grad_(dp.requires_grad)
                     setattr(head, attr, src.to(dst[0][-1].weight.device, dst[0][-1].weight.dtype))
                     head.bias_init()
 

@@ -575,14 +575,13 @@ def process_mask_native(protos, masks_in, bboxes, shape):
     # Upsampling all N masks at once allocates an N*H*W float intermediate (~9 GB on a large image with many
     # detections), which OOMs the worker. Upsample in chunks bounded by a pixel budget, thresholding each chunk to
     # uint8 immediately so the float intermediate stays small, then crop the assembled uint8 stack.
-    gain = min(4 * mh / h, 4 * mw / w)  # letterbox gain at the input size (4x prototypes)
-    ch, cw = round(h * gain), round(w * gain)
-    # Smallest upsample (1, 2 or 4) that puts the letterbox crop on whole pixels
-    f = 4 // math.gcd(4, ch | cw | round((4 * mh - ch) / 2 - 0.1) | round((4 * mw - cw) / 2 - 0.1))
-    masks = []
-    for chunk in coeffs.view(-1, mh, mw).split(max(1, 32_000_000 // (h * w + f * f * mh * mw))):
-        chunk = F.interpolate(chunk[None], (f * mh, f * mw), mode="bilinear") if f > 1 else chunk[None]
-        masks.append(scale_masks(chunk, shape)[0].gt_(0.0).byte())
+    gain = min(4 * mh / h, 4 * mw / w)
+    pad = (4 * mh - round(h * gain)) | (4 * mw - round(w * gain))  # letterbox padding at the input size (4x protos)
+    f = 4 // math.gcd(4, pad | pad // 2)  # smallest upsample (1, 2 or 4) that crops the padding on whole pixels
+    masks = [
+        scale_masks(F.interpolate(chunk, scale_factor=f, mode="bilinear") if f > 1 else chunk, shape)[0].gt_(0.0).byte()
+        for chunk in coeffs.view(1, -1, mh, mw).split(max(1, 32_000_000 // (h * w + f * f * mh * mw)), 1)
+    ]
     return crop_mask(torch.cat(masks), bboxes)
 
 

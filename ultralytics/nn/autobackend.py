@@ -320,11 +320,7 @@ class AutoBackend(nn.Module):
         nms = self.metadata.get("args", {}).get("nms")
         dynamic = self.metadata.get("dynamic")
         fixed = not dynamic and (nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"})
-        if (
-            self.format not in {"pt", "coreml", "imx"}
-            and im.shape[0] > self.batch
-            and (nms or (fixed and dynamic is False and self.metadata.get("batch") is not None))
-        ):
+        if self.format not in {"coreml", "imx"} and im.shape[0] > self.batch and (nms or (fixed and dynamic is False)):
             # Static and NMS graphs use the export batch; clone reused outputs and pad short tails below.
             ys = []
             for x in im.split(self.batch):

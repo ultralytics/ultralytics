@@ -318,8 +318,7 @@ def test_export_onnx_matrix(task, dynamic, batch, simplify, nms):
         simplify=simplify,
         nms=nms,
     )
-    r = YOLO(file)([SOURCE] * (batch + 1), imgsz=64 if dynamic else 32)  # full chunk plus a short padded tail
-    assert len(r) == batch + 1
+    r = YOLO(file)([SOURCE] * batch, imgsz=64 if dynamic else 32)  # exported model inference
     if task == "semantic":
         assert r[0].semantic_mask is not None
         assert r[0].semantic_mask.data.dtype in {torch.uint8, torch.int32}

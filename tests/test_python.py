@@ -2006,6 +2006,45 @@ def test_classification_split_class_alignment(tmp_path):
     assert sorted(sample[1] for sample in samples) == [1, 2]
 
 
+def test_classification_resplit_moves_images_without_removing_caches(tmp_path):
+    """Changing the ratio must not place an image in both train and validation or delete caches."""
+    from ultralytics.data.split import split_classify_dataset
+
+    source = tmp_path / "dataset"
+    class_dir = source / "cat"
+    class_dir.mkdir(parents=True)
+    for i in range(4):
+        (class_dir / f"{i}.jpg").write_bytes(b"image")
+
+    split = split_classify_dataset(source, train_ratio=0.5)
+    cache = split / "train" / "cat" / "cached.npy"
+    cache.write_bytes(b"cache")
+    split_classify_dataset(source, train_ratio=0.75)
+
+    train = {p.name for p in (split / "train" / "cat").glob("*.jpg")}
+    val = {p.name for p in (split / "val" / "cat").glob("*.jpg")}
+    assert len(train) == 3 and len(val) == 1
+    assert not train & val
+    split_classify_dataset(source, train_ratio=0.25)
+    train = {p.name for p in (split / "train" / "cat").glob("*.jpg")}
+    val = {p.name for p in (split / "val" / "cat").glob("*.jpg")}
+    assert len(train) == 1 and len(val) == 3
+    assert not train & val
+    assert cache.read_bytes() == b"cache"
+
+    if os.name == "nt":  # copy2 keeps Windows' read-only attribute, which normally prevents unlinking the old copy
+        split_classify_dataset(source, train_ratio=0.0)
+        for image in class_dir.glob("*.jpg"):
+            image.chmod(0o444)
+        split_classify_dataset(source, train_ratio=0.0)
+        split_classify_dataset(source, train_ratio=1.0)
+        assert not list((split / "val" / "cat").glob("*.jpg"))
+        for image in source.rglob("*.jpg"):
+            image.chmod(0o666)
+        for image in split.rglob("*.jpg"):
+            image.chmod(0o666)
+
+
 @pytest.fixture
 def image():
     """Load and return an image from a predefined source (OpenCV BGR)."""

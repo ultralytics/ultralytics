@@ -1,5 +1,5 @@
 ---
-title: Environmental, Health & Safety Policy
+title: EHS Policy (Environment, Health, Safety)
 comments: false
 description: Explore Ultralytics' commitment to Environmental, Health, and Safety (EHS) policies. Learn about our measures to ensure safety, compliance, and sustainability.
 keywords: Ultralytics, EHS policy, safety, sustainability, environmental impact, health and safety, risk management, compliance, continuous improvement

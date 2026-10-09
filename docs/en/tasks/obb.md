@@ -1,4 +1,5 @@
 ---
+title: Oriented Bounding Box (OBB) Detection
 comments: true
 description: Discover how to detect objects with rotation for higher precision using YOLO26 OBB models. Learn, train, validate, and export OBB models effortlessly.
 keywords: Oriented Bounding Boxes, OBB, Object Detection, YOLO26, Ultralytics, DOTAv1, Model Training, Model Export, AI, Machine Learning

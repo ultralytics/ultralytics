@@ -321,19 +321,11 @@ class AutoBackend(nn.Module):
         dynamic = self.metadata.get("dynamic")
         fixed = not dynamic and (nms or self.format not in {"torchscript", "ncnn", "deepx", "axelera"})
         if (
-            self.format != "pt"  # native PyTorch runs any batch directly
+            self.format not in {"pt", "coreml", "imx"}
             and im.shape[0] > self.batch
-            and (
-                (nms and self.format not in {"coreml", "imx"})  # NMS models reuse outputs across calls
-                or (
-                    dynamic is False
-                    and self.metadata.get("batch") is not None  # export metadata pins graph AND batch
-                    and self.format not in {"coreml", "imx", "torchscript", "ncnn", "deepx", "axelera"}
-                )
-            )
+            and (nms or (fixed and dynamic is False and self.metadata.get("batch") is not None))
         ):
-            # Static-batch graphs and NMS models only process their export batch per call; clone chunks as backends
-            # reuse outputs. Short tail chunks recurse into the zero-pad path below.
+            # Static and NMS graphs use the export batch; clone reused outputs and pad short tails below.
             ys = []
             for x in im.split(self.batch):
                 y = self.forward(x)

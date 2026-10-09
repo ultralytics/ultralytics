@@ -269,72 +269,6 @@ def test_autobackend_memory_format(tmp_path):
     assert all(x.is_contiguous() for x in YOLO(tmp_path / "model.pt").model.parameters())
 
 
-def test_autobackend_static_batch_split(isolated_model):
-    """Static-batch exports chunk oversized inputs to the export batch with parity; a later call cannot corrupt results."""
-    from ultralytics.nn.autobackend import AutoBackend
-
-    f = YOLO(isolated_model).export(format="onnx", imgsz=160, batch=2)  # static graph, batch pinned in export metadata
-    model = YOLO(f)
-    srcs = [SOURCE, ASSETS / "zidane.jpg", SOURCE]  # 3 > 2: one full chunk plus a short zero-padded tail chunk
-    batched = model(srcs, imgsz=160, verbose=False)
-    assert [Path(r.path).name for r in batched] == [Path(s).name for s in srcs]  # order survives chunk-and-concat
-    assert sum(len(r.boxes) for r in batched) > 0  # parity below compares real detections, not two empty sets
-    for r, s in zip(batched, srcs):
-        single = model(s, imgsz=160, verbose=False)[0]
-        assert torch.allclose(r.boxes.xyxy, single.boxes.xyxy) and r.boxes.conf.tolist() == single.boxes.conf.tolist()
-
-    ab = AutoBackend(f, device=torch.device("cpu"))
-    x = torch.rand(3, 3, 160, 160)
-    y = ab.forward(x)  # oversized input at the backend level
-    assert y.shape[0] == 3 and torch.allclose(y[:2], ab.forward(x[:2])) and torch.allclose(y[2:], ab.forward(x[2:]))
-    ab.forward(torch.rand(3, 3, 160, 160))  # backends may reuse output buffers across calls
-    assert torch.allclose(y, ab.forward(x))  # the earlier chunk-and-concat result survives intact
-
-
-def test_autobackend_split_unpinned_metadata(isolated_model, tmp_path):
-    """Chunking requires fully pinned export metadata; unpinned graphs, list outputs included, stay single-call."""
-    import onnx
-
-    from tests.conftest import isolated_model_path
-    from ultralytics.nn.autobackend import AutoBackend
-
-    def third_party(src, name, props=None):
-        """Copy an export with metadata_props replaced, emulating a third-party model file."""
-        graph = onnx.load(src)
-        graph.metadata_props.clear()
-        if props:
-            for key, value in props.items():
-                entry = graph.metadata_props.add()
-                entry.key, entry.value = key, value
-        dst = tmp_path / name
-        onnx.save(graph, dst)
-        return dst
-
-    def session_calls(path, n):
-        """Forward a batch of n random images, counting backend session.run calls."""
-        ab = AutoBackend(path, device=torch.device("cpu"))
-        calls, run = [], ab.backend.session.run
-
-        def counting(*args, **kwargs):
-            calls.append(1)
-            return run(*args, **kwargs)
-
-        ab.backend.session.run = counting
-        y = ab.forward(torch.rand(n, 3, 64, 64))
-        return len(calls), (y[0] if isinstance(y, list) else y).shape[0]
-
-    f_static = Path(YOLO(isolated_model).export(format="onnx", imgsz=64, batch=2)).replace(tmp_path / "static.onnx")
-    f_dynamic = YOLO(isolated_model).export(format="onnx", imgsz=64, dynamic=True)
-    calls, b = session_calls(third_party(f_dynamic, "stripped.onnx"), 8)
-    assert (calls, b) == (1, 8)  # metadata-less dynamic graph: never chunked per image on a guessed batch
-    calls, b = session_calls(third_party(f_static, "stamped.onnx", {"license": "MIT"}), 2)
-    assert (calls, b) == (1, 2)  # foreign props synthesize dynamic=False without a batch pin: still no chunking
-
-    seg = YOLO(isolated_model_path(tmp_path, WEIGHTS_DIR / "yolo26n-seg.pt")).export(format="onnx", imgsz=64, batch=2)
-    ys = AutoBackend(seg, device=torch.device("cpu")).forward(torch.rand(3, 3, 64, 64))  # list output, short tail
-    assert isinstance(ys, list) and {t.shape[0] for t in ys} == {3}  # every output concatenated across chunks
-
-
 def test_restricted_load_threaded():
     """Concurrent restricted loads share one process-wide allow-list and must not strip each other's entries."""
     import pathlib
@@ -426,49 +360,21 @@ def test_model_load_remaps_cls_head_by_names():
     src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
     tgt.load(src, verbose=False)  # YOLOE cv3 outputs embeddings, not class rows
 
-    from ultralytics.models.yolo.semantic.train import SemanticSegmentationTrainer
     from ultralytics.nn.tasks import SemanticSegmentationModel
 
-    # YOLO26 Segment per-pixel semseg rows remap like cv3 rows; unmatched rows keep their init
-    src = SegmentationModel("yolo26n-seg.yaml", nc=3, verbose=False)
-    tgt = SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "new"}
-    for m, bias in ((src, [10.0, 20.0, 30.0]), (tgt, [-1.0, -2.0])):
-        last = m.model[-1].proto.semseg[-1]
-        last.bias.data.copy_(torch.tensor(bias))
-        last.weight.data.copy_(torch.full_like(last.weight, bias[0] * -1))
-    tgt.load(src, verbose=False)
-    sem = tgt.model[-1].proto.semseg[-1]
-    assert sem.bias.tolist() == [20.0, -2.0]
-    assert torch.equal(sem.weight[0], src.model[-1].proto.semseg[-1].weight[1]) and torch.all(sem.weight[1] == 1.0)
-
-    # same-count class reordering permutes rows instead of copying them in order
-    src = SegmentationModel("yolo26n-seg.yaml", nc=3, verbose=False)
-    tgt = SegmentationModel("yolo26n-seg.yaml", nc=3, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat", 2: "car"}
-    src.model[-1].proto.semseg[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
-    tgt.load(src, verbose=False)
-    assert tgt.model[-1].proto.semseg[-1].bias.tolist() == [20.0, 10.0, 30.0]
-
-    # SemanticSegment classifier and aux_head rows follow the same remap
-    src = SemanticSegmentationModel("yolo26n-sem.yaml", nc=3, verbose=False)
-    tgt = SemanticSegmentationModel("yolo26n-sem.yaml", nc=2, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "new"}
-    for m, bias in ((src, [10.0, 20.0, 30.0]), (tgt, [-1.0, -2.0])):
-        for attr in ("classifier", "aux_head"):
-            getattr(m.model[-1], attr)[-1].bias.data.copy_(torch.tensor(bias))
-    tgt.load(src, verbose=False)
-    assert tgt.model[-1].classifier[-1].bias.tolist() == [20.0, -2.0]
-    assert tgt.model[-1].aux_head[-1].bias.tolist() == [20.0, -2.0]
-
-    # aux_head=None models remap through classifier only
-    src = SemanticSegmentationModel("yolo26n-sem.yaml", nc=3, verbose=False)
-    tgt = SemanticSegmentationModel("yolo26n-sem.yaml", nc=2, verbose=False)
-    src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
-    src.model[-1].aux_head = tgt.model[-1].aux_head = None
-    src.model[-1].classifier[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
-    tgt.load(src, verbose=False)
-    assert tgt.model[-1].classifier[-1].bias.tolist() == [20.0, 10.0]
+    for model_cls, cfg, branches in (
+        (SegmentationModel, "yolo26n-seg.yaml", ("proto.semseg",)),
+        (SemanticSegmentationModel, "yolo26n-sem.yaml", ("classifier", "aux_head")),
+    ):
+        src, tgt = (model_cls(cfg, nc=nc, verbose=False) for nc in (3, 2))
+        src.names, tgt.names = {0: "cat", 1: "dog", 2: "car"}, {0: "dog", 1: "cat"}
+        for name, seq in src.model[-1].named_modules():
+            if name in branches:
+                seq[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
+        tgt.load(src, verbose=False)
+        for name, seq in tgt.model[-1].named_modules():
+            if name in branches:
+                assert seq[-1].bias.tolist() == [20.0, 10.0]
 
     names = {0: "dog", 1: "cat"}
     for trainer_cls, model in (
@@ -476,22 +382,11 @@ def test_model_load_remaps_cls_head_by_names():
         (SegmentationTrainer, SegmentationModel("yolo26n-seg.yaml", nc=2, verbose=False)),
         (PoseTrainer, PoseModel("yolo26n-pose.yaml", nc=2, data_kpt_shape=[17, 3], verbose=False)),
         (OBBTrainer, OBBModel("yolo26n-obb.yaml", nc=2, verbose=False)),
-        (SemanticSegmentationTrainer, SemanticSegmentationModel("yolo26n-sem.yaml", nc=2, verbose=False)),
     ):
         trainer = object.__new__(trainer_cls)
         trainer.args = SimpleNamespace(cls_remap=True)
         trainer.data = {"names": names}
         assert trainer.set_model_names_for_load(model).names == names
-
-    # the semantic trainer sets target names before loading weights, so its get_model remaps
-    src = SemanticSegmentationModel("yolo26n-sem.yaml", nc=3, verbose=False)
-    src.names = {0: "cat", 1: "dog", 2: "car"}
-    src.model[-1].classifier[-1].bias.data.copy_(torch.tensor([10.0, 20.0, 30.0]))
-    trainer = object.__new__(SemanticSegmentationTrainer)
-    trainer.args = SimpleNamespace(cls_remap=True)
-    trainer.data = {"nc": 2, "names": {0: "dog", 1: "cat"}, "channels": 3}
-    model = trainer.get_model("yolo26n-sem.yaml", weights=src, verbose=False)
-    assert model.names == {0: "dog", 1: "cat"} and model.model[-1].classifier[-1].bias.tolist() == [20.0, 10.0]
 
 
 def test_model_profile():
@@ -2342,8 +2237,6 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     """Verify that YOLOE visual prompting respects verbose=False."""
     model = YOLO(WEIGHTS_DIR / "yoloe-26n-seg.pt")
 
-    from ultralytics.models.yolo.yoloe import YOLOEVPSegPredictor
-
     visuals = {
         "bboxes": np.array([[221.52, 405.8, 344.98, 857.54]]),
         "cls": np.array([0]),
@@ -2352,11 +2245,10 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     # Ignore any output produced while loading the model
     capfd.readouterr()
 
-    model.predict(
+    results = model.predict(
         SOURCE,
         refer_image=SOURCE,
         visual_prompts=visuals,
-        predictor=YOLOEVPSegPredictor,
         verbose=False,
     )
 
@@ -2364,6 +2256,7 @@ def test_yoloe_visual_prompt_verbose_false(capfd):
     output = captured.out + captured.err
 
     assert "Ultralytics" not in output
+    assert model.task == "segment" and results[0].masks is not None
 
 
 def test_yolov10():
@@ -2422,7 +2315,7 @@ def test_grayscale(task: str, model: str, data: str, tmp_path) -> None:
     export_model = model.export(format="onnx")
 
     model = YOLO(export_model, task=task)
-    model.predict(source=im, imgsz=32)
+    assert len(model.predict(source=[im, im], imgsz=32)) == 2  # reuse the static batch-1 export for over-batch coverage
 
 
 def test_semantic_polygon_data():

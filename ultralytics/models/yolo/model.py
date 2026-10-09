@@ -486,8 +486,7 @@ class YOLOE(Model):
                 for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
                 array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type, optional): Predictor class for visual prompt predictions. Defaults to a task-matched YOLOE
-                visual-prompt predictor (segment models get YOLOEVPSegPredictor, others YOLOEVPDetectPredictor).
+            predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -537,12 +536,9 @@ class YOLOE(Model):
             num_cls = max(per_image)
             overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
             overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
-            if predictor is None:  # resolve the VP predictor by task: all released YOLOE checkpoints are -seg
-                predictor = (
-                    yolo.yoloe.YOLOEVPSegPredictor
-                    if self.model.task == "segment"
-                    else yolo.yoloe.YOLOEVPDetectPredictor
-                )
+            predictor = predictor or (
+                yolo.yoloe.YOLOEVPSegPredictor if self.model.task == "segment" else yolo.yoloe.YOLOEVPDetectPredictor
+            )
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict

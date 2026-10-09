@@ -423,7 +423,7 @@ class BaseModel(torch.nn.Module):
             """Yield (state-dict key prefix, sequence) for every nc-indexed class-logit branch of a head."""
             if isinstance(m, Detect):
                 for attr in ("cv3", "one2one_cv3"):
-                    for i, seq in enumerate(getattr(m, attr, ())):
+                    for i, seq in enumerate(getattr(m, attr, None) or ()):
                         yield f"{attr}.{i}", seq
                 semseg = getattr(getattr(m, "proto", None), "semseg", None)  # YOLO26 Segment per-pixel class logits
                 if semseg is not None:

@@ -301,6 +301,42 @@ hailortcli parse-hef yolo11n_hailo_model/yolo11n.hef
 
 Device-only performance measurements isolate Hailo inference from video decoding, image resizing, drawing, and application I/O. Measure the complete application separately when estimating end-to-end latency or frames per second.
 
+## Benchmarks
+
+The Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy between PyTorch and Hailo.
+
+!!! tip "Performance"
+
+    === "Raspberry Pi 5 + AI HAT+ (Hailo-8)"
+
+        | Model   | Format  | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
+        | ------- | ------- | ------ | --------- | ------------------- | ---------------------- |
+        | YOLO26n | PyTorch | ✅     | 5.3       | 0.477               | 364.6                  |
+        | YOLO26n | Hailo   | ✅     | 7.3       | 0.455               | 21.7                   |
+
+        | Model       | Format  | Status | Size (MB) | metrics/mIoU | Inference time (ms/im) |
+        | ----------- | ------- | ------ | --------- | ------------ | ---------------------- |
+        | YOLO26n-sem | PyTorch | ✅     | 3.3       | 0.611        | 831.2                  |
+        | YOLO26n-sem | Hailo   | ✅     | 6.2       | 0.611        | 34.8                   |
+
+        | Model         | Format  | Status | Size (MB) | metrics/delta1 | metrics/abs_rel | metrics/rmse | Inference time (ms/im) |
+        | ------------- | ------- | ------ | --------- | -------------- | --------------- | ------------ | ---------------------- |
+        | YOLO26n-depth | PyTorch | ✅     | 12.4      | 0.8535         | 0.0983          | 0.2047       | 2133.4                 |
+        | YOLO26n-depth | Hailo   | ✅     | 9.9       | 0.8241         | 0.1232          | 0.2554       | 29.6                   |
+
+        | Model       | Format  | Status | Size (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
+        | ----------- | ------- | ------ | --------- | ---------- | ---------- | ---------------------- |
+        | YOLO26n-cls | PyTorch | ✅     | 5.5       | 0.431      | 0.716      | 33.8                   |
+        | YOLO26n-cls | Hailo   | ✅     | 3.5       | 0.441      | 0.716      | 2.0                    |
+
+    === "More devices coming soon!"
+
+    Benchmarked with Ultralytics 8.4.174
+
+    !!! note
+
+        Validation for the above benchmarks was done using COCO128 for detection, Cityscapes8 for semantic segmentation, Depth8 for depth estimation, and ImageNet100 for classification. Cityscapes8 and Depth8 contain only 4 validation images each, so treat their semantic segmentation and depth accuracy values as smoke-test results, not accuracy-retention measurements; validate on a full dataset such as Cityscapes or NYU Depth V2 before drawing accuracy conclusions. Inference time does not include pre/post-processing.
+
 ## Hailo Compared with Other YOLO Export Formats
 
 Choose an export format based on the hardware that will execute the model. HEF is hardware-specific and should be selected when the final device already contains a Hailo accelerator, not as a general-purpose or automatically fastest edge format.

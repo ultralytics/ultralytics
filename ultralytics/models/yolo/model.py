@@ -472,7 +472,7 @@ class YOLOE(Model):
         stream: bool = False,
         visual_prompts: dict[str, np.ndarray | list[np.ndarray]] | None = None,
         refer_image=None,
-        predictor=yolo.yoloe.YOLOEVPDetectPredictor,
+        predictor: type | None = None,
         **kwargs,
     ):
         """Run prediction on images, videos, directories, streams, etc.
@@ -486,7 +486,8 @@ class YOLOE(Model):
                 for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
                 array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type): Predictor class for visual prompt predictions. Defaults to YOLOEVPDetectPredictor.
+            predictor (type, optional): Predictor class for visual prompt predictions. Defaults to a task-matched
+                YOLOE visual-prompt predictor (segment models get YOLOEVPSegPredictor, others YOLOEVPDetectPredictor).
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:
@@ -536,6 +537,12 @@ class YOLOE(Model):
             num_cls = max(per_image)
             overrides = {"verbose": refer_image is None, **self.overrides, **_handle_deprecation(kwargs)}
             overrides.update(task=self.model.task, mode="predict", save=False, batch=1)
+            if predictor is None:  # resolve the VP predictor by task: all released YOLOE checkpoints are -seg
+                predictor = (
+                    yolo.yoloe.YOLOEVPSegPredictor
+                    if self.model.task == "segment"
+                    else yolo.yoloe.YOLOEVPDetectPredictor
+                )
             if type(self.predictor) is not predictor:
                 self.predictor = predictor(overrides=overrides, _callbacks=self.callbacks)
             else:  # setup_model below applies this call's setup args, with unset quantize as FP32 like Model.predict

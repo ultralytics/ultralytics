@@ -418,14 +418,27 @@ class BaseModel(torch.nn.Module):
 
         valid = idx >= 0
         state_dict = self.state_dict()
-        # Exact class-logit conv weight/bias keys from the detection head(s) — restricting to these avoids
-        # class-ordering tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
+
+        def cls_seqs(m):
+            """Yield (state-dict key prefix, sequence) for every nc-indexed class-logit branch of a head."""
+            if isinstance(m, Detect):
+                for attr in ("cv3", "one2one_cv3"):
+                    for i, seq in enumerate(getattr(m, attr, ())):
+                        yield f"{attr}.{i}", seq
+                semseg = getattr(getattr(m, "proto", None), "semseg", None)  # YOLO26 Segment per-pixel class logits
+                if semseg is not None:
+                    yield "proto.semseg", semseg
+            elif isinstance(m, SemanticSegment):
+                yield "classifier", m.classifier
+                if m.aux_head is not None:
+                    yield "aux_head", m.aux_head
+
+        # Exact class-logit conv weight/bias keys from the head(s) — restricting to these avoids class-ordering
+        # tensors that merely share the nc dimension (backbone blocks, box/mask/pose branches).
         cls_keys = {
-            f"{name}.{attr}.{i}.{len(seq) - 1}.{p}"
+            f"{name}.{prefix}.{len(seq) - 1}.{p}"
             for name, m in self.named_modules()
-            if isinstance(m, Detect)
-            for attr in ("cv3", "one2one_cv3")
-            for i, seq in enumerate(getattr(m, attr, ()))
+            for prefix, seq in cls_seqs(m)
             if getattr(seq[-1], "out_channels", None) == tgt_nc
             for p in ("weight", "bias")
         }

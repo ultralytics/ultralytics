@@ -1957,6 +1957,7 @@ def test_nn_depth_head_no_dead_parameters():
 def test_classification_fraction_samples_across_classes(tmp_path):
     """Sample classification fractions across the class-major ImageFolder ordering."""
     from ultralytics.data.dataset import ClassificationDataset
+    from ultralytics.data.split import split_classify_dataset
 
     for class_index in range(3):
         class_dir = tmp_path / str(class_index)
@@ -1968,6 +1969,10 @@ def test_classification_fraction_samples_across_classes(tmp_path):
     samples = ClassificationDataset(tmp_path, args, augment=True).samples
 
     assert np.bincount([sample[1] for sample in samples]).tolist() == [2, 2, 2]
+    for ratio in (0.5, 0.75, 0.25):
+        split = split_classify_dataset(tmp_path, train_ratio=ratio)
+        train, val = ({p.relative_to(split / k) for p in (split / k).rglob("*.jpg")} for k in ("train", "val"))
+        assert len(train) == int(4 * ratio) * 3 and len(train | val) == 12 and train.isdisjoint(val)
 
 
 def test_classification_split_class_alignment(tmp_path):

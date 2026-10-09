@@ -89,11 +89,12 @@ def split_classify_dataset(source_dir: str | Path, train_ratio: float = 0.8) -> 
         random.Random(0).shuffle(image_files)  # deterministic, so re-splitting never mixes train and val images
         split_idx = int(len(image_files) * train_ratio)
 
-        for images, target in ((image_files[:split_idx], train_path), (image_files[split_idx:], val_path)):
-            for img in images:
-                destination = target / class_dir.name / img.relative_to(class_dir)
-                destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(img, destination)
+        for i, img in enumerate(image_files):
+            target, previous = (train_path, val_path) if i < split_idx else (val_path, train_path)
+            relative = Path(class_dir.name, img.relative_to(class_dir))
+            (previous / relative).unlink(missing_ok=True)  # a changed ratio or image set reassigns this image
+            (target / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(img, target / relative)
 
     LOGGER.info(f"Split complete in {split_path} ({total_images} images) ✅")
     return split_path

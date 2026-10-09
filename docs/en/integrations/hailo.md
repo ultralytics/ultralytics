@@ -315,23 +315,23 @@ Ultralytics team benchmarked YOLO26 models, comparing speed and accuracy between
 
         | Model   | Format  | Status | Size (MB) | metrics/mAP50-95(B) | Inference time (ms/im) |
         | ------- | ------- | ------ | --------- | ------------------- | ---------------------- |
-        | YOLO26n | PyTorch | ✅     | 5.3       | 0.477               | 367.0                  |
-        | YOLO26n | Hailo   | ✅     | 7.3       | 0.456               | 21.9                   |
+        | YOLO26n | PyTorch | ✅     | 5.3       | 0.477               | 364.6                  |
+        | YOLO26n | Hailo   | ✅     | 7.3       | 0.455               | 21.7                   |
 
         | Model       | Format  | Status | Size (MB) | metrics/mIoU | Inference time (ms/im) |
         | ----------- | ------- | ------ | --------- | ------------ | ---------------------- |
-        | YOLO26n-sem | PyTorch | ✅     | 3.3       | 0.611        | 849.2                  |
-        | YOLO26n-sem | Hailo   | ✅     | 6.2       | 0.612        | 34.7                   |
+        | YOLO26n-sem | PyTorch | ✅     | 3.3       | 0.611        | 831.2                  |
+        | YOLO26n-sem | Hailo   | ✅     | 6.2       | 0.611        | 34.8                   |
 
         | Model         | Format  | Status | Size (MB) | metrics/delta1 | metrics/abs_rel | metrics/rmse | Inference time (ms/im) |
         | ------------- | ------- | ------ | --------- | -------------- | --------------- | ------------ | ---------------------- |
-        | YOLO26n-depth | PyTorch | ✅     | 12.4      | 0.8535         | 0.0983          | 0.2047       | 2161.4                 |
-        | YOLO26n-depth | Hailo   | ✅     | 9.9       | 0.5480         | 0.2597          | 0.4462       | 29.7                   |
+        | YOLO26n-depth | PyTorch | ✅     | 12.4      | 0.8535         | 0.0983          | 0.2047       | 2133.4                 |
+        | YOLO26n-depth | Hailo   | ✅     | 9.9       | 0.8241         | 0.1232          | 0.2554       | 29.6                   |
 
         | Model       | Format  | Status | Size (MB) | acc (top1) | acc (top5) | Inference time (ms/im) |
         | ----------- | ------- | ------ | --------- | ---------- | ---------- | ---------------------- |
-        | YOLO26n-cls | PyTorch | ✅     | 5.5       | 0.431      | 0.716      | 35.0                   |
-        | YOLO26n-cls | Hailo   | ✅     | 3.5       | 0.422      | 0.686      | 2.1                    |
+        | YOLO26n-cls | PyTorch | ✅     | 5.5       | 0.431      | 0.716      | 33.8                   |
+        | YOLO26n-cls | Hailo   | ✅     | 3.5       | 0.441      | 0.716      | 2.0                    |
 
     === "More devices coming soon!"
 

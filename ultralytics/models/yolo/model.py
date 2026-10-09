@@ -486,7 +486,8 @@ class YOLOE(Model):
                 for the model. Must include 'bboxes' and 'cls' keys when non-empty, holding either flat arrays or one
                 array per image for an explicit list, tuple, or 4-D tensor source with no refer_image.
             refer_image (str | PIL.Image | np.ndarray, optional): Reference image for visual prompts.
-            predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model task.
+            predictor (type, optional): Visual-prompt predictor class. Defaults to the predictor matching the model
+                task.
             **kwargs (Any): Additional keyword arguments passed to the predictor.
 
         Returns:

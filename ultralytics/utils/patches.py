@@ -34,10 +34,10 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         >>> img = imread("path/to/image.jpg", cv2.IMREAD_GRAYSCALE)
 
     Notes:
-        - Multi-page grayscale TIFFs with same-size pages stack them as channels. Other multi-page TIFFs, such as color
-          pages or Cloud Optimized GeoTIFFs with overview and thumbnail pages, return their first page.
-        - 16-bit TIFFs keep their high byte as 8-bit, as cv2 decodes 16-bit PNGs, unless `flags` includes
-          cv2.IMREAD_ANYDEPTH.
+        - Multi-page grayscale TIFFs with same-size pages stack them as channels. Color TIFFs keep every band, such as
+          alpha or near-infrared, only with cv2.IMREAD_UNCHANGED. Other multi-page TIFFs, such as Cloud Optimized
+          GeoTIFFs with overview and thumbnail pages, return their first page.
+        - 16-bit stacked or all-band TIFFs keep their high byte as 8-bit, as cv2 decodes 16-bit PNGs.
     """
     filename = str(filename)
     try:
@@ -48,9 +48,12 @@ def imread(filename: str | Path, flags: int = cv2.IMREAD_COLOR) -> np.ndarray | 
         return None
     if flags != cv2.IMREAD_GRAYSCALE and filename.lower().endswith((".tiff", ".tif")):
         success, frames = cv2.imdecodemulti(file_bytes, cv2.IMREAD_UNCHANGED)
-        if success and (frames[0].ndim == 3 or (len(frames) > 1 and all(f.shape == frames[0].shape for f in frames))):
+        if success and (
+            (frames[0].ndim == 3 and flags == cv2.IMREAD_UNCHANGED)
+            or (frames[0].ndim == 2 and len(frames) > 1 and all(f.shape == frames[0].shape for f in frames))
+        ):
             im = frames[0] if frames[0].ndim == 3 else np.stack(frames, axis=2)  # color pages keep the first page
-            return (im >> 8).astype(np.uint8) if im.dtype == np.uint16 and not flags & cv2.IMREAD_ANYDEPTH else im
+            return (im >> 8).astype(np.uint8) if im.dtype == np.uint16 else im
     im = _imread_pil(filename, flags) if filename.lower().endswith(PIL_FALLBACK_SUFFIXES) else None  # EXIF-aware
     if im is None:
         im = cv2.imdecode(file_bytes, flags)

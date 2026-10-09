@@ -127,7 +127,7 @@ class ReID:
                     chunk = batch[s : s + bs]
                     if chunk.shape[0] < bs:
                         chunk = torch.cat([chunk, chunk[-1:].expand(bs - chunk.shape[0], *chunk.shape[1:])], 0)
-                    outs.append(self.model(chunk))
+                    outs.append(self.model(chunk).clone())  # IO binding reuses output buffers
                 feats = torch.cat(outs, 0)[:n]
             valid_feats = [f.cpu().numpy() for f in feats]
 
